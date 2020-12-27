@@ -2,12 +2,12 @@
 
 package koodies.runtime
 
+import koodies.io.path.Locations.Temp
 import koodies.io.path.age
 import koodies.io.path.appendLine
 import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
-import koodies.runtime.koodies.persistence.Paths.Temp
 import java.nio.file.Path
 import java.security.AccessControlException
 import java.util.concurrent.locks.ReentrantLock

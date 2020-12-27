@@ -1,6 +1,6 @@
 package koodies.runtime
 
-import koodies.runtime.koodies.persistence.Paths
+import koodies.io.path.Locations
 import koodies.time.Now
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -21,7 +21,7 @@ class ExitKtTest {
     class DeleteOnExit {
 
         private val name = "koodies.onexit.does-not-work.txt"
-        private val markerFile: Path = Paths.Temp.resolve(name)
+        private val markerFile: Path = Locations.Temp.resolve(name)
 
         @BeforeAll
         fun setUp() {
@@ -37,7 +37,7 @@ class ExitKtTest {
         fun tearDown() {
             markerFile.writeText("""
             This file was created $Now.
-            It used to be cleaned up by the com.bkahlert.koodies library
+            It used to be cleaned up by the koodies library
             the moment the application in question shut down.
             
             The application was started by ${System.getProperty("sun.java.command")}.

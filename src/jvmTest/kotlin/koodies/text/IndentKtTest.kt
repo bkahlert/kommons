@@ -1,0 +1,37 @@
+package koodies.text
+
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import strikt.api.expectThat
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+
+@Execution(CONCURRENT)
+class IndentKtTest {
+    @Test
+    fun `should return indent`() {
+        val whitespaces = Unicode.whitespaces.filter { it.isWhitespace() }.joinToString("")
+        expectThat("${whitespaces}X".indent).isEqualTo(whitespaces)
+    }
+
+    @Test
+    fun `should return 0 on no indention`() {
+        expectThat("X".indent).isEmpty()
+    }
+
+    @Test
+    fun `should return 0 on blank string`() {
+        expectThat(" ".indent).isEqualTo(" ")
+    }
+
+    @Test
+    fun `should return 0 on empty string`() {
+        expectThat("".indent).isEmpty()
+    }
+
+    @Test
+    fun `should return indentation of first line`() {
+        expectThat("   3\n  2\n    4\n".indent).isEqualTo("   ")
+    }
+}

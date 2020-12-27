@@ -1,12 +1,14 @@
 package koodies.text
 
 import kotlin.random.Random
-
+ 
 object CharRanges {
     val Numeric: CharRange = ('0'..'9')
     val LowerCaseAtoZ: CharRange = ('a'..'z')
     val UpperCaseAtoZ: CharRange = ('A'..'Z')
+
     val Alphanumeric: CharArray = (Numeric + LowerCaseAtoZ + UpperCaseAtoZ).toCharArray()
+    val UpperCaseAlphanumeric: CharArray = (Numeric + UpperCaseAtoZ).toCharArray()
 }
 
 

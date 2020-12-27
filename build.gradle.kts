@@ -1,7 +1,6 @@
-import java.net.URI
-
 plugins {
     kotlin("multiplatform") version "1.4.21"
+    id("org.jetbrains.dokka") version "0.10.1"
     id("maven-publish")
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
@@ -12,8 +11,8 @@ allprojects {
     apply { plugin("se.patrikerdes.use-latest-versions") }
 }
 
-group = "com.bkahlert.koodies"
-version = "1.0"
+group = "koodies"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -79,8 +78,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:0.20.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.8")
+//                implementation("com.squareup.okio:okio-multiplatform:2.9.0")
+//                implementation("com.squareup.okio:okio:2.9.0")
             }
         }
         val commonTest by getting {
@@ -89,13 +88,40 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val jvmMain by getting
+        val jvmMain by getting {
+            dependencies {
+                implementation("commons-io:commons-io:2.8.0")
+                implementation("org.apache.commons:commons-compress:1.20")
+                implementation("org.apache.commons:commons-exec:1.3")
+                implementation("org.codehaus.plexus:plexus-utils:3.3.0")
+                implementation("org.jline:jline-reader:3.16.0")
+
+                @Suppress("SpellCheckingInspection")
+                implementation("com.tunnelvisionlabs:antlr4-runtime:4.7.4") {
+                    because("grapheme parsing")
+                }
+                @Suppress("SpellCheckingInspection")
+                implementation("com.tunnelvisionlabs:antlr4-perf-testsuite:4.7.4")
+
+
+                implementation("com.github.ajalt:mordant:1.2.1") {// implementation("com.github.ajalt.mordant:mordant:2.0.0-alpha1")
+                    exclude("org.jetbrains.kotlin", "kotlin-stdlib")
+                }
+            }
+        }
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
-                implementation("io.strikt:strikt-core:0.27.0")
+                implementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+                implementation("org.junit.platform:junit-platform-commons:1.7.0")
+                implementation("org.junit.platform:junit-platform-launcher:1.7.0")
+                runtimeOnly("org.junit.platform:junit-platform-console:1.7.0") {
+                    because("needed to launch the JUnit Platform Console program")
+                }
+
+                implementation("io.strikt:strikt-core:0.28.1")
             }
         }
         val jsMain by getting
@@ -109,11 +135,11 @@ kotlin {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            description = "Kotlin Goodies"
-            url = URI.create("http://www.example.com/library")
+//publishing {
+//    repositories {
+//        maven {
+//            description = "Kotlin Goodies"
+//            url = URI.create("http://www.example.com/library")
 //            artifacts {
 //                add("library") {
 //                    licenses {
@@ -136,6 +162,6 @@ publishing {
 //                    }
 //                }
 //            }
-        }
-    }
-}
+//        }
+//    }
+//}
