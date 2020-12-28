@@ -2,6 +2,7 @@ package koodies.process
 
 import koodies.concurrent.daemon
 import koodies.concurrent.process.UserInput.enter
+import koodies.concurrent.process.process
 import koodies.io.path.isEqualToByteWise
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
@@ -12,10 +13,11 @@ import koodies.process.ProcessExitMock.Companion.immediateExit
 import koodies.process.ProcessExitMock.Companion.immediateSuccess
 import koodies.process.SlowInputStream.Companion.prompt
 import koodies.process.SlowInputStream.Companion.slowInputStream
-import koodies.test.junit.Slow
-import koodies.test.junit.assertTimeoutPreemptively
+import koodies.test.Slow
+import koodies.test.assertTimeoutPreemptively
 import koodies.test.test
 import koodies.text.joinLinesToString
+import koodies.time.sleep
 import koodies.tracing.subTrace
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.jupiter.api.Nested
@@ -36,6 +38,7 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isTrue
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 import kotlin.time.seconds
@@ -348,5 +351,43 @@ class JavaProcessMockTest {
 
         (p.inputStream as SlowInputStream).available()
         expectThat(p.received).isEqualTo("Test1234\rJust in case\n")
+    }
+
+    @Test
+    fun InMemoryLogger.`should read zero bytes without exception and delay onexit`() {
+        val process = withIndividuallySlowInput(
+            0.milliseconds to "[  OK  ] Started Update UTMP about System Runlevel Changes.\n",
+            prompt(),
+            100.milliseconds to "Shutting down",
+            baseDelayPerInput = 100.milliseconds,
+            processExit = {
+                object : ProcessExitMock(0, Duration.ZERO) {
+                    override fun invoke(): Int {
+                        while (!outputStream.toString().contains("shutdown")) {
+                            100.milliseconds.sleep()
+                        }
+                        return 0
+                    }
+
+                    override fun invoke(timeout: Duration): Boolean {
+                        while (!outputStream.toString().contains("shutdown")) {
+                            100.milliseconds.sleep()
+                        }
+                        return true
+                    }
+                }
+            },
+            echoInput = true).start()
+
+        daemon {
+            3.seconds.sleep()
+            process.enter("shutdown")
+        }
+
+        val exitValue = process.process(nonBlockingReader = false) { }.waitForTermination()
+
+        expectThat(exitValue) {
+            isEqualTo(0)
+        }
     }
 }

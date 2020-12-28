@@ -16,6 +16,7 @@ import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.unit.Size.Companion.bytes
@@ -38,7 +39,7 @@ import java.nio.file.Path
 class ArchiverTarGzTest {
 
     @TestFactory
-    fun `should throw on missing source`() = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
 //        { randomPath().archive() },
 //        { randomPath(extension = ".tar.gz").unarchive() },
         {
@@ -46,31 +47,31 @@ class ArchiverTarGzTest {
                 listArchive()
             }
         },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<NoSuchFileException>()
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().apply { writeText("content") } }.archive("tar.gz") },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         {
             randomDirectory().directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().apply { writeText("content") } }
                 .archive("tar.gz", overwrite = true)
         },
         { randomDirectory().archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive(overwrite = true) },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectThat(call()).exists()
     }
 
     @Test
-    fun `should tar-gzip and untar-gunzip`() = withTempDir {
+    fun `should tar-gzip and untar-gunzip`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tarGzip()

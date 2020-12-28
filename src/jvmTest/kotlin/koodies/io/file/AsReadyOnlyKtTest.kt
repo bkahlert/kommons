@@ -7,6 +7,7 @@ import koodies.io.path.hasContent
 import koodies.io.path.randomFile
 import koodies.io.path.randomPath
 import koodies.runtime.deleteOnExit
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
@@ -34,61 +35,61 @@ import kotlin.io.path.moveTo
 class AsReadyOnlyKtTest {
 
     @TestFactory
-    fun `should allow`() = listOf(
+    fun `should allow`(uniqueId: UniqueId) = listOf(
         allowedFileOperation(
-            "readable",
+            "readable", uniqueId,
             { isReadable() },
             { Files.isReadable(this) },
         ) { isTrue() },
 
         allowedFileOperation(
-            "writable",
+            "writable", uniqueId,
             { isWritable() },
             { Files.isWritable(this) },
         ) { isFalse() },
 
         allowedFileOperation(
-            "executable",
+            "executable", uniqueId,
             { executable },
             { Files.isExecutable(this) },
         ) { },
 
         allowedFileOperation(
-            "exists",
+            "exists", uniqueId,
             { exists() },
             { Files.exists(this) },
         ) { isTrue() },
 
         allowedFileOperation(
-            "copy",
+            "copy", uniqueId,
             { copyTo(sameFile("$fileName").deleteOnExit()) },
             { sameFile("$fileName").deleteOnExit().also { Files.copy(this, it) } },
         ) { get { sameFile("$fileName") }.hasContent("line #1\nline #2\n") },
 
         allowedFileOperation(
-            "buffered reading",
+            "buffered reading", uniqueId,
             { bufferedInputStream().bufferedReader().readText() },
             { Files.newBufferedReader(this).readText() },
         ) { isEqualTo("line #1\nline #2\n") },
     )
 
     @TestFactory
-    fun `should disallow`() = listOf(
+    fun `should disallow`(uniqueId: UniqueId) = listOf(
 
         disallowedFileOperation(
-            "move",
-            { withTempDir { moveTo(randomPath()) } },
-            { withTempDir { Files.move(this, randomPath()) } },
+            "move", uniqueId,
+            { withTempDir(uniqueId) { moveTo(randomPath()) } },
+            { withTempDir(uniqueId) { Files.move(this, randomPath()) } },
         ) { isA<java.nio.file.FileSystemException>() },
 
         disallowedFileOperation(
-            "any type of output stream",
+            "any type of output stream", uniqueId,
             { outputStream() },
             { Files.newBufferedWriter(this) },
         ) { isA<ReadOnlyFileSystemException>() },
 
         disallowedFileOperation(
-            "delete",
+            "delete", uniqueId,
             { delete() },
             { Files.delete(this) },
         ) { isA<ReadOnlyFileSystemException>() },
@@ -97,12 +98,13 @@ class AsReadyOnlyKtTest {
 
 internal inline fun <reified T> allowedFileOperation(
     name: String,
+    uniqueId: UniqueId,
     vararg variants: Path.() -> T,
     crossinline validator: Assertion.Builder<T>.() -> Unit,
 ): DynamicContainer {
     return dynamicContainer("call to $name", variants.map { variant ->
         dynamicTest("$variant") {
-            withTempDir {
+            withTempDir(uniqueId) {
                 val tempFile = randomFile().writeText("line #1\nline #2\n").asReadOnly()
                 expectThat(variant(tempFile)).validator()
             }
@@ -112,12 +114,13 @@ internal inline fun <reified T> allowedFileOperation(
 
 internal inline fun disallowedFileOperation(
     name: String,
+    uniqueId: UniqueId,
     vararg variants: Path.() -> Unit,
     crossinline validator: Assertion.Builder<Throwable>.() -> Unit,
 ): DynamicContainer {
     return dynamicContainer("call to $name", variants.map { variant ->
         dynamicTest("$variant") {
-            withTempDir {
+            withTempDir(uniqueId) {
                 val tempFile = randomFile().writeText("line #1\nline #2\n").asReadOnly()
                 expectCatching { variant(tempFile) }.isFailure().validator()
             }

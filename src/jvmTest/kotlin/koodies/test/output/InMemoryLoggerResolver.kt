@@ -1,8 +1,8 @@
 package koodies.test.output
 
 import koodies.logging.InMemoryLogger
-import koodies.test.junit.Verbosity.Companion.isVerbose
-import koodies.test.junit.testName
+import koodies.test.Verbosity.Companion.isVerbose
+import koodies.test.testName
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace.create

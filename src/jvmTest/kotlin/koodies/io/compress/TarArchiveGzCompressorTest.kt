@@ -12,6 +12,7 @@ import koodies.io.path.renameTo
 import koodies.io.path.touch
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.unit.Size.Companion.bytes
@@ -36,31 +37,31 @@ import kotlin.io.path.writeText
 class TarArchiveGzCompressorTest {
 
     @TestFactory
-    fun `should throw on missing source`() = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { randomPath().tarGzip() },
         { randomPath(extension = ".tar.gz").tarGunzip() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<NoSuchFileException>()
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar.gz").touch().writeText("content") }.tarGzip() },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("tar.gz")) }.tarGunzip() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar.gz").touch().writeText("content") }.tarGzip(overwrite = true) },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("tar.gz")) }.tarGunzip(overwrite = true) },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectThat(call()).exists()
     }
 
     @Test
-    fun `should tar-gzip listArchive and untar-gunzip`() = withTempDir {
+    fun `should tar-gzip listArchive and untar-gunzip`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tarGzip()

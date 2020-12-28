@@ -1,6 +1,6 @@
 package koodies.secret
 
-import koodies.test.junit.systemproperties.SystemProperty
+import koodies.test.SystemProperty
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.test.HtmlFile
-import koodies.test.junit.Slow
+import koodies.test.Slow
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

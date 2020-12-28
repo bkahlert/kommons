@@ -13,6 +13,7 @@ import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithSingleFile
 import koodies.test.Fixtures.singleFile
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
@@ -37,31 +38,31 @@ import java.nio.file.Path
 class CompressorTest {
 
     @TestFactory
-    fun `should throw on missing source`() = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { randomPath().compress() },
         { randomPath(extension = ".bzip2").decompress() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<NoSuchFileException>()
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { singleFile().apply { addExtensions("bzip2").touch().writeText("content") }.compress("bzip2") },
         { archiveWithSingleFile("bzip2").apply { copyTo(removeExtensions("bzip2")) }.decompress() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { singleFile().apply { addExtensions("bzip2").touch().writeText("content") }.compress("bzip2", overwrite = true) },
         { archiveWithSingleFile("bzip2").apply { copyTo(removeExtensions("bzip2")) }.decompress(overwrite = true) },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectThat(call()).exists()
     }
 
     @Test
-    fun `should compress and decompress`() = withTempDir {
+    fun `should compress and decompress`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file: Path = singleFile()
         file.requireNotEmpty()
 

@@ -7,8 +7,8 @@ import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
 import koodies.concurrent.process.silentlyProcess
 import koodies.concurrent.synchronized
-import koodies.test.junit.Slow
-import koodies.test.uniqueId
+import koodies.test.Slow
+import koodies.test.UniqueId
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -31,8 +31,8 @@ class DockerProcessTest {
     inner class Lifecycle {
 
         @DockerRequiring @Test
-        fun `should start docker and pass arguments`() {
-            val dockerProcess = Docker.busybox(uniqueId, "echo test").execute().silentlyProcess()
+        fun `should start docker and pass arguments`(uniqueId: UniqueId) {
+            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().silentlyProcess()
 
             kotlin.runCatching {
                 poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
@@ -44,8 +44,8 @@ class DockerProcessTest {
         }
 
         @DockerRequiring @Test
-        fun `should start docker and process input`() {
-            val dockerProcess = Docker.busybox(uniqueId).execute().silentlyProcess()
+        fun `should start docker and process input`(uniqueId: UniqueId) {
+            val dockerProcess = Docker.busybox(uniqueId.simple).execute().silentlyProcess()
 
             kotlin.runCatching {
                 dockerProcess.enter("echo 'test'")
@@ -56,9 +56,9 @@ class DockerProcessTest {
         }
 
         @DockerRequiring @Test
-        fun `should start docker and process output`() {
+        fun `should start docker and process output`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(
-                uniqueId,
+                uniqueId.simple,
                 """while true; do""",
                 """echo "looping"""",
                 """sleep 1""",
@@ -72,10 +72,10 @@ class DockerProcessTest {
         }
 
         @DockerRequiring @Test
-        fun `should start docker and process output produced by own input`() {
+        fun `should start docker and process output produced by own input`(uniqueId: UniqueId) {
             val logged = mutableListOf<String>().synchronized()
             val dockerProcess =
-                Docker.busybox(uniqueId).execute().process { io ->
+                Docker.busybox(uniqueId.simple).execute().process { io ->
                     logged.add(io.unformatted)
                     if (io.type == OUT) {
                         if (logged.contains("test 4 6")) stop()
@@ -98,9 +98,9 @@ class DockerProcessTest {
         inner class IsRunning {
 
             @DockerRequiring @Test
-            fun `should return false on not yet started container container`() {
+            fun `should return false on not yet started container container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId,
+                    uniqueId.simple,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -113,9 +113,9 @@ class DockerProcessTest {
             }
 
             @DockerRequiring @Test
-            fun `should return true on running container`() {
+            fun `should return true on running container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId,
+                    uniqueId.simple,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -130,9 +130,9 @@ class DockerProcessTest {
             }
 
             @DockerRequiring @Test
-            fun `should return false on completed container`() {
+            fun `should return false on completed container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId,
+                    uniqueId.simple,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -152,9 +152,9 @@ class DockerProcessTest {
             }
 
             @DockerRequiring @Test
-            fun `should stop started container`() {
+            fun `should stop started container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId,
+                    uniqueId.simple,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -175,9 +175,9 @@ class DockerProcessTest {
         }
 
         @Slow @DockerRequiring @Test
-        fun `should remove docker container after completion`() {
+        fun `should remove docker container after completion`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(
-                uniqueId,
+                uniqueId.simple,
                 """while true; do""",
                 """echo "looping"""",
                 """sleep 1""",
@@ -199,10 +199,10 @@ class DockerProcessTest {
     }
 
     @Slow @DockerRequiring @Test
-    fun `should not produce incorrect empty lines`() {
+    fun `should not produce incorrect empty lines`(uniqueId: UniqueId) {
         val output = mutableListOf<IO>().synchronized()
         val dockerProcess = Docker.busybox(
-            uniqueId,
+            uniqueId.simple,
             """while true; do""",
             """echo "looping"""",
             """sleep 1""",
@@ -210,7 +210,7 @@ class DockerProcessTest {
         ).execute().process {
             output.add(it)
         }
-        
+
         kotlin.runCatching {
             20.seconds.sleep()
             dockerProcess.stop()

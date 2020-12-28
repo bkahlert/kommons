@@ -8,7 +8,8 @@ import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.test.HtmlFile
-import koodies.test.junit.Slow
+import koodies.test.Slow
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.fuzzyLevenshteinDistance
 import koodies.text.joinLinesToString
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively
-import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -130,37 +130,35 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Isolated
     @Nested
     inner class Benchmark {
-        private val expected = HtmlFile.text.repeat(150)
+        private val expected = HtmlFile.text.repeat(50)
 
         @Test
-        fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(extensionContext: ExtensionContext) =
-            withTempDir(extensionContext) {
-                val reader = readerFactory(expected.byteInputStream(), 1.seconds)
+        fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val reader = readerFactory(expected.byteInputStream(), 1.seconds)
 
-                val read = mutableListOf<String>()
-                kotlin.runCatching {
-                    assertTimeoutPreemptively(30.seconds.toJavaDuration()) {
-                        reader.forEachLine {
-                            read.add(it)
-                        }
+            val read = mutableListOf<String>()
+            kotlin.runCatching {
+                assertTimeoutPreemptively(30.seconds.toJavaDuration()) {
+                    reader.forEachLine {
+                        read.add(it)
                     }
-                }.onFailure { dump("Test failed.") { read.joinLinesToString() } }
+                }
+            }.onFailure { dump("Test failed.") { read.joinLinesToString() } }
 
-                expectThat(read.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
-            }
+            expectThat(read.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+        }
 
         @Test
-        fun InMemoryLogger.`should quickly read boot sequence using foreign forEachLine`(extensionContext: ExtensionContext) =
-            withTempDir(extensionContext) {
-                val read = ByteArrayOutputStream()
-                val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), 1.seconds)
+        fun InMemoryLogger.`should quickly read boot sequence using foreign forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val read = ByteArrayOutputStream()
+            val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), 1.seconds)
 
-                kotlin.runCatching {
-                    assertTimeoutPreemptively(30.seconds.toJavaDuration()) {
-                        val readLines = reader.readLines()
-                        expectThat(readLines.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
-                    }
-                }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
-            }
+            kotlin.runCatching {
+                assertTimeoutPreemptively(30.seconds.toJavaDuration()) {
+                    val readLines = reader.readLines()
+                    expectThat(readLines.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+                }
+            }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
+        }
     }
 }

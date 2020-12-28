@@ -23,8 +23,8 @@ private val root by lazy { createTempDirectory("koodies").deleteOnExit() }
  *
  * @throws IllegalStateException if called from outside of a test
  */
-fun withTempDir(extensionContext: ExtensionContext? = null, block: Path.() -> Unit) {
-    val tempDir = root.resolve(extensionContext.simpleUniqueId).createDirectories()
+fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
+    val tempDir = root.resolve(uniqueId.simple).createDirectories()
     tempDir.block()
     check(root.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".red())
@@ -64,8 +64,8 @@ inline fun <reified T> Array<T>.test(testNamePattern: String? = null, crossinlin
  * The name for each test is heuristically derived but can also be explicitly specified using [testNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
-inline fun <reified T> Iterable<T>.testWithTempDir(testNamePattern: String? = null, crossinline executable: Path.(T) -> Unit) =
-    test { withTempDir { executable(it) } }
+inline fun <reified T> Iterable<T>.testWithTempDir(uniqueId: UniqueId, testNamePattern: String? = null, crossinline executable: Path.(T) -> Unit) =
+    test { withTempDir(uniqueId) { executable(it) } }
 
 /**
  * Creates a [DynamicTest] for each map entry—providing each test with a temporary work directory
@@ -74,6 +74,10 @@ inline fun <reified T> Iterable<T>.testWithTempDir(testNamePattern: String? = nu
  * The name for each test is heuristically derived but can also be explicitly specified using [testNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
-inline fun <reified K, reified V> Map<K, V>.testWithTempDir(testNamePattern: String? = null, crossinline executable: Path.(Pair<K, V>) -> Unit) =
-    toList().test { withTempDir { executable(it) } }
+inline fun <reified K, reified V> Map<K, V>.testWithTempDir(
+    uniqueId: UniqueId,
+    testNamePattern: String? = null,
+    crossinline executable: Path.(Pair<K, V>) -> Unit,
+) =
+    toList().test { withTempDir(uniqueId) { executable(it) } }
 

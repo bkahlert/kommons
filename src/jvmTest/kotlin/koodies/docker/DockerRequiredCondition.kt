@@ -1,8 +1,8 @@
 package koodies.docker
 
-import koodies.test.junit.debug.Debug
-import koodies.test.junit.isAnnotated
-import koodies.test.junit.testName
+import koodies.test.debug.Debug
+import koodies.test.isAnnotated
+import koodies.test.testName
 import koodies.text.quoted
 import koodies.text.styling.Boxes.Companion.wrapWithBox
 import org.junit.jupiter.api.extension.ConditionEvaluationResult

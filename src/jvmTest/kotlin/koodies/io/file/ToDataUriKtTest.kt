@@ -3,6 +3,7 @@ package koodies.io.file
 import koodies.runtime.deleteOnExit
 import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -14,7 +15,7 @@ import strikt.assertions.isEqualTo
 class ToDataUriKtTest {
 
     @Test
-    fun `should create data URI`() = withTempDir {
+    fun `should create data URI`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val htmlFile = HtmlFile.copyToDirectory(this).deleteOnExit()
 
         @Suppress("SpellCheckingInspection")

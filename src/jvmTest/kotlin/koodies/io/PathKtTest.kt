@@ -1,6 +1,7 @@
 package koodies.io
 
 import koodies.io.path.withDirectoriesCreated
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -18,7 +19,7 @@ class PathKtTest {
     inner class WithMissingDirectoriesCreated {
 
         @Test
-        fun `should create missing directories`() = withTempDir {
+        fun `should create missing directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = resolve("some/dir/some/file")
             expectThat(file.withDirectoriesCreated()).parent.isNotNull().exists()
         }

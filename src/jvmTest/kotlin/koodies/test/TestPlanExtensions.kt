@@ -1,4 +1,4 @@
-package koodies.test.junit
+package koodies.test
 
 import org.junit.platform.engine.support.descriptor.ClassSource
 import org.junit.platform.engine.support.descriptor.MethodSource

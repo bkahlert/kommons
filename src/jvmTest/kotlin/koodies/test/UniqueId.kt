@@ -4,7 +4,7 @@ import koodies.text.withPrefix
 import koodies.text.withoutSuffix
 import org.junit.jupiter.api.extension.ExtensionContext
 
-inline class UniqueId(val uniqueId: String) {
+class UniqueId(val uniqueId: String) {
     companion object {
         fun ExtensionContext.uniqueId(): UniqueId = UniqueId(uniqueId)
     }
@@ -34,7 +34,7 @@ inline class UniqueId(val uniqueId: String) {
         fun formatClass(value: String): String = value.split(".").last()
         fun formatMethod(value: String): String {
             fun formatArgs(args: String) = args.split(",")
-                .filter { it.isNotBlank() }
+                .filter { it.isNotBlank() && it != UniqueId::class.qualifiedName }
                 .joinToString("") { "-" + formatClass(it) }
 
             return value.split("(").let { it.first().replace(" ", "_") + formatArgs(it.last().withoutSuffix(")")) }
@@ -54,21 +54,3 @@ inline class UniqueId(val uniqueId: String) {
 
     override fun toString(): String = fullyQualified
 }
-
-/**
- * Contains a simplified unique ID that only uses simple class names
- * and a formatting that strives for readability.
- *
- * In contrast to [UniqueId.fullyQualified] this property cannot guarantee uniqueness
- * in case of equally named classes in different packages.
- */
-val uniqueId get() = extensionContext.simpleUniqueId
-
-/**
- * Contains a simplified unique ID that only uses simple class names
- * and a formatting that strives for readability.
- *
- * In contrast to [UniqueId.fullyQualified] this property cannot guarantee uniqueness
- * in case of equally named classes in different packages.
- */
-val ExtensionContext?.simpleUniqueId: String get() = UniqueId((this ?: extensionContext)?.uniqueId ?: error("No valid test context.")).simple

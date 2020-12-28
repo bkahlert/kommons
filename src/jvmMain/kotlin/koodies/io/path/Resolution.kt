@@ -7,11 +7,13 @@ import java.nio.file.FileSystemNotFoundException
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Attempts to parse [this@toPath] as an [URI] and convert it to a [Path].
  *
- * If parsing fails, converts the [this@toPath] string and if specified joining it with [more]) to a [Path].
+ * If parsing fails, converts this string to a [Path].
  *
  * @see Paths.get
  * @see Path.of
@@ -35,20 +37,30 @@ fun URI.toPath(): Path =
     Paths.get(this)
 
 
-private val lock = Any()
+private val lock = ReentrantLock()
 
 private fun <T> URI.internalToMappedPath(transform: (Path) -> T): T =
-    runCatching {
-        transform(Paths.get(this))
-    }.recoverCatching { ex ->
-        if (ex !is FileSystemNotFoundException) throw ex
-        FileSystems.newFileSystem(this, emptyMap<String, Any>()).use { fs ->
-            transform(fs.provider().getPath(this))
-        }
-    }.getOrThrow()
+    runCatching { transform(Paths.get(this)) }
+        .recoverCatching {
+            if (it !is FileSystemNotFoundException) throw it
+            FileSystems.newFileSystem(this, emptyMap<String, Any>()).use { fs ->
+                transform(fs.provider().getPath(this))
+            }
+        }.getOrThrow()
 
-fun <T> URI.synchronizedToMappedPath(transform: (Path) -> T): T =
-    synchronized(lock) { internalToMappedPath(transform) }
+/**
+ * Gets the [Path] this [URI] points to and applies [transform] to it.
+ *
+ * In contrast to [Paths.get] and [Path.of] this function does not
+ * only check the default file system but also loads to needed one if necessary
+ * (and closes it afterwards).
+ *
+ * @see FileSystems.getDefault
+ * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
+ * >java.nio.file.Path for a classpath resource</a>
+ */
+fun <T> URI.threadSafeToMappedPath(transform: (Path) -> T): T =
+    lock.withLock { internalToMappedPath(transform) }
 
 /**
  * Gets the [Path] this [URI] points to and applies [transform] to it.
@@ -62,7 +74,7 @@ fun <T> URI.synchronizedToMappedPath(transform: (Path) -> T): T =
  * >java.nio.file.Path for a classpath resource</a>
  */
 inline fun <reified T> URI.toMappedPath(noinline transform: (Path) -> T): T =
-    synchronizedToMappedPath(transform)
+    threadSafeToMappedPath(transform)
 
 /**
  * Gets the [Path] this [URL] points to and applies [transform] to it.

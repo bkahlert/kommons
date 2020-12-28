@@ -4,6 +4,7 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.process
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
@@ -40,20 +41,20 @@ class ProcessesKtTest {
         )
 
         @TestFactory
-        fun `should not start`() = factories.testWithTempDir {
+        fun `should not start`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
             val process = it()
             expectThat(process.started).isFalse()
         }
 
         @TestFactory
-        fun `should start`() = factories.testWithTempDir {
+        fun `should start`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
             val process = it()
             process.start()
             expectThat(process.started).isTrue()
         }
 
         @TestFactory
-        fun `should process`() = factories.testWithTempDir {
+        fun `should process`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
             val process = it()
             val processed = mutableListOf<IO>()
             process.process { io -> processed.add(io) }.waitForTermination()
@@ -68,7 +69,7 @@ class ProcessesKtTest {
     inner class OutputFn {
 
         @Test
-        fun `should start process`() = withTempDir {
+        fun `should start process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = process(CommandLine(
                 environment = emptyMap(),
                 workingDirectory = this,
@@ -79,7 +80,7 @@ class ProcessesKtTest {
         }
 
         @Test
-        fun `should run synchronously`() = withTempDir {
+        fun `should run synchronously`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = process(CommandLine(
                 environment = emptyMap(),
                 workingDirectory = this,
@@ -90,7 +91,7 @@ class ProcessesKtTest {
         }
 
         @Test
-        fun `should log IO`() = withTempDir {
+        fun `should log IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = process(CommandLine(
                 environment = emptyMap(),
                 workingDirectory = this,
@@ -107,7 +108,7 @@ class ProcessesKtTest {
         }
 
         @Test
-        fun `should contain OUT`() = withTempDir {
+        fun `should contain OUT`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val output = process(CommandLine(
                 environment = emptyMap(),
                 workingDirectory = this,

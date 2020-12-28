@@ -11,6 +11,7 @@ import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.unit.Size.Companion.size
@@ -33,31 +34,31 @@ import kotlin.io.path.copyTo
 class TarArchiverTest {
 
     @TestFactory
-    fun `should throw on missing source`() = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { randomPath().tar() },
         { randomPath(extension = ".tar").untar() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<NoSuchFileException>()
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().apply { writeText("content") } }.tar() },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().apply { writeText("content") } }.tar(overwrite = true) },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar(overwrite = true) },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectThat(call()).exists()
     }
 
     @Test
-    fun `should tar and untar`() = withTempDir {
+    fun `should tar and untar`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tar()

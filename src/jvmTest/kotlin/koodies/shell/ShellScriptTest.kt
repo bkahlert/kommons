@@ -7,6 +7,7 @@ import koodies.io.path.hasContent
 import koodies.io.path.randomFile
 import koodies.io.path.single
 import koodies.shell.HereDocBuilder.hereDoc
+import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
@@ -50,7 +51,7 @@ class ShellScriptTest {
     }
 
     @Test
-    fun `should write valid script`() = withTempDir {
+    fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
         shellScript().buildTo(file)
         expectThat(file).hasContent("""
@@ -90,14 +91,14 @@ class ShellScriptTest {
     }
 
     @Test
-    fun `should write executable script`() = withTempDir {
+    fun `should write executable script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
         val returnedScript = shellScript().buildTo(file)
         expectThat(returnedScript).isExecutable()
     }
 
     @Test
-    fun `should return same file as saved to file`() = withTempDir {
+    fun `should return same file as saved to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
         val returnedScript = shellScript().buildTo(file)
         expectThat(returnedScript).isEqualTo(file)
@@ -214,7 +215,7 @@ class ShellScriptTest {
     inner class Sudo {
 
         @Test
-        fun `should create sudo line`() = withTempDir {
+        fun `should create sudo line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(ShellScript {
                 sudo("a password", "a command")
             }).get { lines.last() }
@@ -226,7 +227,7 @@ class ShellScriptTest {
     inner class DeleteOnCompletion {
 
         @Test
-        fun `should create rm line`() = withTempDir {
+        fun `should create rm line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(ShellScript {
                 deleteOnCompletion()
             }).get { lines.last() }
@@ -234,7 +235,7 @@ class ShellScriptTest {
         }
 
         @Test
-        fun `should not remove itself without`() = withTempDir {
+        fun `should not remove itself without`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script { }
             expectThat(this) {
                 get { listDirectoryEntries() }.single { fileName.endsWith(".sh") }
@@ -242,7 +243,7 @@ class ShellScriptTest {
         }
 
         @Test
-        fun `should remove itself`() = withTempDir {
+        fun `should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script { deleteOnCompletion() }
             expectThat(this) {
                 get { listDirectoryEntries() }.isEmpty()

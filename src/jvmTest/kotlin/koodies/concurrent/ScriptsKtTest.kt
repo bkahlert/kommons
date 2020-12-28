@@ -7,6 +7,7 @@ import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.processSynchronously
 import koodies.shell.ShellScript
+import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.CapturedOutput
 import koodies.test.output.OutputCaptureExtension
@@ -45,27 +46,27 @@ class ScriptsKtTest {
         )
 
         @TestFactory
-        fun `should start implicitly`() = factories.testWithTempDir {
+        fun `should start implicitly`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
             val process = it()
             expectThat(process.started).isTrue()
         }
 
         @TestFactory
-        fun `should start`() = factories.testWithTempDir {
+        fun `should start`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
             val process = it()
             process.start()
             expectThat(process.started).isTrue()
         }
 
         @TestFactory
-        fun `should process`() = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
+        fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
             {
                 script(shellScript = ShellScript { !echoingCommands }, processor = it)
             },
             {
                 script(processor = it) { !echoingCommands }
             },
-        ).testWithTempDir {
+        ).testWithTempDir(uniqueId) {
             val processed = mutableListOf<IO>()
             it { io -> processed.add(io) }
             expectThat(processed).contains(
@@ -79,13 +80,13 @@ class ScriptsKtTest {
     inner class OutputFn {
 
         @Test
-        fun `should run synchronously`() = withTempDir {
+        fun `should run synchronously`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script { !echoingCommands }
             expectThat(process.exitValue).isEqualTo(0)
         }
 
         @Test
-        fun `should log IO`() = withTempDir {
+        fun `should log IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script { !echoingCommands }
             process.output()
 
@@ -99,7 +100,7 @@ class ScriptsKtTest {
         }
 
         @Test
-        fun `should contain OUT`() = withTempDir {
+        fun `should contain OUT`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val output = script { !echoingCommands }.output()
 
             expectThat(output).isEqualTo("""
@@ -113,22 +114,22 @@ class ScriptsKtTest {
     inner class ScriptOutputContains {
 
         @Test
-        fun `should assert present string`() = withTempDir {
+        fun `should assert present string`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(scriptOutputContains("echo 'this is a test'", "Test", caseSensitive = false)).isTrue()
         }
 
         @Test
-        fun `should assert missing string`() = withTempDir {
+        fun `should assert missing string`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(scriptOutputContains("echo 'this is a test'", "Missing", caseSensitive = false)).isFalse()
         }
 
         @Test
-        fun `should assert present string case-sensitive`() = withTempDir {
+        fun `should assert present string case-sensitive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(scriptOutputContains("echo 'this is a test'", "test", caseSensitive = true)).isTrue()
         }
 
         @Test
-        fun `should assert missing string case-sensitive`() = withTempDir {
+        fun `should assert missing string case-sensitive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(scriptOutputContains("echo 'this is a test'", "Test", caseSensitive = true)).isFalse()
         }
     }
@@ -138,14 +139,14 @@ class ScriptsKtTest {
     inner class SynchronousExecution {
 
         @Test
-        fun `should process without logging to System out or in`(output: CapturedOutput) = withTempDir {
+        fun `should process without logging to System out or in`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
             script { line(">&1 echo \"test output\""); line(">&2 echo \"test error\"") }.processSynchronously()
             expectThat(output).get { out }.isEmpty()
             expectThat(output).get { err }.isEmpty()
         }
 
         @Test
-        fun `should format merged output`(output: CapturedOutput) = withTempDir {
+        fun `should format merged output`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script { line(">&1 echo \"test output\""); line(">&2 echo \"test error\"") }.processSynchronously()
             expectThat(process.ioLog.logged) {
                 get { first().type }.isEqualTo(IO.Type.META)

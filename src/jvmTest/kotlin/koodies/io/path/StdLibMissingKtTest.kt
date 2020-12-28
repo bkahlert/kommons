@@ -1,6 +1,7 @@
 package koodies.io.path
 
 import koodies.test.Fixtures.directoryWithTwoFiles
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -20,7 +21,7 @@ class StdLibMissingKtTest {
     inner class ListDirectoryEntriesRecursively {
 
         @Test
-        fun `should list all entries recursively`() = withTempDir {
+        fun `should list all entries recursively`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dir = directoryWithTwoFiles()
             val subject = dir.listDirectoryEntriesRecursively()
             expectThat(subject).containsExactly(
@@ -30,7 +31,7 @@ class StdLibMissingKtTest {
         }
 
         @Test
-        fun `should apply glob expression`() = withTempDir {
+        fun `should apply glob expression`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dir = directoryWithTwoFiles()
             val subject = dir.listDirectoryEntriesRecursively("**/*.*")
             expectThat(subject).containsExactly(
@@ -39,7 +40,7 @@ class StdLibMissingKtTest {
         }
 
         @Test
-        fun `should throw on listing file`() = withTempDir {
+        fun `should throw on listing file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching { randomFile().listDirectoryEntriesRecursively() }.isFailure().isA<NotDirectoryException>()
         }
     }

@@ -10,7 +10,6 @@ import koodies.io.file.resolveBetweenFileSystems
 import koodies.regex.countMatches
 import koodies.test.asString
 import koodies.text.LineSeparators
-import koodies.text.LineSeparators.isMultiline
 import koodies.text.quoted
 import koodies.text.truncate
 import koodies.time.Now
@@ -107,23 +106,6 @@ fun <T : Path> Assertion.Builder<T>.hasContent(expectedContent: String) =
             true -> pass()
             else -> fail("was ${actualContent.quoted}")
         }
-    }
-
-fun <T : Path> Assertion.Builder<T>.containsContent(expectedContent: String) =
-    assert("contains content ${expectedContent.quoted}") {
-        val actualContent = it.readText()
-        when (actualContent.contains(expectedContent)) {
-            true -> pass()
-            else -> fail("was " + (if (actualContent.isMultiline) "\n$actualContent" else actualContent.quoted))
-        }
-    }
-
-fun <T : Path> Assertion.Builder<T>.containsContentAtMost(expectedContent: String, limit: Int = 1) =
-    assert("contains content ${expectedContent.quoted} at most ${limit}x") {
-        val actualContent = it.readText()
-        val actual = Regex.fromLiteral(expectedContent).matchEntire(actualContent)?.groups?.size ?: 0
-        if (actual <= limit) pass()
-        else fail("but actually contains it ${limit}x")
     }
 
 

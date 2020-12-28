@@ -8,6 +8,7 @@ import koodies.regex.RegularExpressions
 import koodies.regex.findAllValues
 import koodies.terminal.AnsiFormats.bold
 import koodies.test.TextFile
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.randomString
@@ -39,19 +40,19 @@ class DumpKtTest {
     inner class DumpKtTest {
 
         @Test
-        fun `should contain explanation`() = withTempDir {
+        fun `should contain explanation`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(dump(null, data = TextFile.text)).contains("A dump has been written")
         }
 
         @Test
-        fun `should contain capitalized custom explanation next to default one`() = withTempDir {
+        fun `should contain capitalized custom explanation next to default one`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(dump("custom explanation", data = TextFile.text))
                 .contains("Custom explanation")
                 .contains("A dump has been written")
         }
 
         @Test
-        fun `should contain url pointing to dumps`() = withTempDir {
+        fun `should contain url pointing to dumps`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
             expectThat(dump("", data = data)).get {
                 RegularExpressions.urlRegex.findAllValues(this)
@@ -64,14 +65,14 @@ class DumpKtTest {
         }
 
         @Test
-        fun `should contains last lines of dump`() = withTempDir {
+        fun `should contains last lines of dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
             expectThat(dump("", data = data)).get { lines().takeLast(11).map { it.trim() } }
                 .containsExactly(data.lines().takeLast(10) + "")
         }
 
         @Test
-        fun `should log all lines if problem saving the log`() = withTempDir {
+        fun `should log all lines if problem saving the log`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
             val path = randomPath(extension = ".log").apply { writeText("already exists") }
             path.toFile().setReadOnly()
@@ -90,7 +91,7 @@ class DumpKtTest {
     class PersistDump {
 
         @Test
-        fun `should dump data`() = withTempDir {
+        fun `should dump data`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { data })
             expectThat(dumps.values.map { it.readText() }).hasSize(2).all {
@@ -99,7 +100,7 @@ class DumpKtTest {
         }
 
         @Test
-        fun `should throw if data could not be dumped`() = withTempDir {
+        fun `should throw if data could not be dumped`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val path = randomPath(extension = ".log").apply { writeText("already exists") }
             path.toFile().setReadOnly()
             expectCatching { persistDump(path = path, data = { TextFile.text }) }.isFailure().isA<IOException>()
@@ -107,7 +108,7 @@ class DumpKtTest {
         }
 
         @Test
-        fun `should dump IO to file with ansi formatting`() = withTempDir {
+        fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".bold() + LineSeparators.LF + "no ansi" }).values
             expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 ${"ansi".bold()}
@@ -116,7 +117,7 @@ class DumpKtTest {
         }
 
         @Test
-        fun `should dump IO to file without ansi formatting`() = withTempDir {
+        fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".bold() + LineSeparators.LF + "no ansi" }).values
             expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 ansi

@@ -1,5 +1,9 @@
 package koodies.process
 
+import koodies.concurrent.process.DelegatingProcess
+import koodies.concurrent.process.IOLog
+import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Process
 import koodies.concurrent.process.TeeOutputStream
 import koodies.debug.debug
 import koodies.logging.BlockRenderingLogger
@@ -20,6 +24,7 @@ import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 import kotlin.time.seconds
@@ -56,10 +61,10 @@ open class JavaProcessMock(
         ): JavaProcessMock {
             val outputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
-                inputs = inputs,
                 baseDelayPerInput = baseDelayPerInput,
                 byteArrayOutputStream = outputStream,
                 echoInput = echoInput,
+                inputs = inputs,
             )
             return processMock(
                 outputStream = outputStream,
@@ -76,10 +81,10 @@ open class JavaProcessMock(
         ): JavaProcessMock {
             val outputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
-                inputs = inputs,
                 baseDelayPerInput = baseDelayPerInput,
                 byteArrayOutputStream = outputStream,
                 echoInput = echoInput,
+                inputs = inputs,
             )
             return processMock(
                 outputStream = outputStream,
@@ -100,6 +105,13 @@ open class JavaProcessMock(
         this@JavaProcessMock.processExit()()
     }
 
+    override fun onExit(): CompletableFuture<java.lang.Process> {
+        return super.onExit().thenApply { process ->
+            processExit()()
+            process
+        }
+    }
+
     override fun isAlive(): Boolean {
         return logger.miniTrace(::isAlive) {
             when (inputStream) {
@@ -108,37 +120,38 @@ open class JavaProcessMock(
             }
         }
     }
-//
-//    fun toManagedProcess(): ManagedProcessMock = ManagedProcessMock()
 
-//    inner class ManagedProcessMock : ManagedProcess {
-//        var logger: BlockRenderingLogger = this@JavaProcessMock.logger
-//        override val ioLog: IOLog = IOLog()
-//        override var externalSync: CompletableFuture<*>
-//            get() = onExit
-//            set(value) {}
-//
-//        override fun start() {}
-//        override val metaStream: OutputStream get() = OutputStream.nullOutputStream()
-//        override val outputStream: OutputStream get() = this@JavaProcessMock.outputStream
-//        override val inputStream: InputStream get() = this@JavaProcessMock.inputStream
-//        override val errorStream: InputStream get() = this@JavaProcessMock.errorStream
-//        override val pid: Long get() = 123L
-//        override val started: Boolean = _initialized
-//        override val alive: Boolean get() = this@JavaProcessMock.isAlive
-//        override val exitValue: Int get() = exitValue()
-//        override val onExit: CompletableFuture<out Process> get() = CompletableFuture.completedFuture(this)
-//        override fun stop() = this
-//        override fun kill() = this
-//    }
-
-//    private var _initialized: Boolean = false
-//    fun start(): JavaProcessMock = this.also { _initialized = true }
+    fun start(name: String? = null): ManagedProcessMock = ManagedProcessMock(this, name)
 
     override fun destroy(): Unit = logger.miniTrace(::destroy) { }
 
     val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
 }
+
+class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : DelegatingProcess({ processMock }), ManagedProcess {
+
+    var logger: BlockRenderingLogger = processMock.logger
+
+    override fun start(): ManagedProcessMock {
+        super.start()
+        return this
+    }
+
+    override val ioLog: IOLog by lazy { IOLog() }
+
+    override var externalSync: CompletableFuture<*> = CompletableFuture.completedFuture(Unit)
+    override var onExit: CompletableFuture<Process>
+        get() = externalSync.thenCombine(javaProcess.onExit()) { _, process -> this }
+        set(value) {
+            externalSync = value
+        }
+
+    override val preparedToString: StringBuilder
+        get() = super.preparedToString.apply {
+            name?.also { append("; name=$it") }
+        }
+}
+
 
 class SlowInputStream(
     vararg inputs: Pair<Duration, String>,

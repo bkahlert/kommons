@@ -9,6 +9,7 @@ import koodies.io.path.randomDirectory
 import koodies.io.path.randomPath
 import koodies.io.path.toPath
 import koodies.test.FixturePath61C285F09D95930D0AE298B00AF09F918B0A.fixtureContent
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.toStringContains
 import koodies.test.withTempDir
@@ -93,11 +94,11 @@ class ClassPathsTest {
         }
 
         @TestFactory
-        fun `should throw on write access`() = mapOf<String, Path.(Path) -> Unit>(
+        fun `should throw on write access`(uniqueId: UniqueId) = mapOf<String, Path.(Path) -> Unit>(
             "outputStream" to { Files.newBufferedWriter(it) },
             "move" to { Files.move(it, this) },
             "delete" to { Files.delete(it) },
-        ).testWithTempDir { (name, operation) ->
+        ).testWithTempDir(uniqueId) { (name, operation) ->
             classPaths("try.it") {
                 expectThat(exists()).isTrue()
                 expectCatching {
@@ -115,7 +116,7 @@ class ClassPathsTest {
     inner class ClassPath {
 
         @Test
-        fun `should map root with no provided path`() = withTempDir {
+        fun `should map root with no provided path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(classPath("") {
                 listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
             }).isTrue()
@@ -157,7 +158,7 @@ class ClassPathsTest {
         }
 
         @TestFactory
-        fun `should throw on write access`() = mapOf<String, Path.(Path) -> Unit>(
+        fun `should throw on write access`(uniqueId: UniqueId) = mapOf<String, Path.(Path) -> Unit>(
             "outputStream" to { Files.newBufferedWriter(it) },
             "move" to { Files.move(it, randomPath()) },
             "delete" to { Files.delete(it) },
@@ -166,7 +167,7 @@ class ClassPathsTest {
                 classPath("try.it") {
                     expectThat(exists()).isTrue()
                     expectCatching {
-                        withTempDir {
+                        withTempDir(uniqueId) {
                             val target = this
                             target.operation(this@classPath)
                         }

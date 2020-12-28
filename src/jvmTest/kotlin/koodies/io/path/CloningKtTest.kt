@@ -1,6 +1,7 @@
 package koodies.io.path
 
 import koodies.io.file.writeText
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ class CloningKtTest {
 
     @EnabledOnOs(OS.LINUX, OS.MAC)
     @Test
-    fun `should clone file`() = withTempDir {
+    fun `should clone file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile().apply { writeText("cloneFile test") }
         val clone = file.resolveSibling("cloned".withRandomSuffix())
         expectThat(file.cloneTo(clone)).exists().hasContent("cloneFile test")
@@ -29,7 +30,7 @@ class CloningKtTest {
 
     @EnabledOnOs(OS.LINUX, OS.MAC)
     @Test
-    fun `should return target`() = withTempDir {
+    fun `should return target`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = kotlin.io.path.createTempFile().apply { writeText("cloneFile test") }
         val clone = file.resolveSibling("cloned".withRandomSuffix())
         expectThat(file.cloneTo(clone)).isEqualTo(clone).not { isEqualTo(file) }
@@ -37,7 +38,7 @@ class CloningKtTest {
 
     @EnabledOnOs(OS.LINUX, OS.MAC)
     @Test
-    fun `should fail on existing target`() = withTempDir {
+    fun `should fail on existing target`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = kotlin.io.path.createTempFile().apply { writeText("cloneFile test") }
         val clone = file.resolveSibling("cloned".withRandomSuffix()).writeText("already there")
         expect {

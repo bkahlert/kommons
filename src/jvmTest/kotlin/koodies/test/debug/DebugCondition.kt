@@ -1,9 +1,9 @@
-package koodies.test.junit.debug
+package koodies.test.debug
 
+import koodies.test.allTests
+import koodies.test.isA
+import koodies.test.testName
 import koodies.text.quoted
-import koodies.test.junit.allTests
-import koodies.test.junit.isA
-import koodies.test.junit.testName
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled
 import org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled

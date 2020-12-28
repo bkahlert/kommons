@@ -1,4 +1,4 @@
-package koodies.test.junit.debug
+package koodies.test.debug
 
 
 import koodies.test.junit.JUnit.runTests

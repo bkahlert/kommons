@@ -8,8 +8,9 @@ import koodies.exception.rootCauseMessage
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.shell.ShellScript
+import koodies.test.Slow
+import koodies.test.UniqueId
 import koodies.test.containsExactlyInSomeOrder
-import koodies.test.junit.Slow
 import koodies.test.matchesCurlyPattern
 import koodies.test.testWithTempDir
 import koodies.test.toStringContains
@@ -54,7 +55,7 @@ class ManagedJavaProcessTest {
     @Nested
     inner class Creation {
         @Test
-        fun `should not start on its own`() = withTempDir {
+        fun `should not start on its own`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching {
                 createThrowingManagedProcess()
                 200.milliseconds.sleep()
@@ -67,13 +68,13 @@ class ManagedJavaProcessTest {
     inner class Startup {
 
         @Test
-        fun `should start if accessed directly`() = withTempDir {
+        fun `should start if accessed directly`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess()
             expectThat(process).completed.exitValue.isEqualTo(0)
         }
 
         @Test
-        fun `should provide string on direct toString`() = withTempDir {
+        fun `should provide string on direct toString`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess()
             @Suppress("LongLine")
             expectThat("$process")
@@ -81,14 +82,14 @@ class ManagedJavaProcessTest {
         }
 
         @Test
-        fun `should be alive`() = withTempDir {
+        fun `should be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(sleep = 5.seconds)
             expectThat(process).alive
             process.kill()
         }
 
         @Test
-        fun `should meta log documents`() = withTempDir {
+        fun `should meta log documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess()
             expectThat(process).log.logs {
                 any {
@@ -100,13 +101,13 @@ class ManagedJavaProcessTest {
         }
 
         @Test
-        fun `should provide PID`() = withTempDir {
+        fun `should provide PID`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(42)
             expectThat(process).get { pid }.isGreaterThan(0)
         }
 
         @Test
-        fun `should provide IO`() = withTempDir {
+        fun `should provide IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createLoopingManagedProcess().silentlyProcess()
             expectThat(process).log.logs(IO.Type.OUT typed "test out", IO.Type.ERR typed "test err")
             process.kill()
@@ -117,7 +118,7 @@ class ManagedJavaProcessTest {
     inner class Interaction {
 
         @Slow @Test
-        fun `should provide output processor access to own running process`() = withTempDir {
+        fun `should provide output processor access to own running process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process: ManagedProcess = process(shellScript = ShellScript {
                 !"""
                  while true; do
@@ -156,9 +157,9 @@ class ManagedJavaProcessTest {
     inner class Termination {
 
         @TestFactory
-        fun `by waiting using`() = listOf(
+        fun `by waiting using`(uniqueId: UniqueId) = listOf(
             Assertion.Builder<ManagedProcess>::waitedFor,
-        ).testWithTempDir { waitOperation ->
+        ).testWithTempDir(uniqueId) { waitOperation ->
             expect {
                 measureTime {
                     that(createCompletingManagedProcess()) {
@@ -169,10 +170,10 @@ class ManagedJavaProcessTest {
         }
 
         @TestFactory
-        fun `by destroying using`() = listOf(
+        fun `by destroying using`(uniqueId: UniqueId) = listOf(
             Assertion.Builder<ManagedProcess>::stopped,
             Assertion.Builder<ManagedProcess>::killed,
-        ).testWithTempDir { destroyOperation ->
+        ).testWithTempDir(uniqueId) { destroyOperation ->
             expect {
                 measureTime {
                     that(createLoopingManagedProcess()) {
@@ -185,13 +186,13 @@ class ManagedJavaProcessTest {
         }
 
         @Test
-        fun `should provide exit code`() = withTempDir {
+        fun `should provide exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(exitValue = 42, expectedExitValue = 42)
             expectThat(process).completed.exitValue.isEqualTo(42)
         }
 
         @Test
-        fun `should not be alive`() = withTempDir {
+        fun `should not be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(0)
             expectThat(process).completed.not { alive }
         }
@@ -200,14 +201,14 @@ class ManagedJavaProcessTest {
         inner class OfSuccessfulProcess {
 
             @Test
-            fun `should meta log on exit`() = withTempDir {
+            fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(0)
                 expectThat(process).completesSuccessfully()
                     .isA<ManagedProcess>().and { get { ioLog.logged.takeLast(2) } any { contains("terminated successfully") } }
             }
 
             @Test
-            fun `should call callback`() = withTempDir {
+            fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
                 expect {
                     that(createCompletingManagedProcess(exitValue = 0, processTerminationCallback = {
@@ -223,7 +224,7 @@ class ManagedJavaProcessTest {
         inner class OnExitCodeMismatch {
 
             @Test
-            fun `should meta log on exit`() = withTempDir {
+            fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
                 expect {
                     catching { process.waitFor() }.isFailure()
@@ -232,7 +233,7 @@ class ManagedJavaProcessTest {
             }
 
             @Test
-            fun `should meta log dump`() = withTempDir {
+            fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
                 expect {
                     catching { process.waitFor() }.isFailure()
@@ -241,7 +242,7 @@ class ManagedJavaProcessTest {
             }
 
             @Test
-            fun `should throw on waitFor`() = withTempDir {
+            fun `should throw on waitFor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
                 expectCatching { process.waitFor() }.isFailure()
                     .isA<CompletionException>()
@@ -252,7 +253,7 @@ class ManagedJavaProcessTest {
 
 
             @Test
-            fun `should throw on exit`() = withTempDir {
+            fun `should throw on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
                 expectCatching { process.onExit.get() }.isFailure()
                     .isA<ExecutionException>()
@@ -263,7 +264,7 @@ class ManagedJavaProcessTest {
             }
 
             @Test
-            fun `should call callback`() = withTempDir {
+            fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
                 val process = createCompletingManagedProcess(42, processTerminationCallback = { callbackCalled = true })
                 expect {
@@ -280,21 +281,21 @@ class ManagedJavaProcessTest {
             inner class ThrownException {
 
                 @Test
-                fun `should occur on exit`() = withTempDir {
+                fun `should occur on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     expectCatching { createThrowingManagedProcess().silentlyProcess().onExit.get() }.failed.and {
                         message.isNotNull()
                     }
                 }
 
                 @Test
-                fun `should contain dump in message`() = withTempDir {
+                fun `should contain dump in message`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     expectCatching { createThrowingManagedProcess().silentlyProcess().onExit.get() }.failed.and {
                         get { toString() }.containsDump()
                     }
                 }
 
                 @Test
-                fun `should have proper root cause`() = withTempDir {
+                fun `should have proper root cause`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     expectCatching { createThrowingManagedProcess().silentlyProcess().onExit.get() }.failed.and {
                         rootCause.isA<ProcessExecutionException>().message.toStringContains("terminated with exit code 0. Expected 123.")
                     }
@@ -302,7 +303,7 @@ class ManagedJavaProcessTest {
             }
 
             @Test
-            fun `should meta log on exit`() = withTempDir {
+            fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createThrowingManagedProcess().silentlyProcess()
                 expect {
                     catching { process.onExit.get() }.failed
@@ -311,7 +312,7 @@ class ManagedJavaProcessTest {
             }
 
             @Test
-            fun `should call callback`() = withTempDir {
+            fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
                 val process = createThrowingManagedProcess(processTerminationCallback = { callbackCalled = true }).silentlyProcess()
                 expect {

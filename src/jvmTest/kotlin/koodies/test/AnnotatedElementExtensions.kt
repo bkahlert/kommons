@@ -1,4 +1,4 @@
-package koodies.test.junit
+package koodies.test
 
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.platform.commons.support.AnnotationSupport

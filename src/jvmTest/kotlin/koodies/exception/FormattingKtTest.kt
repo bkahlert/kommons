@@ -2,6 +2,7 @@ package koodies.exception
 
 import koodies.concurrent.script
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.isSingleLine
 import org.junit.jupiter.api.Nested
@@ -33,7 +34,7 @@ class FormattingKtTest {
         @Test
         fun `should format as a single line`() {
             expectThat(runtimeException.toSingleLineString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:21)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
         }
@@ -41,7 +42,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(emptyException.toSingleLineString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:19)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
                 isSingleLine()
             }
         }
@@ -53,7 +54,7 @@ class FormattingKtTest {
         @Test
         fun `should format as a single line`() {
             expectThat(Result.failure<String>(runtimeException).toSingleLineString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:21)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
         }
@@ -61,7 +62,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(Result.failure<String>(emptyException).toSingleLineString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:19)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
                 isSingleLine()
             }
         }
@@ -90,7 +91,7 @@ class FormattingKtTest {
             }
 
             @Test
-            fun `should format run processes as exit code`() = withTempDir {
+            fun `should format run processes as exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(Result.success(script(expectedExitValue = 42) { !"exit 42" }).toSingleLineString()) {
                     get { removeEscapeSequences() }.isEqualTo("42")
                     isSingleLine()

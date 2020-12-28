@@ -1,7 +1,7 @@
 package koodies.docker
 
 import koodies.debug.asEmoji
-import koodies.test.junit.Slow
+import koodies.test.Slow
 import koodies.time.poll
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll

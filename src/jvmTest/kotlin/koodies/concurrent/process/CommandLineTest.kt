@@ -3,6 +3,7 @@ package koodies.concurrent.process
 import koodies.concurrent.output
 import koodies.io.path.asString
 import koodies.io.path.randomPath
+import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
@@ -27,7 +28,7 @@ class CommandLineTest {
     @Nested
     inner class Equality {
         @Test
-        fun `should equal based on command and arguments`() = withTempDir {
+        fun `should equal based on command and arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val cmdLine1 = CommandLine(emptyMap(), this, "/bin/command", "arg1", "arg 2")
             val cmdLine2 = CommandLine(emptyMap(), this, Path.of("/bin/command"), "arg1", "arg 2")
             expectThat(cmdLine1).isEqualTo(cmdLine2)
@@ -38,14 +39,14 @@ class CommandLineTest {
     inner class LazyStartedProcess {
 
         @Test
-        fun `should not start on its own`() = withTempDir {
+        fun `should not start on its own`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (_, file) = createLazyFileCreatingProcess()
             2.seconds.sleep()
             expectThat(file).not { exists() }
         }
 
         @Test
-        fun `should start if accessed`() = withTempDir {
+        fun `should start if accessed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (process, file) = createLazyFileCreatingProcess()
             process.start()
             2.seconds.sleep()
@@ -53,7 +54,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should start if processed`() = withTempDir {
+        fun `should start if processed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (process, file) = createLazyFileCreatingProcess()
             process.silentlyProcess()
             2.seconds.sleep()
@@ -62,7 +63,7 @@ class CommandLineTest {
     }
 
     @Test
-    fun `should run`() = withTempDir {
+    fun `should run`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val command = CommandLine(emptyMap(), this, "echo", "test")
         expectThat(command) {
             continuationsRemoved.isEqualTo("echo test")
@@ -71,7 +72,7 @@ class CommandLineTest {
     }
 
     @Test
-    fun `should run with more arguments`() = withTempDir {
+    fun `should run with more arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val command = CommandLine(emptyMap(), this, "echo", "one", "two", "three")
         expectThat(command) {
             continuationsRemoved.isEqualTo("echo one two three")
@@ -83,7 +84,7 @@ class CommandLineTest {
     inner class Expansion {
 
         @Test
-        fun `should expand`() = withTempDir {
+        fun `should expand`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "\$HOME")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo \$HOME")
@@ -92,7 +93,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should not expand`() = withTempDir {
+        fun `should not expand`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "\\\$HOME")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo \\\$HOME")
@@ -107,7 +108,7 @@ class CommandLineTest {
     @Nested
     inner class Formatting {
         @Test
-        fun `should output formatted`() = withTempDir {
+        fun `should output formatted`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(CommandLine(emptyMap(), this, "command", "-a", "--bee", "c", "x y z".quoted)).toStringIsEqualTo("""
             command \
             -a \
@@ -118,7 +119,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should handle whitespaces correctly command`() = withTempDir {
+        fun `should handle whitespaces correctly command`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(CommandLine(emptyMap(), this, "command", " - a", "    ", "c c", "x y z".quoted)).toStringIsEqualTo("""
             command \
             "- a" \
@@ -129,7 +130,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should handle nesting`() = withTempDir {
+        fun `should handle nesting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(CommandLine(emptyMap(), this,
                 "command",
                 "-a",
@@ -154,7 +155,7 @@ class CommandLineTest {
     inner class Quoting {
 
         @Test
-        fun `should not quote unnecessarily`() = withTempDir {
+        fun `should not quote unnecessarily`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "Hello")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo Hello")
@@ -163,7 +164,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should quote on whitespaces`() = withTempDir {
+        fun `should quote on whitespaces`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "Hello World!")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo \"Hello World!\"")
@@ -172,7 +173,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should support single quotes`() = withTempDir {
+        fun `should support single quotes`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "'\$HOME'")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo '\$HOME'")
@@ -185,7 +186,7 @@ class CommandLineTest {
     inner class Nesting {
 
         @Test
-        fun `should produce runnable output`() = withTempDir {
+        fun `should produce runnable output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val nestedCommand = CommandLine(emptyMap(), this, "echo", "Hello")
             val command = CommandLine(emptyMap(), this, "echo", nestedCommand.toString())
             expectThat(command) {
@@ -198,7 +199,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should produce runnable quoted output`() = withTempDir {
+        fun `should produce runnable quoted output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val nestedCommand = CommandLine(emptyMap(), this, "echo", "Hello World!")
             val command = CommandLine(emptyMap(), this, "echo", nestedCommand.toString())
             expectThat(command) {
@@ -211,7 +212,7 @@ class CommandLineTest {
         }
 
         @Test
-        fun `should produce runnable single quoted output`() = withTempDir {
+        fun `should produce runnable single quoted output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val nestedCommand = CommandLine(emptyMap(), this, "echo", "'Hello World!'")
             val command = CommandLine(emptyMap(), this, "echo", nestedCommand.toString())
             expectThat(command) {
@@ -225,7 +226,7 @@ class CommandLineTest {
     }
 
     @Test
-    fun `should provide summary`() = withTempDir {
+    fun `should provide summary`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectThat(CommandLine(
             emptyMap(), this,
             "!ls", "-lisa",

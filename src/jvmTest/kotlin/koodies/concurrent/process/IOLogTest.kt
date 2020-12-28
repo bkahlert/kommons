@@ -5,6 +5,7 @@ import koodies.io.file.writeText
 import koodies.io.path.asString
 import koodies.io.path.hasContent
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.time.poll
 import koodies.time.sleep
@@ -55,13 +56,23 @@ class IOLogTest {
         stop = true
     }
 
+    @Test
+    internal fun `should provide filtered access`() {
+        val ioLog = createIOLog()
+
+        expectThat(ioLog.logged(IO.Type.OUT)).isEqualTo(IO.Type.OUT typed """
+            processing
+            awaiting input: 
+        """.trimIndent())
+    }
+
     @Nested
     inner class DumpIO {
 
         private val ioLog = createIOLog()
 
         @Test
-        fun `should dump IO to specified directory`() = withTempDir {
+        fun `should dump IO to specified directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps: Map<String, Path> = ioLog.dump(this, 123)
             expectThat(dumps.values.map { it.readText().removeEscapeSequences() }).hasSize(2).all {
                 isEqualTo("""
@@ -76,7 +87,7 @@ class IOLogTest {
         }
 
         @Test
-        fun `should throw if IO could not be dumped`() = withTempDir {
+        fun `should throw if IO could not be dumped`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val logPath = resolve("koodies.process.123.log").writeText("already exists")
             logPath.toFile().setReadOnly()
             expectCatching { ioLog.dump(this, 123) }.isFailure().isA<IOException>()
@@ -84,7 +95,7 @@ class IOLogTest {
         }
 
         @Test
-        fun `should dump IO to file with ansi formatting`() = withTempDir {
+        fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 ${IO.Type.META.format("Starting process...")}
@@ -97,7 +108,7 @@ class IOLogTest {
         }
 
         @Test
-        fun `should dump IO to file without ansi formatting`() = withTempDir {
+        fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 Starting process...

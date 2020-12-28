@@ -6,6 +6,7 @@ import koodies.concurrent.process.IO.Type.OUT
 import koodies.io.file.readLines
 import koodies.io.path.containsAtMost
 import koodies.io.path.randomFile
+import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
@@ -339,7 +340,7 @@ class RenderingLoggerTest {
     }
 
     @Test
-    fun @receiver:Columns(200) InMemoryLogger.`should log to file`() = withTempDir {
+    fun @receiver:Columns(200) InMemoryLogger.`should log to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         logLine { "｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ" }
         logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
         val file = randomFile("file-log", ".log")

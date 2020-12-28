@@ -1,4 +1,4 @@
-package koodies.test.junit
+package koodies.test
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.function.Executable

@@ -3,7 +3,7 @@ package koodies.io
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.process.SlowInputStream.Companion.slowInputStream
-import koodies.test.junit.Slow
+import koodies.test.Slow
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

@@ -6,7 +6,7 @@ import koodies.number.times
 import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiColors.magenta
-import koodies.test.junit.Slow
+import koodies.test.Slow
 import koodies.text.styling.Borders
 import koodies.text.styling.wrapWithBorder
 import org.junit.jupiter.api.Test

@@ -2,6 +2,7 @@ package koodies.unit
 
 import koodies.io.path.randomFile
 import koodies.io.path.writeText
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.unit.Size
 import koodies.unit.Size.Companion.bytes
@@ -261,12 +262,12 @@ class SizeTest {
         private fun Path.createFile(): Path = randomFile().apply { repeat(2500) { appendText("1234567890") } }
 
         @Test
-        fun `should format size human-readable (10^x)`() = withTempDir {
+        fun `should format size human-readable (10^x)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(createFile().size.toString<DecimalPrefix>()).isEqualTo("25.0 KB")
         }
 
         @Test
-        fun `should format size human-readable (2^y)`() = withTempDir {
+        fun `should format size human-readable (2^y)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(createFile().size.toString<BinaryPrefix>()).isEqualTo("24.4 KiB")
         }
     }
@@ -420,7 +421,7 @@ class SizeTest {
         private fun Path.getLarge() = randomFile("large").apply { writeText("123456789") }
 
         @Test
-        fun `should compare files by size`() = withTempDir {
+        fun `should compare files by size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val largeFile = getLarge()
             val smallFile = getSmall()
             val mediumFile = getMedium()

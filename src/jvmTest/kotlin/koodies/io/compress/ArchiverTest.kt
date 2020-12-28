@@ -13,6 +13,7 @@ import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
+import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
@@ -33,32 +34,32 @@ import java.nio.file.Path
 class ArchiverTest {
 
     @TestFactory
-    fun `should throw on missing source`() = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { randomPath().archive() },
         { randomPath(extension = ".zip").unarchive() },
         { randomPath(extension = ".tar.gz").apply { listArchive() } },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<NoSuchFileException>()
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("zip").touch().writeText("content") }.archive("zip") },
         { archiveWithTwoFiles("zip").apply { copyTo(removeExtensions("zip")) }.unarchive() },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`() = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("zip").touch().writeText("content") }.archive("zip", overwrite = true) },
         { archiveWithTwoFiles("zip").apply { copyTo(removeExtensions("zip")) }.unarchive(overwrite = true) },
-    ).testWithTempDir { call ->
+    ).testWithTempDir(uniqueId) { call ->
         expectThat(call()).exists()
     }
 
     @Test
-    fun `should archive and unarchive`() = withTempDir {
+    fun `should archive and unarchive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.archive()

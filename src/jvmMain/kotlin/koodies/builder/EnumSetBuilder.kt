@@ -38,7 +38,7 @@ private object EnumSetBuilderSamples {
 
     fun directUse() {
 
-        val pair = EnumSetBuilder.build<Features> {
+        val features = EnumSetBuilder.build<Features> {
             +Features.FeatureA + Features.FeatureC
         }
 

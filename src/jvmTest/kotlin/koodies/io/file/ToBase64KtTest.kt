@@ -4,6 +4,7 @@ import koodies.nio.file.toBase64
 import koodies.runtime.deleteOnExit
 import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -15,7 +16,7 @@ import strikt.assertions.isEqualTo
 class ToBase64KtTest {
 
     @Test
-    fun `should encode using Base64`() = withTempDir {
+    fun `should encode using Base64`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val htmlFile = HtmlFile.copyToDirectory(this).deleteOnExit()
 
         @Suppress("SpellCheckingInspection")

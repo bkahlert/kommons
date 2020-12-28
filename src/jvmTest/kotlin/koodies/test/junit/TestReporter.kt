@@ -1,5 +1,6 @@
 package koodies.test.junit
 
+import koodies.test.allTestIdentifiers
 import koodies.text.LineSeparators.LF
 import org.junit.platform.engine.TestTag
 import org.junit.platform.launcher.TestExecutionListener

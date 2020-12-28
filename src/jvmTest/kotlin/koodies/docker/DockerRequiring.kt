@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.test.junit.Slow
+import koodies.test.Slow
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.parallel.ResourceAccessMode.READ
 import org.junit.jupiter.api.parallel.ResourceLock

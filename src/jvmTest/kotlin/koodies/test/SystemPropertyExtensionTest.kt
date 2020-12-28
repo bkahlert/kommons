@@ -1,21 +1,21 @@
-package koodies.test.junit.systemproperties
+package koodies.test
 
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
+import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.api.parallel.ExecutionMode
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
-@Execution(SAME_THREAD)
-@TestMethodOrder(OrderAnnotation::class)
+@Execution(ExecutionMode.SAME_THREAD)
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class SystemPropertyExtensionTest {
 
     companion object {

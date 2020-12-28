@@ -2,14 +2,16 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.Type
 import koodies.exception.persistDump
-import koodies.text.joinLinesToString
-import koodies.time.busyWait
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.Unicode.Emojis.heavyCheckMark
+import koodies.text.joinLinesToString
+import koodies.time.busyWait
 import org.apache.commons.io.output.ByteArrayOutputStream
 import java.nio.file.Path
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.Map.Entry
+import kotlin.concurrent.withLock
 import kotlin.time.seconds
 
 /**
@@ -18,13 +20,24 @@ import kotlin.time.seconds
  * In order to log I/O only [add] must be called.
  */
 class IOLog {
+
+    private val lock = ReentrantLock()
+
     /**
-     * Contains the currently logged I/O of a [ManagedProcess].
+     * Contains the currently logged I/O of the corresponding [ManagedProcess].
      *
      * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
      * to have non-corrupted data (e.g. split characters).
      */
-    val logged: List<IO> get() = log.toList()
+    val logged: List<IO> get() = lock.withLock { log.toList() }
+
+    /**
+     * Contains the currently logged I/O of the corresponding [ManagedProcess].
+     *
+     * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
+     * to have non-corrupted data (e.g. split characters).
+     */
+    fun logged(type: Type): IO = type typed logged.filter { it.type == type }.joinToString(LineSeparators.LF) { it.unformatted }
 
     /**
      * Contains the currently logged I/O. See [logged] for more details.
@@ -43,7 +56,7 @@ class IOLog {
      * in chunks of any size. The I/O will be correctly reconstructed and can be accessed using [logged].
      */
     fun add(type: Type, content: ByteArray) {
-        synchronized(log) {
+        lock.withLock {
             with(incompleteLines.getOrPut(type, { ByteArrayOutputStream() })) {
                 write(content)
                 while (true) {
@@ -88,3 +101,10 @@ class IOLog {
         "${this::class.simpleName}(${log.size} $heavyCheckMark; ${incompleteLines.filterValues { it.toByteArray().isNotEmpty() }.size} …)"
 }
 
+/**
+ * Contains the currently logged I/O of this [ManagedProcess].
+ *
+ * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
+ * to have non-corrupted data (e.g. split characters).
+ */
+fun ManagedProcess.logged(type: Type): IO = ioLog.logged(type)

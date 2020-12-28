@@ -11,7 +11,6 @@ import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.toByteArray
 import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.InputStream
-import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.Reader
 import java.nio.ByteBuffer
@@ -21,6 +20,7 @@ import java.nio.channels.WritableByteChannel
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
  * A function that processes the [IO] of a [Process].
@@ -227,7 +227,7 @@ internal class NonBlockingInputStreamLineProcessor(
 
 private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
     if (nonBlockingReader) NonBlockingReader(this, blockOnEmptyLine = true)
-    else InputStreamReader(this)
+    else JlineInputStreamReader(this)
 
 private fun CompletableFuture<*>.exceptionallyThrow(type: String) = exceptionally {
     throw RuntimeException("An error occurred while processing ［$type］.", it)

@@ -2,6 +2,7 @@ package koodies.io.path
 
 import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
+import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -25,12 +26,12 @@ class ConditionsKtTest {
         @Nested
         inner class WithFile {
             @Test
-            fun `should return true on empty`() = withTempDir {
+            fun `should return true on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(randomFile()).isEmpty()
             }
 
             @Test
-            fun `should return false on non-empty`() = withTempDir {
+            fun `should return false on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(HtmlFile.copyToDirectory(this)).not { isEmpty() }
             }
         }
@@ -38,25 +39,25 @@ class ConditionsKtTest {
         @Nested
         inner class WithDirectory {
             @Test
-            fun `should return true on empty`() = withTempDir {
+            fun `should return true on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(randomDirectory()).isEmpty()
             }
 
             @Test
-            fun `should return false on non-empty`() = withTempDir {
+            fun `should return false on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(randomDirectory().parent).not { isEmpty() }
             }
         }
 
         @Test
-        fun `should throw on missing`() = withTempDir {
+        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching {
                 randomPath().isEmpty
             }.isFailure().isA<NoSuchFileException>()
         }
 
         @Test
-        fun `should throw in different type`() = withTempDir {
+        fun `should throw in different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             @Suppress("BlockingMethodInNonBlockingContext")
             (expectCatching {
                 Files.createSymbolicLink(randomPath(), randomFile()).isEmpty
@@ -71,12 +72,12 @@ class ConditionsKtTest {
         @Nested
         inner class WithFile {
             @Test
-            fun `should return true on non-empty`() = withTempDir {
+            fun `should return true on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(HtmlFile.copyToDirectory(this)).isNotEmpty()
             }
 
             @Test
-            fun `should return false on empty`() = withTempDir {
+            fun `should return false on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(this).not { isNotEmpty() }
             }
         }
@@ -84,25 +85,25 @@ class ConditionsKtTest {
         @Nested
         inner class WithDirectory {
             @Test
-            fun `should return true on non-empty`() = withTempDir {
+            fun `should return true on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(randomDirectory().parent).isNotEmpty()
             }
 
             @Test
-            fun `should return false on empty`() = withTempDir {
+            fun `should return false on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(randomDirectory()).not { isNotEmpty() }
             }
         }
 
         @Test
-        fun `should throw on missing`() = withTempDir {
+        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching {
                 randomPath().isNotEmpty
             }.isFailure().isA<NoSuchFileException>()
         }
 
         @Test
-        fun `should throw on different type`() = withTempDir {
+        fun `should throw on different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             @Suppress("BlockingMethodInNonBlockingContext")
             expectCatching {
                 Files.createSymbolicLink(randomPath(), randomFile()).isNotEmpty

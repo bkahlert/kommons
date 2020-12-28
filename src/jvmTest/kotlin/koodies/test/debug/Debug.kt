@@ -1,4 +1,4 @@
-package koodies.test.junit.debug
+package koodies.test.debug
 
 import koodies.debug.debug
 import koodies.terminal.AnsiColors.brightCyan
