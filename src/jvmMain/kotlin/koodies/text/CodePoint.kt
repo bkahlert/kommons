@@ -46,7 +46,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * [Unicode high-surrogate code unit](http://www.unicode.org/glossary/#high_surrogate_code_unit)
      * (also known as *leading-surrogate code unit*).
      *
-     * @return `true` if this code point is between a high surrogate
+     * @return `true` if this code point is a high surrogate
      * @see isLowSurrogate
      */
     val isHighSurrogate: Boolean get() = char?.let { Character.isHighSurrogate(it) } ?: false
@@ -56,20 +56,38 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * [Unicode high-surrogate code unit](http://www.unicode.org/glossary/#high_surrogate_code_unit)
      * (also known as *leading-surrogate code unit*).
      *
-     * @return `true` if this code point is between a high surrogate
-     * @see isHighSurrogate
+     * @return `true` if this code point is a low surrogate
+     * @see isLowSurrogate
      */
     val isLowSurrogate: Boolean get() = char?.let { Character.isLowSurrogate(it) } ?: false
 
     /**
      * Determines if this code point is a
-     * [Unicode high-surrogate code unit](http://www.unicode.org/glossary/#high_surrogate_code_unit)
-     * (also known as *leading-surrogate code unit*).
+     * [Unicode Space Character](http://www.unicode.org/versions/Unicode13.0.0/ch06.pdf).
+     *
+     * @return `true` if this code point is a space character
+     * @see isWhitespace
+     */
+    val isWhitespace: Boolean get() = Character.isWhitespace(codePoint) || Unicode.whitespaces.contains(char)
+
+    /**
+     * Determines if this code point is alphanumeric, that is,
+     * if it is a [Unicode Letter](https://www.unicode.org/glossary/#letter) or
+     * a [Unicode Digit](http://www.unicode.org/glossary/#digits).
+     *
+     * @return `true` if this code point is a letter or digit
+     * @see isLetterOrDigit
+     */
+    val isAlphanumeric: Boolean get() = Character.isLetterOrDigit(codePoint)
+
+    /**
+     * Determines if this code point is an alphanumeric ASCII character, that is,
+     * is `A`-`Z`, `a`-`z` or `0`-`9`.
      *
      * @return `true` if this code point is between a high surrogate
      * @see isHighSurrogate
      */
-    val isWhitespace: Boolean get() = Character.isWhitespace(codePoint) || Unicode.whitespaces.contains(char)
+    val isAsciiAlphanumeric: Boolean get() = (codePoint in 0x30..0x39) || (codePoint in 0x41..0x5a) || (codePoint in 0x61..0x7a)
 
     /**
      * Contains the character pointed to and represented by a [String].
@@ -102,7 +120,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
          * The single code point if this consists of exactly one valid code point.
          */
         fun CharSequence.asCodePoint(): CodePoint? =
-            codePointSequence().take(2).toList().takeIf { it.size == 1 }?.first()?.takeIf { it.codePoint.isValidCodePoint() }
+            asCodePointSequence().take(2).toList().takeIf { it.size == 1 }?.first()?.takeIf { it.codePoint.isValidCodePoint() }
 
         fun count(string: CharSequence): Long = string.codePoints().count()
         fun count(string: String): Long = string.codePoints().count()
@@ -240,27 +258,27 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
 
 
 operator fun String.plus(amount: Int): String =
-    codePointSequence().map { it + amount }.joinToString("")
+    asCodePointSequence().map { it + amount }.joinToString("")
 
 operator fun String.minus(amount: Int): String =
-    codePointSequence().map { it - amount }.joinToString("")
+    asCodePointSequence().map { it - amount }.joinToString("")
 
 /**
  * Returns a sequence containing the [CodePoint] instances this string consists of.
  */
-fun CharSequence.codePointSequence(): Sequence<CodePoint> =
+fun CharSequence.asCodePointSequence(): Sequence<CodePoint> =
     codePoints().mapToObj { CodePoint(it) }.asSequence()
 
 /**
  * Returns a sequence containing the [CodePoint] instances this string consists of.
  */
-fun String.codePointSequence(): Sequence<CodePoint> =
-    (this as CharSequence).codePointSequence()
+fun String.asCodePointSequence(): Sequence<CodePoint> =
+    (this as CharSequence).asCodePointSequence()
 
 /**
  * Returns a list containing the results of applying the given [transform] function
  * to each [CodePoint] of this string.
  */
 fun <R> String.mapCodePoints(transform: (CodePoint) -> R): List<R> =
-    codePointSequence().map(transform).toList()
+    asCodePointSequence().map(transform).toList()
 

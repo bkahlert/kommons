@@ -1,5 +1,6 @@
 package koodies.test.debug
 
+import koodies.test.Debug
 import koodies.test.allTests
 import koodies.test.isA
 import koodies.test.testName

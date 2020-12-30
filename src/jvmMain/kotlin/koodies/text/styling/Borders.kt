@@ -1,11 +1,11 @@
 package koodies.text.styling
 
-import koodies.text.joinLinesToString
-import koodies.text.repeat
 import com.github.ajalt.mordant.AnsiCode
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.Grapheme.Companion.getGraphemeCount
-import koodies.text.codePointSequence
+import koodies.text.asCodePointSequence
+import koodies.text.joinLinesToString
+import koodies.text.repeat
 import koodies.text.styling.Borders.Block
 import koodies.text.styling.Borders.Double
 import koodies.text.styling.Borders.Heavy
@@ -208,7 +208,7 @@ enum class Borders(val matrix: String) : CharSequence by matrix {
         lines.onEach { line ->
             check(line.getGraphemeCount() == 3) {
                 "Each line of the matrix must consist of exactly 3 characters. Instead " +
-                    line.codePointSequence().map { "$it" + ":" + it.string }.toList() +
+                    line.asCodePointSequence().map { "$it" + ":" + it.string }.toList() +
                     " found in $line."
             }
         }

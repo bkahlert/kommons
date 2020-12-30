@@ -1,5 +1,6 @@
 package koodies.test.debug
 
+import koodies.test.Debug
 import koodies.test.Verbosity.Companion.isVerbose
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext

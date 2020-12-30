@@ -1,9 +1,9 @@
 package koodies.test.junit
 
 import koodies.terminal.ANSI
+import koodies.test.Debug
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
-import koodies.test.debug.Debug
 import koodies.test.withAnnotation
 import koodies.test.withoutAnnotation
 import koodies.text.styling.draw

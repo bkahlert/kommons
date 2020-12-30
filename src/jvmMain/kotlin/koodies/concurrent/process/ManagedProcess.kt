@@ -3,7 +3,7 @@ package koodies.concurrent.process
 import koodies.concurrent.isScriptFile
 import koodies.debug.asEmoji
 import koodies.exception.dump
-import koodies.exception.toSingleLineString
+import koodies.exception.toCompactString
 import koodies.io.RedirectingOutputStream
 import koodies.io.path.asString
 import koodies.io.path.toPath
@@ -120,7 +120,7 @@ private open class ManagedJavaProcess(
             }.exceptionally { throwable ->
                 val cause = if (throwable is CompletionException) throwable.cause else throwable
                 val dump = commandLine.workingDirectory.dump("""
-                Process $commandLine terminated with ${cause.toSingleLineString()}.
+                Process $commandLine terminated with ${cause.toCompactString()}.
             """.trimIndent()) { ioLog.dump() }.also { dump -> metaLog(dump) }
                 throw RuntimeException(dump.removeEscapeSequences(), cause)
             }.thenApply { process ->

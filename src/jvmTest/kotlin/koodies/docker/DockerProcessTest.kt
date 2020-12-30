@@ -8,6 +8,7 @@ import koodies.concurrent.process.process
 import koodies.concurrent.process.silentlyProcess
 import koodies.concurrent.synchronized
 import koodies.test.Slow
+import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.time.poll
 import koodies.time.sleep
@@ -71,7 +72,7 @@ class DockerProcessTest {
             }.onFailure { dockerProcess.kill() }.getOrThrow()
         }
 
-        @DockerRequiring @Test
+        @DockerRequiring @Smoke @Test
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) {
             val logged = mutableListOf<String>().synchronized()
             val dockerProcess =

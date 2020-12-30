@@ -1,13 +1,17 @@
 package koodies.shell
 
 import koodies.concurrent.process.CommandLine
+import koodies.concurrent.toScriptName
 import koodies.io.file.writeText
 import koodies.io.path.executable
+import koodies.io.path.withDirectoriesCreated
 import koodies.terminal.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
+import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.prefixLinesWith
 import koodies.text.quoted
+import koodies.text.withRandomSuffix
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.notExists
@@ -17,20 +21,6 @@ annotation class ShellScriptMarker
 
 @ShellScriptMarker
 class ShellScript(val name: String? = null, content: String? = null) {
-
-    companion object {
-        /**
-         * Builds and returns an actual instance.
-         */
-        fun (ShellScript.() -> Unit).build(): ShellScript =
-            ShellScript().apply(this)
-
-        operator fun invoke(name: String? = null, block: ShellScript.() -> Unit): ShellScript {
-            val build = block.build()
-            val content = build.build()
-            return ShellScript(name, content)
-        }
-    }
 
     val lines: MutableList<String> = mutableListOf()
 
@@ -74,6 +64,28 @@ class ShellScript(val name: String? = null, content: String? = null) {
         lines.addAll(command.lines)
     }
 
+    fun embed(shellScript: ShellScript) {
+        val fileName = "${shellScript.name.toScriptName()}.sh"
+        val delimiter = "EMBEDDED-SCRIPT".withRandomSuffix()
+        lines.add("""
+            (
+            cat <<'$delimiter'
+        """.trimIndent())
+        lines.add(shellScript.build().withoutTrailingLineSeparator)
+        lines.add("""
+            $delimiter
+            ) > "$fileName"
+            if [ -f "$fileName" ]; then
+              chmod 755 "$fileName"
+              "./$fileName"
+              wait
+              rm "$fileName"
+            else
+              echo "Error creating \"$fileName\""
+            fi
+        """.trimIndent())
+    }
+
     fun exit(code: Int) {
         lines.add("exit $code")
     }
@@ -100,23 +112,22 @@ class ShellScript(val name: String? = null, content: String? = null) {
         }
     }
 
-    val echoNameCommand: String get() = name?.let { "echo ${banner(name).quoted}" } ?: ""
-    fun build(): String {
+    fun build(name: String? = this.name): String {
         var echoNameCommandAdded = false
-        val script = lines.map { line ->
-            if (!echoNameCommandAdded && echoNameCommand.isNotBlank() && line.isShebang()) {
+        val echoNameCommand = bannerEchoingCommand(name)
+        val script = lines.joinToString("") { line ->
+            if (!echoNameCommandAdded && line.isShebang()) {
                 echoNameCommandAdded = true
                 line + LF + echoNameCommand
             } else {
-                line
+                line + LF
             }
-        }.joinToString(LF, postfix = LF)
-        return if (echoNameCommandAdded || echoNameCommand.isBlank()) script
-        else echoNameCommand + LF + script
+        }
+        return if (echoNameCommandAdded) script else echoNameCommand + script
     }
 
     fun buildTo(path: Path): Path = path.apply {
-        if (path.notExists()) path.createFile()
+        if (path.notExists()) path.withDirectoriesCreated().createFile()
         writeText(build())
         executable = true
     }
@@ -138,5 +149,26 @@ class ShellScript(val name: String? = null, content: String? = null) {
         var result = name?.hashCode() ?: 0
         result = 31 * result + lines.hashCode()
         return result
+    }
+
+    companion object {
+        /**
+         * Builds and returns an actual instance.
+         */
+        fun (ShellScript.() -> Unit).build(name: String? = null): ShellScript =
+            ShellScript(name = name).apply(this)
+
+        operator fun invoke(name: String? = null, block: ShellScript.() -> Unit): ShellScript {
+            val build = block.build()
+            val content = build.build()
+            return ShellScript(name, content)
+        }
+
+        /**
+         * Return—if [name] is not `null`—a command line that echos [name].
+         *
+         * If [name] is `null` an empty string is returned.
+         */
+        fun bannerEchoingCommand(name: String?): String = name?.let { "echo ${banner(name).quoted}$LF" } ?: ""
     }
 }

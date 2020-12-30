@@ -1,12 +1,17 @@
 package koodies.shell
 
+import koodies.concurrent.process.exitValue
+import koodies.concurrent.process.io
 import koodies.concurrent.script
 import koodies.docker.docker
 import koodies.io.path.Locations
+import koodies.io.path.asString
 import koodies.io.path.hasContent
 import koodies.io.path.randomFile
 import koodies.io.path.single
 import koodies.shell.HereDocBuilder.hereDoc
+import koodies.terminal.AnsiCode.Companion.ESC
+import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.toStringIsEqualTo
@@ -16,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
@@ -105,6 +111,72 @@ class ShellScriptTest {
     }
 
     @Nested
+    inner class Embed {
+        private fun Path.getEmbeddedShellScript() = ShellScript("embedded script 📝") {
+            shebang
+            changeDirectoryOrExit(this@getEmbeddedShellScript)
+            !"""mkdir "dir""""
+            !"""cd "dir""""
+            !"""echo "test" > file.txt"""
+        }
+
+        private fun Path.shellScript() = ShellScript {
+            shebang
+            !"""echo "about to run embedded script""""
+            embed(getEmbeddedShellScript())
+            !"""echo "finish to run embedded script""""
+            !"""echo $(pwd)"""
+        }
+
+        @Test
+        fun `should embed shell script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(shellScript()).built.matchesCurlyPattern("""
+                #!/bin/sh
+                echo "about to run embedded script"
+                (
+                cat <<'EMBEDDED-SCRIPT-{}'
+                #!/bin/sh
+                echo "{}"
+                cd "${asString()}" || exit -1
+                mkdir "dir"
+                cd "dir"
+                echo "test" > file.txt
+                EMBEDDED-SCRIPT-{}
+                ) > "embedded-script-_.sh"
+                if [ -f "embedded-script-_.sh" ]; then
+                  chmod 755 "embedded-script-_.sh"
+                  "./embedded-script-_.sh"
+                  wait
+                  rm "embedded-script-_.sh"
+                else
+                  echo "Error creating \"embedded-script-_.sh\""
+                fi
+                echo "finish to run embedded script"
+                echo $(pwd)
+            """.trimIndent())
+        }
+
+        @Smoke @Test
+        fun `should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val process = script(shellScript())
+            expect {
+                that(process) {
+                    exitValue.isEqualTo(0)
+                    io.matchesCurlyPattern("""
+                        Executing ${asString()}/koodies.process.{}.sh
+                        📄 file://${asString()}/koodies.process.{}.sh
+                        about to run embedded script
+                        ░░░░░░░ EMBEDDED SCRIPT 📝
+                        finish to run embedded script
+                        ${asString()}
+                    """.trimIndent())
+                }
+                that(resolve("dir/file.txt")).hasContent("test\n")
+            }
+        }
+    }
+
+    @Nested
     inner class DockerCommand {
         @Test
         fun `should build valid docker run`() {
@@ -173,20 +245,39 @@ class ShellScriptTest {
         }
     }
 
-    @Test
-    fun `should have an optional name`() {
-        val sh = ShellScript("test") { !"exit 0" }
-        expectThat(sh).toStringIsEqualTo("Script(name=test;content=echo \"\u001B[40;90m░\u001B[49;39m\u001B[46;96m░\u001B[49;39m\u001B[44;94m░\u001B[49;39m\u001B[42;92m░\u001B[49;39m\u001B[43;93m░\u001B[49;39m\u001B[45;95m░\u001B[49;39m\u001B[41;91m░\u001B[49;39m \u001B[96mTEST\u001B[39m\";exit 0})")
-    }
+    @Nested
+    inner class Name {
+        private val testBanner = "$ESC[40;90m░$ESC[49;39m$ESC[46;96m░$ESC[49;39m" +
+            "$ESC[44;94m░$ESC[49;39m$ESC[42;92m░$ESC[49;39m$ESC[43;93m░" +
+            "$ESC[49;39m$ESC[45;95m░$ESC[49;39m$ESC[41;91m░$ESC[49;39m " +
+            "$ESC[96mTEST$ESC[39m"
 
-    @Test
-    fun `should echo name`() {
-        val sh = ShellScript("test") { !"exit 0" }
-        expectThat(sh.build()).isEqualTo("""
-            echo "[40;90m░[49;39m[46;96m░[49;39m[44;94m░[49;39m[42;92m░[49;39m[43;93m░[49;39m[45;95m░[49;39m[41;91m░[49;39m [96mTEST[39m"
+        @Test
+        fun `should have an optional name`() {
+            val sh = ShellScript("test") { !"exit 0" }
+            expectThat(sh).toStringIsEqualTo("Script(name=test;content=echo \"$testBanner\";exit 0})")
+        }
+
+        @Test
+        fun `should echo name`() {
+            val sh = ShellScript("test") { !"exit 0" }
+
+            expectThat(sh.build()).isEqualTo("""
+            echo "$testBanner"
             exit 0
             
         """.trimIndent())
+        }
+
+        @Test
+        fun `should accept name during build`() {
+            val sh = ShellScript { !"exit 0" }
+            expectThat(sh.build("test")).isEqualTo("""
+            echo "$testBanner"
+            exit 0
+            
+        """.trimIndent())
+        }
     }
 
     @Test

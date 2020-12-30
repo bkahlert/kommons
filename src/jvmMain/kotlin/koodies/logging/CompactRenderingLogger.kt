@@ -1,15 +1,16 @@
 package koodies.logging
 
 import koodies.concurrent.process.IO
+import koodies.terminal.AnsiFormats.bold
 import kotlin.properties.Delegates.vetoable
 import kotlin.reflect.KProperty
 
-abstract class SingleLineLogger(caption: CharSequence) : RenderingLogger {
+abstract class CompactRenderingLogger(caption: CharSequence) : RenderingLogger {
     init {
         require(caption.isNotBlank()) { "No blank caption allowed." }
     }
 
-    var strings: List<String>? by vetoable(listOf("$caption:"),
+    var strings: List<String>? by vetoable(listOf(caption.bold()),
         onChange = { _: KProperty<*>, oldValue: List<String>?, _: List<String>? -> oldValue != null })
 
     abstract fun render(block: () -> CharSequence)

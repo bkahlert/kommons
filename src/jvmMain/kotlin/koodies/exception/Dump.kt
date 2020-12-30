@@ -46,7 +46,7 @@ fun Path.dump(errorMessage: String?, file: Path = randomFile(Dump.dumpPrefix, Du
 }.recover { ex: Throwable ->
     (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
         "In the attempt to persist the corresponding dump the following error occurred:$LF" +
-        "${ex.toSingleLineString()}$LF" +
+        "${ex.toCompactString()}$LF" +
         LF +
         "➜ The not successfully persisted dump is as follows:$LF" +
         data()

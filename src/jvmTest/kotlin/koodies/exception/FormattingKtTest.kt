@@ -32,8 +32,8 @@ class FormattingKtTest {
     inner class AThrowable {
 
         @Test
-        fun `should format as a single line`() {
-            expectThat(runtimeException.toSingleLineString()) {
+        fun `should format compact`() {
+            expectThat(runtimeException.toCompactString()) {
                 startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
@@ -41,7 +41,7 @@ class FormattingKtTest {
 
         @Test
         fun `should format empty message`() {
-            expectThat(emptyException.toSingleLineString()) {
+            expectThat(emptyException.toCompactString()) {
                 startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
                 isSingleLine()
             }
@@ -52,8 +52,8 @@ class FormattingKtTest {
     inner class WithException {
 
         @Test
-        fun `should format as a single line`() {
-            expectThat(Result.failure<String>(runtimeException).toSingleLineString()) {
+        fun `should format compact`() {
+            expectThat(Result.failure<String>(runtimeException).toCompactString()) {
                 startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
@@ -61,7 +61,7 @@ class FormattingKtTest {
 
         @Test
         fun `should format empty message`() {
-            expectThat(Result.failure<String>(emptyException).toSingleLineString()) {
+            expectThat(Result.failure<String>(emptyException).toCompactString()) {
                 startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
                 isSingleLine()
             }
@@ -75,8 +75,8 @@ class FormattingKtTest {
         inner class WithValue {
 
             @Test
-            fun `should format as a single line`() {
-                expectThat(Result.success("good").toSingleLineString()) {
+            fun `should format compact`() {
+                expectThat(Result.success("good").toCompactString()) {
                     get { removeEscapeSequences() }.isEqualTo("good")
                     isSingleLine()
                 }
@@ -84,7 +84,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format Path instances as URI`() {
-                expectThat(Result.success(Path.of("/path")).toSingleLineString()) {
+                expectThat(Result.success(Path.of("/path")).toCompactString()) {
                     get { removeEscapeSequences() }.isEqualTo("file:///path")
                     isSingleLine()
                 }
@@ -92,17 +92,24 @@ class FormattingKtTest {
 
             @Test
             fun `should format run processes as exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(script(expectedExitValue = 42) { !"exit 42" }).toSingleLineString()) {
+                expectThat(Result.success(script(expectedExitValue = 42) { !"exit 42" }).toCompactString()) {
                     get { removeEscapeSequences() }.isEqualTo("42")
                     isSingleLine()
                 }
             }
 
             @Test
-            fun `should format empty collection as empty string`() {
-                expectThat(Result.success(emptyList<Any>()).toSingleLineString()) {
-                    get { removeEscapeSequences() }.isEqualTo("")
+            fun `should format empty collection as empty brackets`() {
+                expectThat(Result.success(emptyList<Any>()).toCompactString()) {
+                    get { removeEscapeSequences() }.isEqualTo("[]")
                     isSingleLine()
+                }
+            }
+
+            @Test
+            fun `should format array like a list`() {
+                expectThat(Result.success(arrayOf("a", "b")).toCompactString()) {
+                    isEqualTo(Result.success(listOf("a", "b")).toCompactString())
                 }
             }
         }

@@ -113,7 +113,7 @@ class CodePointTest {
     inner class CodePointSequence {
         @Test
         fun `should contain all unicode points`() {
-            expectThat("Az09Αω𝌀𝍖".codePointSequence())
+            expectThat("Az09Αω𝌀𝍖".asCodePointSequence())
                 .get { map { it.string }.joinToString("") }
                 .isEqualTo("Az09Αω𝌀𝍖")
         }

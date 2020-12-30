@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.test.debug.Debug
+import koodies.test.Debug
 import koodies.test.isAnnotated
 import koodies.test.testName
 import koodies.text.quoted

@@ -21,9 +21,13 @@ import java.util.Objects
  * and consist of 1 or more instances of [CodePoint].
  */
 inline class Grapheme(val codePoints: List<CodePoint>) {
+
     constructor(charSequence: CharSequence) : this(
-        charSequence.codePointSequence().toList()
+        charSequence.asCodePointSequence().toList()
             .also { require(count(charSequence) == 1) { "$it does not represent a single grapheme" } })
+
+    val isWhitespace: Boolean get() = codePoints.size == 1 && codePoints[0].isWhitespace
+    val isAlphanumeric: Boolean get() = codePoints.size == 1 && codePoints[0].isAlphanumeric
 
     /**
      * Contains the character pointed to and represented by a [String].

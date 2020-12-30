@@ -3,16 +3,15 @@ package koodies.logging
 import com.github.ajalt.mordant.AnsiCode
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.OUT
-import koodies.exception.toSingleLineString
+import koodies.exception.toCompactString
 import koodies.io.path.bufferedWriter
 import koodies.nullable.invoke
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.terminal.AnsiColors.green
 import koodies.terminal.AnsiColors.red
-import koodies.terminal.AnsiFormats.italic
-import koodies.text.Grapheme
 import koodies.text.Unicode
-import koodies.text.Unicode.Emojis.heavyBallotX
+import koodies.text.Unicode.Emojis.`➜`
 import koodies.text.Unicode.Emojis.heavyCheckMark
 import koodies.text.Unicode.greekSmallLetterKoppa
 import java.nio.file.Path
@@ -101,30 +100,34 @@ interface RenderingLogger {
         val recoveredLoggers = mutableListOf<RenderingLogger>()
 
         fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
-            if (result.isSuccess) formatReturnValue(result.toSingleLineString()) else formatException(" ", result.toSingleLineString())
+            if (result.isSuccess) formatReturnValue(result.toCompactString()) else formatException(" ", result.toCompactString())
 
-        fun RenderingLogger.formatReturnValue(formattedResult: CharSequence): CharSequence {
-            val format = if (recoveredLoggers.contains(this)) ANSI.termColors.green else ANSI.termColors.green
-            val symbol = if (recoveredLoggers.contains(this)) heavyBallotX else heavyCheckMark
-            return if (formattedResult.isEmpty()) format("$symbol") else format("$symbol") + " returned".italic() + " $formattedResult"
+        @Suppress("LocalVariableName", "NonAsciiCharacters")
+        fun formatReturnValue(formattedResult: CharSequence): CharSequence {
+            return if (formattedResult.isEmpty()) heavyCheckMark.green()
+            else `➜`.emojiVariant.green() + " $formattedResult"
         }
 
+        @Suppress("LocalVariableName", "NonAsciiCharacters")
         fun RenderingLogger.formatException(prefix: CharSequence, oneLiner: CharSequence?): String {
             val format = if (recoveredLoggers.contains(this)) ANSI.termColors.green else ANSI.termColors.red
-            return oneLiner?.let {
-                val event = if (recoveredLoggers.contains(this)) "recovered from" else "failed with"
-                format("$greekSmallLetterKoppa") + prefix + "$event ${it.red()}"
-            } ?: format("$greekSmallLetterKoppa")
+            val ϟ = format("$greekSmallLetterKoppa")
+            return oneLiner?.let { ϟ + prefix + it.red() } ?: ϟ
         }
     }
 }
 
+@DslMarker
+annotation class RenderingLoggingDsl
+
+@RenderingLoggingDsl
 inline fun <reified R, reified L : RenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
     logResult { runCatching { block() } }
     return this
 }
 
+@RenderingLoggingDsl
 inline fun <reified R, reified L : RenderingLogger> L.runLogging(crossinline block: L.() -> R): R {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
     return logResult { runCatching { block() } }
@@ -134,8 +137,9 @@ inline fun <reified R, reified L : RenderingLogger> L.runLogging(crossinline blo
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  *
- * This logger uses at least one line per log event. If less room is available [singleLineLogging] is more suitable.
+ * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
  */
+@RenderingLoggingDsl
 inline fun <reified R> Any?.logging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
@@ -162,6 +166,7 @@ inline fun <reified R> Any?.logging(
 /**
  * Creates a logger which logs to [path].
  */
+@RenderingLoggingDsl
 inline fun <reified R> RenderingLogger?.fileLogging(
     path: Path,
     caption: CharSequence,
@@ -185,13 +190,14 @@ inline fun <reified R> RenderingLogger?.fileLogging(
  *
  * This logger logs all events using a single line of text. If more room is needed [logging] is more suitable.
  */
-inline fun <reified R> BlockRenderingLogger?.singleLineLogging(
+@RenderingLoggingDsl
+inline fun <reified R> RenderingLogger?.compactLogging(
     caption: CharSequence,
-    noinline block: SingleLineLogger.() -> R,
+    noinline block: CompactRenderingLogger.() -> R,
 ): R {
-    val logger = object : SingleLineLogger(caption) {
+    val logger = object : CompactRenderingLogger(caption) {
         override fun render(block: () -> CharSequence) {
-            this@singleLineLogging?.apply { logLine(block) } ?: println(block())
+            this@compactLogging?.apply { logLine(block) } ?: println(block())
         }
     }
     return kotlin.runCatching { block(logger) }.let { logger.logResult { it } }
@@ -200,38 +206,15 @@ inline fun <reified R> BlockRenderingLogger?.singleLineLogging(
 /**
  * Creates a logger which serves for logging a very short sub-process and all of its corresponding events.
  *
- * This logger logs all events using only a couple of characters. If more room is needed [singleLineLogging] or even [logging] is more suitable.
+ * This logger logs all events using only a couple of characters. If more room is needed [compactLogging] or even [logging] is more suitable.
  */
-inline fun <reified R> RenderingLogger?.microLogging(
-    symbol: Grapheme,
-    noinline block: MicroLogger.() -> R,
-): R = if (this == null) {
-    val logger: MicroLogger =
-        object : MicroLogger(symbol) {
-            override fun render(block: () -> CharSequence) {
-            }
-        }
-    kotlin.runCatching { block(logger) }.let { logger.logResult { it } }
-} else {
-    val logger: MicroLogger = object : MicroLogger(symbol) {
-        override fun render(block: () -> CharSequence) {
-            this@microLogging.logLine(block)
-        }
-    }
-    kotlin.runCatching { block(logger) }.let { logger.logResult { it } }
-}
-
-/**
- * Creates a logger which serves for logging a very short sub-process and all of its corresponding events.
- *
- * This logger logs all events using only a couple of characters. If more room is needed [singleLineLogging] or even [logging] is more suitable.
- */
-inline fun <reified R> SingleLineLogger.microLogging(
+@RenderingLoggingDsl
+inline fun <reified R> CompactRenderingLogger.compactLogging(
     noinline block: MicroLogger.() -> R,
 ): R = run {
     val logger: MicroLogger = object : MicroLogger() {
         override fun render(block: () -> CharSequence) {
-            this@microLogging.logLine(block)
+            this@compactLogging.logLine(block)
         }
     }
     kotlin.runCatching { block(logger) }.let { logger.logResult { it } }

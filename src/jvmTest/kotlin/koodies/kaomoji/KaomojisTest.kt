@@ -6,7 +6,7 @@ import koodies.terminal.AnsiFormats.hidden
 import koodies.terminal.IDE
 import koodies.test.test
 import koodies.test.toStringIsEqualTo
-import koodies.text.codePointSequence
+import koodies.text.asCodePointSequence
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
@@ -25,14 +25,14 @@ class KaomojisTest {
     @RepeatedTest(10)
     fun `should create random Kaomoji`() {
         val kaomoji = Kaomojis.random()
-        expectThat(kaomoji).get { codePointSequence().count() }.isGreaterThanOrEqualTo(3)
+        expectThat(kaomoji).get { asCodePointSequence().count() }.isGreaterThanOrEqualTo(3)
     }
 
     @TestFactory
     fun `should create random Kaomoji from`() =
         Kaomojis.Generator.values().test("{}") { category ->
             val kaomoji = category.random()
-            expectThat(kaomoji).get { codePointSequence().count() }.isGreaterThanOrEqualTo(3)
+            expectThat(kaomoji).get { asCodePointSequence().count() }.isGreaterThanOrEqualTo(3)
         }
 
     @RepeatedTest(10)

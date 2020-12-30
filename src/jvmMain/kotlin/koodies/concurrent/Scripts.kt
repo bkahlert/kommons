@@ -9,6 +9,10 @@ import koodies.io.path.Locations
 import koodies.io.path.randomPath
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.Companion.build
+import koodies.text.CharRanges
+import koodies.text.CodePoint
+import koodies.text.asCodePointSequence
+import koodies.text.randomString
 import java.nio.file.Path
 import kotlin.io.path.name
 
@@ -18,12 +22,25 @@ private const val shellScriptExtension: String = ".sh"
 internal fun Path.scriptPath(): Path = randomPath(base = shellScriptPrefix, extension = shellScriptExtension)
 internal fun Path.isScriptFile(): Boolean = name.startsWith(shellScriptPrefix) && name.endsWith(shellScriptExtension)
 
+fun String?.toScriptName(minLength: Int = 8): String {
+    val sanitizedChars: List<String> = this?.asCodePointSequence()?.withIndex()?.map { (index: Int, codePoint: CodePoint) ->
+        if (index == 0 && !codePoint.isAsciiAlphanumeric) "X"
+        else when {
+            codePoint.isAsciiAlphanumeric -> codePoint.string
+            "._-".contains(codePoint.string) -> codePoint.string
+            codePoint.isWhitespace -> "-"
+            else -> "_"
+        }
+    }?.toList() ?: emptyList()
+    val fillUp = (minLength - sanitizedChars.size).takeIf { it > 0 }?.let { randomString(it, CharRanges.Alphanumeric) } ?: ""
+    return sanitizedChars.joinToString("", postfix = fillUp)
+}
 
 fun Path.script(
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int = 0,
-    processTerminationCallback: (() -> Unit)? = null,
     shellScript: ShellScript,
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.noopProcessor(),
 ): ManagedProcess {
     val scriptFile = shellScript.sanitize(this).buildTo(scriptPath())
@@ -32,29 +49,29 @@ fun Path.script(
 }
 
 fun script(
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int = 0,
-    processTerminationCallback: (() -> Unit)? = null,
     shellScript: ShellScript,
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.noopProcessor(),
-): ManagedProcess = Locations.Temp.script(environment, expectedExitValue, processTerminationCallback, shellScript, processor)
+): ManagedProcess = Locations.Temp.script(shellScript, environment, expectedExitValue, processTerminationCallback, processor)
 
 
 fun Path.script(
     environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int = 0,
+    expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.noopProcessor(),
     shellScript: ShellScript.() -> Unit,
-): ManagedProcess = script(environment, expectedExitValue, processTerminationCallback, shellScript.build(), processor)
+): ManagedProcess = script(shellScript.build(), environment, expectedExitValue, processTerminationCallback, processor)
 
 fun script(
     environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int = 0,
+    expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.noopProcessor(),
     shellScript: ShellScript.() -> Unit,
-): ManagedProcess = script(environment, expectedExitValue, processTerminationCallback, shellScript.build(), processor)
+): ManagedProcess = script(shellScript.build(), environment, expectedExitValue, processTerminationCallback, processor)
 
 
 fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean = runCatching {

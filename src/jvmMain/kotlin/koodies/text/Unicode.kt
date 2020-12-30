@@ -330,6 +330,7 @@ by dictOf("unicode.dict.tsv"
 
         val Now.emoji get() = instant.asEmoji()
 
+
         /**
          * [BALLOT BOX](https://codepoints.net/U+2610) ☐️ ☐︎
          */
@@ -390,6 +391,11 @@ by dictOf("unicode.dict.tsv"
          * [HEAVY LARGE CIRCLE](https://codepoints.net/U+2B55) ⭕️ ⭕︎
          */
         val heavyLargeCircle = Emoji('⭕')
+
+        /**
+         * [HEAVY ROUND-TIPPED RIGHTWARDS ARROW](https://codepoints.net/U+279C) ➜️ ➜︎
+         */
+        val `➜` = Emoji('➜')
 
         /**
          * [GREEN CIRCLE](https://codepoints.net/U+1F7E2) 🟢️ 🟢︎

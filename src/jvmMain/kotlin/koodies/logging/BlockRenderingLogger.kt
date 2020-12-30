@@ -2,9 +2,10 @@ package koodies.logging
 
 import koodies.builder.ListBuilder.Companion.buildList
 import koodies.concurrent.process.IO
-import koodies.exception.toSingleLineString
+import koodies.exception.toCompactString
 import koodies.logging.RenderingLogger.Companion.formatException
 import koodies.logging.RenderingLogger.Companion.formatResult
+import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiString.Companion.asAnsiString
@@ -44,6 +45,8 @@ open class BlockRenderingLogger(
     private fun getStatusPadding(text: String): String =
         " ".repeat((statusInformationColumn - text.removeEscapeSequences().length).coerceAtLeast(10))
 
+    private val playSymbol = ANSI.termColors.green("▶")
+
     private val blockStart: String
         get() = buildList<String> {
             if (borderedOutput) {
@@ -54,7 +57,7 @@ open class BlockRenderingLogger(
                 }
                 +prefix
             } else {
-                +"Started: ${caption.firstLine.bold()}"
+                +"$playSymbol ${caption.firstLine.bold()}"
                 caption.otherLines.forEach {
                     +"$prefix        ${it.bold()}"
                 }
@@ -67,12 +70,12 @@ open class BlockRenderingLogger(
             if (result.isSuccess) {
                 val renderedSuccess = formatResult(result)
                 if (borderedOutput) "│\n╰─────╴$renderedSuccess\n"
-                else "Completed: $renderedSuccess"
+                else "$renderedSuccess"
             } else {
                 if (borderedOutput) {
-                    formatException("$LF╰─────╴", result.toSingleLineString()) + LF
+                    formatException("$LF╰─────╴", result.toCompactString()) + LF
                 } else {
-                    formatException(" ", result.toSingleLineString())
+                    formatException(" ", result.toCompactString())
                 }
             }
         return message.asAnsiString().mapLines { it.bold() }
@@ -122,7 +125,7 @@ open class BlockRenderingLogger(
     override fun toString(): String =
         if (!resultLogged)
             "╷".let { vline ->
-                vline +
+                LF + vline +
                     LF + vline + IO.Type.META.format(" no result logged yet") +
                     LF + vline
             } else IO.Type.META.format("❕ result already logged")

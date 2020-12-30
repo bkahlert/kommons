@@ -228,7 +228,7 @@ class ManagedJavaProcessTest {
                 val process = createCompletingManagedProcess(42)
                 expect {
                     catching { process.waitFor() }.isFailure()
-                    expectThat(process).mergedLog.contains("terminated with exit code 42.")
+                    expectThat(process).io.contains("terminated with exit code 42.")
                 }
             }
 
@@ -237,7 +237,7 @@ class ManagedJavaProcessTest {
                 val process = createCompletingManagedProcess(42)
                 expect {
                     catching { process.waitFor() }.isFailure()
-                    that(process).mergedLog.containsDump()
+                    that(process).io.containsDump()
                 }
             }
 
@@ -307,7 +307,7 @@ class ManagedJavaProcessTest {
                 val process = createThrowingManagedProcess().silentlyProcess()
                 expect {
                     catching { process.onExit.get() }.failed
-                    that(process).mergedLog.containsDump()
+                    that(process).io.containsDump()
                 }
             }
 
@@ -394,7 +394,7 @@ val <T : ManagedProcess> Assertion.Builder<T>.alive: Assertion.Builder<T>
 
 val <T : ManagedProcess> Assertion.Builder<T>.log get() = get("log %s") { ioLog }
 
-val <T : ManagedProcess> Assertion.Builder<T>.mergedLog
+val <T : ManagedProcess> Assertion.Builder<T>.io
     get() = get("merged log") {
         ioLog.logged.joinToString("\n")
     }

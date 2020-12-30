@@ -4,7 +4,7 @@ import koodies.concurrent.process.IO.Type.OUT
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
-import koodies.test.debug.Debug
+import koodies.test.Debug
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

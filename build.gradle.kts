@@ -1,9 +1,14 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 plugins {
     kotlin("multiplatform") version "1.4.21"
-    id("org.jetbrains.dokka") version "0.10.1"
-    id("maven-publish")
+    id("org.jetbrains.dokka") version "1.4.20"
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
+
+    id("org.ajoberstar.grgit") version "4.1.0"
+    id("nebula.release") version "15.3.0"
+    id("maven-publish")
 }
 
 allprojects {
@@ -11,30 +16,13 @@ allprojects {
     apply { plugin("se.patrikerdes.use-latest-versions") }
 }
 
-group = "koodies"
-version = "1.0.1"
+group = "com.bkahlert.koodies"
 
 repositories {
-    mavenCentral()
     jcenter()
 }
 
 kotlin {
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                @Suppress("SpellCheckingInspection")
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                    "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-                    "-Xopt-in=kotlin.time.ExperimentalTime",
-                    "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-                    "-Xinline-classes"
-                )
-            }
-        }
-    }
-
     jvm {
         compilations.all {
             kotlinOptions {
@@ -124,6 +112,7 @@ kotlin {
                 implementation("io.strikt:strikt-core:0.28.1")
             }
         }
+
         val jsMain by getting
         val jsTest by getting {
             dependencies {
@@ -132,35 +121,45 @@ kotlin {
         }
         val nativeMain by getting
         val nativeTest by getting
+
+        tasks.withType<DokkaTask>().configureEach {
+            dokkaSourceSets {
+                named(commonMain.name)
+                named(jvmMain.name) { samples.from(jvmMain.resources.sourceDirectories.map { "$it" }) }
+                named(jsMain.name)
+                named(nativeMain.name)
+            }
+        }
+    }
+
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                @Suppress("SpellCheckingInspection")
+                freeCompilerArgs = freeCompilerArgs + listOf(
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+                    "-Xopt-in=kotlin.time.ExperimentalTime",
+                    "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+                    "-Xinline-classes"
+                )
+            }
+        }
     }
 }
 
-//publishing {
-//    repositories {
-//        maven {
-//            description = "Kotlin Goodies"
-//            url = URI.create("http://www.example.com/library")
-//            artifacts {
-//                add("library") {
-//                    licenses {
-//                        license {
-//                            name = "The Apache License, Version 2.0"
-//                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-//                        }
-//                    }
-//                    developers {
-//                        developer {
-//                            id = "bkahlert"
-//                            name = "Björn Kahlert"
-//                            email = "mail@bkahlert.com"
-//                        }
-//                    }
-//                    scm {
-//                        connection = "scm:git:git://example.com/my-library.git"
-//                        developerConnection = "scm:git:ssh://example.com/my-library.git"
-//                        url = "http://example.com/my-library/"
-//                    }
-//                }
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+            credentials {
+                username = System.getenv("GITHUB_USERNAME")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
 //            }
 //        }
 //    }

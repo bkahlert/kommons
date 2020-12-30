@@ -26,7 +26,7 @@ class DebugTest {
 
     @Test
     fun `should run in isolation`(output: CapturedOutput) {
-        expectThat(AnnotationSupport.findAnnotation(Debug::class.java, Isolated::class.java).orElse(null)).isNotNull()
+        expectThat(AnnotationSupport.findAnnotation(InternalDebug::class.java, Isolated::class.java).orElse(null)).isNotNull()
     }
 
     @Test

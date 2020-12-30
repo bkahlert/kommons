@@ -5,8 +5,8 @@ import koodies.debug.asEmoji
 import koodies.debug.debug
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.MutedRenderingLogger
+import koodies.logging.compactLogging
 import koodies.logging.logging
-import koodies.logging.singleLineLogging
 import koodies.terminal.ANSI
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
@@ -123,7 +123,7 @@ class NonBlockingReader(
      * for the next attempt. The unfinished line will be completed until a line separator
      * or EOF was encountered.
      */
-    fun forEachLine(block: (String) -> Unit): String = logger.singleLineLogging(NonBlockingReader::class.simpleName + "." + ::forEachLine.name + "()") {
+    fun forEachLine(block: (String) -> Unit): String = logger.compactLogging(NonBlockingReader::class.simpleName + "." + ::forEachLine.name + "()") {
         var lineCount = 0
         while (true) {
             val readLine: String? = readLine()

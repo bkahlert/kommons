@@ -1,5 +1,6 @@
 package koodies.logging
 
+import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.ERR
 import koodies.concurrent.process.IO.Type.META
 import koodies.concurrent.process.IO.Type.OUT
@@ -51,33 +52,7 @@ class RenderingLoggerTest {
     }
 
     @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should allow single line logging`() {
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        singleLineLogging("mini") {
-            logLine { OUT typed "A" }
-//            logException { RuntimeException("exception message") }
-            logStatus { OUT typed "bb" }
-            logStatus { OUT typed " " }
-        }
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logResult { Result.success(Unit) }
-
-        expectThat(logged).matchesCurlyPattern(
-            """
-                    ╭─────╴{}
-                    │{}
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   mini: A bb   ✔
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │{}
-                    ╰─────╴✔{}
-                """.trimIndent())
-    }
-
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should allow nested logging`() {
+    fun @receiver:Columns(100) InMemoryLogger.`should log nested`() {
         logStatus { OUT typed "outer 1" }
         logStatus { OUT typed "outer 2" }
         logging("nested log", null) {
@@ -106,13 +81,75 @@ class RenderingLoggerTest {
                     │   outer 3                                               {}                                      ▮▮
                     │   outer 4                                               {}                                      ▮▮
                     │{}
-                    ╰─────╴✔ returned{}
+                    ╰─────╴➜️ {}
                 """.trimIndent())
+    }
+
+    @Test
+    fun @receiver:Columns(100) InMemoryLogger.`should log compact`() {
+        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        compactLogging("mini") {
+            logLine { OUT typed "A" }
+//            logException { RuntimeException("exception message") }
+            logStatus { OUT typed "bb" }
+            logStatus { OUT typed " " }
+        }
+        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        logResult { Result.success(Unit) }
+
+        expectThat(logged).matchesCurlyPattern(
+            """
+                    ╭─────╴{}
+                    │{}
+                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
+                    │   mini A bb   ✔
+                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
+                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
+                    │{}
+                    ╰─────╴✔{}
+                """.trimIndent())
+    }
+
+    @Test
+    fun @receiver:Columns(100) InMemoryLogger.`should log nested compact`() {
+        logging("segment") {
+            logLine { "something" }
+            compactLogging("single") {
+                compactLogging {
+                    logStatus { IO.Type.OUT typed "ABC" }
+                    logLine { "" }
+                    logLine { "123" }
+                    "abc"
+                }
+                logLine { "456" }
+                compactLogging {
+                    logStatus { IO.Type.OUT typed "XYZ" }
+                    logLine { "" }
+                    logLine { "789" }
+                }
+            }
+            logLine { "something" }
+        }
+
+        expectThatLogged().matchesCurlyPattern("""
+            ╭─────╴{}
+            │   
+            │   
+            │   ╭─────╴segment
+            │   │   
+            │   │   something
+            │   │   single (ABC ˃  ˃ 123 ˃ ➜️ abc) 456 (XYZ ˃  ˃ 789 ˃ ✔) ✔
+            │   │   something
+            │   │
+            │   ╰─────╴✔
+            │
+        """.trimIndent())
     }
 
     @Execution(SAME_THREAD)
     @TestFactory
-    fun @receiver:Columns(100) InMemoryLoggerFactory.`should allow complex layout`() = listOf(
+    fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = listOf(
         true to """
             ╭─────╴{}
             │{}
@@ -122,12 +159,12 @@ class RenderingLoggerTest {
             │   ╭─────╴nested log
             │   │{}
             │   │   nested 1                                          {}                                      ▮▮
-            │   │   mini segment: 12345 sample ✔
+            │   │   mini segment 12345 sample ✔
             │   │{}
             │   │   ╭─────╴nested log
             │   │   │{}
             │   │   │   nested 1                                      {}                                      ▮▮
-            │   │   │   mini segment: 12345 sample ✔
+            │   │   │   mini segment 12345 sample ✔
             │   │   │   nested 2                                      {}                                      ▮▮
             │   │   │   nested 3                                      {}                                      ▮▮
             │   │   │{}
@@ -144,24 +181,24 @@ class RenderingLoggerTest {
             ╰─────╴✔{}
         """.trimIndent(),
         false to """
-            Started: {}
+            ▶ {}
              outer 1                                                  {}                                      ▮▮
              outer 2
-             Started: nested log{}
+             ▶ nested log{}
               nested 1                                                {}                                      ▮▮
-              mini segment: 12345 sample ✔{}
-              Started: nested log{}
+              mini segment 12345 sample ✔{}
+              ▶ nested log{}
                nested 1                                               {}                                      ▮▮
-               mini segment: 12345 sample ✔{}
+               mini segment 12345 sample ✔{}
                nested 2                                               {}                                      ▮▮
                nested 3                                               {}                                      ▮▮
-              Completed: ✔{}
+              ✔{}
               nested 2                                                {}                                      ▮▮
               nested 3                                                {}                                      ▮▮
-             Completed: ✔{}
+             ✔{}
              outer 3                                                  {}                                      ▮▮
              outer 4                                                  {}                                      ▮▮
-            Completed: ✔{}
+            ✔{}
         """.trimIndent(),
     ).test("bordered={}") { (borderedOutput, expectation) ->
         val label = if (borderedOutput) "bordered" else "not-bordered"
@@ -170,13 +207,13 @@ class RenderingLoggerTest {
             logLine { "outer 2" }
             logging("nested log") {
                 logStatus { OUT typed "nested 1" }
-                singleLineLogging("mini segment") {
+                compactLogging("mini segment") {
                     logStatus { ERR typed "12345" }
                     logStatus { META typed "sample" }
                 }
                 logging("nested log") {
                     logStatus { OUT typed "nested 1" }
-                    singleLineLogging("mini segment") {
+                    compactLogging("mini segment") {
                         logStatus { ERR typed "12345" }
                         logStatus { META typed "sample" }
                     }
@@ -266,7 +303,7 @@ class RenderingLoggerTest {
                     │   │{}
                     │   │   nested 1                                          {}                                      ▮▮
                     │   ϟ{}
-                    │   ╰─────╴failed with IllegalStateException: an exception at.(${RenderingLoggerTest::class.simpleName}.kt:{}){}
+                    │   ╰─────╴IllegalStateException: an exception at.(${RenderingLoggerTest::class.simpleName}.kt:{}){}
                     │{}
                 """.trimIndent(), ignoreTrailingLines = true)
     }
@@ -283,7 +320,7 @@ class RenderingLoggerTest {
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should simply log multiple calls to logResult`() {
         expectCatching {
-            singleLineLogging("close twice") {
+            compactLogging("close twice") {
                 logStatus { META typed "line" }
                 logResult { Result.success(1) }
                 logResult { Result.success(2) }
@@ -293,9 +330,9 @@ class RenderingLoggerTest {
         expectThat(logged).matchesCurlyPattern("""
             ╭─────╴{}
             │   
-            │   close twice: line ✔ returned 1
-            │   close twice: line ✔ returned 1 ✔ returned 2
-            │   close twice: line ✔ returned 1 ✔ returned 2 ✔ returned 3
+            │   close twice line ➜️ 1
+            │   close twice line ➜️ 1 ➜️ 2
+            │   close twice line ➜️ 1 ➜️ 2 ➜️ 3
         """.trimIndent())
     }
 
@@ -334,8 +371,8 @@ class RenderingLoggerTest {
                 │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
                 │   、ヽ｀、ヽ                                                                 
                 │
-                ╰─────╴✔ returned ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ
-                ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
+                ╰─────╴➜️ ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀
+                、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
                 """.trimIndent())
     }
 
@@ -367,7 +404,7 @@ class RenderingLoggerTest {
                     │   │   This process might produce pretty much log messages. Logging to …
                     │   │   ${Unicode.Emojis.pageFacingUp} ${file.toUri()}
                     │   │{}
-                    │   ╰─────╴✔ returned 👍
+                    │   ╰─────╴➜️ 👍
                     │{}
                     │   Normal logging continues...
                     │{}
@@ -375,7 +412,7 @@ class RenderingLoggerTest {
                 """.trimIndent())
 
             that(file.readLines().filter { it.isNotBlank() }) {
-                first().isEqualTo("Started: Some logging heavy operation")
+                first().isEqualTo("▶ Some logging heavy operation")
                 get { last { it.isNotBlank() } }.endsWith("👍")
             }
         }
@@ -404,16 +441,16 @@ class RenderingLoggerTest {
             }.isFailure().isA<RuntimeException>()
 
             logger.logged.matchesCurlyPattern("""
-                Started: root
-                 Started: level 0
+                ▶ root
+                 ▶ level 0
                   doing stuff
-                  Started: level 1
+                  ▶ level 1
                    doing stuff
-                   Started: level 2
+                   ▶ level 2
                     doing stuff
-                   ϟ failed with RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-                  ϟ failed with RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-                 ϟ failed with RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
+                   ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
+                  ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
+                 ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
             """.trimIndent())
         }
     }
@@ -438,10 +475,10 @@ class RenderingLoggerTest {
         false to """
             ╭─────╴{}
             │   
-            │   Started: line #1
+            │   ▶ line #1
             │            line #2
             │    logged line
-            │   Completed: ✔
+            │   ✔
             │
             ╰─────╴✔{}
         """.trimIndent(),
