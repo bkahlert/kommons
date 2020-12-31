@@ -167,7 +167,7 @@ bintray {
     user.set(System.getenv("BINTRAY_USER"))
     apiKey.set(System.getenv("BINTRAY_KEY"))
     repo.set("koodies")
-    pkgName.set("gradle-bintray-plugin-example")
+    pkgName.set("koodies")
     userOrg.set(user.get())
     licenses.set(listOf("MIT"))
     vcsUrl.set("https://github.com/bkahlert/koodies.git")
