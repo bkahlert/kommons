@@ -82,7 +82,7 @@ import koodies.text.styling.Borders.SpikedOutward
  *  ◺△△△△△△△△◿
  * ```
  */
-enum class Borders(val matrix: String) : CharSequence by matrix {
+enum class Borders(private val matrix: String) : CharSequence by matrix {
 
     /**
      * ```
@@ -251,14 +251,14 @@ fun <T : CharSequence> T.wrapWithBorder(
  * Furthermore a [margin] can be set to distance the bordered text.
  */
 fun <T : CharSequence> Iterable<T>.wrapWithBorder(
-    border: CharSequence = Borders.Rounded,
+    border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
     ansiCode: AnsiCode = AnsiCode(emptyList()),
 ): String = joinLinesToString().wrapWithBorder(border, padding, margin, ansiCode)
 
 class Draw(val text: CharSequence) {
-    val border get() = Border()
+    val border: Border get() = Border()
 
     inner class Border {
         /**
@@ -347,9 +347,8 @@ class Draw(val text: CharSequence) {
          * ```
          */
         fun spikedInward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(Borders.SpikedInward, padding, margin, ansiCode)
+            text.wrapWithBorder(SpikedInward, padding, margin, ansiCode)
     }
 }
 
-val CharSequence.draw get() = Draw(this.toString())
-val String.draw get() = Draw(this)
+val CharSequence.draw: Draw get() = Draw(this.toString())

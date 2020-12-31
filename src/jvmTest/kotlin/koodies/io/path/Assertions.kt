@@ -8,7 +8,6 @@ import koodies.io.file.lastModified
 import koodies.io.file.quoted
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.regex.countMatches
-import koodies.test.asString
 import koodies.text.LineSeparators
 import koodies.text.quoted
 import koodies.text.truncate
@@ -25,17 +24,6 @@ import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 import kotlin.time.Duration
 
-
-fun <T : CharSequence> Assertion.Builder<T>.asBytes(trim: Boolean = true): Assertion.Builder<ByteArray> =
-    asString(trim).get("as ByteArray") {
-        toByteArray()
-    }
-
-fun <T : CharSequence> Assertion.Builder<T>.asByteList(trim: Boolean = true): Assertion.Builder<List<Byte>> =
-    asString(trim).get("as ByteArray") {
-        toByteArray().asList()
-    }
-
 fun <T : CharSequence> Assertion.Builder<T>.isEqualToByteWise(other: CharSequence) =
     assert("is equal to byte-wise") { value ->
         val thisString = value.toList()
@@ -47,7 +35,7 @@ fun <T : CharSequence> Assertion.Builder<T>.isEqualToByteWise(other: CharSequenc
         }
     }
 
-
+@Suppress("unused")
 fun <T : CharSequence> Assertion.Builder<T>.containsAtLeast(value: CharSequence, lowerLimit: Int = 1) =
     assert("contains ${value.quoted} at least ${lowerLimit}x") {
         val actual = Regex.fromLiteral("$value").countMatches(it)

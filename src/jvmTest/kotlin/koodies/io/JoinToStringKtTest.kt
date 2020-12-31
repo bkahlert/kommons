@@ -12,7 +12,7 @@ class JoinToStringKtTest {
     @Test
     fun `should join byte arrays to string`() {
         val buffer = ByteArray(1024)
-        var read = 0
+        var read: Int
         val byteArrays = mutableListOf<ByteArray>()
         val inputStream = HtmlFile.data.inputStream()
         while (inputStream.read(buffer).also { read = it } > 0) byteArrays.add(buffer.copyOfRange(0, read))

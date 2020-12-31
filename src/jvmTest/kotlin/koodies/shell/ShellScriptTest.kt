@@ -327,7 +327,7 @@ class ShellScriptTest {
 
         @Test
         fun `should not remove itself without`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = script { }
+            script { }
             expectThat(this) {
                 get { listDirectoryEntries() }.single { fileName.endsWith(".sh") }
             }
@@ -335,7 +335,7 @@ class ShellScriptTest {
 
         @Test
         fun `should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = script { deleteOnCompletion() }
+            script { deleteOnCompletion() }
             expectThat(this) {
                 get { listDirectoryEntries() }.isEmpty()
             }

@@ -4,7 +4,6 @@ import koodies.logging.SLF4J
 import koodies.runtime.deleteOnExit
 import koodies.terminal.AnsiColors.red
 import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.extension.ExtensionContext
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
@@ -65,7 +64,7 @@ inline fun <reified T> Array<T>.test(testNamePattern: String? = null, crossinlin
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 inline fun <reified T> Iterable<T>.testWithTempDir(uniqueId: UniqueId, testNamePattern: String? = null, crossinline executable: Path.(T) -> Unit) =
-    test { withTempDir(uniqueId) { executable(it) } }
+    test(testNamePattern) { withTempDir(uniqueId) { executable(it) } }
 
 /**
  * Creates a [DynamicTest] for each map entry—providing each test with a temporary work directory
@@ -79,5 +78,5 @@ inline fun <reified K, reified V> Map<K, V>.testWithTempDir(
     testNamePattern: String? = null,
     crossinline executable: Path.(Pair<K, V>) -> Unit,
 ) =
-    toList().test { withTempDir(uniqueId) { executable(it) } }
+    toList().test(testNamePattern) { withTempDir(uniqueId) { executable(it) } }
 

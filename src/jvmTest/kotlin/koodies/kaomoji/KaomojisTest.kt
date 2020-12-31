@@ -36,13 +36,13 @@ class KaomojisTest {
         }
 
     @RepeatedTest(10)
-    fun `should create random dogs`() = (0 until 10).map { i ->
+    fun `should create random dogs`() = (0 until 10).map {
         val kaomoji = Kaomojis.Dogs.random()
         expectThat(kaomoji).get { length }.isGreaterThanOrEqualTo(5)
     }
 
     @RepeatedTest(10)
-    fun `should create random wizards`() = (0 until 10).map { i ->
+    fun `should create random wizards`() = (0 until 10).map {
         val kaomoji = Kaomojis.`(＃￣_￣)o︠・━・・━・━━・━☆`.random()
         expectThat(kaomoji).get { length }.isGreaterThanOrEqualTo(5)
     }

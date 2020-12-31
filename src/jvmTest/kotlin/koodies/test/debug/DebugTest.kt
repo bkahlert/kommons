@@ -25,7 +25,7 @@ import strikt.assertions.isNotNull
 class DebugTest {
 
     @Test
-    fun `should run in isolation`(output: CapturedOutput) {
+    fun `should run in isolation`() {
         expectThat(AnnotationSupport.findAnnotation(InternalDebug::class.java, Isolated::class.java).orElse(null)).isNotNull()
     }
 
@@ -39,7 +39,7 @@ class DebugTest {
     }
 
     @Test
-    fun InMemoryLogger.`should not catch exceptions`(output: CapturedOutput) {
+    fun InMemoryLogger.`should not catch exceptions`() {
         logStatus { IO.Type.OUT typed "(*｀へ´*)" }
 
         expectCatching { logResult<Any> { Result.failure(IllegalStateException("test")) } }

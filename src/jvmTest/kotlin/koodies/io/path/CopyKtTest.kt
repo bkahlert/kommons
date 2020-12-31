@@ -426,8 +426,9 @@ fun <T : Path> Assertion.Builder<T>.isCopyOf(other: Path) =
         }
     }
 
+@Suppress("unused")
 fun <T : Path> Assertion.Builder<T>.isDuplicateOf(expected: Path, order: Int = 1) {
     isCopyOf(expected)
     hasSameFileName(expected)
-    isSiblingOf(expected)
+    isSiblingOf(expected, order)
 }

@@ -98,7 +98,7 @@ class ClassPathsTest {
             "outputStream" to { Files.newBufferedWriter(it) },
             "move" to { Files.move(it, this) },
             "delete" to { Files.delete(it) },
-        ).testWithTempDir(uniqueId) { (name, operation) ->
+        ).testWithTempDir(uniqueId) { (_, operation) ->
             classPaths("try.it") {
                 expectThat(exists()).isTrue()
                 expectCatching {

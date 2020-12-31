@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
-import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
@@ -33,7 +32,7 @@ class InMemoryLoggerTest {
     }
 
     @Test
-    fun `should provide access to logs`(output: CapturedOutput) {
+    fun `should provide access to logs`() {
         val outputStream = ByteArrayOutputStream()
 
         val logger = InMemoryLogger("caption", true, -1, listOf(outputStream))
@@ -45,7 +44,7 @@ class InMemoryLoggerTest {
     }
 
     @Test
-    fun `should use BlockRenderingLogger to logs`(output: CapturedOutput) {
+    fun `should use BlockRenderingLogger to logs`() {
         val outputStream = ByteArrayOutputStream()
 
         val logger = InMemoryLogger("caption", true, -1, listOf(outputStream))
@@ -53,12 +52,6 @@ class InMemoryLoggerTest {
         expectThat(logger.logged.removeEscapeSequences()).startsWith("╭─────╴caption")
     }
 }
-
-
-fun <T : InMemoryLogger> T.logged(vararg texts: String): Assertion.Builder<String> =
-    expectThatLogged().compose("contains text %s") { completeLog ->
-        texts.forEach { text -> contains(text) }
-    }.then { if (allPassed) pass() else fail() }
 
 fun <T : InMemoryLogger> T.expectThatLogged() =
     expectThat(logged)

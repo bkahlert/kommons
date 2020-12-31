@@ -20,7 +20,7 @@ class UniqueIdTest {
     }
 
     @Test
-    fun `should resolve unique id`(uniqueId: UniqueId, `with differing arguments`: TestInfo) {
+    fun `should resolve unique id`(uniqueId: UniqueId, @Suppress("UNUSED_PARAMETER") `with differing arguments`: TestInfo) {
         expectThat(uniqueId.simple).isEqualTo("UniqueIdTest.should_resolve_unique_id-TestInfo")
     }
 

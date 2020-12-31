@@ -76,7 +76,7 @@ class JavaProcessMockTest {
         fun InMemoryLogger.`should provide 'block on prompt' behavior`() = listOf(
             "with echoed input" to true,
             "without echoed input" to false,
-        ).test("{}") { (name, echoOption) ->
+        ).test("{}") { (_, echoOption) ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
                 0.seconds to "Password? ",

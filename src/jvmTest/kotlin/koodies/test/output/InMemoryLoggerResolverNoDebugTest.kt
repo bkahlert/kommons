@@ -28,7 +28,7 @@ class InMemoryLoggerResolverNoDebugTest {
     }
 
     @Test
-    fun InMemoryLogger.`should not catch exceptions`(output: CapturedOutput) {
+    fun InMemoryLogger.`should not catch exceptions`() {
         logStatus { OUT typed "(*｀へ´*)" }
 
         expectCatching { logResult<Any> { Result.failure(IllegalStateException("test")) } }

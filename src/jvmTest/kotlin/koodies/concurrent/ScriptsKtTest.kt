@@ -186,7 +186,7 @@ class ScriptsKtTest {
         }
 
         @Test
-        fun `should format merged output`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should format merged output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script { line(">&1 echo \"test output\""); line(">&2 echo \"test error\"") }.processSynchronously()
             expectThat(process.ioLog.logged) {
                 get { first().type }.isEqualTo(IO.Type.META)

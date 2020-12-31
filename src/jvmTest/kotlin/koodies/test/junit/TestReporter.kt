@@ -15,7 +15,7 @@ class TestReporter : TestExecutionListener {
 }
 
 private enum class TagDistributionReportRenderer(val render: (TestPlan) -> String) {
-    NONE({ testPlan ->
+    NONE({ _ ->
         ""
     }),
     SUMMARY({ testPlan ->
