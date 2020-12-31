@@ -169,6 +169,8 @@ bintray {
     repo.set("koodies")
     pkgName.set("koodies")
     userOrg.set(user.get())
+    websiteUrl.set("https://github.com/bkahlert/koodies")
+    issueTrackerUrl.set("https://github.com/bkahlert/koodies/issues")
     licenses.set(listOf("MIT"))
     vcsUrl.set("https://github.com/bkahlert/koodies.git")
     syncToMavenCentral.set(false)
