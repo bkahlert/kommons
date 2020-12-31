@@ -7,8 +7,9 @@ plugins {
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
 
     id("org.ajoberstar.grgit") version "4.1.0"
-    id("nebula.release") version "15.3.0"
     id("maven-publish")
+    id("nebula.release") version "15.3.0"
+    id("nebula.nebula-bintray") version "8.5.0"
 }
 
 allprojects {
@@ -161,7 +162,13 @@ publishing {
         }
     }
 }
-//            }
-//        }
-//    }
-//}
+
+bintray {
+    user.set(System.getenv("BINTRAY_USER"))
+    apiKey.set(System.getenv("BINTRAY_KEY"))
+    repo.set("koodies")
+    pkgName.set("gradle-bintray-plugin-example")
+    userOrg.set(user.get())
+    licenses.set(listOf("MIT"))
+    vcsUrl.set("https://github.com/bkahlert/koodies.git")
+}
