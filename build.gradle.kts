@@ -171,4 +171,5 @@ bintray {
     userOrg.set(user.get())
     licenses.set(listOf("MIT"))
     vcsUrl.set("https://github.com/bkahlert/koodies.git")
+    syncToMavenCentral.set(false)
 }
