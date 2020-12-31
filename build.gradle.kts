@@ -152,11 +152,6 @@ kotlin {
 }
 
 publishing {
-    println(System.getenv("BINTRAY_USER"))
-    println(System.getenv("BINTRAY_KEY"))
-    println(System.getenv("GITHUB_USERNAME"))
-    println(System.getenv("GITHUB_TOKEN"))
-    println(System.getenv("GRGIT_USER"))
     repositories {
         maven {
             name = "GitHubPackages"
@@ -179,5 +174,6 @@ bintray {
     issueTrackerUrl.set("https://github.com/bkahlert/koodies/issues")
     licenses.set(listOf("MIT"))
     vcsUrl.set("https://github.com/bkahlert/koodies.git")
+    gppSign.set(false)
     syncToMavenCentral.set(false)
 }

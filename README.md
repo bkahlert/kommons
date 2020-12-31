@@ -1,12 +1,40 @@
 ![Koodies](assets/Koodies-logo.svg)
 
-# Koodies
+# Koodies [![Download](https://api.bintray.com/packages/bkahlert/koodies/koodies/images/download.svg)](https://bintray.com/bkahlert/koodies/koodies/_latestVersion)
 
 **Random Kotlin Goodies**
 
 *See [RELEASING.md](RELEASING.md) for information on how to release versions.*
 
-## Builders
+## Install
+
+### Add Maven Repository
+
+Add `https://dl.bintray.com/bkahlert/koodies` as a Maven repository, e.g.
+
+```kotlin
+repositories {
+    ...
+    maven("https://dl.bintray.com/bkahlert/koodies")
+    ...
+}
+```
+
+### Add Dependency
+
+Add `com.bkahlert.koodies:koodies:VERSION.GOES.HERE` as a dependency, e.g.
+
+```kotlin
+dependencies {
+    ...
+    implementation("com.bkahlert.koodies:koodies:1.1.0")
+    ...
+}
+```
+
+## Features
+
+### Builders
 
 ```kotlin
 enum class Features {
@@ -29,9 +57,9 @@ buildList {
 }
 ```
 
-## Processes
+### Processes
 
-### Running a Process
+#### Running a Process
 
 ```kotlin
 val process = process("echo 'Hello World!'") { io ->
@@ -43,7 +71,7 @@ println(process.exitValue) // 0
 println(process.logged(OUT)) // Hello World! 
 ```
 
-### Running a Shell Script
+#### Running a Shell Script
 
 ```kotlin
 script {
@@ -59,7 +87,7 @@ script {
 }
 ```
 
-### Automatically Captured I/O
+#### Automatically Captured I/O
 
 ```kotlin
 println(process.ioLog)
@@ -73,7 +101,7 @@ installing...
 completed.
 ```
 
-## Docker Runner
+### Docker Runner
 
 ```kotlin
 Docker.busybox("""
@@ -84,33 +112,33 @@ Docker.busybox("""
 """).execute()
 ```
 
-## Improved Java NIO 2 Integration
+### Improved Java NIO 2 Integration
 
-### Access the Class Path
+#### Access the Class Path
 
 ```kotlin
 classPath("file.svg").copyTo(somewhere)
 ```
 
-### Copy Recursively
+#### Copy Recursively
 
 ```kotlin
 directory.copyRecursivelyTo(somewhere)
 ```
 
-### Fluent API
+#### Fluent API
 
 ```kotlin
 if (path.notExists()) path.withDirectoriesCreated().createFile()
 ```
 
-## Kaomoji
+### Kaomoji
 
 ```kotlin
 Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 ```
 
-## Borders, Boxes, ...
+### Borders, Boxes, ...
 
 ```shell
  ╭───────────────────────────────────────────────────╮ 
@@ -125,7 +153,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ PILLARS  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
 ```
 
-## More
+### More...
 
 * Logger
   ```kotlin
