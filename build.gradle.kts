@@ -16,6 +16,7 @@ allprojects {
     apply { plugin("se.patrikerdes.use-latest-versions") }
 }
 
+description = "Random Kotlin Goodies"
 group = "com.bkahlert.koodies"
 
 repositories {
