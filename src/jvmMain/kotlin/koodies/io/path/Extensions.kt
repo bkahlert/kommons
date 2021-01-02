@@ -19,9 +19,6 @@ class Extensions(private val path: Path) : List<String> by path.fileNameParts.dr
         return path.resolveSibling(path.fileName.asString().withoutSuffix(normalized))
     }
 
-    fun withoutLast(n: Int = 1): Path =
-        path.extensionOrNull?.let { path.removeExtensions(it) } ?: path
-
     fun hasExtension(extensions: String, vararg more: String): Boolean {
         val normalized = normalizedExtensionString(extensions, *more)
         return path.fileName.asString().endsWith(normalized)

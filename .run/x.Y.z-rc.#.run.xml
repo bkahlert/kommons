@@ -1,6 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="x.y.z ➜ MavenCentral, BinTray, GitHub" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="x.Y.z-rc.#" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
+      <option name="env">
+        <map>
+          <entry key="-Prelease.scope" value="minor" />
+        </map>
+      </option>
       <option name="executionName" />
       <option name="externalProjectPath" value="koodies" />
       <option name="externalSystemIdString" value="GRADLE" />
@@ -10,9 +15,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="final" />
-          <option value="push" />
-          <option value="publish" />
+          <option value="candidate" />
         </list>
       </option>
       <option name="vmOptions" value="" />

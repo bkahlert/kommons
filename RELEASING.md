@@ -18,7 +18,24 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 ### Test Uncommited Changes on a Dependant Project
 
 1. Change dependency in dependent project to `implementation("com.bkahlert.koodies:koodies-jvm:2.2.0-SNAPSHOT")`.
-2. Publish changes to local Maven repository using `./gradlew snapshot publishToMavenLocal -Prelease.scope=minor`.
+2. Publish changes to local Maven repository using
+
+```shell
+./gradlew snapshot publishToMavenLocal \
+-x publishAllPublicationsToBintrayRepository \
+-x publishJsPublicationToBintrayRepository \
+-x publishJvmPublicationToBintrayRepository \
+-x publishNativePublicationToBintrayRepository \
+-x publishKotlinMultiplatformPublicationToBintrayRepository \
+-x publishPackageToBintray \
+-x publishAllPublicationsToGitHubPackagesRepository \
+-x publishJsPublicationToGitHubPackagesRepository \
+-x publishJvmPublicationToGitHubPackagesRepository \
+-x publishNativePublicationToGitHubPackagesRepository \
+-x publishKotlinMultiplatformPublicationToGitHubPackagesRepository
+```
+
+.
 
 ### Release a Candidate
 
@@ -28,7 +45,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 ### Release a Final Version
 
 1. Commit your changes using `git commit`.
-2. Release candidate using `./gradlew final`.
+2. Release candidate using `./gradlew final push publish`.
 
 ### Increase Version Number
 

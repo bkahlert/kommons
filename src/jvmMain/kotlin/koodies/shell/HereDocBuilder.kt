@@ -17,8 +17,6 @@ object HereDocBuilder {
      */
     const val DEFAULT_LINE_SEPARATOR: String = LineSeparators.LF
 
-    operator fun String.plus(line: String): List<String> = listOf(this, line)
-
     fun ListBuilderInit<String>.hereDoc(
         label: String = randomLabel(),
         lineSeparator: String = DEFAULT_LINE_SEPARATOR,

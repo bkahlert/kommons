@@ -1,13 +1,12 @@
 package koodies.io
 
-import koodies.io.classPaths
 import koodies.io.file.WrappedPath
+import koodies.io.path.asPath
 import koodies.io.path.copyToDirectory
 import koodies.io.path.isCopyOf
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.randomDirectory
 import koodies.io.path.randomPath
-import koodies.io.path.toPath
 import koodies.test.FixturePath61C285F09D95930D0AE298B00AF09F918B0A.fixtureContent
 import koodies.test.UniqueId
 import koodies.test.testWithTempDir
@@ -224,13 +223,13 @@ class ClassPathsTest {
 
             @Test
             fun `should return false on regular path`() {
-                expectThat("path/file".toPath()).not { isClassPath() }
+                expectThat("path/file".asPath()).not { isClassPath() }
             }
 
 
             @Test
             fun `should return false on illegal path`() {
-                expectThat("!!!".toPath()).not { isClassPath() }
+                expectThat("!!!".asPath()).not { isClassPath() }
             }
         }
     }

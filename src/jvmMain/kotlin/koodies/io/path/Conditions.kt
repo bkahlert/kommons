@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.unit.Size.Companion.size
+import koodies.unit.size
 import java.math.BigDecimal
 import java.nio.file.Path
 import kotlin.io.path.isDirectory

@@ -4,10 +4,6 @@ import koodies.io.path.randomFile
 import koodies.io.path.writeText
 import koodies.test.UniqueId
 import koodies.test.withTempDir
-import koodies.unit.Size
-import koodies.unit.Size.Companion.bytes
-import koodies.unit.Size.Companion.size
-import koodies.unit.Size.Companion.toSize
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -25,6 +21,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.appendText
+import kotlin.io.path.writeBytes
 
 @Execution(CONCURRENT)
 class SizeTest {
@@ -414,11 +411,11 @@ class SizeTest {
     }
 
     @Nested
-    inner class FileSizeComparison {
+    inner class FileSize {
 
         private fun Path.getSmall() = randomFile("small").apply { writeText("123") }
         private fun Path.getMedium() = randomFile("medium").apply { writeText("123456") }
-        private fun Path.getLarge() = randomFile("large").apply { writeText("123456789") }
+        private fun Path.getLarge() = randomFile("large").apply { writeBytes(ByteArray(3_123_456)) }
 
         @Test
         fun `should compare files by size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -426,6 +423,16 @@ class SizeTest {
             val smallFile = getSmall()
             val mediumFile = getMedium()
             expectThat(listOf(largeFile, smallFile, mediumFile).sortedWith(Size.FileSizeComparator)).containsExactly(smallFile, mediumFile, largeFile)
+        }
+
+        @Test
+        fun `should have size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(getLarge().size).isEqualTo(3_123_456.bytes)
+        }
+
+        @Test
+        fun `should have rounded size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(getLarge().roundedSize).isEqualTo(3_000_000.bytes)
         }
     }
 }

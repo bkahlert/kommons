@@ -18,8 +18,8 @@ import kotlin.concurrent.withLock
  * @see Paths.get
  * @see Path.of
  */
-fun String.toPath(): Path =
-    kotlin.runCatching { URI.create(this).toPath() }
+fun String.asPath(): Path =
+    kotlin.runCatching { URI.create(this).asPath() }
         .recover {
             if (startsWith("classpath:")) {
                 val delegate by classPath(this)
@@ -33,7 +33,7 @@ fun String.toPath(): Path =
  * @see Paths.get
  * @see Path.of
  */
-fun URI.toPath(): Path =
+fun URI.asPath(): Path =
     Paths.get(this)
 
 

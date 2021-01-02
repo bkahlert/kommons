@@ -56,33 +56,6 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
                 else -> 0
             }
         }
-
-        fun CharSequence.toSize(): Size {
-            val trimmed = trim()
-            val unitString = trimmed.takeLastWhile { it.isLetter() }
-            val valueString = trimmed.dropLast(unitString.length).trim().toString()
-            val value = valueString.toBigDecimal()
-            return unitString.removeSuffix(SYMBOL).let { it ->
-                when {
-                    it.isBlank() -> value.bytes
-                    it == "K" -> (value * BinaryPrefix.Kibi.factor).bytes
-                    else -> supportedPrefixes.flatMap { prefix -> prefix.value }.find { unit -> unit.symbol == it }?.let { (value * it.factor).bytes }
-                }
-            } ?: throw IllegalArgumentException("${unitString.quoted} is no valid size unit like MB or GiB.")
-        }
-
-        val Number.bytes: Size get() = if (this == 0) ZERO else Size(toBigDecimal())
-
-        val Path.size: Size
-            get() {
-                requireExists()
-                return if (!isDirectory()) Files.size(toAbsolutePath()).bytes
-                else (toFile().listFiles() ?: return ZERO) // TODO remove toFile
-                    .asSequence()
-                    .map(File::toPath)
-                    .filterNot { it.isSymbolicLink() }
-                    .fold(ZERO) { size, path -> size + path.size }
-            }
     }
 
     object FileSizeComparator : (Path, Path) -> Int {
@@ -131,8 +104,7 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
                 val formattedValue = when {
                     scientific -> value.scientificFormat
                     else -> {
-                        val decimals = decimals ?: precision(value.abs(), prefix)
-                        value.formatToExactDecimals(decimals)
+                        value.formatToExactDecimals(decimals ?: precision(value.abs(), prefix))
                     }
                 }
                 "$formattedValue ${prefix.getSymbol<Size>()}$SYMBOL"
@@ -169,5 +141,55 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
     operator fun div(other: Size): Double = (bytes.div(other.bytes)).toDouble()
     operator fun times(factor: Number): Size = (factor.toBigDecimal() * bytes).bytes
     fun toZeroFilledByteArray(): ByteArray = ByteArray(bytes.toInt())
-
 }
+
+/**
+ * Contains the decimal size of this file (`e.g. 3.12 MB`).
+ *
+ * If this target actually points to a directory, this property
+ * contains the overall size of all contained files.
+ */
+val Path.size: Size
+    get() {
+        requireExists()
+        return if (!isDirectory()) Files.size(toAbsolutePath()).bytes
+        else (toFile().listFiles() ?: return Size.ZERO) // TODO remove toFile
+            .asSequence()
+            .map(File::toPath)
+            .filterNot { it.isSymbolicLink() }
+            .fold(Size.ZERO) { size, path -> size + path.size }
+    }
+
+/**
+ * Contains the size of this file or directory rounded so that
+ * —if printed— no decimals are needed (e.g. `3 MB`).
+ *
+ * Please note that the size is rounded in the decimal system (1 KB = 1.000 B).
+ */
+val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).toSize()
+
+/**
+ * Tries to convert this char sequence to a [Size] instance by parsing
+ * its value (e.g. `1 MiB` or `1.32GB`).
+ *
+ * Sizes with and without decimals, as much as all binary and decimal units
+ * either with or without a space between value and unit are supported.
+ */
+fun CharSequence.toSize(): Size {
+    val trimmed = trim()
+    val unitString = trimmed.takeLastWhile { it.isLetter() }
+    val valueString = trimmed.dropLast(unitString.length).trim().toString()
+    val value = valueString.toBigDecimal()
+    return unitString.removeSuffix(Size.SYMBOL).let { it ->
+        when {
+            it.isBlank() -> value.bytes
+            it == "K" -> (value * BinaryPrefix.Kibi.factor).bytes
+            else -> Size.supportedPrefixes.flatMap { prefix -> prefix.value }.find { unit -> unit.symbol == it }?.let { (value * it.factor).bytes }
+        }
+    } ?: throw IllegalArgumentException("${unitString.quoted} is no valid size unit like MB or GiB.")
+}
+
+/**
+ * Contains the equivalent value as [bytes].
+ */
+val Number.bytes: Size get() = if (this == 0) Size.ZERO else Size(toBigDecimal())

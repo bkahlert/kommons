@@ -11,7 +11,7 @@ class ElementGroupsBuilder<T>(private val elementGroups: MutableList<MutableList
     operator fun MutableList<T>.plus(element: T): MutableList<T> = also { it.add(element) }
 }
 
-private fun elementsDemo(init: ElementGroupsBuilder<String>.() -> Unit) {
+private fun elementsDemo(@Suppress("UNUSED_PARAMETER") init: ElementGroupsBuilder<String>.() -> Unit) {
     elementsDemo {
         +"1.a"
         +"2.a" + "2.b" + "2.c"
@@ -19,7 +19,7 @@ private fun elementsDemo(init: ElementGroupsBuilder<String>.() -> Unit) {
     }
 }
 
-private fun unitDemo(init: ElementGroupsBuilder<Unit>.() -> Unit) {
+private fun unitDemo(@Suppress("UNUSED_PARAMETER") init: ElementGroupsBuilder<Unit>.() -> Unit) {
     unitDemo {
         +Unit + Unit + Unit
         +Unit

@@ -17,7 +17,7 @@ import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
-import koodies.unit.Size.Companion.size
+import koodies.unit.size
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution

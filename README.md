@@ -132,6 +132,42 @@ directory.copyRecursivelyTo(somewhere)
 if (path.notExists()) path.withDirectoriesCreated().createFile()
 ```
 
+### Units
+
+#### Decimal and Binary Bytes
+
+```kotlin
+10.Yobi.bytes > 10.Yotta.bytes
+```
+
+#### Arithmetics
+
+```kotlin
+3.Tera.bytes + 200.Giga.bytes == 3.2.Tera.bytes
+2 * 3.Kibi.bytes == 6.Kibi.bytes
+```
+
+#### File and Directory Size
+
+```kotlin
+Path.of("/tmp").size // 1.9 TB
+listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
+```
+
+#### From and to String
+
+```kotlin
+1.25.Mega.bytes.toString() == "1.25 MB"
+"1.25 MB".toSize() == 1.25.Mega.bytes
+4_200_000.Yobi.bytes.toString(BinaryPrefix.Mebi, 4) == "4.84e+24 MiB"
+```
+
+#### Useless Nerd Stuff
+
+```kotlin
+4.2.hecto.bytes == 42.deca.bytes == 420.bytes
+```
+
 ### Kaomoji
 
 ```kotlin
@@ -231,5 +267,5 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   Use `debug` to check what's actually inside a `String`:
   ```kotlin
   "a  b\n".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
-  "�" // D800▌﹍ (low surrogate with a missing high surroage)
+  "�" // D800▌﹍ (low surrogate with a missing high surrogate)
   ```

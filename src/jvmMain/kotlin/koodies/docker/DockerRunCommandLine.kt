@@ -9,9 +9,11 @@ import koodies.builder.buildMap
 import koodies.concurrent.process.CommandLine
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.io.path.Locations
+import koodies.io.path.asPath
 import koodies.io.path.asString
-import koodies.io.path.toPath
+import koodies.io.path.isSubPathOf
 import java.nio.file.Path
+import kotlin.io.path.relativeTo
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -36,7 +38,7 @@ data class DockerRunCommandLine(
         val autoCleanup: Boolean = true,
         val interactive: Boolean = true,
         val pseudoTerminal: Boolean = false,
-        val mounts: List<MountOption> = emptyList(),
+        val mounts: MountOptions = MountOptions(),
     ) : List<String> by (buildList {
         env.forEach {
             +"--env"
@@ -136,17 +138,81 @@ abstract class OptionsBuilder {
     fun autoCleanup(autoCleanup: () -> Boolean) = options.copy(autoCleanup = autoCleanup()).run { options = this }
     fun interactive(interactive: () -> Boolean) = options.copy(interactive = interactive()).run { options = this }
     fun pseudoTerminal(pseudoTerminal: () -> Boolean) = options.copy(pseudoTerminal = pseudoTerminal()).run { options = this }
-    fun mounts(init: ListBuilderInit<MountOption>) = init.build().also { options.copy(mounts = options.mounts + it).run { options = this } }
+    fun mounts(init: ListBuilderInit<MountOption>) = init.build().also { options.copy(mounts = MountOptions(options.mounts + it)).run { options = this } }
 
-    infix fun Path.mountAt(target: String) {
+    infix fun HostPath.mountAt(target: String) = mountAt(target.asContainerPath())
+
+    infix fun HostPath.mountAt(target: ContainerPath) {
         mounts {
-            +MountOption(source = this@mountAt, target = target.toPath())
+            +MountOption(source = this@mountAt, target = target)
         }
     }
 
     override fun toString(): String = options.toString()
 }
 
-data class MountOption(val type: String = "bind", val source: Path, val target: Path) :
-    List<String> by listOf("--mount", "type=$type,source=${source.asString()},target=${target.asString()}")
+data class MountOption(val type: String = "bind", val source: HostPath, val target: ContainerPath) :
+    List<String> by listOf("--mount", "type=$type,source=${source.asString()},target=${target.asString()}") {
+    fun mapToHostPath(containerPath: ContainerPath): HostPath {
+        require(containerPath.isSubPathOf(target)) { "$containerPath is not mapped by $target" }
+        val relativePath = containerPath.relativeTo(target).asString()
+        return source.resolve(relativePath)
+    }
 
+    fun mapToContainerPath(hostPath: HostPath): ContainerPath {
+        require(hostPath.isSubPathOf(source)) { "$hostPath is not mapped by $source" }
+        val relativePath = hostPath.relativeTo(source).asContainerPath()
+        return target.resolve(relativePath)
+    }
+}
+
+class MountOptions(private val mountOptions: List<MountOption>) : AbstractList<MountOption>() {
+    constructor(vararg mountOptions: MountOption) : this(mountOptions.toList())
+
+    override val size: Int = mountOptions.size
+    override fun get(index: Int): MountOption = mountOptions[index]
+
+    fun mapToHostPath(containerPath: ContainerPath): HostPath {
+        val mappedHostPaths = mapNotNull { mountOption ->
+            kotlin.runCatching { mountOption.mapToHostPath(containerPath) }.getOrNull()
+        }
+        require(mappedHostPaths.isNotEmpty()) { "$containerPath is not mapped by any of ${map { it.target }.joinToString(", ")}" }
+        return mappedHostPaths.first()
+    }
+
+    fun mapToContainerPath(hostPath: HostPath): ContainerPath {
+        val mappedContainerPaths = mapNotNull { mountOption ->
+            kotlin.runCatching { mountOption.mapToContainerPath(hostPath) }.getOrNull()
+        }
+        require(mappedContainerPaths.isNotEmpty()) { "$hostPath is not mapped by any of ${map { it.source }.joinToString(", ")}" }
+        return mappedContainerPaths.first()
+    }
+}
+
+open class ContainerPath(private val containerPath: Path) {
+    fun relativeTo(baseContainerPath: ContainerPath): ContainerPath =
+        containerPath.relativeTo(baseContainerPath.containerPath).asContainerPath()
+
+    fun isSubPathOf(baseContainerPath: ContainerPath): Boolean =
+        containerPath.isSubPathOf(baseContainerPath.containerPath)
+
+    fun resolve(other: ContainerPath): ContainerPath =
+        containerPath.resolve(other.containerPath).asContainerPath()
+
+    fun mapToHostPath(mountOptions: MountOptions) =
+        mountOptions.mapToHostPath(this)
+
+    fun asString() = containerPath.asString()
+
+    override fun toString(): String = asString()
+}
+
+fun String.asContainerPath() = ContainerPath(asPath())
+fun Path.asContainerPath() = ContainerPath(this)
+
+typealias HostPath = Path
+
+fun HostPath.mapToContainerPath(mountOptions: MountOptions) =
+    mountOptions.mapToContainerPath(this)
+
+fun String.asHostPath(): HostPath = asPath()

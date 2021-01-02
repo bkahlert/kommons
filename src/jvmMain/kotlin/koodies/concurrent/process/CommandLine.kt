@@ -45,7 +45,8 @@ open class CommandLine(
         vararg arguments: String,
     ) : this(environment, workingDirectory, command.asString(), *arguments)
 
-    private val formattedRedirects = redirects.takeIf { it.isNotEmpty() }?.joinToString(separator = " ", postfix = " ") ?: ""
+    private val formattedRedirects =
+        redirects.takeIf { it.isNotEmpty() }?.joinToString(separator = " ", postfix = " ") ?: ""
 
     /**
      * The array consisting of the command and its arguments that make up this command,
@@ -73,12 +74,19 @@ open class CommandLine(
      * ```
      */
     val multiLineCommandLine: String by lazy {
-        commandLineParts.joinToString(separator = " \\${LineSeparators.LF}") { StringUtils.quoteAndEscape(it.trim(), '\"') }.fixHereDoc()
+        commandLineParts.joinToString(separator = " \\${LineSeparators.LF}") {
+            StringUtils.quoteAndEscape(
+                it.trim(),
+                '\"'
+            )
+        }.fixHereDoc()
     }
 
     val summary: String
         get() = arguments
-            .map { line -> line.split("\\b".toRegex()).filter { part -> part.trim().run { length > 1 && !startsWith("-") } } }
+            .map { line ->
+                line.split("\\b".toRegex()).filter { part -> part.trim().run { length > 1 && !startsWith("-") } }
+            }
             .filter { it.isNotEmpty() }
             .map { words ->
                 when (words.size) {
@@ -163,14 +171,16 @@ open class CommandLine(
      */
     open fun RenderingLogger.executeLogging(
         caption: String,
+        bordered: Boolean = true,
         ansiCode: AnsiColorCode = ANSI.termColors.brightBlue,
         nonBlockingReader: Boolean = false,
         expectedExitValue: Int = 0,
-    ): Int = logging(caption = caption, ansiCode = ansiCode) {
+    ): Int = logging(caption = caption, bordered = bordered, ansiCode = ansiCode) {
         execute(expectedExitValue).process(
             nonBlockingReader = nonBlockingReader,
             processInputStream = InputStream.nullInputStream(),
-            processor = Processors.loggingProcessor(this))
+            processor = Processors.loggingProcessor(this)
+        )
     }.waitForTermination()
 
     override fun equals(other: Any?): Boolean {

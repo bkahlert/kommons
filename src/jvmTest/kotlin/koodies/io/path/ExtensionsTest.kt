@@ -24,7 +24,7 @@ class ExtensionsTest {
     @Nested
     inner class HasExtensions {
 
-        private val path = "path/file.something.ext".toPath()
+        private val path = "path/file.something.ext".asPath()
 
         @Test
         fun `should match extension with ignoring case and leading period`() {

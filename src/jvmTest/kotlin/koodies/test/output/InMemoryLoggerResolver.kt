@@ -11,30 +11,39 @@ import org.junit.jupiter.api.extension.ParameterResolver
 
 class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
 
-    override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean = parameterContext.parameter.type.let {
-        when {
-            InMemoryLogger::class.java.isAssignableFrom(it) -> true
-            InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> true
-            else -> false
+    override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean =
+        parameterContext.parameter.type.let {
+            when {
+                InMemoryLogger::class.java.isAssignableFrom(it) -> true
+                InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> true
+                else -> false
+            }
         }
-    }
 
     @Suppress("RedundantNullableReturnType")
-    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any? = parameterContext.parameter.type.let {
-        when {
-            InMemoryLogger::class.java.isAssignableFrom(it) -> extensionContext.createLogger(borderedOutput = true, parameterContext = parameterContext)
-            InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> object : InMemoryLoggerFactory {
-                override fun createLogger(customSuffix: String, borderedOutput: Boolean): InMemoryLogger =
-                    extensionContext.createLogger(customSuffix, borderedOutput, parameterContext)
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any? =
+        parameterContext.parameter.type.let {
+            when {
+                InMemoryLogger::class.java.isAssignableFrom(it) -> extensionContext.createLogger(
+                    bordered = true,
+                    parameterContext = parameterContext
+                )
+                InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> object : InMemoryLoggerFactory {
+                    override fun createLogger(customSuffix: String, bordered: Boolean): InMemoryLogger =
+                        extensionContext.createLogger(customSuffix, bordered, parameterContext)
+                }
+                else -> error("Unsupported $parameterContext")
             }
-            else -> error("Unsupported $parameterContext")
         }
-    }
 
-    private fun ExtensionContext.createLogger(suffix: String? = null, borderedOutput: Boolean, parameterContext: ParameterContext): InMemoryLogger =
+    private fun ExtensionContext.createLogger(
+        suffix: String? = null,
+        bordered: Boolean,
+        parameterContext: ParameterContext
+    ): InMemoryLogger =
         object : InMemoryLogger(
             caption = testName + if (suffix != null) "::$suffix" else "",
-            borderedOutput = borderedOutput,
+            bordered = bordered,
             statusInformationColumn = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(-1),
             outputStreams = if (isVerbose || parameterContext.isVerbose) listOf(System.out) else emptyList(),
         ) {
@@ -49,7 +58,8 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
     override fun afterEach(extensionContext: ExtensionContext) {
         val logger: InMemoryLogger? = extensionContext.store().get(extensionContext.element, InMemoryLogger::class.java)
         if (logger != null) {
-            val result = extensionContext.executionException.map { Result.failure<Any>(it) }.orElseGet { Result.success(Unit) }
+            val result =
+                extensionContext.executionException.map { Result.failure<Any>(it) }.orElseGet { Result.success(Unit) }
             if (result.exceptionOrNull() is AssertionError) return
             kotlin.runCatching {
                 logger.logResult { result }

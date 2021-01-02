@@ -43,7 +43,6 @@ object Compressor {
      * By default the existing file name is used with the extension removed.
      */
     fun Path.decompress(
-        format: String = extensionOrNull ?: throw IllegalArgumentException("Cannot auto-detect the compression format due to missing file extension."),
         destination: Path = removeExtensions(extensionOrNull!!),
         overwrite: Boolean = false,
     ): Path {

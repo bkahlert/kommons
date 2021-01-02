@@ -25,8 +25,8 @@ class DockerRunCommandLineTest {
                 interactive = true,
                 pseudoTerminal = true,
                 mounts = listOf(
-                    MountOption(source = Path.of("/a/b"), target = Path.of("/c/d")),
-                    MountOption("bind", Path.of("/e/f/../g"), Path.of("//h")),
+                    MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
+                    MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath()),
                 )
             ),
             dockerImage = DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("tag")),

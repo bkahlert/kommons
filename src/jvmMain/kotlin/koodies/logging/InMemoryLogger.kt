@@ -13,14 +13,14 @@ import java.io.OutputStream
 
 open class InMemoryLogger private constructor(
     caption: CharSequence,
-    borderedOutput: Boolean = false,
+    bordered: Boolean = false,
     statusInformationColumn: Int = -1,
     private val outputStream: TeeOutputStream,
     private val captured: MutableList<String>,
     private val start: Long,
 ) : BlockRenderingLogger(
     caption = caption,
-    borderedOutput = borderedOutput,
+    bordered = bordered,
     statusInformationColumn = if (statusInformationColumn > 0) statusInformationColumn else 60,
     log = { message: String ->
         val thread = Thread.currentThread().name.padStartFixedLength(30, strategy = MIDDLE)
@@ -32,14 +32,17 @@ open class InMemoryLogger private constructor(
 ) {
     constructor(
         caption: String,
-        borderedOutput: Boolean = true,
+        bordered: Boolean = true,
         statusInformationColumn: Int = -1,
         outputStreams: List<OutputStream>,
     ) : this(
         caption = caption,
-        borderedOutput = borderedOutput,
+        bordered = bordered,
         statusInformationColumn = statusInformationColumn,
-        outputStream = outputStreams.foldRight(TeeOutputStream(OutputStream.nullOutputStream(), OutputStream.nullOutputStream()),
+        outputStream = outputStreams.foldRight(TeeOutputStream(
+            OutputStream.nullOutputStream(),
+            OutputStream.nullOutputStream()
+        ),
             { os, tos -> TeeOutputStream(os, tos) }),
         captured = mutableListOf<String>().synchronized(),
         start = System.currentTimeMillis(),

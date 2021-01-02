@@ -5,9 +5,14 @@ import kotlin.io.path.createDirectories
 
 
 /**
- * Returns whether this path is inside [path].
+ * Alias for [isSubPathOf].
  */
-fun Path.isInside(path: Path): Boolean =
+fun Path.isInside(path: Path): Boolean = isSubPathOf(path)
+
+/**
+ * Returns whether this path is a sub path of [path].
+ */
+fun Path.isSubPathOf(path: Path): Boolean =
     normalize().toAbsolutePath().startsWith(path.normalize().toAbsolutePath())
 
 /**

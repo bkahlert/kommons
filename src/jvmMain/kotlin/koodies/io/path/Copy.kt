@@ -10,7 +10,7 @@ import koodies.io.fileAlreadyExists
 import koodies.io.fileSystemException
 import koodies.io.noSuchFile
 import koodies.text.withRandomSuffix
-import koodies.unit.Size.Companion.size
+import koodies.unit.size
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.nio.file.FileAlreadyExistsException

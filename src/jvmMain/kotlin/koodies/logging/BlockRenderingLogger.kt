@@ -9,20 +9,14 @@ import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.*
 import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
-import koodies.text.addColumn
-import koodies.text.firstLine
-import koodies.text.mapLines
-import koodies.text.otherLines
-import koodies.text.prefixLinesWith
-import koodies.text.repeat
-import koodies.text.truncate
-import koodies.text.wrapLines
 
 open class BlockRenderingLogger(
     private val caption: CharSequence,
-    val borderedOutput: Boolean = false,
+    val bordered: Boolean = false,
     val statusInformationColumn: Int = 100,
     val statusInformationPadding: Int = 5,
     val statusInformationColumns: Int = 45,
@@ -37,42 +31,45 @@ open class BlockRenderingLogger(
 
     val totalColumns = statusInformationColumn + statusInformationPadding + statusInformationColumns
 
-    final override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = block().let { message: CharSequence ->
-        val finalMessage: String = "$message" + if (trailingNewline) "\n" else ""
-        log.invoke(finalMessage)
-    }
+    final override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit =
+        block().let { message: CharSequence ->
+            val finalMessage: String = "$message" + if (trailingNewline) "\n" else ""
+            log.invoke(finalMessage)
+        }
 
     private fun getStatusPadding(text: String): String =
         " ".repeat((statusInformationColumn - text.removeEscapeSequences().length).coerceAtLeast(10))
 
     private val playSymbol = ANSI.termColors.green("▶")
+    private val whitePlaySymbol = ANSI.termColors.green("▷")
 
     private val blockStart: String
         get() = buildList<String> {
-            if (borderedOutput) {
+            val captionLines = caption.asAnsiString().lines()
+            if (bordered) {
                 +""
-                +"╭─────╴${caption.firstLine.bold()}"
-                caption.otherLines.forEach {
+                +"╭─────╴${captionLines.first().bold()}"
+                captionLines.drop(1).forEach {
                     +"$prefix   ${it.bold()}"
                 }
                 +prefix
             } else {
-                +"$playSymbol ${caption.firstLine.bold()}"
-                caption.otherLines.forEach {
-                    +"$prefix        ${it.bold()}"
+                +"$playSymbol ${captionLines.first().bold()}"
+                captionLines.drop(1).forEach {
+                    +"$whitePlaySymbol ${it.bold()}"
                 }
             }
         }.joinToString(LF)
 
-    val prefix: String get() = if (borderedOutput) "│   " else " "
+    val prefix: String get() = if (bordered) "│   " else "· "
     fun <R> getBlockEnd(result: Result<R>): CharSequence {
         val message: String =
             if (result.isSuccess) {
                 val renderedSuccess = formatResult(result)
-                if (borderedOutput) "│\n╰─────╴$renderedSuccess\n"
+                if (bordered) "│\n╰─────╴$renderedSuccess\n"
                 else "$renderedSuccess"
             } else {
-                if (borderedOutput) {
+                if (bordered) {
                     formatException("$LF╰─────╴", result.toCompactString()) + LF
                 } else {
                     formatException(" ", result.toCompactString())
@@ -102,14 +99,18 @@ open class BlockRenderingLogger(
         if (output.unformatted.isNotBlank()) {
             render(true) {
                 val leftColumn = output.formatted.asAnsiString().wrapLines(statusInformationColumn).asAnsiString()
-                val statusColumn = items.renderStatus().asAnsiString().truncate(maxLength = statusInformationColumns - 1, MIDDLE)
-                leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding).prefixLinesWith(prefix = prefix)
+                val statusColumn =
+                    items.renderStatus().asAnsiString().truncate(maxLength = statusInformationColumns - 1, MIDDLE)
+                leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding)
+                    .prefixLinesWith(prefix = prefix)
             }
         }
     }
 
     override fun logException(block: () -> Throwable): Unit = block().let {
-        render(true) { IO.Type.ERR.format(it.stackTraceToString()).prefixLinesWith(ignoreTrailingSeparator = false, prefix) }
+        render(true) {
+            IO.Type.ERR.format(it.stackTraceToString()).prefixLinesWith(ignoreTrailingSeparator = false, prefix)
+        }
     }
 
     var resultLogged = false
@@ -126,7 +127,7 @@ open class BlockRenderingLogger(
         if (!resultLogged)
             "╷".let { vline ->
                 LF + vline +
-                    LF + vline + IO.Type.META.format(" no result logged yet") +
-                    LF + vline
+                        LF + vline + IO.Type.META.format(" no result logged yet") +
+                        LF + vline
             } else IO.Type.META.format("❕ result already logged")
 }

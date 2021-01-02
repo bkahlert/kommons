@@ -46,7 +46,7 @@ fun Regex.Companion.namedGroup(name: String, pattern: String): String = "(?<$nam
  */
 fun MatchResult.values(groupNames: List<String>): Map<String, String?> {
     return if (groups is MatchNamedGroupCollection) {
-        groupNames.mapIndexed { index, name -> name to groups[name]?.value }.toMap()
+        groupNames.map { name -> name to groups[name]?.value }.toMap()
     } else {
         groupNames.mapIndexed { index, name -> name to groups[index + 1]?.value }.toMap()
     }

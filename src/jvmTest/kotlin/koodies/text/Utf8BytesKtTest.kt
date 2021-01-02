@@ -1,6 +1,6 @@
 package koodies.text
 
-import koodies.unit.Size.Companion.bytes
+import koodies.unit.bytes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT

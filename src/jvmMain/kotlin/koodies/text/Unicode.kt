@@ -204,13 +204,6 @@ by dictOf("unicode.dict.tsv"
         '\uFEFF', // ZERO WIDTH NO-BREAK SPACE: 0
     )
 
-    /**
-     * Contains this code point's replacement symbol if any.
-     *
-     * This only applies to the so called [controlCharacters].
-     */
-    val CodePoint.isWhitespace: Boolean get() = char?.let { whitespaces.contains(it) } ?: false
-
     val controlCharacters: Map<Char, Char> = mapOf(
         '\u0000' to '\u2400', // ␀
         '\u0001' to '\u2401', // ␁

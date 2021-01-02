@@ -141,7 +141,7 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
 
     override var externalSync: CompletableFuture<*> = CompletableFuture.completedFuture(Unit)
     override var onExit: CompletableFuture<Process>
-        get() = externalSync.thenCombine(javaProcess.onExit()) { _, process -> this }
+        get() = externalSync.thenCombine(javaProcess.onExit()) { _, _ -> this }
         set(value) {
             externalSync = value
         }

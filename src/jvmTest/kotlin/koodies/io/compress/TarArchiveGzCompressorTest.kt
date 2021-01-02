@@ -15,8 +15,8 @@ import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
-import koodies.unit.Size.Companion.bytes
-import koodies.unit.Size.Companion.size
+import koodies.unit.bytes
+import koodies.unit.size
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution

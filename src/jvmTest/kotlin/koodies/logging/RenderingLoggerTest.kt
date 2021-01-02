@@ -7,6 +7,8 @@ import koodies.concurrent.process.IO.Type.OUT
 import koodies.io.file.readLines
 import koodies.io.path.containsAtMost
 import koodies.io.path.randomFile
+import koodies.terminal.AnsiColors.red
+import koodies.test.Debug
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.Columns
@@ -48,7 +50,8 @@ class RenderingLoggerTest {
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
                     │{}
                     ╰─────╴✔{}
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Test
@@ -64,7 +67,8 @@ class RenderingLoggerTest {
         logStatus { OUT typed "outer 4" }
         logResult { Result.success("end") }
 
-        expectThat(logged).matchesCurlyPattern("""
+        expectThat(logged).matchesCurlyPattern(
+            """
                     ╭─────╴{}
                     │{}
                     │   outer 1                                               {}                                      ▮▮
@@ -82,7 +86,8 @@ class RenderingLoggerTest {
                     │   outer 4                                               {}                                      ▮▮
                     │{}
                     ╰─────╴➜️ {}
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Test
@@ -108,7 +113,8 @@ class RenderingLoggerTest {
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
                     │{}
                     ╰─────╴✔{}
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Test
@@ -132,7 +138,8 @@ class RenderingLoggerTest {
             logLine { "something" }
         }
 
-        expectThatLogged().matchesCurlyPattern("""
+        expectThatLogged().matchesCurlyPattern(
+            """
             ╭─────╴{}
             │   
             │   
@@ -144,7 +151,8 @@ class RenderingLoggerTest {
             │   │
             │   ╰─────╴✔
             │
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 
     @Execution(SAME_THREAD)
@@ -182,27 +190,27 @@ class RenderingLoggerTest {
         """.trimIndent(),
         false to """
             ▶ {}
-             outer 1                                                  {}                                      ▮▮
-             outer 2
-             ▶ nested log{}
-              nested 1                                                {}                                      ▮▮
-              mini segment 12345 sample ✔{}
-              ▶ nested log{}
-               nested 1                                               {}                                      ▮▮
-               mini segment 12345 sample ✔{}
-               nested 2                                               {}                                      ▮▮
-               nested 3                                               {}                                      ▮▮
-              ✔{}
-              nested 2                                                {}                                      ▮▮
-              nested 3                                                {}                                      ▮▮
-             ✔{}
-             outer 3                                                  {}                                      ▮▮
-             outer 4                                                  {}                                      ▮▮
+            · outer 1                                                  {}                                      ▮▮
+            · outer 2
+            · ▶ nested log{}
+            · · nested 1                                                {}                                      ▮▮
+            · · mini segment 12345 sample ✔{}
+            · · ▶ nested log{}
+            · · · nested 1                                               {}                                      ▮▮
+            · · · mini segment 12345 sample ✔{}
+            · · · nested 2                                               {}                                      ▮▮
+            · · · nested 3                                               {}                                      ▮▮
+            · · ✔{}
+            · · nested 2                                                {}                                      ▮▮
+            · · nested 3                                                {}                                      ▮▮
+            · ✔{}
+            · outer 3                                                  {}                                      ▮▮
+            · outer 4                                                  {}                                      ▮▮
             ✔{}
         """.trimIndent(),
-    ).test("bordered={}") { (borderedOutput, expectation) ->
-        val label = if (borderedOutput) "bordered" else "not-bordered"
-        with(createLogger(label, borderedOutput = borderedOutput)) {
+    ).test("bordered={}") { (bordered, expectation) ->
+        val label = if (bordered) "bordered" else "not-bordered"
+        with(createLogger(label, bordered = bordered)) {
             logStatus { OUT typed "outer 1" }
             logLine { "outer 2" }
             logging("nested log") {
@@ -243,7 +251,8 @@ class RenderingLoggerTest {
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ◀◀ getting phone call
                     │{}
                     ╰─────╴✔{}
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Suppress("LongLine")
@@ -305,7 +314,8 @@ class RenderingLoggerTest {
                     │   ϟ{}
                     │   ╰─────╴IllegalStateException: an exception at.(${RenderingLoggerTest::class.simpleName}.kt:{}){}
                     │{}
-                """.trimIndent(), ignoreTrailingLines = true)
+                """.trimIndent(), ignoreTrailingLines = true
+        )
     }
 
     @Test
@@ -327,13 +337,15 @@ class RenderingLoggerTest {
                 3
             }
         }.isSuccess()
-        expectThat(logged).matchesCurlyPattern("""
+        expectThat(logged).matchesCurlyPattern(
+            """
             ╭─────╴{}
             │   
             │   close twice line ➜️ 1
             │   close twice line ➜️ 1 ➜️ 2
             │   close twice line ➜️ 1 ➜️ 2 ➜️ 3
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 
     @Test
@@ -373,7 +385,8 @@ class RenderingLoggerTest {
                 │
                 ╰─────╴➜️ ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀
                 、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Test
@@ -409,7 +422,8 @@ class RenderingLoggerTest {
                     │   Normal logging continues...
                     │{}
                     ╰─────╴✔{}
-                """.trimIndent())
+                """.trimIndent()
+            )
 
             that(file.readLines().filter { it.isNotBlank() }) {
                 first().isEqualTo("▶ Some logging heavy operation")
@@ -440,21 +454,24 @@ class RenderingLoggerTest {
                 }
             }.isFailure().isA<RuntimeException>()
 
-            logger.logged.matchesCurlyPattern("""
+            logger.logged.matchesCurlyPattern(
+                """
                 ▶ root
-                 ▶ level 0
-                  doing stuff
-                  ▶ level 1
-                   doing stuff
-                   ▶ level 2
-                    doing stuff
-                   ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-                  ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-                 ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-            """.trimIndent())
+                · ▶ level 0
+                · · doing stuff
+                · · ▶ level 1
+                · · · doing stuff
+                · · · ▶ level 2
+                · · · · doing stuff
+                · · · ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
+                · · ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
+                · ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
+            """.trimIndent()
+            )
         }
     }
 
+    @Debug
     @Execution(SAME_THREAD)
     @TestFactory
     fun `should render multi-line caption`() = listOf(
@@ -476,15 +493,15 @@ class RenderingLoggerTest {
             ╭─────╴{}
             │   
             │   ▶ line #1
-            │            line #2
-            │    logged line
+            │   ▷ line #2
+            │   · logged line
             │   ✔
             │
             ╰─────╴✔{}
         """.trimIndent(),
-    ).test("bordered={}") { (borderedOutput, expectation) ->
+    ).test("bordered={}") { (bordered, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
-            logging(caption = "line #1\nline #2", borderedOutput = borderedOutput) {
+            logging(caption = "line #1\nline #2".red(), bordered = bordered) {
                 logLine { "logged line" }
             }
         }

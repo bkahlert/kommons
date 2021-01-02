@@ -50,9 +50,10 @@ interface RenderingLogger {
     /**
      * Logs some programs [IO] and the status of processed [items].
      */
-    fun logStatus(items: List<HasStatus> = emptyList(), block: () -> IO = { OUT typed "" }): Unit = block().let { output ->
-        render(true) { "${output.formatted} (${items.size})" }
-    }
+    fun logStatus(items: List<HasStatus> = emptyList(), block: () -> IO = { OUT typed "" }): Unit =
+        block().let { output ->
+            render(true) { "${output.formatted} (${items.size})" }
+        }
 
     /**
      * Logs some programs [IO] and the status of processed [items].
@@ -94,13 +95,17 @@ interface RenderingLogger {
 
     companion object {
         val DEFAULT: RenderingLogger = object : RenderingLogger {
-            override fun render(trailingNewline: Boolean, block: () -> CharSequence) = block().let { if (trailingNewline) println(it) else print(it) }
+            override fun render(trailingNewline: Boolean, block: () -> CharSequence) =
+                block().let { if (trailingNewline) println(it) else print(it) }
         }
 
         val recoveredLoggers = mutableListOf<RenderingLogger>()
 
         fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
-            if (result.isSuccess) formatReturnValue(result.toCompactString()) else formatException(" ", result.toCompactString())
+            if (result.isSuccess) formatReturnValue(result.toCompactString()) else formatException(
+                " ",
+                result.toCompactString()
+            )
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
         fun formatReturnValue(formattedResult: CharSequence): CharSequence {
@@ -143,20 +148,23 @@ inline fun <reified R, reified L : RenderingLogger> L.runLogging(crossinline blo
 inline fun <reified R> Any?.logging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
-    borderedOutput: Boolean = (this as? BlockRenderingLogger)?.borderedOutput ?: false,
+    bordered: Boolean = (this as? BlockRenderingLogger)?.bordered ?: false,
     block: BlockRenderingLogger.() -> R,
 ): R {
     val logger: BlockRenderingLogger = when (this) {
         is MutedRenderingLogger -> this
         is BlockRenderingLogger -> BlockRenderingLogger(
             caption = caption,
-            borderedOutput = borderedOutput,
+            bordered = bordered,
             statusInformationColumn = statusInformationColumn - prefix.length,
             statusInformationPadding = statusInformationPadding,
             statusInformationColumns = statusInformationColumns - prefix.length,
         ) { output -> logText { ansiCode.invoke(output) } }
-        is RenderingLogger -> BlockRenderingLogger(caption = caption, borderedOutput = borderedOutput) { output -> logText { ansiCode.invoke(output) } }
-        else -> BlockRenderingLogger(caption = caption, borderedOutput = borderedOutput)
+        is RenderingLogger -> BlockRenderingLogger(
+            caption = caption,
+            bordered = bordered
+        ) { output -> logText { ansiCode.invoke(output) } }
+        else -> BlockRenderingLogger(caption = caption, bordered = bordered)
     }
     val result: Result<R> = kotlin.runCatching { block(logger) }
     logger.logResult { result }
@@ -177,7 +185,7 @@ inline fun <reified R> RenderingLogger?.fileLogging(
     val writer = path.bufferedWriter()
     val logger: RenderingLogger = BlockRenderingLogger(
         caption = caption,
-        borderedOutput = false,
+        bordered = false,
         log = { output: String ->
             writer.appendLine(output.removeEscapeSequences())
         },

@@ -256,10 +256,6 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
     operator fun dec(): CodePoint = CodePoint(codePoint - 1)
 }
 
-
-operator fun String.plus(amount: Int): String =
-    asCodePointSequence().map { it + amount }.joinToString("")
-
 operator fun String.minus(amount: Int): String =
     asCodePointSequence().map { it - amount }.joinToString("")
 

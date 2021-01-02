@@ -5,8 +5,8 @@ import koodies.debug.asEmoji
 import koodies.exception.dump
 import koodies.exception.toCompactString
 import koodies.io.RedirectingOutputStream
+import koodies.io.path.asPath
 import koodies.io.path.asString
-import koodies.io.path.toPath
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.InputStream
@@ -41,7 +41,7 @@ fun CommandLine.toManagedProcess(
 ): ManagedProcess = ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
 
 private fun CommandLine.toJavaProcess(): JavaProcess {
-    val scriptFile: String = if (command.toPath().isScriptFile()) command else toShellScript().asString()
+    val scriptFile: String = if (command.asPath().isScriptFile()) command else toShellScript().asString()
 
     return PlexusCommandLine(scriptFile).let {
         it.workingDirectory = workingDirectory.toFile()
@@ -123,7 +123,7 @@ private open class ManagedJavaProcess(
                 Process $commandLine terminated with ${cause.toCompactString()}.
             """.trimIndent()) { ioLog.dump() }.also { dump -> metaLog(dump) }
                 throw RuntimeException(dump.removeEscapeSequences(), cause)
-            }.thenApply { process ->
+            }.thenApply { _ ->
                 if (expectedExitValue != null && exitValue != expectedExitValue) {
                     val message = ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue).message
                     message?.also { metaLog(it) }

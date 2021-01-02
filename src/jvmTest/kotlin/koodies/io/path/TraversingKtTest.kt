@@ -5,7 +5,7 @@ import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.withTempDir
 import koodies.unit.Size
-import koodies.unit.Size.Companion.bytes
+import koodies.unit.bytes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT

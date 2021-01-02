@@ -35,8 +35,8 @@ class DockerRunCommandLineBuilderTest {
                 interactive { true }
                 pseudoTerminal { true }
                 mounts {
-                    Path.of("/a/b") mountAt "/c/d"
-                    +MountOption("bind", Path.of("/e/f/../g"), Path.of("//h"))
+                    "/a/b".asHostPath() mountAt "/c/d".asContainerPath()
+                    +MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath())
                 }
             }
             command { "work" }

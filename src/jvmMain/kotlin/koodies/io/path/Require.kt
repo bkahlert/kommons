@@ -3,7 +3,7 @@ package koodies.io.path
 import koodies.io.directoryNotEmpty
 import koodies.io.fileAlreadyExists
 import koodies.io.noSuchFile
-import koodies.unit.Size.Companion.size
+import koodies.unit.size
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
@@ -69,5 +69,5 @@ fun Path.requireNotEmpty() {
  *
  * @throws IllegalArgumentException this path is not inside [Locations.Temp]
  */
-fun Path.requireTempContained(): Path =
-    apply { require(!isDefaultFileSystem() || isInside(Locations.Temp)) { "${this.normalize().toAbsolutePath()} is not inside ${Locations.Temp}." } }
+fun Path.requireTempSubPath(): Path =
+    apply { require(!isDefaultFileSystem() || isSubPathOf(Locations.Temp)) { "${this.normalize().toAbsolutePath()} is not inside ${Locations.Temp}." } }

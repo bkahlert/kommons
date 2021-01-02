@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="x.y.z ➜ MavenCentral, BinTray, GitHub" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="x.y.z-SNAPSHOT ➜ local" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="koodies" />
@@ -10,9 +10,8 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="final" />
-          <option value="push" />
-          <option value="publish" />
+          <option value="snapshot" />
+          <option value="publishToMavenLocal" />
         </list>
       </option>
       <option name="vmOptions" value="" />
