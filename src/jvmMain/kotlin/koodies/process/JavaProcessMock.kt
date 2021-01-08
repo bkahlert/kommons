@@ -8,6 +8,7 @@ import koodies.concurrent.process.TeeOutputStream
 import koodies.debug.debug
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
+import koodies.logging.RenderingLogger
 import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiColors.yellow
@@ -34,7 +35,7 @@ open class JavaProcessMock(
     private var outputStream: OutputStream = ByteArrayOutputStream(),
     private val inputStream: InputStream = InputStream.nullInputStream(),
     private val processExit: JavaProcessMock.() -> ProcessExitMock,
-    var logger: BlockRenderingLogger,
+    var logger: RenderingLogger,
 ) : JavaProcess() {
 
     private val completeOutputSequence = ByteArrayOutputStream()
@@ -130,7 +131,7 @@ open class JavaProcessMock(
 
 class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : DelegatingProcess({ processMock }), ManagedProcess {
 
-    var logger: BlockRenderingLogger = processMock.logger
+    var logger: RenderingLogger = processMock.logger
 
     override fun start(): ManagedProcessMock {
         super.start()

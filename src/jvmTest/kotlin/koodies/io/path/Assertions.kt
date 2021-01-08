@@ -88,11 +88,11 @@ fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharAr
     }
 
 fun <T : Path> Assertion.Builder<T>.hasContent(expectedContent: String) =
-    assert("has content ${expectedContent.quoted}") {
+    assert("has content ${expectedContent.debug}") {
         val actualContent = it.readText()
         when (actualContent.contentEquals(expectedContent)) {
             true -> pass()
-            else -> fail("was ${actualContent.quoted}")
+            else -> fail("was ${actualContent.debug}")
         }
     }
 

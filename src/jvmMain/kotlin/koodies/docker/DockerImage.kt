@@ -7,7 +7,7 @@ import koodies.text.quoted
  *
  * e.g. `"bkahlert" / "guestfish" tag "latest"`
  */
-@DockerCommandDsl
+@DockerCommandLineDsl
 interface DockerImageBuilder {
     companion object {
         fun build(init: DockerImageBuilder.() -> Any): DockerImage {
@@ -30,7 +30,7 @@ interface DockerImageBuilder {
     infix fun List<String>.digest(digest: String): Pair<List<String>, OptionalTagOrDigest> = this to OptionalTagOrDigest.of(Digest(digest))
 }
 
-@DockerCommandDsl
+@DockerCommandLineDsl
 data class DockerImage(val repository: DockerRepository, val optionalTagOrDigest: OptionalTagOrDigest) {
     companion object {
         fun image(repository: DockerRepository) = DockerImage(repository, OptionalTagOrDigest.none())

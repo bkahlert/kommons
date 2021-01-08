@@ -1,9 +1,9 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.daemon
-import koodies.io.file.writeText
 import koodies.io.path.asString
 import koodies.io.path.hasContent
+import koodies.io.path.writeText
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.UniqueId
 import koodies.test.withTempDir

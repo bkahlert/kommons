@@ -2,9 +2,9 @@ package koodies.shell
 
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.toScriptName
-import koodies.io.file.writeText
 import koodies.io.path.executable
 import koodies.io.path.withDirectoriesCreated
+import koodies.io.path.writeText
 import koodies.terminal.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
@@ -63,6 +63,18 @@ class ShellScript(val name: String? = null, content: String? = null) {
     fun command(command: CommandLine) {
         lines.addAll(command.lines)
     }
+
+    /**
+     * Initializes a [FileOperations] builder for the file specified by [path] and
+     * the optional [init] applied to it.
+     */
+    fun file(path: String, init: FileOperations.() -> Unit = {}) = FileOperations(this, path).apply(init)
+
+    /**
+     * Initializes a [FileOperations] builder for the file specified by [path] and
+     * the optional [init] applied to it.
+     */
+    fun file(path: Path, init: FileOperations.() -> Unit = {}) = FileOperations(this, path).apply(init)
 
     fun embed(shellScript: ShellScript) {
         val fileName = "${shellScript.name.toScriptName()}.sh"

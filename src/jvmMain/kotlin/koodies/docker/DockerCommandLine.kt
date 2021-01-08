@@ -2,123 +2,107 @@ package koodies.docker
 
 import koodies.builder.ListBuilder.Companion.buildList
 import koodies.builder.ListBuilderInit
-import koodies.builder.MapBuilderInit
 import koodies.builder.build
-import koodies.builder.buildListTo
-import koodies.builder.buildMap
 import koodies.concurrent.process.CommandLine
-import koodies.docker.DockerRunCommandLine.Options
-import koodies.io.path.Locations
+import koodies.concurrent.process.CommandLineBuilder
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
-data class DockerRunCommandLine(
-    override val workingDirectory: Path,
-    val dockerRedirects: List<String> = emptyList(),
-    val options: Options = Options(),
-    val dockerImage: DockerImage,
-    val dockerCommand: String? = null,
-    val dockerArguments: List<String> = emptyList(),
-) : CommandLine(dockerRedirects, options.env, workingDirectory, "docker", mutableListOf("run").apply {
-    addAll(options)
-    add(dockerImage.formatted)
-    dockerCommand?.also { add(it) }
-    addAll(dockerArguments)
-}) {
-    data class Options(
-        val env: Map<String, String> = emptyMap(),
-        val entryPoint: String? = null,
-        val name: DockerContainerName? = null,
-        val privileged: Boolean = false,
-        val autoCleanup: Boolean = true,
-        val interactive: Boolean = true,
-        val pseudoTerminal: Boolean = false,
-        val mounts: MountOptions = MountOptions(),
-    ) : List<String> by (buildList {
-        env.forEach {
+class DockerCommandLine(
+    val image: DockerImage,
+    val options: DockerCommandLineOptions = DockerCommandLineOptions(),
+    commandLine: CommandLine,
+) : CommandLine(
+    redirects = commandLine.redirects,
+    environment = commandLine.environment,
+    workingDirectory = commandLine.workingDirectory,
+    command = "docker",
+    arguments = buildList {
+        +"run"
+        commandLine.environment.forEach {
             +"--env"
             +"${it.key}=${it.value}"
         }
-        entryPoint?.also { +"--entrypoint" + entryPoint }
-        name?.also { +"--name" + name.sanitized }
-        privileged.takeIf { it }?.also { +"--privileged" }
-        autoCleanup.takeIf { it }?.also { +"--rm" }
-        interactive.takeIf { it }?.also { +"-i" }
-        pseudoTerminal.takeIf { it }?.also { +"-t" }
-        mounts.forEach { +it }
-    })
+        +options
+        +image.formatted
+        if (commandLine.command.isNotBlank() && options.entryPoint == null) +commandLine.command
+        +commandLine.arguments.map { arg ->
+            arg.split("=").map { it.mapToContainerPathOrNull(options.mounts)?.asString() ?: it }.joinToString("=")
+        }
+    },
+) {
+    companion object {
+        private fun String.mapToContainerPathOrNull(mounts: MountOptions): ContainerPath? =
+            kotlin.runCatching { mounts.mapToContainerPath(asHostPath()) }.getOrNull()
+
+        fun build(image: DockerImage, init: DockerCommandLineBuilder.() -> Unit = {}): DockerCommandLine =
+            DockerCommandLineBuilder.build(image, init = init)
+
+        fun build(imageInit: DockerImageBuilder.() -> Any, init: DockerCommandLineBuilder.() -> Unit): DockerCommandLine =
+            DockerCommandLineBuilder.build(DockerImageBuilder.build(imageInit), init)
+    }
+
+    override fun toManagedProcess(expectedExitValue: Int?, processTerminationCallback: (() -> Unit)?): DockerProcess =
+        DockerProcess.from(this, expectedExitValue, processTerminationCallback)
 
     override fun prepare(expectedExitValue: Int): DockerProcess =
-        DockerProcess.from(this, expectedExitValue)
+        super.prepare(expectedExitValue) as DockerProcess
 
     override fun execute(expectedExitValue: Int): DockerProcess =
-        prepare(expectedExitValue).also { it.start() }
-
-    override fun toString(): String = super.toString()
+        super.execute(expectedExitValue) as DockerProcess
 }
 
 
-@DockerCommandDsl
-class DockerRunCommandLineBuilder(
-    private var workingDirectory: Path = Locations.Temp,
-    private val redirects: MutableList<String> = mutableListOf(),
-    private var dockerOptions: Options = Options(),
-    private var dockerCommand: String? = null,
-    private val dockerArguments: MutableList<String> = mutableListOf(),
+fun DockerImage.buildCommandLine(init: DockerCommandLineBuilder.() -> Unit) =
+    DockerCommandLineBuilder.build(image = this, init = init)
+
+class DockerCommandLineBuilder(
+    private var options: DockerCommandLineOptions = DockerCommandLineOptions(),
+    private var commandLine: CommandLine = CommandLine.build(""),
 ) {
-
-    class ImageProvidedBuilder(private val image: DockerImage) {
-        infix fun run(init: DockerRunCommandLineBuilder.() -> Unit): DockerRunCommandLine = build(image, init)
-    }
-
     companion object {
-        fun build(init: DockerImageBuilder.() -> Any): ImageProvidedBuilder =
-            ImageProvidedBuilder(DockerImageBuilder.build(init))
-
-        fun DockerImage.buildRunCommand(init: DockerRunCommandLineBuilder.() -> Unit): DockerRunCommandLine = build(this, init)
-
-        fun build(dockerImage: DockerImage, init: DockerRunCommandLineBuilder.() -> Unit): DockerRunCommandLine =
-            DockerRunCommandLineBuilder().apply(init).run {
-                DockerRunCommandLine(
-                    workingDirectory = workingDirectory,
-                    dockerRedirects = redirects,
-                    options = dockerOptions,
-                    dockerImage = dockerImage,
-                    dockerCommand = dockerCommand,
-                    dockerArguments = dockerArguments,
-                )
+        fun build(image: DockerImage, init: DockerCommandLineBuilder.() -> Unit): DockerCommandLine =
+            DockerCommandLineBuilder().apply(init).run {
+                DockerCommandLine(image, options, commandLine)
             }
     }
 
-    fun workingDirectory(workingDirectory: Path) = workingDirectory.also { this.workingDirectory = it }
-    fun redirects(init: ListBuilderInit<String>) = init.buildListTo(redirects)
-    fun options(init: OptionsBuilder.() -> Unit) = OptionsBuilder.build(init).run { dockerOptions = this }
-    fun command(init: () -> String?) = init.build()?.run { dockerCommand = this }
-    fun arguments(init: ListBuilderInit<String>) = init.buildListTo(dockerArguments)
+    fun options(options: DockerCommandLineOptions) = options.also { this.options = it }
+    fun options(init: DockerCommandLineOptionsBuilder.() -> Unit) = options(DockerCommandLineOptionsBuilder.build(init))
+    fun commandLine(commandLine: CommandLine) = commandLine.also { this.commandLine = it }
+    fun commandLine(init: CommandLineBuilder.() -> Unit) = commandLine(CommandLine.build("", init))
+    fun commandLine(command: String, init: CommandLineBuilder.() -> Unit) = commandLine(CommandLine.build(command, init))
 }
 
-class OptionBuilder : ReadOnlyProperty<OptionsBuilder, OptionBuilder> {
-    override fun getValue(thisRef: OptionsBuilder, property: KProperty<*>): OptionBuilder {
-        return this
-    }
+data class DockerCommandLineOptions(
+    val entryPoint: String? = null,
+    val name: DockerContainerName? = null,
+    val privileged: Boolean = false,
+    val autoCleanup: Boolean = true,
+    val interactive: Boolean = true,
+    val pseudoTerminal: Boolean = false,
+    val mounts: MountOptions = MountOptions(),
+) : List<String> by (buildList {
+    entryPoint?.also { +"--entrypoint" + entryPoint }
+    name?.also { +"--name" + name.sanitized }
+    privileged.takeIf { it }?.also { +"--privileged" }
+    autoCleanup.takeIf { it }?.also { +"--rm" }
+    interactive.takeIf { it }?.also { +"-i" }
+    pseudoTerminal.takeIf { it }?.also { +"-t" }
+    mounts.forEach { +it }
+})
 
-    operator fun invoke(init: () -> String) {
+@DockerCommandLineDsl
+abstract class DockerCommandLineOptionsBuilder {
 
-    }
-}
-
-@DockerCommandDsl
-abstract class OptionsBuilder {
     companion object {
-        inline fun build(init: OptionsBuilder.() -> Unit): Options {
-            var options = Options()
-            object : OptionsBuilder() {
-                override var options: Options
+        inline fun build(init: DockerCommandLineOptionsBuilder.() -> Unit): DockerCommandLineOptions {
+            var options = DockerCommandLineOptions()
+            object : DockerCommandLineOptionsBuilder() {
+                override var options: DockerCommandLineOptions
                     get() = options
                     set(value) = value.run { options = this }
             }.apply(init)
@@ -126,11 +110,8 @@ abstract class OptionsBuilder {
         }
     }
 
-    protected abstract var options: Options
+    protected abstract var options: DockerCommandLineOptions
 
-    val sample by OptionBuilder()
-
-    fun env(init: MapBuilderInit<String, String>) = init.buildMap().also { options.copy(env = options.env + it).run { options = this } }
     fun entrypoint(entryPoint: () -> String?) = options.copy(entryPoint = entryPoint()).run { options = this }
     fun name(name: () -> String?) = options.copy(name = name()?.let { DockerContainerName(it) }).run { options = this }
     fun containerName(name: () -> DockerContainerName?) = options.copy(name = name()).run { options = this }
@@ -152,7 +133,12 @@ abstract class OptionsBuilder {
 }
 
 data class MountOption(val type: String = "bind", val source: HostPath, val target: ContainerPath) :
-    List<String> by listOf("--mount", "type=$type,source=${source.asString()},target=${target.asString()}") {
+    AbstractList<String>() {
+    private val list = listOf("--mount", "type=$type,source=${source.asString()},target=${target.asString()}")
+
+    override val size: Int = list.size
+    override fun get(index: Int): String = list[index]
+
     fun mapToHostPath(containerPath: ContainerPath): HostPath {
         require(containerPath.isSubPathOf(target)) { "$containerPath is not mapped by $target" }
         val relativePath = containerPath.relativeTo(target).asString()
@@ -187,9 +173,28 @@ class MountOptions(private val mountOptions: List<MountOption>) : AbstractList<M
         require(mappedContainerPaths.isNotEmpty()) { "$hostPath is not mapped by any of ${map { it.source }.joinToString(", ")}" }
         return mappedContainerPaths.first()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as MountOptions
+
+        if (mountOptions != other.mountOptions) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + mountOptions.hashCode()
+        return result
+    }
+
+
 }
 
-open class ContainerPath(private val containerPath: Path) {
+inline class ContainerPath(private val containerPath: Path) {
     fun relativeTo(baseContainerPath: ContainerPath): ContainerPath =
         containerPath.relativeTo(baseContainerPath.containerPath).asContainerPath()
 

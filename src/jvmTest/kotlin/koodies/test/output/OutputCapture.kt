@@ -1,6 +1,7 @@
 package koodies.test.output
 
 import koodies.collections.withNegativeIndices
+import koodies.concurrent.process.IO
 
 
 class OutputCapture : CapturedOutput {
@@ -23,10 +24,10 @@ class OutputCapture : CapturedOutput {
     override val all: String get() = getFilteredCapture { true }
     override val allLines: List<String> by withNegativeIndices { splitOutput(all) }
 
-    override val out: String get() = getFilteredCapture { other: Type? -> Type.OUT == other }
+    override val out: String get() = getFilteredCapture { other: IO.Type? -> IO.Type.OUT == other }
     override val outLines: List<String> by withNegativeIndices { splitOutput(out) }
 
-    override val err: String get() = getFilteredCapture { other: Type? -> Type.ERR == other }
+    override val err: String get() = getFilteredCapture { other: IO.Type? -> IO.Type.ERR == other }
     override val errLines: List<String> by withNegativeIndices { splitOutput(err) }
 
     /**
@@ -34,7 +35,7 @@ class OutputCapture : CapturedOutput {
      */
     fun reset() = systemCaptures.lastOrNull()?.reset()
 
-    private fun getFilteredCapture(filter: (Type) -> Boolean): String {
+    private fun getFilteredCapture(filter: (IO.Type) -> Boolean): String {
         return synchronized(monitor) {
             check(!this.systemCaptures.isEmpty()) { "No system captures found. Please check your output capture registration." }
             val builder = StringBuilder()
@@ -44,15 +45,6 @@ class OutputCapture : CapturedOutput {
             builder.toString()
         }
     }
-
-    /**
-     * Types of content that can be captured.
-     */
-    @Deprecated("Use Output instead")
-    enum class Type {
-        OUT, ERR
-    }
-
 
     override fun hashCode(): Int = all.hashCode()
 

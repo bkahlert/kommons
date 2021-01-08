@@ -1,11 +1,13 @@
 package koodies.io.file
 
+import koodies.io.path.bufferedInputStream
 import koodies.io.path.copyTo
 import koodies.io.path.delete
 import koodies.io.path.executable
 import koodies.io.path.hasContent
 import koodies.io.path.randomFile
 import koodies.io.path.randomPath
+import koodies.io.path.writeText
 import koodies.runtime.deleteOnExit
 import koodies.test.UniqueId
 import koodies.test.withTempDir
@@ -30,6 +32,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.isReadable
 import kotlin.io.path.isWritable
 import kotlin.io.path.moveTo
+import kotlin.io.path.outputStream
 
 @Execution(CONCURRENT)
 class AsReadyOnlyKtTest {

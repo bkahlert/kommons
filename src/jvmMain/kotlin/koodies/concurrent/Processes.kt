@@ -4,7 +4,6 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.processSynchronously
-import koodies.concurrent.process.toManagedProcess
 import koodies.text.LineSeparators
 import java.nio.file.Path
 

@@ -1,7 +1,6 @@
 package koodies.tracing
 
 import koodies.concurrent.process.IO
-import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.compactLogging
 import koodies.text.Grapheme
@@ -43,12 +42,12 @@ class RenderingLoggerBasedMiniTracer(private val renderingLogger: RenderingLogge
     override fun <R> microTrace3(f: KFunction3<*, *, *, R>, block: MicroTracer.() -> R): R = microTrace(Grapheme("𝙛"), block)
 }
 
-inline fun <reified R> BlockRenderingLogger?.subTrace(f: String, crossinline block: MiniTracer?.() -> R): R =
+inline fun <reified R> RenderingLogger?.subTrace(f: String, crossinline block: MiniTracer?.() -> R): R =
     compactLogging(f.format()) { RenderingLoggerBasedMiniTracer(this).run(block) }
 
-inline fun <reified R> BlockRenderingLogger?.miniTrace(f: String, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
-inline fun <reified R> BlockRenderingLogger?.miniTrace(f: KCallable<R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
-inline fun <reified R> BlockRenderingLogger?.miniTrace(f: KFunction0<R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
-inline fun <reified R> BlockRenderingLogger?.miniTrace1(f: KFunction1<*, R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
-inline fun <reified R> BlockRenderingLogger?.miniTrace2(f: KFunction2<*, *, R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
-inline fun <reified R> BlockRenderingLogger?.miniTrace3(f: KFunction3<*, *, *, R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
+inline fun <reified R> RenderingLogger?.miniTrace(f: String, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
+inline fun <reified R> RenderingLogger?.miniTrace(f: KCallable<R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
+inline fun <reified R> RenderingLogger?.miniTrace(f: KFunction0<R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
+inline fun <reified R> RenderingLogger?.miniTrace1(f: KFunction1<*, R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
+inline fun <reified R> RenderingLogger?.miniTrace2(f: KFunction2<*, *, R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)
+inline fun <reified R> RenderingLogger?.miniTrace3(f: KFunction3<*, *, *, R>, crossinline block: MiniTracer?.() -> R): R = subTrace(f.format(), block)

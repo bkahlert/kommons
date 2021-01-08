@@ -2,9 +2,9 @@ package koodies.io.compress
 
 import koodies.io.compress.Archiver.addToArchive
 import koodies.io.compress.Archiver.unarchiveTo
-import koodies.io.file.bufferedInputStream
-import koodies.io.file.bufferedOutputStream
 import koodies.io.path.addExtensions
+import koodies.io.path.bufferedInputStream
+import koodies.io.path.bufferedOutputStream
 import koodies.io.path.deleteRecursively
 import koodies.io.path.removeExtensions
 import koodies.io.path.requireEmpty
@@ -15,7 +15,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
-
 
 /**
  * Provides (un-)archiving functionality for the TAR archive format.

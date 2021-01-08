@@ -2,7 +2,6 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.Type
 import koodies.concurrent.process.IO.Type.ERR
-import koodies.text.mapLines
 import koodies.terminal.AnsiColors.brightBlue
 import koodies.terminal.AnsiColors.gray
 import koodies.terminal.AnsiColors.red
@@ -11,6 +10,7 @@ import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiFormats.dim
 import koodies.terminal.AnsiFormats.italic
 import koodies.terminal.AnsiString
+import koodies.text.mapLines
 
 // TODO make sealed class and refactor types to inherited IOs
 /**
@@ -38,12 +38,6 @@ class IO(
      * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
      */
     fun lines(): List<IO> = lines
-
-    /**
-     * Whether this [text] (ignoring eventually existing ANSI escape sequences)
-     * is blank (≝ is empty or consists of nothing but whitespaces).
-     */
-    val isBlank: Boolean by lazy { unformatted.isBlank() }
 
     override fun toString(): String = formatted
 

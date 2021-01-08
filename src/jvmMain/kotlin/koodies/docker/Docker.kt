@@ -1,8 +1,8 @@
 package koodies.docker
 
+import koodies.concurrent.process.CommandLine
 import koodies.concurrent.script
 import koodies.concurrent.scriptOutputContains
-import koodies.shell.ShellScript
 import koodies.time.sleep
 import java.util.concurrent.TimeUnit
 import kotlin.time.seconds
@@ -31,17 +31,29 @@ object Docker {
     }
 
     /**
-     * Extends [ShellScript] with an entry point to build docker commands.
+     * Builds a [DockerImage].
      */
-    fun image(init: DockerImageBuilder.() -> Any): DockerRunCommandLineBuilder.ImageProvidedBuilder =
-        DockerRunCommandLineBuilder.ImageProvidedBuilder(DockerImageBuilder.build(init))
+    fun image(init: DockerImageBuilder.() -> Any): DockerImage =
+        DockerImageBuilder.build(init)
+
+    /**
+     * Builds [DockerCommandLine.Options].
+     */
+    fun options(init: DockerCommandLineOptionsBuilder.() -> Unit): DockerCommandLineOptions =
+        DockerCommandLineOptionsBuilder.build(init)
+
+    fun commandLine(image: DockerImage, options: DockerCommandLineOptions, commandLine: CommandLine) =
+        DockerCommandLine(image, options, commandLine)
+
+
+    fun commandLine(image: DockerImage, commandLine: CommandLine) =
+        DockerCommandLine(image = image, options = DockerCommandLineOptions(), commandLine = commandLine)
 
     /**
      * Explicitly stops the Docker container with the given [name] **asynchronously**.
      */
     fun stop(name: String) {
         script { !"docker stop \"$name\"" }.onExit.orTimeout(8, TimeUnit.SECONDS)
-        1.seconds.sleep()
     }
 
     /**

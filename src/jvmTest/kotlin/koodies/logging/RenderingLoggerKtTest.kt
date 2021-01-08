@@ -1,14 +1,12 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.ERR
 import koodies.concurrent.process.IO.Type.META
 import koodies.concurrent.process.IO.Type.OUT
-import koodies.io.file.readLines
+import koodies.io.path.containsAtLeast
 import koodies.io.path.containsAtMost
 import koodies.io.path.randomFile
 import koodies.terminal.AnsiColors.red
-import koodies.test.Debug
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.Columns
@@ -17,13 +15,13 @@ import koodies.test.test
 import koodies.test.withTempDir
 import koodies.text.Unicode
 import koodies.text.matchesCurlyPattern
+import koodies.text.wrap
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expect
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.endsWith
@@ -31,10 +29,11 @@ import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import strikt.assertions.isSuccess
+import java.net.URI
+import kotlin.io.path.readLines
 
 @Execution(CONCURRENT)
-class RenderingLoggerTest {
+class RenderingLoggerKtTest {
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log`() {
@@ -87,71 +86,6 @@ class RenderingLoggerTest {
                     │{}
                     ╰─────╴➜️ {}
                 """.trimIndent()
-        )
-    }
-
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should log compact`() {
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        compactLogging("mini") {
-            logLine { OUT typed "A" }
-//            logException { RuntimeException("exception message") }
-            logStatus { OUT typed "bb" }
-            logStatus { OUT typed " " }
-        }
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logResult { Result.success(Unit) }
-
-        expectThat(logged).matchesCurlyPattern(
-            """
-                    ╭─────╴{}
-                    │{}
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   mini A bb   ✔
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │{}
-                    ╰─────╴✔{}
-                """.trimIndent()
-        )
-    }
-
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should log nested compact`() {
-        logging("segment") {
-            logLine { "something" }
-            compactLogging("single") {
-                compactLogging {
-                    logStatus { IO.Type.OUT typed "ABC" }
-                    logLine { "" }
-                    logLine { "123" }
-                    "abc"
-                }
-                logLine { "456" }
-                compactLogging {
-                    logStatus { IO.Type.OUT typed "XYZ" }
-                    logLine { "" }
-                    logLine { "789" }
-                }
-            }
-            logLine { "something" }
-        }
-
-        expectThatLogged().matchesCurlyPattern(
-            """
-            ╭─────╴{}
-            │   
-            │   
-            │   ╭─────╴segment
-            │   │   
-            │   │   something
-            │   │   single (ABC ˃  ˃ 123 ˃ ➜️ abc) 456 (XYZ ˃  ˃ 789 ˃ ✔) ✔
-            │   │   something
-            │   │
-            │   ╰─────╴✔
-            │
-        """.trimIndent()
         )
     }
 
@@ -312,7 +246,7 @@ class RenderingLoggerTest {
                     │   │{}
                     │   │   nested 1                                          {}                                      ▮▮
                     │   ϟ{}
-                    │   ╰─────╴IllegalStateException: an exception at.(${RenderingLoggerTest::class.simpleName}.kt:{}){}
+                    │   ╰─────╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
                     │{}
                 """.trimIndent(), ignoreTrailingLines = true
         )
@@ -325,27 +259,6 @@ class RenderingLoggerTest {
         expectThat(logged)
             .containsAtMost("╰─────╴", 1)
             .contains("✔")
-    }
-
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should simply log multiple calls to logResult`() {
-        expectCatching {
-            compactLogging("close twice") {
-                logStatus { META typed "line" }
-                logResult { Result.success(1) }
-                logResult { Result.success(2) }
-                3
-            }
-        }.isSuccess()
-        expectThat(logged).matchesCurlyPattern(
-            """
-            ╭─────╴{}
-            │   
-            │   close twice line ➜️ 1
-            │   close twice line ➜️ 1 ➜️ 2
-            │   close twice line ➜️ 1 ➜️ 2 ➜️ 3
-        """.trimIndent()
-        )
     }
 
     @Test
@@ -387,6 +300,21 @@ class RenderingLoggerTest {
                 、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
                 """.trimIndent()
         )
+    }
+
+    @Test
+    fun InMemoryLogger.`should not wrap URIs`() {
+        val status: (String) -> HasStatus = {
+            object : HasStatus {
+                override fun renderStatus(): String = it
+            }
+        }
+        val uriLine = URI.create("file:///some/where/on/this/computers/drive/in/some/directory/is/where/this/uri/points/to").toString().wrap("┬┴┬┴┤(･_├┬┴┬┴")
+        logLine { uriLine }
+        logStatus(listOf(status(uriLine))) { OUT typed uriLine }
+        logResult { Result.success(uriLine) }
+
+        expectThat(logged).containsAtLeast(uriLine, 3)
     }
 
     @Test
@@ -471,7 +399,6 @@ class RenderingLoggerTest {
         }
     }
 
-    @Debug
     @Execution(SAME_THREAD)
     @TestFactory
     fun `should render multi-line caption`() = listOf(

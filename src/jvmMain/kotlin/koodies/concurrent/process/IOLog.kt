@@ -40,6 +40,14 @@ class IOLog {
     fun logged(type: Type): IO = type typed logged.filter { it.type == type }.joinToString(LineSeparators.LF) { it.unformatted }
 
     /**
+     * Contains the currently logged I/O of the corresponding [ManagedProcess].
+     *
+     * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
+     * to have non-corrupted data (e.g. split characters).
+     */
+    fun logged(): String = logged.joinToString(LineSeparators.LF) { it.unformatted }
+
+    /**
      * Contains the currently logged I/O. See [logged] for more details.
      */
     private val log = mutableListOf<IO>()

@@ -1,8 +1,8 @@
 package koodies.exception
 
-import koodies.io.file.writeText
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
+import koodies.io.path.writeText
 import koodies.runtime.deleteOldTempFilesOnExit
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.LineSeparators.LF

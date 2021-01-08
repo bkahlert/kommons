@@ -2,7 +2,6 @@ package koodies.io.path
 
 import koodies.io.directoryNotEmpty
 import koodies.io.file.CopyOptions
-import koodies.io.file.inputStream
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.file.resolveSibling
 import koodies.io.file.walkTopDown
@@ -20,6 +19,7 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
+import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.notExists

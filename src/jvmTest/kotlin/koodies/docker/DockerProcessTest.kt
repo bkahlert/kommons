@@ -125,7 +125,7 @@ class DockerProcessTest {
 
                 kotlin.runCatching {
                     poll { dockerProcess.alive }
-                        .every(100.milliseconds).forAtMost(5.seconds) { fail("${dockerProcess.name} not start container within 5 seconds.") }
+                        .every(100.milliseconds).forAtMost(5.seconds) { fail("$dockerProcess not start container within 5 seconds.") }
                     expectThat(dockerProcess.alive).isTrue()
                 }.onFailure { dockerProcess.kill() }.getOrThrow()
             }
@@ -216,7 +216,7 @@ class DockerProcessTest {
             20.seconds.sleep()
             dockerProcess.stop()
             expectThat(output).get { size }.isGreaterThan(20)
-            expectThat(output.filter { it.isBlank }.size).isLessThan(output.size / 4)
+            expectThat(output.filter { it.isBlank() }.size).isLessThan(output.size / 4)
         }.onFailure { dockerProcess.kill() }.getOrThrow()
     }
 }

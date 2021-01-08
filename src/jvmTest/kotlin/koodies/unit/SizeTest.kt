@@ -1,5 +1,6 @@
 package koodies.unit
 
+import koodies.io.path.appendBytes
 import koodies.io.path.randomFile
 import koodies.io.path.writeText
 import koodies.test.UniqueId
@@ -21,7 +22,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.appendText
-import kotlin.io.path.writeBytes
 
 @Execution(CONCURRENT)
 class SizeTest {
@@ -413,9 +413,9 @@ class SizeTest {
     @Nested
     inner class FileSize {
 
-        private fun Path.getSmall() = randomFile("small").apply { writeText("123") }
-        private fun Path.getMedium() = randomFile("medium").apply { writeText("123456") }
-        private fun Path.getLarge() = randomFile("large").apply { writeBytes(ByteArray(3_123_456)) }
+        private fun Path.getSmall() = randomFile("small").writeText("123")
+        private fun Path.getMedium() = randomFile("medium").writeText("123456")
+        private fun Path.getLarge() = randomFile("large").appendBytes(ByteArray(3_123_456))
 
         @Test
         fun `should compare files by size`(uniqueId: UniqueId) = withTempDir(uniqueId) {

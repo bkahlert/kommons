@@ -15,7 +15,6 @@ import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import kotlin.properties.ReadOnlyProperty
 
-
 /**
  * Returns the context ClassLoader for the current [Thread].
  *

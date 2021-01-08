@@ -1,6 +1,5 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO
 import koodies.text.Grapheme
 import kotlin.properties.Delegates.vetoable
 import kotlin.reflect.KProperty
@@ -16,8 +15,8 @@ abstract class MicroLogger(private val symbol: Grapheme? = null) : RenderingLogg
         strings = strings?.plus("${block()}")
     }
 
-    override fun logStatus(items: List<HasStatus>, block: () -> IO) {
-        strings = strings?.plus(block().formatted.lines().joinToString(", "))
+    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
+        strings = strings?.plus(block().lines().joinToString(", "))
         if (items.isNotEmpty()) strings =
             strings?.plus(items.renderStatus().lines().size.let { "($it)" })
     }

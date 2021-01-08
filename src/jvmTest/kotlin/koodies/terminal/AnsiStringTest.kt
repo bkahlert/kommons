@@ -29,8 +29,10 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
+import strikt.assertions.isBlank
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isNotBlank
 
 @Execution(CONCURRENT)
 class AnsiStringTest {
@@ -40,6 +42,7 @@ class AnsiStringTest {
         val nonAnsiString = "Important: This line has no ANSI escapes.\nThis one's bold!\r\nLast one is clean."
         val ansiString =
             AnsiString(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean."))
+        val blankAnsiString = AnsiString("$ESC[3;36m$ESC[4m$ESC[24m$ESC[9m$ESC[29m$ESC[23;39m")
     }
 
     @Suppress("SpellCheckingInspection")
@@ -256,6 +259,24 @@ class AnsiStringTest {
                     expectThat(ansiString.unformatted).isEqualTo(expected)
                 }
             )
+        }
+    }
+
+    @Nested
+    inner class IsBlank {
+
+        @Test
+        fun `should return true if blank`() {
+            expectThat(blankAnsiString).isBlank()
+        }
+    }
+
+    @Nested
+    inner class IsNotBlank {
+
+        @Test
+        fun `should return true if not blank`() {
+            expectThat(blankAnsiString).not { isNotBlank() }
         }
     }
 

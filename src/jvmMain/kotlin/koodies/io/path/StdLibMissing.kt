@@ -16,6 +16,7 @@ import java.nio.file.Files
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
 import java.nio.file.PathMatcher
+import java.nio.file.StandardOpenOption
 import java.util.stream.Stream
 import kotlin.io.path.bufferedWriter
 import kotlin.io.path.exists
@@ -27,7 +28,8 @@ import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
 import kotlin.streams.asSequence
 import kotlin.streams.toList
-
+import kotlin.io.path.appendBytes as kotlinAppendBytes
+import kotlin.io.path.writeBytes as kotlinWriteBytes
 
 /*
  * Opinionated list of missing StdLib extension functions.
@@ -58,14 +60,44 @@ fun Path.bufferedWriter(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEF
 fun Path.bufferedAppendingWriter(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter =
     bufferedWriter(charset, bufferSize, *DEFAULT_APPEND_OPTIONS)
 
+
+/**
+ * Writes an [array] of bytes to this file.
+ *
+ * By default, the file will be overwritten if it already exists, but you can control this behavior
+ * with [options].
+ *
+ * @param array byte array to write into this file.
+ * @param options options to determine how the file is opened.
+ */
+fun Path.writeBytes(array: ByteArray): Path =
+    apply { kotlinWriteBytes(array) }
+
+/**
+ * Appends an [array] of bytes to the content of this file.
+ *
+ * @param array byte array to append to this file.
+ */
+fun Path.appendBytes(array: ByteArray): Path =
+    apply { kotlinAppendBytes(array) }
+
 /**
  * Sets the content of this file as [text]
  * encoded using [Charsets.UTF_8] by default.
  *
  * The file will be overwritten if it already exists.
  */
-fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8) =
-    writeText(text, charset, *Defaults.DEFAULT_WRITE_OPTIONS)
+fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8): Path =
+    apply { writeText(text, charset, *DEFAULT_WRITE_OPTIONS) }
+
+/**
+ * Appends [text] to the content of this file using UTF-8 or the specified [charset].
+ *
+ * @param text text to append to file.
+ * @param charset character set to use for writing text, UTF-8 by default.
+ */
+fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8, vararg options: StandardOpenOption = DEFAULT_APPEND_OPTIONS): Path =
+    apply { outputStream(*options).writer(charset).use { it.write(text) } }
 
 /**
  * Write the specified [line] to a file terminating it with the platform's line separator

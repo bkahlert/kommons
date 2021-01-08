@@ -2,46 +2,27 @@ package koodies.concurrent.process
 
 import koodies.builder.ListBuilderInit
 import koodies.builder.MapBuilderInit
+import koodies.builder.build
+import koodies.builder.buildListTo
 import koodies.builder.buildMapTo
-import koodies.builder.buildTo
 import koodies.io.path.Locations
 import java.nio.file.Path
 
-abstract class CommandLineBuilder {
+class CommandLineBuilder(
+    private val redirects: MutableList<String> = mutableListOf(),
+    private val environment: MutableMap<String, String> = mutableMapOf(),
+    private var workingDirectory: Path = Locations.Temp,
+    private val args: MutableList<String> = mutableListOf(),
+) {
     companion object {
-        fun build(command: String, init: CommandLineBuilder.() -> Unit): CommandLine {
-            val redirects = mutableListOf<String>()
-            val environment = mutableMapOf<String, String>()
-            val workingDirectory = Locations.Temp
-            val args = mutableListOf<String>()
-            object : CommandLineBuilder() {
-                override val redirects
-                    get() = redirects
-                override val environment
-                    get() = environment
-                override val workingDirectory: Path
-                    get() = workingDirectory
-                override val command = command
-                override val args
-                    get() = args
-            }.apply(init)
-            return CommandLine(
-                redirects = redirects,
-                environment = environment,
-                workingDirectory = workingDirectory,
-                command = command,
-                arguments = args.toList()
-            )
-        }
+        fun build(command: String, init: CommandLineBuilder.() -> Unit): CommandLine =
+            CommandLineBuilder().apply(init).run {
+                CommandLine(redirects, environment, workingDirectory, command, args.toList())
+            }
     }
 
-    protected abstract val redirects: MutableList<String>
-    protected abstract val environment: MutableMap<String, String>
-    protected abstract val workingDirectory: Path
-    protected abstract val command: String
-    protected abstract val args: MutableList<String>
-
-    fun redirects(init: ListBuilderInit<String>) = init.buildTo(redirects)
+    fun redirects(init: ListBuilderInit<String>) = init.buildListTo(redirects)
     fun environment(init: MapBuilderInit<String, String>) = init.buildMapTo(environment)
-    fun arguments(init: ListBuilderInit<String>) = init.buildTo(args)
+    fun workingDirectory(init: () -> Path) = init.build { workingDirectory = this }
+    fun arguments(init: ListBuilderInit<String>) = init.buildListTo(args)
 }

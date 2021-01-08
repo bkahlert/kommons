@@ -1,5 +1,6 @@
 package koodies.test.output
 
+import koodies.concurrent.process.IO
 import koodies.concurrent.synchronized
 
 /**
@@ -25,14 +26,14 @@ open class SystemCapture {
     }
 
     private fun captureOut(string: String) {
-        synchronized(monitor) { capturedStrings.add(CapturedString(OutputCapture.Type.OUT, string)) }
+        synchronized(monitor) { capturedStrings.add(CapturedString(IO.Type.OUT, string)) }
     }
 
     private fun captureErr(string: String) {
-        synchronized(monitor) { capturedStrings.add(CapturedString(OutputCapture.Type.ERR, string)) }
+        synchronized(monitor) { capturedStrings.add(CapturedString(IO.Type.ERR, string)) }
     }
 
-    fun append(builder: StringBuilder, filter: (OutputCapture.Type) -> Boolean) {
+    fun append(builder: StringBuilder, filter: (IO.Type) -> Boolean) {
         synchronized(monitor) {
             capturedStrings
                 .asSequence()
@@ -45,7 +46,7 @@ open class SystemCapture {
         synchronized(monitor) { capturedStrings.clear() }
     }
 
-    private class CapturedString(val type: OutputCapture.Type, private val string: String) {
+    private class CapturedString(val type: IO.Type, private val string: String) {
         override fun toString(): String = string
     }
 }

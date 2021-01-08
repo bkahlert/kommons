@@ -120,10 +120,14 @@ Docker.busybox("""
 classPath("file.svg").copyTo(somewhere)
 ```
 
-#### Copy Recursively
+#### Copy and Delete Recursively
 
 ```kotlin
 directory.copyRecursivelyTo(somewhere)
+```
+
+```kotlin
+directory.deleteRecursively()
 ```
 
 #### Fluent API
@@ -191,21 +195,21 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 
 ### More...
 
-* Logger
+* Logging
   ```kotlin
   logging {
     logLine { "lazy log message" }
   }
   ```
 
-* Fixture
+* Fixtures
   ```kotlin
   HtmlFile.copyTo(Locations.Temp)
   ```
 
 * Time
   ```kotlin
-  Now.emoji
+  Now.emoji // :clock230: (= emoji showing the correct time) 
   ```
 
   ```kotlin
@@ -268,4 +272,34 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   ```kotlin
   "a  b\n".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
   "�" // D800▌﹍ (low surrogate with a missing high surrogate)
+  ```
+
+* Line Separators
+
+  Finally constants for common and uncommon line separators
+  ```kotlin
+  LineSeparators.toList() == listOf(
+    LineSeparators.CRLF, // carriage return + line feed (\r\n)
+    LineSeparators.LF,   // line feed (\n)
+    LineSeparators.CR,   // carriage return (\r)
+    LineSeparators.LS,   // line separator
+    LineSeparators.PS,   // paragraph separator 
+    LineSeparators.NL,   // next line 
+  )
+  ```
+
+  Split strings into its lines...
+  ```kotlin
+  """
+  line 1
+  line 2
+  """.lines() // line 1, line 2 
+  ```
+
+  Split strings into its lines lazily...
+  ```kotlin
+  """
+  line 1
+  line 2
+  """.lineSequence() // line 1, line 2 
   ```

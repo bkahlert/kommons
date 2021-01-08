@@ -43,7 +43,7 @@ class TarArchiverTest {
 
     @TestFactory
     fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
-        { directoryWithTwoFiles().apply { addExtensions("tar").touch().apply { writeText("content") } }.tar() },
+        { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar() },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar() },
     ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
@@ -51,7 +51,7 @@ class TarArchiverTest {
 
     @TestFactory
     fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
-        { directoryWithTwoFiles().apply { addExtensions("tar").touch().apply { writeText("content") } }.tar(overwrite = true) },
+        { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar(overwrite = true) },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar(overwrite = true) },
     ).testWithTempDir(uniqueId) { call ->
         expectThat(call()).exists()

@@ -12,19 +12,19 @@ class HasMatchingLineKtTest {
 
     @Test
     fun `matches path with one matching line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val path = randomFile().apply { writeText("abc\nadc\naop\n") }
+        val path = randomFile().writeText("abc\nadc\naop\n")
         expectThat(path).hasMatchingLine("a{}c")
     }
 
     @Test
     fun `matches path with multiple matching line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val path = randomFile().apply { writeText("abc\nadc\naop\n") }
+        val path = randomFile().writeText("abc\nadc\naop\n")
         expectThat(path).hasMatchingLine("a{}")
     }
 
     @Test
     fun `matches path with no matching line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val path = randomFile().apply { writeText("abc\nadc\naop\n") }
+        val path = randomFile().writeText("abc\nadc\naop\n")
         expectThat(path).not { hasMatchingLine("xyz") }
     }
 }

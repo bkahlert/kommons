@@ -1,8 +1,7 @@
 package koodies.io.compress
 
-import koodies.io.file.bufferedInputStream
-import koodies.io.file.outputStream
 import koodies.io.path.addExtensions
+import koodies.io.path.bufferedInputStream
 import koodies.io.path.deleteRecursively
 import koodies.io.path.removeExtensions
 import koodies.io.path.requireExists
@@ -10,6 +9,7 @@ import koodies.io.path.requireExistsNot
 import java.nio.file.Path
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlin.io.path.outputStream
 
 /**
  * Provides (de-)compression functionality for the GNU GZIP format.

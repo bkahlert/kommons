@@ -4,9 +4,8 @@ import koodies.io.compress.Archiver.archive
 import koodies.io.compress.Archiver.unarchive
 import koodies.io.compress.TarArchiveGzCompressor.tarGunzip
 import koodies.io.compress.TarArchiveGzCompressor.tarGzip
-import koodies.io.file.bufferedInputStream
-import koodies.io.file.outputStream
 import koodies.io.path.addExtensions
+import koodies.io.path.bufferedInputStream
 import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.extensionOrNull
@@ -24,6 +23,7 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.outputStream
 import koodies.io.compress.TarArchiveGzCompressor.listArchive as tarGzListArchive
 
 /**

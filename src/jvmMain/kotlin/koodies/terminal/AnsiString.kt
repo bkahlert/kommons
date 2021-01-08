@@ -151,6 +151,18 @@ open class AnsiString private constructor(val string: String) : CharSequence {
     override fun subSequence(startIndex: Int, endIndex: Int): AnsiString =
         tokens.subSequence(startIndex, endIndex).asAnsiString()
 
+    /**
+     * Whether this [text] (ignoring eventually existing ANSI escape sequences)
+     * is blank (≝ is empty or consists of nothing but whitespaces).
+     */
+    fun isBlank(): Boolean = unformatted.isBlank()
+
+    /**
+     * Whether this [text] (ignoring eventually existing ANSI escape sequences)
+     * is not blank (≝ is not empty and consists of at least one non-whitespace).
+     */
+    fun isNotBlank() = unformatted.isNotBlank()
+
     fun toString(withoutAnsi: Boolean = false): String =
         if (withoutAnsi) unformatted
         else string

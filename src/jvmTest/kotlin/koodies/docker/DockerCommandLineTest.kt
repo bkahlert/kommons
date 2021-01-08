@@ -1,5 +1,6 @@
 package koodies.docker
 
+import koodies.concurrent.process.CommandLine
 import koodies.docker.DockerContainerName.Companion.toContainerName
 import koodies.shell.toHereDoc
 import koodies.test.toStringIsEqualTo
@@ -11,27 +12,33 @@ import strikt.assertions.isEqualTo
 import java.nio.file.Path
 
 @Execution(CONCURRENT)
-class DockerRunCommandLineTest {
+class DockerCommandLineTest {
 
     companion object {
-        val DOCKER_RUN_COMMAND = DockerRunCommandLine(
-            workingDirectory = Path.of("/some/where"),
-            dockerRedirects = emptyList(),
-            options = DockerRunCommandLine.Options(
-                env = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
+        val DOCKER_RUN_COMMAND = DockerCommandLine(
+            DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("tag")),
+            DockerCommandLineOptions(
                 name = "container-name".toContainerName(),
                 privileged = true,
                 autoCleanup = true,
                 interactive = true,
                 pseudoTerminal = true,
-                mounts = listOf(
+                mounts = MountOptions(
                     MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
                     MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath()),
-                )
+                ),
             ),
-            dockerImage = DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("tag")),
-            dockerCommand = "work",
-            dockerArguments = listOf("-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString())
+            CommandLine(
+                redirects = emptyList(),
+                environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
+                workingDirectory = Path.of("/some/where"),
+                command = "work",
+                arguments = listOf(
+                    "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
+                    "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
+                    "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
+                ),
+            ),
         )
     }
 
@@ -64,7 +71,17 @@ class DockerRunCommandLineTest {
                 <<HEREDOC
                 heredoc 1
                 -heredoc-line-2
-                HEREDOC
+                HEREDOC \
+                /c/d/c \
+                /c/d/e \
+                /h/h \
+                /h/h \
+                /h/i \
+                arg=/c/d/c \
+                arg=/c/d/e \
+                arg=/h/h \
+                arg=/h/h \
+                arg=/h/i
                 """.trimIndent())
         }
     }

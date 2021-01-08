@@ -16,8 +16,11 @@ import kotlin.io.path.writeBytes
 
 object Fixtures {
 
+    fun Fixture.copyTo(file: Path): Path =
+        file.withDirectoriesCreated().apply { writeBytes(data) }
+
     fun Fixture.copyToDirectory(directory: Path): Path =
-        directory.resolve(name).withDirectoriesCreated().apply { writeBytes(data) }
+        copyTo(directory.resolve(name))
 
     fun Path.singleFile(): Path = HtmlFile.copyToDirectory(this)
         .apply { check(exists()) { "Failed to provide archive with single file." } }

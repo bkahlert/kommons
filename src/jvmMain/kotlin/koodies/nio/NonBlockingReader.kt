@@ -3,8 +3,8 @@ package koodies.nio
 import koodies.concurrent.process.IO.Type.META
 import koodies.debug.asEmoji
 import koodies.debug.debug
-import koodies.logging.BlockRenderingLogger
 import koodies.logging.MutedRenderingLogger
+import koodies.logging.RenderingLogger
 import koodies.logging.compactLogging
 import koodies.logging.logging
 import koodies.terminal.ANSI
@@ -33,7 +33,7 @@ import kotlin.time.seconds
 class NonBlockingReader(
     inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
-    private val logger: BlockRenderingLogger = MutedRenderingLogger(),
+    private val logger: RenderingLogger = MutedRenderingLogger(),
     private val blockOnEmptyLine: Boolean = false,
 ) : BufferedReader(Reader.nullReader()) {
     init {

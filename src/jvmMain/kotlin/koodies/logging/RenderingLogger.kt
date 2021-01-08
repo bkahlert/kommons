@@ -1,11 +1,9 @@
 package koodies.logging
 
-import com.github.ajalt.mordant.AnsiCode
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.OUT
 import koodies.exception.toCompactString
 import koodies.io.path.bufferedWriter
-import koodies.nullable.invoke
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.green
@@ -14,6 +12,7 @@ import koodies.text.Unicode
 import koodies.text.Unicode.Emojis.`➜`
 import koodies.text.Unicode.Emojis.heavyCheckMark
 import koodies.text.Unicode.greekSmallLetterKoppa
+import java.io.BufferedWriter
 import java.nio.file.Path
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -50,21 +49,21 @@ interface RenderingLogger {
     /**
      * Logs some programs [IO] and the status of processed [items].
      */
-    fun logStatus(items: List<HasStatus> = emptyList(), block: () -> IO = { OUT typed "" }): Unit =
+    fun logStatus(items: List<HasStatus> = emptyList(), block: () -> CharSequence = { OUT typed "" }): Unit =
         block().let { output ->
-            render(true) { "${output.formatted} (${items.size})" }
+            render(true) { "$output (${items.size})" }
         }
 
     /**
      * Logs some programs [IO] and the status of processed [items].
      */
-    fun logStatus(vararg items: HasStatus, block: () -> IO = { OUT typed "" }): Unit =
+    fun logStatus(vararg items: HasStatus, block: () -> CharSequence = { OUT typed "" }): Unit =
         logStatus(items.toList(), block)
 
     /**
      * Logs some programs [IO] and the processed items [statuses].
      */
-    fun logStatus(vararg statuses: String, block: () -> IO = { OUT typed "" }): Unit =
+    fun logStatus(vararg statuses: String, block: () -> CharSequence = { OUT typed "" }): Unit =
         logStatus(statuses.map { it.asStatus() }, block)
 
     /**
@@ -75,6 +74,11 @@ interface RenderingLogger {
         render(true) { formatResult(result) }
         return result.getOrThrow()
     }
+
+    /**
+     * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
+     */
+    fun logResult(): Unit = logResult { Result.success(Unit) }
 
     /**
      * Explicitly logs a [Throwable]. The behaviour is the same as simply throwing it,
@@ -94,10 +98,6 @@ interface RenderingLogger {
     }
 
     companion object {
-        val DEFAULT: RenderingLogger = object : RenderingLogger {
-            override fun render(trailingNewline: Boolean, block: () -> CharSequence) =
-                block().let { if (trailingNewline) println(it) else print(it) }
-        }
 
         val recoveredLoggers = mutableListOf<RenderingLogger>()
 
@@ -138,39 +138,6 @@ inline fun <reified R, reified L : RenderingLogger> L.runLogging(crossinline blo
     return logResult { runCatching { block() } }
 }
 
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
- */
-@RenderingLoggingDsl
-inline fun <reified R> Any?.logging(
-    caption: CharSequence,
-    ansiCode: AnsiCode? = null,
-    bordered: Boolean = (this as? BlockRenderingLogger)?.bordered ?: false,
-    block: BlockRenderingLogger.() -> R,
-): R {
-    val logger: BlockRenderingLogger = when (this) {
-        is MutedRenderingLogger -> this
-        is BlockRenderingLogger -> BlockRenderingLogger(
-            caption = caption,
-            bordered = bordered,
-            statusInformationColumn = statusInformationColumn - prefix.length,
-            statusInformationPadding = statusInformationPadding,
-            statusInformationColumns = statusInformationColumns - prefix.length,
-        ) { output -> logText { ansiCode.invoke(output) } }
-        is RenderingLogger -> BlockRenderingLogger(
-            caption = caption,
-            bordered = bordered
-        ) { output -> logText { ansiCode.invoke(output) } }
-        else -> BlockRenderingLogger(caption = caption, bordered = bordered)
-    }
-    val result: Result<R> = kotlin.runCatching { block(logger) }
-    logger.logResult { result }
-    return result.getOrThrow()
-}
-
 /**
  * Creates a logger which logs to [path].
  */
@@ -178,11 +145,11 @@ inline fun <reified R> Any?.logging(
 inline fun <reified R> RenderingLogger?.fileLogging(
     path: Path,
     caption: CharSequence,
-    block: RenderingLogger.() -> R,
-): R = logging(caption) {
+    crossinline block: RenderingLogger.() -> R,
+): R = blockLogging(caption) {
     logLine { "This process might produce pretty much log messages. Logging to …" }
     logLine { "${Unicode.Emojis.pageFacingUp} ${path.toUri()}" }
-    val writer = path.bufferedWriter()
+    val writer: BufferedWriter = path.bufferedWriter()
     val logger: RenderingLogger = BlockRenderingLogger(
         caption = caption,
         bordered = false,
@@ -190,40 +157,6 @@ inline fun <reified R> RenderingLogger?.fileLogging(
             writer.appendLine(output.removeEscapeSequences())
         },
     )
+//    writer.use { logger.runLogging(block) }
     kotlin.runCatching { block(logger) }.also { logger.logResult { it }; writer.close() }.getOrThrow()
-}
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger logs all events using a single line of text. If more room is needed [logging] is more suitable.
- */
-@RenderingLoggingDsl
-inline fun <reified R> RenderingLogger?.compactLogging(
-    caption: CharSequence,
-    noinline block: CompactRenderingLogger.() -> R,
-): R {
-    val logger = object : CompactRenderingLogger(caption) {
-        override fun render(block: () -> CharSequence) {
-            this@compactLogging?.apply { logLine(block) } ?: println(block())
-        }
-    }
-    return kotlin.runCatching { block(logger) }.let { logger.logResult { it } }
-}
-
-/**
- * Creates a logger which serves for logging a very short sub-process and all of its corresponding events.
- *
- * This logger logs all events using only a couple of characters. If more room is needed [compactLogging] or even [logging] is more suitable.
- */
-@RenderingLoggingDsl
-inline fun <reified R> CompactRenderingLogger.compactLogging(
-    noinline block: MicroLogger.() -> R,
-): R = run {
-    val logger: MicroLogger = object : MicroLogger() {
-        override fun render(block: () -> CharSequence) {
-            this@compactLogging.logLine(block)
-        }
-    }
-    kotlin.runCatching { block(logger) }.let { logger.logResult { it } }
 }

@@ -74,7 +74,7 @@ class DumpKtTest {
         @Test
         fun `should log all lines if problem saving the log`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
-            val path = randomPath(extension = ".log").apply { writeText("already exists") }
+            val path = randomPath(extension = ".log").writeText("already exists")
             path.toFile().setReadOnly()
             expectThat(dump("error message", path = path, data = data)) {
                 get { lines().take(2) }.containsExactly("Error message", "In the attempt to persist the corresponding dump the following error occurred:")
@@ -101,7 +101,7 @@ class DumpKtTest {
 
         @Test
         fun `should throw if data could not be dumped`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val path = randomPath(extension = ".log").apply { writeText("already exists") }
+            val path = randomPath(extension = ".log").writeText("already exists")
             path.toFile().setReadOnly()
             expectCatching { persistDump(path = path, data = { TextFile.text }) }.isFailure().isA<IOException>()
             path.toFile().setWritable(true)

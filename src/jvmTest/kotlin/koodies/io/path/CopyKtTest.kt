@@ -41,7 +41,7 @@ class CopyKtTest {
     @Nested
     inner class CopyToKtTest {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").apply { writeText("test file") }.apply { lastModified -= 7.days }
+        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
 
 
@@ -72,7 +72,7 @@ class CopyKtTest {
 
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").apply { writeText("old") }
+                val dest = randomFile(extension = ".txt").writeText("old")
                 expect {
                     catching { getTestFile().copyTo(dest) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -90,7 +90,7 @@ class CopyKtTest {
 
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").apply { writeText("old") }
+                val dest = randomFile(extension = ".txt").writeText("old")
                 expectThat(getTestFile().copyTo(dest, overwrite = true))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -138,7 +138,7 @@ class CopyKtTest {
 
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").apply { writeText("old") }
+                val dest = randomFile(extension = ".txt").writeText("old")
                 expect {
                     catching { getTestDir().copyTo(dest) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -157,7 +157,7 @@ class CopyKtTest {
 
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").apply { writeText("old") }
+                val dest = randomFile(extension = ".txt").writeText("old")
                 expectThat(getTestDir().copyTo(dest, overwrite = true))
                     .isCopyOf(getTestDir())
                     .isEqualTo(dest)
@@ -199,7 +199,7 @@ class CopyKtTest {
     @Nested
     inner class CopyToDirectoryKtTest {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").apply { writeText("test file") }.apply { lastModified -= 7.days }
+        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
 
         @Test
@@ -232,7 +232,7 @@ class CopyKtTest {
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName).apply { writeText("old") }
+                val dest = randomDirectory().resolve(srcFile.fileName).writeText("old")
                 expect {
                     catching { srcFile.copyToDirectory(dest.parent) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -252,7 +252,7 @@ class CopyKtTest {
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName).apply { writeText("old") }
+                val dest = randomDirectory().resolve(srcFile.fileName).writeText("old")
                 expectThat(srcFile.copyToDirectory(dest.parent, overwrite = true))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -308,7 +308,7 @@ class CopyKtTest {
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName).apply { writeText("old") }
+                val dest = randomDirectory().resolve(srcDir.fileName).writeText("old")
                 expect {
                     catching { srcDir.copyToDirectory(dest.parent) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -329,7 +329,7 @@ class CopyKtTest {
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName).apply { writeText("old") }
+                val dest = randomDirectory().resolve(srcDir.fileName).writeText("old")
                 expectThat(srcDir.copyToDirectory(dest.parent, overwrite = true))
                     .isCopyOf(srcDir)
                     .isEqualTo(dest)

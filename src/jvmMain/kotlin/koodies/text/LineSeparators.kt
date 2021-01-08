@@ -44,7 +44,7 @@ object LineSeparators : Collection<String> {
     /**
      * Next line separator
      */
-    const val NL: String = Unicode.nextLine
+    const val NEL: String = Unicode.nextLine
 
     /**
      * [Regex] that matches all line separators.
@@ -66,7 +66,18 @@ object LineSeparators : Collection<String> {
      */
     val LINE_PATTERN: Regex by lazy { "${INTERMEDIARY_LINE_PATTERN.pattern}|${LAST_LINE_PATTERN.pattern}".toRegex() }
 
-    private val ALL by lazy { arrayOf(CRLF, LF, CR, LS, PS, NL) }
+    val Dict: Map<String, String> by lazy {
+        linkedMapOf(
+            "CARRIAGE RETURN + LINE FEED" to CRLF,
+            "LINE FEED" to LF,
+            "CARRIAGE RETURN" to CR,
+            "LINE SEPARATOR" to LS,
+            "PARAGRAPH SEPARATOR" to PS,
+            "NEXT LINE" to NEL,
+        )
+    }
+
+    private val ALL by lazy { arrayOf(CRLF, LF, CR, LS, PS, NEL) }
 
     override val size: Int by lazy { ALL.size }
 

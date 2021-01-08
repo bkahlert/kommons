@@ -73,8 +73,29 @@ class LineSeparatorsTest {
 
     @Test
     fun `should iterate all line breaks in order`() {
-        expectThat(LineSeparators.joinToString(" ") { "($it)" }).isEqualTo("(\r\n) (\n) (\r) (${LineSeparators.LS}) ($PS) (${LineSeparators.NL})")
+        expectThat(LineSeparators.joinToString(" ") { "($it)" }).isEqualTo("(\r\n) (\n) (\r) (${LineSeparators.LS}) ($PS) (${LineSeparators.NEL})")
     }
+
+    @Nested
+    inner class Dict {
+
+        @Test
+        fun `should iterate all line break names in order`() {
+            expectThat(LineSeparators.Dict.keys.joinToString(" ") { "($it)" }).isEqualTo(
+                "(CARRIAGE RETURN + LINE FEED) " +
+                    "(LINE FEED) " +
+                    "(CARRIAGE RETURN) " +
+                    "(LINE SEPARATOR) " +
+                    "(PARAGRAPH SEPARATOR) " +
+                    "(NEXT LINE)")
+        }
+
+        @Test
+        fun `should iterate all line breaks in order`() {
+            expectThat(LineSeparators.joinToString(" ") { "($it)" }).isEqualTo("(\r\n) (\n) (\r) (${LineSeparators.LS}) ($PS) (${LineSeparators.NEL})")
+        }
+    }
+
 
     @TestFactory
     fun lineOperations() = mapOf(

@@ -53,7 +53,7 @@ class ArchiverTarGzTest {
 
     @TestFactory
     fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
-        { directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().apply { writeText("content") } }.archive("tar.gz") },
+        { directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().writeText("content") }.archive("tar.gz") },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive() },
     ).testWithTempDir(uniqueId) { call ->
         expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
@@ -62,7 +62,7 @@ class ArchiverTarGzTest {
     @TestFactory
     fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
         {
-            randomDirectory().directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().apply { writeText("content") } }
+            randomDirectory().directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().writeText("content") }
                 .archive("tar.gz", overwrite = true)
         },
         { randomDirectory().archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive(overwrite = true) },

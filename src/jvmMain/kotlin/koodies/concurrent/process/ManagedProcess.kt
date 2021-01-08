@@ -35,11 +35,6 @@ interface ManagedProcess : Process {
     override fun start(): ManagedProcess
 }
 
-fun CommandLine.toManagedProcess(
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-): ManagedProcess = ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
-
 private fun CommandLine.toJavaProcess(): JavaProcess {
     val scriptFile: String = if (command.asPath().isScriptFile()) command else toShellScript().asString()
 

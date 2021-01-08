@@ -5,6 +5,7 @@ import koodies.concurrent.process.io
 import koodies.concurrent.script
 import koodies.docker.docker
 import koodies.io.path.Locations
+import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.hasContent
 import koodies.io.path.randomFile
@@ -111,6 +112,38 @@ class ShellScriptTest {
     }
 
     @Nested
+    inner class FileOperations {
+
+        @Test
+        fun `should provide file operations by string`() {
+            expectThat(ShellScript {
+                file("file.txt") {
+                    appendLine("content")
+                }
+            }.build()).matchesCurlyPattern("""
+                cat <<HERE-{} >>"file.txt"
+                content
+                HERE-{}
+                
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should provide file operations by path`() {
+            expectThat(ShellScript {
+                file("file.txt".asPath()) {
+                    appendLine("content")
+                }
+            }.build()).matchesCurlyPattern("""
+                cat <<HERE-{} >>"file.txt"
+                content
+                HERE-{}
+                
+            """.trimIndent())
+        }
+    }
+
+    @Nested
     inner class Embed {
         private fun Path.getEmbeddedShellScript() = ShellScript("embedded script 📝") {
             shebang
@@ -190,12 +223,14 @@ class ShellScriptTest {
                             Path.of("/e/f/../g") mountAt "//h"
                         }
                     }
-                    arguments {
-                        +"-arg1"
-                        +"--argument" + "2"
-                        +hereDoc(label = "HEREDOC") {
-                            +"heredoc 1"
-                            +"-heredoc-line-2"
+                    commandLine {
+                        arguments {
+                            +"-arg1"
+                            +"--argument" + "2"
+                            +hereDoc(label = "HEREDOC") {
+                                +"heredoc 1"
+                                +"-heredoc-line-2"
+                            }
                         }
                     }
                 }
@@ -228,8 +263,10 @@ class ShellScriptTest {
             expectThat(ShellScript().apply {
                 shebang
                 docker { "image" / "name" } run {
-                    redirects { +"2>&1" }
                     options { name { "container-name" } }
+                    commandLine {
+                        redirects { +"2>&1" }
+                    }
                 }
             }.build()).isEqualTo("""
             #!/bin/sh

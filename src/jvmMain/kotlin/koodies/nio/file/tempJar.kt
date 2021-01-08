@@ -1,5 +1,6 @@
 package koodies.io.file
 
+import koodies.io.path.bufferedOutputStream
 import koodies.io.path.tempFile
 import java.nio.file.Path
 import java.util.jar.JarOutputStream

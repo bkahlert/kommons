@@ -73,11 +73,3 @@ class ContainerPathTest {
         }
     }
 }
-
-//fun relativeTo(baseContainerPath: ContainerPath): Path =
-//    containerPath.relativeTo(baseContainerPath.containerPath)
-//
-//fun resolve(other: Path): ContainerPath =
-//    containerPath.resolve(other).asContainerPath()
-//
-//fun asString() = containerPath.asString()

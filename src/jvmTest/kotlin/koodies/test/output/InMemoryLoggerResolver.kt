@@ -25,12 +25,11 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
         parameterContext.parameter.type.let {
             when {
                 InMemoryLogger::class.java.isAssignableFrom(it) -> extensionContext.createLogger(
-                    bordered = true,
-                    parameterContext = parameterContext
+                    parameterContext = parameterContext,
                 )
                 InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> object : InMemoryLoggerFactory {
                     override fun createLogger(customSuffix: String, bordered: Boolean): InMemoryLogger =
-                        extensionContext.createLogger(customSuffix, bordered, parameterContext)
+                        extensionContext.createLogger(customSuffix, parameterContext, bordered)
                 }
                 else -> error("Unsupported $parameterContext")
             }
@@ -38,8 +37,8 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
 
     private fun ExtensionContext.createLogger(
         suffix: String? = null,
-        bordered: Boolean,
-        parameterContext: ParameterContext
+        parameterContext: ParameterContext,
+        bordered: Boolean = parameterContext.findAnnotation(Bordered::class.java).map { it.value }.orElse(true),
     ): InMemoryLogger =
         object : InMemoryLogger(
             caption = testName + if (suffix != null) "::$suffix" else "",

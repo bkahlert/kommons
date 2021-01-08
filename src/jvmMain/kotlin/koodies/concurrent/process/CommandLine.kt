@@ -113,6 +113,9 @@ open class CommandLine(
 
     companion object {
 
+        fun build(command: String, init: CommandLineBuilder.() -> Unit = {}) =
+            CommandLineBuilder.build(command, init)
+
         fun parse(commandLine: String, workingDirectory: Path): CommandLine {
             val plexusCommandLine = PlexusCommandLine(commandLine)
             val rawCommandline = plexusCommandLine.rawCommandline
@@ -152,6 +155,9 @@ open class CommandLine(
             changeDirectoryOrExit(directory = workingDirectory)
             command(commandLine)
         }.buildTo(workingDirectory.scriptPath())
+
+    open fun toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
+        ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
 
     /**
      * Prepares a new [ManagedProcess] that runs this command line as soon as it's triggered.

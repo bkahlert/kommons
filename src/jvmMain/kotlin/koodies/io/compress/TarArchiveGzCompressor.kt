@@ -3,9 +3,8 @@ package koodies.io.compress
 import koodies.io.compress.Archiver.addToArchive
 import koodies.io.compress.Archiver.list
 import koodies.io.compress.Archiver.unarchiveTo
-import koodies.io.file.bufferedInputStream
-import koodies.io.file.outputStream
 import koodies.io.path.addExtensions
+import koodies.io.path.bufferedInputStream
 import koodies.io.path.deleteRecursively
 import koodies.io.path.removeExtensions
 import koodies.io.path.requireEmpty
@@ -19,6 +18,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
+import kotlin.io.path.outputStream
 
 /**
  * Provides (de-)compression and (un-)archiving functionality for the TAR archive format compressed using the GNU GZIP format.
