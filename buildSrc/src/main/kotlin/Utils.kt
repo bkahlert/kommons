@@ -1,4 +1,5 @@
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.extra
 import java.io.File
 import java.io.IOException
 import java.nio.file.FileSystem
@@ -24,13 +25,13 @@ fun Project.findBooleanPropertyEverywhere(name: String, default: Boolean = false
     findPropertyEverywhere(name).toBoolean(default)
 
 fun Project.findPropertyEverywhere(name: String): String? =
-    findProperty(name)?.toString() ?: System.getenv(name.camelCaseToScreamingSnakeCase())
+    extra.properties[name]?.toString() ?: findProperty(name)?.toString() ?: System.getenv(name.camelCaseToScreamingSnakeCase())
 
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-val Project.release: Boolean get() = findBooleanPropertyEverywhere("release", false)
-
+val Project.release: Boolean get() = findBooleanPropertyEverywhere("release", true)
+val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {
     // avoid creating a matcher if all entries are required.

@@ -177,7 +177,7 @@ kotlin {
             compilations.all {
                 kotlinOptions {
                     @Suppress("SpellCheckingInspection")
-                    freeCompilerArgs += listOf(
+                    freeCompilerArgs = freeCompilerArgs + listOf(
                         "-Xopt-in=kotlin.RequiresOptIn",
                         "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
                         "-Xopt-in=kotlin.time.ExperimentalTime",
@@ -192,29 +192,27 @@ kotlin {
 
     publishing {
         publications {
-            withType<MavenPublication> {
-                val koodiesUrl = "https://github.com/bkahlert/koodies"
+            register<MavenPublication>("Koodies") {
 
                 pom {
-//                    name = "wdm4j"
-//                    description = "WebDriver binary manager for java"
-                    url.set(koodiesUrl)
+                    description.set(project.description)
+                    url.set(baseUrl)
 
                     licenses {
                         license {
                             name.set("MIT")
-                            url.set("$koodiesUrl/blob/master/LICENSE")
+                            url.set("$baseUrl/blob/master/LICENSE")
                         }
                     }
 
                     scm {
-                        url.set(koodiesUrl)
-                        connection.set("scm:git:$koodiesUrl.git")
-                        developerConnection.set("scm:git:$koodiesUrl.git")
+                        url.set(baseUrl)
+                        connection.set("scm:git:$baseUrl.git")
+                        developerConnection.set("scm:git:$baseUrl.git")
                     }
 
                     issueManagement {
-                        url.set("$koodiesUrl/issues")
+                        url.set("$baseUrl/issues")
                         system.set("GitHub")
                     }
 
@@ -276,22 +274,20 @@ kotlin {
         sign(publishing.publications)
     }
 
-//    bintray {
-//        user.set(findPropertyEverywhere("bintrayUser", ""))
-//        apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
-//        repo.set("koodies")
-//        pkgName.set("koodies")
-//        userOrg.set(user.get())
-//        websiteUrl.set("https://github.com/bkahlert/koodies")
-//        issueTrackerUrl.set("https://github.com/bkahlert/koodies/issues")
-//        licenses.set(listOf("MIT"))
-//        vcsUrl.set("https://github.com/bkahlert/koodies.git")
-//        override.set(true)
-//        gppSign.set(true)
-//        publicDownloadNumbers.set(true)
-//        githubRepo.set("bkahlert/koodies")
-//        githubReleaseNotesFile("README.md")
-//        syncToMavenCentral.set(true)
-//    }
+    bintray {
+        user.set(findPropertyEverywhere("bintrayUser", ""))
+        apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
+        repo.set("koodies")
+        pkgName.set("koodies")
+        userOrg.set(user.get())
+        websiteUrl.set(baseUrl)
+        issueTrackerUrl.set("$baseUrl/issues")
+        licenses.set(listOf("MIT"))
+        vcsUrl.set("$baseUrl.git")
+        gppSign.set(false)
+        syncToMavenCentral.set(true)
+        sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
+        sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
+    }
 }
 
