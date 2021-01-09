@@ -1,13 +1,13 @@
 package koodies.regex
 
-import koodies.terminal.AnsiCode
-
 object RegularExpressions {
     val atLeastOneWhitespaceRegex: Regex = Regex("\\s+")
     val urlRegex: Regex = Regex("(?<schema>https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")
     val uriRegex: Regex = Regex("\\w+:(?:/?/?)[^\\s]+")
 
-    val ansiCodeRegex: Regex = AnsiCode.ansiCodeRegex
+    val camelCaseRegex: Regex = Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
+    val screamingSnakeCaseRegex: Regex = Regex("(?<leftChar>[A-Z0-9]?)_(?<rightChar>[A-Z0-9])")
+    val kebabCaseRegex: Regex = Regex("(?<leftChar>[a-z0-9]?)-(?<rightChar>[a-z0-9])")
 }
 
 /**
@@ -44,13 +44,10 @@ fun Regex.Companion.namedGroup(name: String, pattern: String): String = "(?<$nam
  *
  * Important: In Kotlin 1.0 group names are not supported but in order to still work [groupNames] is expected to contain all used group names in the order as their appear in the regular expression (e.g. `listOf("a", "b")`).
  */
-fun MatchResult.values(groupNames: List<String>): Map<String, String?> {
-    return if (groups is MatchNamedGroupCollection) {
-        groupNames.map { name -> name to groups[name]?.value }.toMap()
-    } else {
-        groupNames.mapIndexed { index, name -> name to groups[index + 1]?.value }.toMap()
-    }
-}
+fun MatchResult.values(groupNames: List<String>): Map<String, String?> =
+    (groups as? MatchNamedGroupCollection)
+        ?.let { groupNames.map { name -> name to it[name]?.value }.toMap() }
+        ?: groupNames.mapIndexed { index, name -> name to groups[index + 1]?.value }.toMap()
 
 /**
  * Provides access to [MatchResult.groups] as [MatchNamedGroupCollection] in order to access a [MatchGroup] by its name.

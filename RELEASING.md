@@ -99,8 +99,11 @@ buildList {
 It's recommended to provide credentials via system or environment properties. To do the latter, run:
 
 ```shell
+export SONATYPE_NEXUS_USERNAME=<Sonatype Nexus Username>
+export SONATYPE_NEXUS_PASSWORD=<Sonatype Nexus Password>
+
 export BINTRAY_USER=<BinTray Username>
-export BINTRAY_KEY=<BinTray API Key>
+export BINTRAY_API_KEY=<BinTray API Key>
 
 export GITHUB_USERNAME=<GitHub Username>
 export GITHUB_TOKEN=<GitHub Token>

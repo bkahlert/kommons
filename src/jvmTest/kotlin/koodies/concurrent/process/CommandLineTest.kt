@@ -9,9 +9,11 @@ import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.quoted
+import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
@@ -19,6 +21,7 @@ import strikt.api.expectThat
 import strikt.assertions.exists
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
+import kotlin.io.path.exists
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
@@ -41,7 +44,7 @@ class CommandLineTest {
         @Test
         fun `should not start on its own`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (_, file) = createLazyFileCreatingProcess()
-            2.seconds.sleep()
+            poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds)
             expectThat(file).not { exists() }
         }
 
@@ -49,7 +52,7 @@ class CommandLineTest {
         fun `should start if accessed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (process, file) = createLazyFileCreatingProcess()
             process.start()
-            2.seconds.sleep()
+            poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) { fail("Process $process did not start") }
             expectThat(file).exists()
         }
 
@@ -57,7 +60,7 @@ class CommandLineTest {
         fun `should start if processed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (process, file) = createLazyFileCreatingProcess()
             process.silentlyProcess()
-            2.seconds.sleep()
+            poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) { fail("Process $process did not start") }
             expectThat(file).exists()
         }
     }

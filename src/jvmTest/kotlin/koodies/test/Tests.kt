@@ -3,6 +3,7 @@ package koodies.test
 import koodies.logging.SLF4J
 import koodies.runtime.deleteOnExit
 import koodies.terminal.AnsiColors.red
+import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicTest
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -47,6 +48,37 @@ inline fun <reified T> Iterable<T>.test(testNamePattern: String? = null, crossin
     }
     DynamicTest.dynamicTest(SLF4J.format(testNamePattern ?: fallbackPattern, *args)) { executable(input) }
 }
+
+interface DynamicContainerBuilder {
+    fun test(name: String, executable: () -> Unit)
+}
+
+/**
+ * Creates a [DynamicContainer] for each [T] whereas
+ * each container will be built using the specified [DynamicContainerBuilder] based [init].
+ *
+ * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
+ * which supports curly placeholders `{}` like [SLF4J] does.
+ */
+inline fun <reified T> Iterable<T>.tests(containerNamePattern: String? = null, init: DynamicContainerBuilder.(T) -> Unit): List<DynamicContainer> =
+    map { input ->
+        val (fallbackPattern: String, args: Array<*>) = when (input) {
+            is KFunction<*> -> "for property: {}" to arrayOf(input.name)
+            is KProperty<*> -> "for property: {}" to arrayOf(input.name)
+            is Triple<*, *, *> -> "for: {} to {} to {}" to arrayOf(input.first, input.second, input.third)
+            is Pair<*, *> -> "for: {} to {}" to arrayOf(input.first, input.second)
+            else -> "for: {}" to arrayOf(input)
+        }
+
+        val dynamicTests = mutableListOf<DynamicTest>().apply {
+            object : DynamicContainerBuilder {
+                override fun test(name: String, executable: () -> Unit) {
+                    add(DynamicTest.dynamicTest(name, executable))
+                }
+            }.init(input)
+        }
+        DynamicContainer.dynamicContainer(SLF4J.format(containerNamePattern ?: fallbackPattern, *args), dynamicTests)
+    }
 
 /**
  * Creates a [DynamicTest] for each [T].
