@@ -206,6 +206,7 @@ kotlin {
                     }
 
                     pom {
+                        name.set("Koodies")
                         description.set(project.description)
                         url.set(baseUrl)
 
