@@ -227,12 +227,10 @@ kotlin {
             publications {
                 withType<MavenPublication>().configureEach {
 
-                    artifacts {
-                        artifact(sourcesJar)
-                        artifact(dokkaJar)
+                    artifact(sourcesJar)
+                    artifact(dokkaJar)
 //                        artifact(dokkaJavadocJar)
-                        artifact(dokkaHtmlJar)
-                    }
+                    artifact(dokkaHtmlJar)
 
                     pom {
 
@@ -294,14 +292,14 @@ kotlin {
                 }
 
                 if (releasingFinal) {
-                    maven {
-                        name = "BintrayMaven"
-                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
-                        credentials {
-                            username = findPropertyEverywhere("bintrayUser", "")
-                            password = findPropertyEverywhere("bintrayApiKey", "")
-                        }
-                    }
+//                    maven {
+//                        name = "BintrayMaven"
+//                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
+//                        credentials {
+//                            username = findPropertyEverywhere("bintrayUser", "")
+//                            password = findPropertyEverywhere("bintrayApiKey", "")
+//                        }
+//                    }
 
                     maven {
                         name = "GitHubPackages"
