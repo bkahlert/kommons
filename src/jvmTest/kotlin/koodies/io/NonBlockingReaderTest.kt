@@ -26,8 +26,9 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         @Test
         fun InMemoryLogger.`should read full line if delayed`() {
             val slowInputStream = slowInputStream(
+                Duration.ZERO,
                 1.5.seconds to "Foo\n",
-                baseDelayPerInput = Duration.ZERO)
+            )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo")
         }
@@ -35,29 +36,32 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         @Test
         fun InMemoryLogger.`should read full line if second half delayed`() {
             val slowInputStream = slowInputStream(
+                Duration.ZERO,
                 1.5.seconds to "F",
                 0.5.seconds to "oo\n",
-                baseDelayPerInput = Duration.ZERO)
+            )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo")
         }
 
         @Test
         fun InMemoryLogger.`should read full line if split`() {
-            val slowInputStream = this.slowInputStream(
+            val slowInputStream = slowInputStream(
+                Duration.ZERO,
                 1.5.seconds to "Foo\nB",
                 0.5.seconds to "ar\n",
-                baseDelayPerInput = Duration.ZERO)
+            )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo", "Bar")
         }
 
         @Test
         fun InMemoryLogger.`should read full line if split delayed`() {
-            val slowInputStream = this.slowInputStream(
+            val slowInputStream = slowInputStream(
+                Duration.ZERO,
                 1.5.seconds to "Foo\nB",
                 1.5.seconds to "ar\n",
-                baseDelayPerInput = Duration.ZERO)
+            )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo", "B", "Bar")
         }

@@ -32,7 +32,7 @@ fun Project.findPropertyEverywhere(name: String): String? =
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-var _releasingFinal: Boolean? = null
+private var _releasingFinal: Boolean? = null
 var Project.releasingFinal: Boolean
     get() = _releasingFinal ?: findBooleanPropertyEverywhere("releasingFinal", true)
     set(value) {
@@ -73,3 +73,11 @@ fun Path.listDirectoryEntriesRecursively(glob: String = "*"): List<Path> =
 
 fun File.listDirectoryEntriesRecursively(glob: String = "*"): List<File> =
     toPath().streamContentsRecursively(glob).map { it.toFile() }.toList()
+
+
+/**
+ * Returns whether this object represents a final version number
+ * of the format `<major>.<minor.<patch>`.
+ */
+fun Any.isFinal(): Boolean =
+    Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)").matches(toString())

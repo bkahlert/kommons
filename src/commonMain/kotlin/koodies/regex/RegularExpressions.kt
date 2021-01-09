@@ -5,6 +5,8 @@ object RegularExpressions {
     val urlRegex: Regex = Regex("(?<schema>https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")
     val uriRegex: Regex = Regex("\\w+:(?:/?/?)[^\\s]+")
 
+    val versionRegex: Regex = Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)")
+
     val camelCaseRegex: Regex = Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
     val screamingSnakeCaseRegex: Regex = Regex("(?<leftChar>[A-Z0-9]?)_(?<rightChar>[A-Z0-9])")
     val kebabCaseRegex: Regex = Regex("(?<leftChar>[a-z0-9]?)-(?<rightChar>[a-z0-9])")

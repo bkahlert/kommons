@@ -1,6 +1,5 @@
 import org.gradle.api.plugins.JavaBasePlugin.DOCUMENTATION_GROUP
-import org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import org.jetbrains.dokka.Platform.jvm
+import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.jetbrains.dokka.Platform.native
 import org.jetbrains.dokka.gradle.DokkaTask
 
@@ -15,7 +14,7 @@ plugins {
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.0"
-    id("nebula.nebula-bintray") version "8.5.0"
+//    id("nebula.nebula-bintray") version "8.5.0"
 }
 
 allprojects {
@@ -39,13 +38,10 @@ repositories {
 }
 
 kotlin {
-    listOf(tasks.devSnapshotSetup,
-        tasks.devSnapshotSetup,
-        tasks.candidateSetup).forEach {
-        it.configure {
-            if (releasingFinal) println("RELEASING_FINAL DISABLED ($version)")
-            doFirst { releasingFinal = false }
-        }
+    if (releasingFinal && !version.isFinal()) {
+        println("\n\n\t\tProperty releasingFinal is set but the active version $version is not final.")
+        println("\t\tTurning releasingFinal off. To release please read RELEASING.md.\n")
+        releasingFinal = false
     }
 
     jvm {
@@ -58,15 +54,39 @@ kotlin {
                 )
             }
         }
+
+        tasks.withType<Test>().all {
+            useJUnitPlatform()
+            minHeapSize = "128m"
+            maxHeapSize = "512m"
+            failFast = false
+            ignoreFailures = true
+        }
+
+        val anySetUpTest = tasks.withType<Test>().first()
+        tasks.register<Test>("smokeTest") {
+            group = VERIFICATION_GROUP
+            classpath = anySetUpTest.classpath
+            testClassesDirs = anySetUpTest.testClassesDirs
+            useJUnitPlatform { includeTags("Smoke") }
+        }
     }
 
-    js(IR) {
+    js(BOTH) {
         browser {
             testTask {
                 useKarma {
                     useChromeHeadless()
                     webpackConfig.cssSupport.enabled = true
                 }
+            }
+        }
+
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                moduleKind = "umd"
+                metaInfo = true
             }
         }
     }
@@ -77,6 +97,30 @@ kotlin {
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
+
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                @Suppress("SpellCheckingInspection")
+                freeCompilerArgs = freeCompilerArgs + listOf(
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+                    "-Xopt-in=kotlin.time.ExperimentalTime",
+                    "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+                    "-Xinline-classes"
+                )
+            }
+        }
+    }
+
+    tasks.withType<Jar>().configureEach {
+        manifest {
+            attributes(mapOf(
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to project.version
+            ))
+        }
     }
 
     sourceSets {
@@ -137,23 +181,9 @@ kotlin {
         val nativeMain by getting
         val nativeTest by getting
 
-
-        tasks.withType<Jar>().configureEach {
-            manifest {
-                attributes(mapOf(
-                    "Implementation-Title" to project.name,
-                    "Implementation-Version" to project.version
-                ))
-            }
-        }
-
         val dokkaTask = tasks.withType<DokkaTask>().configureEach {
             dokkaSourceSets {
                 configureEach {
-                    if (platform.get() == jvm) {
-                        // TODO can't get samples to work; not even providing all files helps
-                        samples.from(File("src/jvmMain/kotlin").listDirectoryEntriesRecursively())
-                    }
                     if (platform.get() == native) {
                         displayName.set("native")
                     }
@@ -161,49 +191,31 @@ kotlin {
             }
         }
 
+        val javaDoc by tasks.register<Jar>("javaDoc") {
+            group = DOCUMENTATION_GROUP
+            archiveClassifier.set("javaDoc")
+//            depe
+        }
+
         tasks {
-            withType<Test>().all {
-                useJUnitPlatform()
-                minHeapSize = "128m"
-                maxHeapSize = "512m"
-                failFast = false
-                ignoreFailures = true
+            val dokkaOutputDir = "$buildDir/dokka"
+
+            dokkaHtml {
+                outputDirectory.set(file(dokkaOutputDir))
             }
 
-            val test = withType<Test>().first()
-            register<Test>("smokeTest") {
-                group = VERIFICATION_GROUP
-                classpath = test.classpath
-                testClassesDirs = test.testClassesDirs
-                useJUnitPlatform { includeTags("Smoke") }
+            val deleteDokkaOutputDir by registering(Delete::class) {
+                delete(dokkaOutputDir)
             }
 
-            this.release {
-                finalizedBy(publishToMavenLocal)
+            register<Jar>("javadocJar") {
+                group = DOCUMENTATION_GROUP
+                dependsOn(deleteDokkaOutputDir, dokkaHtml)
+                archiveClassifier.set("javadoc")
+                from(dokkaOutputDir)
             }
         }
-
-        targets.all {
-            compilations.all {
-                kotlinOptions {
-                    @Suppress("SpellCheckingInspection")
-                    freeCompilerArgs = freeCompilerArgs + listOf(
-                        "-Xopt-in=kotlin.RequiresOptIn",
-                        "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-                        "-Xopt-in=kotlin.time.ExperimentalTime",
-                        "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-                        "-Xinline-classes"
-                    )
-                }
-            }
-        }
-
-//        val dokkaJavadocJar by tasks.register<Jar>("dokkaJavadocJar") {
-//            group = DOCUMENTATION_GROUP
-//            dependsOn(tasks.dokkaJavadoc)
-//            from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
-//            archiveClassifier.set("javadoc")
-//        }
+        val dockerJavadocJar by tasks.named("javadocJar")
 
         val dokkaHtmlJar by tasks.register<Jar>("dokkaHtmlJar") {
             group = DOCUMENTATION_GROUP
@@ -212,56 +224,41 @@ kotlin {
             archiveClassifier.set("html-doc")
         }
 
-        val dokkaJar = task<Jar>("dokkaJar") {
-            from(dokkaHtmlJar)
-            group = DOCUMENTATION_GROUP
-            archiveClassifier.set("javadoc")
-        }
-        val sourcesJar = tasks.named("sourcesJar") {
-            dependsOn(dokkaHtmlJar)
-            dependsOn(dokkaJar)
-        }
-
+        var x = false
 
         publishing {
             publications {
                 withType<MavenPublication>().configureEach {
 
-                    artifact(sourcesJar)
-                    artifact(dokkaJar)
-//                        artifact(dokkaJavadocJar)
-                    artifact(dokkaHtmlJar)
+                    if (name == "kotlinMultiplatform") {
+                        artifact(dockerJavadocJar)
+                        artifact(dokkaHtmlJar)
+                    }
 
                     pom {
-
                         name.set("Koodies")
                         description.set(project.description)
                         url.set(baseUrl)
-
                         licenses {
                             license {
                                 name.set("MIT")
                                 url.set("$baseUrl/blob/master/LICENSE")
                             }
                         }
-
                         scm {
                             url.set(baseUrl)
                             connection.set("scm:git:$baseUrl.git")
                             developerConnection.set("scm:git:$baseUrl.git")
                         }
-
                         issueManagement {
                             url.set("$baseUrl/issues")
                             system.set("GitHub")
                         }
-
                         // TODO
-//                    ciManagement {
-//                        url.set("$koodiesUrl/issues")
-//                        system.set("GitHub")
-//                    }
-
+//                        ciManagement {
+//                            url.set("$baseUrl/issues")
+//                            system.set("GitHub")
+//                        }
                         developers {
                             developer {
                                 id.set("bkahlert")
@@ -279,62 +276,62 @@ kotlin {
 
                 maven {
                     name = "MavenCentral"
-                    url =
-                        if (releasingFinal) {
-                            uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                        } else {
-                            uri("https://oss.sonatype.org/content/repositories/snapshots/")
-                        }
+                    url = if (releasingFinal) {
+                        uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    } else {
+                        uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                    }
                     credentials {
                         username = findPropertyEverywhere("sonatypeNexusUsername", "")
                         password = findPropertyEverywhere("sonatypeNexusPassword", "")
                     }
                 }
-
-                if (releasingFinal) {
-//                    maven {
-//                        name = "BintrayMaven"
-//                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
-//                        credentials {
-//                            username = findPropertyEverywhere("bintrayUser", "")
-//                            password = findPropertyEverywhere("bintrayApiKey", "")
-//                        }
-//                    }
-
-                    maven {
-                        name = "GitHubPackages"
-                        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-                        credentials {
-                            username = findPropertyEverywhere("githubUsername", "")
-                            password = findPropertyEverywhere("githubToken", "")
-                        }
-                    }
-                }
             }
         }
-
+//                if (releasingFinal) {
+////                    maven {
+////                        name = "BintrayMaven"
+////                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
+////                        credentials {
+////                            username = findPropertyEverywhere("bintrayUser", "")
+////                            password = findPropertyEverywhere("bintrayApiKey", "")
+////                        }
+////                    }
+//
+//                    maven {
+//                        name = "GitHubPackages"
+//                        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+//                        credentials {
+//                            username = findPropertyEverywhere("githubUsername", "")
+//                            password = findPropertyEverywhere("githubToken", "")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
         signing {
             sign(publishing.publications)
         }
-
-        bintray {
-            user.set(findPropertyEverywhere("bintrayUser", ""))
-            apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
-            userOrg.set(user.get())
-            repo.set("koodies")
-            pkgName.set("koodies")
-            labels.set(listOf("kotlin", "builder", "shellscript", "docker",
-                "integration", "java", "nio", "nio2", "kaomoji", "border",
-                "box", "logger", "fixture", "time", "unicode"))
-            websiteUrl.set(baseUrl)
-            issueTrackerUrl.set("$baseUrl/issues")
-            licenses.set(listOf("MIT"))
-            vcsUrl.set("$baseUrl.git")
-            gppSign.set(false)
-            syncToMavenCentral.set(true)
-            sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
-            sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
-        }
+//
+//        bintray {
+//            user.set(findPropertyEverywhere("bintrayUser", ""))
+//            apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
+//            userOrg.set(user.get())
+//            repo.set("koodies")
+//            pkgName.set("koodies")
+//            labels.set(listOf("kotlin", "builder", "shellscript", "docker",
+//                "integration", "java", "nio", "nio2", "kaomoji", "border",
+//                "box", "logger", "fixture", "time", "unicode"))
+//            websiteUrl.set(baseUrl)
+//            issueTrackerUrl.set("$baseUrl/issues")
+//            licenses.set(listOf("MIT"))
+//            vcsUrl.set("$baseUrl.git")
+//            gppSign.set(false)
+//            syncToMavenCentral.set(true)
+//            sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
+//            sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
+//        }
     }
 }
 

@@ -50,7 +50,7 @@ class JavaProcessMockTest {
     inner class WithSlowInputStream {
         @Test
         fun InMemoryLogger.`should provide input correctly`() {
-            val slowInputStream = slowInputStream("Hello\n", "World!\n", baseDelayPerInput = 1.seconds)
+            val slowInputStream = slowInputStream(1.seconds, "Hello\n", "World!\n")
 
             assertTimeoutPreemptively(10.seconds) {
                 val read = String(slowInputStream.readBytes())
@@ -62,7 +62,7 @@ class JavaProcessMockTest {
         @Test
         fun InMemoryLogger.`should provide input slowly`() {
             val delay = 1.seconds
-            val slowInputStream = slowInputStream("Hello\n", "World!\n", baseDelayPerInput = delay)
+            val slowInputStream = slowInputStream(delay, "Hello\n", "World!\n")
 
             assertTimeoutPreemptively(delay * 5) {
                 val duration = measureTime {
@@ -79,13 +79,13 @@ class JavaProcessMockTest {
         ).test("{}") { (_, echoOption) ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
+                0.seconds,
                 0.seconds to "Password? ",
                 prompt(),
                 0.seconds to "\r",
                 0.seconds to "Correct!\n",
-                baseDelayPerInput = 0.seconds,
-                echoInput = echoOption,
                 byteArrayOutputStream = byteArrayOutputStream,
+                echoInput = echoOption,
             )
 
             val input = "password1234"
@@ -113,19 +113,15 @@ class JavaProcessMockTest {
         @Test
         fun InMemoryLogger.`should produce same byte sequence as ByteArrayInputStream`() {
             val input = "A𝌪𝌫𝌬𝌭𝌮Z"
-            val inputStream = slowInputStream(input, baseDelayPerInput = 2.seconds)
+            val inputStream = slowInputStream(2.seconds, input)
             expectThat(input.byteInputStream().readAllBytes()).isEqualTo(inputStream.readAllBytes())
         }
 
         @TestFactory
         fun InMemoryLogger.`should never apply delay at at end stream`() = "𝌪".let { input ->
             listOf(
-                slowInputStream(input,
-                    baseDelayPerInput = 5.seconds,
-                    echoInput = true),
-                slowInputStream(0.seconds to input,
-                    baseDelayPerInput = 5.seconds,
-                    echoInput = true),
+                slowInputStream(5.seconds, input, echoInput = true),
+                slowInputStream(5.seconds, 0.seconds to input, echoInput = true),
             ).test("{}") { inputStream ->
                 val duration = measureTime {
                     @Suppress("ControlFlowWithEmptyBody")
@@ -247,9 +243,11 @@ class JavaProcessMockTest {
 
                 @Test
                 fun InMemoryLogger.`should be alive if not all read`() {
-                    val p = withSlowInput("unread",
+                    val p = withSlowInput(
+                        "unread",
                         echoInput = true,
-                        processExit = { immediateExit(expectedExitValue) })
+                        processExit = { immediateExit(expectedExitValue) },
+                    )
                     expectThat(p.isAlive).isTrue()
                 }
             }
@@ -260,7 +258,7 @@ class JavaProcessMockTest {
     inner class OutputStreamWiring {
         @Test
         fun InMemoryLogger.`should allow SlowInputStream to read process's input stream`() {
-            val p = withIndividuallySlowInput(prompt(), processExit = { immediateSuccess() }, echoInput = true)
+            val p = withIndividuallySlowInput(prompt(), echoInput = true, processExit = { immediateSuccess() })
             with(p.outputStream.writer()) {
                 expectThat(p.received).isEmpty()
                 expectThat(p.inputStream.available()).isEqualTo(0)
@@ -360,6 +358,7 @@ class JavaProcessMockTest {
             prompt(),
             100.milliseconds to "Shutting down",
             baseDelayPerInput = 100.milliseconds,
+            echoInput = true,
             processExit = {
                 object : ProcessExitMock(0, Duration.ZERO) {
                     override fun invoke(): Int {
@@ -376,8 +375,7 @@ class JavaProcessMockTest {
                         return true
                     }
                 }
-            },
-            echoInput = true).start()
+            }).start()
 
         daemon {
             3.seconds.sleep()

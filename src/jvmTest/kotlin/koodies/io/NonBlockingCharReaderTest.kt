@@ -51,10 +51,11 @@ class NonBlockingCharReaderTest {
     @Slow @Test
     fun InMemoryLogger.`should read in a non-greedy fashion resp just as much as needed to avoid blocking`() {
         val inputStream = slowInputStream(
+            0.seconds,
             1.seconds to "123",
             2.seconds to "abc",
             3.seconds to "!§\"",
-            baseDelayPerInput = 0.seconds)
+        )
         val reader = NonBlockingCharReader(inputStream, 2.seconds)
 
         kotlin.runCatching {

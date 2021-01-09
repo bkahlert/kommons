@@ -13,7 +13,7 @@ package koodies.text
  * that matches this string at that position.
  */
 fun CharSequence.splitToSequence(
-    vararg delimiters: String,
+    delimiters: Array<String>,
     keepDelimiters: Boolean = false,
     ignoreTrailingSeparator: Boolean = false,
     ignoreCase: Boolean = false,

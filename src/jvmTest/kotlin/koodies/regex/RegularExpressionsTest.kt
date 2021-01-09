@@ -59,6 +59,18 @@ class RegularExpressionsTest {
             ), nonMatchingInput = listOf(
                 "crap",
             )),
+        RegularExpressions.versionRegex to MatchExpectations(
+            matchingInput = listOf(
+                "1.0.0",
+                "01.12.23",
+                "999999999999.999999999999.999999999999",
+            ), nonMatchingInput = listOf(
+                ".0.0",
+                "0.0.",
+                "0..0",
+                "0.b.0",
+                "crap",
+            )),
     ).map { (regex, expectations) ->
         dynamicContainer("for ${regex.pattern}", listOf(
             dynamicContainer("should match", expectations.matchingInput.map { matchingInput ->

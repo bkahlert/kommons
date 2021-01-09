@@ -76,8 +76,8 @@ open class JavaProcessMock(
 
         fun InMemoryLogger.withIndividuallySlowInput(
             vararg inputs: Pair<Duration, String>,
-            baseDelayPerInput: Duration = 1.seconds,
             echoInput: Boolean,
+            baseDelayPerInput: Duration = 1.seconds,
             processExit: JavaProcessMock.() -> ProcessExitMock,
         ): JavaProcessMock {
             val outputStream = ByteArrayOutputStream()
@@ -155,14 +155,14 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
 
 
 class SlowInputStream(
-    vararg inputs: Pair<Duration, String>,
     val baseDelayPerInput: Duration,
     val byteArrayOutputStream: ByteArrayOutputStream? = null,
     val echoInput: Boolean = false,
     var logger: BlockRenderingLogger?,
+    vararg inputs: Pair<Duration, String>,
 ) : InputStream() {
     constructor(
-        vararg inputs: String,
+        inputs: List<String>,
         baseDelayPerInput: Duration,
         byteArrayOutputStream: ByteArrayOutputStream? = null,
         echoInput: Boolean = false,
@@ -178,18 +178,18 @@ class SlowInputStream(
     companion object {
         fun prompt(): Pair<Duration, String> = Duration.INFINITE to ""
         fun InMemoryLogger.slowInputStream(
-            vararg inputs: Pair<Duration, String>,
             baseDelayPerInput: Duration,
+            vararg inputs: Pair<Duration, String>,
             byteArrayOutputStream: ByteArrayOutputStream? = null,
             echoInput: Boolean = false,
-        ) = SlowInputStream(inputs = inputs, baseDelayPerInput, byteArrayOutputStream, echoInput, this)
+        ) = SlowInputStream(baseDelayPerInput, byteArrayOutputStream, echoInput, this, inputs = inputs)
 
         fun InMemoryLogger.slowInputStream(
-            vararg inputs: String,
             baseDelayPerInput: Duration,
+            vararg inputs: String,
             byteArrayOutputStream: ByteArrayOutputStream? = null,
             echoInput: Boolean = false,
-        ) = SlowInputStream(inputs = inputs.map { Duration.ZERO to it }.toTypedArray(), baseDelayPerInput, byteArrayOutputStream, echoInput, this)
+        ) = SlowInputStream(baseDelayPerInput, byteArrayOutputStream, echoInput, this, inputs = inputs.map { Duration.ZERO to it }.toTypedArray())
     }
 
     val terminated: Boolean get() = unreadCount == 0 || !processAlive
