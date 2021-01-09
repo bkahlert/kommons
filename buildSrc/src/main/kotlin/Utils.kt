@@ -25,12 +25,14 @@ fun Project.findBooleanPropertyEverywhere(name: String, default: Boolean = false
     findPropertyEverywhere(name).toBoolean(default)
 
 fun Project.findPropertyEverywhere(name: String): String? =
-    extra.properties[name]?.toString() ?: findProperty(name)?.toString() ?: System.getenv(name.camelCaseToScreamingSnakeCase())
+    extra.properties[name]?.toString()
+        ?: findProperty(name)?.toString()
+        ?: System.getenv(name.camelCaseToScreamingSnakeCase())
 
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-val Project.release: Boolean get() = findBooleanPropertyEverywhere("release", true)
+val Project.releasingFinal: Boolean get() = findBooleanPropertyEverywhere("releasingFinal", true)
 val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {

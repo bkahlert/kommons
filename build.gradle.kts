@@ -1,3 +1,4 @@
+import org.gradle.api.plugins.JavaBasePlugin.DOCUMENTATION_GROUP
 import org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import org.jetbrains.dokka.Platform.jvm
 import org.jetbrains.dokka.Platform.native
@@ -187,107 +188,121 @@ kotlin {
                 }
             }
         }
-    }
 
+        val sourcesJar = tasks.named("sourcesJar")
 
-    publishing {
-        publications {
-            register<MavenPublication>("Koodies") {
+        val dokkaJar = task<Jar>("dokkaJar") {
+            group = DOCUMENTATION_GROUP
+            archiveClassifier.set("javadoc")
+        }
 
-                pom {
-                    description.set(project.description)
-                    url.set(baseUrl)
+        publishing {
+            publications {
+                create<MavenPublication>(project.name) {
 
-                    licenses {
-                        license {
-                            name.set("MIT")
-                            url.set("$baseUrl/blob/master/LICENSE")
-                        }
+                    artifacts {
+                        artifact(sourcesJar)
+                        artifact(dokkaJar)
                     }
 
-                    scm {
+                    pom {
+                        description.set(project.description)
                         url.set(baseUrl)
-                        connection.set("scm:git:$baseUrl.git")
-                        developerConnection.set("scm:git:$baseUrl.git")
-                    }
 
-                    issueManagement {
-                        url.set("$baseUrl/issues")
-                        system.set("GitHub")
-                    }
+                        licenses {
+                            license {
+                                name.set("MIT")
+                                url.set("$baseUrl/blob/master/LICENSE")
+                            }
+                        }
 
-                    // TODO
+                        scm {
+                            url.set(baseUrl)
+                            connection.set("scm:git:$baseUrl.git")
+                            developerConnection.set("scm:git:$baseUrl.git")
+                        }
+
+                        issueManagement {
+                            url.set("$baseUrl/issues")
+                            system.set("GitHub")
+                        }
+
+                        // TODO
 //                    ciManagement {
 //                        url.set("$koodiesUrl/issues")
 //                        system.set("GitHub")
 //                    }
 
-                    developers {
-                        developer {
-                            id.set("bkahlert")
-                            name.set("Björn Kahlert")
-                            email.set("mail@bkahlert.com")
-                            url.set("https://bkahlert.com")
-                            timezone.set("Europe/Berlin")
+                        developers {
+                            developer {
+                                id.set("bkahlert")
+                                name.set("Björn Kahlert")
+                                email.set("mail@bkahlert.com")
+                                url.set("https://bkahlert.com")
+                                timezone.set("Europe/Berlin")
+                            }
+                        }
+                    }
+                }
+            }
+
+            repositories {
+
+                maven {
+                    name = "MavenCentral"
+                    url =
+                        if (releasingFinal) {
+                            uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                        } else {
+                            uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                        }
+                    credentials {
+                        username = findPropertyEverywhere("sonatypeNexusUsername", "")
+                        password = findPropertyEverywhere("sonatypeNexusPassword", "")
+                    }
+                }
+
+                if (releasingFinal) {
+                    maven {
+                        name = "Bintray"
+                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
+                        credentials {
+                            username = findPropertyEverywhere("bintrayUser", "")
+                            password = findPropertyEverywhere("bintrayApiKey", "")
+                        }
+                    }
+
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+                        credentials {
+                            username = findPropertyEverywhere("githubUsername", "")
+                            password = findPropertyEverywhere("githubToken", "")
                         }
                     }
                 }
             }
         }
 
-        repositories {
-
-            maven {
-                name = "MavenCentral"
-                url =
-                    if (release) uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                    else uri("https://oss.sonatype.org/content/repositories/snapshots/")
-                credentials {
-                    username = findPropertyEverywhere("sonatypeNexusUsername", "")
-                    password = findPropertyEverywhere("sonatypeNexusPassword", "")
-                }
-            }
-
-            if (release) {
-                maven {
-                    name = "Bintray"
-                    url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
-                    credentials {
-                        username = findPropertyEverywhere("bintrayUser", "")
-                        password = findPropertyEverywhere("bintrayApiKey", "")
-                    }
-                }
-
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-                    credentials {
-                        username = findPropertyEverywhere("githubUsername", "")
-                        password = findPropertyEverywhere("githubToken", "")
-                    }
-                }
-            }
+        signing {
+            sign(publishing.publications)
         }
-    }
 
-    signing {
-        sign(publishing.publications)
-    }
-
-    bintray {
-        user.set(findPropertyEverywhere("bintrayUser", ""))
-        apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
-        repo.set("koodies")
-        pkgName.set("koodies")
-        userOrg.set(user.get())
-        websiteUrl.set(baseUrl)
-        issueTrackerUrl.set("$baseUrl/issues")
-        licenses.set(listOf("MIT"))
-        vcsUrl.set("$baseUrl.git")
-        gppSign.set(false)
-        syncToMavenCentral.set(true)
-        sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
-        sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
+        bintray {
+            user.set(findPropertyEverywhere("bintrayUser", ""))
+            apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
+            repo.set("koodies")
+            pkgName.set("koodies")
+            userOrg.set(user.get())
+            websiteUrl.set(baseUrl)
+            issueTrackerUrl.set("$baseUrl/issues")
+            licenses.set(listOf("MIT"))
+            vcsUrl.set("$baseUrl.git")
+            gppSign.set(false)
+            syncToMavenCentral.set(true)
+            sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
+            sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
+        }
     }
 }
 
