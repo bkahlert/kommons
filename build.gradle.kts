@@ -198,7 +198,7 @@ kotlin {
 
         publishing {
             publications {
-                create<MavenPublication>(project.name) {
+                withType<MavenPublication>().configureEach {
 
                     artifacts {
                         artifact(sourcesJar)
@@ -259,14 +259,12 @@ kotlin {
                     credentials {
                         username = findPropertyEverywhere("sonatypeNexusUsername", "")
                         password = findPropertyEverywhere("sonatypeNexusPassword", "")
-                        println(username)
-                        println(password)
                     }
                 }
 
                 if (releasingFinal) {
                     maven {
-                        name = "Bintray"
+                        name = "BintrayMaven"
                         url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
                         credentials {
                             username = findPropertyEverywhere("bintrayUser", "")
