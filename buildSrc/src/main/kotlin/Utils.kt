@@ -32,7 +32,12 @@ fun Project.findPropertyEverywhere(name: String): String? =
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-val Project.releasingFinal: Boolean get() = findBooleanPropertyEverywhere("releasingFinal", true)
+var _releasingFinal: Boolean? = null
+var Project.releasingFinal: Boolean
+    get() = _releasingFinal ?: findBooleanPropertyEverywhere("releasingFinal", true)
+    set(value) {
+        _releasingFinal = value
+    }
 val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {

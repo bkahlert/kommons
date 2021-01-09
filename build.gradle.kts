@@ -39,6 +39,15 @@ repositories {
 }
 
 kotlin {
+    listOf(tasks.devSnapshotSetup,
+        tasks.devSnapshotSetup,
+        tasks.candidateSetup).forEach {
+        it.configure {
+            if (releasingFinal) println("RELEASING_FINAL DISABLED ($version)")
+            doFirst { releasingFinal = false }
+        }
+    }
+
     jvm {
         compilations.all {
             kotlinOptions {
@@ -138,7 +147,7 @@ kotlin {
             }
         }
 
-        tasks.withType<DokkaTask>().configureEach {
+        val dokkaTask = tasks.withType<DokkaTask>().configureEach {
             dokkaSourceSets {
                 configureEach {
                     if (platform.get() == jvm) {
@@ -189,12 +198,30 @@ kotlin {
             }
         }
 
-        val sourcesJar = tasks.named("sourcesJar")
+//        val dokkaJavadocJar by tasks.register<Jar>("dokkaJavadocJar") {
+//            group = DOCUMENTATION_GROUP
+//            dependsOn(tasks.dokkaJavadoc)
+//            from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+//            archiveClassifier.set("javadoc")
+//        }
+
+        val dokkaHtmlJar by tasks.register<Jar>("dokkaHtmlJar") {
+            group = DOCUMENTATION_GROUP
+            dependsOn(tasks.dokkaHtml)
+            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+            archiveClassifier.set("html-doc")
+        }
 
         val dokkaJar = task<Jar>("dokkaJar") {
+            from(dokkaHtmlJar)
             group = DOCUMENTATION_GROUP
             archiveClassifier.set("javadoc")
         }
+        val sourcesJar = tasks.named("sourcesJar") {
+            dependsOn(dokkaHtmlJar)
+            dependsOn(dokkaJar)
+        }
+
 
         publishing {
             publications {
@@ -203,9 +230,12 @@ kotlin {
                     artifacts {
                         artifact(sourcesJar)
                         artifact(dokkaJar)
+//                        artifact(dokkaJavadocJar)
+                        artifact(dokkaHtmlJar)
                     }
 
                     pom {
+
                         name.set("Koodies")
                         description.set(project.description)
                         url.set(baseUrl)
