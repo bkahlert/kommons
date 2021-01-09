@@ -259,6 +259,8 @@ kotlin {
                     credentials {
                         username = findPropertyEverywhere("sonatypeNexusUsername", "")
                         password = findPropertyEverywhere("sonatypeNexusPassword", "")
+                        println(username)
+                        println(password)
                     }
                 }
 
@@ -291,9 +293,12 @@ kotlin {
         bintray {
             user.set(findPropertyEverywhere("bintrayUser", ""))
             apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
+            userOrg.set(user.get())
             repo.set("koodies")
             pkgName.set("koodies")
-            userOrg.set(user.get())
+            labels.set(listOf("kotlin", "builder", "shellscript", "docker",
+                "integration", "java", "nio", "nio2", "kaomoji", "border",
+                "box", "logger", "fixture", "time", "unicode"))
             websiteUrl.set(baseUrl)
             issueTrackerUrl.set("$baseUrl/issues")
             licenses.set(listOf("MIT"))
