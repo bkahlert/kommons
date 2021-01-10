@@ -58,6 +58,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 
 ```shell
 ./gradlew <snapshot|devSnapshot|candidate|final> -Prelease.scope=<major|minor|patch>
+./gradlew final -Prelease.scope=patch
 ```
 
 Example—Increase major version: `./gradlew <snapshot|devSnapshot|candidate|final> -Prelease.scope=patch`
@@ -68,9 +69,9 @@ Create a tag locally using `git tag v2.2.0` (leading `v`  is important) and `./g
 pre-defined version, e.g.
 
 ```shell
-./gradlew -Prelease.useLastTag=true final publishToMavenCentral
-./gradlew -Prelease.useLastTag=true final publishToBintray
-./gradlew -Prelease.useLastTag=true final publishToGitHubPackages
+./gradlew -Prelease.useLastTag=true final publishAllPublicationsToMavenCentralRepository
+./gradlew -Prelease.useLastTag=true final publishAllPublicationsToBintrayRepository
+./gradlew -Prelease.useLastTag=true final publishAllPublicationsToGitHubPackagesRepository
 ```
 
 ### Override Version
