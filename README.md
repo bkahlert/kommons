@@ -1,5 +1,10 @@
 ![Koodies — Random Kotlin Goodies](./assets/Koodies-header.svg)
 
+# Koodies [![Download](https://api.bintray.com/packages/bkahlert/koodies/koodies/images/download.svg)](https://bintray.com/bkahlert/koodies/koodies/_latestVersion)
+
+Koodies is a random selection of utilities to make a Kotlin developer's life even easier  
+(than it already is since switching from Java).
+
 *See [RELEASING.md](RELEASING.md) for information on how to release versions.*
 
 ## Install
