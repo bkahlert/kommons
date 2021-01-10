@@ -70,7 +70,7 @@ pre-defined version, e.g.
 
 ```shell
 ./gradlew -Prelease.useLastTag=true final publishAllPublicationsToMavenCentralRepository
-./gradlew -Prelease.useLastTag=true final publishAllPublicationsToBintrayRepository
+./gradlew -Prelease.useLastTag=true final publishAllPublicationsToBintrayMavenRepository
 ./gradlew -Prelease.useLastTag=true final publishAllPublicationsToGitHubPackagesRepository
 ```
 

@@ -269,7 +269,7 @@ kotlin {
 
                 maven {
                     name = "MavenCentral"
-                    url = if (releasingFinal) {
+                    url = if (version.isFinal()) {
                         uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
                     } else {
                         uri("https://oss.sonatype.org/content/repositories/snapshots/")
@@ -280,15 +280,15 @@ kotlin {
                     }
                 }
 
-                if (releasingFinal) {
-//                    maven {
-//                        name = "BintrayMaven"
-//                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
-//                        credentials {
-//                            username = findPropertyEverywhere("bintrayUser", "")
-//                            password = findPropertyEverywhere("bintrayApiKey", "")
-//                        }
-//                    }
+                if (version.isFinal()) {
+                    maven {
+                        name = "BintrayMaven"
+                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
+                        credentials {
+                            username = findPropertyEverywhere("bintrayUser", "")
+                            password = findPropertyEverywhere("bintrayApiKey", "")
+                        }
+                    }
                 }
 
                 maven {
