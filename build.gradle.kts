@@ -14,7 +14,7 @@ plugins {
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.0"
-//    id("nebula.nebula-bintray") version "8.5.0"
+    id("nebula.nebula-bintray") version "8.5.0"
 }
 
 allprojects {
@@ -223,10 +223,10 @@ kotlin {
             publications {
                 withType<MavenPublication>().configureEach {
 
-                    if (name == "kotlinMultiplatform") {
-                        artifact(dockerJavadocJar)
-                        artifact(dokkaHtmlJar)
-                    }
+//                    if (name == "kotlinMultiplatform") {
+                    artifact(dockerJavadocJar)
+                    artifact(dokkaHtmlJar)
+//                    }
 
                     pom {
                         name.set("Koodies")
@@ -269,7 +269,7 @@ kotlin {
 
                 maven {
                     name = "MavenCentral"
-                    url = if (releasingFinal) {
+                    url = if (version.isFinal()) {
                         uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
                     } else {
                         uri("https://oss.sonatype.org/content/repositories/snapshots/")
@@ -278,17 +278,6 @@ kotlin {
                         username = findPropertyEverywhere("sonatypeNexusUsername", "")
                         password = findPropertyEverywhere("sonatypeNexusPassword", "")
                     }
-                }
-
-                if (releasingFinal) {
-//                    maven {
-//                        name = "BintrayMaven"
-//                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
-//                        credentials {
-//                            username = findPropertyEverywhere("bintrayUser", "")
-//                            password = findPropertyEverywhere("bintrayApiKey", "")
-//                        }
-//                    }
                 }
 
                 maven {
@@ -300,25 +289,27 @@ kotlin {
                     }
                 }
             }
-//
-//        bintray {
-//            user.set(findPropertyEverywhere("bintrayUser", ""))
-//            apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
-//            userOrg.set(user.get())
-//            repo.set("koodies")
-//            pkgName.set("koodies")
-//            labels.set(listOf("kotlin", "builder", "shellscript", "docker",
-//                "integration", "java", "nio", "nio2", "kaomoji", "border",
-//                "box", "logger", "fixture", "time", "unicode"))
-//            websiteUrl.set(baseUrl)
-//            issueTrackerUrl.set("$baseUrl/issues")
-//            licenses.set(listOf("MIT"))
-//            vcsUrl.set("$baseUrl.git")
-//            gppSign.set(false)
-//            syncToMavenCentral.set(true)
-//            sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
-//            sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
-//        }
         }
+    }
+}
+
+if (version.isFinal()) {
+    bintray {
+        user.set(findPropertyEverywhere("bintrayUser", ""))
+        apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
+        userOrg.set(user.get())
+        repo.set("koodies")
+        pkgName.set("koodies")
+        labels.set(listOf("kotlin", "builder", "shellscript", "docker",
+            "integration", "java", "nio", "nio2", "kaomoji", "border",
+            "box", "logger", "fixture", "time", "unicode"))
+        websiteUrl.set(baseUrl)
+        issueTrackerUrl.set("$baseUrl/issues")
+        licenses.set(listOf("MIT"))
+        vcsUrl.set("$baseUrl.git")
+        gppSign.set(false)
+        syncToMavenCentral.set(true)
+        sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
+        sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
     }
 }
