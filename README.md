@@ -113,6 +113,21 @@ Docker.busybox("""
 """).execute()
 ```
 
+... and if something goes wrong, easy to read error message:
+
+```shell
+ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(ManagedProcess.kt:126)
+  ➜ A dump has been written to:
+    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.log (unchanged)
+    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.no-ansi.log (ANSI escape/control sequences removed)
+  ➜ The last 6 lines are:
+    🐳 docker attach "download-latest-bkahlert_koodies"
+    Executing docker run --name download-latest-bkahlert_koodies --rm -i --mount type=bind,source=/var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T,target=/tmp zero88/ghrd --regex bkahlert/koodies
+    Searching release 'latest' in repository 'bkahlert/koodies'...
+    Not Found artifact '' with regex option 'on'
+    Process 67008 terminated with exit code 2. Expected 0.
+```
+
 ### Improved Java NIO 2 Integration
 
 #### Access the Class Path
