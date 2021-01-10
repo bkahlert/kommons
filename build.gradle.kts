@@ -191,18 +191,9 @@ kotlin {
             }
         }
 
-        val javaDoc by tasks.register<Jar>("javaDoc") {
-            group = DOCUMENTATION_GROUP
-            archiveClassifier.set("javaDoc")
-//            depe
-        }
-
         tasks {
             val dokkaOutputDir = "$buildDir/dokka"
-
-            dokkaHtml {
-                outputDirectory.set(file(dokkaOutputDir))
-            }
+            dokkaHtml { outputDirectory.set(file(dokkaOutputDir)) }
 
             val deleteDokkaOutputDir by registering(Delete::class) {
                 delete(dokkaOutputDir)
@@ -224,7 +215,9 @@ kotlin {
             archiveClassifier.set("html-doc")
         }
 
-        var x = false
+        signing {
+            sign(publishing.publications)
+        }
 
         publishing {
             publications {
@@ -286,33 +279,27 @@ kotlin {
                         password = findPropertyEverywhere("sonatypeNexusPassword", "")
                     }
                 }
-            }
-        }
-//                if (releasingFinal) {
-////                    maven {
-////                        name = "BintrayMaven"
-////                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
-////                        credentials {
-////                            username = findPropertyEverywhere("bintrayUser", "")
-////                            password = findPropertyEverywhere("bintrayApiKey", "")
-////                        }
-////                    }
-//
+
+                if (releasingFinal) {
 //                    maven {
-//                        name = "GitHubPackages"
-//                        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+//                        name = "BintrayMaven"
+//                        url = uri("https://api.bintray.com/maven/bkahlert/koodies/koodies;publish=1")
 //                        credentials {
-//                            username = findPropertyEverywhere("githubUsername", "")
-//                            password = findPropertyEverywhere("githubToken", "")
+//                            username = findPropertyEverywhere("bintrayUser", "")
+//                            password = findPropertyEverywhere("bintrayApiKey", "")
 //                        }
 //                    }
-//                }
-//            }
-//        }
-//
-        signing {
-            sign(publishing.publications)
-        }
+                }
+
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+                    credentials {
+                        username = findPropertyEverywhere("githubUsername", "")
+                        password = findPropertyEverywhere("githubToken", "")
+                    }
+                }
+            }
 //
 //        bintray {
 //            user.set(findPropertyEverywhere("bintrayUser", ""))
@@ -332,6 +319,6 @@ kotlin {
 //            sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
 //            sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
 //        }
+        }
     }
 }
-

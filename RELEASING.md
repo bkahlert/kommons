@@ -65,7 +65,13 @@ Example—Increase major version: `./gradlew <snapshot|devSnapshot|candidate|fin
 ### Last Tag
 
 Create a tag locally using `git tag v2.2.0` (leading `v`  is important) and `./gradlew -Prelease.useLastTag=true final` in a CI to make the latter use a
-pre-defined version.
+pre-defined version, e.g.
+
+```shell
+./gradlew -Prelease.useLastTag=true final publishToMavenCentral
+./gradlew -Prelease.useLastTag=true final publishToBintray
+./gradlew -Prelease.useLastTag=true final publishToGitHubPackages
+```
 
 ### Override Version
 
