@@ -1,6 +1,4 @@
-# <img src="assets/Koodies-logo.svg" alt="Logo" style="height: .75em;"> Koodies [![Download](https://api.bintray.com/packages/bkahlert/koodies/koodies/images/download.svg)](https://bintray.com/bkahlert/koodies/koodies/_latestVersion)
-
-**Random Kotlin Goodies**
+![Koodies — Random Kotlin Goodies](./assets/Koodies-header.svg)
 
 *See [RELEASING.md](RELEASING.md) for information on how to release versions.*
 
