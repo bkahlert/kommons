@@ -1,6 +1,4 @@
-<style type="text/css" rel="stylesheet">img[src*="#line-height"] { height: .75em; vertical-align: baseline; }</style>
-
-# ![Koodies Logo](./assets/Koodies-logo.svg#line-height) Koodies [![Download](https://api.bintray.com/packages/bkahlert/koodies/koodies/images/download.svg)](https://bintray.com/bkahlert/koodies/koodies/_latestVersion)
+# <img src="assets/Koodies-logo.svg" alt="Logo" style="height: .75em;"> Koodies [![Download](https://api.bintray.com/packages/bkahlert/koodies/koodies/images/download.svg)](https://bintray.com/bkahlert/koodies/koodies/_latestVersion)
 
 **Random Kotlin Goodies**
 
