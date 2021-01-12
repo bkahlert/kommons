@@ -169,13 +169,19 @@ val Path.size: Size
 val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).toSize()
 
 /**
- * Tries to convert this char sequence to a [Size] instance by parsing
- * its value (e.g. `1 MiB` or `1.32GB`).
+ * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
+ *
+ * @see parse
+ */
+fun CharSequence.toSize(): Size = parse()
+
+/**
+ * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
  *
  * Sizes with and without decimals, as much as all binary and decimal units
  * either with or without a space between value and unit are supported.
  */
-fun CharSequence.toSize(): Size {
+fun CharSequence.parse(): Size {
     val trimmed = trim()
     val unitString = trimmed.takeLastWhile { it.isLetter() }
     val valueString = trimmed.dropLast(unitString.length).trim().toString()

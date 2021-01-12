@@ -41,4 +41,5 @@ object Fish : Category() {
     val `＞゜)))＞＜` by auto(">゜)))><")
     val `＞°))彡` by auto(">°))彡")
     val `＜・)))＞＜＜` by auto("<・)))><<")
+    val `@﹕≈` by auto("@:≈")
 }
