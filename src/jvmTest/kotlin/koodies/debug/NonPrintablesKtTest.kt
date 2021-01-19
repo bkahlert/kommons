@@ -28,7 +28,7 @@ class NonPrintablesKtTest {
         expectThat("                  $zeroWidthSpace    ".replaceNonPrintableCharacters())
             .isEqualTo("❲EN SPACE❳ ❲EM SPACE❳ ❲THREE-PER-EM SPACE❳ ❲FOUR-PER-EM SPACE❳ ❲SIX-PER-EM SPACE❳ ❲FIGURE SPACE❳ ❲PUNCTUATION SPACE❳ ❲THIN SPACE❳ ❲HAIR SPACE❳ ❲ZERO WIDTH SPACE❳ ❲NARROW NO-BREAK SPACE❳ ❲MEDIUM MATHEMATICAL SPACE❳")
     }
-    
+
     @Test
     fun `should replace symbol characters`() {
         expectThat("␈".replaceNonPrintableCharacters())

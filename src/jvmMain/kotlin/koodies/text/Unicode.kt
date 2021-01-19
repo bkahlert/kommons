@@ -48,7 +48,8 @@ by dictOf("unicode.dict.tsv"
     /**
      * [NO-BREAK SPACE](https://codepoints.net/U+00A0)
      */
-    const val noBreakSpace = '\u00A0'
+    const val NO_BREAK_SPACE = '\u00A0'
+    const val NBSP = NO_BREAK_SPACE
 
     /**
      * [CARRIAGE RETURN (CR)](https://codepoints.net/U+000D)

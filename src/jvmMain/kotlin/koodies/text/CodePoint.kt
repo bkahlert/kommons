@@ -115,6 +115,14 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
     val isAsciiAlphanumeric: Boolean get() = (codePoint in 0x30..0x39) || (codePoint in 0x41..0x5a) || (codePoint in 0x61..0x7a)
 
     /**
+     * Determines if a character (Unicode code point) is defined in Unicode.
+     *
+     * @return `true` if this code point is defined
+     * @see isDefined
+     */
+    val isDefined: Boolean get() = Character.isDefined(codePoint)
+
+    /**
      * Contains the character pointed to and represented by a [String].
      */
     val string: String get() = Character.toString(codePoint)
@@ -146,6 +154,8 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
          */
         fun CharSequence.asCodePoint(): CodePoint? =
             asCodePointSequence().take(2).toList().takeIf { it.size == 1 }?.first()?.takeIf { it.codePoint.isValidCodePoint() }
+
+        fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
 
         fun count(string: CharSequence): Long = string.codePoints().count()
         fun count(string: String): Long = string.codePoints().count()

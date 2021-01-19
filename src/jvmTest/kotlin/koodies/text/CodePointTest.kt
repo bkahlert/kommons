@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.test.toStringIsEqualTo
+import koodies.text.CodePoint.Companion.asCodePoint
 import koodies.text.CodePoint.Companion.isValidCodePoint
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -18,6 +19,12 @@ import strikt.assertions.isTrue
 
 @Execution(CONCURRENT)
 class CodePointTest {
+
+    @Test
+    fun `should be instantiatable from Byte`() {
+        val subject = 0x41.toByte().asCodePoint()
+        expectThat(subject).toStringIsEqualTo("A")
+    }
 
     @Test
     fun `should be instantiatable from Int`() {
