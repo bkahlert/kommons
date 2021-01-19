@@ -1,6 +1,6 @@
 package koodies.number
 
-import org.junit.jupiter.api.DynamicTest.dynamicTest
+import koodies.test.test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -18,10 +18,8 @@ class ToHexStringKtTest {
         16 to "10",
         65535 to "FFFF",
         65536 to "10000",
-    ).map { (dec, hex) ->
-        dynamicTest("$dec ≟ $hex") {
-            expectThat(dec.toHexString()).isEqualTo(hex)
-        }
+    ).test { (dec, hex) ->
+        expectThat(dec.toHexString()).isEqualTo(hex)
     }
 
     @TestFactory
@@ -32,9 +30,7 @@ class ToHexStringKtTest {
         16 to "10",
         65535 to "FFFF",
         65536 to "010000",
-    ).map { (dec, hex) ->
-        dynamicTest("$dec ≟ $hex") {
-            expectThat(dec.toHexString(pad = true)).isEqualTo(hex)
-        }
+    ).test { (dec, hex) ->
+        expectThat(dec.toHexString(pad = true)).isEqualTo(hex)
     }
 }

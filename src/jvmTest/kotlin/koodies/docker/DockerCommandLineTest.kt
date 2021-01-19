@@ -2,13 +2,17 @@ package koodies.docker
 
 import koodies.concurrent.process.CommandLine
 import koodies.docker.DockerContainerName.Companion.toContainerName
+import koodies.io.path.asPath
 import koodies.shell.toHereDoc
 import koodies.test.toStringIsEqualTo
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 import java.nio.file.Path
 
 @Execution(CONCURRENT)
@@ -21,6 +25,7 @@ class DockerCommandLineTest {
                 name = "container-name".toContainerName(),
                 privileged = true,
                 autoCleanup = true,
+                workingDirectory = "/a".asContainerPath(),
                 interactive = true,
                 pseudoTerminal = true,
                 mounts = MountOptions(
@@ -44,8 +49,51 @@ class DockerCommandLineTest {
 
     @Test
     fun `should build valid docker run`() {
+        expectThat(DOCKER_RUN_COMMAND).toStringIsEqualTo("""
+                docker \
+                run \
+                --env \
+                key1=value1 \
+                --env \
+                "KEY2=VALUE 2" \
+                --name \
+                container-name \
+                --privileged \
+                -w \
+                /a \
+                --rm \
+                -i \
+                -t \
+                --mount \
+                type=bind,source=/a/b,target=/c/d \
+                --mount \
+                type=bind,source=/e/f/../g,target=/h \
+                repo/name:tag \
+                work \
+                -arg1 \
+                --argument \
+                2 \
+                <<HEREDOC
+                heredoc 1
+                -heredoc-line-2
+                HEREDOC \
+                /c/d/c \
+                /c/d/e \
+                /h/h \
+                /h/h \
+                /h/i \
+                arg=/c/d/c \
+                arg=/c/d/e \
+                arg=/h/h \
+                arg=/h/h \
+                arg=/h/i
+                """.trimIndent())
+    }
+
+    @Test
+    fun `should re-map paths`() {
         expect {
-            that(DOCKER_RUN_COMMAND.workingDirectory).isEqualTo(Path.of("/some/where"))
+            that(DOCKER_RUN_COMMAND.workingDirectory).isEqualTo("/some/where".asPath())
             that(DOCKER_RUN_COMMAND).toStringIsEqualTo("""
                 docker \
                 run \
@@ -56,6 +104,8 @@ class DockerCommandLineTest {
                 --name \
                 container-name \
                 --privileged \
+                -w \
+                /a \
                 --rm \
                 -i \
                 -t \
@@ -84,5 +134,97 @@ class DockerCommandLineTest {
                 arg=/h/i
                 """.trimIndent())
         }
+    }
+
+    @Nested
+    inner class WorkingDirectory {
+
+        @Nested
+        inner class DockerOptionSpecified {
+
+            @Test
+            fun `should ignore guest command line`() {
+                expectThat(dockerCommandLine(
+                    optionsWorkingDir = "/a",
+                    guestWorkingDir = "/some/where",
+                    "/a/b" to "/c/d",
+                    "/e/f/../g" to "//h").options.workingDirectory).isEqualTo("/a".asContainerPath())
+            }
+
+            @Test
+            fun `should take as is - even if re-mappable`() {
+                expectThat(dockerCommandLine(
+                    optionsWorkingDir = "/a/b/1",
+                    guestWorkingDir = "/some/where",
+                    "/a/b" to "/c/d",
+                    "/e/f/../g" to "//h").options.workingDirectory).isEqualTo("/a/b/1".asContainerPath())
+            }
+
+            @Test
+            fun `should use re-use guest working dir`() {
+                expectThat(dockerCommandLine(
+                    optionsWorkingDir = "/a",
+                    guestWorkingDir = "/some/where",
+                    "/a/b" to "/c/d",
+                    "/e/f/../g" to "//h").workingDirectory).isEqualTo("/some/where".asPath())
+            }
+        }
+
+        @Nested
+        inner class NoDockerOptionSpecified {
+
+            @Test
+            fun `should use guest working dir if re-mappable`() {
+                expectThat(dockerCommandLine(
+                    optionsWorkingDir = null,
+                    guestWorkingDir = "/a/b/1",
+                    "/a/b" to "/c/d",
+                    "/e/f/../g" to "//h").options.workingDirectory).isEqualTo("/c/d/1".asContainerPath())
+            }
+
+            @Test
+            fun `should ignore guest working dir if not re-mappable`() {
+                expectThat(dockerCommandLine(
+                    optionsWorkingDir = null,
+                    guestWorkingDir = "/some/where",
+                    "/a/b" to "/c/d",
+                    "/e/f/../g" to "//h").options.workingDirectory).isNull()
+            }
+
+            @Test
+            fun `should use re-use guest working dir`() {
+                expectThat(dockerCommandLine(
+                    optionsWorkingDir = null,
+                    guestWorkingDir = "/some/where",
+                    "/a/b" to "/c/d",
+                    "/e/f/../g" to "//h").workingDirectory).isEqualTo("/some/where".asPath())
+            }
+        }
+
+        private fun dockerCommandLine(optionsWorkingDir: String?, guestWorkingDir: String, vararg mounts: Pair<String, String>) = DockerCommandLine(
+            DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("tag")),
+            dockerOptions(optionsWorkingDir, *mounts),
+            guestCommandLine(guestWorkingDir)
+        )
+
+        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): DockerCommandLineOptions {
+            return DockerCommandLineOptions(
+                name = "container-name".toContainerName(),
+                workingDirectory = optionsWorkingDir?.asContainerPath(),
+                mounts = MountOptions(
+                    *mounts.map {
+                        MountOption(source = it.first.asHostPath(), target = it.second.asContainerPath())
+                    }.toTypedArray()
+                ),
+            )
+        }
+
+        private fun guestCommandLine(guestWorkingDir: String) = CommandLine(
+            redirects = emptyList(),
+            environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
+            workingDirectory = guestWorkingDir.asPath(),
+            command = "work",
+            arguments = listOf("-arg1", "--argument"),
+        )
     }
 }

@@ -8,13 +8,15 @@ import koodies.concurrent.process.CommandLineBuilder
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
+import koodies.text.splitAndMap
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
-class DockerCommandLine(
+open class DockerCommandLine private constructor(
     val image: DockerImage,
-    val options: DockerCommandLineOptions = DockerCommandLineOptions(),
+    val options: DockerCommandLineOptions,
     commandLine: CommandLine,
+    dummy: Any?,
 ) : CommandLine(
     redirects = commandLine.redirects,
     environment = commandLine.environment,
@@ -28,15 +30,22 @@ class DockerCommandLine(
         }
         +options
         +image.formatted
-        if (commandLine.command.isNotBlank() && options.entryPoint == null) +commandLine.command
-        +commandLine.arguments.map { arg ->
-            arg.split("=").map { it.mapToContainerPathOrNull(options.mounts)?.asString() ?: it }.joinToString("=")
+        if (commandLine.command.isNotBlank() && options.entryPoint == null) {
+            +commandLine.command
+        }
+        commandLine.arguments.map { arg ->
+            +arg.splitAndMap("=") { options.mapToContainerPathOrNull(asHostPath())?.asString() ?: this }
         }
     },
 ) {
+    constructor(image: DockerImage, options: DockerCommandLineOptions = DockerCommandLineOptions(), commandLine: CommandLine) : this(
+        image = image,
+        options = options.withFallbackWorkingDirectory(commandLine.workingDirectory),
+        commandLine = commandLine,
+        dummy = null,
+    )
+
     companion object {
-        private fun String.mapToContainerPathOrNull(mounts: MountOptions): ContainerPath? =
-            kotlin.runCatching { mounts.mapToContainerPath(asHostPath()) }.getOrNull()
 
         fun build(image: DockerImage, init: DockerCommandLineBuilder.() -> Unit = {}): DockerCommandLine =
             DockerCommandLineBuilder.build(image, init = init)
@@ -59,7 +68,7 @@ class DockerCommandLine(
 fun DockerImage.buildCommandLine(init: DockerCommandLineBuilder.() -> Unit) =
     DockerCommandLineBuilder.build(image = this, init = init)
 
-class DockerCommandLineBuilder(
+open class DockerCommandLineBuilder(
     private var options: DockerCommandLineOptions = DockerCommandLineOptions(),
     private var commandLine: CommandLine = CommandLine.build(""),
 ) {
@@ -81,6 +90,7 @@ data class DockerCommandLineOptions(
     val entryPoint: String? = null,
     val name: DockerContainerName? = null,
     val privileged: Boolean = false,
+    val workingDirectory: ContainerPath? = null,
     val autoCleanup: Boolean = true,
     val interactive: Boolean = true,
     val pseudoTerminal: Boolean = false,
@@ -89,11 +99,27 @@ data class DockerCommandLineOptions(
     entryPoint?.also { +"--entrypoint" + entryPoint }
     name?.also { +"--name" + name.sanitized }
     privileged.takeIf { it }?.also { +"--privileged" }
+    workingDirectory?.also { +"-w" + it.asString() }
     autoCleanup.takeIf { it }?.also { +"--rm" }
     interactive.takeIf { it }?.also { +"-i" }
     pseudoTerminal.takeIf { it }?.also { +"-t" }
     mounts.forEach { +it }
-})
+}) {
+    /**
+     * Checks if this strings represents a path accessible by one of the [MountOptions]
+     * of the specified [DockerCommandLineOptions] and if so, returns the mapped [ContainerPath].
+     */
+    fun mapToContainerPathOrNull(hostPath: HostPath): ContainerPath? =
+        kotlin.runCatching { mounts.mapToContainerPath(hostPath) }.getOrNull()
+
+    fun withFallbackWorkingDirectory(fallbackWorkingDirectory: HostPath): DockerCommandLineOptions {
+        if (workingDirectory == null) {
+            val mappedFallbackWorkingDirectory = mapToContainerPathOrNull(fallbackWorkingDirectory)
+            if (mappedFallbackWorkingDirectory != null) return copy(workingDirectory = mappedFallbackWorkingDirectory)
+        }
+        return this
+    }
+}
 
 @DockerCommandLineDsl
 abstract class DockerCommandLineOptionsBuilder {
@@ -116,6 +142,7 @@ abstract class DockerCommandLineOptionsBuilder {
     fun name(name: () -> String?) = options.copy(name = name()?.let { DockerContainerName(it) }).run { options = this }
     fun containerName(name: () -> DockerContainerName?) = options.copy(name = name()).run { options = this }
     fun privileged(privileged: () -> Boolean) = options.copy(privileged = privileged()).run { options = this }
+    fun workingDirectory(workingDirectory: () -> ContainerPath?) = options.copy(workingDirectory = workingDirectory()).run { options = this }
     fun autoCleanup(autoCleanup: () -> Boolean) = options.copy(autoCleanup = autoCleanup()).run { options = this }
     fun interactive(interactive: () -> Boolean) = options.copy(interactive = interactive()).run { options = this }
     fun pseudoTerminal(pseudoTerminal: () -> Boolean) = options.copy(pseudoTerminal = pseudoTerminal()).run { options = this }
@@ -141,13 +168,13 @@ data class MountOption(val type: String = "bind", val source: HostPath, val targ
 
     fun mapToHostPath(containerPath: ContainerPath): HostPath {
         require(containerPath.isSubPathOf(target)) { "$containerPath is not mapped by $target" }
-        val relativePath = containerPath.relativeTo(target).asString()
+        val relativePath = containerPath.relativeTo(target)
         return source.resolve(relativePath)
     }
 
     fun mapToContainerPath(hostPath: HostPath): ContainerPath {
         require(hostPath.isSubPathOf(source)) { "$hostPath is not mapped by $source" }
-        val relativePath = hostPath.relativeTo(source).asContainerPath()
+        val relativePath = hostPath.relativeTo(source).asString()
         return target.resolve(relativePath)
     }
 }
@@ -195,19 +222,28 @@ class MountOptions(private val mountOptions: List<MountOption>) : AbstractList<M
 }
 
 inline class ContainerPath(private val containerPath: Path) {
-    fun relativeTo(baseContainerPath: ContainerPath): ContainerPath =
-        containerPath.relativeTo(baseContainerPath.containerPath).asContainerPath()
+    private val absolutePath: Path
+        get() {
+            require(containerPath.isAbsolute) { "$containerPath must be absolute." }
+            return containerPath.toAbsolutePath()
+        }
+
+    fun relativeTo(baseContainerPath: ContainerPath): String =
+        absolutePath.relativeTo(baseContainerPath.absolutePath).asString()
 
     fun isSubPathOf(baseContainerPath: ContainerPath): Boolean =
-        containerPath.isSubPathOf(baseContainerPath.containerPath)
+        absolutePath.isSubPathOf(baseContainerPath.absolutePath)
 
     fun resolve(other: ContainerPath): ContainerPath =
-        containerPath.resolve(other.containerPath).asContainerPath()
+        absolutePath.resolve(other.absolutePath).asContainerPath()
+
+    fun resolve(other: String): ContainerPath =
+        absolutePath.resolve(other).asContainerPath()
 
     fun mapToHostPath(mountOptions: MountOptions) =
         mountOptions.mapToHostPath(this)
 
-    fun asString() = containerPath.asString()
+    fun asString() = absolutePath.asString()
 
     override fun toString(): String = asString()
 }

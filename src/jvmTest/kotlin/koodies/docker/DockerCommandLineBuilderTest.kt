@@ -22,6 +22,7 @@ class DockerCommandLineBuilderTest {
                 name { "container-name" }
                 privileged { true }
                 autoCleanup { true }
+                workingDirectory { "/a".asContainerPath() }
                 interactive { true }
                 pseudoTerminal { true }
                 mounts {

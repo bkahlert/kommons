@@ -2,6 +2,7 @@ package koodies.concurrent.process
 
 import com.github.ajalt.mordant.AnsiColorCode
 import koodies.concurrent.scriptPath
+import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.logging.RenderingLogger
 import koodies.logging.asStatus
@@ -27,7 +28,7 @@ import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 open class CommandLine(
     val redirects: List<String>,
     val environment: Map<String, String>,
-    open val workingDirectory: Path,
+    workingDirectory: Path,
     val command: String,
     val arguments: List<String>,
 ) {
@@ -44,6 +45,8 @@ open class CommandLine(
         command: Path,
         vararg arguments: String,
     ) : this(environment, workingDirectory, command.asString(), *arguments)
+
+    val workingDirectory: Path = workingDirectory.toAbsolutePath()
 
     private val formattedRedirects =
         redirects.takeIf { it.isNotEmpty() }?.joinToString(separator = " ", postfix = " ") ?: ""
@@ -100,7 +103,10 @@ open class CommandLine(
     /**
      * Contains all accessible files contained in this command line.
      */
-    val includedFiles get() = commandLineParts.map { Path.of(it.unquoted) }.filter { it.exists() }
+    val includedFiles
+        get() = commandLineParts.map { it.unquoted.asPath() }
+            .filter { it != it.root }
+            .filter { it.exists() }
 
     /**
      * Contains a formatted list of files contained in this command line.

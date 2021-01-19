@@ -30,56 +30,56 @@ class CasesKtTest {
             val converted = camelCase.convertCamelCaseToKebabCase()
             expectThat(converted).isEqualTo(kebabCase)
         }
-        test("should split ${kebabCase.quoted}") {
-            val split = kebabCase.splitKebabCase()
-            expectThat(split).containsExactly(parts)
+
+        container("string based") {
+            container("split") {
+                test("should split kebab-case") {
+                    expectThat(kebabCase.splitKebabCase()).containsExactly(parts)
+                }
+                test("should split camelCase") {
+                    expectThat(camelCase.splitCamelCase()).containsExactly(parts)
+                }
+                test("should split PascalCase") {
+                    expectThat(camelCase.capitalize().toString().splitPascalCase()).containsExactly(parts)
+                }
+            }
+            container("join") {
+                test("should join to kebab-case") {
+                    expectThat(parts.joinToKebabCase()).isEqualTo(kebabCase)
+                }
+                test("should join to camelCase") {
+                    expectThat(parts.joinToCamelCase()).isEqualTo(camelCase)
+                }
+                test("should join to PascalCase") {
+                    expectThat(parts.joinToPascalCase()).isEqualTo(camelCase.capitalize().toString())
+                }
+            }
         }
-        test("should split ${kebabCase.quoted} (CharSequence)") {
-            val split = kebabCase.decapitalize().splitKebabCase()
-            expectThat(split).containsExactlyCharacterWise(parts)
-        }
-        test("should join to kebab-case") {
-            val joined = parts.joinToKebabCase()
-            expectThat(joined).isEqualTo(kebabCase)
-        }
-        test("should join to kebab-case (CharSequence)") {
-            @Suppress("USELESS_CAST")
-            val joined = parts.map { it as CharSequence }.joinToKebabCase()
-            expectThat(joined).isEqualToCharacterWise(kebabCase)
-        }
-        test("should split ${camelCase.quoted}") {
-            val split = camelCase.splitCamelCase()
-            expectThat(split).containsExactly(parts)
-        }
-        test("should split ${camelCase.quoted} (CharSequence)") {
-            val split = camelCase.decapitalize().splitCamelCase()
-            expectThat(split).containsExactlyCharacterWise(parts)
-        }
-        test("should join to camelCase") {
-            val joined = parts.joinToCamelCase()
-            expectThat(joined).isEqualTo(camelCase)
-        }
-        test("should join to camelCase (CharSequence)") {
-            @Suppress("USELESS_CAST")
-            val joined = parts.map { it as CharSequence }.joinToCamelCase()
-            expectThat(joined).isEqualToCharacterWise(camelCase)
-        }
-        test("should split ${camelCase.capitalize().quoted}") {
-            val split = camelCase.capitalize().toString().splitPascalCase()
-            expectThat(split).containsExactly(parts)
-        }
-        test("should split ${camelCase.capitalize().quoted} (CharSequence)") {
-            val split = camelCase.capitalize().splitPascalCase()
-            expectThat(split).containsExactlyCharacterWise(parts)
-        }
-        test("should join to PascalCase") {
-            val joined = parts.joinToPascalCase()
-            expectThat(joined).isEqualTo(camelCase.capitalize().toString())
-        }
-        test("should join to PascalCase (CharSequence)") {
-            @Suppress("USELESS_CAST")
-            val joined = parts.map { it as CharSequence }.joinToPascalCase()
-            expectThat(joined).isEqualToCharacterWise(camelCase.capitalize())
+
+        @Suppress("USELESS_CAST")
+        container("char sequence based") {
+            container("split") {
+                test("should split kebab-case") {
+                    expectThat(kebabCase.decapitalize().splitKebabCase()).containsExactlyCharacterWise(parts)
+                }
+                test("should split camelCase") {
+                    expectThat(camelCase.decapitalize().splitCamelCase()).containsExactlyCharacterWise(parts)
+                }
+                test("should split PascalCase") {
+                    expectThat(camelCase.capitalize().splitPascalCase()).containsExactlyCharacterWise(parts)
+                }
+            }
+            container("join") {
+                test("should join to kebab-case") {
+                    expectThat(parts.map { it as CharSequence }.joinToKebabCase()).isEqualToCharacterWise(kebabCase)
+                }
+                test("should join to camelCase") {
+                    expectThat(parts.map { it as CharSequence }.joinToCamelCase()).isEqualToCharacterWise(camelCase)
+                }
+                test("should join to PascalCase") {
+                    expectThat(parts.map { it as CharSequence }.joinToPascalCase()).isEqualToCharacterWise(camelCase.capitalize())
+                }
+            }
         }
     }
 
@@ -100,39 +100,44 @@ class CasesKtTest {
             val converted = screamingSnakeCase.convertScreamingSnakeCaseToKebabCase()
             expectThat(converted).isEqualTo(kebabCase)
         }
-        test("should split ${kebabCase.quoted}") {
-            val split = kebabCase.splitKebabCase()
-            expectThat(split).containsExactly(parts)
+
+        container("string based") {
+            container("split") {
+                test("should split kebab-case") {
+                    expectThat(kebabCase.splitKebabCase()).containsExactly(parts)
+                }
+                test("should split SCREAMING_SNAKE_CASE") {
+                    expectThat(screamingSnakeCase.splitScreamingSnakeCase()).containsExactly(parts)
+                }
+            }
+            container("join") {
+                test("should join to kebab-case") {
+                    expectThat(parts.joinToKebabCase()).isEqualTo(kebabCase)
+                }
+                test("should join to SCREAMING_SNAKE_CASE") {
+                    expectThat(parts.joinToScreamingSnakeCase()).isEqualTo(screamingSnakeCase)
+                }
+            }
         }
-        test("should split ${kebabCase.quoted} (CharSequence)") {
-            val split = kebabCase.decapitalize().splitKebabCase()
-            expectThat(split).containsExactlyCharacterWise(parts)
-        }
-        test("should join to kebab-case") {
-            val joined = parts.joinToKebabCase()
-            expectThat(joined).isEqualTo(kebabCase)
-        }
-        test("should join to kebab-case (CharSequence)") {
+
+        container("char sequence based") {
+            container("split") {
+                test("should split kebab-case (CharSequence)") {
+                    expectThat(kebabCase.decapitalize().splitKebabCase()).containsExactlyCharacterWise(parts)
+                }
+                test("should split SCREAMING_SNAKE_CASE (CharSequence)") {
+                    expectThat(screamingSnakeCase.capitalize().splitScreamingSnakeCase()).containsExactlyCharacterWise(parts)
+                }
+            }
             @Suppress("USELESS_CAST")
-            val joined = parts.map { it as CharSequence }.joinToKebabCase()
-            expectThat(joined).isEqualToCharacterWise(kebabCase)
-        }
-        test("should split ${screamingSnakeCase.quoted}") {
-            val split = screamingSnakeCase.splitScreamingSnakeCase()
-            expectThat(split).containsExactly(parts)
-        }
-        test("should split ${screamingSnakeCase.quoted} (CharSequence)") {
-            val split = screamingSnakeCase.capitalize().splitScreamingSnakeCase()
-            expectThat(split).containsExactlyCharacterWise(parts)
-        }
-        test("should join to SCREAMING_SNAKE_CASE") {
-            val joined = parts.joinToScreamingSnakeCase()
-            expectThat(joined).isEqualTo(screamingSnakeCase)
-        }
-        test("should join to SCREAMING_SNAKE_CASE (CharSequence)") {
-            @Suppress("USELESS_CAST")
-            val joined = parts.map { it as CharSequence }.joinToScreamingSnakeCase()
-            expectThat(joined).isEqualToCharacterWise(screamingSnakeCase)
+            container("join") {
+                test("should join to kebab-case (CharSequence)") {
+                    expectThat(parts.map { it as CharSequence }.joinToKebabCase()).isEqualToCharacterWise(kebabCase)
+                }
+                test("should join to SCREAMING_SNAKE_CASE (CharSequence)") {
+                    expectThat(parts.map { it as CharSequence }.joinToScreamingSnakeCase()).isEqualToCharacterWise(screamingSnakeCase)
+                }
+            }
         }
     }
 

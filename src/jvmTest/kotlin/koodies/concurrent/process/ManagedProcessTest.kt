@@ -16,6 +16,7 @@ import koodies.test.testWithTempDir
 import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.lines
+import koodies.text.styling.Boxes.Companion.wrapWithBox
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -50,7 +51,7 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Execution(CONCURRENT)
-class ManagedJavaProcessTest {
+class ManagedProcessTest {
 
     @Nested
     inner class Creation {
@@ -144,11 +145,24 @@ class ManagedJavaProcessTest {
             process.waitForTermination()
 
             expectThat(process) {
-                killed
-                    .log.get("logged %s") { logged.drop(3).take(4) }.containsExactlyInSomeOrder {
-                        +(IO.Type.OUT typed "test out") + (IO.Type.ERR typed "test err")
-                        +(IO.Type.IN typed "just read ${IO.Type.OUT.format("test out")}") + (IO.Type.IN typed "just read ${IO.Type.ERR.format("test err")}")
+                kotlin.runCatching {
+                    killed
+                        .log.get("logged %s") { logged.drop(3).take(4) }.containsExactlyInSomeOrder {
+                            +(IO.Type.OUT typed "test out") + (IO.Type.ERR typed "test err")
+                            +(IO.Type.IN typed "just read ${IO.Type.OUT.format("test out")}") + (IO.Type.IN typed "just read ${IO.Type.ERR.format("test err")}")
+                        }
+                }.onFailure {
+                    // fails from time to time, therefore this unconventional introspection code
+                    get {
+                        println("""
+                            Logged instead:
+                            ${ioLog.logged}
+                            
+                            ... of what was evaluated:
+                            ${ioLog.logged.drop(3).take(4)}
+                        """.trimIndent().wrapWithBox())
                     }
+                }.getOrThrow()
             }
         }
     }

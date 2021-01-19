@@ -1,6 +1,13 @@
 package koodies.text
 
 /**
+ * Splits this strings using the specified [delimiter] applies [transform]
+ * to each substrings and joins back the mapped substrings to a string using the same [delimiter].
+ */
+fun String.splitAndMap(delimiter: String, transform: String.() -> String): String =
+    split(delimiter).map { transform(it) }.joinToString(delimiter)
+
+/**
  * Splits this char sequence to a sequence of strings around occurrences of the specified [delimiters].
  *
  * @param delimiters One or more strings to be used as delimiters.

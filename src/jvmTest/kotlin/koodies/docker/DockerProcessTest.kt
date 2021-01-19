@@ -27,6 +27,19 @@ import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class DockerProcessTest {
+    
+    @DockerRequiring @Test
+    fun `should start docker`(uniqueId: UniqueId) {
+        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().silentlyProcess()
+
+        kotlin.runCatching {
+            poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
+                .every(100.milliseconds).forAtMost(8.seconds) {
+                    if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
+                    fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
+                }
+        }.onFailure { dockerProcess.kill() }.getOrThrow()
+    }
 
     @Nested
     inner class Lifecycle {

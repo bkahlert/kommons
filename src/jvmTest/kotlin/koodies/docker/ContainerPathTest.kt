@@ -26,13 +26,13 @@ class ContainerPathTest {
         @Test
         fun `should relativize same-root absolute path`() {
             expectThat("/some/where/dir/file".asContainerPath().relativeTo("/some/where".asContainerPath()))
-                .isEqualTo("dir/file".asContainerPath())
+                .isEqualTo("dir/file")
         }
 
         @Test
         fun `should relativize different-root absolute path`() {
             expectThat("/different/root/dir/file".asContainerPath().relativeTo("/some/where".asContainerPath()))
-                .isEqualTo("../../different/root/dir/file".asContainerPath())
+                .isEqualTo("../../different/root/dir/file")
         }
     }
 
@@ -53,7 +53,7 @@ class ContainerPathTest {
     inner class Resolve {
         @Test
         fun `should resolve relative path`() {
-            expectThat("/some/where".asContainerPath().resolve("dir/file".asContainerPath()))
+            expectThat("/some/where".asContainerPath().resolve("dir/file"))
                 .isEqualTo("/some/where/dir/file".asContainerPath())
         }
 

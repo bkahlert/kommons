@@ -70,27 +70,12 @@ kotlin {
         println("\n\n\t\tProperty releasingFinal is set but the active version $version is not final.")
     }
 
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                @Suppress("SpellCheckingInspection")
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                    "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-                    "-Xopt-in=kotlin.time.ExperimentalTime",
-                    "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-                    "-Xinline-classes"
-                )
-            }
-            releasingFinal = false
-        }
-    }
     jvm {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
                 useIR = true
-                freeCompilerArgs = freeCompilerArgs + listOf(
+                freeCompilerArgs += listOf(
                     "-Xopt-in=kotlin.io.path.ExperimentalPathApi"
                 )
             }
@@ -144,7 +129,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 @Suppress("SpellCheckingInspection")
-                freeCompilerArgs = freeCompilerArgs + listOf(
+                freeCompilerArgs += listOf(
                     "-Xopt-in=kotlin.RequiresOptIn",
                     "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
                     "-Xopt-in=kotlin.time.ExperimentalTime",
@@ -152,15 +137,6 @@ kotlin {
                     "-Xinline-classes"
                 )
             }
-        }
-    }
-
-    tasks.withType<Jar>().configureEach {
-        manifest {
-            attributes(mapOf(
-                "Implementation-Title" to project.name,
-                "Implementation-Version" to project.version
-            ))
         }
     }
 
@@ -221,7 +197,6 @@ kotlin {
         }
         val nativeMain by getting
         val nativeTest by getting
-
 
         publishing {
             publications {

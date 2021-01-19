@@ -116,3 +116,11 @@ class IOLog {
  * to have non-corrupted data (e.g. split characters).
  */
 fun ManagedProcess.logged(type: Type): IO = ioLog.logged(type)
+
+/**
+ * Contains the currently logged I/O of this [ManagedProcess].
+ *
+ * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
+ * to have non-corrupted data (e.g. split characters).
+ */
+val ManagedProcess.logged: String get() = ioLog.logged()

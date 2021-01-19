@@ -331,7 +331,7 @@ class JavaProcessMockTest {
             
             Correct!
         
-        """.trimIndent())
+            """.trimIndent())
         expectThat(p.isAlive).isFalse()
     }
 

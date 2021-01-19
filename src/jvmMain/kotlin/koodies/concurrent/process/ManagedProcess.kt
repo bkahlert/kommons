@@ -14,6 +14,8 @@ import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.concurrent.thread
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 import java.lang.Process as JavaProcess
 
@@ -38,11 +40,17 @@ interface ManagedProcess : Process {
 private fun CommandLine.toJavaProcess(): JavaProcess {
     val scriptFile: String = if (command.asPath().isScriptFile()) command else toShellScript().asString()
 
-    return PlexusCommandLine(scriptFile).let {
-        it.workingDirectory = workingDirectory.toFile()
-        environment.forEach { env -> it.addEnvironment(env.key, env.value) }
-        it.execute()
+    val shell = PlexusCommandLine().shell
+    val shellCommandLine = shell.getShellCommandLine(arrayOf(scriptFile))
+    val processBuilder = ProcessBuilder(shellCommandLine).also { pb ->
+        pb.environment().putAll(environment)
+        pb.directory(workingDirectory.toAbsolutePath().run {
+            require(exists()) { "Working directory $this does not exist." }
+            require(isDirectory()) { "Working directory $this is no directory." }
+            toFile()
+        })
     }
+    return processBuilder.start()
 }
 
 /**

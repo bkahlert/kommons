@@ -1,6 +1,8 @@
 package koodies.logging
 
 import koodies.collections.withNegativeIndices
+import koodies.concurrent.output
+import koodies.concurrent.script
 import koodies.concurrent.synchronized
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -49,6 +51,15 @@ open class InMemoryLogger private constructor(
     )
 
     constructor() : this("Test", true, -1, emptyList())
+
+    /**
+     * Runs this strings as a shell script,
+     * logs the output and returns it.
+     */
+    fun String.not(): String =
+        logging("$ ${this@not}", bordered = false) {
+            script { !this@not }.output().also { it.prefixLinesWith("> ") }
+        }
 
     private val messages: List<CharSequence> by withNegativeIndices { captured }
     private val raw: String get() = messages.joinToString("\n")

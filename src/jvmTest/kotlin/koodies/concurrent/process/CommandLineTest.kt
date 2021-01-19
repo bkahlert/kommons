@@ -1,6 +1,7 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.output
+import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.test.UniqueId
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.exists
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
@@ -228,17 +230,51 @@ class CommandLineTest {
         }
     }
 
-    @Test
-    fun `should provide summary`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(CommandLine(
-            emptyMap(), this,
-            "!ls", "-lisa",
-            "!mkdir", "-p", "/shared",
-            "!mkdir", "-p", "/shared/guestfish.shared/boot",
-            "-copy-out", "/boot/cmdline.txt", "/shared/guestfish.shared/boot",
-            "!mkdir", "-p", "/shared/guestfish.shared/non",
-            "-copy-out", "/non/existing.txt", "/shared/guestfish.shared/non",
-        ).summary).matchesCurlyPattern("◀◀ lisa  ◀ mkdir  ◀ …  ◀ mkdir")
+    @Nested
+    inner class Rendering {
+
+        @Nested
+        inner class IncludedFiles {
+            private fun commandLine(vararg paths: Path) = CommandLine(
+                emptyMap(), Locations.Temp,
+                "basename",
+                *paths.map { it.asString() }.toTypedArray()
+            )
+
+            @Test
+            fun `should contain all files`() {
+                expectThat(commandLine(
+                    Locations.HomeDirectory,
+                    Locations.WorkingDirectory,
+                ).includedFiles).containsExactly(
+                    Locations.HomeDirectory,
+                    Locations.WorkingDirectory,
+                )
+            }
+
+            @Test
+            fun `should hide root`() {
+                expectThat(commandLine(
+                    Locations.HomeDirectory.root,
+                    Locations.WorkingDirectory,
+                ).includedFiles).containsExactly(
+                    Locations.WorkingDirectory,
+                )
+            }
+        }
+
+        @Test
+        fun `should provide summary`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine(
+                emptyMap(), this,
+                "!ls", "-lisa",
+                "!mkdir", "-p", "/shared",
+                "!mkdir", "-p", "/shared/guestfish.shared/boot",
+                "-copy-out", "/boot/cmdline.txt", "/shared/guestfish.shared/boot",
+                "!mkdir", "-p", "/shared/guestfish.shared/non",
+                "-copy-out", "/non/existing.txt", "/shared/guestfish.shared/non",
+            ).summary).matchesCurlyPattern("◀◀ lisa  ◀ mkdir  ◀ …  ◀ mkdir")
+        }
     }
 }
 
