@@ -1,7 +1,8 @@
 import org.gradle.api.plugins.JavaBasePlugin.DOCUMENTATION_GROUP
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
-import org.jetbrains.dokka.Platform.native
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     base
@@ -9,6 +10,8 @@ plugins {
     id("org.jetbrains.dokka") version "1.4.20"
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
+    id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
+    id("io.gitlab.arturbosch.detekt") version "1.15.0"
 
     id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
@@ -25,6 +28,31 @@ allprojects {
 description = "Random Kotlin Goodies"
 group = "com.bkahlert.koodies"
 
+configure<KtlintExtension> {
+    debug.set(true)
+    verbose.set(true)
+    android.set(false)
+    outputToConsole.set(true)
+    outputColorName.set("RED")
+    ignoreFailures.set(true)
+    enableExperimentalRules.set(true)
+//    additionalEditorconfigFile.set(file("/some/additional/.editorconfig"))
+    disabledRules.set(setOf(
+        "no-consecutive-blank-lines"
+    ))
+    reporters {
+        reporter(PLAIN)
+        reporter(CHECKSTYLE)
+    }
+    kotlinScriptAdditionalPaths {
+        include(fileTree("scripts/"))
+    }
+    filter {
+        exclude("**/generated/**")
+        include("**/kotlin/**")
+    }
+}
+
 repositories {
     mavenCentral()
     jcenter()
@@ -40,10 +68,23 @@ repositories {
 kotlin {
     if (releasingFinal && !version.isFinal()) {
         println("\n\n\t\tProperty releasingFinal is set but the active version $version is not final.")
-        println("\t\tTurning releasingFinal off. To release please read RELEASING.md.\n")
-        releasingFinal = false
     }
 
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                @Suppress("SpellCheckingInspection")
+                freeCompilerArgs = freeCompilerArgs + listOf(
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+                    "-Xopt-in=kotlin.time.ExperimentalTime",
+                    "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+                    "-Xinline-classes"
+                )
+            }
+            releasingFinal = false
+        }
+    }
     jvm {
         compilations.all {
             kotlinOptions {
@@ -181,52 +222,23 @@ kotlin {
         val nativeMain by getting
         val nativeTest by getting
 
-        val dokkaTask = tasks.withType<DokkaTask>().configureEach {
-            dokkaSourceSets {
-                configureEach {
-                    if (platform.get() == native) {
-                        displayName.set("native")
-                    }
-                }
-            }
-        }
-
-        tasks {
-            val dokkaOutputDir = "$buildDir/dokka"
-            dokkaHtml { outputDirectory.set(file(dokkaOutputDir)) }
-
-            val deleteDokkaOutputDir by registering(Delete::class) {
-                delete(dokkaOutputDir)
-            }
-
-            register<Jar>("javadocJar") {
-                group = DOCUMENTATION_GROUP
-                dependsOn(deleteDokkaOutputDir, dokkaHtml)
-                archiveClassifier.set("javadoc")
-                from(dokkaOutputDir)
-            }
-        }
-        val dockerJavadocJar by tasks.named("javadocJar")
-
-        val dokkaHtmlJar by tasks.register<Jar>("dokkaHtmlJar") {
-            group = DOCUMENTATION_GROUP
-            dependsOn(tasks.dokkaHtml)
-            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-            archiveClassifier.set("html-doc")
-        }
-
-        signing {
-            sign(publishing.publications)
-        }
 
         publishing {
             publications {
+                withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
+                    artifact(tasks.register<Jar>("dokkaHtmlJar") {
+                        group = DOCUMENTATION_GROUP
+                        dependsOn(tasks.dokkaHtml)
+                        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+                        archiveClassifier.set("kdoc")
+                    })
+                }
                 withType<MavenPublication>().configureEach {
 
-//                    if (name == "kotlinMultiplatform") {
-                    artifact(dockerJavadocJar)
-                    artifact(dokkaHtmlJar)
-//                    }
+                    artifact(tasks.register<Jar>("${name}JavaDocJar") {
+                        archiveBaseName.set("${project.name}-${this@configureEach.name}")
+                        archiveClassifier.set("javadoc")
+                    })
 
                     pom {
                         name.set("Koodies")
@@ -247,11 +259,12 @@ kotlin {
                             url.set("$baseUrl/issues")
                             system.set("GitHub")
                         }
-                        // TODO
-//                        ciManagement {
-//                            url.set("$baseUrl/issues")
-//                            system.set("GitHub")
-//                        }
+
+                        ciManagement {
+                            url.set("$baseUrl/issues")
+                            system.set("GitHub")
+                        }
+
                         developers {
                             developer {
                                 id.set("bkahlert")
@@ -289,6 +302,10 @@ kotlin {
                     }
                 }
             }
+        }
+
+        signing {
+            sign(publishing.publications)
         }
     }
 }
