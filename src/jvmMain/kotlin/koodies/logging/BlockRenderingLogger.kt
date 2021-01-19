@@ -87,13 +87,13 @@ open class BlockRenderingLogger(
 
     override fun logText(block: () -> CharSequence): Unit = block().let {
         render(false) {
-            it.asAnsiString().prefixLinesWith(ignoreTrailingSeparator = true, prefix = prefix)
+            it.asAnsiString().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = true)
         }
     }
 
     override fun logLine(block: () -> CharSequence): Unit = block().let {
         render(true) {
-            it.wrapNonUriLines(totalColumns).prefixLinesWith(ignoreTrailingSeparator = false, prefix = prefix)
+            it.wrapNonUriLines(totalColumns).prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
         }
     }
 
@@ -111,7 +111,7 @@ open class BlockRenderingLogger(
 
     override fun logException(block: () -> Throwable): Unit = block().let {
         render(true) {
-            IO.Type.ERR.format(it.stackTraceToString()).prefixLinesWith(ignoreTrailingSeparator = false, prefix)
+            IO.Type.ERR.format(it.stackTraceToString()).prefixLinesWith(prefix, ignoreTrailingSeparator = false)
         }
     }
 

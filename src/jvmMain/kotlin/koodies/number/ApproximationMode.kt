@@ -29,20 +29,20 @@ enum class ApproximationMode(val calc: (Double, Double) -> Double) {
          *
          * @param resolution The resolution of this operation. `1` by default. Use `0.5` for example to round to halves.
          */
-        fun Number.ceil(resolution: Double): Double = Ceil.calc(this.toDouble(), resolution)
+        fun Number.ceil(resolution: Double = 1.0): Double = Ceil.calc(this.toDouble(), resolution)
 
         /**
          * Rounds the [Double] value of this number down using the optional [resolution].
          *
          * @param resolution The resolution of this operation. `1` by default. Use `0.5` for example to round to halves.
          */
-        fun Number.floor(resolution: Double): Double = Floor.calc(this.toDouble(), resolution)
+        fun Number.floor(resolution: Double = 1.0): Double = Floor.calc(this.toDouble(), resolution)
 
         /**
          * Rounds the [Double] value of this number using the optional [resolution].
          *
          * @param resolution The resolution of this operation. `1` by default. Use `0.5` for example to round to halves.
          */
-        fun Number.round(resolution: Double): Double = Round.calc(this.toDouble(), resolution)
+        fun Number.round(resolution: Double = 1.0): Double = Round.calc(this.toDouble(), resolution)
     }
 }
