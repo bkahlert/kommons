@@ -1,8 +1,9 @@
 package koodies.text.styling
 
-import koodies.text.maxLineLength
-import koodies.text.repeat
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.Unicode.NBSP
+import koodies.text.maxLength
+import koodies.text.repeat
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -21,15 +22,15 @@ import kotlin.math.floor
  * bar baz
  * ```
  */
-fun <T : CharSequence> Iterable<T>.center(whitespace: Char = '\u00A0'): List<String> =
-    map { it.trim() }.let { trimmed ->
-        trimmed.maxLineLength().let { maxLength ->
-            trimmed.map { line ->
-                val missing: Double = (maxLength - line.removeEscapeSequences().length) / 2.0
-                whitespace.repeat(floor(missing).toInt()) + line + whitespace.repeat(ceil(missing).toInt())
-            }.toList()
-        }
-    }
+fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLength: Int = 0): List<String> {
+    val trimmed = map { it.trim() }
+    val maxLength = trimmed.maxLength()
+    val finalLength = maxLength.coerceAtLeast(minLength)
+    return trimmed.map { line ->
+        val missing: Double = (finalLength - line.removeEscapeSequences().length) / 2.0
+        whitespace.repeat(floor(missing).toInt()) + line + whitespace.repeat(ceil(missing).toInt())
+    }.toList()
+}
 
 
 /**
@@ -47,5 +48,5 @@ fun <T : CharSequence> Iterable<T>.center(whitespace: Char = '\u00A0'): List<Str
  * bar baz
  * ```
  */
-fun <T : CharSequence> T.center(whitespace: Char = '\u00A0'): String =
+fun <T : CharSequence> T.center(whitespace: Char = NBSP, minLength: Int = 0): String =
     lines().center(whitespace).joinToString("\n")

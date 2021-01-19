@@ -31,7 +31,7 @@ import koodies.text.LineSeparators.lineSequence
  *              Line d
  * ```
  */
-fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxLineLength(), paddingCharacter: Char = ' ', paddingWidth: Int = 5): AnsiString =
+fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxLength(), paddingCharacter: Char = ' ', paddingWidth: Int = 5): AnsiString =
     lineSequence()
         .zipWithDefault(column.lineSequence(), "" to "") { leftLine: String, rightLine: String ->
             val leftColumn = leftLine.asAnsiString().padEnd(columnWidth + paddingWidth, padChar = paddingCharacter)
@@ -68,7 +68,7 @@ fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxLineLength(),
  */
 fun CharSequence.addColumn(
     column: CharSequence,
-    columnWidth: Int = asAnsiString().maxLineLength(),
+    columnWidth: Int = asAnsiString().maxLength(),
     paddingCharacter: Char = ' ',
     paddingWidth: Int = 5,
 ): String =

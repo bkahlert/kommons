@@ -1,7 +1,11 @@
 package koodies.text.styling
 
-import koodies.text.repeat
 import koodies.number.isEven
+import koodies.text.LineSeparators.lineSequence
+import koodies.text.Unicode.NBSP
+import koodies.text.mapLines
+import koodies.text.maxLength
+import koodies.text.repeat
 import koodies.text.styling.Boxes.FAIL
 import koodies.text.styling.Boxes.PILLARS
 import koodies.text.styling.Boxes.SINGLE_LINE_SPHERICAL
@@ -57,7 +61,7 @@ enum class Boxes(private var render: (String) -> String) {
         ████▌▄▌▄▐▐▌█████
         ████▌▄▌▄▐▐▌▀████
         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-    """.trimIndent()
+        """.trimIndent()
     }),
 
     /**
@@ -68,15 +72,17 @@ enum class Boxes(private var render: (String) -> String) {
      * ```
      */
     SPHERICAL({ text ->
-        val fillCount = if (text.length.isEven) 14 else 15
-        val paddedText = (text + '\n' + ('X'.repeat(fillCount))).center().lines().first().padEnd(fillCount)
-        val fill = ' '.repeat((paddedText.length - fillCount).coerceAtLeast(0))
+        val fillCount = if (text.maxLength().isEven) 14 else 15
+        val paddedText = text.center(NBSP, fillCount)
+        val fill = ' '.repeat((paddedText.maxLength() - fillCount).coerceAtLeast(0))
 
-        """
-        $sphericalLeft$fill$sphericalRight
-        $sphericalMiddleLeft$paddedText$sphericalMiddleRight
-        $sphericalLeft$fill$sphericalRight
-        """.trimIndent()
+        StringBuilder().apply {
+            append("${sphericalLeft}$fill${sphericalRight}\n")
+            paddedText.lineSequence().joinToString(separator = "") {
+                append("${sphericalMiddleLeft}$it${sphericalMiddleRight}\n")
+            }
+            append("${sphericalLeft}$fill${sphericalRight}")
+        }.toString()
     }),
 
     /**
@@ -85,7 +91,9 @@ enum class Boxes(private var render: (String) -> String) {
      * ```
      */
     SINGLE_LINE_SPHERICAL({ text ->
-        " ▕  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  $text  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ▕  "
+        text.center().mapLines {
+            " ▕  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  $it  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ▕  "
+        }
     }),
 
     /**
@@ -94,7 +102,9 @@ enum class Boxes(private var render: (String) -> String) {
      * ```
      */
     WIDE_PILLARS({ text ->
-        "█ █ ▉▕▉ ▊▕▊▕▋ ▋▕▌ ▌ ▍▕▎ ▍ ▎▕▏ ▏ $text  ▏ ▏▕▎ ▍ ▎▕▍ ▌ ▌▕▋ ▋▕▊▕▊ ▉▕▉ █ █"
+        text.center().mapLines {
+            "█ █ ▉▕▉ ▊▕▊▕▋ ▋▕▌ ▌ ▍▕▎ ▍ ▎▕▏ ▏ $it  ▏ ▏▕▎ ▍ ▎▕▍ ▌ ▌▕▋ ▋▕▊▕▊ ▉▕▉ █ █"
+        }
     }),
 
     /**
@@ -103,7 +113,9 @@ enum class Boxes(private var render: (String) -> String) {
      * ```
      */
     PILLARS({ text ->
-        "█ ▉ ▊ ▋ ▌ ▍ ▎ ▏ $text  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █"
+        text.center().mapLines {
+            "█ ▉ ▊ ▋ ▌ ▍ ▎ ▏ $it  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █"
+        }
     }),
     ;
 
