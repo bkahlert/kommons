@@ -300,19 +300,21 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   )
   ```
 
-  Split strings into its lines...
+  Split string into its lines...
   ```kotlin
   """
   line 1
   line 2
+  
   """.lines() // line 1, line 2 
   ```
 
-  Split strings into its lines lazily...
-  ```kotlin
-  """
-  line 1
-  line 2
-  """.lineSequence() // line 1, line 2 
-  ```
-
+  Split string into its lines lazily and keep the line separator...
+    ```kotlin
+    """
+    line 1
+    line 2
+  
+    """.lineSequence(keepDelimiters=true) // line 1␤, line 2␍␊ 
+    ```
+  
