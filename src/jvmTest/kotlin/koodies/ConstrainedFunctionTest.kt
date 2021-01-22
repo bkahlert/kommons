@@ -7,16 +7,17 @@ import strikt.api.expect
 import strikt.assertions.isEqualTo
 
 @Execution(SAME_THREAD)
-class LazyFunctionTest {
+class ConstrainedFunctionTest {
     private var callCounter: Int = 0
-    private val fn by constrained { ++callCounter }
+    private val fn by callable(atMost = 2) { ++callCounter }
 
     @Test
-    fun `should call implementation only once`() {
+    fun `should call implementation only twice`() {
         expect {
             that(fn()).isEqualTo(1)
-            that(fn()).isEqualTo(1)
-            that(callCounter).isEqualTo(1)
+            that(fn()).isEqualTo(2)
+            that(fn()).isEqualTo(2)
+            that(callCounter).isEqualTo(2)
         }
     }
 }

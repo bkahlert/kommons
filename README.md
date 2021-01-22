@@ -239,6 +239,21 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   println(META_INF.Services.JUnitExtensions.text)
   ```
 
+* Constrained Functions
+  ```kotlin
+  class A {
+    val work by callable(atMost=2) {
+      doSomething()
+    }
+  }
+  
+  A().apply {
+    work() // calls doSomething()
+    work() // calls doSomething()
+    work() // only returns result of last call
+  }
+  ```
+
 * Time
   ```kotlin
   Now.emoji // :clock230: (= emoji showing the correct time) 

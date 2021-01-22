@@ -4,13 +4,54 @@ import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class LazyFunction<T, V>(thisRef: T, block: T.() -> V) : ReadOnlyProperty<T, () -> V> {
-    private val result by lazy { thisRef.block() }
-    operator fun invoke(): V = result
-    override fun getValue(thisRef: T, property: KProperty<*>): () -> V = this::invoke
+/**
+ * A [function] that cannot be called if it [isConstrained].
+ *
+ * If the [function] is called although constraint the result
+ * of the last successful invocation is returned.
+ */
+class ConstrainedFunction<T, V>(
+    private val thisRef: T,
+    private val function: T.() -> V?,
+    private val isConstrained: () -> Boolean,
+) : ReadOnlyProperty<T, () -> V?> {
+    private var result: V? = null
+    operator fun invoke(): V? {
+        if (!isConstrained()) {
+            result = thisRef.function()
+        }
+        return result
+    }
+
+    override fun getValue(thisRef: T, property: KProperty<*>): () -> V? = this::invoke
 }
 
-inline fun <T, V> lazyFunction(noinline block: T.() -> V): PropertyDelegateProvider<T, LazyFunction<T, V>> =
-    PropertyDelegateProvider { thisRef, _ -> LazyFunction(thisRef, block) }
+/**
+ * Constraints the specified [function] to be only invocable as long as [isConstrained] returns `false`.
+ *
+ * If the [function] is called although constraint the result
+ * of the last successful invocation is returned.
+ */
+inline fun <T, V> constrained(noinline function: T.() -> V, noinline isConstrained: () -> Boolean): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> =
+    PropertyDelegateProvider { thisRef, _ -> ConstrainedFunction(thisRef, function, isConstrained) }
 
-inline fun <T, V> callableOnce(noinline block: T.() -> V) = lazyFunction(block)
+/**
+ * Wraps the specified [block] so it cannot be called more than specified by [atMost].
+ *
+ * On all further calls the last computation's result is returned.
+ */
+inline fun <T, V> callable(atMost: Int, noinline block: T.() -> V): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> {
+    var computationCount = 0
+    return constrained(block) {
+        val i = ++computationCount
+        atMost < i
+    }
+}
+
+/**
+ * Wraps the specified [block] so it cannot be called more than once.
+ *
+ * On all further calls the last computation's result is returned.
+ */
+inline fun <T, V> callableOnce(noinline block: T.() -> V) =
+    callable(1, block)
