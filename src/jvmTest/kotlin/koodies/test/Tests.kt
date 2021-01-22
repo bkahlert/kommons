@@ -7,6 +7,10 @@ import koodies.terminal.AnsiColors.red
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
+import strikt.api.Assertion
+import strikt.api.expectCatching
+import strikt.api.expectThat
+import strikt.assertions.isFailure
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
@@ -41,6 +45,7 @@ inline fun <reified T> displayNameFallback(subject: T) = when (subject) {
     else -> "for: {}" to arrayOf(subject.debug)
 }
 
+
 /**
  * Creates one [DynamicTest] for each [T].
  *
@@ -58,6 +63,12 @@ inline fun <reified T> Iterable<T>.test(testNamePattern: String? = null, crossin
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 inline fun <reified T> Array<T>.test(testNamePattern: String? = null, crossinline executable: (T) -> Unit) = toList().test(testNamePattern, executable)
+
+///**
+// * Creates a list of tests using the specified [DynamicTestsBuilder] based [init].
+// */
+//inline fun <reified T> T.tests(noinline init: DynamicTestsBuilder<T>.(T) -> Unit): List<DynamicNode> =
+//    DynamicTestsBuilder.build(this, init)
 
 /**
  * Creates one [DynamicContainer] for each [T] whereas
@@ -104,6 +115,53 @@ interface DynamicTestsBuilder<T> {
             }
     }
 }
+
+
+/**
+ * Creates a list of tests using the specified [DynamicTestsBuilder] based [init].
+ */
+inline fun <reified T> T.should(noinline init: DynamicExpectingTestsBuilder<T>.(T) -> Unit): List<DynamicNode> =
+    DynamicExpectingTestsBuilder.build(this, init)
+
+/**
+ * Builder for arbitrary test trees consisting of instances of [DynamicContainer] and [DynamicTest].
+ */
+interface DynamicExpectingTestsBuilder<T> {
+    /**
+     * Builds a [DynamicContainer] using the specified [name] and the specified [executable].
+     */
+    fun <R> with(name: String, function: T.() -> R, init: DynamicExpectingTestsBuilder<R>.(R) -> Unit)
+
+    fun throwOn(throwing: T.() -> Unit, block: Assertion.Builder<Throwable>.() -> Unit)
+
+    /**
+     * Builds a [DynamicTest] using the specified [this@that] and the specified [block].
+     */
+    operator fun String.invoke(block: Assertion.Builder<T>.() -> Unit)
+
+    companion object {
+        /**
+         * Builds an arbitrary test trees to test all necessary aspect of the specified [subject].
+         */
+        fun <T> build(subject: T, init: DynamicExpectingTestsBuilder<T>.(T) -> Unit): List<DynamicNode> =
+            mutableListOf<DynamicNode>().apply {
+                object : DynamicExpectingTestsBuilder<T> {
+                    override fun <R> with(name: String, function: T.() -> R, init: DynamicExpectingTestsBuilder<R>.(R) -> Unit) {
+                        add(DynamicContainer.dynamicContainer(name, build(subject.function(), init)))
+                    }
+
+                    override fun throwOn(throwing: T.() -> Unit, block: Assertion.Builder<Throwable>.() -> Unit) {
+                        this@apply.add(DynamicTest.dynamicTest("should throw") { expectCatching { subject.throwing() }.isFailure().block() })
+                    }
+
+                    override operator fun String.invoke(block: Assertion.Builder<T>.() -> Unit) {
+                        this@apply.add(DynamicTest.dynamicTest("should $this") { expectThat(subject, block) })
+                    }
+                }.init(subject)
+            }
+    }
+}
+
 
 /**
  * Runs the [block] with a temporary directory as its receiver object,

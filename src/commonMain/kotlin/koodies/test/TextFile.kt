@@ -10,7 +10,7 @@ package koodies.test
  * 👋 // "WAVING HAND SIGN" + "LINE FEED"
  * ```
  */
-object TextFile : Fixture by ByteFixture.unsigned(
+object TextFile : Fixture by BinaryFixture.unsigned(
     "61C285F09D95930D0AE298B00AF09F918B0A.txt",
     0x61u, // LATIN SMALL LETTER A
     0xC2u, 0x85u, // NEXT LINE (NEL)

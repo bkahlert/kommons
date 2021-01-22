@@ -215,8 +215,28 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   ```
 
 * Fixtures
+
+  **In-Memory**
   ```kotlin
+  object HtmlFile : Fixture by TextFixture("example.html", 
+    """
+      <html>
+      ...
+      </html>
+    """.trimIndent())
+  
   HtmlFile.copyTo(Locations.Temp)
+  ```
+
+  **Embedded in Jar / Class Path**
+  ```kotlin
+  object META_INF : ClassPathDirectoryFixture("META-INF") {
+      object Services : Dir("services") {
+          object JUnitExtensions : File("org.junit.jupiter.api.extension.Extension")
+      }
+  }
+  
+  println(META_INF.Services.JUnitExtensions.text)
   ```
 
 * Time
