@@ -22,7 +22,7 @@ class DockerCommandLineBuilderTest {
                 name { "container-name" }
                 privileged { true }
                 autoCleanup { true }
-                workingDirectory { "/a".asContainerPath() }
+                workingDirectory { "/c".asContainerPath() }
                 interactive { true }
                 pseudoTerminal { true }
                 mounts {
@@ -36,9 +36,10 @@ class DockerCommandLineBuilderTest {
                     "key1" to "value1"
                     "KEY2" to "VALUE 2"
                 }
-                workingDirectory { "/some/where".asHostPath() }
+                workingDirectory { "/a".asHostPath() }
 
                 arguments {
+                    +"/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/"
                     +"-arg1"
                     +"--argument" + "2"
                     +hereDoc(label = "HEREDOC") {
@@ -47,6 +48,10 @@ class DockerCommandLineBuilderTest {
                     }
                     +"/a/b/c" + "/c/d/e" + "/e/f/../g/h" + "/e/g/h" + "/h/i"
                     +"arg=/a/b/c" + "arg=/c/d/e" + "arg=/e/f/../g/h" + "arg=/e/g/h" + "arg=/h/i"
+                    +"a/b/c" + "c/d/e" + "e/f/../g/h" + "e/g/h" + "h/i"
+                    +"arg=a/b/c" + "arg=c/d/e" + "arg=e/f/../g/h" + "arg=e/g/h" + "arg=h/i"
+                    +"b/c" + "d/e" + "f/../g/h" + "g/h" + "i"
+                    +"arg=b/c" + "arg=d/e" + "arg=f/../g/h" + "arg=g/h" + "arg=i"
                 }
             }
         }

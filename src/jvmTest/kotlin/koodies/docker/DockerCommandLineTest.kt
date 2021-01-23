@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
@@ -25,7 +24,7 @@ class DockerCommandLineTest {
                 name = "container-name".toContainerName(),
                 privileged = true,
                 autoCleanup = true,
-                workingDirectory = "/a".asContainerPath(),
+                workingDirectory = "/c".asContainerPath(),
                 interactive = true,
                 pseudoTerminal = true,
                 mounts = MountOptions(
@@ -36,12 +35,17 @@ class DockerCommandLineTest {
             CommandLine(
                 redirects = emptyList(),
                 environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
-                workingDirectory = Path.of("/some/where"),
+                workingDirectory = Path.of("/a"),
                 command = "work",
                 arguments = listOf(
+                    "/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/",
                     "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
                     "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
                     "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
+                    "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
+                    "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
+                    "b/c", "d/e", "f/../g/h", "g/h", "i",
+                    "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
                 ),
             ),
         )
@@ -60,7 +64,7 @@ class DockerCommandLineTest {
                 container-name \
                 --privileged \
                 -w \
-                /a \
+                /c \
                 --rm \
                 -i \
                 -t \
@@ -70,6 +74,7 @@ class DockerCommandLineTest {
                 type=bind,source=/e/f/../g,target=/h \
                 repo/name:tag \
                 work \
+                /etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/ \
                 -arg1 \
                 --argument \
                 2 \
@@ -86,54 +91,28 @@ class DockerCommandLineTest {
                 arg=/c/d/e \
                 arg=/h/h \
                 arg=/h/h \
-                arg=/h/i
+                arg=/h/i \
+                a/b/c \
+                c/d/e \
+                e/f/../g/h \
+                e/g/h \
+                h/i \
+                arg=a/b/c \
+                arg=c/d/e \
+                arg=e/f/../g/h \
+                arg=e/g/h \
+                arg=h/i \
+                d/c \
+                d/e \
+                f/../g/h \
+                g/h \
+                i \
+                arg=d/c \
+                arg=d/e \
+                arg=f/../g/h \
+                arg=g/h \
+                arg=i
                 """.trimIndent())
-    }
-
-    @Test
-    fun `should re-map paths`() {
-        expect {
-            that(DOCKER_RUN_COMMAND.workingDirectory).isEqualTo("/some/where".asPath())
-            that(DOCKER_RUN_COMMAND).toStringIsEqualTo("""
-                docker \
-                run \
-                --env \
-                key1=value1 \
-                --env \
-                "KEY2=VALUE 2" \
-                --name \
-                container-name \
-                --privileged \
-                -w \
-                /a \
-                --rm \
-                -i \
-                -t \
-                --mount \
-                type=bind,source=/a/b,target=/c/d \
-                --mount \
-                type=bind,source=/e/f/../g,target=/h \
-                repo/name:tag \
-                work \
-                -arg1 \
-                --argument \
-                2 \
-                <<HEREDOC
-                heredoc 1
-                -heredoc-line-2
-                HEREDOC \
-                /c/d/c \
-                /c/d/e \
-                /h/h \
-                /h/h \
-                /h/i \
-                arg=/c/d/c \
-                arg=/c/d/e \
-                arg=/h/h \
-                arg=/h/h \
-                arg=/h/i
-                """.trimIndent())
-        }
     }
 
     @Nested

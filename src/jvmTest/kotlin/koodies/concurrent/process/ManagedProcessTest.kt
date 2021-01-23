@@ -131,39 +131,39 @@ class ManagedProcessTest {
                     >&1 echo "${'$'}READ"
                 done
                 """.trimIndent()
-            }, expectedExitValue = null).process { io ->
-                if (io.type != IO.Type.META) {
-                    kotlin.runCatching {
-                        enter("just read $io")
-                    }.recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
+            }, expectedExitValue = null)
+
+            kotlin.runCatching {
+                process.process { io ->
+                    if (io.type != IO.Type.META) {
+                        kotlin.runCatching {
+                            enter("just read $io")
+                        }.recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
+                    }
                 }
-            }
 
-            poll { process.ioLog.logged.size >= 7 }.every(100.milliseconds)
-                .forAtMost(800.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
-            process.stop()
-            process.waitForTermination()
-
-            expectThat(process) {
-                kotlin.runCatching {
+                poll { process.ioLog.logged.size >= 7 }.every(100.milliseconds)
+                    .forAtMost(800.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
+                process.stop()
+                process.waitForTermination()
+                expectThat(process) {
                     killed
                         .log.get("logged %s") { logged.drop(3).take(4) }.containsExactlyInSomeOrder {
                             +(IO.Type.OUT typed "test out") + (IO.Type.ERR typed "test err")
                             +(IO.Type.IN typed "just read ${IO.Type.OUT.format("test out")}") + (IO.Type.IN typed "just read ${IO.Type.ERR.format("test err")}")
                         }
-                }.onFailure {
-                    // fails from time to time, therefore this unconventional introspection code
-                    get {
-                        println("""
-                            Logged instead:
-                            ${ioLog.logged}
-                            
-                            ... of what was evaluated:
-                            ${ioLog.logged.drop(3).take(4)}
-                        """.trimIndent().wrapWithBox())
-                    }
-                }.getOrThrow()
-            }
+                }
+            }.onFailure {
+                // fails from time to time, therefore this unconventional introspection code
+                println(
+                    """
+                    Logged instead:
+                    ${process.ioLog.logged}
+                    
+                    ... of what was evaluated:
+                    ${process.ioLog.logged.drop(3).take(4)}
+                    """.trimIndent().wrapWithBox())
+            }.getOrThrow()
         }
     }
 

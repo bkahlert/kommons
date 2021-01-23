@@ -4,19 +4,10 @@ import koodies.concurrent.completableFuture
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.logging.RenderingLogger
+import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
-import koodies.text.LineSeparators.hasTrailingLineSeparator
-import koodies.text.LineSeparators.lines
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.toByteArray
-import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.InputStream
-import java.io.OutputStream
 import java.io.Reader
-import java.nio.ByteBuffer
-import java.nio.channels.Channels
-import java.nio.channels.ReadableByteChannel
-import java.nio.channels.WritableByteChannel
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -126,7 +117,6 @@ fun <P : ManagedProcess> P.process(
     }
 }
 
-
 /**
  * Attaches to the [Process.outputStream] and [Process.errorStream]
  * of the specified [Process] and passed all [IO] to the specified [processor]
@@ -140,89 +130,17 @@ fun <P : ManagedProcess> P.processSynchronously(
     processor: Processor<P> = noopProcessor(),
 ): P = apply {
 
-    val ioProcessors = listOf(
-//        NonBlockingInputStreamProcessor(processInputStream, outputStream),
-        NonBlockingInputStreamLineProcessor(inputStream) { line -> processor(this, IO.Type.OUT typed line) },
-        NonBlockingInputStreamLineProcessor(errorStream) { line -> processor(this, IO.Type.ERR typed line) },
+    val readers = listOf(
+//        outputStream=TeeOutputStream(outputStream)) { line -> processor(this, IO.Type.IN typed line) },
+        NonBlockingLineReader(inputStream) { line -> processor(this, IO.Type.OUT typed line) },
+        NonBlockingLineReader(errorStream) { line -> processor(this, IO.Type.ERR typed line) },
     )
 
-    while (ioProcessors.any { !it.finished }) {
-        ioProcessors.filter { !it.finished }.forEach { ioReader ->
-            ioReader.process()
+    while (readers.any { !it.done }) {
+        readers.filter { !it.done }.forEach { ioReader ->
+            ioReader.read()
         }
     }
-}
-
-internal interface NonBlockingProcessor {
-    val finished: Boolean
-    fun process()
-}
-
-internal open class NonBlockingInputStreamProcessor(
-    inputStream: InputStream,
-    outputStream: OutputStream,
-) : NonBlockingProcessor {
-    private val readBuffer: ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
-    private val readChannel: ReadableByteChannel = Channels.newChannel(inputStream)
-    private val writeChannel: WritableByteChannel = Channels.newChannel(outputStream)
-
-    private var closed = false
-    override val finished: Boolean get() = closed
-
-    override fun process() {
-        while (true) {
-            kotlin.runCatching {
-                when (readChannel.read(readBuffer)) {
-                    -1 -> {
-                        closed = true
-                        readChannelRead()
-                        return
-                    }
-                    0 -> {
-                        readChannelRead()
-                        return
-                    }
-                    else -> {
-                        readBuffer.flip()
-                        writeChannel.write(readBuffer)
-                        readBuffer.clear()
-                        readChannelRead()
-                    }
-                }
-            }.onFailure {
-                closed = true
-                readChannelRead()
-                return
-            }
-        }
-    }
-
-    protected open fun readChannelRead() {}
-}
-
-internal class NonBlockingInputStreamLineProcessor(
-    inputStream: InputStream,
-    private val lineBuffer: ByteArrayOutputStream = ByteArrayOutputStream(),
-    private val lineProcessor: (String) -> Unit,
-) : NonBlockingInputStreamProcessor(inputStream, lineBuffer) {
-
-    override fun readChannelRead() {
-        val fullyRead: StringBuilder = StringBuilder()
-        val read = lineBuffer.toString(Charsets.UTF_8)
-        read.lines(keepDelimiters = true, ignoreTrailingSeparator = true)
-            .filter { line -> line.hasTrailingLineSeparator }
-            .forEach { line ->
-                fullyRead.append(line)
-                lineProcessor(line.withoutTrailingLineSeparator)
-            }
-        lineBuffer.toByteArray().apply {
-            lineBuffer.reset()
-            lineBuffer.write(drop(fullyRead.toByteArray().size).toByteArray())
-        }
-    }
-
-    override fun toString(): String =
-        "Reader(lineBuffer=$lineBuffer)"
 }
 
 private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =

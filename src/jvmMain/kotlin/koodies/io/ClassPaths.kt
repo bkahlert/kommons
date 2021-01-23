@@ -59,6 +59,16 @@ inline fun <reified T> classPath(path: String, crossinline transform: Path.() ->
 }
 
 /**
+ * Gets the class path resource, the specified [path] points to and applies [transform] to it.
+ *
+ * In contrast to [classPath] this function throws if no resource could be found.
+ *
+ * @see classPath
+ */
+inline fun <reified T> requireClassPath(path: String, crossinline transform: Path.() -> T): T =
+    classPath(path, transform) ?: throw noSuchFile(path)
+
+/**
  * Gets a proxied class path resource that get only accesses the moment
  * an operation is executed. Should a [FileSystem] need to be loaded this
  * will be done transparently as it will be closed afterwards.

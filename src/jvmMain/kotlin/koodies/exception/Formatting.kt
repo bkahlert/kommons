@@ -5,8 +5,9 @@ import koodies.text.LineSeparators.lines
 import java.nio.file.Path
 
 fun Any?.toCompactString(): String = when (this) {
-    is Array<*> -> toList().toCompactString()
     is Path -> toUri().toString()
+    is Array<*> -> toList().toCompactString()
+    is Iterable<*> -> joinToString(prefix = "[", postfix = "]") { it.toCompactString() }
     is Process -> also { waitFor() }.exitValue.toString()
     is java.lang.Process -> also { waitFor() }.exitValue().toString()
     else -> if (this == null || this == Unit) "" else toString()

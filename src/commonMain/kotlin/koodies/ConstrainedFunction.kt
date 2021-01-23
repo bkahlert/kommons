@@ -32,7 +32,7 @@ class ConstrainedFunction<T, V>(
  * If the [function] is called although constraint the result
  * of the last successful invocation is returned.
  */
-inline fun <T, V> constrained(noinline function: T.() -> V, noinline isConstrained: () -> Boolean): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> =
+fun <T, V> constrained(function: T.() -> V, isConstrained: () -> Boolean): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> =
     PropertyDelegateProvider { thisRef, _ -> ConstrainedFunction(thisRef, function, isConstrained) }
 
 /**
@@ -40,7 +40,7 @@ inline fun <T, V> constrained(noinline function: T.() -> V, noinline isConstrain
  *
  * On all further calls the last computation's result is returned.
  */
-inline fun <T, V> callable(atMost: Int, noinline block: T.() -> V): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> {
+fun <T, V> callable(atMost: Int, block: T.() -> V): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> {
     var computationCount = 0
     return constrained(block) {
         val i = ++computationCount
@@ -53,5 +53,5 @@ inline fun <T, V> callable(atMost: Int, noinline block: T.() -> V): PropertyDele
  *
  * On all further calls the last computation's result is returned.
  */
-inline fun <T, V> callableOnce(noinline block: T.() -> V) =
+fun <T, V> callableOnce(block: T.() -> V) =
     callable(1, block)

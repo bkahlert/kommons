@@ -35,6 +35,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.size
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.ReadOnlyFileSystemException
 import kotlin.io.path.exists
@@ -192,6 +193,20 @@ class ClassPathsTest {
                     }
                 }
             }
+        }
+    }
+
+    @Nested
+    inner class RequireClassPath {
+
+        @Test
+        fun `should map resource on matching path`() {
+            expectThat(requireClassPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
+        }
+
+        @Test
+        fun `should throw on non-matching path`() {
+            expectCatching { requireClassPath("invalid.file") { this } }.isFailure().isA<NoSuchFileException>()
         }
     }
 

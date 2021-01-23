@@ -5,6 +5,7 @@ import koodies.builder.ListBuilderInit
 import koodies.builder.build
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLineBuilder
+import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
@@ -33,9 +34,7 @@ open class DockerCommandLine private constructor(
         if (commandLine.command.isNotBlank() && options.entryPoint == null) {
             +commandLine.command
         }
-        commandLine.arguments.map { arg ->
-            +arg.splitAndMap("=") { options.mapToContainerPathOrNull(asHostPath())?.asString() ?: this }
-        }
+        +options.remapPathsInArguments(commandLine)
     },
 ) {
     constructor(image: DockerImage, options: DockerCommandLineOptions = DockerCommandLineOptions(), commandLine: CommandLine) : this(
@@ -111,6 +110,31 @@ data class DockerCommandLineOptions(
      */
     fun mapToContainerPathOrNull(hostPath: HostPath): ContainerPath? =
         kotlin.runCatching { mounts.mapToContainerPath(hostPath) }.getOrNull()
+
+    /**
+     * Tries to find all paths inside the [commandLine] [CommandLine.arguments] and remaps all those
+     * that are still accessible through the specified [mounts].
+     *
+     * Relative paths are resolved using the [CommandLine.workingDirectory] and if specified
+     * mapped backed to a relative [ContainerPath] using [DockerCommandLineOptions.workingDirectory].
+     *
+     * Arguments not containing paths are left unchanged.
+     *
+     * Arguments of the form `a=b` get mapped with key and value treated separately.
+     */
+    fun remapPathsInArguments(commandLine: CommandLine): List<String> = commandLine.arguments.map { arg ->
+        if (arg.count { it == '=' } > 1) return@map arg
+        arg.splitAndMap("=") {
+            val originalPath = asHostPath() // e.g. /a/b resp. b
+            val absoluteOriginalPath = commandLine.workingDirectory.resolveBetweenFileSystems(originalPath) // e.g. /a/b resp. /a/b (if pwd=/a)
+            mapToContainerPathOrNull(absoluteOriginalPath)?.let { mappedPath ->   // e.g. /c/d
+                workingDirectory
+                    ?.takeIf { !originalPath.isAbsolute }
+                    ?.let(mappedPath::relativeTo) // e.g. b (if container pwd=/c)
+                    ?: mappedPath.asString() // e.g. /c/d
+            } ?: this
+        }
+    }
 
     fun withFallbackWorkingDirectory(fallbackWorkingDirectory: HostPath): DockerCommandLineOptions {
         if (workingDirectory == null) {
