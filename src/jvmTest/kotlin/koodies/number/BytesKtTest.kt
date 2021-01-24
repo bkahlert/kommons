@@ -115,6 +115,17 @@ class BytesKtTest {
             ).test { (input, expected) ->
                 expectThat(input.toUInt()).isEqualTo(expected)
             }
+
+        @TestFactory
+        fun `should pad ByteArray to UInt`() =
+            listOf(
+                byteArrayOf(-1) to 16777215u,
+                byteArrayOf(-1, -1) to 16777215u,
+                byteArrayOf(-1, -1, -1) to 16777215u,
+                byteArrayOf(-1, -1, -1, -1) to 4294967295u,
+            ).test { (input, expected) ->
+                expectThat(input.padStart(3, -1).toUInt()).isEqualTo(expected)
+            }
     }
 
     @Nested
@@ -184,6 +195,17 @@ class BytesKtTest {
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu) to -1,
             ).test { (input, expected) ->
                 expectThat(input.toInt()).isEqualTo(expected)
+            }
+
+        @TestFactory
+        fun `should pad UByteArray to UInt`() =
+            listOf(
+                ubyteArrayOf(0xFFu) to 16777215,
+                ubyteArrayOf(0xFFu, 0xFFu) to 16777215,
+                ubyteArrayOf(0xFFu, 0xFFu, 0xFFu) to 16777215,
+                ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu) to -1,
+            ).test { (input, expected) ->
+                expectThat(input.padStart(3, 0xFFu).toInt()).isEqualTo(expected)
             }
     }
 }

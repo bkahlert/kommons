@@ -124,6 +124,18 @@ inline fun <reified T> T.should(noinline init: DynamicExpectingTestsBuilder<T>.(
     DynamicExpectingTestsBuilder.build(this, init)
 
 /**
+ * Creates a list of tests using the specified [DynamicTestsBuilder] based [init].
+ */
+inline fun <reified T> Iterable<T>.eachShould(
+    containerNamePattern: String? = null,
+    noinline init: DynamicExpectingTestsBuilder<T>.(T) -> Unit,
+): List<DynamicContainer> =
+    map { subject ->
+        DynamicContainer.dynamicContainer(displayName(containerNamePattern), DynamicExpectingTestsBuilder.build(subject, init))
+    }
+
+
+/**
  * Builder for arbitrary test trees consisting of instances of [DynamicContainer] and [DynamicTest].
  */
 interface DynamicExpectingTestsBuilder<T> {

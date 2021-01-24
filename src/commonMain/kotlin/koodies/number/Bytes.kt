@@ -1,8 +1,13 @@
 package koodies.number
 
 val Byte.Companion.ZERO: Byte get() = 0x0
+inline val Byte.Companion.OO: Byte get() = ZERO
+inline val Byte.Companion.FF: Byte get() = -1
 fun Byte.toPositiveInt() = toInt() and 0xFF
 fun Byte.toDecString() = toPositiveInt().toString()
+
+val UByte.Companion.ZERO: UByte get() = 0x0u
+inline val UByte.Companion.OO: UByte get() = ZERO
 
 fun Int.toBytes(trim: Boolean = true): ByteArray =
     0.until(Int.SIZE_BYTES)
@@ -32,3 +37,11 @@ fun UByteArray.toUInt(): UInt {
 }
 
 fun UByteArray.toInt(): Int = toUInt().toInt()
+
+fun ByteArray.padStart(size: Int, padByte: Byte = Byte.ZERO): ByteArray =
+    takeUnless { this.size < size }
+        ?: byteArrayOf(*MutableList(size - this.size) { padByte }.toByteArray(), *this)
+
+fun UByteArray.padStart(size: Int, padByte: UByte = UByte.ZERO): UByteArray =
+    takeUnless { this.count() < size }
+        ?: ubyteArrayOf(*MutableList(size - this.count()) { padByte }.toUByteArray(), *this)

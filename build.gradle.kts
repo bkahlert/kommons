@@ -144,6 +144,9 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
+                implementation("com.ionspin.kotlin:bignum:0.2.3") {
+                    because("bigint for IPv6Address")
+                }
             }
         }
         val commonTest by getting {
