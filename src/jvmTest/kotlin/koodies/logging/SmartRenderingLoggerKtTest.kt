@@ -150,13 +150,13 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   bordered caption ➜️ result
-            │   bordered caption ➜️ result ➜️ result
+            │   bordered caption ✔
+            │   bordered caption ✔ ✔
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
-            │   not-bordered caption ➜️ result
-            │   not-bordered caption ➜️ result ➜️ result
+            │   not-bordered caption ✔
+            │   not-bordered caption ✔ ✔
         """.trimIndent()) {
         logResult { Result.success("result") }
     }
@@ -166,17 +166,17 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   bordered caption ➜️ 1
-            │   bordered caption ➜️ 1 ➜️ 2
-            │   bordered caption ➜️ 1 ➜️ 2 ➜️ 3
-            │   bordered caption ➜️ 1 ➜️ 2 ➜️ 3 ➜️ 3
+            │   bordered caption ✔
+            │   bordered caption ✔ ✔
+            │   bordered caption ✔ ✔ ✔
+            │   bordered caption ✔ ✔ ✔ ✔
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
-            │   not-bordered caption ➜️ 1
-            │   not-bordered caption ➜️ 1 ➜️ 2
-            │   not-bordered caption ➜️ 1 ➜️ 2 ➜️ 3
-            │   not-bordered caption ➜️ 1 ➜️ 2 ➜️ 3 ➜️ 3
+            │   not-bordered caption ✔
+            │   not-bordered caption ✔ ✔
+            │   not-bordered caption ✔ ✔ ✔
+            │   not-bordered caption ✔ ✔ ✔ ✔
         """.trimIndent()) {
         logResult { Result.success(1) }
         logResult { Result.success(2) }

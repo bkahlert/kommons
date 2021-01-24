@@ -32,12 +32,20 @@ fun Project.findPropertyEverywhere(name: String): String? =
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
+private var _syncToMavenCentralUsingBintray: Boolean? = null
+var Project.syncToMavenCentralUsingBintray: Boolean
+    get() = _syncToMavenCentralUsingBintray ?: findBooleanPropertyEverywhere("syncToMavenCentralUsingBintray", true)
+    set(value) {
+        _syncToMavenCentralUsingBintray = value
+    }
+
 private var _releasingFinal: Boolean? = null
 var Project.releasingFinal: Boolean
     get() = _releasingFinal ?: findBooleanPropertyEverywhere("releasingFinal", true)
     set(value) {
         _releasingFinal = value
     }
+
 val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {

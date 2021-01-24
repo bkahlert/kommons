@@ -2,7 +2,6 @@ package koodies.logging
 
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.OUT
-import koodies.exception.toCompactString
 import koodies.io.path.bufferedWriter
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
@@ -101,23 +100,22 @@ interface RenderingLogger {
 
         val recoveredLoggers = mutableListOf<RenderingLogger>()
 
-        fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
-            if (result.isSuccess) formatReturnValue(result.toCompactString()) else formatException(
-                " ",
-                result.toCompactString()
-            )
-
-        @Suppress("LocalVariableName", "NonAsciiCharacters")
-        fun formatReturnValue(formattedResult: CharSequence): CharSequence {
-            return if (formattedResult.isEmpty()) heavyCheckMark.green()
-            else `➜`.emojiVariant.green() + " $formattedResult"
+        fun RenderingLogger.formatResult(result: Result<*>): CharSequence {
+            val returnValue = result.toReturnValue()
+            return if (returnValue.successful) formatReturnValue(returnValue) else formatException(" ", returnValue)
         }
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
-        fun RenderingLogger.formatException(prefix: CharSequence, oneLiner: CharSequence?): String {
+        fun formatReturnValue(returnValue: ReturnValue): CharSequence {
+            return if (returnValue.successful) heavyCheckMark.green()
+            else `➜`.emojiVariant.green() + " $returnValue"
+        }
+
+        @Suppress("LocalVariableName", "NonAsciiCharacters")
+        fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
             val format = if (recoveredLoggers.contains(this)) ANSI.termColors.green else ANSI.termColors.red
             val ϟ = format("$greekSmallLetterKoppa")
-            return oneLiner?.let { ϟ + prefix + it.red() } ?: ϟ
+            return ϟ + prefix + returnValue.format().red()
         }
     }
 }

@@ -40,13 +40,20 @@ fun <T : CharSequence> Assertion.Builder<T>.containsAtLeast(value: CharSequence,
     assert("contains ${value.quoted} at least ${lowerLimit}x") {
         val actual = Regex.fromLiteral("$value").countMatches(it)
         if (actual >= lowerLimit) pass()
-        else fail("but actually contains it ${actual}x")
+        else fail("but actually contains it only ${actual}x")
     }
 
 fun <T : CharSequence> Assertion.Builder<T>.containsAtMost(value: CharSequence, limit: Int = 1) =
     assert("contains ${value.quoted} at most ${limit}x") {
         val actual = Regex.fromLiteral(value.toString()).countMatches(it)
         if (actual <= limit) pass()
+        else fail("but actually contains it even ${actual}x")
+    }
+
+fun <T : CharSequence> Assertion.Builder<T>.containsExactly(value: CharSequence, expectedCount: Int) =
+    assert("contains ${value.quoted} exactly ${expectedCount}x") {
+        val actual = Regex.fromLiteral(value.toString()).countMatches(it)
+        if (actual == expectedCount) pass()
         else fail("but actually contains it ${actual}x")
     }
 

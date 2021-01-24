@@ -1,10 +1,11 @@
 package koodies.logging
 
+import koodies.concurrent.Status
 import koodies.concurrent.process.IO.Type.ERR
 import koodies.concurrent.process.IO.Type.META
 import koodies.concurrent.process.IO.Type.OUT
-import koodies.io.path.containsAtLeast
 import koodies.io.path.containsAtMost
+import koodies.io.path.containsExactly
 import koodies.io.path.randomFile
 import koodies.terminal.AnsiColors.red
 import koodies.test.UniqueId
@@ -84,7 +85,7 @@ class RenderingLoggerKtTest {
                     │   outer 3                                               {}                                      ▮▮
                     │   outer 4                                               {}                                      ▮▮
                     │{}
-                    ╰─────╴➜️ {}
+                    ╰─────╴✔{}
                 """.trimIndent()
         )
     }
@@ -296,8 +297,7 @@ class RenderingLoggerKtTest {
                 │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
                 │   、ヽ｀、ヽ                                                                 
                 │
-                ╰─────╴➜️ ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀
-                、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
+                ╰─────╴✔
                 """.trimIndent()
         )
     }
@@ -314,7 +314,7 @@ class RenderingLoggerKtTest {
         logStatus(listOf(status(uriLine))) { OUT typed uriLine }
         logResult { Result.success(uriLine) }
 
-        expectThat(logged).containsAtLeast(uriLine, 3)
+        expectThat(logged).containsExactly(uriLine, 2)
     }
 
     @Test
@@ -345,7 +345,7 @@ class RenderingLoggerKtTest {
                     │   │   This process might produce pretty much log messages. Logging to …
                     │   │   ${Unicode.Emojis.pageFacingUp} ${file.toUri()}
                     │   │{}
-                    │   ╰─────╴➜️ 👍
+                    │   ╰─────╴✔
                     │{}
                     │   Normal logging continues...
                     │{}
@@ -355,7 +355,7 @@ class RenderingLoggerKtTest {
 
             that(file.readLines().filter { it.isNotBlank() }) {
                 first().isEqualTo("▶ Some logging heavy operation")
-                get { last { it.isNotBlank() } }.endsWith("👍")
+                get { last { it.isNotBlank() } }.endsWith("✔")
             }
         }
     }
@@ -430,6 +430,43 @@ class RenderingLoggerKtTest {
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
             logging(caption = "line #1\nline #2".red(), bordered = bordered) {
                 logLine { "logged line" }
+            }
+        }
+
+        expectThat(logger.logged).matchesCurlyPattern(expectation)
+    }
+
+
+    @Execution(SAME_THREAD)
+    @TestFactory
+    fun `should show unsuccessful return statuses`() = listOf(
+        true to """
+            ╭─────╴{}
+            │   
+            │   
+            │   ╭─────╴{}
+            │   │   
+            │   │   logged line
+            │   ϟ
+            │   ╰─────╴𝟷↩
+            │   
+            ϟ
+            ╰─────╴𝟷↩{}
+        """.trimIndent(),
+        false to """
+            ╭─────╴{}
+            │   
+            │   ▶ caption
+            │   · logged line
+            │   ϟ 𝟷↩
+            ϟ
+            ╰─────╴𝟷↩{}
+        """.trimIndent(),
+    ).test("bordered={}") { (bordered, expectation) ->
+        val logger: InMemoryLogger = InMemoryLogger().applyLogging {
+            logging(caption = "caption", bordered = bordered) {
+                logLine { "logged line" }
+                Status.FAILURE
             }
         }
 

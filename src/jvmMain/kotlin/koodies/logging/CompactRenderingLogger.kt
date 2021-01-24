@@ -1,6 +1,5 @@
 package koodies.logging
 
-import koodies.exception.toCompactString
 import koodies.logging.RenderingLogger.Companion.formatException
 import koodies.terminal.AnsiFormats.bold
 import kotlin.properties.Delegates.vetoable
@@ -27,7 +26,7 @@ abstract class CompactRenderingLogger(caption: CharSequence) : RenderingLogger {
     }
 
     override fun logException(block: () -> Throwable) {
-        strings = strings?.plus(formatException(" ", block().toCompactString()))
+        strings = strings?.plus(formatException(" ", block().toReturnValue()))
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {

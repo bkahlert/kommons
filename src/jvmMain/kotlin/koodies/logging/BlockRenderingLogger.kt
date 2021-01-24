@@ -3,9 +3,8 @@ package koodies.logging
 import com.github.ajalt.mordant.AnsiCode
 import koodies.builder.ListBuilder.Companion.buildList
 import koodies.concurrent.process.IO
-import koodies.exception.toCompactString
 import koodies.logging.RenderingLogger.Companion.formatException
-import koodies.logging.RenderingLogger.Companion.formatResult
+import koodies.logging.RenderingLogger.Companion.formatReturnValue
 import koodies.nullable.invoke
 import koodies.regex.RegularExpressions
 import koodies.terminal.ANSI
@@ -66,16 +65,17 @@ open class BlockRenderingLogger(
 
     override val prefix: String get() = if (bordered) "│   " else "· "
     fun <R> getBlockEnd(result: Result<R>): CharSequence {
+        val returnValue = result.toReturnValue()
         val message: String =
-            if (result.isSuccess) {
-                val renderedSuccess = formatResult(result)
+            if (returnValue.successful) {
+                val renderedSuccess = formatReturnValue(returnValue)
                 if (bordered) "│\n╰─────╴$renderedSuccess\n"
                 else "$renderedSuccess"
             } else {
                 if (bordered) {
-                    formatException("$LF╰─────╴", result.toCompactString()) + LF
+                    formatException("$LF╰─────╴", returnValue) + LF
                 } else {
-                    formatException(" ", result.toCompactString())
+                    formatException(" ", returnValue)
                 }
             }
         return message.asAnsiString().mapLines { it.bold() }

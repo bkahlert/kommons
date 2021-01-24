@@ -124,13 +124,13 @@ class BlockRenderingLoggerKtTest {
             ╭─────╴bordered caption
             │{}
             │{}
-            ╰─────╴➜️ result
+            ╰─────╴✔
             
             │
             ╰─────╴✔
         """.trimIndent(), """
             ▶ not-bordered caption
-            ➜️ result
+            ✔
             ✔
         """.trimIndent()) {
         logResult { Result.success("result") }
@@ -142,21 +142,21 @@ class BlockRenderingLoggerKtTest {
             ╭─────╴bordered caption
             │{}
             │{}
-            ╰─────╴➜️ 1
+            ╰─────╴✔
             
             │
-            ╰─────╴➜️ 2
+            ╰─────╴✔
             
             │
-            ╰─────╴➜️ 3
+            ╰─────╴✔
             
             │
             ╰─────╴✔
         """.trimIndent(), """
             ▶ not-bordered caption
-            ➜️ 1
-            ➜️ 2
-            ➜️ 3
+            ✔
+            ✔
+            ✔
             ✔
         """.trimIndent()) {
         logResult { Result.success(1) }
