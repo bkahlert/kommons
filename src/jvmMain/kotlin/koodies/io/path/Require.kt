@@ -3,7 +3,6 @@ package koodies.io.path
 import koodies.io.directoryNotEmpty
 import koodies.io.fileAlreadyExists
 import koodies.io.noSuchFile
-import koodies.unit.size
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path

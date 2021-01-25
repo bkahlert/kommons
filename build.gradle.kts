@@ -17,7 +17,9 @@ plugins {
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.0"
-    id("nebula.nebula-bintray") version "8.5.0"
+    id("nebula.source-jar") version "17.3.2"
+    id("nebula.javadoc-jar") version "17.3.2"
+    id("nebula.nebula-bintray-publishing") version "8.5.0"
 }
 
 allprojects {
@@ -71,15 +73,7 @@ kotlin {
     }
 
     jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-                useIR = true
-                freeCompilerArgs += listOf(
-                    "-Xopt-in=kotlin.io.path.ExperimentalPathApi"
-                )
-            }
-        }
+        compilations.all { kotlinOptions { jvmTarget = "11"; useIR = true } }
 
         tasks.withType<Test>().all {
             useJUnitPlatform()
@@ -100,21 +94,9 @@ kotlin {
 
     js(BOTH) {
         browser {
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
-                }
-            }
+            testTask { useKarma { useChromeHeadless(); webpackConfig.cssSupport.enabled = true } }
         }
-
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                moduleKind = "umd"
-                metaInfo = true
-            }
-        }
+        compilations.all { kotlinOptions { sourceMap = true; moduleKind = "umd"; metaInfo = true } }
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -125,22 +107,24 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                @Suppress("SpellCheckingInspection")
-                freeCompilerArgs += listOf(
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                    "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-                    "-Xopt-in=kotlin.time.ExperimentalTime",
-                    "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-                    "-Xinline-classes"
-                )
+    sourceSets {
+
+        all {
+            languageSettings.apply {
+                languageVersion = "1.4"
+                apiVersion = "1.4"
+                enableLanguageFeature("InlineClasses")
+                listOf("kotlin.io.path.ExperimentalPathApi",
+                    "kotlin.ExperimentalUnsignedTypes",
+                    "kotlin.RequiresOptIn",
+                    "kotlin.ExperimentalUnsignedTypes",
+                    "kotlin.time.ExperimentalTime",
+                    "kotlin.contracts.ExperimentalContracts"
+                ).forEach(::useExperimentalAnnotation)
+                progressiveMode = true
             }
         }
-    }
 
-    sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
@@ -212,7 +196,6 @@ kotlin {
                     })
                 }
                 withType<MavenPublication>().configureEach {
-
                     artifact(tasks.register<Jar>("${name}JavaDocJar") {
                         archiveBaseName.set("${project.name}-${this@configureEach.name}")
                         archiveClassifier.set("javadoc")
@@ -288,6 +271,16 @@ kotlin {
     }
 }
 
+tasks.configureEach {
+    onlyIf {
+        if (Regex(".*MavenCentral.*").matches(name)) {
+            !syncToMavenCentralUsingBintray
+        } else {
+            true
+        }
+    }
+}
+
 if (version.isFinal()) {
     bintray {
         user.set(findPropertyEverywhere("bintrayUser", ""))
@@ -303,7 +296,7 @@ if (version.isFinal()) {
         licenses.set(listOf("MIT"))
         vcsUrl.set("$baseUrl.git")
         gppSign.set(false)
-        syncToMavenCentral.set(true)
+        syncToMavenCentral.set(syncToMavenCentralUsingBintray)
         sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
         sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
     }

@@ -1,7 +1,6 @@
 package koodies.io.path
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import koodies.unit.size
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile

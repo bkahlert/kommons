@@ -27,6 +27,10 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 2. Publish changes to local Maven repository using
 
 ```shell
+./gradlew snapshot publishToMavenLocal -x :dokkaHtml
+```
+
+```shell
 ./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishAllPublicationsToBintrayRepository -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository -x publishNativePublicationToBintrayRepository -x publishKotlinMultiplatformPublicationToBintrayRepository -x publishPackageToBintray -x publishAllPublicationsToGitHubPackagesRepository -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishNativePublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository -x publishJsPublicationToMavenCentralRepository -x publishJvmPublicationToMavenCentralRepository -x publishNativePublicationToMavenCentralRepository -x publishKotlinMultiplatformPublicationToMavenCentralRepository
 ```
 

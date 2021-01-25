@@ -9,6 +9,7 @@ import koodies.io.path.randomPath
 import koodies.io.path.removeExtensions
 import koodies.io.path.renameTo
 import koodies.io.path.requireNotEmpty
+import koodies.io.path.size
 import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithSingleFile
@@ -17,7 +18,6 @@ import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
-import koodies.unit.size
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
