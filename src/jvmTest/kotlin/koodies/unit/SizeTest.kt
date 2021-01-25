@@ -1,8 +1,7 @@
 package koodies.unit
 
-import koodies.io.path.appendBytes
 import koodies.io.path.randomFile
-import koodies.io.path.writeText
+import koodies.io.path.size
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -407,32 +405,6 @@ class SizeTest {
             fun `should parse fractional with no spacing`() {
                 expectThat("2.505".toSize()).isEqualTo(2.505.bytes)
             }
-        }
-    }
-
-    @Nested
-    inner class FileSize {
-
-        private fun Path.getSmall() = randomFile("small").writeText("123")
-        private fun Path.getMedium() = randomFile("medium").writeText("123456")
-        private fun Path.getLarge() = randomFile("large").appendBytes(ByteArray(3_123_456))
-
-        @Test
-        fun `should compare files by size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val largeFile = getLarge()
-            val smallFile = getSmall()
-            val mediumFile = getMedium()
-            expectThat(listOf(largeFile, smallFile, mediumFile).sortedWith(Size.FileSizeComparator)).containsExactly(smallFile, mediumFile, largeFile)
-        }
-
-        @Test
-        fun `should have size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(getLarge().size).isEqualTo(3_123_456.bytes)
-        }
-
-        @Test
-        fun `should have rounded size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(getLarge().roundedSize).isEqualTo(3_000_000.bytes)
         }
     }
 }

@@ -49,88 +49,88 @@ class IPv6AddressTest {
         private val ip = IPv6Address.parse("::ffff:c0a8:1001")
 
         @Test
-        fun `should serialize using abbreviated representation`() {
-            expectThat(ip).toStringIsEqualTo(ip.abbreviatedRepresentation)
+        fun `should serialize using compressed representation`() {
+            expectThat(ip).toStringIsEqualTo(ip.compressedRepresentation)
         }
 
         @Nested
-        inner class AbbreviatedRepresentation {
+        inner class FullRepresentation {
 
             @Test
-            fun `should provide abbreviated representation`() {
-                expectThat(ip.abbreviatedRepresentation).isEqualTo("::ffff:c0a8:1001")
+            fun `should provide full representation`() {
+                expectThat(ip.fullRepresentation).isEqualTo("0000:0000:0000:0000:0000:ffff:c0a8:1001")
             }
 
             @Test
-            fun `should abbreviate first address`() {
-                expectThat(IPv6Address.DEFAULT_ROOT.abbreviatedRepresentation).isEqualTo("::")
+            fun `should fully represent first address`() {
+                expectThat(IPv6Address.DEFAULT_ROOT.fullRepresentation).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0000")
             }
 
             @Test
-            fun `should abbreviate loopback address`() {
-                expectThat(IPv6Address.LOOPBACK.abbreviatedRepresentation).isEqualTo("::1")
+            fun `should fully represent loopback address`() {
+                expectThat(IPv6Address.LOOPBACK.fullRepresentation).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001")
             }
 
             @TestFactory
-            fun `should abbreviate network address`() = listOf(
-                IPv6Address.IPv4_MAPPED_RANGE to "::ffff:0:0",
-                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b::",
-            ).test { (range, expected) ->
-                expectThat(range.subnet.networkAddress.abbreviatedRepresentation).isEqualTo(expected)
-            }
-        }
-
-        @Nested
-        inner class CompleteRepresentation {
-
-            @Test
-            fun `should provide complete representation`() {
-                expectThat(ip.completeRepresentation).isEqualTo("0:0:0:0:0:ffff:c0a8:1001")
-            }
-
-            @Test
-            fun `should complete first address`() {
-                expectThat(IPv6Address.DEFAULT_ROOT.completeRepresentation).isEqualTo("0:0:0:0:0:0:0:0")
-            }
-
-            @Test
-            fun `should complete loopback address`() {
-                expectThat(IPv6Address.LOOPBACK.completeRepresentation).isEqualTo("0:0:0:0:0:0:0:1")
-            }
-
-            @TestFactory
-            fun `should complete network address`() = listOf(
-                IPv6Address.IPv4_MAPPED_RANGE to "0:0:0:0:0:ffff:0:0",
-                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b:0:0:0:0:0:0",
-            ).test { (range, expected) ->
-                expectThat(range.subnet.networkAddress.completeRepresentation).isEqualTo(expected)
-            }
-        }
-
-        @Nested
-        inner class PaddedRepresentation {
-
-            @Test
-            fun `should provide padded representation`() {
-                expectThat(ip.paddedRepresentation).isEqualTo("0000:0000:0000:0000:0000:ffff:c0a8:1001")
-            }
-
-            @Test
-            fun `should pad first address`() {
-                expectThat(IPv6Address.DEFAULT_ROOT.paddedRepresentation).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0000")
-            }
-
-            @Test
-            fun `should pad loopback address`() {
-                expectThat(IPv6Address.LOOPBACK.paddedRepresentation).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001")
-            }
-
-            @TestFactory
-            fun `should pad network address`() = listOf(
+            fun `should fully represent network address`() = listOf(
                 IPv6Address.IPv4_MAPPED_RANGE to "0000:0000:0000:0000:0000:ffff:0000:0000",
                 IPv6Address.IPv4_NAT64_MAPPED_RANGE to "0064:ff9b:0000:0000:0000:0000:0000:0000",
             ).test { (range, expected) ->
-                expectThat(range.subnet.networkAddress.paddedRepresentation).isEqualTo(expected)
+                expectThat(range.subnet.networkAddress.fullRepresentation).isEqualTo(expected)
+            }
+        }
+
+        @Nested
+        inner class ConventionalRepresentation {
+
+            @Test
+            fun `should provide conventional representation`() {
+                expectThat(ip.conventionalRepresentation).isEqualTo("0:0:0:0:0:ffff:c0a8:1001")
+            }
+
+            @Test
+            fun `should conventionally represent first address`() {
+                expectThat(IPv6Address.DEFAULT_ROOT.conventionalRepresentation).isEqualTo("0:0:0:0:0:0:0:0")
+            }
+
+            @Test
+            fun `should conventionally represent loopback address`() {
+                expectThat(IPv6Address.LOOPBACK.conventionalRepresentation).isEqualTo("0:0:0:0:0:0:0:1")
+            }
+
+            @TestFactory
+            fun `should conventionally represent network address`() = listOf(
+                IPv6Address.IPv4_MAPPED_RANGE to "0:0:0:0:0:ffff:0:0",
+                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b:0:0:0:0:0:0",
+            ).test { (range, expected) ->
+                expectThat(range.subnet.networkAddress.conventionalRepresentation).isEqualTo(expected)
+            }
+        }
+
+        @Nested
+        inner class CompressedRepresentation {
+
+            @Test
+            fun `should provide compressed representation`() {
+                expectThat(ip.compressedRepresentation).isEqualTo("::ffff:c0a8:1001")
+            }
+
+            @Test
+            fun `should represent compressed first address`() {
+                expectThat(IPv6Address.DEFAULT_ROOT.compressedRepresentation).isEqualTo("::")
+            }
+
+            @Test
+            fun `should represent compressed loopback address`() {
+                expectThat(IPv6Address.LOOPBACK.compressedRepresentation).isEqualTo("::1")
+            }
+
+            @TestFactory
+            fun `should represent compressed network address`() = listOf(
+                IPv6Address.IPv4_MAPPED_RANGE to "::ffff:0:0",
+                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b::",
+            ).test { (range, expected) ->
+                expectThat(range.subnet.networkAddress.compressedRepresentation).isEqualTo(expected)
             }
         }
     }

@@ -1,5 +1,6 @@
 package koodies.text
 
+import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -214,6 +215,58 @@ class TruncationKtTest {
         @Test
         fun `should leave whitespace sequence below minimal length unchanged`() {
             expectThat("a      b   c".truncateTo(9, minWhitespaceLength = 3)).isEqualTo("a   b   c")
+        }
+    }
+
+    @Nested
+    inner class PadStartFixedLengthKtTest {
+
+        @Suppress("NonAsciiCharacters")
+        @TestFactory
+        fun `should truncate to 10 chars using ··· and _`() = listOf(
+            "SomeClassName and a couple of words" to "Some···rds",
+            "Short" to "_____Short",
+        ).flatMap { (input, expected) ->
+            listOf(
+                dynamicTest("\"$expected\" ？⃔ \"$input\"") {
+                    val actual = input.padStartFixedLength(10, TruncationStrategy.MIDDLE, "···", '_')
+                    expectThat(actual).isEqualTo(expected)
+                },
+                DynamicContainer.dynamicContainer("always have same length",
+                    TruncationStrategy.values().map { strategy ->
+                        val actual = input.padStartFixedLength(10, strategy, "···", '_')
+                        dynamicTest("\"$actual\" ？⃔ \"$input\"") {
+                            expectThat(actual).hasLength(10)
+                        }
+                    }.toList()
+                ),
+            )
+        }
+    }
+
+    @Nested
+    inner class PadEndFixedLengthKtTest {
+
+        @Suppress("NonAsciiCharacters")
+        @TestFactory
+        fun `should truncate to 10 chars using ··· and _`() = listOf(
+            "SomeClassName and a couple of words" to "Some···rds",
+            "Short" to "Short_____",
+        ).flatMap { (input, expected) ->
+            listOf(
+                dynamicTest("\"$expected\" ？⃔ \"$input\"") {
+                    val actual = input.padEndFixedLength(10, TruncationStrategy.MIDDLE, "···", '_')
+                    expectThat(actual).isEqualTo(expected)
+                },
+                DynamicContainer.dynamicContainer("always have same length",
+                    TruncationStrategy.values().map { strategy ->
+                        val actual = input.padEndFixedLength(10, strategy, "···", '_')
+                        dynamicTest("\"$actual\" ？⃔ \"$input\"") {
+                            expectThat(actual).hasLength(10)
+                        }
+                    }.toList()
+                ),
+            )
         }
     }
 

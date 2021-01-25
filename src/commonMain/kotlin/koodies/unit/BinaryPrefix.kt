@@ -2,9 +2,9 @@
 
 package koodies.unit
 
-import koodies.number.BigDecimalConstants.TWO
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import koodies.number.toBigDecimal
-import java.math.BigDecimal
+import koodies.unit.UnitPrefix.Companion.DECIMAL_MODE
 import kotlin.math.absoluteValue
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -13,8 +13,8 @@ enum class BinaryPrefix(
     override val symbol: String,
     override val exponent: Int,
     override val factor: BigDecimal =
-        if (exponent > 0) TWO.pow(exponent)
-        else BigDecimal.ONE / TWO.pow(exponent.absoluteValue),
+        if (exponent > 0) BigDecimal.TWO.pow(exponent)
+        else BigDecimal.ONE.divide(BigDecimal.TWO.pow(exponent.absoluteValue), DECIMAL_MODE),
 ) : UnitPrefix, ReadOnlyProperty<Number, BigDecimal> {
     Yobi("Yi", 80),
     Zebi("Zi", 70),
@@ -34,7 +34,7 @@ enum class BinaryPrefix(
     yobi("Yi", -80),
     ; // TODO radix = 1024, POWER 1,2,3...
 
-    override val basis: BigDecimal = TWO
+    override val basis: BigDecimal = BigDecimal.TWO
     override val baseExponent: Int = 10
     override val prefix: String get() = name.toLowerCase()
     override fun getValue(thisRef: Number, property: KProperty<*>): BigDecimal {

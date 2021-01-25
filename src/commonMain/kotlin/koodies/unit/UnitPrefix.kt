@@ -1,6 +1,8 @@
 package koodies.unit
 
-import java.math.BigDecimal
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.decimal.DecimalMode
+import com.ionspin.kotlin.bignum.decimal.RoundingMode
 
 interface UnitPrefix {
     val symbol: String
@@ -9,6 +11,10 @@ interface UnitPrefix {
     val baseExponent: Int
     val exponent: Int
     val factor: BigDecimal
+
+    companion object {
+        val DECIMAL_MODE = DecimalMode(20, RoundingMode.ROUND_HALF_CEILING)
+    }
 }
 
 val UnitPrefix?.factor: BigDecimal get() = this?.factor ?: BigDecimal.ONE

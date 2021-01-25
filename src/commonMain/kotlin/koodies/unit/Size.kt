@@ -1,17 +1,13 @@
 package koodies.unit
 
-import koodies.io.path.requireExists
-import koodies.number.BigDecimalConstants
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import koodies.number.formatScientifically
 import koodies.number.formatToExactDecimals
-import koodies.number.scientificFormat
 import koodies.number.toBigDecimal
+import koodies.text.CharRanges
 import koodies.text.quoted
-import java.io.File
-import java.math.BigDecimal
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isSymbolicLink
 import kotlin.reflect.KClass
 
 /**
@@ -20,6 +16,8 @@ import kotlin.reflect.KClass
  * [ISO/IEC 80000](https://en.wikipedia.org/wiki/ISO/IEC_80000) [Yobi], [Zebi], [Exbi], [Pebi], [Tebi], [Gibi], [Mebi] and [Kibi].
  */
 inline class Size(val bytes: BigDecimal) : Comparable<Size> {
+
+    val bits: BigInteger get() = bytes.toBigInteger() * Byte.SIZE_BITS
 
     companion object {
         val ZERO: Size = Size(BigDecimal.ZERO)
@@ -52,14 +50,10 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
             else -> when {
                 value < BigDecimal.ONE -> 3
                 value < BigDecimal.TEN -> 2
-                value < BigDecimalConstants.HUNDRED -> 1
+                value < BigDecimal.parseString("100", 10) -> 1
                 else -> 0
             }
         }
-    }
-
-    object FileSizeComparator : (Path, Path) -> Int {
-        override fun invoke(path1: Path, path2: Path): Int = path1.size.compareTo(path2.size)
     }
 
     /**
@@ -97,12 +91,12 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
                 val absNs = bytes.abs()
                 var scientific = false
                 val index = prefixes.dropLastWhile { absNs >= it.factor }.size
-                val millionish = prefixes.first().basis.toBigDecimal().pow(2 * prefixes.first().baseExponent)
+                val millionish = prefixes.first().basis.pow(2 * prefixes.first().baseExponent)
                 if (index == 0 && absNs >= prefixes.first().factor * millionish) scientific = true
                 val prefix = prefixes.getOrNull(index)
                 val value = bytes.divide(prefix.factor)
                 val formattedValue = when {
-                    scientific -> value.scientificFormat
+                    scientific -> value.formatScientifically()
                     else -> {
                         value.formatToExactDecimals(decimals ?: precision(value.abs(), prefix))
                     }
@@ -126,47 +120,29 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
         val upperDetailLimit = 1e14.toBigDecimal()
         return when {
             number.abs() < upperDetailLimit -> number.formatToExactDecimals(decimals.coerceAtMost(12))
-            else -> number.scientificFormat
+            else -> BigDecimal.fromBigDecimal(number, UnitPrefix.DECIMAL_MODE).roundToDigitPosition(3).formatScientifically()
         } + " " + unitPrefix.getSymbol<Size>() + SYMBOL
     }
 
     override fun compareTo(other: Size): Int = this.bytes.compareTo(other.bytes)
-    operator fun plus(other: Size): Size = Size(bytes + other.bytes)
-    operator fun plus(otherBytes: Long): Size = Size(bytes + BigDecimal.valueOf(otherBytes))
-    operator fun plus(otherBytes: Int): Size = Size(bytes + BigDecimal.valueOf(otherBytes.toLong()))
-    operator fun minus(other: Size): Size = Size(bytes - other.bytes)
-    operator fun minus(otherBytes: Long): Size = Size(bytes - BigDecimal.valueOf(otherBytes))
-    operator fun minus(otherBytes: Int): Size = Size(bytes - BigDecimal.valueOf(otherBytes.toLong()))
+    operator fun unaryPlus(): Size = this
     operator fun unaryMinus(): Size = ZERO - this
-    operator fun div(other: Size): Double = (bytes.div(other.bytes)).toDouble()
-    operator fun times(factor: Number): Size = (factor.toBigDecimal() * bytes).bytes
-    fun toZeroFilledByteArray(): ByteArray = ByteArray(bytes.toInt())
+
+    operator fun plus(other: BigDecimal): Size = Size(bytes + other)
+    operator fun plus(other: Number): Size = this + other.toBigDecimal()
+    operator fun plus(other: Size): Size = this + other.bytes
+
+    operator fun minus(other: BigDecimal): Size = Size(bytes - other)
+    operator fun minus(other: Number): Size = this - other.toBigDecimal()
+    operator fun minus(other: Size): Size = this - other.bytes
+
+    operator fun times(factor: BigDecimal): Size = (factor * bytes).bytes
+    operator fun times(factor: Number): Size = this * factor.toBigDecimal()
+
+    operator fun div(other: BigDecimal): Size = Size(bytes.div(other))
+    operator fun div(other: Number): Size = this / other.toBigDecimal()
+    operator fun div(other: Size): BigDecimal = bytes.div(other.bytes)
 }
-
-/**
- * Contains the decimal size of this file (`e.g. 3.12 MB`).
- *
- * If this target actually points to a directory, this property
- * contains the overall size of all contained files.
- */
-val Path.size: Size
-    get() {
-        requireExists()
-        return if (!isDirectory()) Files.size(toAbsolutePath()).bytes
-        else (toFile().listFiles() ?: return Size.ZERO) // TODO remove toFile
-            .asSequence()
-            .map(File::toPath)
-            .filterNot { it.isSymbolicLink() }
-            .fold(Size.ZERO) { size, path -> size + path.size }
-    }
-
-/**
- * Contains the size of this file or directory rounded so that
- * —if printed— no decimals are needed (e.g. `3 MB`).
- *
- * Please note that the size is rounded in the decimal system (1 KB = 1.000 B).
- */
-val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).toSize()
 
 /**
  * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
@@ -174,6 +150,8 @@ val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).to
  * @see parse
  */
 fun CharSequence.toSize(): Size = parse()
+
+private fun Char.isDigit() = this in CharRanges.Numeric
 
 /**
  * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
@@ -183,7 +161,7 @@ fun CharSequence.toSize(): Size = parse()
  */
 fun CharSequence.parse(): Size {
     val trimmed = trim()
-    val unitString = trimmed.takeLastWhile { it.isLetter() }
+    val unitString = trimmed.takeLastWhile { !it.isDigit() && !it.isWhitespace() }
     val valueString = trimmed.dropLast(unitString.length).trim().toString()
     val value = valueString.toBigDecimal()
     return unitString.removeSuffix(Size.SYMBOL).let { it ->
@@ -199,3 +177,32 @@ fun CharSequence.parse(): Size {
  * Contains the equivalent value as [bytes].
  */
 val Number.bytes: Size get() = if (this == 0) Size.ZERO else Size(toBigDecimal())
+
+
+/**
+ * Contains the equivalent value as [bytes].
+ */
+val BigDecimal.bytes: Size get() = if (this == BigDecimal.ZERO) Size.ZERO else Size(this)
+
+
+/**
+ * Contains the equivalent value as [bytes].
+ */
+val BigInteger.bytes: Size get() = if (this == BigInteger.ZERO) Size.ZERO else Size(toString(10).toBigDecimal(10))
+
+
+/**
+ * Contains the equivalent value as [bytes].
+ */
+val Number.bits: Size get() = if (this == 0) Size.ZERO else toBigDecimal().bits
+
+/**
+ * Contains the equivalent value as [bytes].
+ */
+val BigDecimal.bits: Size get() = if (this == BigDecimal.ZERO) Size.ZERO else Size(this.divide(Byte.SIZE_BITS.toBigDecimal()))
+    
+/**
+ * Contains the equivalent value as [bytes].
+ */
+val BigInteger.bits: Size get() = if (this == BigInteger.ZERO) Size.ZERO else toBigDecimal().bits
+

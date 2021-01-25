@@ -2,8 +2,9 @@
 
 package koodies.unit
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import koodies.number.toBigDecimal
-import java.math.BigDecimal
+import koodies.unit.UnitPrefix.Companion.DECIMAL_MODE
 import kotlin.math.absoluteValue
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -14,7 +15,7 @@ enum class DecimalPrefix(
     override val exponent: Int,
     override val factor: BigDecimal =
         if (exponent > 0) BigDecimal.TEN.pow(exponent.absoluteValue)
-        else BigDecimal.ONE / BigDecimal.TEN.pow(exponent.absoluteValue),
+        else BigDecimal.ONE.divide(BigDecimal.TEN.pow(exponent.absoluteValue), DECIMAL_MODE),
 ) : UnitPrefix, ReadOnlyProperty<Number, BigDecimal> {
     Yotta("Y", 24),
     Zetta("Z", 21),

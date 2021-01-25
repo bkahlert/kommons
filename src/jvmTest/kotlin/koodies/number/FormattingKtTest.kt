@@ -1,15 +1,15 @@
 package koodies.number
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.math.BigDecimal
 
-@Execution(CONCURRENT)
-class ScientificKtTest {
+@Execution(SAME_THREAD)
+class FormattingKtTest {
 
     @TestFactory
     fun `should format scientifically`() = listOf(
@@ -25,10 +25,10 @@ class ScientificKtTest {
     ).flatMap { (value, expected) ->
         listOf(
             dynamicTest("BigDecimal: $value -> $expected") {
-                expectThat(BigDecimal(value).scientificFormat).isEqualTo(expected)
+                expectThat(BigDecimal.parseString(value).formatScientifically()).isEqualTo(expected)
             },
             dynamicTest("Double: $value -> $expected") {
-                expectThat(value.toDouble().scientificFormat).isEqualTo(expected)
+                expectThat(value.toDouble().formatScientifically()).isEqualTo(expected)
             },
         )
     }
@@ -47,7 +47,7 @@ class ScientificKtTest {
     ).flatMap { (value, expected) ->
         listOf(
             dynamicTest("BigDecimal: $value -> $expected") {
-                expectThat(BigDecimal(value).formatToExactDecimals(10)).isEqualTo(expected)
+                expectThat(BigDecimal.parseString(value).formatToExactDecimals(10)).isEqualTo(expected)
             },
             dynamicTest("Double: $value -> $expected") {
                 expectThat(value.toDouble().formatToExactDecimals(10)).isEqualTo(expected)
@@ -69,7 +69,7 @@ class ScientificKtTest {
     ).flatMap { (value, expected) ->
         listOf(
             dynamicTest("BigDecimal: $value -> $expected") {
-                expectThat(BigDecimal(value).formatUpToDecimals(7)).isEqualTo(expected)
+                expectThat(BigDecimal.parseString(value).formatUpToDecimals(7)).isEqualTo(expected)
             },
             dynamicTest("Double: $value -> $expected") {
                 expectThat(value.toDouble().formatUpToDecimals(7)).isEqualTo(expected)

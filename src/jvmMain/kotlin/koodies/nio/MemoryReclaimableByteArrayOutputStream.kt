@@ -1,9 +1,9 @@
 package koodies.nio
 
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import koodies.debug.replaceNonPrintableCharacters
 import koodies.number.toBigInteger
 import java.io.ByteArrayOutputStream
-import java.math.BigInteger
 
 /**
  * A [ByteArrayOutputStream] implementation that allows to remove
@@ -32,7 +32,7 @@ class MemoryReclaimableByteArrayOutputStream(private val initialSize: Int = 1024
         val newSize = (buf.size.toBigInteger() + by.toBigInteger()).also {
             check(it < MAX_ARRAY_SIZE) { "New capacity $it must be smaller than $MAX_ARRAY_SIZE" }
         }
-        val newBuf = ByteArray(newSize.intValueExact())
+        val newBuf = ByteArray(newSize.intValue(true))
         buf.copyInto(newBuf, 0, 0, count)
         buf = newBuf
         count -= by

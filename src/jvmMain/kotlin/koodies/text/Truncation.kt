@@ -102,3 +102,25 @@ fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhitespaceLe
     if (truncated.length >= length) return truncated
     return truncated.truncateTo(maxLength, startIndex, minWhitespaceLength).toString()
 }
+
+/**
+ * Returns this [CharSequence] truncated to [length] and if necessary padded from the start.
+ */
+fun CharSequence.padStartFixedLength(
+    length: Int = 15,
+    strategy: TruncationStrategy = TruncationStrategy.END,
+    marker: String = "…",
+    padChar: Char = ' ',
+): CharSequence =
+    strategy.truncate(toString(), length, marker).padStart(length, padChar).toString()
+
+/**
+ * Returns this [CharSequence] truncated to [length] and if necessary padded from the end.
+ */
+fun CharSequence.padEndFixedLength(
+    length: Int = 15,
+    strategy: TruncationStrategy = TruncationStrategy.END,
+    marker: String = "…",
+    padChar: Char = ' ',
+): CharSequence =
+    strategy.truncate(toString(), length, marker).padEnd(length, padChar).toString()
