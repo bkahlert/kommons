@@ -141,6 +141,8 @@ fun <P : ManagedProcess> P.processSynchronously(
             ioReader.read()
         }
     }
+
+    onExit.join()
 }
 
 private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =

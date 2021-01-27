@@ -5,7 +5,9 @@ import koodies.concurrent.process.IO.Type.ERR
 import koodies.concurrent.process.IO.Type.OUT
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
+import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.processSynchronously
+import koodies.logging.InMemoryLogger
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
@@ -19,133 +21,119 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.hasLength
+import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
+import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import java.nio.file.Path
+import java.util.concurrent.CompletionException
 
 @Execution(CONCURRENT)
 class ScriptsKtTest {
 
     private val echoingCommands =
-        ">&1 echo \"test output\"; sleep 1; >&2 echo \"test error\"; sleep 1; >&1 echo \"test output\"; sleep 1; >&2 echo \"test error\""
+        ">&1 echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; >&1 echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
-    @Nested
-    inner class NameGeneration {
-
-        @Test
-        fun `should make first char alphanumeric`() {
-            expectThat("-YZ--abc".toScriptName()).isEqualTo("XYZ--abc")
-        }
-
-        @Test
-        fun `should keep alphanumeric period underscore and dash`() {
-            expectThat("aB3._-xx".toScriptName()).isEqualTo("aB3._-xx")
-        }
-
-        @Test
-        fun `should replace whitespace with dash`() {
-            expectThat("abc- \n\t\r".toScriptName()).isEqualTo("abc-----")
-        }
-
-        @Test
-        fun `should replace with underscore by default`() {
-            expectThat("a𝕓☰👋⻦𐦀︎".toScriptName()).isEqualTo("a_______")
-        }
-
-        @Test
-        fun `should fill up to min length`() {
-            expectThat("abc".toScriptName(6)).hasLength(6)
-        }
-
-        @Test
-        fun `should fill up to 8 chars by default`() {
-            expectThat("abc".toScriptName()).hasLength(8)
-        }
-
-        @Test
-        fun `should create random string in case of null`() {
-            expectThat(null.toScriptName()).hasLength(8)
-        }
-    }
+    private fun getFactories(scriptContent: String = echoingCommands) = listOf<Path.() -> ManagedProcess>(
+        {
+            script(ShellScript { !scriptContent })
+        },
+        {
+            script { !scriptContent }
+        },
+        {
+            script(InMemoryLogger()) { !scriptContent }
+        },
+    )
 
     @Nested
     inner class ScriptFn {
-        private val factories = listOf<Path.() -> ManagedProcess>(
-            {
-                script(shellScript = ShellScript { !echoingCommands })
-            },
-            {
-                script { !echoingCommands }
-            },
-        )
 
         @TestFactory
-        fun `should start implicitly`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
-            val process = it()
+        fun `should start implicitly`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
+            val process = processFactory()
             expectThat(process.started).isTrue()
         }
 
         @TestFactory
-        fun `should start`(uniqueId: UniqueId) = factories.testWithTempDir(uniqueId) {
-            val process = it()
+        fun `should start`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
+            val process = processFactory()
             process.start()
             expectThat(process.started).isTrue()
         }
 
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
-            {
-                script(shellScript = ShellScript { !echoingCommands }, processor = it)
+            { script(ShellScript { !echoingCommands }, processor = it) },
+            { script(it) { !echoingCommands } },
+            { processor ->
+                val logger = InMemoryLogger()
+                val process = script(logger) { !echoingCommands }
+                logger.logged.lines().forEach { line ->
+                    if (line.contains("test output 1")) process.processor(OUT typed "test output 1")
+                    if (line.contains("test output 2")) process.processor(OUT typed "test output 2")
+                    if (line.contains("test error 1")) process.processor(ERR typed "test error 1")
+                    if (line.contains("test error 2")) process.processor(ERR typed "test error 2")
+                }
+                process
             },
-            {
-                script(processor = it) { !echoingCommands }
-            },
-        ).testWithTempDir(uniqueId) {
+        ).testWithTempDir(uniqueId) { processFactory ->
             val processed = mutableListOf<IO>()
-            it { io -> processed.add(io) }
+            processFactory { io -> processed.add(io) }
             expectThat(processed).contains(
-                OUT typed "test output",
-                ERR typed "test error"
+                OUT typed "test output 1",
+                OUT typed "test output 2",
+                ERR typed "test error 1",
+                ERR typed "test error 2",
             )
+        }
+
+        @TestFactory
+        fun `should throw on unexpected exit value`(uniqueId: UniqueId) = getFactories("exit 42").testWithTempDir(uniqueId) { processFactory ->
+            expectCatching { processFactory() }
+                .isFailure()
+                .isA<CompletionException>()
+                .with({ message }) { isNotNull() and { containsDump() } }
         }
     }
 
     @Nested
     inner class OutputFn {
 
-        @Test
-        fun `should run synchronously`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = script { !echoingCommands }
+        @TestFactory
+        fun `should run process synchronously implicitly`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
+            val process = processFactory()
             expectThat(process.exitValue).isEqualTo(0)
         }
 
-        @Test
-        fun `should log IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = script { !echoingCommands }
+        @TestFactory
+        fun `should log IO`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
+            val process = processFactory()
             process.output()
 
-            expectThat(process.ioLog.logged.drop(2))
+            expectThat(process.ioLog.logged.drop(2).dropLast(1))
                 .containsExactlyInAnyOrder(
-                    OUT typed "test output",
-                    ERR typed "test error",
-                    OUT typed "test output",
-                    ERR typed "test error",
+                    OUT typed "test output 1",
+                    ERR typed "test error 1",
+                    OUT typed "test output 2",
+                    ERR typed "test error 2",
                 )
         }
 
-        @Test
-        fun `should contain OUT`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val output = script { !echoingCommands }.output()
+        @TestFactory
+        fun `should contain OUT`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
+            val output = processFactory().output()
 
             expectThat(output).isEqualTo("""
-                test output
-                test output
+                test output 1
+                test output 2
             """.trimIndent())
         }
     }

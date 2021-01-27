@@ -8,6 +8,7 @@ import koodies.io.RedirectingOutputStream
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.time.Now
 import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -32,6 +33,11 @@ interface ManagedProcess : Process {
     }
 
     val ioLog: IOLog
+
+    /**
+     * If set, the finalization of the process will be delayed until
+     * [externalSync] completes.
+     */
     var externalSync: CompletableFuture<*>
 
     override fun start(): ManagedProcess
@@ -116,30 +122,29 @@ private open class ManagedJavaProcess(
     override val ioLog: IOLog by lazy { IOLog() }
 
     override var externalSync: CompletableFuture<*> = CompletableFuture.completedFuture(Unit)
-    override var onExit: CompletableFuture<Process>
-        get() {
-            return externalSync.thenCombine(javaProcess.onExit()) { _, process ->
-                process
-            }.exceptionally { throwable ->
-                val cause = if (throwable is CompletionException) throwable.cause else throwable
-                val dump = commandLine.workingDirectory.dump("""
+    protected val oneTimeOnExit: CompletableFuture<Process> by lazy {
+        externalSync.thenCombine(javaProcess.onExit()) { _, process ->
+            process
+        }.exceptionally { throwable ->
+            val cause = if (throwable is CompletionException) throwable.cause else throwable
+            val dump = commandLine.workingDirectory.dump("""
                 Process $commandLine terminated with ${cause.toCompactString()}.
             """.trimIndent()) { ioLog.dump() }.also { dump -> metaLog(dump) }
-                throw RuntimeException(dump.removeEscapeSequences(), cause)
-            }.thenApply { _ ->
-                if (expectedExitValue != null && exitValue != expectedExitValue) {
-                    val message = ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue).message
-                    message?.also { metaLog(it) }
-                    val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaLog(dump) }
-                    throw ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue, dump.removeEscapeSequences())
-                }
-                metaLog("Process $pid terminated successfully.")
-                this@ManagedJavaProcess
+            throw RuntimeException(dump.removeEscapeSequences(), cause)
+        }.thenApply { _ ->
+            if (expectedExitValue != null && exitValue != expectedExitValue) {
+                val message = ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue).message
+                message?.also { metaLog(it) }
+                val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaLog(dump) }
+                throw ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue, dump.removeEscapeSequences())
             }
+            metaLog("Process $pid terminated successfully at $Now.")
+            this@ManagedJavaProcess
         }
-        set(value) {
-            externalSync = value
-        }
+    }
+    override var onExit: CompletableFuture<Process>
+        get() = oneTimeOnExit
+        set(value) = value.let { externalSync = it }
 
     override val preparedToString = super.preparedToString.apply {
         append(";")

@@ -1,7 +1,6 @@
 package koodies.shell
 
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.toScriptName
 import koodies.io.path.executable
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
@@ -12,6 +11,7 @@ import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.prefixLinesWith
 import koodies.text.quoted
 import koodies.text.withRandomSuffix
+import koodies.toBaseName
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.notExists
@@ -77,7 +77,7 @@ class ShellScript(val name: String? = null, content: String? = null) {
     fun file(path: Path, init: FileOperations.() -> Unit = {}) = FileOperations(this, path).apply(init)
 
     fun embed(shellScript: ShellScript) {
-        val fileName = "${shellScript.name.toScriptName()}.sh"
+        val fileName = "${shellScript.name.toBaseName()}.sh"
         val delimiter = "EMBEDDED-SCRIPT".withRandomSuffix()
         lines.add("""
             (

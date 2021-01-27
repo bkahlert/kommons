@@ -98,7 +98,7 @@ class ProcessesKtTest {
                 command = "/bin/sh", "-c", echoingCommands))
             process.output()
 
-            expectThat(process.ioLog.logged.drop(2))
+            expectThat(process.ioLog.logged.drop(2).dropLast(1))
                 .containsExactlyInAnyOrder(
                     IO.Type.OUT typed "test output",
                     IO.Type.ERR typed "test error",

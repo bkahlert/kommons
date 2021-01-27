@@ -202,6 +202,7 @@ class ShellScriptTest {
                         ░░░░░░░ EMBEDDED SCRIPT 📝
                         finish to run embedded script
                         ${asString()}
+                        Process {} terminated successfully at {}.
                     """.trimIndent())
                 }
                 that(resolve("dir/file.txt")).hasContent("test\n")
