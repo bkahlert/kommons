@@ -25,7 +25,7 @@ class IpAddressTest {
                 "192.168.016.1",
                 "192.168.016.001",
             ).test { ip ->
-                expectThat(ip.toIp()).isEqualTo(IPv4Address.parse("192.168.16.1"))
+                expectThat(ip.toAnyIp()).isEqualTo(IPv4Address.parse("192.168.16.1"))
             }
 
         @TestFactory
@@ -35,15 +35,15 @@ class IpAddressTest {
                 "0:0::ffff:192.168.016.001",
                 "0:0:0:0:0:ffff:c0a8:1001",
             ).test { ip ->
-                expectThat(ip.toIp()).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001"))
+                expectThat(ip.toAnyIp()).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001"))
             }
 
         @TestFactory
         fun `should throw on invalid IP address`() =
             listOf(
-                { "-1.168.16.1".toIp() },
+                { "-1.168.16.1".toAnyIp() },
                 { IPv4Address.parse("192.168.16.x") },
-                { "-0:0:0::ffff:c0a8:1001".toIp() },
+                { "-0:0:0::ffff:c0a8:1001".toAnyIp() },
                 { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
             ).test { ip ->
                 expectCatching { ip() }.isFailure().isA<IllegalArgumentException>()

@@ -14,6 +14,7 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
@@ -162,8 +163,8 @@ class IPv6AddressTest {
         }
 
         @Test
-        fun `should throw on greater start than end`() {
-            expectCatching { range.endInclusive..range.start }.isFailure().isA<IllegalArgumentException>()
+        fun `should return empty range if greater start than end`() {
+            expectThat(range.endInclusive..range.start).isEmpty()
         }
 
         @Test

@@ -20,12 +20,10 @@ import koodies.regex.countMatches
 import koodies.unit.Size
 import koodies.unit.bits
 
-interface IpAddress<T : IpAddress<T>> : Comparable<T> {
-    val version: Version
-    val bytes: ByteArray
-    val value: BigInteger
-
-    operator fun rangeTo(endInclusive: T): IpAddressRange<T>
+sealed class IpAddress : Comparable<IpAddress> {
+    abstract val version: Version
+    abstract val bytes: ByteArray
+    abstract val value: BigInteger
 
     interface Version {
         val major: Int
@@ -35,6 +33,7 @@ interface IpAddress<T : IpAddress<T>> : Comparable<T> {
     }
 }
 
+
 internal data class VersionImpl(
     override val major: Int,
     override val addressLength: Size,
@@ -43,7 +42,7 @@ internal data class VersionImpl(
     override val byteCount: Int = addressLength.bytes.toInt()
 }
 
-class IPv4Address(byte0: Byte, byte1: Byte, byte2: Byte, byte3: Byte) : IpAddress<IPv4Address> {
+class IPv4Address(byte0: Byte, byte1: Byte, byte2: Byte, byte3: Byte) : IpAddress() {
     private constructor(bytes: ByteArray) : this(bytes[0], bytes[1], bytes[2], bytes[3])
     constructor(value: Int) : this(value.toBytes(trim = false))
 
@@ -51,13 +50,12 @@ class IPv4Address(byte0: Byte, byte1: Byte, byte2: Byte, byte3: Byte) : IpAddres
     override val bytes: ByteArray = byteArrayOf(byte0, byte1, byte2, byte3)
     override val value by lazy { bytes.toUInt().toBigInteger() }
 
-    override operator fun rangeTo(endInclusive: IPv4Address): IpAddressRange<IPv4Address> =
-        IpAddressRange(this, endInclusive) { IPv4Address(it.intValue(false)) }
+    fun rangeTo(endInclusive: IPv4Address): IpAddressRange<IPv4Address> = IpAddressRange(this, endInclusive)
 
     private val string by lazy { bytes.map { it.toPositiveInt() }.joinToString(".") }
     override fun toString(): String = string
 
-    override fun compareTo(other: IPv4Address): Int = value.compareTo(other.value)
+    override fun compareTo(other: IpAddress): Int = value.compareTo(other.value)
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -69,10 +67,7 @@ class IPv4Address(byte0: Byte, byte1: Byte, byte2: Byte, byte3: Byte) : IpAddres
         return true
     }
 
-    override fun hashCode(): Int {
-        return bytes.contentHashCode()
-    }
-
+    override fun hashCode(): Int = bytes.contentHashCode()
 
     companion object : IpAddress.Version by VersionImpl(4, 32.bits) {
         val RANGE = parse("0.0.0.0")..parse("255.255.255.255")
@@ -98,7 +93,7 @@ class IPv6Address(
     byte4: Byte, byte5: Byte, byte6: Byte, byte7: Byte,
     byte8: Byte, byte9: Byte, byte10: Byte, byte11: Byte,
     byte12: Byte, byte13: Byte, byte14: Byte, byte15: Byte,
-) : IpAddress<IPv6Address> {
+) : IpAddress() {
     private constructor(bytes: ByteArray) : this(
         bytes[0], bytes[1], bytes[2], bytes[3],
         bytes[4], bytes[5], bytes[6], bytes[7],
@@ -128,13 +123,12 @@ class IPv6Address(
         BigInteger.parseString(hexString.takeUnless { it.isBlank() } ?: "0", 16)
     }
 
-    override operator fun rangeTo(endInclusive: IPv6Address): IpAddressRange<IPv6Address> =
-        IpAddressRange(this, endInclusive) { IPv6Address(it) }
-
     private val paddedBytes by lazy {
         bytes.map { it.toPositiveInt().toString(16).padStart(2, '0') }
             .windowed(2, 2) { it.joinToString("") }
     }
+
+    fun rangeTo(endInclusive: IPv6Address): IpAddressRange<IPv6Address> = IpAddressRange(this, endInclusive)
 
     /**
      * This representation consists of eight hextets each consisting of four
@@ -190,7 +184,7 @@ class IPv6Address(
      */
     override fun toString(): String = compressedRepresentation
 
-    override fun compareTo(other: IPv6Address): Int = value.compareTo(other.value)
+    override fun compareTo(other: IpAddress): Int = value.compareTo(other.value)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -290,13 +284,18 @@ class IPv6Address(
     }
 }
 
-fun String.toIp() = when {
+fun String.toAnyIp(): IpAddress = when {
     contains(":") -> IPv6Address.parse(this)
     contains(".") -> IPv4Address.parse(this)
     else -> throw NumberFormatException("$this is not valid IP address.")
 }
 
-fun ipOf(value: String) = value.toIp()
+inline fun <reified IP : IpAddress> String.toIp(): IP {
+    val ipAddress = toAnyIp()
+    return (ipAddress as? IP) ?: error("IP $ipAddress is no ${IP::class.simpleName}")
+}
+
+inline fun <reified IP : IpAddress> ipOf(value: String): IP = value.toIp<IP>()
 
 fun IPv4Address.toIPv6Address() = IPv6Address(value + IPv6Address.IPv4_TO_IPv6_MAPPING_OFFSET)
 fun IPv6Address.toIPv4Address(): IPv4Address {

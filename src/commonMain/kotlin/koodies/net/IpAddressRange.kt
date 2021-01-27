@@ -1,20 +1,17 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
+val <IP : IpAddress> ClosedRange<IP>.subnet get() = Subnet(start, endInclusive)
+val <IP : IpAddress> ClosedRange<IP>.usable get() = maxOf(start, subnet.firstHost)..minOf(endInclusive, subnet.lastHost)
+val <IP : IpAddress> ClosedRange<IP>.firstUsableHost get() = usable.start
+val <IP : IpAddress> ClosedRange<IP>.lastUsableHost get() = usable.endInclusive
 
-open class IpAddressRange<T : IpAddress<T>>(
-    final override val start: T,
-    final override val endInclusive: T,
-    factory: (BigInteger) -> T,
-) : ClosedRange<T> {
+open class IpAddressRange<IP : IpAddress>(
+    final override val start: IP,
+    final override val endInclusive: IP,
+) : ClosedRange<IP> {
     init {
         require(start <= endInclusive) { "$start must be less or equal to $endInclusive" }
     }
-
-    val subnet by lazy { Subnet(start, endInclusive, factory) }
-    val usable by lazy { maxOf(start, subnet.firstHost)..minOf(endInclusive, subnet.lastHost) }
-    val firstUsableHost by lazy { usable.start }
-    val lastUsableHost by lazy { usable.endInclusive }
 
     private val string by lazy { "${start}..$endInclusive" }
     override fun toString(): String = string
@@ -35,5 +32,16 @@ open class IpAddressRange<T : IpAddress<T>>(
         var result = endInclusive.hashCode()
         result = 31 * result + start.hashCode()
         return result
+    }
+
+    companion object {
+        inline fun <reified IP : IpAddress> parse(start: String, endInclusive: String): IpAddressRange<IP> {
+            val startIp: IP = start.toIp()
+            val endInclusiveIp: IP = endInclusive.toIp()
+            return IpAddressRange(startIp, endInclusiveIp)
+        }
+
+        inline fun <reified IP : IpAddress> parse(range: String): IpAddressRange<IP> =
+            range.split("..").run { parse(first(), last()) }
     }
 }
