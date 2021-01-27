@@ -123,12 +123,12 @@ kotlin {
                 languageVersion = "1.4"
                 apiVersion = "1.4"
                 enableLanguageFeature("InlineClasses")
-                listOf("kotlin.io.path.ExperimentalPathApi",
-                    "kotlin.ExperimentalUnsignedTypes",
+                listOf(
                     "kotlin.RequiresOptIn",
                     "kotlin.ExperimentalUnsignedTypes",
                     "kotlin.time.ExperimentalTime",
-                    "kotlin.contracts.ExperimentalContracts"
+                    "kotlin.contracts.ExperimentalContracts",
+                    "kotlin.io.path.ExperimentalPathApi"
                 ).forEach(::useExperimentalAnnotation)
                 progressiveMode = true
             }
@@ -169,6 +169,7 @@ kotlin {
                 }
             }
         }
+
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
