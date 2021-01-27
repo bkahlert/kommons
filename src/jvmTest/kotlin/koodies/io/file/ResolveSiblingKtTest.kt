@@ -57,7 +57,7 @@ fun <T : Path> Assertion.Builder<T>.isSiblingOf(expected: Path, order: Int = 1) 
             fail("$expected is too short. At least $it segments are missing to be able to be sibling.")
         }
         if (missing <= 0) {
-            val evaluation = actualNames.zip(otherNames).mapIndexed() { index, namePair ->
+            val evaluation = actualNames.zip(otherNames).mapIndexed { index, namePair ->
                 val match = if (index == actualIndex || index == otherIndex) true
                 else namePair.first == namePair.second
                 namePair to match

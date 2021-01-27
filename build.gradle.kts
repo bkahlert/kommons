@@ -92,10 +92,19 @@ kotlin {
         }
     }
 
-    js(BOTH) {
+    js(IR) {
         browser {
-            testTask { useKarma { useChromeHeadless(); webpackConfig.cssSupport.enabled = true } }
+            commonWebpackConfig {
+                cssSupport.enabled = true
+            }
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
         }
+
+        binaries.executable()
         compilations.all { kotlinOptions { sourceMap = true; moduleKind = "umd"; metaInfo = true } }
     }
     val hostOs = System.getProperty("os.name")
@@ -128,7 +137,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                implementation("com.ionspin.kotlin:bignum:0.2.3") {
+                api("com.ionspin.kotlin:bignum:0.2.3") {
                     because("bigint for IPv6Address")
                 }
             }
@@ -270,6 +279,8 @@ kotlin {
         }
     }
 }
+
+// TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
 
 tasks.configureEach {
     onlyIf {

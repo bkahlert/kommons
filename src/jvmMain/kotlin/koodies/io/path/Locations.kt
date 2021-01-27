@@ -17,7 +17,7 @@ object Locations {
      * Resolves [glob] using the system's `ls` command line tool.
      */
     fun Path.ls(glob: String): List<Path> =
-        script { !"ls $glob" }.output().lines().map { resolve(it) }
+        kotlin.runCatching { script { !"ls $glob" }.output().lines().map { resolve(it) } }.getOrDefault(emptyList())
 
     /**
      * Working directory, that is, the directory in which this binary can be found.
