@@ -5,7 +5,7 @@ import koodies.concurrent.process.IO.Type.OUT
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
-import koodies.concurrent.process.silentlyProcess
+import koodies.concurrent.process.processSilently
 import koodies.concurrent.synchronized
 import koodies.test.Slow
 import koodies.test.Smoke
@@ -27,10 +27,10 @@ import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class DockerProcessTest {
-    
+
     @DockerRequiring @Test
     fun `should start docker`(uniqueId: UniqueId) {
-        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().silentlyProcess()
+        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().processSilently()
 
         kotlin.runCatching {
             poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
@@ -46,7 +46,7 @@ class DockerProcessTest {
 
         @DockerRequiring @Test
         fun `should start docker and pass arguments`(uniqueId: UniqueId) {
-            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().silentlyProcess()
+            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().processSilently()
 
             kotlin.runCatching {
                 poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
@@ -59,7 +59,7 @@ class DockerProcessTest {
 
         @DockerRequiring @Test
         fun `should start docker and process input`(uniqueId: UniqueId) {
-            val dockerProcess = Docker.busybox(uniqueId.simple).execute().silentlyProcess()
+            val dockerProcess = Docker.busybox(uniqueId.simple).execute().processSilently()
 
             kotlin.runCatching {
                 dockerProcess.enter("echo 'test'")
@@ -77,7 +77,7 @@ class DockerProcessTest {
                 """echo "looping"""",
                 """sleep 1""",
                 """done""",
-            ).execute().silentlyProcess()
+            ).execute().processSilently()
 
             kotlin.runCatching {
                 poll { dockerProcess.ioLog.logged.any { it.type == OUT } }
@@ -119,7 +119,7 @@ class DockerProcessTest {
                     """echo "looping"""",
                     """sleep 1""",
                     """done""",
-                ).execute().silentlyProcess()
+                ).execute().processSilently()
 
                 kotlin.runCatching {
                     expectThat(dockerProcess.alive).isFalse()

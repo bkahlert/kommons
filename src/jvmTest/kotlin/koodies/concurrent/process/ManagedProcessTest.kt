@@ -109,7 +109,7 @@ class ManagedProcessTest {
 
         @Test
         fun `should provide IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = createLoopingManagedProcess().silentlyProcess()
+            val process = createLoopingManagedProcess().processSilently()
             expectThat(process).log.logs(IO.Type.OUT typed "test out", IO.Type.ERR typed "test err")
             process.kill()
         }
@@ -296,21 +296,21 @@ class ManagedProcessTest {
 
                 @Test
                 fun `should occur on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().silentlyProcess().onExit.get() }.failed.and {
+                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.failed.and {
                         message.isNotNull()
                     }
                 }
 
                 @Test
                 fun `should contain dump in message`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().silentlyProcess().onExit.get() }.failed.and {
+                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.failed.and {
                         get { toString() }.containsDump()
                     }
                 }
 
                 @Test
                 fun `should have proper root cause`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().silentlyProcess().onExit.get() }.failed.and {
+                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.failed.and {
                         rootCause.isA<ProcessExecutionException>().message.toStringContains("terminated with exit code 0. Expected 123.")
                     }
                 }
@@ -318,7 +318,7 @@ class ManagedProcessTest {
 
             @Test
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = createThrowingManagedProcess().silentlyProcess()
+                val process = createThrowingManagedProcess().processSilently()
                 expect {
                     catching { process.onExit.get() }.failed
                     that(process).io.containsDump()
@@ -328,7 +328,7 @@ class ManagedProcessTest {
             @Test
             fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
-                val process = createThrowingManagedProcess(processTerminationCallback = { callbackCalled = true }).silentlyProcess()
+                val process = createThrowingManagedProcess(processTerminationCallback = { callbackCalled = true }).processSilently()
                 expect {
                     catching { process.onExit.get() }.failed
                     that(callbackCalled).isTrue()

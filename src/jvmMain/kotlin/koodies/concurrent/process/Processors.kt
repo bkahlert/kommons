@@ -53,7 +53,7 @@ object Processors {
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */
-inline fun <reified P : ManagedProcess> P.silentlyProcess(): ManagedProcess =
+inline fun <reified P : ManagedProcess> P.processSilently(): ManagedProcess =
     process(false, InputStream.nullInputStream(), noopProcessor())
 
 
@@ -66,7 +66,7 @@ inline fun <reified P : ManagedProcess> P.silentlyProcess(): ManagedProcess =
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-fun <P : ManagedProcess> P.process(processor: Processor<P>): P =
+fun <P : ManagedProcess> P.process(processor: Processor<P> = noopProcessor()): P =
     process(true, InputStream.nullInputStream(), processor)
 
 /**

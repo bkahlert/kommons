@@ -61,7 +61,7 @@ class CommandLineTest {
         @Test
         fun `should start if processed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (process, file) = createLazyFileCreatingProcess()
-            process.silentlyProcess()
+            process.processSilently()
             poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) { fail("Process $process did not start") }
             expectThat(file).exists()
         }
