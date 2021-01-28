@@ -15,6 +15,17 @@ class MemoryReclaimableByteArrayOutputStream(private val initialSize: Int = 1024
     }
 
     /**
+     * Takes and returns the first [bytes] which increases the available capacity by
+     * the same amount without increasing the reserved memory.
+     */
+    fun take(bytes: Int): ByteArray {
+        check(bytes <= count)
+        return ByteArray(bytes)
+            .also { buf.copyInto(it, 0, 0, bytes) }
+            .also { drop(bytes) }
+    }
+
+    /**
      * Drops the first [bytes] which increases the available capacity by
      * the same amount without increasing the reserved memory.
      */

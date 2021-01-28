@@ -148,6 +148,22 @@ directory.deleteRecursively()
 if (path.notExists()) path.withDirectoriesCreated().createFile()
 ```
 
+#### Non-Blocking DynamicInputStream & DynamicReadableByteChannel
+
+```kotlin
+val inputStream = DynamicInputStream()
+// Data can be yielded everytime you want until you call close().
+inputStream.yield("Hello World!".toByteArray())
+// Stream effectively closes only after all data have been read.
+inputStream.close()
+
+val bytes = inputStream.readBytes()
+
+expectThat(bytes).isEqualTo("Hello World!".toByteArray())
+```
+
+Same functionality provided by `DynamicReadableByteChannel`.
+
 ### Units
 
 #### Decimal and Binary Bytes

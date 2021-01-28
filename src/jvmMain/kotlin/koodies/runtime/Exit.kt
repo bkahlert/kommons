@@ -27,8 +27,11 @@ private fun <T : OnExitHandler> addShutDownHook(handler: T): T =
     }
 
 private fun <T : OnExitHandler> T.toHook() = thread(start = false) {
-    runCatching { this() }
-        .onFailure { it.throwUnlessOfType(IllegalStateException::class, AccessControlException::class) }
+    runCatching {
+        invoke()
+    }.onFailure {
+        if (it !is IllegalStateException && it !is AccessControlException) throw it
+    }
 }
 
 
