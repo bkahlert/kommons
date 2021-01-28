@@ -1,17 +1,18 @@
 package koodies.test.output
 
 import koodies.concurrent.process.IO
-import koodies.concurrent.synchronized
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * A capture session that captures [System.out] and [System.err].
  */
 open class SystemCapture {
-    private val monitor = Any()
+    private val lock = ReentrantLock()
     private val out: PrintStreamCapture
     private val err: PrintStreamCapture
 
-    private val capturedStrings: MutableList<CapturedString> = arrayListOf<CapturedString>().synchronized()
+    private val capturedStrings: MutableList<CapturedString> = arrayListOf()
 
     init {
         out = PrintStreamCapture(System.out) { string: String -> captureOut(string) }
@@ -26,15 +27,15 @@ open class SystemCapture {
     }
 
     private fun captureOut(string: String) {
-        synchronized(monitor) { capturedStrings.add(CapturedString(IO.Type.OUT, string)) }
+        lock.withLock { capturedStrings.add(CapturedString(IO.Type.OUT, string)) }
     }
 
     private fun captureErr(string: String) {
-        synchronized(monitor) { capturedStrings.add(CapturedString(IO.Type.ERR, string)) }
+        lock.withLock { capturedStrings.add(CapturedString(IO.Type.ERR, string)) }
     }
 
     fun append(builder: StringBuilder, filter: (IO.Type) -> Boolean) {
-        synchronized(monitor) {
+        lock.withLock {
             capturedStrings
                 .asSequence()
                 .filter { filter(it.type) }
@@ -43,7 +44,7 @@ open class SystemCapture {
     }
 
     fun reset() {
-        synchronized(monitor) { capturedStrings.clear() }
+        lock.withLock { capturedStrings.clear() }
     }
 
     private class CapturedString(val type: IO.Type, private val string: String) {

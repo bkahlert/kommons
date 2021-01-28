@@ -2,6 +2,8 @@ package koodies.test.output
 
 import koodies.collections.withNegativeIndices
 import koodies.concurrent.process.IO
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 
 class OutputCapture : CapturedOutput {
@@ -9,15 +11,10 @@ class OutputCapture : CapturedOutput {
         fun splitOutput(output: String): List<String> = output.lines().dropLastWhile { it.isBlank() }
     }
 
-    private val monitor = Any()
+    private val lock = ReentrantLock()
     private val systemCaptures: ArrayDeque<SystemCapture> = ArrayDeque()
-    fun push() {
-        synchronized(monitor) { systemCaptures.addLast(SystemCapture()) }
-    }
-
-    fun pop() {
-        synchronized(monitor) { systemCaptures.removeLast().release() }
-    }
+    fun push() = lock.withLock { systemCaptures.addLast(SystemCapture()) }
+    fun pop() = lock.withLock { systemCaptures.removeLast().release() }
 
     val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
 
@@ -33,17 +30,15 @@ class OutputCapture : CapturedOutput {
     /**
      * Resets the current capture session, clearing its captured output.
      */
-    fun reset() = systemCaptures.lastOrNull()?.reset()
+    fun reset() = systemCaptures.firstOrNull()?.reset()
 
-    private fun getFilteredCapture(filter: (IO.Type) -> Boolean): String {
-        return synchronized(monitor) {
-            check(!this.systemCaptures.isEmpty()) { "No system captures found. Please check your output capture registration." }
-            val builder = StringBuilder()
-            for (systemCapture in systemCaptures) {
-                systemCapture.append(builder, filter)
-            }
-            builder.toString()
+    private fun getFilteredCapture(filter: (IO.Type) -> Boolean): String = lock.withLock {
+        check(!this.systemCaptures.isEmpty()) { "No system captures found. Please check your output capture registration." }
+        val builder = StringBuilder()
+        for (systemCapture in systemCaptures) {
+            systemCapture.append(builder, filter)
         }
+        builder.toString()
     }
 
     override fun hashCode(): Int = all.hashCode()
