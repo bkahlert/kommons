@@ -10,13 +10,12 @@ import koodies.io.path.asString
 import koodies.shell.ShellScript
 import koodies.test.Slow
 import koodies.test.UniqueId
-import koodies.test.containsExactlyInSomeOrder
 import koodies.test.matchesCurlyPattern
 import koodies.test.testWithTempDir
 import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.lines
-import koodies.text.styling.Boxes.Companion.wrapWithBox
+import koodies.text.styling.wrapWithBorder
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -136,9 +135,8 @@ class ManagedProcessTest {
             kotlin.runCatching {
                 process.process { io ->
                     if (io.type != IO.Type.META) {
-                        kotlin.runCatching {
-                            enter("just read $io")
-                        }.recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
+                        kotlin.runCatching { enter("just read $io") }
+                            .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
                     }
                 }
 
@@ -147,11 +145,12 @@ class ManagedProcessTest {
                 process.stop()
                 process.waitForTermination()
                 expectThat(process) {
-                    killed
-                        .log.get("logged %s") { logged.drop(3).take(4) }.containsExactlyInSomeOrder {
-                            +(IO.Type.OUT typed "test out") + (IO.Type.ERR typed "test err")
-                            +(IO.Type.IN typed "just read ${IO.Type.OUT.format("test out")}") + (IO.Type.IN typed "just read ${IO.Type.ERR.format("test err")}")
-                        }
+                    killed.log.get("logged %s") { logged }.contains(
+                        IO.Type.OUT typed "test out",
+                        IO.Type.ERR typed "test err",
+                        IO.Type.IN typed "just read ${IO.Type.OUT.format("test out")}",
+                        IO.Type.IN typed "just read ${IO.Type.ERR.format("test err")}",
+                    )
                 }
             }.onFailure {
                 // fails from time to time, therefore this unconventional introspection code
@@ -159,10 +158,7 @@ class ManagedProcessTest {
                     """
                     Logged instead:
                     ${process.ioLog.logged}
-                    
-                    ... of what was evaluated:
-                    ${process.ioLog.logged.drop(3).take(4)}
-                    """.trimIndent().wrapWithBox())
+                    """.trimIndent().wrapWithBorder())
             }.getOrThrow()
         }
     }

@@ -5,9 +5,12 @@ import koodies.concurrent.process.IO.Type.ERR
 import koodies.concurrent.process.IO.Type.OUT
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
+import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
+import koodies.concurrent.process.logged
 import koodies.concurrent.process.processSynchronously
 import koodies.logging.InMemoryLogger
+import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
@@ -20,7 +23,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -41,15 +46,21 @@ class ScriptsKtTest {
     private val echoingCommands =
         ">&1 echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; >&1 echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
-    private fun getFactories(scriptContent: String = echoingCommands) = listOf<Path.() -> ManagedProcess>(
+    private fun getFactories(
+        scriptContent: String = echoingCommands,
+        processor: Processor<ManagedProcess>? = Processors.noopProcessor(),
+        logger: RenderingLogger? = InMemoryLogger(),
+    ) = listOf<Path.() -> ManagedProcess>(
         {
-            script(ShellScript { !scriptContent })
+            processor?.let { script(ShellScript { !scriptContent }, processor = processor) }
+                ?: script(ShellScript { !scriptContent })
         },
         {
-            script { !scriptContent }
+            processor?.let { script(processor) { !scriptContent } }
+                ?: script { !scriptContent }
         },
         {
-            script(InMemoryLogger()) { !scriptContent }
+            script(logger) { !scriptContent }
         },
     )
 
@@ -163,24 +174,48 @@ class ScriptsKtTest {
     }
 
     @Nested
+    @Execution(ExecutionMode.SAME_THREAD)
+    @Isolated
     @ExtendWith(OutputCaptureExtension::class)
     inner class SynchronousExecution {
 
-        @Test
-        fun `should process without logging to System out or in`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-            script { line(">&1 echo \"test output\""); line(">&2 echo \"test error\"") }.processSynchronously()
-            expectThat(output).get { out }.isEmpty()
-            expectThat(output).get { err }.isEmpty()
-        }
-
-        @Test
-        fun `should format merged output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = script { line(">&1 echo \"test output\""); line(">&2 echo \"test error\"") }.processSynchronously()
-            expectThat(process.ioLog.logged) {
-                get { first().type }.isEqualTo(IO.Type.META)
-                get { first().unformatted }.matchesCurlyPattern("Executing {}")
-                contains(OUT typed "test output", ERR typed "test error")
+        @TestFactory
+        fun `should process log to console by default`(output: CapturedOutput, uniqueId: UniqueId) =
+            getFactories(processor = null, logger = null).testWithTempDir(uniqueId) { processFactory ->
+                processFactory()
+                expectThat(output).get { out }.matchesCurlyPattern("""
+                ▶{}commandLine{}
+                · test output 1
+                · test output 2
+                · Unfortunately an error occurred: test error 1
+                · Unfortunately an error occurred: test error 2
+            """.trimIndent())
+                expectThat(output).get { err }.isEmpty()
             }
-        }
+
+        @TestFactory
+        fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
+            getFactories(processor = {}, logger = InMemoryLogger()).testWithTempDir(uniqueId) { processFactory ->
+                val process = processFactory()
+                process.processSynchronously(Processors.noopProcessor())
+                expectThat(output).get { out }.isEmpty()
+                expectThat(output).get { err }.isEmpty()
+            }
+
+        @TestFactory
+        fun `should format merged output`(output: CapturedOutput, uniqueId: UniqueId) =
+            getFactories(processor = {}, logger = null).testWithTempDir(uniqueId) { processFactory ->
+                val process = processFactory()
+                process.processSynchronously(Processors.noopProcessor())
+                expectThat(process.logged).matchesCurlyPattern("""
+                    Executing {}
+                    {} file:{}
+                    test output 1
+                    test output 2
+                    test error 1
+                    test error 2
+                    Process {} terminated successfully at {}.
+                    """.trimIndent())
+            }
     }
 }

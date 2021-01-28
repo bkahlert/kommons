@@ -1,8 +1,10 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.completableFuture
+import koodies.concurrent.process.Processors.consoleLoggingProcessor
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
+import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
@@ -28,7 +30,7 @@ object Processors {
     var ioProcessingThreadPool: ExecutorService = Executors.newCachedThreadPool()
 
     /**
-     * A [Processor] that prints the encountered [IO] to the console.
+     * A [Processor] that prints the encountered [IO] using the specified [logger].
      */
     fun <P : Process> loggingProcessor(logger: RenderingLogger): Processor<P> = { io ->
         when (io.type) {
@@ -36,6 +38,25 @@ object Processors {
             IO.Type.IN -> logger.logLine { io }
             IO.Type.OUT -> logger.logLine { io }
             IO.Type.ERR -> logger.logLine { "Unfortunately an error occurred: ${io.formatted}" }
+        }
+    }
+
+    /**
+     * A [Processor] that prints all [IO] to the console.
+     */
+    fun <P : Process> consoleLoggingProcessor(): Processor<P> {
+        return object : (P, IO) -> Unit {
+            private lateinit var process: P
+            private val logger by lazy { BlockRenderingLogger(process.toString()) }
+            override fun invoke(process: P, io: IO) {
+                this.process = process
+                when (io.type) {
+                    IO.Type.META -> logger.logLine { io }
+                    IO.Type.IN -> logger.logLine { io }
+                    IO.Type.OUT -> logger.logLine { io }
+                    IO.Type.ERR -> logger.logLine { "Unfortunately an error occurred: ${io.formatted}" }
+                }
+            }
         }
     }
 
@@ -53,20 +74,19 @@ object Processors {
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */
-inline fun <reified P : ManagedProcess> P.processSilently(): ManagedProcess =
+inline fun <reified P : ManagedProcess> P.processSilently(): P =
     process(false, InputStream.nullInputStream(), noopProcessor())
-
 
 /**
  * Attaches to the [Process.outputStream] and [Process.errorStream]
  * of the specified [Process] and passed all [IO] to the specified [processor].
  *
- * If no [processor] is specified, the output and the error stream will be
- * printed to the console.
+ * If no [processor] is specified a [Processors.consoleLoggingProcessor] prints
+ * all [IO] to the console.
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-fun <P : ManagedProcess> P.process(processor: Processor<P> = noopProcessor()): P =
+fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggingProcessor()): P =
     process(true, InputStream.nullInputStream(), processor)
 
 /**
@@ -122,12 +142,12 @@ fun <P : ManagedProcess> P.process(
  * of the specified [Process] and passed all [IO] to the specified [processor]
  * **synchronously**.
  *
- * If no [processor] is specified, the output and the error stream will be
- * printed to the console.
+ * If no [processor] is specified a [Processors.consoleLoggingProcessor] prints
+ * all [IO] to the console.
  */
 fun <P : ManagedProcess> P.processSynchronously(
 //    processInputStream: InputStream = InputStream.nullInputStream(),
-    processor: Processor<P> = noopProcessor(),
+    processor: Processor<P> = consoleLoggingProcessor(),
 ): P = apply {
 
     val readers = listOf(

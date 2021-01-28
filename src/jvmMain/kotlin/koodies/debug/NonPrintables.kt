@@ -1,6 +1,6 @@
 package koodies.debug
 
-import koodies.number.toHexString
+import koodies.number.toHexadecimalString
 import koodies.text.LineSeparators
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
@@ -19,8 +19,8 @@ fun String.replaceNonPrintableCharacters(): String {
             codePoint.char == ' ' -> " "
             codePoint.replacementSymbol != null -> codePoint.replacementSymbol.toString()
             codePoint.string in LineSeparators -> "⏎"
-            codePoint.isHighSurrogate -> codePoint.codePoint.toHexString(pad = true) + "▌﹍"
-            codePoint.isLowSurrogate -> "﹍▐" + codePoint.codePoint.toHexString(pad = true)
+            codePoint.isHighSurrogate -> codePoint.codePoint.toHexadecimalString(pad = true) + "▌﹍"
+            codePoint.isLowSurrogate -> "﹍▐" + codePoint.codePoint.toHexadecimalString(pad = true)
             codePoint.isWhitespace || codePoint.char in Unicode.whitespaces -> "❲${codePoint.unicodeName}❳"
             codePoint.isDefined -> codePoint.string
             else -> codePoint.string

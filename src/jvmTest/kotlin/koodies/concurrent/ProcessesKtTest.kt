@@ -3,19 +3,29 @@ package koodies.concurrent
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
+import koodies.concurrent.process.logged
 import koodies.concurrent.process.process
+import koodies.concurrent.process.processSynchronously
 import koodies.test.UniqueId
+import koodies.test.matchesCurlyPattern
+import koodies.test.output.CapturedOutput
+import koodies.test.output.OutputCaptureExtension
 import koodies.test.testWithTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
@@ -131,5 +141,52 @@ class ProcessesKtTest {
                 test output 2
             """.trimIndent())
         }
+    }
+
+    @Nested
+    @Execution(SAME_THREAD)
+    @Isolated
+    @ExtendWith(OutputCaptureExtension::class)
+    inner class SynchronousExecution {
+
+        @TestFactory
+        fun `should process log to console by default`(output: CapturedOutput, uniqueId: UniqueId) =
+            getFactories().testWithTempDir(uniqueId) { processFactory ->
+                val process = processFactory()
+                process.processSynchronously()
+                expectThat(output).get { out }.matchesCurlyPattern("""
+                ▶{}commandLine{}
+                · test output 1
+                · test output 2
+                · Unfortunately an error occurred: test error 1
+                · Unfortunately an error occurred: test error 2
+            """.trimIndent())
+                expectThat(output).get { err }.isEmpty()
+            }
+
+        @TestFactory
+        fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
+            getFactories().testWithTempDir(uniqueId) { processFactory ->
+                val process = processFactory()
+                process.processSynchronously(Processors.noopProcessor())
+                expectThat(output).get { out }.isEmpty()
+                expectThat(output).get { err }.isEmpty()
+            }
+
+        @TestFactory
+        fun `should format merged output`(output: CapturedOutput, uniqueId: UniqueId) =
+            getFactories().testWithTempDir(uniqueId) { processFactory ->
+                val process = processFactory()
+                process.processSynchronously(Processors.noopProcessor())
+                expectThat(process.logged).matchesCurlyPattern("""
+                    Executing {}
+                    {} file:{}
+                    test output 1
+                    test output 2
+                    test error 1
+                    test error 2
+                    Process {} terminated successfully at {}.
+                    """.trimIndent())
+            }
     }
 }

@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.number.mod
-import koodies.number.toHexString
+import koodies.number.toHexadecimalString
 import kotlin.random.Random
 import kotlin.streams.asSequence
 
@@ -33,14 +33,14 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * e.g. `U+0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `U+200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    val `U+XXXX`: String get() = "U+${codePoint.toHexString(pad = true)}"
+    val `U+XXXX`: String get() = "U+${codePoint.toHexadecimalString(pad = true)}"
 
     /**
      * Contains this code point formatted in the form `uXXXX`,
      * e.g. `u0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `u200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    val uXXXX: String get() = "U+${codePoint.toHexString(pad = true)}"
+    val uXXXX: String get() = "U+${codePoint.toHexadecimalString(pad = true)}"
 
     /**
      * Contains this code point formatted in the form `\N{U+XXXX}`,

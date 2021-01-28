@@ -29,12 +29,40 @@ class BytesKtTest {
     fun `should convert to hexadecimal string`() =
         listOf(
             0.toByte() to "00",
-            MAX_VALUE to "7F",
+            MAX_VALUE to "7f",
             MIN_VALUE to "80",
-            (-1).toByte() to "FF",
+            (-1).toByte() to "ff",
         ).test { (input, expected) ->
-            expectThat(input.toHexString()).isEqualTo(expected)
+            expectThat(input.toHexadecimalString()).isEqualTo(expected)
         }
+
+    @Nested
+    inner class ToHexStringKtTest {
+
+        @TestFactory
+        fun `should convert to padded hex representation by default`() = listOf(
+            0 to "00",
+            10 to "0a",
+            15 to "0f",
+            16 to "10",
+            65535 to "ffff",
+            65536 to "010000",
+        ).test { (dec, hex) ->
+            expectThat(dec.toHexadecimalString()).isEqualTo(hex)
+        }
+
+        @TestFactory
+        fun `should convert to specified hex representation`() = listOf(
+            0 to "0",
+            10 to "a",
+            15 to "f",
+            16 to "10",
+            65535 to "ffff",
+            65536 to "10000",
+        ).test { (dec, hex) ->
+            expectThat(dec.toHexadecimalString(pad = false)).isEqualTo(hex)
+        }
+    }
 
     @TestFactory
     fun `should convert to decimal string`() =
@@ -44,7 +72,7 @@ class BytesKtTest {
             MIN_VALUE to "128",
             (-1).toByte() to "255",
         ).test { (input, expected) ->
-            expectThat(input.toDecString()).isEqualTo(expected)
+            expectThat(input.toDecimalString()).isEqualTo(expected)
         }
 
     @Nested

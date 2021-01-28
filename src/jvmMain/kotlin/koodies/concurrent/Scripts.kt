@@ -1,6 +1,7 @@
 package koodies.concurrent
 
 import koodies.concurrent.process.CommandLine
+import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
@@ -22,10 +23,10 @@ internal fun Path.isScriptFile(): Boolean = name.startsWith(shellScriptPrefix) &
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue].
+ * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.noopProcessor].
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -36,7 +37,7 @@ fun Path.script(
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
-    processor: Processor<ManagedProcess> = Processors.noopProcessor(),
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): ManagedProcess {
     val scriptFile = shellScript.sanitize(this).buildTo(scriptPath())
     val commandLine = CommandLine(environment, this, scriptFile)
@@ -45,10 +46,10 @@ fun Path.script(
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue].
+ * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.noopProcessor].
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -59,23 +60,23 @@ fun script(
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
-    processor: Processor<ManagedProcess> = Processors.noopProcessor(),
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): ManagedProcess = Locations.Temp.script(shellScript, environment, expectedExitValue, processTerminationCallback, processor)
 
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue].
+ * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.noopProcessor].
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
 fun Path.script(
-    processor: Processor<ManagedProcess> = Processors.noopProcessor(),
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
@@ -84,17 +85,17 @@ fun Path.script(
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue].
+ * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.noopProcessor].
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
 fun script(
-    processor: Processor<ManagedProcess> = Processors.noopProcessor(),
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
@@ -104,9 +105,10 @@ fun script(
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue].
+ * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
  *
- * The output of this script will be logged by the specified [logger].
+ * The output of this script will be logged by the specified [logger]
+ * which prints all [IO] to the console if `null`
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -128,9 +130,10 @@ fun Path.script(
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue].
+ * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
  *
- * The output of this script will be logged by the specified [logger].
+ * The output of this script will be logged by the specified [logger]
+ * which prints all [IO] to the console if `null`
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -153,10 +156,10 @@ fun script(
 /**
  * Creates a [Processor] from `this` [RenderingLogger].
  *
- * Returns a [Processors.noopProcessor] if `this` is `null`.
+ * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
  */
 private fun RenderingLogger?.toProcessor() =
-    this?.let { Processors.loggingProcessor(it) } ?: Processors.noopProcessor()
+    this?.let { Processors.loggingProcessor(it) } ?: Processors.consoleLoggingProcessor()
 
 /**
  * Convenience function to tests if the output of the specified [command]

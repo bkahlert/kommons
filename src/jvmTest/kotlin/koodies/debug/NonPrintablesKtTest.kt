@@ -38,6 +38,6 @@ class NonPrintablesKtTest {
     @Test
     fun `should replace surrogates`() {
         expectThat("\ud800 \udc00".replaceNonPrintableCharacters())
-            .isEqualTo("D800▌﹍ ﹍▐DC00")
+            .isEqualTo("d800▌﹍ ﹍▐dc00")
     }
 }

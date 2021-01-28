@@ -1,10 +1,31 @@
 package koodies.number
 
+private val hexChars = arrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
+
 val Byte.Companion.ZERO: Byte get() = 0x0
 inline val Byte.Companion.OO: Byte get() = ZERO
 inline val Byte.Companion.FF: Byte get() = -1
+
+
 fun Byte.toPositiveInt() = toInt() and 0xFF
-fun Byte.toDecString() = toPositiveInt().toString()
+
+fun Byte.toHexadecimalString() = toPositiveInt().toHexadecimalString()
+fun Int.toHexadecimalString(pad: Boolean = true): String {
+    var rem: Int
+    var decimal = this
+    val hex = StringBuilder()
+    if (decimal == 0) return if (pad) "00" else "0"
+    while (decimal > 0) {
+        rem = decimal % 16
+        hex.append(hexChars[rem])
+        decimal /= 16
+    }
+    return hex.reversed().toString().let {
+        if (it.length.mod(2) == 1 && pad) "0$it" else it
+    }
+}
+
+fun Byte.toDecimalString() = toPositiveInt().toString()
 
 val UByte.Companion.ZERO: UByte get() = 0x0u
 inline val UByte.Companion.OO: UByte get() = ZERO
@@ -45,3 +66,7 @@ fun ByteArray.padStart(size: Int, padByte: Byte = Byte.ZERO): ByteArray =
 fun UByteArray.padStart(size: Int, padByte: UByte = UByte.ZERO): UByteArray =
     takeUnless { this.count() < size }
         ?: ubyteArrayOf(*MutableList(size - this.count()) { padByte }.toUByteArray(), *this)
+
+fun ByteArray.toBinaryString() {
+
+}
