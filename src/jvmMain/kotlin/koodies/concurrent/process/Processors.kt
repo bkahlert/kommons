@@ -48,14 +48,10 @@ object Processors {
         return object : (P, IO) -> Unit {
             private lateinit var process: P
             private val logger by lazy { BlockRenderingLogger(process.toString()) }
+            private val loggingProcessor by lazy { loggingProcessor(logger) }
             override fun invoke(process: P, io: IO) {
                 this.process = process
-                when (io.type) {
-                    IO.Type.META -> logger.logLine { io }
-                    IO.Type.IN -> logger.logLine { io }
-                    IO.Type.OUT -> logger.logLine { io }
-                    IO.Type.ERR -> logger.logLine { "Unfortunately an error occurred: ${io.formatted}" }
-                }
+                loggingProcessor.invoke(process, io)
             }
         }
     }
@@ -66,8 +62,7 @@ object Processors {
      * This processor is suited if the process's input and output streams
      * should just be completely consumed—with the side effect of getting logged.
      */
-    fun <P : Process> noopProcessor(): Processor<P> =
-        { _ -> }
+    fun <P : Process> noopProcessor(): Processor<P> = { }
 }
 
 /**
