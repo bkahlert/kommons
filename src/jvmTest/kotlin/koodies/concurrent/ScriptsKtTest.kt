@@ -44,7 +44,7 @@ import java.util.concurrent.CompletionException
 class ScriptsKtTest {
 
     private val echoingCommands =
-        ">&1 echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; >&1 echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
+        "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
     private fun getFactories(
         scriptContent: String = echoingCommands,
@@ -185,11 +185,15 @@ class ScriptsKtTest {
                 processFactory()
                 expectThat(output).get { out }.matchesCurlyPattern("""
                 ▶{}commandLine{}
+                · Executing {}
+                {}
+                · {} file:{}
                 · test output 1
                 · test output 2
                 · Unfortunately an error occurred: test error 1
                 · Unfortunately an error occurred: test error 2
-            """.trimIndent())
+                · Process {} terminated successfully at {}.
+                """.trimIndent())
                 expectThat(output).get { err }.isEmpty()
             }
 
@@ -203,7 +207,7 @@ class ScriptsKtTest {
             }
 
         @TestFactory
-        fun `should format merged output`(output: CapturedOutput, uniqueId: UniqueId) =
+        fun `should format merged output`(uniqueId: UniqueId) =
             getFactories(processor = {}, logger = null).testWithTempDir(uniqueId) { processFactory ->
                 val process = processFactory()
                 process.processSynchronously(Processors.noopProcessor())

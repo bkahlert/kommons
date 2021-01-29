@@ -25,7 +25,7 @@ class BusyboxKtTest {
         expect {
             that(dockerProcess.waitFor()).isEqualTo(0)
             that(dockerProcess.alive).isFalse()
-            that(processed).containsExactly(IO.Type.OUT typed "busybox")
+            that(processed.filter { it.type == IO.Type.OUT }).containsExactly(IO.Type.OUT typed "busybox")
         }
     }
 }

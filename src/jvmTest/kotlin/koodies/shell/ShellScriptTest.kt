@@ -150,6 +150,7 @@ class ShellScriptTest {
             changeDirectoryOrExit(this@getEmbeddedShellScript)
             !"""mkdir "dir""""
             !"""cd "dir""""
+            !"""sleep 1"""
             !"""echo "test" > file.txt"""
         }
 
@@ -173,6 +174,7 @@ class ShellScriptTest {
                 cd "${asString()}" || exit -1
                 mkdir "dir"
                 cd "dir"
+                sleep 1
                 echo "test" > file.txt
                 EMBEDDED-SCRIPT-{}
                 ) > "embedded-script-_.sh"

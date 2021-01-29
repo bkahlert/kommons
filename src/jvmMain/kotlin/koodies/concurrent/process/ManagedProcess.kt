@@ -8,8 +8,10 @@ import koodies.io.RedirectingOutputStream
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.TruncationStrategy.MIDDLE
+import koodies.text.truncate
 import koodies.time.Now
-import org.apache.commons.io.output.ByteArrayOutputStream
+import koodies.time.sleep
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
@@ -17,6 +19,7 @@ import java.util.concurrent.CompletionException
 import kotlin.concurrent.thread
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlin.time.milliseconds
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 import java.lang.Process as JavaProcess
 
@@ -33,6 +36,8 @@ interface ManagedProcess : Process {
     }
 
     val ioLog: IOLog
+
+    var inputCallback: (IO) -> Unit
 
     /**
      * If set, the finalization of the process will be delayed until
@@ -109,8 +114,31 @@ private open class ManagedJavaProcess(
         return this
     }
 
-    private val capturingMetaStream: OutputStream by lazy { TeeOutputStream(ByteArrayOutputStream(), RedirectingOutputStream { ioLog.add(IO.Type.META, it) }) }
-    private val capturingOutputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, RedirectingOutputStream { ioLog.add(IO.Type.IN, it) }) }
+    override var inputCallback: (IO) -> Unit = {}
+
+    private val capturingMetaStream: OutputStream by lazy {
+        TeeOutputStream(
+            RedirectingOutputStream { inputCallback(IO.Type.META typed it.decodeToString()) },
+            RedirectingOutputStream {
+                // ugly hack; META logs are just there and the processor is just notified;
+                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
+                // therefor we delay here
+                1.milliseconds.sleep { ioLog.add(IO.Type.META, it) }
+            },
+        )
+    }
+    private val capturingOutputStream: OutputStream by lazy {
+        TeeOutputStream(
+            RedirectingOutputStream { inputCallback(IO.Type.IN typed it.decodeToString()) },
+            javaProcess.outputStream,
+            RedirectingOutputStream {
+                // ugly hack; IN logs are just there and the processor is just notified;
+                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
+                // therefor we delay here
+                1.milliseconds.sleep { ioLog.add(IO.Type.IN, it) }
+            },
+        )
+    }
     private val capturingInputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.add(IO.Type.OUT, it) }) }
     private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, RedirectingOutputStream { ioLog.add(IO.Type.ERR, it) }) }
 
@@ -148,7 +176,7 @@ private open class ManagedJavaProcess(
 
     override val preparedToString = super.preparedToString.apply {
         append(";")
-        append(" commandLine=${commandLine.commandLine};")
+        append(" commandLine=${commandLine.commandLine.truncate(50, MIDDLE, " … ")};")
         append(" expectedExitValue=$expectedExitValue;")
         append(" processTerminationCallback=${processTerminationCallback.asEmoji};")
         append(" destroyOnShutdown=${destroyOnShutdown.asEmoji}")

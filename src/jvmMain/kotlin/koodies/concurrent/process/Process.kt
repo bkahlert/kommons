@@ -9,7 +9,12 @@ import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import java.lang.Process as JavaProcess
 
-internal open class TeeOutputStream(outputStream: OutputStream, branch: OutputStream) : org.apache.commons.io.output.TeeOutputStream(outputStream, branch)
+internal open class TeeOutputStream(outputStream: OutputStream, branch: OutputStream, vararg branches: OutputStream) :
+    org.apache.commons.io.output.TeeOutputStream(outputStream,
+        if (branches.isEmpty()) branch
+        else branches.fold(branch) { teeOutputStream, outputStream -> TeeOutputStream(teeOutputStream, outputStream) }
+    )
+
 internal class TeeInputStream(inputStream: InputStream, branch: OutputStream) : org.apache.commons.io.input.TeeInputStream(inputStream, branch, false)
 
 /**

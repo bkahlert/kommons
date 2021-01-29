@@ -13,6 +13,8 @@ import java.io.Reader
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
@@ -101,7 +103,9 @@ fun <P : ManagedProcess> P.process(
 
     return apply {
 
-//        val metaConsumer = metaStream. // TODO meta and info reading
+        inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
+            processor(this, line.type typed line.trim())
+        }
 
         val inputProvider = ioProcessingThreadPool.completableFuture {
             processInputStream.use {
@@ -118,17 +122,17 @@ fun <P : ManagedProcess> P.process(
 
         val outputConsumer = ioProcessingThreadPool.completableFuture {
             inputStream.readerForStream(nonBlockingReader).forEachLine { line ->
-                processor(this@process, IO.Type.OUT typed line)
+                processor(this, IO.Type.OUT typed line)
             }
         }.exceptionallyThrow("stdout")
 
         val errorConsumer = ioProcessingThreadPool.completableFuture {
             errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
-                processor(this@process, IO.Type.ERR typed line)
+                processor(this, IO.Type.ERR typed line)
             }
         }.exceptionallyThrow("stderr")
 
-        this@process.externalSync = CompletableFuture.allOf(inputProvider, outputConsumer, errorConsumer)
+        externalSync = CompletableFuture.allOf(inputProvider, outputConsumer, errorConsumer)
     }
 }
 
@@ -141,19 +145,38 @@ fun <P : ManagedProcess> P.process(
  * all [IO] to the console.
  */
 fun <P : ManagedProcess> P.processSynchronously(
-//    processInputStream: InputStream = InputStream.nullInputStream(),
     processor: Processor<P> = consoleLoggingProcessor(),
 ): P = apply {
 
+    val metaAndInputIO = mutableListOf<IO>()
+    val metaAndInputIOLock = ReentrantLock()
+
+    inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
+        metaAndInputIOLock.withLock { metaAndInputIO.add(line) }
+    }
+
     val readers = listOf(
-//        outputStream=TeeOutputStream(outputStream)) { line -> processor(this, IO.Type.IN typed line) },
         NonBlockingLineReader(inputStream) { line -> processor(this, IO.Type.OUT typed line) },
         NonBlockingLineReader(errorStream) { line -> processor(this, IO.Type.ERR typed line) },
     )
 
+    // hacky since that code assumes there is meta logging, IO and finally some meta
+    // (which is true at the time of writing); otherwise the termination confirmation might slip in between
+    metaAndInputIOLock.withLock {
+        while (metaAndInputIO.isNotEmpty()) { // coming from 👆
+            val line = metaAndInputIO.removeFirst()
+            processor(this, line.type typed line.trim())
+        }
+    }
     while (readers.any { !it.done }) {
         readers.filter { !it.done }.forEach { ioReader ->
             ioReader.read()
+        }
+    }
+    metaAndInputIOLock.withLock {
+        while (metaAndInputIO.isNotEmpty()) {  // coming from 👆
+            val line = metaAndInputIO.removeFirst()
+            processor(this, line.type typed line.trim())
         }
     }
 

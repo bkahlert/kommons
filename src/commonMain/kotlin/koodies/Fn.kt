@@ -4,6 +4,9 @@ package koodies
  * Wraps the specified function [block] by calling the specified functions [before] and [after]
  * the actual invocation.
  *
+ * Then return value of [before] is passed as an argument to [after] which
+ * is handy if a value needs to be changed and restored.
+ *
  * Returns the invocations result on success and throws the encountered exception on failure.
  * In both cases [after] will be called.
  */
@@ -17,6 +20,9 @@ fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: () -> R): R {
 /**
  * Wraps the specified function [block] with `this` value as its receiver by calling the specified functions [before] and [after]
  * the actual invocation.
+ *
+ * Then return value of [before] is passed as an argument to [after] which
+ * is handy if a value needs to be changed and restored.
  *
  * Returns the invocations result on success and throws the encountered exception on failure.
  * In both cases [after] will be called.

@@ -2,7 +2,6 @@ package koodies.docker
 
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
-import koodies.text.quoted
 import koodies.time.poll
 import java.util.concurrent.TimeoutException
 import kotlin.time.milliseconds
@@ -31,10 +30,6 @@ open class DockerProcess private constructor(
                 })
             return DockerProcess(name, managedProcess)
         }
-    }
-
-    init {
-        metaLog("🐳 docker attach ${name.quoted}") // TODO consume by Processors
     }
 
     override val alive: Boolean get() = Docker.isContainerRunning(name)

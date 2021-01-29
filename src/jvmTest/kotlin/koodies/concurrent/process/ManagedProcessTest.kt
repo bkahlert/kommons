@@ -119,7 +119,7 @@ class ManagedProcessTest {
 
         @Slow @Test
         fun `should provide output processor access to own running process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process: ManagedProcess = process(shellScript = ShellScript {
+            val process: ManagedProcess = process(ShellScript {
                 !"""
                  while true; do
                     >&1 echo "test out"
@@ -134,7 +134,7 @@ class ManagedProcessTest {
 
             kotlin.runCatching {
                 process.process { io ->
-                    if (io.type != IO.Type.META) {
+                    if (io.type != IO.Type.META && io.type != IO.Type.IN) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
                     }

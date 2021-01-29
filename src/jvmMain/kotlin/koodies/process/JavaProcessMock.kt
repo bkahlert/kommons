@@ -1,6 +1,7 @@
 package koodies.process
 
 import koodies.concurrent.process.DelegatingProcess
+import koodies.concurrent.process.IO
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
@@ -139,6 +140,9 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
     }
 
     override val ioLog: IOLog by lazy { IOLog() }
+    override var inputCallback: (IO) -> Unit
+        get() = TODO("Not yet implemented")
+        set(value) {}
 
     override var externalSync: CompletableFuture<*> = CompletableFuture.completedFuture(Unit)
     override var onExit: CompletableFuture<Process>

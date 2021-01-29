@@ -1,4 +1,4 @@
-package koodies.exception
+package koodies
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
