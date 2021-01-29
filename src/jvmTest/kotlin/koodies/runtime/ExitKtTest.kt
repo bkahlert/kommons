@@ -13,10 +13,10 @@ import strikt.assertions.exists
 import java.nio.file.Path
 import kotlin.io.path.writeText
 
+@Isolated
 @Execution(CONCURRENT)
 class ExitKtTest {
 
-    @Isolated
     @Execution(CONCURRENT)
     class DeleteOnExit {
 

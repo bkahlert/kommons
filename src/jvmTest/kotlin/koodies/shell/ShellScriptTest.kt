@@ -1,7 +1,6 @@
 package koodies.shell
 
-import koodies.concurrent.process.exitValue
-import koodies.concurrent.process.io
+import koodies.concurrent.process.logged
 import koodies.concurrent.script
 import koodies.docker.docker
 import koodies.io.path.Locations
@@ -17,6 +16,7 @@ import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.joinLinesToString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -195,18 +195,16 @@ class ShellScriptTest {
         fun `should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = script(shellScript())
             expect {
-                that(process) {
-                    exitValue.isEqualTo(0)
-                    io.matchesCurlyPattern("""
+                that(process.exitValue).isEqualTo(0)
+                that(process.logged.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
+                    .matchesCurlyPattern("""
                         Executing ${asString()}/koodies.process.{}.sh
                         📄 file://${asString()}/koodies.process.{}.sh
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝
                         finish to run embedded script
                         ${asString()}
-                        Process {} terminated successfully at {}.
                     """.trimIndent())
-                }
                 that(resolve("dir/file.txt")).hasContent("test\n")
             }
         }

@@ -72,6 +72,12 @@ kotlin {
         println("\n\n\t\tProperty releasingFinal is set but the active version $version is not final.")
     }
 
+    targets.all {
+        compilations.all {
+            kotlinOptions.freeCompilerArgs += "-Xinline-classes"
+        }
+    }
+
     jvm {
         compilations.all { kotlinOptions { jvmTarget = "11"; useIR = true } }
 

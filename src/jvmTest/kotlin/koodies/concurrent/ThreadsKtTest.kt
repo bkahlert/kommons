@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
+@Isolated // time critical
 @Execution(CONCURRENT)
 class ThreadsKtTest {
 

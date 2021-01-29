@@ -169,5 +169,5 @@ private fun RenderingLogger?.toProcessor() =
 fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean = runCatching {
     val flags = if (caseSensitive) "" else "i"
     val shellScript = ShellScript { line("$command | grep -q$flags '$substring'") }
-    check(Locations.Temp.script(shellScript = shellScript).waitFor() == 0)
+    check(Locations.Temp.script(shellScript, processor = Processors.noopProcessor()).waitFor() == 0)
 }.isSuccess

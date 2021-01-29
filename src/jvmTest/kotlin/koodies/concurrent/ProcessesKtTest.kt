@@ -8,21 +8,20 @@ import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSynchronously
+import koodies.test.SystemIoExclusive
+import koodies.test.SystemIoRead
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.CapturedOutput
-import koodies.test.output.OutputCaptureExtension
 import koodies.test.testWithTempDir
+import koodies.time.poll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
-import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -33,12 +32,14 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import java.nio.file.Path
 import java.util.concurrent.CompletionException
+import kotlin.time.milliseconds
+import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class ProcessesKtTest {
 
     private val echoingCommands =
-        "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
+        "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
 
     private fun getFactories(command: String = echoingCommands) = listOf<Path.() -> ManagedProcess>(
         {
@@ -73,12 +74,15 @@ class ProcessesKtTest {
             val process = processFactory()
             val processed = mutableListOf<IO>()
             process.process { io -> processed.add(io) }.waitForTermination()
-            expectThat(processed).contains(
-                IO.Type.OUT typed "test output 1",
-                IO.Type.ERR typed "test error 1",
-                IO.Type.OUT typed "test output 2",
-                IO.Type.ERR typed "test error 2",
-            )
+
+            poll {
+                processed.containsAll(listOf(
+                    IO.Type.OUT typed "test output 1",
+                    IO.Type.ERR typed "test error 1",
+                    IO.Type.OUT typed "test output 2",
+                    IO.Type.ERR typed "test error 2",
+                ))
+            }.every(100.milliseconds).forAtMost(2.seconds) { fail { "Did not process all I/O" } }
         }
 
         @TestFactory
@@ -144,11 +148,9 @@ class ProcessesKtTest {
     }
 
     @Nested
-    @Execution(SAME_THREAD)
-    @Isolated
-    @ExtendWith(OutputCaptureExtension::class)
     inner class SynchronousExecution {
 
+        @SystemIoExclusive
         @TestFactory
         fun `should process log to console by default`(output: CapturedOutput, uniqueId: UniqueId) =
             getFactories().testWithTempDir(uniqueId) { processFactory ->
@@ -167,6 +169,7 @@ class ProcessesKtTest {
                 expectThat(output).get { err }.isEmpty()
             }
 
+        @SystemIoRead
         @TestFactory
         fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
             getFactories().testWithTempDir(uniqueId) { processFactory ->
@@ -176,6 +179,7 @@ class ProcessesKtTest {
                 expectThat(output).get { err }.isEmpty()
             }
 
+        @SystemIoExclusive
         @TestFactory
         fun `should format merged output`(uniqueId: UniqueId) =
             getFactories().testWithTempDir(uniqueId) { processFactory ->

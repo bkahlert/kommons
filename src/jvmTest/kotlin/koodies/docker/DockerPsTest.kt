@@ -1,5 +1,6 @@
 package koodies.docker
 
+import koodies.concurrent.process.Processors.noopProcessor
 import koodies.debug.asEmoji
 import koodies.test.Slow
 import koodies.time.poll
@@ -29,11 +30,16 @@ class DockerPsTest {
             "shared-prefix-boot-and-run",
             "shared-prefix-boot-and-run-program-in-user-session",
         ).mapTo(containers) {
-            Docker.busybox(it,
+            Docker.busybox(
+                it,
                 "while true; do",
                 "    sleep 1",
-                "done").execute()
-                .also { poll { it.alive }.every(100.milliseconds).forAtMost(15.seconds) { fail("Docker containers did not start") } }
+                "done",
+                processor = noopProcessor(),
+            )
+                .also {
+                    poll { it.alive }.every(100.milliseconds).forAtMost(15.seconds) { fail("Docker containers did not start") }
+                }
         }
     }
 
@@ -57,7 +63,5 @@ class DockerPsTest {
 
     @Slow
     @AfterAll
-    fun tearDown() {
-        containers.forEach { it.kill() }
-    }
+    fun tearDown() = containers.forEach { it.kill(true) }
 }

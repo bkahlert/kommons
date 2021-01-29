@@ -4,6 +4,7 @@ import koodies.concurrent.script
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.text.LineSeparators
 import koodies.text.isSingleLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -34,7 +35,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(runtimeException.toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:23)")
                 isSingleLine()
             }
         }
@@ -42,7 +43,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(emptyException.toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:21)")
                 isSingleLine()
             }
         }
@@ -54,7 +55,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(Result.failure<String>(runtimeException).toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:23)")
                 isSingleLine()
             }
         }
@@ -62,7 +63,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(Result.failure<String>(emptyException).toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:21)")
                 isSingleLine()
             }
         }
@@ -111,6 +112,12 @@ class FormattingKtTest {
                 expectThat(Result.success(arrayOf("a", "b")).toCompactString()) {
                     isEqualTo(Result.success(listOf("a", "b")).toCompactString())
                 }
+            }
+
+            @Test
+            fun `should format replace line breaks like a list`() {
+                expectThat(LineSeparators.map { "line$it" }.joinToString("").toCompactString())
+                    .isEqualTo("line⏎line⏎line⏎line⏎line⏎line")
             }
         }
     }

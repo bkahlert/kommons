@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
+import koodies.concurrent.thread
 import koodies.time.poll
 import java.util.concurrent.TimeoutException
 import kotlin.time.milliseconds
@@ -34,17 +35,31 @@ open class DockerProcess private constructor(
 
     override val alive: Boolean get() = Docker.isContainerRunning(name)
 
-    override fun stop(): Process = also { Docker.stop(name) }.also { pollTermination() }.also { managedProcess.stop() }
-    override fun kill(): Process = also { stop() }.also { managedProcess.kill() }
+    override fun stop(): Process = stop(false)
+    override fun kill(): Process = kill(false)
 
-    private fun pollTermination(): DockerProcess {
-        poll {
-            !alive
-        }.every(100.milliseconds).forAtMost(10.seconds) {
-            throw TimeoutException("Could not clean up $this within $it.")
-        }
-        return this
+    fun stop(async: Boolean = false): Process = also {
+        val block = { Docker.stop(name).also { pollTermination() }.also { managedProcess.stop() } }
+        if (async) thread(block = block)
+        else block()
     }
 
-    override fun toString(): String = super.toString().replaceFirst("Process[", "DockerProcess[name=$name, ")
+    fun kill(async: Boolean = false): Process = also {
+        val block = {
+            Docker.stop(name).also { pollTermination() }.also {
+                Docker.remove(name, forcibly = true)
+                managedProcess.kill()
+            }
+        }
+        if (async) thread(block = block)
+        else block()
+    }
+
+    private fun pollTermination(): DockerProcess = also {
+        poll { !alive }
+            .every(100.milliseconds)
+            .forAtMost(10.seconds) { throw TimeoutException("Could not clean up $this within $it.") }
+    }
+
+    override fun toString(): String = managedProcess.toString().replaceBefore("Process[", "DockerProcess[name=$name, ")
 }

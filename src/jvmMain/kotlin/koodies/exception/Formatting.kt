@@ -2,6 +2,7 @@ package koodies.exception
 
 import koodies.concurrent.process.Process
 import koodies.text.LineSeparators.lines
+import koodies.text.withoutSuffix
 import java.nio.file.Path
 
 fun Any?.toCompactString(): String = when (this) {
@@ -10,7 +11,7 @@ fun Any?.toCompactString(): String = when (this) {
     is Iterable<*> -> joinToString(prefix = "[", postfix = "]") { it.toCompactString() }
     is Process -> also { waitFor() }.exitValue.toString()
     is java.lang.Process -> also { waitFor() }.exitValue().toString()
-    else -> if (this == null || this == Unit) "" else toString()
+    else -> if (this == null || this == Unit) "" else toString().lines().joinToString(separator = "⏎").withoutSuffix("⏎")
 }
 
 fun Throwable?.toCompactString(): String {

@@ -15,6 +15,7 @@ import strikt.assertions.isFailure
 
 @Execution(CONCURRENT)
 class DockerImageTest {
+    
     @Test
     fun `should format image`() {
         expectThat(DockerImage.image(DockerRepository.of("repo", "name"))).formatted.isEqualTo("repo/name")

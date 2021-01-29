@@ -4,12 +4,13 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.OUT
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.process
-import koodies.concurrent.process.processSilently
 import koodies.concurrent.synchronized
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
+import koodies.test.matchesCurlyPattern
+import koodies.text.LineSeparators
+import koodies.text.containsAny
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -30,7 +31,7 @@ class DockerProcessTest {
 
     @DockerRequiring @Test
     fun `should start docker`(uniqueId: UniqueId) {
-        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().processSilently()
+        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
         kotlin.runCatching {
             poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
@@ -41,12 +42,21 @@ class DockerProcessTest {
         }.onFailure { dockerProcess.kill() }.getOrThrow()
     }
 
+    @DockerRequiring @Test
+    fun `should override toString`(uniqueId: UniqueId) {
+        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
+        expectThat(dockerProcess.toString())
+            .matchesCurlyPattern("DockerProcess[name={}.should_override_toString, Process[{}]")
+            .not { containsAny(*LineSeparators.toTypedArray()) }
+        dockerProcess.kill()
+    }
+
     @Nested
     inner class Lifecycle {
 
         @DockerRequiring @Test
         fun `should start docker and pass arguments`(uniqueId: UniqueId) {
-            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test").execute().processSilently()
+            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
             kotlin.runCatching {
                 poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
@@ -59,7 +69,7 @@ class DockerProcessTest {
 
         @DockerRequiring @Test
         fun `should start docker and process input`(uniqueId: UniqueId) {
-            val dockerProcess = Docker.busybox(uniqueId.simple).execute().processSilently()
+            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
             kotlin.runCatching {
                 dockerProcess.enter("echo 'test'")
@@ -77,7 +87,7 @@ class DockerProcessTest {
                 """echo "looping"""",
                 """sleep 1""",
                 """done""",
-            ).execute().processSilently()
+                processor = noopProcessor())
 
             kotlin.runCatching {
                 poll { dockerProcess.ioLog.logged.any { it.type == OUT } }
@@ -89,7 +99,7 @@ class DockerProcessTest {
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) {
             val logged = mutableListOf<String>().synchronized()
             val dockerProcess =
-                Docker.busybox(uniqueId.simple).execute().process { io ->
+                Docker.busybox(uniqueId.simple) { io ->
                     logged.add(io.unformatted)
                     if (io.type == OUT) {
                         if (logged.contains("test 4 6")) stop()
@@ -119,7 +129,7 @@ class DockerProcessTest {
                     """echo "looping"""",
                     """sleep 1""",
                     """done""",
-                ).execute().processSilently()
+                    processor = noopProcessor())
 
                 kotlin.runCatching {
                     expectThat(dockerProcess.alive).isFalse()
@@ -134,7 +144,7 @@ class DockerProcessTest {
                     """echo "looping"""",
                     """sleep 1""",
                     """done""",
-                ).execute().process(processor = noopProcessor())
+                    processor = noopProcessor())
 
                 kotlin.runCatching {
                     poll { dockerProcess.alive }
@@ -151,7 +161,7 @@ class DockerProcessTest {
                     """echo "looping"""",
                     """sleep 1""",
                     """done""",
-                ).execute().process(processor = noopProcessor())
+                    processor = noopProcessor())
 
                 kotlin.runCatching {
                     poll { dockerProcess.alive }
@@ -173,7 +183,7 @@ class DockerProcessTest {
                     """echo "looping"""",
                     """sleep 1""",
                     """done""",
-                ).execute().process(processor = noopProcessor())
+                    processor = noopProcessor())
 
                 kotlin.runCatching {
                     poll { dockerProcess.alive }
@@ -196,7 +206,7 @@ class DockerProcessTest {
                 """echo "looping"""",
                 """sleep 1""",
                 """done""",
-            ).execute().process(processor = noopProcessor())
+                processor = noopProcessor())
 
             kotlin.runCatching {
                 poll { Docker.exists(dockerProcess.name) }
@@ -221,7 +231,7 @@ class DockerProcessTest {
             """echo "looping"""",
             """sleep 1""",
             """done""",
-        ).execute().process {
+        ) {
             output.add(it)
         }
 

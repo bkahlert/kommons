@@ -2,7 +2,6 @@ package koodies.docker
 
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.process
 import koodies.test.UniqueId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -18,7 +17,7 @@ class BusyboxKtTest {
     @DockerRequiring @Test
     fun `should start busybox`(uniqueId: UniqueId) {
         val processed = mutableListOf<IO>()
-        val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simple, "echo busybox").execute().process { io ->
+        val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simple, "echo busybox") { io ->
             processed.add(io)
         }
 

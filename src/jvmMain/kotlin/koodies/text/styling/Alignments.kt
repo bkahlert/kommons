@@ -49,4 +49,4 @@ fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLength: In
  * ```
  */
 fun <T : CharSequence> T.center(whitespace: Char = NBSP, minLength: Int = 0): String =
-    lines().center(whitespace).joinToString("\n")
+    lines().center(whitespace, minLength).joinToString("\n")

@@ -1,25 +1,22 @@
 package koodies.logging
 
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.test.SystemIoExclusive
 import koodies.test.output.CapturedOutput
-import koodies.test.output.OutputCaptureExtension
 import koodies.test.toStringContainsAll
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.startsWith
 
 @Execution(CONCURRENT)
-@ExtendWith(OutputCaptureExtension::class)
-@Isolated("flaky OutputCapture")
 class InMemoryLoggerTest {
 
+    @SystemIoExclusive
     @Test
     fun `should log using OutputStream`(capturedOutput: CapturedOutput) {
         val outputStream = ByteArrayOutputStream()

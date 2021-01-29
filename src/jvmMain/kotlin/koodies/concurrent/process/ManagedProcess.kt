@@ -176,7 +176,7 @@ private open class ManagedJavaProcess(
 
     override val preparedToString = super.preparedToString.apply {
         append(";")
-        append(" commandLine=${commandLine.commandLine.truncate(50, MIDDLE, " … ")};")
+        append(" commandLine=${commandLine.commandLine.toCompactString().truncate(50, MIDDLE, " … ")};")
         append(" expectedExitValue=$expectedExitValue;")
         append(" processTerminationCallback=${processTerminationCallback.asEmoji};")
         append(" destroyOnShutdown=${destroyOnShutdown.asEmoji}")

@@ -12,20 +12,18 @@ import koodies.concurrent.process.processSynchronously
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
+import koodies.test.SystemIoExclusive
+import koodies.test.SystemIoRead
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.CapturedOutput
-import koodies.test.output.OutputCaptureExtension
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -174,11 +172,9 @@ class ScriptsKtTest {
     }
 
     @Nested
-    @Execution(ExecutionMode.SAME_THREAD)
-    @Isolated
-    @ExtendWith(OutputCaptureExtension::class)
     inner class SynchronousExecution {
 
+        @SystemIoExclusive
         @TestFactory
         fun `should process log to console by default`(output: CapturedOutput, uniqueId: UniqueId) =
             getFactories(processor = null, logger = null).testWithTempDir(uniqueId) { processFactory ->
@@ -197,6 +193,7 @@ class ScriptsKtTest {
                 expectThat(output).get { err }.isEmpty()
             }
 
+        @SystemIoRead
         @TestFactory
         fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
             getFactories(processor = {}, logger = InMemoryLogger()).testWithTempDir(uniqueId) { processFactory ->
@@ -206,6 +203,7 @@ class ScriptsKtTest {
                 expectThat(output).get { err }.isEmpty()
             }
 
+        @SystemIoExclusive
         @TestFactory
         fun `should format merged output`(uniqueId: UniqueId) =
             getFactories(processor = {}, logger = null).testWithTempDir(uniqueId) { processFactory ->

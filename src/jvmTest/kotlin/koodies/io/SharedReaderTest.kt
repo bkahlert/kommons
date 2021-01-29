@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively
-import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.containsExactly
@@ -112,7 +111,6 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
         expectThat(read).all { notContainsLineSeparator() }
     }
 
-
     @Test
     fun InMemoryLogger.`should not repeat line on split CRLF`() {
         val slowInputStream = slowInputStream(1.seconds, "Hello\r", "\nWorld")
@@ -127,7 +125,6 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     }
 
     @Suppress("unused")
-    @Isolated
     @Nested
     inner class Benchmark {
         private val expected = HtmlFile.text.repeat(50)
@@ -138,7 +135,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
 
             val read = mutableListOf<String>()
             kotlin.runCatching {
-                assertTimeoutPreemptively(30.seconds.toJavaDuration()) {
+                assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
                     reader.forEachLine {
                         read.add(it)
                     }
@@ -154,7 +151,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
             val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), 1.seconds)
 
             kotlin.runCatching {
-                assertTimeoutPreemptively(30.seconds.toJavaDuration()) {
+                assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
                     val readLines = reader.readLines()
                     expectThat(readLines.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
                 }
