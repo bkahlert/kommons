@@ -6,21 +6,18 @@ import koodies.collections.to
 import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
 import koodies.net.IPv4Address.Companion.RFC1918_24block
-import koodies.test.test
-import koodies.test.tests
+import koodies.test.isFailure
+import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 
 @Execution(CONCURRENT)
 class IPv4AddressTest {
@@ -33,8 +30,8 @@ class IPv4AddressTest {
             IPv4Address.parse("192.168.16.1"),
             IPv4Address(192.toByte(), 168.toByte(), 16.toByte(), 1.toByte()),
             IPv4Address(3232239617u.toInt()),
-        ).test { ip ->
-            expectThat(ip).toStringIsEqualTo("192.168.16.1")
+        ).testEach { ip ->
+            expect { ip }.that { toStringIsEqualTo("192.168.16.1") }
         }
 
     @TestFactory
@@ -44,8 +41,8 @@ class IPv4AddressTest {
             { ipOf("192.999.16.1") },
             { IPv4Address.parse("192.168.16.1.2") },
             { IPv4Address.parse("192.168.16.x") },
-        ).test { ip ->
-            expectCatching { ip() }.isFailure().isA<IllegalArgumentException>()
+        ).testEach { ip ->
+            expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
         }
 
     @Nested
@@ -166,12 +163,12 @@ class IPv4AddressTest {
         RFC1918_24block to (8 to BigInteger.parseString("16777216", 10) to IPv4Address.parse("10.0.0.0")),
         RFC1918_20block to (12 to BigInteger.parseString("1048576", 10) to IPv4Address.parse("172.16.0.0")),
         RFC1918_16block to (16 to BigInteger.parseString("65536", 10) to IPv4Address.parse("192.168.0.0")),
-    ).tests { (range, expected) ->
+    ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
-        container(range.toString()) {
-            test("should have subnetByteCount") { expectThat(range.subnet.bitCount).isEqualTo(bitCount) }
-            test("should have hostCount") { expectThat(range.subnet.hostCount).isEqualTo(hostCount) }
-            test("should have networkAddress") { expectThat(range.subnet.networkAddress).isEqualTo(networkAddress) }
+        with { range.toString() }.then {
+            expect { range.subnet.bitCount }.that { isEqualTo(bitCount) }
+            expect { range.subnet.hostCount }.that { isEqualTo(hostCount) }
+            expect { range.subnet.networkAddress }.that { isEqualTo(networkAddress) }
         }
     }
 }

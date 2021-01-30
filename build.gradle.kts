@@ -6,7 +6,7 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     base
-    kotlin("multiplatform") version "1.4.21"
+    kotlin("multiplatform") version Versions.kotlin
     id("org.jetbrains.dokka") version "1.4.20"
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
@@ -72,14 +72,14 @@ kotlin {
         println("\n\n\t\tProperty releasingFinal is set but the active version $version is not final.")
     }
 
-    targets.all {
-        compilations.all {
-            kotlinOptions.freeCompilerArgs += "-Xinline-classes"
-        }
-    }
-
     jvm {
-        compilations.all { kotlinOptions { jvmTarget = "11"; useIR = true } }
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+                useIR = true
+                freeCompilerArgs += "-Xjvm-default=all"
+            }
+        }
 
         tasks.withType<Test>().all {
             useJUnitPlatform()
@@ -189,6 +189,10 @@ kotlin {
                 }
 
                 implementation("io.strikt:strikt-core:0.28.1")
+                implementation("com.christophsturm:filepeek:0.1.2")
+                implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}") {
+                    because("filepeek takes 1.3")
+                }
             }
         }
 
@@ -200,6 +204,13 @@ kotlin {
         }
         val nativeMain by getting
         val nativeTest by getting
+
+        targets.all {
+            compilations.all {
+                kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
+                kotlinOptions.freeCompilerArgs += "-Xinline-classes"
+            }
+        }
 
         publishing {
             publications {

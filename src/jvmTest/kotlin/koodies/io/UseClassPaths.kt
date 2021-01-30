@@ -44,26 +44,26 @@ import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 
 @Execution(CONCURRENT)
-class ClassPathsTest {
+class ClassPathsKtTest {
 
     @Nested
-    inner class ClassPathsTest {
+    inner class UseClassPaths {
 
         @Test
         fun `should map root with no provided path`() {
-            expectThat(classPaths("") {
+            expectThat(useClassPaths("") {
                 listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
             }).filter { true }.size.isGreaterThan(2)
         }
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(classPaths("junit-platform.properties") { readText() }).all { contains("LessUglyDisplayNameGenerator") }
+            expectThat(useClassPaths("junit-platform.properties") { readText() }).all { contains("LessUglyDisplayNameGenerator") }
         }
 
         @Test
         fun `should map resource on non-matching path`() {
-            expectThat(classPaths("invalid.file") { this }).isEmpty()
+            expectThat(useClassPaths("invalid.file") { this }).isEmpty()
         }
 
         @TestFactory
@@ -74,21 +74,22 @@ class ClassPathsTest {
             "classpath:/junit-platform.properties",
             "ClassPath:junit-platform.properties",
             "ClassPath:/junit-platform.properties",
-        ).map { dynamicTest(it) { expectThat(classPaths(it) { readText() }).all { contains("LessUglyDisplayNameGenerator") } } }
+        ).map { dynamicTest(it) { expectThat(useClassPaths(it) { readText() }).all { contains("LessUglyDisplayNameGenerator") } } }
 
         @Test
         fun `should map read-only root`() {
-            expectThat(classPaths("") { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThan(2)
+            expectThat(useClassPaths("") { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThan(2)
         }
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(classPaths("junit-platform.properties") { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(1)
+            expectThat(useClassPaths("junit-platform.properties") { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(
+                1)
         }
 
         @Test
         fun `should list read-only resources`() {
-            expectThat(classPaths("") {
+            expectThat(useClassPaths("") {
                 listDirectoryEntries().map { it::class.qualifiedName }.toList()
             }).filter { it.all { pathType -> pathType!!.contains("ReadOnly") } }.size.isGreaterThanOrEqualTo(2)
         }
@@ -99,11 +100,11 @@ class ClassPathsTest {
             "move" to { Files.move(it, this) },
             "delete" to { Files.delete(it) },
         ).testWithTempDir(uniqueId) { (_, operation) ->
-            classPaths("try.it") {
+            useClassPaths("try.it") {
                 expectThat(exists()).isTrue()
                 expectCatching {
                     val target = this
-                    target.operation(this@classPaths)
+                    target.operation(this@useClassPaths)
                 }.isFailure().isA<ReadOnlyFileSystemException>()
                 expectThat(exists()).isTrue()
                 expectThat(readBytes()).isEqualTo(fixtureContent)
@@ -113,23 +114,23 @@ class ClassPathsTest {
 
 
     @Nested
-    inner class ClassPath {
+    inner class UseClassPath {
 
         @Test
         fun `should map root with no provided path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(classPath("") {
+            expectThat(useClassPath("") {
                 listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
             }).isTrue()
         }
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(classPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
+            expectThat(useClassPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
         }
 
         @Test
         fun `should map resource on non-matching path`() {
-            expectThat(classPath("invalid.file") { this }).isNull()
+            expectThat(useClassPath("invalid.file") { this }).isNull()
         }
 
         @TestFactory
@@ -140,21 +141,21 @@ class ClassPathsTest {
             "classpath:/junit-platform.properties",
             "ClassPath:junit-platform.properties",
             "ClassPath:/junit-platform.properties",
-        ).map { dynamicTest(it) { expectThat(classPath(it) { readText() }).toStringContains("LessUglyDisplayNameGenerator") } }
+        ).map { dynamicTest(it) { expectThat(useClassPath(it) { readText() }).toStringContains("LessUglyDisplayNameGenerator") } }
 
         @Test
         fun `should map read-only root`() {
-            expectThat(classPath("") { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
+            expectThat(useClassPath("") { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
         }
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(classPath("junit-platform.properties") { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
+            expectThat(useClassPath("junit-platform.properties") { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
         }
 
         @Test
         fun `should list read-only resources`() {
-            expectThat(classPath("") { listDirectoryEntries().mapNotNull { it::class.qualifiedName }.toList() }).isNotNull().all { contains("ReadOnly") }
+            expectThat(useClassPath("") { listDirectoryEntries().mapNotNull { it::class.qualifiedName }.toList() }).isNotNull().all { contains("ReadOnly") }
         }
 
         @TestFactory
@@ -164,12 +165,12 @@ class ClassPathsTest {
             "delete" to { Files.delete(it) },
         ).map { (name, operation) ->
             dynamicTest(name) {
-                classPath("try.it") {
+                useClassPath("try.it") {
                     expectThat(exists()).isTrue()
                     expectCatching {
                         withTempDir(uniqueId) {
                             val target = this
-                            target.operation(this@classPath)
+                            target.operation(this@useClassPath)
                         }
                     }.isFailure().isA<ReadOnlyFileSystemException>()
                     expectThat(exists()).isTrue()
@@ -183,7 +184,7 @@ class ClassPathsTest {
             @Test
             fun `should copy class path directory`() {
                 val fixtures by classPath("img")
-                classPath("img") {
+                useClassPath("img") {
                     fixtures.copyToDirectory(randomDirectory("copy1")) to copyToDirectory(randomDirectory("copy2"))
                 }?.also { (copy1, copy2) ->
                     expectThat(copy1) {
@@ -197,16 +198,16 @@ class ClassPathsTest {
     }
 
     @Nested
-    inner class RequireClassPath {
+    inner class UseRequiredClassPath {
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(requireClassPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
+            expectThat(useRequiredClassPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
         }
 
         @Test
         fun `should throw on non-matching path`() {
-            expectCatching { requireClassPath("invalid.file") { this } }.isFailure().isA<NoSuchFileException>()
+            expectCatching { useRequiredClassPath("invalid.file") { this } }.isFailure().isA<NoSuchFileException>()
         }
     }
 

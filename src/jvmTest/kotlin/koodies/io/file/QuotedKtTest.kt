@@ -1,11 +1,10 @@
 package koodies.io.file
 
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
-import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 
@@ -20,8 +19,8 @@ class QuotedKtTest {
         "my/path/filename.test" to "\"my/path/filename.test\"",
         "/my/path/filename" to "\"/my/path/filename\"",
         "/my/path/filename.test" to "\"/my/path/filename.test\"",
-    ).test("{} -> {}") { (path, expected) ->
-        expectThat(Path.of(path)).quoted.isEqualTo(expected)
+    ).testEach("{} -> {}") { (path, expected) ->
+        expect { Path.of(path) }.that { quoted.isEqualTo(expected) }
     }
 }
 

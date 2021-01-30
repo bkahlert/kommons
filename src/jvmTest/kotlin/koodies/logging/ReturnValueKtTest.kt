@@ -1,8 +1,7 @@
 package koodies.logging
 
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 class ReturnValueKtTest {
@@ -18,10 +17,10 @@ class ReturnValueKtTest {
         null to "␀",
         "string" to "string",
         returnValue to "return value",
-        RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:21)",
+        RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:20)",
         kotlin.runCatching { returnValue } to "return value",
-        kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:14)",
-    ).test { (subject, expected) ->
-        expectThat(subject.toReturnValue().format()).isEqualTo(expected)
+        kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:13)",
+    ).testEach { (subject, expected) ->
+        expect { subject.toReturnValue().format() }.that { isEqualTo(expected) }
     }
 }

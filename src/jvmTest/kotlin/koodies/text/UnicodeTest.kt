@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.number.ApproximationMode
-import koodies.test.test
+import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.Unicode.Emojis.asEmoji
 import koodies.text.Unicode.nextLine
@@ -27,9 +27,9 @@ class UnicodeTest {
         fun `should return code point`() = listOf(
             133 to nextLine,
             119594 to Unicode.DivinationSymbols.Tetragrams.Purity.toString(),
-        ).test("\"{}\" ？⃔ \"{}\"") { (codePoint, expected) ->
+        ).testEach("\"{}\" ？⃔ \"{}\"") { (codePoint, expected) ->
             val actual: CodePoint = Unicode[codePoint]
-            expectThat(actual).toStringIsEqualTo(expected)
+            expect { actual }.that { toStringIsEqualTo(expected) }
         }
     }
 

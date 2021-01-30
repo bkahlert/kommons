@@ -1,12 +1,10 @@
 package koodies.concurrent
 
-import koodies.test.test
-import koodies.test.tests
+import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
-import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
@@ -23,16 +21,16 @@ class StatusTest {
         Byte.MAX_VALUE to status127,
         Byte.MIN_VALUE to status128,
         (-1).toByte() to status255,
-    ).test { (byte: Byte, expected) ->
-        expectThat(Status(byte)).isEqualTo(expected)
+    ).testEach { (byte: Byte, expected) ->
+        expect { Status(byte) }.that { isEqualTo(expected) }
     }
 
     @TestFactory
     fun `should be considered successful`() = listOf(
         status0,
         Status.SUCCESS,
-    ).test { status ->
-        expectThat(status).isSuccessful()
+    ).testEach { status ->
+        expect { status }.that { isSuccessful() }
     }
 
     @TestFactory
@@ -41,8 +39,8 @@ class StatusTest {
         status128,
         status255,
         Status.FAILURE
-    ).test { status ->
-        expectThat(status).isFailed()
+    ).testEach { status ->
+        expect { status }.that { isFailed() }
     }
 
     @TestFactory
@@ -51,9 +49,9 @@ class StatusTest {
         status127 to "𝟷𝟸𝟽↩",
         status128 to "𝟷𝟸𝟾↩",
         status255 to "𝟸𝟻𝟻↩",
-    ).tests { (status, expected) ->
-        test("using format()") { expectThat(status.format()).isEqualTo(expected) }
-        test("using toString()") { expectThat(status.toString()).isEqualTo(expected) }
+    ).testEach { (status, expected) ->
+        test("using format()") { expect { status.format() }.that { isEqualTo(expected) } }
+        test("using toString()") { expect { status.toString() }.that { isEqualTo(expected) } }
     }
 }
 

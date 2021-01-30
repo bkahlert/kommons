@@ -5,15 +5,22 @@ import koodies.test.Fixtures.copyTo
 import koodies.test.HtmlFile
 import koodies.test.TextFile
 import koodies.test.UniqueId
+import koodies.test.asA
+import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.exists
 import strikt.assertions.isEmpty
+import strikt.assertions.isTrue
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.reflect.full.memberProperties
 
 @Execution(CONCURRENT)
 class LocationsTest {
@@ -34,9 +41,12 @@ class LocationsTest {
         }
     }
 
-    @Test
-    fun `should resolve WorkingDirectory`() {
-        expectThat(Locations.WorkingDirectory).exists()
+    @TestFactory
+    fun paths() = Locations::class.memberProperties.testEach {
+        with { it.get(Locations) }.asA<Path> {
+            expect { isAbsolute }.that { isTrue() }
+            expect { exists() }.that { isTrue() }
+        }
     }
 
     @Test

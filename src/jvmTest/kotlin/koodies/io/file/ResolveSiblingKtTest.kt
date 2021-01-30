@@ -2,7 +2,7 @@ package koodies.io.file
 
 import koodies.functional.alsoIf
 import koodies.io.path.asString
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -32,8 +32,8 @@ class ResolveSiblingKtTest {
         0 to "/a/b/c-x",
         1 to "/a/b-x/c",
         2 to "/a-x/b/c",
-    ).test { (order, expected) ->
-        expectThat(Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.asString() + "-x") }).serializedIsEqualTo(expected)
+    ).testEach { (order, expected) ->
+        expect { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.asString() + "-x") } }.that { serializedIsEqualTo(expected) }
     }
 
     @Test

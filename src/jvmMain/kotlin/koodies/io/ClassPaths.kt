@@ -28,12 +28,12 @@ val ContextClassLoader: ClassLoader get() = Thread.currentThread().contextClassL
  *
  * Also this function does its best to avoid write access by wrapping the
  * actual [FileSystem] with a write protection layer. **Write protection
- * also covers paths generated from the one provided during the [transform] call.
+ * also covers paths generated from the one provided during the [transform] call.**
  *
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
  */
-inline fun <reified T> classPaths(path: String, crossinline transform: Path.() -> T): List<T> {
+inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
     return ContextClassLoader.getResources(normalizedPath).asSequence().map { url ->
         url.toMappedPath { classPath -> classPath.asReadOnly().transform() }
@@ -47,13 +47,13 @@ inline fun <reified T> classPaths(path: String, crossinline transform: Path.() -
  * actual [FileSystem] with a write protection layer. **Write protection
  * also covers paths generated from the one provided during the [transform] call.
  *
- * **This function only returns one match out of possibly many. Use [classPaths] to get all.
+ * **This function only returns one match out of possibly many. Use [useClassPaths] to get all.**
  *
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
- * @see classPaths
+ * @see useClassPaths
  */
-inline fun <reified T> classPath(path: String, crossinline transform: Path.() -> T): T? {
+inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
     return ContextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
 }
@@ -61,12 +61,12 @@ inline fun <reified T> classPath(path: String, crossinline transform: Path.() ->
 /**
  * Gets the class path resource, the specified [path] points to and applies [transform] to it.
  *
- * In contrast to [classPath] this function throws if no resource could be found.
+ * In contrast to [useClassPath] this function throws if no resource could be found.
  *
- * @see classPath
+ * @see useClassPath
  */
-inline fun <reified T> requireClassPath(path: String, crossinline transform: Path.() -> T): T =
-    classPath(path, transform) ?: throw noSuchFile(path)
+inline fun <reified T> useRequiredClassPath(path: String, crossinline transform: Path.() -> T): T =
+    useClassPath(path, transform) ?: throw noSuchFile(path)
 
 /**
  * Gets a proxied class path resource that get only accesses the moment
@@ -78,7 +78,7 @@ fun classPath(path: String): ReadOnlyProperty<Nothing?, Path> = ReadOnlyProperty
 private inline class DelegatingPath(inline val path: String) : WrappedPath, Path {
 
     inline fun <reified T> op(crossinline transform: Path.() -> T): T =
-        classPath(path, transform) ?: throw NoSuchFileException(path, null, "classpath:$path could not be found")
+        useClassPath(path, transform) ?: throw NoSuchFileException(path, null, "classpath:$path could not be found")
 
     override val wrappedPath: Path get() = op { this }
 

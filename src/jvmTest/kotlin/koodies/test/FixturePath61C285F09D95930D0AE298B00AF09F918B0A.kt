@@ -1,6 +1,6 @@
 package koodies.test
 
-import koodies.io.classPaths
+import koodies.io.useClassPaths
 import java.nio.file.Path
 
 object FixturePath61C285F09D95930D0AE298B00AF09F918B0A {
@@ -12,5 +12,5 @@ object FixturePath61C285F09D95930D0AE298B00AF09F918B0A {
         0x8BU, 0x0AU).toByteArray()
 
     inline operator fun <reified T> invoke(crossinline transform: Path.() -> T): List<T> =
-        classPaths(fixtureFileName, transform)
+        useClassPaths(fixtureFileName, transform)
 }

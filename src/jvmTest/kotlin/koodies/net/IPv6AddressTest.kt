@@ -2,21 +2,18 @@ package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import koodies.collections.to
-import koodies.test.test
-import koodies.test.tests
+import koodies.test.isFailure
+import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 
 @Execution(CONCURRENT)
 class IPv6AddressTest {
@@ -29,8 +26,8 @@ class IPv6AddressTest {
             IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001"),
             IPv6Address.parse("0:0:0:0:0:ffff:192.168.16.1"),
             IPv6Address(BigInteger.parseString("281473913982977", 10)),
-        ).test { ip ->
-            expectThat(ip).toStringIsEqualTo("::ffff:c0a8:1001")
+        ).testEach { ip ->
+            expect { ip }.that { toStringIsEqualTo("::ffff:c0a8:1001") }
         }
 
     @TestFactory
@@ -41,8 +38,8 @@ class IPv6AddressTest {
             { ipOf("0:0:0::ffffffff:c0a8:1001") },
             { IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001:0:0:0") },
             { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
-        ).test { ip ->
-            expectCatching { ip() }.isFailure().isA<IllegalArgumentException>()
+        ).testEach { ip ->
+            expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
         }
 
     @Nested
@@ -76,8 +73,8 @@ class IPv6AddressTest {
             fun `should fully represent network address`() = listOf(
                 IPv6Address.IPv4_MAPPED_RANGE to "0000:0000:0000:0000:0000:ffff:0000:0000",
                 IPv6Address.IPv4_NAT64_MAPPED_RANGE to "0064:ff9b:0000:0000:0000:0000:0000:0000",
-            ).test { (range, expected) ->
-                expectThat(range.subnet.networkAddress.fullRepresentation).isEqualTo(expected)
+            ).testEach { (range, expected) ->
+                expect { range.subnet.networkAddress.fullRepresentation }.that { isEqualTo(expected) }
             }
         }
 
@@ -103,8 +100,8 @@ class IPv6AddressTest {
             fun `should conventionally represent network address`() = listOf(
                 IPv6Address.IPv4_MAPPED_RANGE to "0:0:0:0:0:ffff:0:0",
                 IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b:0:0:0:0:0:0",
-            ).test { (range, expected) ->
-                expectThat(range.subnet.networkAddress.conventionalRepresentation).isEqualTo(expected)
+            ).testEach { (range, expected) ->
+                expect { range.subnet.networkAddress.conventionalRepresentation }.that { isEqualTo(expected) }
             }
         }
 
@@ -130,8 +127,8 @@ class IPv6AddressTest {
             fun `should represent compressed network address`() = listOf(
                 IPv6Address.IPv4_MAPPED_RANGE to "::ffff:0:0",
                 IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b::",
-            ).test { (range, expected) ->
-                expectThat(range.subnet.networkAddress.compressedRepresentation).isEqualTo(expected)
+            ).testEach { (range, expected) ->
+                expect { range.subnet.networkAddress.compressedRepresentation }.that { isEqualTo(expected) }
             }
         }
     }
@@ -255,12 +252,12 @@ class IPv6AddressTest {
         IPv6Address.RANGE to (0 to BigInteger.parseString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16) + 1 to IPv6Address.RANGE.start),
         IPv6Address.IPv4_MAPPED_RANGE to (96 to IPv4Address.RANGE.subnet.hostCount to IPv6Address.parse("::ffff:0:0")),
         IPv6Address.IPv4_NAT64_MAPPED_RANGE to (96 to IPv4Address.RANGE.subnet.hostCount to IPv6Address.parse("64:ff9b::")),
-    ).tests { (range, expected) ->
+    ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
-        container(range.toString()) {
-            test("should have subnetByteCount") { expectThat(range.subnet.bitCount).isEqualTo(bitCount) }
-            test("should have hostCount") { expectThat(range.subnet.hostCount).isEqualTo(hostCount) }
-            test("should have networkAddress") { expectThat(range.subnet.networkAddress).isEqualTo(networkAddress) }
+        with { range.toString() }.then {
+            expect { range.subnet.bitCount }.that { isEqualTo(bitCount) }
+            expect { range.subnet.hostCount }.that { isEqualTo(hostCount) }
+            expect { range.subnet.networkAddress }.that { isEqualTo(networkAddress) }
         }
     }
 }

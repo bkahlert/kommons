@@ -1,6 +1,7 @@
 package koodies.net
 
-import koodies.test.test
+import koodies.test.isFailure
+import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -8,9 +9,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 
 @Execution(CONCURRENT)
 class IpAddressTest {
@@ -24,8 +23,8 @@ class IpAddressTest {
                 "192.168.16.1",
                 "192.168.016.1",
                 "192.168.016.001",
-            ).test { ip ->
-                expectThat(ip.toAnyIp()).isEqualTo(IPv4Address.parse("192.168.16.1"))
+            ).testEach { ip ->
+                expect { ip.toAnyIp() }.that { isEqualTo(IPv4Address.parse("192.168.16.1")) }
             }
 
         @TestFactory
@@ -34,8 +33,8 @@ class IpAddressTest {
                 "::ffff:c0a8:1001",
                 "0:0::ffff:192.168.016.001",
                 "0:0:0:0:0:ffff:c0a8:1001",
-            ).test { ip ->
-                expectThat(ip.toAnyIp()).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001"))
+            ).testEach { ip ->
+                expect { ip.toAnyIp() }.that { isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")) }
             }
 
         @TestFactory
@@ -45,8 +44,8 @@ class IpAddressTest {
                 { IPv4Address.parse("192.168.16.x") },
                 { "-0:0:0::ffff:c0a8:1001".toAnyIp() },
                 { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
-            ).test { ip ->
-                expectCatching { ip() }.isFailure().isA<IllegalArgumentException>()
+            ).testEach { ip ->
+                expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
             }
     }
 
@@ -67,7 +66,7 @@ class IpAddressTest {
 
         @TestFactory
         fun `should throw on mapping non-mappable IP6 address`() {
-            expectCatching { IPv6Address.RANGE.endInclusive.toIPv4Address() }.isFailure().isA<IllegalArgumentException>()
+            expectCatching { IPv6Address.RANGE.endInclusive.toIPv4Address() }.isFailure<IllegalArgumentException>()
         }
     }
 }

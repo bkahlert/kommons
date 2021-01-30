@@ -16,3 +16,5 @@ import org.junit.jupiter.api.parallel.ResourceLock
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class DockerRequiring
+
+// TODO make sure busybox is available

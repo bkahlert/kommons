@@ -5,7 +5,6 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.assertions.contains
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import java.io.IOException
@@ -14,44 +13,44 @@ import java.io.IOException
 class FixtureKtTest {
 
     @TestFactory
-    fun textFixture() = TextFixture("text-fixture", "line 1\nline 2\n").should {
-        "have name" { name.isEqualTo("text-fixture") }
-        "have text" { text.isEqualTo("line 1\nline 2\n") }
-        "have data" { data.isEqualTo("line 1\nline 2\n".toByteArray()) }
+    fun textFixture() = TextFixture("text-fixture", "line 1\nline 2\n").test {
+        expect { name }.that { isEqualTo("text-fixture") }
+        expect { text }.that { isEqualTo("line 1\nline 2\n") }
+        expect { data }.that { isEqualTo("line 1\nline 2\n".toByteArray()) }
     }
 
     @TestFactory
-    fun binaryFixture() = BinaryFixture("binary-fixture", "binary".toByteArray()).should {
-        "have name" { name.isEqualTo("binary-fixture") }
-        "have text" { text.isEqualTo("binary") }
-        "have data" { data.isEqualTo("binary".toByteArray()) }
+    fun binaryFixture() = BinaryFixture("binary-fixture", "binary".toByteArray()).test {
+        expect { name }.that { isEqualTo("binary-fixture") }
+        expect { text }.that { isEqualTo("binary") }
+        expect { data }.that { isEqualTo("binary".toByteArray()) }
     }
 
 
     @TestFactory
-    fun classPathFixture() = ClassPathDirectoryFixture("META-INF").should {
-        "have name" { name.isEqualTo("META-INF") }
-        throwOn({ text }) { isA<IOException>() }
-        throwOn({ data }) { isA<IOException>() }
-        with("file-backed class path", { dir("services").file("org.junit.jupiter.api.extension.Extension") }) {
-            "have name" { name.isEqualTo("org.junit.jupiter.api.extension.Extension") }
-            "have text" { text.contains("koodies.test.debug.DebugCondition") }
-            "have data" { data.get { size }.isGreaterThan(10) }
+    fun classPathFixture() = ClassPathDirectoryFixture("META-INF").test {
+        expect { name }.that { isEqualTo("META-INF") }
+        expectThrowing { text }.that { isFailure<IOException>() }
+        expectThrowing { data }.that { isFailure<IOException>() }
+        with("dynamic paths") { dir("services").file("org.junit.jupiter.api.extension.Extension") }.then {
+            expect { name }.that { isEqualTo("org.junit.jupiter.api.extension.Extension") }
+            expect { text }.that { contains("koodies.test.debug.DebugCondition") }
+            expect { data.size }.that { isGreaterThan(10) }
         }
-        throwOn({ dir("I dont exist") }) { isA<Throwable>() }
+        expectThrowing { dir("I dont exist") }.that { isFailure<Throwable>() }
     }
 
     @TestFactory
-    fun staticClassPathFixture() = META_INF.should {
-        "have name" { name.isEqualTo("META-INF") }
-        throwOn({ text }) { isA<IOException>() }
-        throwOn({ data }) { isA<IOException>() }
-        with("file-backed class path", { META_INF.Services.JUnitExtensions }) {
-            "have name" { name.isEqualTo("org.junit.jupiter.api.extension.Extension") }
-            "have text" { text.contains("koodies.test.debug.DebugCondition") }
-            "have data" { data.get { size }.isGreaterThan(10) }
+    fun staticClassPathFixture() = META_INF.test {
+        expect { name }.that { isEqualTo("META-INF") }
+        expectThrowing { text }.that { isFailure<IOException>() }
+        expectThrowing { data }.that { isFailure<IOException>() }
+        with("static paths") { META_INF.Services.JUnitExtensions }.then {
+            expect { name }.that { isEqualTo("org.junit.jupiter.api.extension.Extension") }
+            expect { text }.that { contains("koodies.test.debug.DebugCondition") }
+            expect { data.size }.that { isGreaterThan(10) }
         }
-        throwOn({ Dir("I dont exist") }) { isA<Throwable>() }
+        expectThrowing { Dir("I dont exist") }.that { isFailure<Throwable>() }
     }
 
     object META_INF : ClassPathDirectoryFixture("META-INF") {

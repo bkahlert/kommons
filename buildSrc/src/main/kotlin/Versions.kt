@@ -1,5 +1,7 @@
 object Versions {
 
+    val kotlin = "1.4.21"
+
     val antlr4 = "4.7.4"
 
     object junit {

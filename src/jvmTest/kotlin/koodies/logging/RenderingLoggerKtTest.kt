@@ -12,7 +12,7 @@ import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
-import koodies.test.test
+import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.Unicode
 import koodies.text.matchesCurlyPattern
@@ -143,7 +143,7 @@ class RenderingLoggerKtTest {
             · outer 4                                                  {}                                      ▮▮
             ✔{}
         """.trimIndent(),
-    ).test("bordered={}") { (bordered, expectation) ->
+    ).testEach("bordered={}") { (bordered, expectation) ->
         val label = if (bordered) "bordered" else "not-bordered"
         with(createLogger(label, bordered = bordered)) {
             logStatus { OUT typed "outer 1" }
@@ -170,7 +170,7 @@ class RenderingLoggerKtTest {
             logStatus { OUT typed "outer 4" }
             logResult { Result.success(Unit) }
 
-            expectThat(logged).matchesCurlyPattern(expectation)
+            expect { logged }.that { matchesCurlyPattern(expectation) }
         }
     }
 
@@ -426,14 +426,14 @@ class RenderingLoggerKtTest {
             │
             ╰─────╴✔{}
         """.trimIndent(),
-    ).test("bordered={}") { (bordered, expectation) ->
+    ).testEach("bordered={}") { (bordered, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
             logging(caption = "line #1\nline #2".red(), bordered = bordered) {
                 logLine { "logged line" }
             }
         }
 
-        expectThat(logger.logged).matchesCurlyPattern(expectation)
+        expect { logger.logged }.that { matchesCurlyPattern(expectation) }
     }
 
 
@@ -462,7 +462,7 @@ class RenderingLoggerKtTest {
             ϟ
             ╰─────╴𝟷↩{}
         """.trimIndent(),
-    ).test("bordered={}") { (bordered, expectation) ->
+    ).testEach("bordered={}") { (bordered, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
             logging(caption = "caption", bordered = bordered) {
                 logLine { "logged line" }
@@ -470,6 +470,6 @@ class RenderingLoggerKtTest {
             }
         }
 
-        expectThat(logger.logged).matchesCurlyPattern(expectation)
+        expect { logger.logged }.that { matchesCurlyPattern(expectation) }
     }
 }

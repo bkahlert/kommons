@@ -1,6 +1,6 @@
 package koodies.builder
 
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -15,8 +15,8 @@ class PairBuilderTest {
     fun `should build pair`() = listOf<PairBuilderInit<String, Int>>(
         { "three" to 4 },
         { "three" and 4 },
-    ).test { init ->
-        expectThat(init.buildPair()).isEqualTo("three" to 4)
+    ).testEach { init ->
+        expect { init.buildPair() }.that { isEqualTo("three" to 4) }
     }
 
     @Test

@@ -24,6 +24,7 @@ import kotlin.io.path.forEachDirectoryEntry
 import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.outputStream
+import kotlin.io.path.useLines
 import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
 import kotlin.streams.asSequence
@@ -107,6 +108,18 @@ fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8, vararg opti
  */
 fun Path.writeLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path =
     writeLines(listOf(line), charset, *DEFAULT_WRITE_OPTIONS)
+
+/**
+ * Reads the file content as a list of lines and returns
+ * the line with the specified [index]—starting to count with `1`.
+ *
+ * @param charset character set to use for reading text, UTF-8 by default.
+ * @return list of file lines.
+ */
+fun Path.readLine(index: Int, charset: Charset = Charsets.UTF_8): String? {
+    require(index > 0) { "Index $index must be positive. The first line has index 1." }
+    return useLines(charset) { it.drop(index - 1).firstOrNull() }
+}
 
 /**
  * Write the specified [lines] to a file terminating each one with the platform's line separator

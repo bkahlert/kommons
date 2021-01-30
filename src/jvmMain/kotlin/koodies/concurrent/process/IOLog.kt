@@ -63,17 +63,15 @@ class IOLog {
      * [content] does not have to be *complete* in any way (like a complete line) but also be provided
      * in chunks of any size. The I/O will be correctly reconstructed and can be accessed using [logged].
      */
-    fun add(type: Type, content: ByteArray) {
-        lock.withLock {
-            with(incompleteLines.getOrPut(type, { ByteArrayOutputStream() })) {
-                write(content)
-                while (true) {
-                    val justCompletedLines = incompleteLines.findCompletedLines()
-                    if (justCompletedLines != null) {
-                        val completedLines = justCompletedLines.value.removeCompletedLines()
-                        log.addAll(justCompletedLines.key typed completedLines)
-                    } else break
-                }
+    fun add(type: Type, content: ByteArray) = lock.withLock {
+        with(incompleteLines.getOrPut(type, { ByteArrayOutputStream() })) {
+            write(content)
+            while (true) {
+                val justCompletedLines = incompleteLines.findCompletedLines()
+                if (justCompletedLines != null) {
+                    val completedLines = justCompletedLines.value.removeCompletedLines()
+                    log.addAll(justCompletedLines.key typed completedLines)
+                } else break
             }
         }
     }

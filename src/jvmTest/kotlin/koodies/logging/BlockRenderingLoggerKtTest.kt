@@ -2,7 +2,7 @@ package koodies.logging
 
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.Bordered
-import koodies.test.test
+import koodies.test.testEach
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -17,13 +17,13 @@ class BlockRenderingLoggerKtTest {
     private fun borderedTest(borderedPattern: String, nonBorderedPattern: String, block: RenderingLogger.() -> Any) = listOf(
         true to borderedPattern,
         false to nonBorderedPattern,
-    ).test("bordered={}") { (bordered, expectation) ->
+    ).testEach("bordered={}") { (bordered, expectation) ->
         val label = if (bordered) "bordered" else "not-bordered"
         val logger = InMemoryLogger(caption = "$label caption", bordered = bordered, outputStreams = emptyList())
         with(logger) {
             block()
             logResult()
-            expectThat(logged).matchesCurlyPattern(expectation)
+            expect { logged }.that { matchesCurlyPattern(expectation) }
         }
     }
 

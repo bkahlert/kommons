@@ -15,7 +15,7 @@ import koodies.process.SlowInputStream.Companion.prompt
 import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.test.Slow
 import koodies.test.assertTimeoutPreemptively
-import koodies.test.test
+import koodies.test.testEach
 import koodies.text.joinLinesToString
 import koodies.time.sleep
 import koodies.tracing.subTrace
@@ -76,7 +76,7 @@ class JavaProcessMockTest {
         fun InMemoryLogger.`should provide 'block on prompt' behavior`() = listOf(
             "with echoed input" to true,
             "without echoed input" to false,
-        ).test("{}") { (_, echoOption) ->
+        ).testEach("{}") { (_, echoOption) ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
                 0.seconds,
@@ -100,13 +100,13 @@ class JavaProcessMockTest {
                 if (available > 0) {
                     val byteArray = ByteArray(available)
                     val read = slowInputStream.read(byteArray, 0, available)
-                    expectThat(read).isGreaterThan(0)
+                    expect { read }.that { isGreaterThan(0) }
                     output.append(String(byteArray))
                 }
                 Thread.sleep(10)
             }
-            if (echoOption) expectThat(output).isEqualToByteWise("Password? $input\r\rCorrect!\n")
-            else expectThat(output).isEqualToByteWise("Password? \rCorrect!\n")
+            if (echoOption) expect { output }.that { isEqualToByteWise("Password? $input\r\rCorrect!\n") }
+            else expect { output }.that { isEqualToByteWise("Password? \rCorrect!\n") }
         }
 
 
@@ -122,7 +122,7 @@ class JavaProcessMockTest {
             listOf(
                 slowInputStream(5.seconds, input, echoInput = true),
                 slowInputStream(5.seconds, 0.seconds to input, echoInput = true),
-            ).test("{}") { inputStream ->
+            ).testEach("{}") { inputStream ->
                 val duration = measureTime {
                     @Suppress("ControlFlowWithEmptyBody")
                     while (inputStream.read() > -1) {
@@ -134,7 +134,7 @@ class JavaProcessMockTest {
                     inputStream.available()
                     inputStream.read()
                 }
-                expectThat(duration).isLessThanOrEqualTo(2.seconds)
+                expect { duration }.that { isLessThanOrEqualTo(2.seconds) }
             }
         }
     }

@@ -1,12 +1,11 @@
-package koodies.text;
+package koodies.text
 
 import koodies.collections.to
-import koodies.test.tests
+import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
-import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
@@ -21,63 +20,63 @@ class CasesKtTest {
         "foo-bar-baz" to "fooBarBaz" to listOf("foo", "bar", "baz"),
         "a-foo-bar-baz" to "aFooBarBaz" to listOf("a", "foo", "bar", "baz"),
         "test%123" to "test%123" to listOf("test%123"),
-    ).tests { (kebabCase, camelCase, parts) ->
+    ).testEach { (kebabCase, camelCase, parts) ->
         test("should convert ${kebabCase.quoted} to ${camelCase.quoted}") {
             val converted = kebabCase.convertKebabCaseToCamelCase()
-            expectThat(converted).isEqualTo(camelCase)
+            expect { converted }.that { isEqualTo(camelCase) }
         }
         test("should convert ${camelCase.quoted} to ${kebabCase.quoted}") {
             val converted = camelCase.convertCamelCaseToKebabCase()
-            expectThat(converted).isEqualTo(kebabCase)
+            expect { converted }.that { isEqualTo(kebabCase) }
         }
 
-        container("string based") {
-            container("split") {
+        group("string based") {
+            group("split") {
                 test("should split kebab-case") {
-                    expectThat(kebabCase.splitKebabCase()).containsExactly(parts)
+                    expect { kebabCase.splitKebabCase() }.that { containsExactly(parts) }
                 }
                 test("should split camelCase") {
-                    expectThat(camelCase.splitCamelCase()).containsExactly(parts)
+                    expect { camelCase.splitCamelCase() }.that { containsExactly(parts) }
                 }
                 test("should split PascalCase") {
-                    expectThat(camelCase.capitalize().toString().splitPascalCase()).containsExactly(parts)
+                    expect { camelCase.capitalize().toString().splitPascalCase() }.that { containsExactly(parts) }
                 }
             }
-            container("join") {
+            group("join") {
                 test("should join to kebab-case") {
-                    expectThat(parts.joinToKebabCase()).isEqualTo(kebabCase)
+                    expect { parts.joinToKebabCase() }.that { isEqualTo(kebabCase) }
                 }
                 test("should join to camelCase") {
-                    expectThat(parts.joinToCamelCase()).isEqualTo(camelCase)
+                    expect { parts.joinToCamelCase() }.that { isEqualTo(camelCase) }
                 }
                 test("should join to PascalCase") {
-                    expectThat(parts.joinToPascalCase()).isEqualTo(camelCase.capitalize().toString())
+                    expect { parts.joinToPascalCase() }.that { isEqualTo(camelCase.capitalize().toString()) }
                 }
             }
         }
 
         @Suppress("USELESS_CAST")
-        container("char sequence based") {
-            container("split") {
+        group("char sequence based") {
+            group("split") {
                 test("should split kebab-case") {
-                    expectThat(kebabCase.decapitalize().splitKebabCase()).containsExactlyCharacterWise(parts)
+                    expect { kebabCase.decapitalize().splitKebabCase() }.that { containsExactlyCharacterWise(parts) }
                 }
                 test("should split camelCase") {
-                    expectThat(camelCase.decapitalize().splitCamelCase()).containsExactlyCharacterWise(parts)
+                    expect { camelCase.decapitalize().splitCamelCase() }.that { containsExactlyCharacterWise(parts) }
                 }
                 test("should split PascalCase") {
-                    expectThat(camelCase.capitalize().splitPascalCase()).containsExactlyCharacterWise(parts)
+                    expect { camelCase.capitalize().splitPascalCase() }.that { containsExactlyCharacterWise(parts) }
                 }
             }
-            container("join") {
+            group("join") {
                 test("should join to kebab-case") {
-                    expectThat(parts.map { it as CharSequence }.joinToKebabCase()).isEqualToCharacterWise(kebabCase)
+                    expect { parts.map { it as CharSequence }.joinToKebabCase() }.that { isEqualToCharacterWise(kebabCase) }
                 }
                 test("should join to camelCase") {
-                    expectThat(parts.map { it as CharSequence }.joinToCamelCase()).isEqualToCharacterWise(camelCase)
+                    expect { parts.map { it as CharSequence }.joinToCamelCase() }.that { isEqualToCharacterWise(camelCase) }
                 }
                 test("should join to PascalCase") {
-                    expectThat(parts.map { it as CharSequence }.joinToPascalCase()).isEqualToCharacterWise(camelCase.capitalize())
+                    expect { parts.map { it as CharSequence }.joinToPascalCase() }.that { isEqualToCharacterWise(camelCase.capitalize()) }
                 }
             }
         }
@@ -91,51 +90,51 @@ class CasesKtTest {
         "foo-bar-baz" to "FOO_BAR_BAZ" to listOf("foo", "bar", "baz"),
         "a-foo-bar-baz" to "A_FOO_BAR_BAZ" to listOf("a", "foo", "bar", "baz"),
         "test%123" to "TEST%123" to listOf("test%123"),
-    ).tests { (kebabCase, screamingSnakeCase, parts) ->
+    ).testEach { (kebabCase, screamingSnakeCase, parts) ->
         test("should convert \"$kebabCase\" to \"$screamingSnakeCase\"") {
             val converted = kebabCase.convertKebabCaseToScreamingSnakeCase()
-            expectThat(converted).isEqualTo(screamingSnakeCase)
+            expect { converted }.that { isEqualTo(screamingSnakeCase) }
         }
         test("should convert \"$screamingSnakeCase\" to \"$kebabCase\"") {
             val converted = screamingSnakeCase.convertScreamingSnakeCaseToKebabCase()
-            expectThat(converted).isEqualTo(kebabCase)
+            expect { converted }.that { isEqualTo(kebabCase) }
         }
 
-        container("string based") {
-            container("split") {
+        group("string based") {
+            group("split") {
                 test("should split kebab-case") {
-                    expectThat(kebabCase.splitKebabCase()).containsExactly(parts)
+                    expect { kebabCase.splitKebabCase() }.that { containsExactly(parts) }
                 }
                 test("should split SCREAMING_SNAKE_CASE") {
-                    expectThat(screamingSnakeCase.splitScreamingSnakeCase()).containsExactly(parts)
+                    expect { screamingSnakeCase.splitScreamingSnakeCase() }.that { containsExactly(parts) }
                 }
             }
-            container("join") {
+            group("join") {
                 test("should join to kebab-case") {
-                    expectThat(parts.joinToKebabCase()).isEqualTo(kebabCase)
+                    expect { parts.joinToKebabCase() }.that { isEqualTo(kebabCase) }
                 }
                 test("should join to SCREAMING_SNAKE_CASE") {
-                    expectThat(parts.joinToScreamingSnakeCase()).isEqualTo(screamingSnakeCase)
+                    expect { parts.joinToScreamingSnakeCase() }.that { isEqualTo(screamingSnakeCase) }
                 }
             }
         }
 
-        container("char sequence based") {
-            container("split") {
+        group("char sequence based") {
+            group("split") {
                 test("should split kebab-case (CharSequence)") {
-                    expectThat(kebabCase.decapitalize().splitKebabCase()).containsExactlyCharacterWise(parts)
+                    expect { kebabCase.decapitalize().splitKebabCase() }.that { containsExactlyCharacterWise(parts) }
                 }
                 test("should split SCREAMING_SNAKE_CASE (CharSequence)") {
-                    expectThat(screamingSnakeCase.capitalize().splitScreamingSnakeCase()).containsExactlyCharacterWise(parts)
+                    expect { screamingSnakeCase.capitalize().splitScreamingSnakeCase() }.that { containsExactlyCharacterWise(parts) }
                 }
             }
             @Suppress("USELESS_CAST")
-            container("join") {
+            group("join") {
                 test("should join to kebab-case (CharSequence)") {
-                    expectThat(parts.map { it as CharSequence }.joinToKebabCase()).isEqualToCharacterWise(kebabCase)
+                    expect { parts.map { it as CharSequence }.joinToKebabCase() }.that { isEqualToCharacterWise(kebabCase) }
                 }
                 test("should join to SCREAMING_SNAKE_CASE (CharSequence)") {
-                    expectThat(parts.map { it as CharSequence }.joinToScreamingSnakeCase()).isEqualToCharacterWise(screamingSnakeCase)
+                    expect { parts.map { it as CharSequence }.joinToScreamingSnakeCase() }.that { isEqualToCharacterWise(screamingSnakeCase) }
                 }
             }
         }
@@ -143,8 +142,6 @@ class CasesKtTest {
 
     /**
      * Tests if [Enum.kebabCaseName] returns an actual kebab-case name.
-     *
-     * If you look for kebab-case (de-)serialization, see [KebabCaseEnumJacksonModule].
      */
     @TestFactory
     fun kebabCaseEnumNames() = listOf(
@@ -152,9 +149,9 @@ class CasesKtTest {
         TestEnum.EnumConstant to "enum-constant",
         TestEnum.enumConstant to "enum-constant",
         TestEnum.`enum-constant` to "enum-constant",
-    ).tests { (enumConstant, kebabCase) ->
+    ).testEach { (enumConstant, kebabCase) ->
         test("$enumConstant.kebabCaseName() ➜ $kebabCase") {
-            expectThat(enumConstant.kebabCaseName()).isEqualTo(kebabCase)
+            expect { enumConstant.kebabCaseName() }.that { isEqualTo(kebabCase) }
         }
     }
 
@@ -169,27 +166,27 @@ class CasesKtTest {
         "_a" contains TestCases.ofType(TestCases.Lower),
         "_A" contains TestCases.ofType(TestCases.Upper),
         "__" contains TestCases.ofType()
-    ).tests { (letters, caseExpectations) ->
+    ).testEach { (letters, caseExpectations) ->
         test("\"$letters\" is" + (if (caseExpectations.first) {
             ""
         } else {
             " NOT"
         }) + " mixed case  ") {
-            expectThat(letters.isMixedCase()).isEqualTo(caseExpectations.first)
+            expect { letters.isMixedCase() }.that { isEqualTo(caseExpectations.first) }
         }
         test("\"$letters\" contains" + (if (caseExpectations.second) {
             ""
         } else {
             " NO"
         }) + " upper case  ") {
-            expectThat(letters.containsUpperCase()).isEqualTo(caseExpectations.second)
+            expect { letters.containsUpperCase() }.that { isEqualTo(caseExpectations.second) }
         }
         test("\"$letters\" contains" + (if (caseExpectations.third) {
             ""
         } else {
             " NO"
         }) + " lower case  ") {
-            expectThat(letters.containsLowerCase()).isEqualTo(caseExpectations.third)
+            expect { letters.containsLowerCase() }.that { isEqualTo(caseExpectations.third) }
         }
     }
 

@@ -1,12 +1,11 @@
 package koodies.number
 
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
-import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import kotlin.Byte.Companion.MAX_VALUE
 import kotlin.Byte.Companion.MIN_VALUE
@@ -21,8 +20,8 @@ class BytesKtTest {
             MAX_VALUE to 127,
             MIN_VALUE to 128,
             (-1).toByte() to 255,
-        ).test { (input, expected) ->
-            expectThat(input.toPositiveInt()).isEqualTo(expected)
+        ).testEach { (input, expected) ->
+            expect { input.toPositiveInt() }.that { isEqualTo(expected) }
         }
 
     @TestFactory
@@ -32,8 +31,8 @@ class BytesKtTest {
             MAX_VALUE to "7f",
             MIN_VALUE to "80",
             (-1).toByte() to "ff",
-        ).test { (input, expected) ->
-            expectThat(input.toHexadecimalString()).isEqualTo(expected)
+        ).testEach { (input, expected) ->
+            expect { input.toHexadecimalString() }.that { isEqualTo(expected) }
         }
 
     @Nested
@@ -47,8 +46,8 @@ class BytesKtTest {
             16 to "10",
             65535 to "ffff",
             65536 to "010000",
-        ).test { (dec, hex) ->
-            expectThat(dec.toHexadecimalString()).isEqualTo(hex)
+        ).testEach { (dec, hex) ->
+            expect { dec.toHexadecimalString() }.that { isEqualTo(hex) }
         }
 
         @TestFactory
@@ -59,8 +58,8 @@ class BytesKtTest {
             16 to "10",
             65535 to "ffff",
             65536 to "10000",
-        ).test { (dec, hex) ->
-            expectThat(dec.toHexadecimalString(pad = false)).isEqualTo(hex)
+        ).testEach { (dec, hex) ->
+            expect { dec.toHexadecimalString(pad = false) }.that { isEqualTo(hex) }
         }
     }
 
@@ -71,8 +70,8 @@ class BytesKtTest {
             MAX_VALUE to "127",
             MIN_VALUE to "128",
             (-1).toByte() to "255",
-        ).test { (input, expected) ->
-            expectThat(input.toDecimalString()).isEqualTo(expected)
+        ).testEach { (input, expected) ->
+            expect { input.toDecimalString() }.that { isEqualTo(expected) }
         }
 
     @Nested
@@ -85,8 +84,8 @@ class BytesKtTest {
                 65535 to byteArrayOf(-1, -1),
                 16777215 to byteArrayOf(-1, -1, -1),
                 -1 to byteArrayOf(-1, -1, -1, -1),
-            ).test { (input, expected) ->
-                expectThat(input.toBytes()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toBytes() }.that { isEqualTo(expected) }
             }
 
         @TestFactory
@@ -96,8 +95,8 @@ class BytesKtTest {
                 65535 to byteArrayOf(0, 0, -1, -1),
                 16777215 to byteArrayOf(0, -1, -1, -1),
                 -1 to byteArrayOf(-1, -1, -1, -1),
-            ).test { (input, expected) ->
-                expectThat(input.toBytes(trim = false)).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toBytes(trim = false) }.that { isEqualTo(expected) }
             }
 
         @TestFactory
@@ -107,8 +106,8 @@ class BytesKtTest {
                 byteArrayOf(-1, -1) to 65535,
                 byteArrayOf(-1, -1, -1) to 16777215,
                 byteArrayOf(-1, -1, -1, -1) to -1,
-            ).test { (input, expected) ->
-                expectThat(input.toInt()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toInt() }.that { isEqualTo(expected) }
             }
 
         @TestFactory
@@ -118,8 +117,8 @@ class BytesKtTest {
                 byteArrayOf(-1, -1),
                 byteArrayOf(-1, -1, -1),
                 byteArrayOf(-1, -1, -1, -1),
-            ).test { input ->
-                expectThat(input.toInt().toBytes(trim = true)).isEqualTo(input)
+            ).testEach { input ->
+                expect { input.toInt().toBytes(trim = true) }.that { isEqualTo(input) }
             }
 
         @TestFactory
@@ -129,8 +128,8 @@ class BytesKtTest {
                 byteArrayOf(0, 0, -1, -1),
                 byteArrayOf(0, -1, -1, -1),
                 byteArrayOf(-1, -1, -1, -1),
-            ).test { input ->
-                expectThat(input.toInt().toBytes(trim = false)).isEqualTo(input)
+            ).testEach { input ->
+                expect { input.toInt().toBytes(trim = false) }.that { isEqualTo(input) }
             }
 
         @TestFactory
@@ -140,8 +139,8 @@ class BytesKtTest {
                 byteArrayOf(-1, -1) to 65535u,
                 byteArrayOf(-1, -1, -1) to 16777215u,
                 byteArrayOf(-1, -1, -1, -1) to 4294967295u,
-            ).test { (input, expected) ->
-                expectThat(input.toUInt()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toUInt() }.that { isEqualTo(expected) }
             }
 
         @TestFactory
@@ -151,8 +150,8 @@ class BytesKtTest {
                 byteArrayOf(-1, -1) to 16777215u,
                 byteArrayOf(-1, -1, -1) to 16777215u,
                 byteArrayOf(-1, -1, -1, -1) to 4294967295u,
-            ).test { (input, expected) ->
-                expectThat(input.padStart(3, -1).toUInt()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.padStart(3, -1).toUInt() }.that { isEqualTo(expected) }
             }
     }
 
@@ -166,8 +165,8 @@ class BytesKtTest {
                 65535u to ubyteArrayOf(0xFFu, 0xFFu),
                 16777215u to ubyteArrayOf(0xFFu, 0xFFu, 0xFFu),
                 4294967295u to ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu),
-            ).test { (input, expected) ->
-                expectThat(input.toUBytes()).isEqualToUnsigned(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toUBytes() }.that { isEqualToUnsigned(expected) }
             }
 
         @TestFactory
@@ -177,8 +176,8 @@ class BytesKtTest {
                 65535u to ubyteArrayOf(0x00u, 0x00u, 0xFFu, 0xFFu),
                 16777215u to ubyteArrayOf(0x00u, 0xFFu, 0xFFu, 0xFFu),
                 4294967295u to ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu),
-            ).test { (input, expected) ->
-                expectThat(input.toUBytes(trim = false)).isEqualToUnsigned(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toUBytes(trim = false) }.that { isEqualToUnsigned(expected) }
             }
 
         @TestFactory
@@ -188,8 +187,8 @@ class BytesKtTest {
                 ubyteArrayOf(0xFFu, 0xFFu) to 65535u,
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu) to 16777215u,
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu) to 4294967295u,
-            ).test { (input, expected) ->
-                expectThat(input.toUInt()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toUInt() }.that { isEqualTo(expected) }
             }
 
         @TestFactory
@@ -199,8 +198,8 @@ class BytesKtTest {
                 ubyteArrayOf(0xFFu, 0xFFu),
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu),
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu),
-            ).test { input ->
-                expectThat(input.toUInt().toUBytes(trim = true)).isEqualToUnsigned(input)
+            ).testEach { input ->
+                expect { input.toUInt().toUBytes(trim = true) }.that { isEqualToUnsigned(input) }
             }
 
         @TestFactory
@@ -210,8 +209,8 @@ class BytesKtTest {
                 ubyteArrayOf(0x00u, 0x00u, 0xFFu, 0xFFu),
                 ubyteArrayOf(0x00u, 0xFFu, 0xFFu, 0xFFu),
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu),
-            ).test { input ->
-                expectThat(input.toUInt().toUBytes(trim = false)).isEqualToUnsigned(input)
+            ).testEach { input ->
+                expect { input.toUInt().toUBytes(trim = false) }.that { isEqualToUnsigned(input) }
             }
 
         @TestFactory
@@ -221,8 +220,8 @@ class BytesKtTest {
                 ubyteArrayOf(0xFFu, 0xFFu) to 65535,
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu) to 16777215,
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu) to -1,
-            ).test { (input, expected) ->
-                expectThat(input.toInt()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.toInt() }.that { isEqualTo(expected) }
             }
 
         @TestFactory
@@ -232,8 +231,8 @@ class BytesKtTest {
                 ubyteArrayOf(0xFFu, 0xFFu) to 16777215,
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu) to 16777215,
                 ubyteArrayOf(0xFFu, 0xFFu, 0xFFu, 0xFFu) to -1,
-            ).test { (input, expected) ->
-                expectThat(input.padStart(3, 0xFFu).toInt()).isEqualTo(expected)
+            ).testEach { (input, expected) ->
+                expect { input.padStart(3, 0xFFu).toInt() }.that { isEqualTo(expected) }
             }
     }
 }

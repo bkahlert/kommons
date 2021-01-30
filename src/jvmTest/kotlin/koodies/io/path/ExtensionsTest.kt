@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -13,7 +13,6 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
@@ -96,16 +95,16 @@ class ExtensionsTest {
         fun `should return index of extension`() = listOf(
             Path.of("a/b/c.2") to 5,
             Path.of("a/b.1/c.2") to 7
-        ).test { (path, expected) ->
-            expectThat(path.extensionIndex).isEqualTo(expected)
+        ).testEach { (path, expected) ->
+            expect { path.extensionIndex }.that { isEqualTo(expected) }
         }
 
         @TestFactory
         fun `should return -1 if not in file name`() = listOf(
             Path.of("a/b/c"),
             Path.of("a/b.1/c")
-        ).test {
-            expectThat(it.extensionIndex).isEqualTo(-1)
+        ).testEach {
+            expect { it.extensionIndex }.that { isEqualTo(-1) }
         }
     }
 
@@ -115,16 +114,16 @@ class ExtensionsTest {
         fun `should return extension`() = listOf(
             Path.of("a/b/c.2") to "2",
             Path.of("a/b.1/c.2-1") to "2-1"
-        ).test { (path, expected) ->
-            expectThat(path.extensionOrNull).isNotNull().isEqualTo(expected)
+        ).testEach { (path, expected) ->
+            expect { path.extensionOrNull }.that { isEqualTo(expected) }
         }
 
         @TestFactory
         fun `should return null if not in file name`() = listOf(
             Path.of("a/b/c"),
             Path.of("a/b.1/c")
-        ).test {
-            expectThat(it.extensionOrNull).isNull()
+        ).testEach {
+            expect { it.extensionOrNull }.that { isNull() }
         }
     }
 
@@ -136,8 +135,8 @@ class ExtensionsTest {
             "filename" to "filename.test",
             "my/path/filename" to "my/path/filename.test",
             "/my/path/filename" to "/my/path/filename.test",
-        ).test("{} should be {}") { (path, expected) ->
-            expectThat(Path.of(path).withExtension("test")).isEqualTo(Path.of(expected))
+        ).testEach("{} should be {}") { (path, expected) ->
+            expect { Path.of(path).withExtension("test") }.that { isEqualTo(Path.of(expected)) }
         }
 
         @TestFactory
@@ -145,8 +144,8 @@ class ExtensionsTest {
             "filename.pdf" to "filename.test",
             "my/path/filename.pdf" to "my/path/filename.test",
             "/my/path/filename.pdf" to "/my/path/filename.test",
-        ).test("{} should be {}") { (path, expected) ->
-            expectThat(Path.of(path).withExtension("test")).isEqualTo(Path.of(expected))
+        ).testEach("{} should be {}") { (path, expected) ->
+            expect { Path.of(path).withExtension("test") }.that { isEqualTo(Path.of(expected)) }
         }
     }
 
@@ -159,8 +158,8 @@ class ExtensionsTest {
             "my/path/filename", "my/path/filename.test",
             "/my/path/filename", "/my/path/filename.test",
             "/my/path/filename.pdf", "/my/path/filename.test",
-        ).test("{} should be filename.test") {
-            expectThat(Path.of(it).fileNameWithExtension("test")).isEqualTo("filename.test")
+        ).testEach("{} should be filename.test") {
+            expect { Path.of(it).fileNameWithExtension("test") }.that { isEqualTo("filename.test") }
         }
 
         @TestFactory
@@ -168,8 +167,8 @@ class ExtensionsTest {
             "filename.pdf", "filename.test",
             "my/path/filename.pdf", "my/path/filename.test",
             "/my/path/filename.pdf", "/my/path/filename.test",
-        ).test("{} should be filename.test") {
-            expectThat(Path.of(it).fileNameWithExtension("test")).isEqualTo("filename.test")
+        ).testEach("{} should be filename.test") {
+            expect { Path.of(it).fileNameWithExtension("test") }.that { isEqualTo("filename.test") }
         }
     }
 
@@ -224,16 +223,16 @@ class ExtensionsTest {
         fun `should return only the file name without extension`() = listOf(
             Path.of("a/b/c.2"),
             Path.of("a/b.1/c.2"),
-        ).test {
-            expectThat(it.baseName).isEqualTo(it.fileSystem.getPath("c"))
+        ).testEach {
+            expect { it.baseName }.that { isEqualTo(it.fileSystem.getPath("c")) }
         }
 
         @TestFactory
         fun `should return only the file name even if its already missing`() = listOf(
             Path.of("a/b/c"),
             Path.of("a/b.1/c"),
-        ).test {
-            expectThat(it.baseName).isEqualTo(it.fileName)
+        ).testEach {
+            expect { it.baseName }.that { isEqualTo(it.fileName) }
         }
     }
 
@@ -243,16 +242,16 @@ class ExtensionsTest {
         fun `should return all but the extension`() = listOf(
             Path.of("a/b/c.2") to Path.of("a/b/c"),
             Path.of("a/b.1/c.2") to Path.of("a/b.1/c")
-        ).test { (path, expected) ->
-            expectThat(path.basePath).isEqualTo(expected)
+        ).testEach { (path, expected) ->
+            expect { path.basePath }.that { isEqualTo(expected) }
         }
 
         @TestFactory
         fun `should return same path if no extension`() = listOf(
             Path.of("a/b/c"),
             Path.of("a/b.1/c")
-        ).test {
-            expectThat(it.basePath).isSameInstanceAs(it)
+        ).testEach {
+            expect { it.basePath }.that { isSameInstanceAs(it) }
         }
     }
 

@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
@@ -27,8 +27,8 @@ class AncestorKtTest {
 
     @TestFactory
     fun `should return ancestor's parent for order n+1`() =
-        (0 until path.nameCount).test { n ->
-            expectThat(path.ancestor(n + 1)).isEqualTo((path.ancestor(n) ?: fail("missing parent")).parent)
+        (0 until path.nameCount).testEach { n ->
+            expect { path.ancestor(n + 1) }.that { isEqualTo((path.ancestor(n) ?: fail("missing parent")).parent) }
         }
 
     @Test

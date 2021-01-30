@@ -14,14 +14,13 @@ import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
 import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
-import koodies.time.poll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -32,8 +31,8 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import java.nio.file.Path
 import java.util.concurrent.CompletionException
-import kotlin.time.milliseconds
-import kotlin.time.seconds
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 @Execution(CONCURRENT)
 class ProcessesKtTest {
@@ -72,17 +71,18 @@ class ProcessesKtTest {
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
             val process = processFactory()
+            val lock = ReentrantLock()
             val processed = mutableListOf<IO>()
-            process.process { io -> processed.add(io) }.waitForTermination()
+            process.process { io -> lock.withLock { processed.add(io) } }.waitForTermination()
 
-            poll {
-                processed.containsAll(listOf(
+            lock.withLock {
+                expectThat(processed).contains(
                     IO.Type.OUT typed "test output 1",
                     IO.Type.ERR typed "test error 1",
                     IO.Type.OUT typed "test output 2",
                     IO.Type.ERR typed "test error 2",
-                ))
-            }.every(100.milliseconds).forAtMost(2.seconds) { fail { "Did not process all I/O" } }
+                )
+            }
         }
 
         @TestFactory
