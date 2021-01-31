@@ -1,5 +1,16 @@
 package koodies.number
 
+import koodies.number.Constants.TWO_POW_128_BIN_STRING
+import koodies.number.Constants.TWO_POW_128_BYTES
+import koodies.number.Constants.TWO_POW_128_DEC_STRING
+import koodies.number.Constants.TWO_POW_128_HEX_STRING
+import koodies.number.Constants.TWO_POW_128_PLUS_1_BIN_STRING
+import koodies.number.Constants.TWO_POW_128_PLUS_1_BYTES
+import koodies.number.Constants.TWO_POW_128_PLUS_1_DEC_STRING
+import koodies.number.Constants.TWO_POW_128_PLUS_1_HEX_STRING
+import koodies.number.Constants.TWO_POW_128_PLUS_1_UBYTES
+import koodies.number.Constants.TWO_POW_128_UBYTES
+import koodies.test.test
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
@@ -10,8 +21,24 @@ import strikt.assertions.isEqualTo
 import kotlin.Byte.Companion.MAX_VALUE
 import kotlin.Byte.Companion.MIN_VALUE
 
+@Suppress("RemoveExplicitTypeArguments")
 @Execution(CONCURRENT)
 class BytesKtTest {
+
+    private val bytes = listOf<Byte>(0x00, 0x7f, -0x80, -0x01)
+    private val ubytes = listOf<UByte>(0x00u, 0x7fu, 0x80u, 0xffu)
+
+    private val paddedBinBytes = listOf("00000000", "01111111", "10000000", "11111111")
+    private val nonPaddedBinBytes = listOf("0", "1111111", "10000000", "11111111")
+    private val decBytes = listOf("0", "127", "128", "255")
+    private val paddedHexBytes = listOf("00", "7f", "80", "ff")
+    private val nonPaddedHexBytes = listOf("0", "7f", "80", "ff")
+
+    private val paddedBinString = "00000000011111111000000011111111"
+    private val nonPaddedBinString = "11111111000000011111111"
+    private val decString = "8356095"
+    private val paddedHexString = "007f80ff"
+    private val nonPaddedHexString = "7f80ff"
 
     @TestFactory
     fun `should convert to positive int`() =
@@ -24,44 +51,138 @@ class BytesKtTest {
             expect { input.toPositiveInt() }.that { isEqualTo(expected) }
         }
 
-    @TestFactory
-    fun `should convert to hexadecimal string`() =
-        listOf(
-            0.toByte() to "00",
-            MAX_VALUE to "7f",
-            MIN_VALUE to "80",
-            (-1).toByte() to "ff",
-        ).testEach { (input, expected) ->
-            expect { input.toHexadecimalString() }.that { isEqualTo(expected) }
-        }
-
     @Nested
-    inner class ToHexStringKtTest {
+    inner class Bytes {
+
+        private val bigNumbers = mapOf(
+            TWO_POW_128_PLUS_1_BYTES to Triple(TWO_POW_128_PLUS_1_BIN_STRING, TWO_POW_128_PLUS_1_DEC_STRING, TWO_POW_128_PLUS_1_HEX_STRING),
+            TWO_POW_128_BYTES to Triple(TWO_POW_128_BIN_STRING, TWO_POW_128_DEC_STRING, TWO_POW_128_HEX_STRING)
+        )
 
         @TestFactory
-        fun `should convert to padded hex representation by default`() = listOf(
-            0 to "00",
-            10 to "0a",
-            15 to "0f",
-            16 to "10",
-            65535 to "ffff",
-            65536 to "010000",
-        ).testEach { (dec, hex) ->
-            expect { dec.toHexadecimalString() }.that { isEqualTo(hex) }
-        }
+        fun `should convert bytes`() =
+            bytes.test {
+                group("single bytes") {
+                    group("to binary") {
+                        expect { map { it.toBinaryString() } }.that { isEqualTo(paddedBinBytes) }
+                        expect { map { it.toBinaryString(pad = true) } }.that { isEqualTo(paddedBinBytes) }
+                        expect { map { it.toBinaryString(pad = false) } }.that { isEqualTo(nonPaddedBinBytes) }
+                    }
+                    group("to decimal") {
+                        expect { map { it.toDecimalString() } }.that { isEqualTo(decBytes) }
+                    }
+                    group("to hexadecimal") {
+                        expect { map { it.toHexadecimalString() } }.that { isEqualTo(paddedHexBytes) }
+                        expect { map { it.toHexadecimalString(pad = true) } }.that { isEqualTo(paddedHexBytes) }
+                        expect { map { it.toHexadecimalString(pad = false) } }.that { isEqualTo(nonPaddedHexBytes) }
+                    }
+                }
+
+                with { toByteArray() }.then {
+                    group("to binary") {
+                        expect { toBinaryString() }.that { isEqualTo(paddedBinString) }
+                        expect { toBinaryString(pad = true) }.that { isEqualTo(paddedBinString) }
+                        expect { toBinaryString(pad = false) }.that { isEqualTo(nonPaddedBinString) }
+                    }
+                    group("to decimal") {
+                        expect { toDecimalString() }.that { isEqualTo(decString) }
+                    }
+                    group("to hexadecimal") {
+                        expect { toHexadecimalString() }.that { isEqualTo(paddedHexString) }
+                        expect { toHexadecimalString(pad = true) }.that { isEqualTo(paddedHexString) }
+                        expect { toHexadecimalString(pad = false) }.that { isEqualTo(nonPaddedHexString) }
+                    }
+                }
+            }
 
         @TestFactory
-        fun `should convert to specified hex representation`() = listOf(
-            0 to "0",
-            10 to "a",
-            15 to "f",
-            16 to "10",
-            65535 to "ffff",
-            65536 to "10000",
-        ).testEach { (dec, hex) ->
-            expect { dec.toHexadecimalString(pad = false) }.that { isEqualTo(hex) }
+        fun `should convert large numbers`() = bigNumbers.toList().testEach { (bytes: ByteArray, strings: Triple<String, String, String>) ->
+            expect { bytes.toBinaryString() }.that { isEqualTo(strings.first) }
+            expect { byteArrayOfBinaryString(bytes.toBinaryString()) }.that { isEqualTo(bytes) }
+            expect { bytes.toDecimalString() }.that { isEqualTo(strings.second) }
+            expect { byteArrayOfDecimalString(bytes.toDecimalString()) }.that { isEqualTo(bytes) }
+            expect { bytes.toHexadecimalString() }.that { isEqualTo(strings.third) }
+            expect { byteArrayOfHexadecimalString(bytes.toHexadecimalString()) }.that { isEqualTo(bytes) }
+            with { bigIntegerOf(bytes) }.then {
+                expect.that { isEqualTo(bigIntegerOfBinaryString(strings.first)) }
+                expect.that { isEqualTo(bigIntegerOfDecimalString(strings.second)) }
+                expect.that { isEqualTo(bigIntegerOfHexadecimalString(strings.third)) }
+            }
         }
     }
+
+    @Nested
+    inner class UBytes {
+
+        private val bigNumbers = mapOf(
+            TWO_POW_128_PLUS_1_UBYTES to Triple(TWO_POW_128_PLUS_1_BIN_STRING, TWO_POW_128_PLUS_1_DEC_STRING, TWO_POW_128_PLUS_1_HEX_STRING),
+            TWO_POW_128_UBYTES to Triple(TWO_POW_128_BIN_STRING, TWO_POW_128_DEC_STRING, TWO_POW_128_HEX_STRING)
+        )
+
+        @TestFactory
+        fun `should convert ubytes`() =
+            ubytes.test {
+                group("single ubytes") {
+                    group("to binary") {
+                        expect { map { it.toBinaryString() } }.that { isEqualTo(paddedBinBytes) }
+                        expect { map { it.toBinaryString(pad = true) } }.that { isEqualTo(paddedBinBytes) }
+                        expect { map { it.toBinaryString(pad = false) } }.that { isEqualTo(nonPaddedBinBytes) }
+                    }
+                    group("to decimal") {
+                        expect { map { it.toDecimalString() } }.that { isEqualTo(decBytes) }
+                    }
+                    group("to hexadecimal") {
+                        expect { map { it.toHexadecimalString() } }.that { isEqualTo(paddedHexBytes) }
+                        expect { map { it.toHexadecimalString(pad = true) } }.that { isEqualTo(paddedHexBytes) }
+                        expect { map { it.toHexadecimalString(pad = false) } }.that { isEqualTo(nonPaddedHexBytes) }
+                    }
+                }
+
+                with { toUByteArray() }.then {
+                    group("to binary") {
+                        expect { toBinaryString() }.that { isEqualTo(paddedBinString) }
+                        expect { toBinaryString(pad = true) }.that { isEqualTo(paddedBinString) }
+                        expect { toBinaryString(pad = false) }.that { isEqualTo(nonPaddedBinString) }
+                    }
+                    group("to decimal") {
+                        expect { toDecimalString() }.that { isEqualTo(decString) }
+                    }
+                    group("to hexadecimal") {
+                        expect { toHexadecimalString() }.that { isEqualTo(paddedHexString) }
+                        expect { toHexadecimalString(pad = true) }.that { isEqualTo(paddedHexString) }
+                        expect { toHexadecimalString(pad = false) }.that { isEqualTo(nonPaddedHexString) }
+                    }
+                }
+            }
+
+        @TestFactory
+        fun `should convert large numbers`() = bigNumbers.toList().testEach { (ubytes: UByteArray, strings: Triple<String, String, String>) ->
+            expect { ubytes.toBinaryString() }.that { isEqualTo(strings.first) }
+            expect { ubyteArrayOfBinaryString(ubytes.toBinaryString()) }.that { isEqualToUnsigned(ubytes) }
+            expect { ubytes.toDecimalString() }.that { isEqualTo(strings.second) }
+            expect { ubyteArrayOfDecimalString(ubytes.toDecimalString()) }.that { isEqualToUnsigned(ubytes) }
+            expect { ubytes.toHexadecimalString() }.that { isEqualTo(strings.third) }
+            expect { ubyteArrayOfHexadecimalString(ubytes.toHexadecimalString()) }.that { isEqualToUnsigned(ubytes) }
+            with { bigIntegerOf(ubytes) }.then {
+                expect.that { isEqualTo(bigIntegerOfBinaryString(strings.first)) }
+                expect.that { isEqualTo(bigIntegerOfDecimalString(strings.second)) }
+                expect.that { isEqualTo(bigIntegerOfHexadecimalString(strings.third)) }
+            }
+        }
+    }
+
+    @TestFactory
+    fun `should convert to specified hexadecimal string`() = listOf(
+        0 to "0",
+        10 to "a",
+        15 to "f",
+        16 to "10",
+        65535 to "ffff",
+        65536 to "10000",
+    ).testEach { (dec, hex) ->
+        expect { dec.toHexadecimalString(pad = false) }.that { isEqualTo(hex) }
+    }
+
 
     @TestFactory
     fun `should convert to decimal string`() =
