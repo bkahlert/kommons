@@ -10,6 +10,8 @@ val Byte.Companion.ZERO: Byte get() = 0x0
 val UByte.Companion.ZEROu: UByte get() = 0x0u
 inline val Byte.Companion.OO: Byte get() = ZERO
 inline val Byte.Companion.FF: Byte get() = -1
+inline val UByte.Companion.OOu: UByte get() = MIN_VALUE
+inline val UByte.Companion.FFu: UByte get() = MAX_VALUE
 
 fun Byte.toPositiveInt() = toInt() and 0xFF
 
@@ -22,7 +24,7 @@ fun ByteArray.toHexadecimalString(pad: Boolean = true) = joinToString("") { it.t
 fun byteArrayOfBinaryString(binaryString: String) = BigInteger.parseString(binaryString, 2).toByteArray().trim()
 fun byteArrayOfDecimalString(decimalString: String) = BigInteger.parseString(decimalString, 10).toByteArray().trim()
 fun byteArrayOfHexadecimalString(hexadecimalString: String) = BigInteger.parseString(hexadecimalString, 16).toByteArray().trim()
-fun bigIntegerOf(byteArray: ByteArray) = BigInteger.fromByteArray(byteArray, Sign.POSITIVE)
+fun bigIntegerOf(byteArray: ByteArray) = bigIntegerOfHexadecimalString(byteArray.toHexadecimalString())
 
 fun UByte.toBinaryString(pad: Boolean = true) = toInt().toString(2).format(Byte.SIZE_BITS, pad)
 fun UByte.toDecimalString() = toInt().toString(10)
@@ -33,7 +35,7 @@ fun UByteArray.toHexadecimalString(pad: Boolean = true) = joinToString("") { it.
 fun ubyteArrayOfBinaryString(binaryString: String) = BigInteger.parseString(binaryString, 2).toUByteArray().trim()
 fun ubyteArrayOfDecimalString(decimalString: String) = BigInteger.parseString(decimalString, 10).toUByteArray().trim()
 fun ubyteArrayOfHexadecimalString(hexadecimalString: String) = BigInteger.parseString(hexadecimalString, 16).toUByteArray().trim()
-fun bigIntegerOf(ubyteArray: UByteArray) = BigInteger.fromUByteArray(ubyteArray, Sign.POSITIVE)
+fun bigIntegerOf(ubyteArray: UByteArray) = bigIntegerOfHexadecimalString(ubyteArray.toHexadecimalString())
 
 fun bigIntegerOfBinaryString(binaryString: String) = BigInteger.parseString(binaryString, 2)
 fun bigIntegerOfDecimalString(decimalString: String) = BigInteger.parseString(decimalString, 10)

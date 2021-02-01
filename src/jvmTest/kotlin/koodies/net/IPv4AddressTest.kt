@@ -1,11 +1,13 @@
 package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.integer.toBigInteger
 import koodies.collections.to
 import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
 import koodies.net.IPv4Address.Companion.RFC1918_24block
+import koodies.net.IPv4Subnet.Companion.div
+import koodies.net.IPv4Subnet.Companion.smallestCommonSubnet
+import koodies.number.toUBytes
 import koodies.test.isFailure
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -13,13 +15,13 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class IPv4AddressTest {
 
     @TestFactory
@@ -28,8 +30,8 @@ class IPv4AddressTest {
             "192.168.16.1".toIp(),
             ipOf("192.168.16.1"),
             IPv4Address.parse("192.168.16.1"),
-            IPv4Address(192.toByte(), 168.toByte(), 16.toByte(), 1.toByte()),
-            IPv4Address(3232239617u.toInt()),
+            IPv4Address(ubyteArrayOf(192.toUByte(), 168.toUByte(), 16.toUByte(), 1.toUByte())),
+            IPv4Address(3232239617u.toUBytes()),
         ).testEach { ip ->
             expect { ip }.that { toStringIsEqualTo("192.168.16.1") }
         }
@@ -77,22 +79,22 @@ class IPv4AddressTest {
 
         @Test
         fun `should have subnet`() {
-            expectThat(range.subnet).toStringIsEqualTo("192.168.16.0/30")
+            expectThat(range.smallestCommonSubnet).toStringIsEqualTo("192.168.16.0/30")
         }
 
         @Test
         fun `should have usable`() {
-            expectThat(range.usable).isEqualTo(IPv4Address.parse("192.168.16.1")..IPv4Address.parse("192.168.16.2"))
+            expectThat(range.smallestCommonSubnet.usable).isEqualTo(IPv4Address.parse("192.168.16.1")..IPv4Address.parse("192.168.16.2"))
         }
 
         @Test
         fun `should have firstUsableHost`() {
-            expectThat(range.firstUsableHost).isEqualTo(IPv4Address.parse("192.168.16.1"))
+            expectThat(range.smallestCommonSubnet.firstUsableHost).isEqualTo(IPv4Address.parse("192.168.16.1"))
         }
 
         @Test
         fun `should have lastUsableHost`() {
-            expectThat(range.lastUsableHost).isEqualTo(IPv4Address.parse("192.168.16.2"))
+            expectThat(range.smallestCommonSubnet.lastUsableHost).isEqualTo(IPv4Address.parse("192.168.16.2"))
         }
 
         @Test
@@ -101,61 +103,11 @@ class IPv4AddressTest {
         }
     }
 
-    @Nested
-    inner class Subnet {
-
-        private val range = IPv4Address.parse("10.55.0.2")..IPv4Address.parse("10.55.0.6")
-        private val subnet = range.subnet
-
-        @Test
-        fun `should have subnetBitCount`() {
-            expectThat(subnet.bitCount).isEqualTo(29)
-        }
-
-        @Test
-        fun `should have wildcardBitCount`() {
-            expectThat(subnet.wildcardBitCount).isEqualTo(3)
-        }
-
-        @Test
-        fun `should have hostCount`() {
-            expectThat(subnet.hostCount).isEqualTo(8.toBigInteger())
-        }
-
-        @Test
-        fun `should have usableHostCount`() {
-            expectThat(subnet.usableHostCount).isEqualTo(6.toBigInteger())
-        }
-
-        @Test
-        fun `should have networkAddress`() {
-            expectThat(subnet.networkAddress).isEqualTo(IPv4Address.parse("10.55.0.0"))
-        }
-
-        @Test
-        fun `should have broadcastAddress`() {
-            expectThat(subnet.broadcastAddress).isEqualTo(IPv4Address.parse("10.55.0.7"))
-        }
-
-        @Test
-        fun `should have firstHost`() {
-            expectThat(subnet.firstHost).isEqualTo(IPv4Address.parse("10.55.0.1"))
-        }
-
-        @Test
-        fun `should have lastHost`() {
-            expectThat(subnet.lastHost).isEqualTo(IPv4Address.parse("10.55.0.6"))
-        }
-
-        @Test
-        fun `should have subnetMask`() {
-            expectThat(subnet.mask).toStringIsEqualTo("255.255.255.248")
-        }
-
-        @Test
-        fun `should serialize to string`() {
-            expectThat(subnet).toStringIsEqualTo("10.55.0.0/29")
-        }
+    @Test
+    fun `should create subnet`() {
+        val ip = IPv4Address.parse("10.55.0.2")
+        val cidr = 29
+        expectThat(ip / cidr).isEqualTo(IPv4Subnet.from(ip, cidr))
     }
 
     @TestFactory
@@ -166,9 +118,9 @@ class IPv4AddressTest {
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {
-            expect { range.subnet.bitCount }.that { isEqualTo(bitCount) }
-            expect { range.subnet.hostCount }.that { isEqualTo(hostCount) }
-            expect { range.subnet.networkAddress }.that { isEqualTo(networkAddress) }
+            expect { range.smallestCommonSubnet.prefixLength }.that { isEqualTo(bitCount) }
+            expect { range.smallestCommonSubnet.hostCount }.that { isEqualTo(hostCount) }
+            expect { range.smallestCommonSubnet.networkAddress }.that { isEqualTo(networkAddress) }
         }
     }
 }

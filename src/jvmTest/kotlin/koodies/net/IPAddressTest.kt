@@ -3,16 +3,13 @@ package koodies.net
 import koodies.test.isFailure
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectCatching
-import strikt.api.expectThat
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
-class IpAddressTest {
+@Execution(SAME_THREAD)
+class IPAddressTest {
 
     @Nested
     inner class Parse {
@@ -47,26 +44,5 @@ class IpAddressTest {
             ).testEach { ip ->
                 expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
             }
-    }
-
-    @Nested
-    inner class Conversion {
-        private val ipv4 = IPv4Address.parse("192.168.16.1")
-        private val ipv6 = IPv6Address.parse("::ffff:192.168.16.1")
-
-        @Test
-        fun `should convert IPv4 to IPv6 address`() {
-            expectThat(ipv4.toIPv6Address()).isEqualTo(ipv6)
-        }
-
-        @Test
-        fun `should convert IPv6 to IPv4 address`() {
-            expectThat(ipv6.toIPv4Address()).isEqualTo(ipv4)
-        }
-
-        @TestFactory
-        fun `should throw on mapping non-mappable IP6 address`() {
-            expectCatching { IPv6Address.RANGE.endInclusive.toIPv4Address() }.isFailure<IllegalArgumentException>()
-        }
     }
 }

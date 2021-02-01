@@ -342,7 +342,9 @@ interface DynamicTestsBuilder<T> {
             }
 
             override fun <R> expect(description: String?, transform: T.() -> R): ExpectationBuilder<R> {
-                val aspect = subject.transform()
+                val aspect = kotlin.runCatching { subject.transform() }
+                    .onFailure { println("Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
+                    .getOrThrow()
                 return CallbackCallingExpectationBuilder(description ?: "expect".property(transform).subject(aspect), aspect, callback)
             }
 

@@ -3,6 +3,7 @@ package koodies.unit
 import koodies.io.path.randomFile
 import koodies.io.path.size
 import koodies.test.UniqueId
+import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -27,6 +28,18 @@ class SizeTest {
     @Test
     fun `should use decimal unit by default`() {
         expectThat(42.Mega.bytes.toString()).isEqualTo("42.0 MB")
+    }
+
+    @TestFactory
+    fun `max length of representation to base`() = testEach(
+        1.bytes to listOf(2 to 8, 8 to 3, 10 to 3, 16 to 2, 32 to 2),
+        2.bytes to listOf(2 to 16, 8 to 6, 10 to 5, 16 to 4, 32 to 4),
+        4.bytes to listOf(2 to 32, 8 to 11, 10 to 10, 16 to 8, 32 to 7),
+    ) { (numBytes, expectedMaxLengths) ->
+        expectedMaxLengths.forEach { (base, expectedMaxLength) ->
+            expect("max length of number encoded with $numBytes represented as string to the base $base")
+            { numBytes.maxLengthOfRepresentationToBaseOf(base) }.that { isEqualTo(expectedMaxLength) }
+        }
     }
 
     @Nested

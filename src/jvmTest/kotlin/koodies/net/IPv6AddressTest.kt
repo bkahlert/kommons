@@ -1,7 +1,11 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
 import koodies.collections.to
+import koodies.net.IPv4Subnet.Companion.smallestCommonSubnet
+import koodies.net.IPv6Notation.compressedRepresentation
+import koodies.net.IPv6Subnet.Companion.div
+import koodies.net.IPv6Subnet.Companion.smallestCommonSubnet
+import koodies.number.ubyteArrayOfDecimalString
 import koodies.test.isFailure
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -9,13 +13,13 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class IPv6AddressTest {
 
     @TestFactory
@@ -25,7 +29,7 @@ class IPv6AddressTest {
             ipOf("0:0:0::ffff:c0a8:1001"),
             IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001"),
             IPv6Address.parse("0:0:0:0:0:ffff:192.168.16.1"),
-            IPv6Address(BigInteger.parseString("281473913982977", 10)),
+            IPv6Address(ubyteArrayOfDecimalString("281473913982977")),
         ).testEach { ip ->
             expect { ip }.that { toStringIsEqualTo("::ffff:c0a8:1001") }
         }
@@ -49,87 +53,6 @@ class IPv6AddressTest {
         @Test
         fun `should serialize using compressed representation`() {
             expectThat(ip).toStringIsEqualTo(ip.compressedRepresentation)
-        }
-
-        @Nested
-        inner class FullRepresentation {
-
-            @Test
-            fun `should provide full representation`() {
-                expectThat(ip.fullRepresentation).isEqualTo("0000:0000:0000:0000:0000:ffff:c0a8:1001")
-            }
-
-            @Test
-            fun `should fully represent first address`() {
-                expectThat(IPv6Address.DEFAULT_ROOT.fullRepresentation).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0000")
-            }
-
-            @Test
-            fun `should fully represent loopback address`() {
-                expectThat(IPv6Address.LOOPBACK.fullRepresentation).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001")
-            }
-
-            @TestFactory
-            fun `should fully represent network address`() = listOf(
-                IPv6Address.IPv4_MAPPED_RANGE to "0000:0000:0000:0000:0000:ffff:0000:0000",
-                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "0064:ff9b:0000:0000:0000:0000:0000:0000",
-            ).testEach { (range, expected) ->
-                expect { range.subnet.networkAddress.fullRepresentation }.that { isEqualTo(expected) }
-            }
-        }
-
-        @Nested
-        inner class ConventionalRepresentation {
-
-            @Test
-            fun `should provide conventional representation`() {
-                expectThat(ip.conventionalRepresentation).isEqualTo("0:0:0:0:0:ffff:c0a8:1001")
-            }
-
-            @Test
-            fun `should conventionally represent first address`() {
-                expectThat(IPv6Address.DEFAULT_ROOT.conventionalRepresentation).isEqualTo("0:0:0:0:0:0:0:0")
-            }
-
-            @Test
-            fun `should conventionally represent loopback address`() {
-                expectThat(IPv6Address.LOOPBACK.conventionalRepresentation).isEqualTo("0:0:0:0:0:0:0:1")
-            }
-
-            @TestFactory
-            fun `should conventionally represent network address`() = listOf(
-                IPv6Address.IPv4_MAPPED_RANGE to "0:0:0:0:0:ffff:0:0",
-                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b:0:0:0:0:0:0",
-            ).testEach { (range, expected) ->
-                expect { range.subnet.networkAddress.conventionalRepresentation }.that { isEqualTo(expected) }
-            }
-        }
-
-        @Nested
-        inner class CompressedRepresentation {
-
-            @Test
-            fun `should provide compressed representation`() {
-                expectThat(ip.compressedRepresentation).isEqualTo("::ffff:c0a8:1001")
-            }
-
-            @Test
-            fun `should represent compressed first address`() {
-                expectThat(IPv6Address.DEFAULT_ROOT.compressedRepresentation).isEqualTo("::")
-            }
-
-            @Test
-            fun `should represent compressed loopback address`() {
-                expectThat(IPv6Address.LOOPBACK.compressedRepresentation).isEqualTo("::1")
-            }
-
-            @TestFactory
-            fun `should represent compressed network address`() = listOf(
-                IPv6Address.IPv4_MAPPED_RANGE to "::ffff:0:0",
-                IPv6Address.IPv4_NAT64_MAPPED_RANGE to "64:ff9b::",
-            ).testEach { (range, expected) ->
-                expect { range.subnet.networkAddress.compressedRepresentation }.that { isEqualTo(expected) }
-            }
         }
     }
 
@@ -166,22 +89,22 @@ class IPv6AddressTest {
 
         @Test
         fun `should have subnet`() {
-            expectThat(range.subnet).toStringIsEqualTo("::ffff:c0a8:1000/126")
+            expectThat(range.smallestCommonSubnet).toStringIsEqualTo("::ffff:c0a8:1000/126")
         }
 
         @Test
         fun `should have usable`() {
-            expectThat(range.usable).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")..IPv6Address.parse("::ffff:c0a8:1002"))
+            expectThat(range.smallestCommonSubnet.usable).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")..IPv6Address.parse("::ffff:c0a8:1002"))
         }
 
         @Test
         fun `should have firstUsableHost`() {
-            expectThat(range.firstUsableHost).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001"))
+            expectThat(range.smallestCommonSubnet.firstUsableHost).isEqualTo(IPv6Address.parse("::ffff:c0a8:1001"))
         }
 
         @Test
         fun `should have lastUsableHost`() {
-            expectThat(range.lastUsableHost).isEqualTo(IPv6Address.parse("::ffff:c0a8:1002"))
+            expectThat(range.smallestCommonSubnet.lastUsableHost).isEqualTo(IPv6Address.parse("::ffff:c0a8:1002"))
         }
 
         @Test
@@ -190,74 +113,24 @@ class IPv6AddressTest {
         }
     }
 
-    @Nested
-    inner class Subnet {
-
-        private val range = IPv6Address.parse("::ffff:10.55.0.2")..IPv6Address.parse("::ffff:10.55.0.6")
-        private val subnet = range.subnet
-
-        @Test
-        fun `should have subnetBitCount`() {
-            expectThat(subnet.bitCount).isEqualTo(125)
-        }
-
-        @Test
-        fun `should have wildcardBitCount`() {
-            expectThat(subnet.wildcardBitCount).isEqualTo(3)
-        }
-
-        @Test
-        fun `should have hostCount`() {
-            expectThat(subnet.hostCount).isEqualTo(BigInteger.fromInt(8))
-        }
-
-        @Test
-        fun `should have usableHostCount`() {
-            expectThat(subnet.usableHostCount).isEqualTo(BigInteger.fromInt(6))
-        }
-
-        @Test
-        fun `should have networkAddress`() {
-            expectThat(subnet.networkAddress).isEqualTo(IPv6Address.parse("::ffff:10.55.0.0"))
-        }
-
-        @Test
-        fun `should have broadcastAddress`() {
-            expectThat(subnet.broadcastAddress).isEqualTo(IPv6Address.parse("::ffff:10.55.0.7"))
-        }
-
-        @Test
-        fun `should have firstHost`() {
-            expectThat(subnet.firstHost).isEqualTo(IPv6Address.parse("::ffff:10.55.0.1"))
-        }
-
-        @Test
-        fun `should have lastHost`() {
-            expectThat(subnet.lastHost).isEqualTo(IPv6Address.parse("::ffff:10.55.0.6"))
-        }
-
-        @Test
-        fun `should have subnetMask`() {
-            expectThat(subnet.mask).toStringIsEqualTo("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff8")
-        }
-
-        @Test
-        fun `should serialize to string`() {
-            expectThat(subnet).toStringIsEqualTo("::ffff:a37:0/125")
-        }
+    @Test
+    fun `should create subnet`() {
+        val ip = IPv6Address.parse("::ffff:10.55.0.2")
+        val cidr = 125
+        expectThat(ip / cidr).isEqualTo(IPv6Subnet.from(ip, cidr))
     }
 
     @TestFactory
     fun `should contain range`() = listOf(
-        IPv6Address.RANGE to (0 to BigInteger.parseString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16) + 1 to IPv6Address.RANGE.start),
-        IPv6Address.IPv4_MAPPED_RANGE to (96 to IPv4Address.RANGE.subnet.hostCount to IPv6Address.parse("::ffff:0:0")),
-        IPv6Address.IPv4_NAT64_MAPPED_RANGE to (96 to IPv4Address.RANGE.subnet.hostCount to IPv6Address.parse("64:ff9b::")),
+        IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE + 1 to IPv6Address.RANGE.start),
+        DefaultIPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount to IPv6Address.parse("::ffff:0:0")),
+        Nat64IPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount to IPv6Address.parse("64:ff9b::")),
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {
-            expect { range.subnet.bitCount }.that { isEqualTo(bitCount) }
-            expect { range.subnet.hostCount }.that { isEqualTo(hostCount) }
-            expect { range.subnet.networkAddress }.that { isEqualTo(networkAddress) }
+            expect { range.smallestCommonSubnet.prefixLength }.that { isEqualTo(bitCount) }
+            expect { range.smallestCommonSubnet.hostCount }.that { isEqualTo(hostCount) }
+            expect { range.smallestCommonSubnet.networkAddress }.that { isEqualTo(networkAddress) }
         }
     }
 }
