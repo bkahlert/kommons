@@ -31,29 +31,6 @@ Koodies is a random selection of utility goodies to make a Kotlin developer's li
 
 ## Features
 
-### Builders
-
-```kotlin
-enum class Features {
-    FeatureA, FeatureB, FeatureC
-}
-
-val features = EnumSetBuilder.build<Features> {
-    +Features.FeatureA + Features.FeatureC
-}
-```
-
-```kotlin
-fun buildList(init: ListBuilder<String>.() -> Unit) {
-    val list = init.build()
-}
-
-buildList {
-    +"element"
-    +existingList
-}
-```
-
 ### Processes
 
 #### Running a Process
@@ -122,6 +99,17 @@ Docker.busybox("""
     Searching release 'latest' in repository 'bkahlert/koodies'...
     Not Found artifact '' with regex option 'on'
     Process 67008 terminated with exit code 2. Expected 0.
+```
+
+### IP Address Tooling (4 & 6)
+
+```kotlin
+val ip4 = ipOf<IPv4Address>("192.168.16.25")
+val ip6 = ip4.toIPv6Address()
+val range = ip6.."::ffff:c0a8:1028".toIp() // ::ffff:c0a8:1019..::ffff:c0a8:1028
+val subnet = ip6 / 122 // ::ffff:c0a8:1000/122
+check(range.smallestCommonSubnet == subnet) // ✔
+check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔
 ```
 
 ### Improved Java NIO 2 Integration
@@ -222,6 +210,29 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 ```
 
 ### More...
+
+* Generic Builders
+
+  ```kotlin
+  enum class Features {
+      FeatureA, FeatureB, FeatureC
+  }
+  
+  val features = EnumSetBuilder.build<Features> {
+      +Features.FeatureA + Features.FeatureC
+  }
+  ```
+
+  ```kotlin
+  fun buildList(init: ListBuilder<String>.() -> Unit) {
+      val list = init.build()
+  }
+  
+  buildList {
+      +"element"
+      +existingList
+  }
+  ```
 
 * Logging
   ```kotlin

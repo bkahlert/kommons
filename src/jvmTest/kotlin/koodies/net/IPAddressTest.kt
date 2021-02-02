@@ -1,8 +1,12 @@
 package koodies.net
 
+import koodies.net.DefaultIPv4toIPv6Mapping.toIPv6Address
+import koodies.net.IPv6Subnet.Companion.div
+import koodies.net.IPv6Subnet.Companion.smallestCommonSubnet
 import koodies.test.isFailure
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
@@ -13,6 +17,16 @@ class IPAddressTest {
 
     @Nested
     inner class Parse {
+
+        @Test
+        internal fun name() {
+            val ip4 = ipOf<IPv4Address>("192.168.16.25")
+            val ip6 = ip4.toIPv6Address()
+            val range = ip6.."::ffff:c0a8:1028".toIp() // ::ffff:c0a8:1019..::ffff:c0a8:1028
+            val subnet = ip6 / 122 // ::ffff:c0a8:1000/122
+            check(range.smallestCommonSubnet == subnet) // ✔
+            check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔
+        }
 
         @TestFactory
         fun `should parse IPv4 address`() =
