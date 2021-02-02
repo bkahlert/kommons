@@ -28,10 +28,7 @@ class IPv6Address private constructor(override val value: BigInteger, override v
 
     override val version: IPAddress.Version = IPv6Address
 
-    fun rangeTo(endInclusive: IPv6Address): ClosedRange<IPv6Address> = object : ClosedRange<IPv6Address> {
-        override val start: IPv6Address = this@IPv6Address
-        override val endInclusive: IPv6Address = endInclusive
-    }
+    fun rangeTo(endInclusive: IPv6Address): IPv6Range = IPv6Range(value, endInclusive.value)
 
     /**
      * Returns the [Notation.compressedRepresentation] of this IPv6 address, e.g. `::ffff:c0a8:1001`.
@@ -41,24 +38,8 @@ class IPv6Address private constructor(override val value: BigInteger, override v
      */
     override fun toString(): String = format(value)
 
-    override fun compareTo(other: IPAddress): Int = value.compareTo(other.value)
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as IPv6Address
-
-        if (value != other.value) return false
-        if (version != other.version) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = value.hashCode()
-        result = 31 * result + version.hashCode()
-        return result
-    }
+    override fun equals(other: Any?): Boolean = isEqual(other)
+    override fun hashCode(): Int = hash()
 
     companion object : IPAddress.Version by VersionImpl(6, 128.bits) {
         private const val sizeHextets = 8

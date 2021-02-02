@@ -1,7 +1,6 @@
 package koodies.net
 
 import koodies.collections.to
-import koodies.net.IPv6Subnet.Companion.div
 import koodies.number.bigIntegerOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -14,6 +13,18 @@ import strikt.assertions.isEqualTo
 class IPv6SubnetTest {
 
     private val ip = IPv6Address.parse("abba:4efa:abba:4efa:abba:4efa:abba:4efa")
+
+    @TestFactory
+    fun `should be parsable`() = testEach(
+        "::/0" to "::..ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "abba:4efa:abba:4efa::/63" to "abba:4efa:abba:4efa::..abba:4efa:abba:4efb:ffff:ffff:ffff:ffff",
+        "abba:4efa:abba:4efa::/64" to "abba:4efa:abba:4efa::..abba:4efa:abba:4efa:ffff:ffff:ffff:ffff",
+        "abba:4efa:abba:4efa:8000::/65" to "abba:4efa:abba:4efa:8000::..abba:4efa:abba:4efa:ffff:ffff:ffff:ffff",
+        "abba:4efa:abba:4efa:abba:4efa:abba:4efa/128" to "abba:4efa:abba:4efa:abba:4efa:abba:4efa..abba:4efa:abba:4efa:abba:4efa:abba:4efa",
+    ) { (subnetString, rangeString) ->
+        expect { subnetString.toIPv6Subnet() }.that { isEqualTo(rangeString.toIPv6Subnet()) }
+        expect { ip6SubnetOf(subnetString) }.that { isEqualTo(ip6SubnetOf(rangeString)) }
+    }
 
     @TestFactory
     fun `should have mask`() = testEach(

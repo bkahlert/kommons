@@ -5,8 +5,6 @@ import koodies.collections.to
 import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
 import koodies.net.IPv4Address.Companion.RFC1918_24block
-import koodies.net.IPv4Subnet.Companion.div
-import koodies.net.IPv4Subnet.Companion.smallestCommonSubnet
 import koodies.number.toUBytes
 import koodies.test.isFailure
 import koodies.test.testEach
@@ -27,7 +25,7 @@ class IPv4AddressTest {
     @TestFactory
     fun `should be instantiatable`() =
         listOf(
-            "192.168.16.1".toIp(),
+            "192.168.16.1".toIP(),
             ipOf("192.168.16.1"),
             IPv4Address.parse("192.168.16.1"),
             IPv4Address(ubyteArrayOf(192.toUByte(), 168.toUByte(), 16.toUByte(), 1.toUByte())),
@@ -39,7 +37,7 @@ class IPv4AddressTest {
     @TestFactory
     fun `should throw on invalid value`() =
         listOf(
-            { "-1.168.16.1".toIp() },
+            { "-1.168.16.1".toIP() },
             { ipOf("192.999.16.1") },
             { IPv4Address.parse("192.168.16.1.2") },
             { IPv4Address.parse("192.168.16.x") },

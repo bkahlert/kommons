@@ -48,11 +48,24 @@ interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
         fun address(value: BigInteger): IP
         fun from(value: BigInteger, prefixLength: Int): IPSubnet<IP>
         fun from(ip: IP, prefixLength: Int): IPSubnet<IP> = from(ip.value, prefixLength)
-        operator fun IP.div(prefixLength: Int): IPSubnet<IP> = from(value, prefixLength)
-        val ClosedRange<IP>.smallestCommonSubnet: IPSubnet<IP>
-            get() {
-                val smallestCommonPrefixLength = start.version.bitCount - (endInclusive.value xor start.value).toString(2).length
-                return from(start, smallestCommonPrefixLength)
-            }
+        fun getSmallestCommonSubnet(range: ClosedRange<IP>): IPSubnet<IP> =
+            from(range.start, IPRange.smallestCommonPrefixLength(range.start.version.bitCount, range.start.value, range.endInclusive.value))
+
+        fun parseCidrVariant(ipSubnet: String): IPSubnet<IP>? = ipSubnet.split("/").map { it.trim() }.run {
+            if (size == 2) from(first().toAnyIP().value, last().toInt())
+            else null
+        }
+
+        fun parseRangeVariant(ipRange: String): IPSubnet<IP>? = kotlin.runCatching {
+            val range: IPRange<out IPAddress> = ipRange.toIPRange()
+            from(range.start.value, range.smallestCommonPrefixLength.also { println(it) })
+        }.getOrNull()
+
+        fun parse(ipSubnet: String): IPSubnet<IP> = parseCidrVariant(ipSubnet)
+            ?: parseRangeVariant(ipSubnet)
+            ?: error("Subnet expected to be either in format <IP1>..<IP2> or <IP>/<CIDR>")
     }
 }
+
+fun String.toIPSubnet(): IPSubnet<out IPAddress> = runCatching { toIPv4Subnet() }.recoverCatching { toIPv6Subnet() }.getOrThrow()
+fun ipSubnetOf(value: String): IPSubnet<out IPAddress> = value.toIPSubnet()

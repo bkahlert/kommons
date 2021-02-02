@@ -1,10 +1,6 @@
 package koodies.net
 
 import koodies.collections.to
-import koodies.net.IPv4Subnet.Companion.smallestCommonSubnet
-import koodies.net.IPv6Notation.compressedRepresentation
-import koodies.net.IPv6Subnet.Companion.div
-import koodies.net.IPv6Subnet.Companion.smallestCommonSubnet
 import koodies.number.ubyteArrayOfDecimalString
 import koodies.test.isFailure
 import koodies.test.testEach
@@ -25,7 +21,7 @@ class IPv6AddressTest {
     @TestFactory
     fun `should be instantiatable`() =
         listOf(
-            "::ffff:c0a8:1001".toIp(),
+            "::ffff:c0a8:1001".toIP(),
             ipOf("0:0:0::ffff:c0a8:1001"),
             IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001"),
             IPv6Address.parse("0:0:0:0:0:ffff:192.168.16.1"),
@@ -37,7 +33,7 @@ class IPv6AddressTest {
     @TestFactory
     fun `should throw on invalid value`() =
         listOf(
-            { "-0:0:0::ffff:c0a8:1001".toIp() },
+            { "-0:0:0::ffff:c0a8:1001".toIP() },
             { ipOf("0:::0::ffff:c0a8:1001") },
             { ipOf("0:0:0::ffffffff:c0a8:1001") },
             { IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001:0:0:0") },

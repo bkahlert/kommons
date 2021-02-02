@@ -44,3 +44,6 @@ object Nat64IPv4toIPv6Mapping : OffsetIPv4toIPv6Mapping(bigIntegerOf(ubyteArrayO
     UByte.OOu, UByte.OOu, UByte.OO, UByte.OOu,
     UByte.OOu, UByte.OOu, UByte.OO, UByte.OOu,
 )) shl IPv4Address.bitCount)
+
+fun IPv4Address.toIPv6Address(mapping: IPv4toIPv6Mapping = DefaultIPv4toIPv6Mapping): IPv6Address = with(mapping) { toIPv6Address() }
+fun IPv6Address.toIPv4Address(mapping: IPv4toIPv6Mapping = DefaultIPv4toIPv6Mapping): IPv4Address = with(mapping) { toIPv4Address() }

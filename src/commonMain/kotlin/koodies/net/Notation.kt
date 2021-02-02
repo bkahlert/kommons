@@ -127,15 +127,16 @@ object IPv4Notation : Notation {
     override val groupSeparator = '.'
     override val base = 10
     override val defaultVerbosity = Notation.Verbosity.Conventional
-
-    /**
-     * This representation consists of four octets each consisting of
-     * one to three decimal digits—leading zeros removed.
-     *
-     * Example: `192.168.0.1`
-     */
-    val IPv4Address.conventionalRepresentation get() = format(value)
 }
+
+/**
+ * This representation consists of four octets each consisting of
+ * one to three decimal digits—leading zeros removed.
+ *
+ * Example: `192.168.0.1`
+ */
+val IPv4Address.conventionalRepresentation get() = IPv4Notation.format(value)
+
 
 object IPv6Notation : Notation {
     override val byteCount = IPv6Address.byteCount
@@ -143,43 +144,43 @@ object IPv6Notation : Notation {
     override val groupSeparator = ':'
     override val base = 16
     override val defaultVerbosity = Notation.Verbosity.Compressed
-
-    /**
-     * This representation consists of eight hextets each consisting of four
-     * hexadecimal digits—leading zeros included.
-     *
-     * Example: `0000:0000:0000:0000:0000:ffff:c0a8:1001`
-     *
-     * @see conventionalRepresentation
-     * @see compressedRepresentation
-     * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
-     */
-    val IPv6Address.fullRepresentation: String get() = format(value, Notation.Verbosity.Full)
-
-    /**
-     * This representation consists of eight hextets each consisting of
-     * one to four hexadecimal digits—leading zeros removed.
-     *
-     * Example: `0:0:0:0:0:ffff:c0a8:1001`
-     *
-     * @see fullRepresentation
-     * @see compressedRepresentation
-     * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
-     */
-    val IPv6Address.conventionalRepresentation get() = format(value, Notation.Verbosity.Conventional)
-
-    /**
-     * This representation consists of up to eight hextets each consisting of
-     * one to four hexadecimal digits—leading zeros removed.
-     *
-     * This is the shortest representation as it removes the longest sequence
-     * of `0` hextets—given such a sequences spans at least two hextets.
-     *
-     * Example: `::ffff:c0a8:1001`
-     *
-     * @see fullRepresentation
-     * @see conventionalRepresentation
-     * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
-     */
-    val IPv6Address.compressedRepresentation get() = format(value, Notation.Verbosity.Compressed)
 }
+
+/**
+ * This representation consists of eight hextets each consisting of four
+ * hexadecimal digits—leading zeros included.
+ *
+ * Example: `0000:0000:0000:0000:0000:ffff:c0a8:1001`
+ *
+ * @see conventionalRepresentation
+ * @see compressedRepresentation
+ * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
+ */
+val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Full)
+
+/**
+ * This representation consists of eight hextets each consisting of
+ * one to four hexadecimal digits—leading zeros removed.
+ *
+ * Example: `0:0:0:0:0:ffff:c0a8:1001`
+ *
+ * @see fullRepresentation
+ * @see compressedRepresentation
+ * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
+ */
+val IPv6Address.conventionalRepresentation get() = IPv6Notation.format(value, Notation.Verbosity.Conventional)
+
+/**
+ * This representation consists of up to eight hextets each consisting of
+ * one to four hexadecimal digits—leading zeros removed.
+ *
+ * This is the shortest representation as it removes the longest sequence
+ * of `0` hextets—given such a sequences spans at least two hextets.
+ *
+ * Example: `::ffff:c0a8:1001`
+ *
+ * @see fullRepresentation
+ * @see conventionalRepresentation
+ * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
+ */
+val IPv6Address.compressedRepresentation get() = IPv6Notation.format(value, Notation.Verbosity.Compressed)

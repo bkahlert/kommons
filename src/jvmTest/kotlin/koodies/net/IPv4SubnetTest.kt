@@ -1,7 +1,6 @@
 package koodies.net
 
 import koodies.collections.to
-import koodies.net.IPv4Subnet.Companion.div
 import koodies.number.bigIntegerOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -14,6 +13,18 @@ import strikt.assertions.isEqualTo
 class IPv4SubnetTest {
 
     private val ip = IPv4Address.parse("172.186.78.250")
+
+    @TestFactory
+    fun `should be parsable`() = testEach(
+        "0.0.0.0/0" to "0.0.0.0..255.255.255.255",
+        "172.186.0.0/15" to "172.186.0.0..172.187.255.255",
+        "172.186.0.0/16" to "172.186.0.0..172.186.255.255",
+        "172.186.0.0/17" to "172.186.0.0..172.186.127.255",
+        "172.186.78.250/32" to "172.186.78.250..172.186.78.250",
+    ) { (subnetString, rangeString) ->
+        expect { subnetString.toIPv4Subnet() }.that { isEqualTo(rangeString.toIPv4Subnet()) }
+        expect { ip4SubnetOf(subnetString) }.that { isEqualTo(ip4SubnetOf(rangeString)) }
+    }
 
     @TestFactory
     fun `should have mask`() = testEach(

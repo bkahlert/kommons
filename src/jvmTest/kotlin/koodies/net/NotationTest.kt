@@ -1,10 +1,6 @@
 package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.net.IPv4Notation.conventionalRepresentation
-import koodies.net.IPv6Notation.compressedRepresentation
-import koodies.net.IPv6Notation.conventionalRepresentation
-import koodies.net.IPv6Notation.fullRepresentation
 import koodies.number.bigIntegerOfDecimalString
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested

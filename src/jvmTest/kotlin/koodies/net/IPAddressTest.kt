@@ -1,8 +1,7 @@
 package koodies.net
 
 import koodies.net.DefaultIPv4toIPv6Mapping.toIPv6Address
-import koodies.net.IPv6Subnet.Companion.div
-import koodies.net.IPv6Subnet.Companion.smallestCommonSubnet
+import koodies.net.IPv6Subnet.Companion.getSmallestCommonSubnet
 import koodies.test.isFailure
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested
@@ -22,9 +21,9 @@ class IPAddressTest {
         internal fun name() {
             val ip4 = ipOf<IPv4Address>("192.168.16.25")
             val ip6 = ip4.toIPv6Address()
-            val range = ip6.."::ffff:c0a8:1028".toIp() // ::ffff:c0a8:1019..::ffff:c0a8:1028
+            val range = ip6.."::ffff:c0a8:1028".toIP() // ::ffff:c0a8:1019..::ffff:c0a8:1028
             val subnet = ip6 / 122 // ::ffff:c0a8:1000/122
-            check(range.smallestCommonSubnet == subnet) // ✔
+            check(getSmallestCommonSubnet(range) == subnet) // ✔
             check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔
         }
 
@@ -35,7 +34,7 @@ class IPAddressTest {
                 "192.168.016.1",
                 "192.168.016.001",
             ).testEach { ip ->
-                expect { ip.toAnyIp() }.that { isEqualTo(IPv4Address.parse("192.168.16.1")) }
+                expect { ip.toAnyIP() }.that { isEqualTo(IPv4Address.parse("192.168.16.1")) }
             }
 
         @TestFactory
@@ -45,15 +44,15 @@ class IPAddressTest {
                 "0:0::ffff:192.168.016.001",
                 "0:0:0:0:0:ffff:c0a8:1001",
             ).testEach { ip ->
-                expect { ip.toAnyIp() }.that { isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")) }
+                expect { ip.toAnyIP() }.that { isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")) }
             }
 
         @TestFactory
         fun `should throw on invalid IP address`() =
             listOf(
-                { "-1.168.16.1".toAnyIp() },
+                { "-1.168.16.1".toAnyIP() },
                 { IPv4Address.parse("192.168.16.x") },
-                { "-0:0:0::ffff:c0a8:1001".toAnyIp() },
+                { "-0:0:0::ffff:c0a8:1001".toAnyIP() },
                 { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
             ).testEach { ip ->
                 expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
