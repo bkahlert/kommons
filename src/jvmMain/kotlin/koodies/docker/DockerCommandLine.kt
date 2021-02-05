@@ -13,44 +13,68 @@ import koodies.text.splitAndMap
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
+// TODO support simple stuff like --> docker run -p 8025:8025 -p 1025:1025 mailhog/mailhog
+
+/**
+ * [CommandLine] that runs a command specified by its [redirects], [environment], [workingDirectory],
+ * [command] and [arguments] using the specified [image] using the specified [options]
+ */
 open class DockerCommandLine private constructor(
+    /**
+     * The image used to run this command line.
+     */
     val image: DockerImage,
+    /**
+     * Options that specify how this command line is run.
+     */
     val options: DockerCommandLineOptions,
-    commandLine: CommandLine,
-    dummy: Any?,
+    redirects: List<String>,
+    environment: Map<String, String>,
+    workingDirectory: Path,
+    command: String,
+    arguments: List<String>,
 ) : CommandLine(
-    redirects = commandLine.redirects,
-    environment = commandLine.environment,
-    workingDirectory = commandLine.workingDirectory,
+    redirects = redirects,
+    environment = environment,
+    workingDirectory = workingDirectory,
     command = "docker",
     arguments = buildList {
         +"run"
-        commandLine.environment.forEach {
+        environment.forEach {
             +"--env"
             +"${it.key}=${it.value}"
         }
         +options
-        +image.formatted
-        if (commandLine.command.isNotBlank() && options.entryPoint == null) {
-            +commandLine.command
+        +image.toString()
+        if (command.isNotBlank() && options.entryPoint == null) {
+            +command
         }
-        +options.remapPathsInArguments(commandLine)
+        +options.remapPathsInArguments(workingDirectory, arguments)
     },
 ) {
     constructor(image: DockerImage, options: DockerCommandLineOptions = DockerCommandLineOptions(), commandLine: CommandLine) : this(
         image = image,
         options = options.withFallbackWorkingDirectory(commandLine.workingDirectory),
-        commandLine = commandLine,
-        dummy = null,
+        redirects = commandLine.redirects,
+        environment = commandLine.environment,
+        workingDirectory = commandLine.workingDirectory,
+        command = commandLine.command,
+        arguments = commandLine.arguments,
     )
 
     companion object {
 
+        /**
+         * Builds a [DockerCommandLine] using [init] that runs using the specified [image].
+         */
         fun build(image: DockerImage, init: DockerCommandLineBuilder.() -> Unit = {}): DockerCommandLine =
             DockerCommandLineBuilder.build(image, init = init)
 
-        fun build(imageInit: DockerImageBuilder.() -> Any, init: DockerCommandLineBuilder.() -> Unit): DockerCommandLine =
-            DockerCommandLineBuilder.build(DockerImageBuilder.build(imageInit), init)
+        /**
+         * Builds a [DockerCommandLine] using [init] that runs using an image build using [imageInit].
+         */
+        fun build(image: DockerImage.Builder.() -> DockerImage, init: DockerCommandLineBuilder.() -> Unit): DockerCommandLine =
+            DockerCommandLineBuilder.build(dockerImage(image), init)
     }
 
     override fun toManagedProcess(expectedExitValue: Int?, processTerminationCallback: (() -> Unit)?): DockerProcess =
@@ -63,15 +87,23 @@ open class DockerCommandLine private constructor(
         super.execute(expectedExitValue) as DockerProcess
 }
 
-
+/**
+ * Builds a [DockerCommandLine] using [init] that runs using `this` image.
+ */
 fun DockerImage.buildCommandLine(init: DockerCommandLineBuilder.() -> Unit) =
     DockerCommandLineBuilder.build(image = this, init = init)
 
+/**
+ * Builder to build instances of [DockerCommandLine].
+ */
 open class DockerCommandLineBuilder(
     private var options: DockerCommandLineOptions = DockerCommandLineOptions(),
     private var commandLine: CommandLine = CommandLine.build(""),
 ) {
     companion object {
+        /**
+         * Builds a [DockerCommandLine] using [init] that runs using the specified [image].
+         */
         fun build(image: DockerImage, init: DockerCommandLineBuilder.() -> Unit): DockerCommandLine =
             DockerCommandLineBuilder().apply(init).run {
                 DockerCommandLine(image, options, commandLine)
@@ -85,6 +117,7 @@ open class DockerCommandLineBuilder(
     fun commandLine(command: String, init: CommandLineBuilder.() -> Unit) = commandLine(CommandLine.build(command, init))
 }
 
+// TODO q / detached and p / protocol
 data class DockerCommandLineOptions(
     val entryPoint: String? = null,
     val name: DockerContainerName? = null,
@@ -112,25 +145,25 @@ data class DockerCommandLineOptions(
         kotlin.runCatching { mounts.mapToContainerPath(hostPath) }.getOrNull()
 
     /**
-     * Tries to find all paths inside the [commandLine] [CommandLine.arguments] and remaps all those
+     * Tries to find all paths found inside [arguments] and remaps all those
      * that are still accessible through the specified [mounts].
      *
-     * Relative paths are resolved using the [CommandLine.workingDirectory] and if specified
+     * Relative paths are resolved using the [argumentsWorkingDirectory] and if specified
      * mapped backed to a relative [ContainerPath] using [DockerCommandLineOptions.workingDirectory].
      *
      * Arguments not containing paths are left unchanged.
      *
      * Arguments of the form `a=b` get mapped with key and value treated separately.
      */
-    fun remapPathsInArguments(commandLine: CommandLine): List<String> = commandLine.arguments.map { arg ->
+    fun remapPathsInArguments(argumentsWorkingDirectory: Path, arguments: List<String>): List<String> = arguments.map { arg ->
         if (arg.count { it == '=' } > 1) return@map arg
         arg.splitAndMap("=") {
             val originalPath = asHostPath() // e.g. /a/b resp. b
-            val absoluteOriginalPath = commandLine.workingDirectory.resolveBetweenFileSystems(originalPath) // e.g. /a/b resp. /a/b (if pwd=/a)
+            val absoluteOriginalPath = argumentsWorkingDirectory.resolveBetweenFileSystems(originalPath) // e.g. /a/b resp. /a/b (if pwd=/a)
             mapToContainerPathOrNull(absoluteOriginalPath)?.let { mappedPath ->   // e.g. /c/d
                 workingDirectory
                     ?.takeIf { !originalPath.isAbsolute }
-                    ?.let(mappedPath::relativeTo) // e.g. b (if container pwd=/c)
+                    ?.let { mappedPath.relativeTo(it) } // e.g. b (if container pwd=/c)
                     ?: mappedPath.asString() // e.g. /c/d
             } ?: this
         }

@@ -1,10 +1,10 @@
 package koodies.nio
 
+import koodies.io.ByteArrayOutputStream
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.toByteArray
-import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.InputStream
 
 /**

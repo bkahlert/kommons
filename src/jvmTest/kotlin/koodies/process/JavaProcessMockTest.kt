@@ -3,6 +3,7 @@ package koodies.process
 import koodies.concurrent.daemon
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
+import koodies.io.ByteArrayOutputStream
 import koodies.io.path.isEqualToByteWise
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
@@ -19,7 +20,6 @@ import koodies.test.testEach
 import koodies.text.joinLinesToString
 import koodies.time.sleep
 import koodies.tracing.subTrace
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

@@ -15,7 +15,7 @@ fun Docker.busybox(
     processor: Processor<DockerProcess> = Processors.consoleLoggingProcessor(),
     init: CommandLineBuilder.() -> Unit,
 ): DockerProcess =
-    docker({ "busybox" }, processor) {
+    docker({ official("busybox") }, processor) {
         options { name { name } }
         commandLine(init)
     }

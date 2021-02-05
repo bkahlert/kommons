@@ -13,7 +13,7 @@ import strikt.assertions.isEqualTo
 @Execution(CONCURRENT)
 class DockerCommandLineBuilderTest {
 
-    private val dockerImage = DockerImageBuilder.build { "repo" / "name" tag "tag" }
+    private val dockerImage = Docker.image { "repo" / "name" tag "tag" }
 
     @Test
     fun `should build valid docker run`() {

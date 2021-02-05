@@ -1,10 +1,10 @@
 package koodies.logging
 
+import koodies.io.ByteArrayOutputStream
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoExclusive
 import koodies.test.output.CapturedOutput
 import koodies.test.toStringContainsAll
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT

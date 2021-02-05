@@ -5,18 +5,17 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
-    base
     kotlin("multiplatform") version Versions.kotlin
     id("org.jetbrains.dokka") version "1.4.20"
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
-    id("io.gitlab.arturbosch.detekt") version "1.15.0"
+    id("io.gitlab.arturbosch.detekt") version "1.16.0-RC1"
 
     id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
     id("signing")
-    id("nebula.release") version "15.3.0"
+    id("nebula.release") version "15.3.1"
     id("nebula.source-jar") version "17.3.2"
     id("nebula.javadoc-jar") version "17.3.2"
     id("nebula.nebula-bintray-publishing") version "8.5.0"
@@ -69,7 +68,20 @@ repositories {
 
 kotlin {
     if (releasingFinal && !version.isFinal()) {
-        println("\n\n\t\tProperty releasingFinal is set but the active version $version is not final.")
+        println("\n\t\tProperty releasingFinal is set but the active version $version is not final.")
+    }
+
+    val features = listOf(
+        "-Xinline-classes",
+        "-Xopt-in=kotlin.RequiresOptIn",
+        "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+        "-Xopt-in=kotlin.time.ExperimentalTime",
+        "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+        "-Xopt-in=kotlin.io.path.ExperimentalPathApi"
+    )
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions.freeCompilerArgs += features
     }
 
     jvm {
@@ -77,7 +89,9 @@ kotlin {
             kotlinOptions {
                 jvmTarget = "11"
                 useIR = true
-                freeCompilerArgs += "-Xjvm-default=all"
+                freeCompilerArgs += listOf(
+                    "-Xjvm-default=all"
+                )
             }
         }
 
@@ -123,20 +137,9 @@ kotlin {
     }
 
     sourceSets {
-
         all {
-            languageSettings.apply {
-                languageVersion = "1.4"
-                apiVersion = "1.4"
-                enableLanguageFeature("InlineClasses")
-                listOf(
-                    "kotlin.RequiresOptIn",
-                    "kotlin.ExperimentalUnsignedTypes",
-                    "kotlin.time.ExperimentalTime",
-                    "kotlin.contracts.ExperimentalContracts",
-                    "kotlin.io.path.ExperimentalPathApi"
-                ).forEach(::useExperimentalAnnotation)
-                progressiveMode = true
+            features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
+                languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
             }
         }
 
@@ -156,11 +159,10 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("commons-io:commons-io:2.8.0")
                 implementation("org.apache.commons:commons-compress:1.20")
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
-                implementation("org.jline:jline-reader:3.16.0")
+                implementation("org.jline:jline-reader:3.19.0")
 
                 @Suppress("SpellCheckingInspection")
                 implementation("com.tunnelvisionlabs:antlr4-runtime:${Versions.antlr4}") {
@@ -188,7 +190,7 @@ kotlin {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
-                implementation("io.strikt:strikt-core:0.28.1")
+                implementation("io.strikt:strikt-core:0.28.2")
                 implementation("com.christophsturm:filepeek:0.1.2")
                 implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}") {
                     because("filepeek takes 1.3")
@@ -205,10 +207,30 @@ kotlin {
         val nativeMain by getting
         val nativeTest by getting
 
+
+        all {
+            features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
+                languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
+            }
+        }
+
+        all {
+            languageSettings.apply {
+                languageVersion = "1.4"
+                apiVersion = "1.4"
+                progressiveMode = true
+            }
+        }
+
         targets.all {
             compilations.all {
-                kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
-                kotlinOptions.freeCompilerArgs += "-Xinline-classes"
+                kotlinOptions.freeCompilerArgs += features
+            }
+        }
+
+        all {
+            features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
+                languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
             }
         }
 

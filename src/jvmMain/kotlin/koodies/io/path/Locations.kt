@@ -1,6 +1,7 @@
 package koodies.io.path
 
 import koodies.concurrent.output
+import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.script
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -17,7 +18,7 @@ object Locations {
      * Resolves [glob] using the system's `ls` command line tool.
      */
     fun Path.ls(glob: String): List<Path> =
-        kotlin.runCatching { script { !"ls $glob" }.output().lines().map { resolve(it) } }.getOrDefault(emptyList())
+        kotlin.runCatching { script(noopProcessor()) { !"ls $glob" }.output().lines().map { resolve(it) } }.getOrDefault(emptyList())
 
     /**
      * Working directory, that is, the directory in which this binary can be found.

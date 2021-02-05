@@ -2,14 +2,15 @@ package koodies.net
 
 import koodies.net.Nat64IPv4toIPv6Mapping.toIPv4Address
 import koodies.net.Nat64IPv4toIPv6Mapping.toIPv6Address
-import koodies.test.isFailure
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 @Execution(SAME_THREAD)
 class Nat64IPv4toIPv6MappingTest {
@@ -28,7 +29,7 @@ class Nat64IPv4toIPv6MappingTest {
 
     @TestFactory
     fun `should throw on mapping non-mappable IP6 address`() {
-        expectCatching { IPv6Address.RANGE.endInclusive.toIPv4Address() }.isFailure<IllegalArgumentException>()
+        expectCatching { IPv6Address.RANGE.endInclusive.toIPv4Address() }.isFailure().isA<IllegalArgumentException>()
     }
 }
 

@@ -23,7 +23,7 @@ object Docker {
     /**
      * Whether the Docker engine itself is running.
      */
-    val isEngineRunning: Boolean get() = !scriptOutputContains("docker info", "error")
+    val engineRunning: Boolean get() = !scriptOutputContains("docker info", "error")
 
     /**
      * Whether a Docker container with the given [name] is running.
@@ -40,11 +40,15 @@ object Docker {
     }
 
     /**
-     * Builds a [DockerImage].
+     * Micro DSL to build a [DockerImage] in the style of:
+     * - `dockerImage { "bkahlert" / "libguestfs" }`
+     * - `dockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+     * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     *
+     * Convenience alias for [dockerImage].
      */
-    @Deprecated("use dockerImage instead", replaceWith = ReplaceWith("dockerImage"))
-    fun image(init: DockerImageBuilder.() -> Any): DockerImage =
-        DockerImageBuilder.build(init)
+    @Suppress("SpellCheckingInspection")
+    fun image(init: DockerImage.Builder.() -> DockerImage): DockerImage = dockerImage(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
     fun options(init: DockerCommandLineOptionsBuilder.() -> Unit): DockerCommandLineOptions =
@@ -78,14 +82,8 @@ object Docker {
 }
 
 /**
- * Creates a [DockerImage] instances using [init].
- */
-fun dockerImage(init: DockerImageBuilder.() -> Any): DockerImage =
-    DockerImageBuilder.build(init)
-
-/**
  * Runs a Docker process using the
- * - [DockerImage] built by the specified [imageBuilder]
+ * - [DockerImage] built by the specified [image]
  * - [DockerCommandLineOptions] built by the specified [commandLineOptionsBuilder]
  * - specified [arguments]
  * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
@@ -95,23 +93,23 @@ fun dockerImage(init: DockerImageBuilder.() -> Any): DockerImage =
  * get called.
  */
 fun Path.docker(
-    imageBuilder: DockerImageBuilder.() -> Any,
+    image: DockerImage.Builder.() -> DockerImage,
     commandLineOptionsBuilder: DockerCommandLineOptionsBuilder.() -> Unit,
     vararg arguments: String,
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
-): DockerProcess = DockerImageBuilder
-    .build(imageBuilder)
-    .buildCommandLine {
-        options(DockerCommandLineOptionsBuilder.build(commandLineOptionsBuilder))
-        commandLine(CommandLine(emptyMap(), this@docker, "", *arguments))
-    }
-    .toManagedProcess(expectedExitValue, processTerminationCallback)
-    .processSilently().apply { waitForTermination() }
+): DockerProcess =
+    dockerImage(image)
+        .buildCommandLine {
+            options(DockerCommandLineOptionsBuilder.build(commandLineOptionsBuilder))
+            commandLine(CommandLine(emptyMap(), this@docker, "", *arguments))
+        }
+        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .processSilently().apply { waitForTermination() }
 
 /**
  * Runs a Docker process using the
- * - [DockerImage] built by the specified [imageBuilder]
+ * - [DockerImage] built by the specified [image]
  * - [DockerCommandLineOptions] built by the specified [commandLineOptionsBuilder]
  * - specified [arguments]
  * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
@@ -126,25 +124,25 @@ fun Path.docker(
  * get called.
  */
 fun Path.docker(
-    imageBuilder: DockerImageBuilder.() -> Any,
+    image: DockerImage.Builder.() -> DockerImage,
     commandLineOptionsBuilder: DockerCommandLineOptionsBuilder.() -> Unit,
     vararg arguments: String,
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-): DockerProcess = DockerImageBuilder
-    .build(imageBuilder)
-    .buildCommandLine {
-        val options: DockerCommandLineOptions = commandLineOptionsBuilder.build()
-        options(options)
-        commandLine(CommandLine(emptyMap(), this@docker, "", *arguments))
-    }
-    .toManagedProcess(expectedExitValue, processTerminationCallback)
-    .process(processor)
+): DockerProcess =
+    dockerImage(image)
+        .buildCommandLine {
+            val options: DockerCommandLineOptions = commandLineOptionsBuilder.build()
+            options(options)
+            commandLine(CommandLine(emptyMap(), this@docker, "", *arguments))
+        }
+        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .process(processor)
 
 /**
  * Runs a Docker process using the
- * - [DockerImage] built by the specified [imageBuilder]
+ * - [DockerImage] built by the specified [image]
  * - [DockerCommandLine] built by the specified [commandLineBuilder]
  * in the directory as specified by [commandLineBuilder]
  * optionally checking the specified [expectedExitValue] (default: `0`).
@@ -159,21 +157,21 @@ fun Path.docker(
  * get called.
  */
 fun docker(
-    imageBuilder: DockerImageBuilder.() -> Any,
+    image: DockerImage.Builder.() -> DockerImage,
     commandLineBuilder: DockerCommandLineBuilder.() -> Unit,
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<DockerProcess>,
-): DockerProcess = DockerImageBuilder
-    .build(imageBuilder)
-    .buildCommandLine(commandLineBuilder)
-    .toManagedProcess(expectedExitValue, processTerminationCallback)
-    .process(processor)
+): DockerProcess =
+    dockerImage(image)
+        .buildCommandLine(commandLineBuilder)
+        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .process(processor)
 
 
 /**
  * Runs a Docker process using the
- * - [DockerImage] built by the specified [imageBuilder]
+ * - [DockerImage] built by the specified [image]
  * - [DockerCommandLine] built by the specified [commandLineBuilder]
  * in the directory as specified by [commandLineBuilder]
  * optionally checking the specified [expectedExitValue] (default: `0`).
@@ -188,13 +186,13 @@ fun docker(
  * get called.
  */
 fun docker(
-    imageBuilder: DockerImageBuilder.() -> Any,
+    image: DockerImage.Builder.() -> DockerImage,
     processor: Processor<DockerProcess> = Processors.consoleLoggingProcessor(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     commandLineBuilder: DockerCommandLineBuilder.() -> Unit,
-): DockerProcess = DockerImageBuilder
-    .build(imageBuilder)
-    .buildCommandLine(commandLineBuilder)
-    .toManagedProcess(expectedExitValue, processTerminationCallback)
-    .process(processor)
+): DockerProcess =
+    dockerImage(image)
+        .buildCommandLine(commandLineBuilder)
+        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .process(processor)

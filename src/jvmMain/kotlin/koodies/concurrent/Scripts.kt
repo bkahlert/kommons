@@ -3,6 +3,7 @@ package koodies.concurrent
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Process
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.processSynchronously
@@ -158,8 +159,8 @@ fun script(
  *
  * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
  */
-private fun RenderingLogger?.toProcessor() =
-    this?.let { Processors.loggingProcessor(it) } ?: Processors.consoleLoggingProcessor()
+private fun <P : Process> RenderingLogger?.toProcessor() =
+    this?.let { Processors.loggingProcessor(it) } ?: Processors.consoleLoggingProcessor<P>()
 
 /**
  * Convenience function to tests if the output of the specified [command]

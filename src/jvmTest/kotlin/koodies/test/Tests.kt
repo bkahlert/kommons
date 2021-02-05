@@ -226,31 +226,6 @@ inline fun <reified T> DynamicTestsBuilder.PropertyTestBuilder<Any?>.asA(crossin
         (this as DynamicTestsBuilder<T>).block(it as T)
     }
 
-/**
- * Asserts that the result of an action did throw an exception and maps to
- * an assertion on the exception. The assertion fails if the subject's
- * [Result.isFailure] returns `false` or if the exception is not of type [X].
- */
-inline fun <reified X : Throwable> Assertion.Builder<out Result<*>>.isFailure(): Assertion.Builder<X> =
-    assert("is failure of type ${X::class.simpleName}") {
-        when {
-            it.isFailure -> {
-                if (it.exceptionOrNull() is X) pass(
-                    description = "threw %s",
-                    actual = it.exceptionOrNull()
-                ) else fail(
-                    description = "threw %s (!= ${X::class.qualifiedName}",
-                    actual = it.exceptionOrNull()
-                )
-            }
-            else -> fail(
-                description = "returned %s",
-                actual = it.getOrThrow()
-            )
-        }
-    }.get("exception") {
-        exceptionOrNull() as X
-    }
 
 /**
  * Builder for arbitrary test trees consisting of instances of [DynamicContainer] and [DynamicTest]

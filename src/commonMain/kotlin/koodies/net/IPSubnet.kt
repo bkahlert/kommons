@@ -13,10 +13,12 @@ interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
     val suffixLength: Int get() = maxLength - prefixLength
 
     val mask: BigInteger get() = bigIntegerOfBinaryString("1".repeat(prefixLength).padEnd(maxLength, '0'))
-    val networkAddress: IP get() = address(value and mask)
+    val network: BigInteger get() = value and mask
+    val networkAddress: IP get() = address(network)
     val hostCount: BigInteger get() = (BigInteger.TWO shl suffixLength.dec()).coerceAtLeast(BigInteger.ONE)
     val usableHostCount: BigInteger get() = hostCount.dec().dec().coerceAtLeast(BigInteger.ONE)
-    val broadcastAddress: IP get() = address(networkAddress.value + hostCount.dec())
+    val broadcast: BigInteger get() = network + hostCount.dec()
+    val broadcastAddress: IP get() = address(broadcast)
 
     val valid: Boolean get() = prefixLength in 0..maxLength
     fun requireValid() = require(valid) { "$prefixLength must be between 0 and $maxLength." }
@@ -24,8 +26,8 @@ interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
     override val start: IP get() = networkAddress
     override val endInclusive: IP get() = broadcastAddress
 
-    val firstUsableHost: IP get() = address(networkAddress.value.inc().coerceAtMost(broadcastAddress.value))
-    val lastUsableHost: IP get() = address(broadcastAddress.value.dec().coerceAtLeast(networkAddress.value))
+    val firstUsableHost: IP get() = address(network.inc().coerceAtMost(broadcast))
+    val lastUsableHost: IP get() = address(broadcast.dec().coerceAtLeast(network))
     val usable: ClosedRange<IP> get() = firstUsableHost..lastUsableHost
 
     val representation: String get() = "$networkAddress/$prefixLength"
@@ -52,13 +54,13 @@ interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
             from(range.start, IPRange.smallestCommonPrefixLength(range.start.version.bitCount, range.start.value, range.endInclusive.value))
 
         fun parseCidrVariant(ipSubnet: String): IPSubnet<IP>? = ipSubnet.split("/").map { it.trim() }.run {
-            if (size == 2) from(first().toAnyIP().value, last().toInt())
+            if (size == 2) from(first().toIP().value, last().toInt())
             else null
         }
 
         fun parseRangeVariant(ipRange: String): IPSubnet<IP>? = kotlin.runCatching {
             val range: IPRange<out IPAddress> = ipRange.toIPRange()
-            from(range.start.value, range.smallestCommonPrefixLength.also { println(it) })
+            from(range.start.value, range.smallestCommonPrefixLength)
         }.getOrNull()
 
         fun parse(ipSubnet: String): IPSubnet<IP> = parseCidrVariant(ipSubnet)

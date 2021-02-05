@@ -18,8 +18,8 @@ import java.nio.file.Path
 class DockerCommandLineTest {
 
     companion object {
-        val DOCKER_RUN_COMMAND = DockerCommandLine(
-            DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("tag")),
+        val DOCKER_RUN_COMMAND: DockerCommandLine = DockerCommandLine(
+            dockerImage { "repo" / "name" tag "tag" },
             DockerCommandLineOptions(
                 name = "container-name".toContainerName(),
                 privileged = true,
@@ -181,7 +181,7 @@ class DockerCommandLineTest {
         }
 
         private fun dockerCommandLine(optionsWorkingDir: String?, guestWorkingDir: String, vararg mounts: Pair<String, String>) = DockerCommandLine(
-            DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("tag")),
+            dockerImage { "repo" / "name" tag "tag" },
             dockerOptions(optionsWorkingDir, *mounts),
             guestCommandLine(guestWorkingDir)
         )

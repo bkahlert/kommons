@@ -2,7 +2,7 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process.UserInput.enter
 import koodies.debug.asEmoji
-import org.apache.commons.io.output.ByteArrayOutputStream
+import koodies.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
@@ -10,12 +10,12 @@ import kotlin.time.Duration
 import java.lang.Process as JavaProcess
 
 internal open class TeeOutputStream(source: OutputStream, branch: OutputStream, vararg branches: OutputStream) :
-    org.apache.commons.io.output.TeeOutputStream(source,
+    koodies.io.TeeOutputStream(source,
         if (branches.isEmpty()) branch
         else branches.fold(branch) { teeOutputStream, outputStream -> TeeOutputStream(teeOutputStream, outputStream) }
     )
 
-internal class TeeInputStream(inputStream: InputStream, branch: OutputStream) : org.apache.commons.io.input.TeeInputStream(inputStream, branch, false)
+internal class TeeInputStream(inputStream: InputStream, branch: OutputStream) : koodies.io.TeeInputStream(inputStream, branch, false)
 
 /**
  * Platform independent representation of a process.

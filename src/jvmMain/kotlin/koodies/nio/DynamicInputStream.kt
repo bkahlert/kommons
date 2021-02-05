@@ -1,6 +1,6 @@
 package koodies.nio
 
-import org.apache.commons.io.input.ProxyInputStream
+import koodies.io.ProxyInputStream
 import java.nio.channels.Channels
 
 /**

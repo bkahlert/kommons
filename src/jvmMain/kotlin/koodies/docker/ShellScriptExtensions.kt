@@ -6,8 +6,8 @@ import koodies.shell.ShellScript
 /**
  * Extends [ShellScript] with an entry point to build docker commands.
  */
-fun ShellScript.docker(init: DockerImageBuilder.() -> Any): ShellScriptAttachingBuilder =
-    ShellScriptAttachingBuilder(this, DockerImageBuilder.build(init))
+fun ShellScript.docker(init: DockerImage.Builder.() -> DockerImage): ShellScriptAttachingBuilder =
+    ShellScriptAttachingBuilder(this, dockerImage(init))
 
 /**
  * Builder that adds the built commands directly to the [shellScript].

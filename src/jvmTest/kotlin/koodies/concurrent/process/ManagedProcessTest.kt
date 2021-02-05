@@ -292,21 +292,21 @@ class ManagedProcessTest {
 
                 @Test
                 fun `should occur on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.failed.and {
+                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
                         message.isNotNull()
                     }
                 }
 
                 @Test
                 fun `should contain dump in message`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.failed.and {
+                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
                         get { toString() }.containsDump()
                     }
                 }
 
                 @Test
                 fun `should have proper root cause`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.failed.and {
+                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
                         rootCause.isA<ProcessExecutionException>().message.toStringContains("terminated with exit code 0. Expected 123.")
                     }
                 }
@@ -316,7 +316,7 @@ class ManagedProcessTest {
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createThrowingManagedProcess().processSilently()
                 expect {
-                    catching { process.onExit.get() }.failed
+                    catching { process.onExit.get() }.isFailure()
                     that(process).io.containsDump()
                 }
             }
@@ -326,7 +326,7 @@ class ManagedProcessTest {
                 var callbackCalled = false
                 val process = createThrowingManagedProcess(processTerminationCallback = { callbackCalled = true }).processSilently()
                 expect {
-                    catching { process.onExit.get() }.failed
+                    catching { process.onExit.get() }.isFailure()
                     that(callbackCalled).isTrue()
                 }
             }
@@ -459,9 +459,6 @@ inline val <reified T : Process> Assertion.Builder<T>.killed: Assertion.Builder<
 
 inline val <reified T : Process> Assertion.Builder<T>.completed: Assertion.Builder<T>
     get() = get("completed") { onExit.get() }.isA()
-
-inline val <reified T : Process> Assertion.Builder<Result<T>>.failed: Assertion.Builder<ExecutionException>
-    get() = get("failed") { exceptionOrNull() }.isA()
 
 inline fun <reified T : Process> Assertion.Builder<T>.completesSuccessfully(): Assertion.Builder<T> =
     completed.assert("successfully") {

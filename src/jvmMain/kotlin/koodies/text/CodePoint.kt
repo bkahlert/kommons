@@ -12,11 +12,15 @@ import kotlin.streams.asSequence
  * If that is what you are looking for, use [Grapheme].
  */
 inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
-    constructor(charSequence: CharSequence) : this("$charSequence"
-        .also { require(it.isValidCodePoint()) { "$it does not represent a single Unicode code point" } }
-        .codePointAt(0))
+    constructor(charSequence: CharSequence) : this("$charSequence".also {
+        require(it.isValidCodePoint()) { "$it does not represent a single Unicode code point" }
+    }.codePointAt(0))
 
     constructor(chars: CharArray) : this(String(chars))
+
+    init {
+
+    }
 
     /**
      * Contains the name of this code point

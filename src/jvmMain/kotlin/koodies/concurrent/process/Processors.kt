@@ -50,7 +50,7 @@ object Processors {
         return object : (P, IO) -> Unit {
             private lateinit var process: P
             private val logger by lazy { BlockRenderingLogger(process.toString()) }
-            private val loggingProcessor by lazy { loggingProcessor(logger) }
+            private val loggingProcessor by lazy { loggingProcessor<P>(logger) }
             override fun invoke(process: P, io: IO) {
                 this.process = process
                 loggingProcessor.invoke(process, io)

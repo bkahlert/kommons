@@ -27,8 +27,7 @@ class IPv6Address private constructor(override val value: BigInteger, override v
     }
 
     override val version: IPAddress.Version = IPv6Address
-
-    fun rangeTo(endInclusive: IPv6Address): IPv6Range = IPv6Range(value, endInclusive.value)
+    operator fun rangeTo(endInclusive: IPv6Address): IPv6Range = IPv6Range(value, endInclusive.value)
 
     /**
      * Returns the [Notation.compressedRepresentation] of this IPv6 address, e.g. `::ffff:c0a8:1001`.
@@ -80,3 +79,9 @@ class IPv6Address private constructor(override val value: BigInteger, override v
         }
     }
 }
+
+fun String.toIPv6(): IPv6Address = IPv6Address.parse(this)
+fun ip6Of(value: String): IPv6Address = value.toIPv6()
+
+fun BigInteger.toIPv6(): IPv6Address = IPv6Address(this)
+fun ip6Of(value: BigInteger): IPv6Address = value.toIPv6()

@@ -118,25 +118,25 @@ private open class ManagedJavaProcess(
 
     private val capturingMetaStream: OutputStream by lazy {
         TeeOutputStream(
-            RedirectingOutputStream { inputCallback(IO.Type.META typed it.decodeToString()) },
             RedirectingOutputStream {
                 // ugly hack; META logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
                 // therefor we delay here
                 1.milliseconds.sleep { ioLog.add(IO.Type.META, it) }
             },
+            RedirectingOutputStream { inputCallback(IO.Type.META typed it.decodeToString()) },
         )
     }
     private val capturingOutputStream: OutputStream by lazy {
         TeeOutputStream(
-            RedirectingOutputStream { inputCallback(IO.Type.IN typed it.decodeToString()) },
-            javaProcess.outputStream,
             RedirectingOutputStream {
                 // ugly hack; IN logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
                 // therefor we delay here
                 1.milliseconds.sleep { ioLog.add(IO.Type.IN, it) }
             },
+            javaProcess.outputStream,
+            RedirectingOutputStream { inputCallback(IO.Type.IN typed it.decodeToString()) },
         )
     }
     private val capturingInputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.add(IO.Type.OUT, it) }) }

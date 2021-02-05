@@ -26,10 +26,27 @@ import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
  * A command as it can be run in a shell.
  */
 open class CommandLine(
+    /**
+     * Redirects like `2>&1` to be used when running this command line.
+     */
     val redirects: List<String>,
+    /**
+     * The environment to be exposed to the [ManagedProcess] that runs this
+     * command line.
+     */
     val environment: Map<String, String>,
+    /**
+     * The working directory of the [ManagedProcess] that runs this
+     * command line.
+     */
     workingDirectory: Path,
+    /**
+     * The command to be executed.
+     */
     val command: String,
+    /**
+     * The arguments to be passed to [command].
+     */
     val arguments: List<String>,
 ) {
     constructor(
@@ -46,6 +63,10 @@ open class CommandLine(
         vararg arguments: String,
     ) : this(environment, workingDirectory, command.asString(), *arguments)
 
+    /**
+     * The working directory of the [ManagedProcess] that runs this
+     * command line.
+     */
     val workingDirectory: Path = workingDirectory.toAbsolutePath()
 
     private val formattedRedirects =
@@ -85,6 +106,9 @@ open class CommandLine(
         }.fixHereDoc()
     }
 
+    /**
+     * A human-readable representation of this command line.
+     */
     val summary: String
         get() = arguments
             .map { line ->
@@ -103,7 +127,7 @@ open class CommandLine(
     /**
      * Contains all accessible files contained in this command line.
      */
-    val includedFiles
+    val includedFiles: List<Path>
         get() = commandLineParts.map { it.unquoted.asPath() }
             .filter { it != it.root }
             .filter { it.exists() }
@@ -111,17 +135,28 @@ open class CommandLine(
     /**
      * Contains a formatted list of files contained in this command line.
      */
-    val formattedIncludesFiles get() = includedFiles.joinToString("\n") { "📄 ${it.toUri()}" }
+    val formattedIncludesFiles: String get() = includedFiles.joinToString("\n") { "📄 ${it.toUri()}" }
 
     override fun toString(): String = multiLineCommandLine
 
-    val lines: List<String> get() = toString().lines()
+    /**
+     * The [multiLineCommandLine] represented as a list of single-line strings.
+     */
+    val lines: List<String> get() = multiLineCommandLine.lines()
 
     companion object {
 
-        fun build(command: String, init: CommandLineBuilder.() -> Unit = {}) =
+        /**
+         * Builds a [CommandLine] using the specified mandatory [command]
+         * further options build using [init].
+         */
+        fun build(command: String, init: CommandLineBuilder.() -> Unit = {}): CommandLine =
             CommandLineBuilder.build(command, init)
 
+        /**
+         * Parses a [commandLine] string and returns an instance of [CommandLine]
+         * that would generate the same string again.
+         */
         fun parse(commandLine: String, workingDirectory: Path): CommandLine {
             val plexusCommandLine = PlexusCommandLine(commandLine)
             val rawCommandline = plexusCommandLine.rawCommandline
@@ -130,7 +165,16 @@ open class CommandLine(
                 ?: throw IllegalArgumentException("$commandLine is no valid command line.")
         }
 
+        /**
+         * A [Regex] that matches the start of a [here document](https://en.wikipedia.org/wiki/Here_document).
+         */
         val hereDocStartRegex: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
+
+        /**
+         * Given `this` command line string containing [here documents](https://en.wikipedia.org/wiki/Here_document),
+         * this function will returns a command line string where the here documents will no longer
+         * be wrapped by double or single quotes.
+         */
         fun String.fixHereDoc(): String {
             var fixed = this
             val hereDocNames = hereDocStartRegex.findAll(fixed).map { it["name"] }
@@ -162,6 +206,9 @@ open class CommandLine(
             command(commandLine)
         }.buildTo(workingDirectory.scriptPath())
 
+    /**
+     * Creates an actual [ManagedProcess] that executes this command line.
+     */
     open fun toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
         ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
 

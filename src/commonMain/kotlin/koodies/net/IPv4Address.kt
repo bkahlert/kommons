@@ -18,17 +18,13 @@ class IPv4Address private constructor(override val value: BigInteger, override v
     constructor(bytes: UByteArray) : this(bigIntegerOf(bytes), bytes.trim().padStart(IPv4Address.byteCount))
 
     init {
-        if (value > MAX_VALUE) {
-            println("fuck")
-        }
         require(value in MIN_VALUE..MAX_VALUE) {
             "$value must be between $MIN_VALUE and $MAX_VALUE."
         }
     }
 
     override val version: IPAddress.Version = IPv4Address
-
-    fun rangeTo(endInclusive: IPv4Address): IPv4Range = IPv4Range(value, endInclusive.value)
+    operator fun rangeTo(endInclusive: IPv4Address): IPv4Range = IPv4Range(value, endInclusive.value)
 
     /**
      * Returns the [Notation.compressedRepresentation] of this IPv4 address, e.g. `192.168.0.1`.
@@ -49,7 +45,7 @@ class IPv4Address private constructor(override val value: BigInteger, override v
 
         fun parse(ipAddress: String): IPv4Address {
             val byteStrings = ipAddress.split(".")
-            require(byteStrings.size == byteCount.toInt()) { "IP address must consist of $byteCount bytes but ${byteStrings.size} were provided." }
+            require(byteStrings.size == byteCount) { "IP address must consist of $byteCount bytes but ${byteStrings.size} were provided." }
             val bytes = byteStrings.map { byteString ->
                 byteString.toInt()
                     .also { require(it in 0..255) { "$it must be between 0 and 255." } }
@@ -59,3 +55,9 @@ class IPv4Address private constructor(override val value: BigInteger, override v
         }
     }
 }
+
+fun String.toIPv4(): IPv4Address = IPv4Address.parse(this)
+fun ip4Of(value: String): IPv4Address = value.toIPv4()
+
+fun BigInteger.toIPv4(): IPv4Address = IPv4Address(this)
+fun ip4Of(value: BigInteger): IPv4Address = value.toIPv4()

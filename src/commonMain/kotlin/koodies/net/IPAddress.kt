@@ -3,7 +3,6 @@
 package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.number.toInt
 import koodies.unit.Size
 
 /**
@@ -41,21 +40,22 @@ internal data class VersionImpl(
     override val major: Int,
     override val addressLength: Size,
 ) : IPAddress.Version {
-    override val bitCount: Int = addressLength.bits.toInt()
-    override val byteCount: Int = addressLength.bytes.toInt()
+    override val bitCount: Int = addressLength.bits.intValue()
+    override val byteCount: Int = addressLength.bytes.intValue()
 }
 
-inline fun <reified IP : IPAddress> String.toIP(): IP {
-    val ipAddress = toAnyIP()
-    return (ipAddress as? IP) ?: error("IP $ipAddress is no ${IP::class.simpleName}")
-}
-
-inline fun <reified IP : IPAddress> ipOf(value: String): IP = value.toIP()
-inline fun <reified IP : IPAddress> ipOf(value: BigInteger): IP =
-    (IPv6Address(value) as? IP) ?: (IPv4Address(value) as? IP) ?: error("Failed to create IP address from $value")
-
-fun String.toAnyIP(): IPAddress = when {
+fun String.toIP(): IPAddress = when {
     contains(":") -> IPv6Address.parse(this)
     contains(".") -> IPv4Address.parse(this)
     else -> throw NumberFormatException("$this is no valid IP address.")
 }
+
+fun ipOf(value: String): IPAddress = value.toIP()
+
+inline fun <reified IP : IPAddress> BigInteger.toIP(): IP = when (IP::class) {
+    IPv6Address::class -> IPv6Address(this)
+    IPv4Address::class -> IPv4Address(this)
+    else -> throw NumberFormatException("$this is no valid IP address.")
+}.let { it as? IP } ?: error("IP $this is no ${IP::class.simpleName}")
+
+inline fun <reified IP : IPAddress> ipOf(value: BigInteger): IP = value.toIP()

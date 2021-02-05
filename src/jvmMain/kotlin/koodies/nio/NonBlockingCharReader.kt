@@ -6,7 +6,6 @@ import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.compactLogging
 import koodies.text.withRandomSuffix
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.jline.utils.NonBlocking
 import java.io.IOException
 import java.io.InputStream

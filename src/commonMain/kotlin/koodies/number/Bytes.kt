@@ -97,7 +97,11 @@ fun ByteArray.padStart(size: Int, padByte: Byte = Byte.ZERO): ByteArray =
     takeUnless { this.size < size }
         ?: byteArrayOf(*MutableList(size - this.size) { padByte }.toByteArray(), *this)
 
-fun UByteArray.padStart(size: Int, padByte: UByte = UByte.ZERO): UByteArray =
+// TODO use default parameter as soon as JS no more has a problem with it (default ubyte)
+fun UByteArray.padStart(size: Int): UByteArray = padStart(size, UByte.ZERO)
+
+fun UByteArray.padStart(size: Int, padByte: UByte): UByteArray =
     takeUnless { this.count() < size }
         ?: ubyteArrayOf(*MutableList(size - this.count()) { padByte }.toUByteArray(), *this)
+
 

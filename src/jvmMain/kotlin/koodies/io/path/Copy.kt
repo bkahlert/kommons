@@ -1,5 +1,6 @@
 package koodies.io.path
 
+import koodies.io.IOUtils
 import koodies.io.directoryNotEmpty
 import koodies.io.file.CopyOptions
 import koodies.io.file.resolveBetweenFileSystems
@@ -9,7 +10,6 @@ import koodies.io.fileAlreadyExists
 import koodies.io.fileSystemException
 import koodies.io.noSuchFile
 import koodies.text.withRandomSuffix
-import org.apache.commons.io.IOUtils
 import java.io.File
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystemException
