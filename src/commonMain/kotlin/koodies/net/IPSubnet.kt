@@ -69,5 +69,11 @@ interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
     }
 }
 
+operator fun IPAddress.div(prefixLength: Int): IPSubnet<out IPAddress> = when (this) {
+    is IPv6Address -> this / prefixLength
+    is IPv4Address -> this / prefixLength
+    else -> throw NumberFormatException("$this no recognized.")
+}
+
 fun String.toIPSubnet(): IPSubnet<out IPAddress> = runCatching { toIPv4Subnet() }.recoverCatching { toIPv6Subnet() }.getOrThrow()
 fun ipSubnetOf(value: String): IPSubnet<out IPAddress> = value.toIPSubnet()

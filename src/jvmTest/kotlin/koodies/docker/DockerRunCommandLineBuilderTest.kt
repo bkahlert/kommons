@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.docker.DockerCommandLineTest.Companion.DOCKER_RUN_COMMAND
+import koodies.docker.DockerRunCommandLineTest.Companion.DOCKER_RUN_COMMAND
 import koodies.shell.HereDocBuilder.hereDoc
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Test
@@ -11,13 +11,13 @@ import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 
 @Execution(CONCURRENT)
-class DockerCommandLineBuilderTest {
+class DockerRunCommandLineBuilderTest {
 
     private val dockerImage = Docker.image { "repo" / "name" tag "tag" }
 
     @Test
     fun `should build valid docker run`() {
-        val dockerRunCommand = DockerCommandLine.build(dockerImage) {
+        val dockerRunCommand = DockerRunCommandLine.build(dockerImage) {
             options {
                 name { "container-name" }
                 privileged { true }
@@ -60,8 +60,8 @@ class DockerCommandLineBuilderTest {
 
     @Test
     fun `should build same format for no sub builders and empty sub builders`() {
-        val commandBuiltWithNoBuilders = DockerCommandLine.build(dockerImage)
-        val commandBuiltWithEmptyBuilders = DockerCommandLine.build(dockerImage) {
+        val commandBuiltWithNoBuilders = DockerRunCommandLine.build(dockerImage)
+        val commandBuiltWithEmptyBuilders = DockerRunCommandLine.build(dockerImage) {
             options { }
             commandLine { }
         }
@@ -71,11 +71,11 @@ class DockerCommandLineBuilderTest {
 
     @Test
     fun `should set auto cleanup as default`() {
-        expectThat(DockerCommandLine.build(dockerImage).arguments).contains("--rm")
+        expectThat(DockerRunCommandLine.build(dockerImage).arguments).contains("--rm")
     }
 
     @Test
     fun `should set interactive as default`() {
-        expectThat(DockerCommandLine.build(dockerImage).arguments).contains("-i")
+        expectThat(DockerRunCommandLine.build(dockerImage).arguments).contains("-i")
     }
 }

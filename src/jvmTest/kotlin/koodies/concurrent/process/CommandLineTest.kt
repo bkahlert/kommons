@@ -6,6 +6,7 @@ import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.test.UniqueId
 import koodies.test.matchesCurlyPattern
+import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -14,6 +15,7 @@ import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -30,14 +32,28 @@ import kotlin.time.seconds
 @Execution(CONCURRENT)
 class CommandLineTest {
 
-    @Nested
-    inner class Equality {
-        @Test
-        fun `should equal based on command and arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val cmdLine1 = CommandLine(emptyMap(), this, "/bin/command", "arg1", "arg 2")
-            val cmdLine2 = CommandLine(emptyMap(), this, Path.of("/bin/command"), "arg1", "arg 2")
-            expectThat(cmdLine1).isEqualTo(cmdLine2)
-        }
+    @TestFactory
+    fun `should have reasonable defaults`() = testEach(
+        CommandLine(emptyList(), emptyMap(), Locations.WorkingDirectory, "command", emptyList()) to listOf(
+            CommandLine(emptyMap(), Locations.WorkingDirectory, "command"),
+            CommandLine(Locations.WorkingDirectory, "command"),
+            CommandLine("command"),
+        ),
+        CommandLine(emptyList(), emptyMap(), Locations.WorkingDirectory, "command", listOf("--flag", "-abc", "-d", "arg")) to listOf(
+            CommandLine(emptyMap(), Locations.WorkingDirectory, "command", "--flag", "-abc", "-d", "arg"),
+            CommandLine(Locations.WorkingDirectory, "command", "--flag", "-abc", "-d", "arg"),
+            CommandLine("command", "--flag", "-abc", "-d", "arg"),
+        ),
+        CommandLine(emptyList(), emptyMap(), Locations.Temp, "command", listOf("--flag", "-abc", "-d", "arg")) to listOf(
+            CommandLine(emptyMap(), Locations.Temp, "command", "--flag", "-abc", "-d", "arg"),
+            CommandLine(Locations.Temp, "command", "--flag", "-abc", "-d", "arg"),
+            CommandLine("command", "--flag", "-abc", "-d", "arg"),
+        ),
+        CommandLine(emptyList(), mapOf("env1" to "val1"), Locations.Temp, "command", listOf("--flag", "-abc", "-d", "arg")) to listOf(
+            CommandLine(mapOf("env1" to "val1"), Locations.Temp, "command", "--flag", "-abc", "-d", "arg"),
+        ),
+    ) { (commandLine, variants) ->
+        variants.forEach { expect { it }.that { isEqualTo(commandLine) } }
     }
 
     @Nested

@@ -84,4 +84,8 @@ fun String.toIPv6(): IPv6Address = IPv6Address.parse(this)
 fun ip6Of(value: String): IPv6Address = value.toIPv6()
 
 fun BigInteger.toIPv6(): IPv6Address = IPv6Address(this)
+fun UInt.toIPv6(): IPv6Address = IPv6Address(this.toBigInteger())
+fun Int.toIPv6(): IPv6Address = IPv6Address(this.toBigInteger())
 fun ip6Of(value: BigInteger): IPv6Address = value.toIPv6()
+fun ip6Of(value: UInt): IPv6Address = value.toBigInteger().toIPv6()
+fun ip6Of(value: Int): IPv6Address = value.toBigInteger().toIPv6()

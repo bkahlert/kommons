@@ -1,4 +1,4 @@
-package koodies.concurrent.process
+package koodies.docker
 
 import koodies.builder.Builder.Companion.buildListTo
 import koodies.builder.Init
@@ -6,13 +6,14 @@ import koodies.builder.ListBuilder
 import koodies.builder.MapBuilderInit
 import koodies.builder.build
 import koodies.builder.buildMapTo
+import koodies.concurrent.process.ManagedProcess
 import koodies.io.path.Locations
 import java.nio.file.Path
 
 /**
- * Builder to create instances of [CommandLine].
+ * Builder to create instances of [DockerCommandLine].
  */
-open class CommandLineBuilder(
+open class DockerCommandLineBuilder(
 
     /**
      * Redirects like `2>&1` to be used when running this command line.
@@ -29,17 +30,17 @@ open class CommandLineBuilder(
      */
     protected var workingDirectory: Path = Locations.Temp,
     /**
-     * The arguments to be passed to [CommandLine.command].
+     * The arguments to be passed to [DockerCommandLine.command].
      */
     protected val arguments: MutableList<String> = mutableListOf(),
 ) {
     companion object {
         /**
-         * Builds a [CommandLine] using [init] that runs using the specified [command].
+         * Builds a [DockerCommandLine] using [init] that runs using the specified [command].
          */
-        fun build(command: String, init: CommandLineBuilder.() -> Unit): CommandLine =
-            CommandLineBuilder().apply(init).run {
-                CommandLine(redirects, environment, workingDirectory, command, arguments.toList())
+        fun build(command: String, init: DockerCommandLineBuilder.() -> Unit): DockerCommandLine =
+            DockerCommandLineBuilder().apply(init).run {
+                DockerCommandLine(redirects, environment, workingDirectory, command, arguments.toList())
             }
     }
 

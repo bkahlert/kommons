@@ -5,12 +5,12 @@ import koodies.text.withRandomSuffix
 import java.nio.file.Path
 
 /**
- * Prepares a [DockerCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
+ * Prepares a [DockerRunCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
  * with [name] as the name of the container and [disk] as the file containing the filesystem.
  */
-fun Docker.pi(name: String = "busybox".withRandomSuffix(), disk: Path, init: CommandLineBuilder.() -> Unit = {}): DockerCommandLine {
+fun Docker.pi(name: String = "busybox".withRandomSuffix(), disk: Path, init: CommandLineBuilder.() -> Unit = {}): DockerRunCommandLine {
     @Suppress("SpellCheckingInspection")
-    return DockerCommandLine.build({ "lukechilds" / "dockerpi" tag "vm" }) {
+    return DockerRunCommandLine.build({ "lukechilds" / "dockerpi" tag "vm" }) {
         options {
             name { name }
             mounts { disk mountAt "/sdcard/filesystem.img" }

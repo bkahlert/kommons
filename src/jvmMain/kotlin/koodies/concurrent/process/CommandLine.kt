@@ -2,8 +2,8 @@ package koodies.concurrent.process
 
 import com.github.ajalt.mordant.AnsiColorCode
 import koodies.concurrent.scriptPath
+import koodies.io.path.Locations
 import koodies.io.path.asPath
-import koodies.io.path.asString
 import koodies.logging.RenderingLogger
 import koodies.logging.asStatus
 import koodies.logging.logging
@@ -49,6 +49,15 @@ open class CommandLine(
      */
     val arguments: List<String>,
 ) {
+
+    constructor(
+        redirects: List<String>,
+        environment: Map<String, String>,
+        workingDirectory: Path,
+        command: String,
+        vararg arguments: String,
+    ) : this(redirects, environment, workingDirectory, command, arguments.toList())
+
     constructor(
         environment: Map<String, String>,
         workingDirectory: Path,
@@ -57,11 +66,16 @@ open class CommandLine(
     ) : this(emptyList(), environment, workingDirectory, command, arguments.toList())
 
     constructor(
-        environment: Map<String, String>,
         workingDirectory: Path,
-        command: Path,
+        command: String,
         vararg arguments: String,
-    ) : this(environment, workingDirectory, command.asString(), *arguments)
+    ) : this(emptyList(), emptyMap(), workingDirectory, command, arguments.toList())
+
+    constructor(
+        command: String,
+        vararg arguments: String,
+    ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, command, arguments.toList())
+    
 
     /**
      * The working directory of the [ManagedProcess] that runs this

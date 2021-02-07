@@ -158,8 +158,6 @@ interface BuilderAccessor<B, T> {
     operator fun B.invoke(): T
 }
 
-interface ListBuilderAccessor<B, E> : BuilderAccessor<B, List<E>>
-
 inline fun <reified B, reified T> BuilderAccessor<B, T>.build(init: B.() -> Unit): T {
     val builder = this.invoke()
     return builder.apply(init).invoke()

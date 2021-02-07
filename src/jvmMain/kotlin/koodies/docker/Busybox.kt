@@ -7,7 +7,7 @@ import koodies.shell.HereDocBuilder.hereDoc
 import koodies.text.withRandomSuffix
 
 /**
- * Prepares a [DockerCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
+ * Prepares a [DockerRunCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
  * with [name] as the name of the container.
  */
 fun Docker.busybox(
@@ -21,7 +21,7 @@ fun Docker.busybox(
     }
 
 /**
- * Prepares a [DockerCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
+ * Prepares a [DockerRunCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
  * with [name] as the name of the container and [lines] as the arguments passed to busybox.
  */
 fun Docker.busybox(

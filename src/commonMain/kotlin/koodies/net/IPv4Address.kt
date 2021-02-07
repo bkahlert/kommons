@@ -60,4 +60,8 @@ fun String.toIPv4(): IPv4Address = IPv4Address.parse(this)
 fun ip4Of(value: String): IPv4Address = value.toIPv4()
 
 fun BigInteger.toIPv4(): IPv4Address = IPv4Address(this)
+fun UInt.toIPv4(): IPv4Address = IPv4Address(this.toBigInteger())
+fun Int.toIPv4(): IPv4Address = IPv4Address(this.toBigInteger())
 fun ip4Of(value: BigInteger): IPv4Address = value.toIPv4()
+fun ip4Of(value: UInt): IPv4Address = value.toBigInteger().toIPv4()
+fun ip4Of(value: Int): IPv4Address = value.toBigInteger().toIPv4()

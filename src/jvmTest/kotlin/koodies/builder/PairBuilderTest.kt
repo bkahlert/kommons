@@ -1,5 +1,6 @@
 package koodies.builder
 
+import koodies.builder.Builder.Companion.buildPair
 import koodies.test.testEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -12,18 +13,18 @@ import strikt.assertions.isEqualTo
 class PairBuilderTest {
 
     @TestFactory
-    fun `should build pair`() = listOf<PairBuilderInit<String, Int>>(
+    fun `should build pair`() = listOf<PairBuilder<String, Int>.() -> Unit>(
         { "three" to 4 },
-        { "three" and 4 },
+        { "three" to 4 },
     ).testEach { init ->
-        expect { init.buildPair() }.that { isEqualTo("three" to 4) }
+        expect { buildPair(init) }.that { isEqualTo("three" to 4) }
     }
 
     @Test
-    fun `should only consider returned pair`() {
+    fun `should only consider last pair`() {
         expectThat(with(PairBuilder) {
             "two" to 3
-            "three" and 4
+            "three" to 4
         }).isEqualTo("three" to 4)
     }
 }

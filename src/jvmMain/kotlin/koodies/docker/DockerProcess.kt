@@ -18,12 +18,12 @@ open class DockerProcess private constructor(
 
     companion object {
         fun from(
-            dockerCommandLine: DockerCommandLine,
+            dockerRunCommandLine: DockerRunCommandLine,
             expectedExitValue: Int?,
             processTerminationCallback: (() -> Unit)? = null,
         ): DockerProcess {
-            val name = dockerCommandLine.options.name?.sanitized ?: error("Docker container name missing.")
-            val managedProcess = ManagedProcess.from(dockerCommandLine,
+            val name = dockerRunCommandLine.options.name?.sanitized ?: error("Docker container name missing.")
+            val managedProcess = ManagedProcess.from(dockerRunCommandLine,
                 expectedExitValue = expectedExitValue,
                 processTerminationCallback = {
                     Docker.remove(name, forcibly = true)

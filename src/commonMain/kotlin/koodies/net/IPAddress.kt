@@ -3,6 +3,7 @@
 package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import koodies.unit.Size
 
 /**
@@ -58,4 +59,9 @@ inline fun <reified IP : IPAddress> BigInteger.toIP(): IP = when (IP::class) {
     else -> throw NumberFormatException("$this is no valid IP address.")
 }.let { it as? IP } ?: error("IP $this is no ${IP::class.simpleName}")
 
+inline fun <reified IP : IPAddress> UInt.toIP(): IP = toBigInteger().toIP()
+inline fun <reified IP : IPAddress> Int.toIP(): IP = toBigInteger().toIP()
+
 inline fun <reified IP : IPAddress> ipOf(value: BigInteger): IP = value.toIP()
+inline fun <reified IP : IPAddress> ipOf(value: UInt): IP = value.toBigInteger().toIP()
+inline fun <reified IP : IPAddress> ipOf(value: Int): IP = value.toBigInteger().toIP()

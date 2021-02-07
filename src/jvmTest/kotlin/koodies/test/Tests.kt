@@ -275,19 +275,15 @@ interface DynamicTestsBuilder<T> {
     fun <R> with(description: String? = null, transform: T.() -> R): PropertyTestBuilder<R>
 
     /**
-     * Builds a new test tree testing the aspect returned by [transform].
-     *
-     * Use can either [ExpectationBuilder.that] for a block of assertions
-     * or call a chain of assertions right after.
+     * Returns a builder to specify expectations for the result of [transform] applied
+     * to `this` subject.
      */
     @DynamicTestsDsl
     fun <R> expect(description: String? = null, transform: T.() -> R): ExpectationBuilder<R>
 
     /**
-     * Builds a new test tree testing the expected exception.
-     *
-     * Use can either [ExpectationBuilder.that] for a block of assertions
-     * or call a chain of assertions right after.
+     * Builds a builder to specifiy expectations for the exception thrown when [transform]
+     * is applied to `this` subject.
      */
     @DynamicTestsDsl
     fun <R> expectThrowing(description: String? = null, transform: T.() -> R): ExpectationBuilder<Result<R>>

@@ -13,6 +13,6 @@ fun ShellScript.docker(init: DockerImage.Builder.() -> DockerImage): ShellScript
  * Builder that adds the built commands directly to the [shellScript].
  */
 class ShellScriptAttachingBuilder(private val shellScript: ShellScript, private val image: DockerImage) {
-    infix fun run(init: DockerCommandLineBuilder.() -> Unit): Unit =
-        DockerCommandLineBuilder.build(image, init).run { shellScript.command(this) }
+    infix fun run(init: DockerRunCommandLineBuilder.() -> Unit): Unit =
+        DockerRunCommandLineBuilder.build(image, init).run { shellScript.command(this) }
 }

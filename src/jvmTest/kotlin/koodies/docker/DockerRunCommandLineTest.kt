@@ -15,12 +15,12 @@ import strikt.assertions.isNull
 import java.nio.file.Path
 
 @Execution(CONCURRENT)
-class DockerCommandLineTest {
+class DockerRunCommandLineTest {
 
     companion object {
-        val DOCKER_RUN_COMMAND: DockerCommandLine = DockerCommandLine(
+        val DOCKER_RUN_COMMAND: DockerRunCommandLine = DockerRunCommandLine(
             dockerImage { "repo" / "name" tag "tag" },
-            DockerCommandLineOptions(
+            DockerRunCommandLineOptions(
                 name = "container-name".toContainerName(),
                 privileged = true,
                 autoCleanup = true,
@@ -180,14 +180,14 @@ class DockerCommandLineTest {
             }
         }
 
-        private fun dockerCommandLine(optionsWorkingDir: String?, guestWorkingDir: String, vararg mounts: Pair<String, String>) = DockerCommandLine(
+        private fun dockerCommandLine(optionsWorkingDir: String?, guestWorkingDir: String, vararg mounts: Pair<String, String>) = DockerRunCommandLine(
             dockerImage { "repo" / "name" tag "tag" },
             dockerOptions(optionsWorkingDir, *mounts),
             guestCommandLine(guestWorkingDir)
         )
 
-        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): DockerCommandLineOptions {
-            return DockerCommandLineOptions(
+        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): DockerRunCommandLineOptions {
+            return DockerRunCommandLineOptions(
                 name = "container-name".toContainerName(),
                 workingDirectory = optionsWorkingDir?.asContainerPath(),
                 mounts = MountOptions(
