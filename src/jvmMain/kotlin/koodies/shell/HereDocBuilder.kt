@@ -1,8 +1,9 @@
 package koodies.shell
 
-import koodies.builder.Builder.Companion.buildList
 import koodies.builder.Init
 import koodies.builder.ListBuilder
+import koodies.builder.buildMultiple
+import koodies.builder.context.ElementAddingContext
 import koodies.text.CharRanges
 import koodies.text.LineSeparators
 import koodies.text.randomString
@@ -18,7 +19,7 @@ object HereDocBuilder {
      */
     const val DEFAULT_LINE_SEPARATOR: String = LineSeparators.LF
 
-    fun Init<ListBuilder<String>>.hereDoc(
+    fun Init<ElementAddingContext<String>, Unit>.hereDoc(
         label: String = randomLabel(),
         lineSeparator: String = DEFAULT_LINE_SEPARATOR,
     ) = hereDoc(label = label, lineSeparator = lineSeparator, init = this)
@@ -26,8 +27,8 @@ object HereDocBuilder {
     fun hereDoc(
         label: String = randomLabel(),
         lineSeparator: String = DEFAULT_LINE_SEPARATOR,
-        init: Init<ListBuilder<String>>,
-    ): String = buildList(init) { ListBuilder() }.let { lines ->
+        init: Init<ElementAddingContext<String>, Unit>,
+    ): String = ListBuilder<String>().buildMultiple(init).let { lines ->
         mutableListOf("<<$label").apply { addAll(lines) }.apply { add(label) }.joinToString(separator = lineSeparator)
     }
 }

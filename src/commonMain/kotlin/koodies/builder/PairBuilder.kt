@@ -7,17 +7,17 @@ package koodies.builder
  * @sample PairBuilderSamples.indirectUse
  * @sample PairBuilderSamples.transformUse
  */
-open class PairBuilder<A, B> : BuildingContextImpl<PairBuilder<A, B>, Pair<A, B>>({ pair ?: error("No pair provided.") }) {
-    protected var pair: Pair<A, B>? = null
-
-    /**
-     * Builds a pair of [A] and [B].
-     */
-    infix fun A.to(that: B): Pair<A, B> = (this to that).also { pair = it }
-
+open class PairBuilder<A, B> : NoopBuilder<Pair<A, B>> {
     companion object {
-        fun <A, B> buildPair(init: Init<PairBuilder<A, B>>) = Builder.build(init) { PairBuilder() }
+        fun <A, B> buildPair(init: Init<Nothing?, Pair<A, B>>) = invoke(init)
+        operator fun <A, B> invoke(init: Init<Nothing?, Pair<A, B>>) = PairBuilder<A, B>().build(init)
     }
+}
+
+fun abc(init: Unit?.() -> String) {}
+
+val x = abc {
+    ""
 }
 
 @Suppress("UNUSED_VARIABLE", "RemoveRedundantQualifierName")
@@ -25,13 +25,13 @@ private object PairBuilderSamples {
 
     fun directUse() {
 
-        val pair: Pair<String, Int> = PairBuilder.buildPair { "three" to 4 }
+        val pair: Pair<String, Int> = PairBuilder<String, Int>().build { "three" to 4 }
 
     }
 
     fun indirectUse() {
 
-        fun builderAcceptingFunction(init: PairBuilder<String, Int>.() -> Unit) {
+        fun builderAcceptingFunction(init: Nothing?.() -> Pair<String, Int>) {
             val pair = PairBuilder.buildPair(init)
             println("Et voilà, $pair")
         }
@@ -42,8 +42,8 @@ private object PairBuilderSamples {
 
     fun transformUse() {
 
-        fun builderAcceptingFunction(init: PairBuilder<String, Int>.() -> Unit) {
-            val transformed = Builder.buildPair(init) { first.length + second }
+        fun builderAcceptingFunction(init: Any?.() -> Pair<String, Int>) {
+            val transformed = PairBuilder<String, Int>().build(init) { first.length + second }
             println("Et voilà, $transformed")
         }
 

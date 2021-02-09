@@ -1,45 +1,28 @@
 package koodies.builder
 
+import koodies.builder.ListBuilder.Companion.buildList
+import koodies.builder.context.ElementAddingContext
+import koodies.builder.context.StatefulContext
+import koodies.builder.context.StatefulElementAddingContext
+import kotlin.experimental.ExperimentalTypeInference
+
 /**
  * Builder to build lists of type [E].
  *
  * The most convenient way to actually build a list is using [buildList].
  */
-open class ListBuilder<E> : ElementAddingContext<E>, BuildingContextImpl<ListBuilder<E>, List<E>>({ list }) {
+open class ListBuilder<E> : StatefulContextBuilder<ElementAddingContext<E>, List<E>, List<E>> {
+    override val statefulContext: StatefulContext<ElementAddingContext<E>, List<E>> = StatefulElementAddingContext()
 
-    protected val list: MutableList<E> = mutableListOf()
+    override val transform: List<E>.() -> List<E> = { this }
 
-    companion object : DefaultProvider<ListBuilder<*>> {
+    @OptIn(ExperimentalTypeInference::class)
+    companion object {
         /**
          * Builds a list of type [E] as specified by [init].
          */
-        inline fun <reified E> buildList(noinline init: Init<ListBuilder<E>>): List<E> = Builder.build(init) { ListBuilder() }
-        override fun <E> provideDefault(): ListBuilder<E> = ListBuilder<E>()
+        fun <E> buildList(@BuilderInference init: Init<ElementAddingContext<E>, Unit>): List<E> = invoke(init)
+
+        operator fun <E> invoke(@BuilderInference init: Init<ElementAddingContext<E>, Unit>) = ListBuilder<E>().build(init)
     }
-
-    override operator fun E.unaryPlus() {
-        list.add(this)
-    }
-
-    override operator fun Unit.plus(element: E) {
-        list.add(element)
-    }
-
-    override operator fun Collection<E>.unaryPlus() {
-        list.addAll(this)
-    }
-
-    override operator fun Array<out E>.unaryPlus() {
-        list.addAll(this)
-    }
-
-    override operator fun Sequence<E>.unaryPlus() {
-        list.addAll(this)
-    }
-
-    override fun toString(): String = "ListBuilder[list=$list]"
-}
-
-interface DefaultProvider<T> {
-    fun <E> provideDefault(): T
 }

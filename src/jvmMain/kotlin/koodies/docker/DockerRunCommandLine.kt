@@ -1,9 +1,10 @@
 package koodies.docker
 
-import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.ListBuilder.Companion.buildList
+import koodies.builder.buildMultiple
+import koodies.builder.context.ElementAddingContext
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLineBuilder
 import koodies.io.file.resolveBetweenFileSystems
@@ -40,16 +41,11 @@ open class DockerRunCommandLine private constructor(
     workingDirectory = workingDirectory,
     dockerCommand = "run",
     arguments = buildList {
-        environment.forEach {
-            +"--env"
-            +"${it.key}=${it.value}"
-        }
-        +options
-        +image.toString()
-        if (command.isNotBlank() && options.entryPoint == null) {
-            +command
-        }
-        +options.remapPathsInArguments(workingDirectory, arguments)
+        environment.addAll { listOf("--env", "$key=$value") }
+        addAll(options)
+        add(image.toString())
+        if (command.isNotBlank() && options.entryPoint == null) add(command)
+        addAll(options.remapPathsInArguments(workingDirectory, arguments))
     },
 ) {
     constructor(image: DockerImage, options: DockerRunCommandLineOptions = DockerRunCommandLineOptions(), commandLine: CommandLine) : this(
@@ -128,14 +124,14 @@ data class DockerRunCommandLineOptions(
     val pseudoTerminal: Boolean = false,
     val mounts: MountOptions = MountOptions(),
 ) : List<String> by (buildList {
-    entryPoint?.also { +"--entrypoint" + entryPoint }
-    name?.also { +"--name" + name.sanitized }
-    privileged.takeIf { it }?.also { +"--privileged" }
-    workingDirectory?.also { +"-w" + it.asString() }
-    autoCleanup.takeIf { it }?.also { +"--rm" }
-    interactive.takeIf { it }?.also { +"-i" }
-    pseudoTerminal.takeIf { it }?.also { +"-t" }
-    mounts.forEach { +it }
+    entryPoint?.also { add("--entrypoint", entryPoint) }
+    name?.also { add("--name", name.sanitized) }
+    privileged.takeIf { it }?.also { add("--privileged") }
+    workingDirectory?.also { add("-w", it.asString()) }
+    autoCleanup.takeIf { it }?.also { add("--rm") }
+    interactive.takeIf { it }?.also { add("-i") }
+    pseudoTerminal.takeIf { it }?.also { add("-t") }
+    mounts.addAll { this }
 }) {
     /**
      * Checks if this strings represents a path accessible by one of the [MountOptions]
@@ -203,7 +199,7 @@ abstract class DockerCommandLineOptionsBuilder {
     fun autoCleanup(autoCleanup: () -> Boolean) = options.copy(autoCleanup = autoCleanup()).run { options = this }
     fun interactive(interactive: () -> Boolean) = options.copy(interactive = interactive()).run { options = this }
     fun pseudoTerminal(pseudoTerminal: () -> Boolean) = options.copy(pseudoTerminal = pseudoTerminal()).run { options = this }
-    fun mounts(init: Init<ListBuilder<MountOption>>) = Builder.buildList(init) { ListBuilder() }
+    fun mounts(init: Init<ElementAddingContext<MountOption>, Unit>) = ListBuilder<MountOption>().buildMultiple(init)
         .also { options.copy(mounts = MountOptions(options.mounts + it)).run { options = this } }
 
     infix fun HostPath.mountAt(target: String) = mountAt(target.asContainerPath())

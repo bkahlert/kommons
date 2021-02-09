@@ -1,7 +1,9 @@
 package koodies.builder
 
 import koodies.builder.ArrayBuilder.Companion
-import koodies.builder.Builder.Companion.build
+import koodies.builder.context.ElementAddingContext
+import koodies.builder.context.StatefulContext
+import koodies.builder.context.StatefulElementAddingContext
 
 /**
  * Builder to creates instances of an [E] typed [Array].
@@ -10,45 +12,21 @@ import koodies.builder.Builder.Companion.build
  * you can use [Companion.invoke] to create an instance of this builder
  * or [Companion.buildArray] to build an array right away.
  */
-open class ArrayBuilder<E>(transform: Collection<E>.() -> Array<E>) : ElementAddingContext<E>,
-    BuildingContextImpl<ArrayBuilder<E>, Array<E>>({
-        transform(list)
-    }) {
+open class ArrayBuilder<E>(override val transform: List<E>.() -> Array<E>) : StatefulContextBuilder<ElementAddingContext<E>, List<E>, Array<E>> {
 
-    protected val list: MutableList<E> = mutableListOf()
+    override val statefulContext: StatefulContext<ElementAddingContext<E>, List<E>> = StatefulElementAddingContext()
 
     companion object {
         /**
          * Convenience method to build instances of an [E] typed [Array].
          */
-        inline fun <reified E> buildArray(noinline init: Init<ArrayBuilder<E>>): Array<E> = build(init) { ArrayBuilder { toTypedArray() } }
+        inline fun <reified E> buildArray(noinline init: Init<ElementAddingContext<E>, Unit>): Array<E> = invoke(init)
 
         /**
          * Constructor mocking inline factory method to allow for the construction
          * of arrays for type [E].
          */
-        inline operator fun <reified E> invoke() = ArrayBuilder<E> { toTypedArray() }
+        inline operator fun <reified E> invoke(noinline init: Init<ElementAddingContext<E>, Unit>) = ArrayBuilder<E> { toTypedArray() }.build(init)
     }
 
-    override operator fun E.unaryPlus() {
-        list.add(this)
-    }
-
-    override operator fun Unit.plus(element: E) {
-        list.add(element)
-    }
-
-    override operator fun Collection<E>.unaryPlus() {
-        list.addAll(this)
-    }
-
-    override operator fun Array<out E>.unaryPlus() {
-        list.addAll(this)
-    }
-
-    override operator fun Sequence<E>.unaryPlus() {
-        list.addAll(this)
-    }
-
-    override fun toString(): String = "ArrayBuilder[list=$list]"
 }

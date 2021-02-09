@@ -1,11 +1,12 @@
 package koodies.concurrent.process
 
-import koodies.builder.Builder.Companion.buildListTo
 import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.MapBuilderInit
 import koodies.builder.build
 import koodies.builder.buildMapTo
+import koodies.builder.buildMultipleTo
+import koodies.builder.context.ElementAddingContext
 import koodies.io.path.Locations
 import java.nio.file.Path
 
@@ -46,7 +47,7 @@ open class CommandLineBuilder(
     /**
      * Specifies the redirects like `2>&1` to be used when running this built command line.
      */
-    fun redirects(init: Init<ListBuilder<String>>) = buildListTo(init, redirects) { ListBuilder() }
+    fun redirects(init: Init<ElementAddingContext<String>, Unit>) = ListBuilder<String>().buildMultipleTo(init, redirects)
 
     /**
      * Specifies the environment to be exposed to the [ManagedProcess] that runs this built
@@ -63,5 +64,5 @@ open class CommandLineBuilder(
     /**
      * Specifies the arguments to be passed to [command].
      */
-    fun arguments(init: Init<ListBuilder<String>>) = buildListTo(init, arguments) { ListBuilder() }
+    fun arguments(init: Init<ElementAddingContext<String>, Unit>) = ListBuilder<String>().buildMultipleTo(init, arguments)
 }

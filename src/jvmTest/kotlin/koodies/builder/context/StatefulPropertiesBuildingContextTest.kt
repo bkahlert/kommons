@@ -1,6 +1,10 @@
-package koodies.builder
+package koodies.builder.context
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import koodies.builder.Builder
+import koodies.builder.Init
+import koodies.builder.ListBuilder
+import koodies.builder.providing
 import koodies.concurrent.process.CommandLine
 import koodies.net.IPv4Address
 import koodies.net.IPv6Address
@@ -30,7 +34,7 @@ class HigherOrderBuilderTest {
         val number: Int,
     )
 
-    private class BuiltBuilder : HigherOrderBuilder<BuiltBuilder, BuiltObject>({
+    private class BuiltBuilder : StatusfulPropertiesBuildingContext<BuiltBuilder, BuiltObject>({
         BuiltObject(
             ::nullableList.accessValue() ?: emptyList(),
             ::listOfPairs.requireValue(),
