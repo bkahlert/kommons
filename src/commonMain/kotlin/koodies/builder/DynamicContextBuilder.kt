@@ -1,5 +1,7 @@
 package koodies.builder
 
+import koodies.StoredValueHistory
+import koodies.StoringFunction
 import koodies.builder.context.PropertiesBuildingContext
 import koodies.builder.context.StatefulPropertiesBuildingContext
 import koodies.builder.context.StatefulPropertiesBuildingContext.PropertiesEvaluatingContext
@@ -33,17 +35,17 @@ open class DynamicContextBuilder<C, T>(
         inline fun <reified C, reified T> buildContext(
             noinline init: Init<C, Unit>,
             noinline transform: PropertiesEvaluatingContext.() -> T,
-            noinline buildContext: PropertiesBuildingContext<C>.() -> C,
+            noinline buildContext: PropertiesBuildingContext.() -> C,
         ): T = invoke(init, transform, buildContext)
 
         inline operator fun <reified C, reified T> invoke(
             noinline init: Init<C, Unit>,
             noinline transform: PropertiesEvaluatingContext.() -> T,
-            noinline buildContext: PropertiesBuildingContext<C>.() -> C,
+            noinline buildContext: PropertiesBuildingContext.() -> C,
         ): T = DynamicContextBuilder(transform, buildContext).build(init)
     }
-
 }
+
 
 /**
  * Interface implemented by the various invocation capturing properties like [BuildingProperty]
@@ -53,7 +55,7 @@ interface EvaluatedValue<V> {
     /**
      * The evaluated value
      */
-    val value: V?
+    val value: V
 }
 
 /**
@@ -69,18 +71,15 @@ interface EvaluatedValue<V> {
  *
  * @see ProvidingProperty
  */
-open class BuildingProperty<T, C, R, V>(
+open class BuildingProperty<C, T>(
+    private val initialValue: T,
     /**
      * This provider is used to get the [BuildingContext] involved
      * in building an instance of [V].
      */
-    protected val builder: Provider<Builder<C, R, V>>,
-) : ParameterProcessingProperty1<T, Init<C, R>, Unit>(), EvaluatedValue<V> {
-    /**
-     * Contains the [Init] of the last invocation of this property.
-     */
-    protected var init: Init<C, R>? = null
-    final override val processor: Function1<Init<C, R>, Unit> = { init = it }
+    protected val builder: Provider<Builder<C, Unit, T>>,
+) : StoringFunction<Init<C, Unit>>({ }), EvaluatedValue<T> {
+    override fun onChange(property: KProperty<*>, history: StoredValueHistory<Init<C, Unit>>, newValue: Init<C, Unit>): Boolean = true
 
     /**
      * Build a new instance of [V] by applying the stored [Init] of the last
@@ -90,7 +89,7 @@ open class BuildingProperty<T, C, R, V>(
      * Returns `null` if not invocation took place yet or of [init]
      * was explicitly set to `null`.
      */
-    override val value: V? get() = init?.let { builder().build(it) }
+    override val value: T get() = if (history.size > 1) builder().build(history.mostRecentValue) else initialValue
 }
 
 /**
@@ -101,49 +100,33 @@ open class BuildingProperty<T, C, R, V>(
  *
  * Calls to [provide] will be forwarded to the most recently stored [Provider].
  */
-open class ProvidingProperty<T, V> : ParameterProcessingProperty1<T, Provider<V>, Unit>(), EvaluatedValue<V> {
-    /**
-     * Contains the [Provider] of the last invocation of this property.
-     */
-    protected var provider: Provider<V>? = null
-    override val processor: Function1<Provider<V>, Unit> = { provider = it }
+open class ProvidingProperty<T>(initialValue: T) : StoringFunction<Provider<T>>({ initialValue }), EvaluatedValue<T> {
+    override fun onChange(property: KProperty<*>, history: StoredValueHistory<Provider<T>>, newValue: Provider<T>): Boolean = true
 
     /**
      * Provides a new instance of [V] by invoking the [Provider] stored during
      * the last invocation of this property. If it's not set, `null` is returned.
      */
-    override val value: V? get() = provider?.let { it() }
+    override val value: T get() = history.mostRecentValue()
 }
 
 /**
- * A [Function]-type property that accepts a [Provider] that returns instances of [V].
+ * A [Function]-type property that accepts a [Provider] that returns instances of [T].
  *
  * In contrast to [ProvidingProperty] and [BuildingProperty] this property
  * does not store invocations but simply the values itself.
  *
  * Calls to [load] will return the most recently stored value.
  */
-open class StoringProperty<T, V> : ParameterProcessingProperty1<T, V, Unit>(), EvaluatedValue<V> {
-    /**
-     * Contains the value of type [V] of the last invocation of this property.
-     */
-    override var value: V? = null
-    override val processor: Function1<V, Unit> = { this.value = it }
-}
-
-/**
- * A delegating property that behaves like a zero-arg function.
- *
- * Invocations are delegates to [processor] that needs to be implemented.
- */
-abstract class ParameterProcessingProperty0<T, R> : ReadOnlyProperty<T, Function0<R>> {
-    override fun getValue(thisRef: T, property: KProperty<*>): Function0<R> = processor
+open class StoringProperty<T>(initialValue: T) : StoringFunction<T>(initialValue), EvaluatedValue<T> {
+    override fun onChange(property: KProperty<*>, history: StoredValueHistory<T>, newValue: T): Boolean = true
 
     /**
-     * All invocations are delegated to this processor.
+     * Contains the value of type [T] of the last invocation of this property.
      */
-    protected abstract val processor: Function0<R>
+    override val value: T get() = history.mostRecentValue
 }
+
 
 /**
  * A delegating property that behaves like a one-arg function.
@@ -157,18 +140,4 @@ abstract class ParameterProcessingProperty1<T, P1, R> : ReadOnlyProperty<T, Func
      * All invocations are delegated to this processor.
      */
     protected abstract val processor: Function1<P1, R>
-}
-
-/**
- * A delegating property that behaves like a two-arg function.
- *
- * Invocations are delegates to [processor] that needs to be implemented.
- */
-abstract class ParameterProcessingProperty2<T, P1, P2, R> : ReadOnlyProperty<T, Function2<P1, P2, R>> {
-    override fun getValue(thisRef: T, property: KProperty<*>): Function2<P1, P2, R> = processor
-
-    /**
-     * All invocations are delegated to this processor.
-     */
-    protected abstract val processor: Function2<P1, P2, R>
 }

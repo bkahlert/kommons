@@ -6,14 +6,14 @@ import kotlin.reflect.KProperty
  * A [PropertiesBuildingContext] that captures all created delegated properties with owner [T]
  * that are of type [P].
  */
-interface CapturingPropertiesBuildingContext<T, P> : PropertiesBuildingContext<T> {
+interface CapturingPropertiesBuildingContext<T> : PropertiesBuildingContext {
     /**
-     * Delegate provider that notifies [handleDelegate] of created delegates of type [P].
+     * Delegate provider that notifies [handleDelegate] of created delegates of type [T].
      */
-    operator fun <D : P> D.provideDelegate(thisRef: T, property: KProperty<*>): D = this.also { handleDelegate(thisRef, property, it) }
+    operator fun <D : T> D.provideDelegate(thisRef: Any?, property: KProperty<*>): D = also { handleDelegate(thisRef, property, it) }
 
     /**
-     * Callback function that is notified of created delegates of type [P].
+     * Callback function that is notified of created delegates of type [T].
      */
-    fun handleDelegate(thisRef: T, property: KProperty<*>, delegate: P)
+    fun handleDelegate(thisRef: Any?, property: KProperty<*>, delegate: T)
 }

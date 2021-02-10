@@ -93,8 +93,8 @@ open class StatefulPropertiesBuildingContext<C>(
      * A [PropertiesBuildingContext] that stores which all delegates of type [EvaluatedValue] and
      * which property of [C] they belong to.
      */
-    inner class DelegateMappingPropertiesBuildingContext<C> : CapturingPropertiesBuildingContext<C, EvaluatedValue<*>> {
-        override fun handleDelegate(thisRef: C, property: KProperty<*>, delegate: EvaluatedValue<*>) {
+    inner class DelegateMappingPropertiesBuildingContext<C> : CapturingPropertiesBuildingContext<EvaluatedValue<*>> {
+        override fun handleDelegate(thisRef: Any?, property: KProperty<*>, delegate: EvaluatedValue<*>) {
             delegates[property.name] = delegate
         }
     }

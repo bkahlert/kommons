@@ -2,14 +2,16 @@ package koodies.builder.context
 
 import koodies.builder.Builder
 import koodies.builder.BuildingProperty
+import koodies.builder.Init
+import koodies.builder.ListBuilder
 import koodies.builder.Provider
 import koodies.builder.ProvidingProperty
 import koodies.builder.StoringProperty
 
 /**
- * A context that provides methods to create delegated properties with owner [T].
+ * A context that provides methods to create delegated properties.
  */
-interface PropertiesBuildingContext<T> {
+interface PropertiesBuildingContext {
     /**
      * Returns a [BuildingProperty] that accepts an [Init] with an instance of [BC] as the
      * receiver object.
@@ -17,15 +19,20 @@ interface PropertiesBuildingContext<T> {
      * In other words: This property can be invoked that same way a typical builder
      * function with receiver object is called.
      */
-    fun <C, R, V> building(builder: Provider<Builder<C, R, V>>) = BuildingProperty<T, C, R, V>(builder)
+    fun <C, T> building(initialValue: T, builder: Provider<Builder<C, Unit, T>>) = BuildingProperty(initialValue, builder)
+    fun <C, T> building(builder: Provider<Builder<C, Unit, T?>>) = BuildingProperty(null, builder)
+    fun <C, T> listBuilding(builder: Provider<Builder<C, Unit, List<T>>>) = BuildingProperty(emptyList(), builder)
+    fun <T> listBuilding() = BuildingProperty(emptyList()) { ListBuilder<T>() }
 
     /**
      * Returns a [ProvidingProperty] that accepts a [Provider] that returns instances of [T].
      */
-    fun <V> providing() = ProvidingProperty<T, V>()
+    fun <T> providing(initialValue: T) = ProvidingProperty(initialValue)
+    fun <T> providing() = ProvidingProperty<T?>(null)
 
     /**
      * Returns a [StoringProperty] that accepts a [Provider] that returns instances of [T].
      */
-    fun <V> storing() = StoringProperty<T, V>()
+    fun <T> storing(initialValue: T) = StoringProperty(initialValue)
+    fun <T> storing() = StoringProperty<T?>(null)
 }

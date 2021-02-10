@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
@@ -56,10 +57,10 @@ class DynamicContextBuilderTest {
         )
     }, {
         object : CustomContext {
-            override val nullableList by building { ListBuilder<BigDecimal>() }
-            override val listOfPairs by building { ListBuilder<Pair<IPv4Address, IPv6Address>>() }
+            override val nullableList by listBuilding<BigDecimal>()
+            override val listOfPairs by listBuilding { ListBuilder<Pair<IPv4Address, IPv6Address>>() }
 
-            override val nullableString by providing<String>()
+            override val nullableString by providing<String?>()
             override val size by providing<Size>()
 
             override val nullableCommandLine by storing<CommandLine>()
@@ -105,7 +106,7 @@ class DynamicContextBuilderTest {
     }
 
     @TestFactory
-    fun `should throw on missing value`() = testEach<Init<CustomContext, Unit>>(
+    fun `should return empty list on missing builder call`() = testEach<Init<CustomContext, Unit>>(
         {
             nullableList { (BigDecimal.ONE..BigDecimal.TEN).map { plus(2) } }
             nullableString { "𓌈🥸𓂈" }
@@ -113,6 +114,12 @@ class DynamicContextBuilderTest {
             nullableCommandLine(CommandLine("echo", "Hello World"))
             number(-1)
         },
+    ) { init ->
+        expect { CustomBuilder.build(init).listOfPairs }.that { isEmpty() }
+    }
+
+    @TestFactory
+    fun `should throw on missing value`() = testEach<Init<CustomContext, Unit>>(
         {
             nullableList { (BigDecimal.ONE..BigDecimal.TEN).map { plus(2) } }
             listOfPairs { +(ip4Of(42) to (ip6Of("ff::42") / 123).broadcastAddress) }
@@ -139,7 +146,7 @@ class DynamicContextBuilderTest {
     }
 
 
-    class YYY : XXX, PropertiesBuildingContext<YYY> {
+    class YYY : XXX, PropertiesBuildingContext {
         override val x: String = "an x"
         override val nullableList by building { ListBuilder<String>() }
     }
