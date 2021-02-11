@@ -3,9 +3,9 @@ package koodies.text.styling
 import koodies.concurrent.process.IO
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
-import koodies.test.matchesCurlyPattern
 import koodies.test.output.Columns
 import koodies.text.Unicode.NBSP
+import koodies.text.matchesCurlyPattern
 import koodies.text.repeat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

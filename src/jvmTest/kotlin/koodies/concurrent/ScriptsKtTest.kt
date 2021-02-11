@@ -12,13 +12,14 @@ import koodies.concurrent.process.processSynchronously
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
+import koodies.terminal.contains
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -180,15 +181,13 @@ class ScriptsKtTest {
             getFactories(processor = null, logger = null).testWithTempDir(uniqueId) { processFactory ->
                 processFactory()
                 expectThat(output).get { out }.matchesCurlyPattern("""
-                ▶{}commandLine{}
-                · Executing {}
-                {}
+                ▶{}commandLine{{}}
+                · Executing {{}}
                 · {} file:{}
                 · test output 1
                 · test output 2
                 · Unfortunately an error occurred: test error 1
-                · Unfortunately an error occurred: test error 2
-                · Process {} terminated successfully at {}.
+                · Unfortunately an error occurred: test error 2{{}}
                 """.trimIndent())
                 expectThat(output).get { err }.isEmpty()
             }

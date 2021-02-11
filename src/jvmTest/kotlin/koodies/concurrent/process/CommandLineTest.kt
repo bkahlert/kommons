@@ -1,15 +1,16 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.output
+import koodies.concurrent.toManagedProcess
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
+import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
 import koodies.time.poll
 import koodies.time.sleep

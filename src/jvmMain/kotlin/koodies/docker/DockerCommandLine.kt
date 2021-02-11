@@ -1,6 +1,8 @@
 package koodies.docker
 
+import koodies.builder.BuilderTemplate
 import koodies.concurrent.process.CommandLine
+import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import java.nio.file.Path
 
@@ -70,4 +72,16 @@ open class DockerCommandLine(
     }
 
     override fun hashCode(): Int = commandLineParts.contentHashCode()
+
+    companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
+        override fun BuildContext.build() = withContext(::CommandLineContext) {
+            DockerCommandLine(
+                redirects = ::redirects.eval(),
+                environment = ::environment.eval(),
+                workingDirectory = ::workingDirectory.evalOrDefault { Locations.WorkingDirectory },
+                dockerCommand = ::command.eval(),
+                arguments = ::arguments.eval<List<String>>()
+            )
+        }
+    }
 }

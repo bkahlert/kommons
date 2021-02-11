@@ -4,7 +4,7 @@ import koodies.builder.Init
 
 /**
  * Stores the aggregated [state] of all operations
- * performed on the possibly immutable [context].
+ * performed on an immutable [context] of type [C].
  */
 interface StatefulContext<C, S> {
     /**

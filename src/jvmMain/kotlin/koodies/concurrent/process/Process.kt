@@ -9,42 +9,124 @@ import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import java.lang.Process as JavaProcess
 
-internal open class TeeOutputStream(source: OutputStream, branch: OutputStream, vararg branches: OutputStream) :
-    koodies.io.TeeOutputStream(source,
-        if (branches.isEmpty()) branch
-        else branches.fold(branch) { teeOutputStream, outputStream -> TeeOutputStream(teeOutputStream, outputStream) }
-    )
-
-internal class TeeInputStream(inputStream: InputStream, branch: OutputStream) : koodies.io.TeeInputStream(inputStream, branch, false)
 
 /**
- * Platform independent representation of a process.
+ * Platform independent representation of a running program.
  */
 interface Process {
+    /**
+     * Logs information about this process.
+     */
     fun metaLog(metaMessage: String) = metaStream.enter(metaMessage, delay = Duration.ZERO)
+
+    /**
+     * Stream of this program's meta logs.
+     */
     val metaStream: OutputStream
-    val outputStream: OutputStream
-    val inputStream: InputStream
+
+    /**
+     * This program's input stream, that is,
+     * the stream you can write to in order
+     * to provide input for this program.
+     *
+     * *In contrast to the extremely misleading naming used in the Java world,
+     * this property is named after its purpose—not its type.*
+     */
+    val inputStream: OutputStream
+
+    /**
+     * This program's output stream, that is,
+     * the stream you can read in order to find
+     * out what [IO] this process produces.
+     *
+     * *In contrast to the extremely misleading naming used in the Java world,
+     * this property is named after its purpose—not its type.*
+     */
+    val outputStream: InputStream
+
+    /**
+     * This program's error stream, that is,
+     * the stream you can read in order to find
+     * out what goes wrong.
+     */
     val errorStream: InputStream
+
+    /**
+     * The identifier of this process.
+     */
     val pid: Long
+
+    /**
+     * Starts the program represented by this process.
+     */
     fun start(): Process
+
+    /**
+     * Returns whether [start] was called.
+     *
+     * Contrary to [alive] this property will never return `false` once [start] was called.
+     */
     val started: Boolean
+
+    /**
+     * Returns whether the program represented by this process
+     * is currently running.
+     *
+     * Contrary to [started] this property reflects the actual running state of
+     * the program represented by this process.
+     */
     val alive: Boolean
+
+    /**
+     * Returns the exit code of the program represented by process process once
+     * it terminates. If the program has not terminated yet, it throws an
+     * [IllegalStateException].
+     */
     val exitValue: Int
+
+    /**
+     * A completable future that returns an instances of this process once
+     * the program represented by this process terminated.
+     */
     val onExit: CompletableFuture<out Process>
+
+    /**
+     * Blocking method that waits until the program represented by this process
+     * terminates and returns its [exitValue].
+     */
     fun waitFor(): Int = onExit.join().exitValue
+
+    /**
+     * Blocking method that waits until the program represented by this process
+     * terminates and returns its [exitValue].
+     */
     fun waitForTermination(): Int = onExit.thenApply { process -> process.exitValue }.join()
+
+    /**
+     * Gracefully attempts to stop the execution of the program represented by this process.
+     */
     fun stop(): Process
+
+    /**
+     * Forcefully stops the execution of the program represented by this process.
+     */
     fun kill(): Process
 }
 
-abstract class DelegatingProcess(private val processFactory: Process.() -> JavaProcess) : Process {
+/**
+ * A process that delegates to the [JavaProcess] provided by the specified [processProvider].
+ */
+abstract class DelegatingProcess(private val processProvider: Process.() -> JavaProcess) : Process {
     override val metaStream: OutputStream by lazy { ByteArrayOutputStream() }
-    override val outputStream: OutputStream by lazy { javaProcess.outputStream }
-    override val inputStream: InputStream by lazy { javaProcess.inputStream }
+    override val inputStream: OutputStream by lazy { javaProcess.outputStream }
+    override val outputStream: InputStream by lazy { javaProcess.inputStream }
     override val errorStream: InputStream by lazy { javaProcess.errorStream }
     override val pid: Long by lazy { javaProcess.pid() }
-    protected val javaProcess: JavaProcess by lazy { this.processFactory().also { _started = true } }
+
+    /**
+     * The Java process this process delegates to.
+     */
+    protected val javaProcess: JavaProcess by lazy { this.processProvider().also { _started = true } }
     override fun start(): Process = this.also { javaProcess.pid() }
     private var _started: Boolean = false
     override val started: Boolean get() = _started

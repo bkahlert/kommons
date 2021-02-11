@@ -195,5 +195,16 @@ fun CharSequence.toLowerCase(): CharSequence = object : CharSequence {
 fun String.toUpperCase(): String = (this as CharSequence).toUpperCase().toString()
 fun String.toLowerCase(): String = (this as CharSequence).toLowerCase().toString()
 
+/**
+ * Returns `true` if this character is upper case.
+ *
+ * @see isLowerCase
+ */
 fun Char.isUpperCase(): Boolean = this == toUpperCase() && this != toLowerCase()
+
+/**
+ * Returns `true` if this character is lower case.
+ *
+ * @see isUpperCase
+ */
 fun Char.isLowerCase(): Boolean = this == toLowerCase() && this != toUpperCase()

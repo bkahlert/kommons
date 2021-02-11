@@ -1,9 +1,10 @@
 package koodies.builder
 
+import koodies.asString
 import koodies.builder.ListBuilder.Companion.buildList
-import koodies.builder.context.ElementAddingContext
+import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.StatefulContext
-import koodies.builder.context.StatefulElementAddingContext
+import koodies.builder.context.StatefulListBuildingContext
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
@@ -11,8 +12,9 @@ import kotlin.experimental.ExperimentalTypeInference
  *
  * The most convenient way to actually build a list is using [buildList].
  */
-open class ListBuilder<E> : StatefulContextBuilder<ElementAddingContext<E>, List<E>, List<E>> {
-    override val statefulContext: StatefulContext<ElementAddingContext<E>, List<E>> = StatefulElementAddingContext()
+open class ListBuilder<E> : StatefulContextBuilder<ListBuildingContext<E>, List<E>, List<E>> {
+
+    override val statefulContext: StatefulContext<ListBuildingContext<E>, List<E>> get() = StatefulListBuildingContext()
 
     override val transform: List<E>.() -> List<E> = { this }
 
@@ -21,8 +23,10 @@ open class ListBuilder<E> : StatefulContextBuilder<ElementAddingContext<E>, List
         /**
          * Builds a list of type [E] as specified by [init].
          */
-        fun <E> buildList(@BuilderInference init: Init<ElementAddingContext<E>, Unit>): List<E> = invoke(init)
+        fun <E> buildList(@BuilderInference init: Init<ListBuildingContext<E>>): List<E> = invoke(init)
 
-        operator fun <E> invoke(@BuilderInference init: Init<ElementAddingContext<E>, Unit>) = ListBuilder<E>().build(init)
+        operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): List<E> = ListBuilder<E>().invoke(init)
     }
+
+    override fun toString(): String = asString(::statefulContext)
 }

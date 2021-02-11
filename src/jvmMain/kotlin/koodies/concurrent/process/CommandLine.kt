@@ -1,26 +1,23 @@
 package koodies.concurrent.process
 
-import com.github.ajalt.mordant.AnsiColorCode
-import koodies.concurrent.scriptPath
+import koodies.builder.BuilderTemplate
+import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
-import koodies.logging.RenderingLogger
 import koodies.logging.asStatus
-import koodies.logging.logging
 import koodies.regex.get
-import koodies.shell.ShellScript
-import koodies.shell.shebang
-import koodies.terminal.ANSI
 import koodies.text.LineSeparators
 import koodies.text.unquoted
 import org.codehaus.plexus.util.StringUtils
 import org.codehaus.plexus.util.cli.CommandLineUtils
-import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
 import kotlin.text.RegexOption.MULTILINE
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
+
+@DslMarker
+annotation class CommandLineDsl
 
 /**
  * A command as it can be run in a shell.
@@ -75,7 +72,7 @@ open class CommandLine(
         command: String,
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, command, arguments.toList())
-    
+
 
     /**
      * The working directory of the [ManagedProcess] that runs this
@@ -158,14 +155,52 @@ open class CommandLine(
      */
     val lines: List<String> get() = multiLineCommandLine.lines()
 
-    companion object {
 
+    companion object : BuilderTemplate<CommandLineContext, CommandLine>() {
         /**
-         * Builds a [CommandLine] using the specified mandatory [command]
-         * further options build using [init].
+         * Context to build a [CommandLine].
          */
-        fun build(command: String, init: CommandLineBuilder.() -> Unit = {}): CommandLine =
-            CommandLineBuilder.build(command, init)
+        @CommandLineDsl
+        class CommandLineContext {
+
+            /**
+             * Specifies the redirects like `2>&1` to be used when running this built command line.
+             */
+            val redirects by listBuilder<String>()
+
+            /**
+             * Specifies the environment to be exposed to the [ManagedProcess] that runs this built
+             * command line.
+             */
+            val environment by mapBuilder<String, String>()
+
+            /**
+             * Specifies the working directory of the [ManagedProcess] that runs this built
+             * command line.
+             */
+            val workingDirectory by builder<Path>()
+
+            /**
+             * The command to be executed.
+             */
+            val command by builder<String>()
+
+            /**
+             * Specifies the arguments to be passed to [command].
+             */
+            val arguments by listBuilder<String>()
+        }
+
+        override fun BuildContext.build() = withContext(::CommandLineContext) {
+            CommandLine(
+                redirects = ::redirects.evalOrDefault(emptyList()),
+                environment = ::environment.evalOrDefault(emptyMap()),
+                workingDirectory = ::workingDirectory.evalOrDefault(Locations.WorkingDirectory),
+                command = ::command.evalOrDefault(""),
+                arguments = ::arguments.evalOrDefault(emptyList<String>()),
+            )
+        }
+
 
         /**
          * Parses a [commandLine] string and returns an instance of [CommandLine]
@@ -182,7 +217,7 @@ open class CommandLine(
         /**
          * A [Regex] that matches the start of a [here document](https://en.wikipedia.org/wiki/Here_document).
          */
-        val hereDocStartRegex: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
+        private val HEREDOC_START_PATTERN: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
 
         /**
          * Given `this` command line string containing [here documents](https://en.wikipedia.org/wiki/Here_document),
@@ -191,7 +226,7 @@ open class CommandLine(
          */
         fun String.fixHereDoc(): String {
             var fixed = this
-            val hereDocNames = hereDocStartRegex.findAll(fixed).map { it["name"] }
+            val hereDocNames = HEREDOC_START_PATTERN.findAll(fixed).map { it["name"] }
             hereDocNames.forEach { name ->
                 fixed = Regex("[\"']+<<$name.*^$name[\"']+", setOf(MULTILINE, DOT_MATCHES_ALL)).replace(fixed) {
                     var hereDoc = it.value
@@ -207,54 +242,6 @@ open class CommandLine(
             return fixed
         }
     }
-
-    /**
-     * Builds a proper script that runs this command line.
-     *
-     * @return temporary `.sh` file
-     */
-    fun toShellScript(): Path =
-        ShellScript().apply {
-            shebang
-            changeDirectoryOrExit(directory = workingDirectory)
-            command(commandLine)
-        }.buildTo(workingDirectory.scriptPath())
-
-    /**
-     * Creates an actual [ManagedProcess] that executes this command line.
-     */
-    open fun toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
-        ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
-
-    /**
-     * Prepares a new [ManagedProcess] that runs this command line as soon as it's triggered.
-     *
-     * @see execute
-     */
-    open fun prepare(expectedExitValue: Int = 0): ManagedProcess = toManagedProcess(expectedExitValue, null)
-
-    /**
-     * Starts a new [ManagedProcess] that runs this command line.
-     */
-    open fun execute(expectedExitValue: Int = 0): ManagedProcess = prepare(expectedExitValue).also { it.start() }
-
-    /**
-     * Starts a new [ManagedProcess] that runs this command line
-     * and has it fully processed using `this` [RenderingLogger].
-     */
-    open fun RenderingLogger.executeLogging(
-        caption: String,
-        bordered: Boolean = true,
-        ansiCode: AnsiColorCode = ANSI.termColors.brightBlue,
-        nonBlockingReader: Boolean = false,
-        expectedExitValue: Int = 0,
-    ): Int = logging(caption = caption, bordered = bordered, ansiCode = ansiCode) {
-        execute(expectedExitValue).process(
-            nonBlockingReader = nonBlockingReader,
-            processInputStream = InputStream.nullInputStream(),
-            processor = Processors.loggingProcessor(this)
-        )
-    }.waitForTermination()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

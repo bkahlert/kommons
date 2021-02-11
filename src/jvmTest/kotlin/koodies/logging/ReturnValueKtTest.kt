@@ -2,8 +2,11 @@ package koodies.logging
 
 import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
+@Execution(SAME_THREAD)
 class ReturnValueKtTest {
     private val returnValue: ReturnValue = object : ReturnValue {
         override val successful: Boolean get() = false

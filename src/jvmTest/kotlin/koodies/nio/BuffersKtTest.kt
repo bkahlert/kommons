@@ -2,6 +2,8 @@ package koodies.nio
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -10,6 +12,7 @@ import strikt.assertions.isFailure
 import java.nio.ByteBuffer
 import java.nio.MappedByteBuffer
 
+@Execution(SAME_THREAD)
 class BuffersKtTest {
 
     @Nested

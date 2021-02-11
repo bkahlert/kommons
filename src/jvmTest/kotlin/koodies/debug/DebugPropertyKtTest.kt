@@ -34,6 +34,6 @@ class DebugPropertyKtTest {
     fun `should render any Array`() {
         val stringArray = TextFile.data.decodeToString().asCodePointSequence().map { it.string }.toList().toTypedArray()
         expectThat(stringArray.debug.removeEscapeSequences())
-            .isEqualTo("【a⫻1,⏎⏎⫻1,𝕓⫻2,⏎␍⫻1,⏎␊⫻1,☰⫻1,⏎␊⫻1,👋⫻2,⏎␊⫻1】")
+            .isEqualTo("【a⫻1,⏎␤⫻1,𝕓⫻2,⏎␍⫻1,⏎␊⫻1,☰⫻1,⏎␊⫻1,👋⫻2,⏎␊⫻1】")
     }
 }

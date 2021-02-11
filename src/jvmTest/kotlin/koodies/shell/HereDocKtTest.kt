@@ -1,7 +1,7 @@
 package koodies.shell
 
-import koodies.test.matchesCurlyPattern
 import koodies.test.toStringIsEqualTo
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

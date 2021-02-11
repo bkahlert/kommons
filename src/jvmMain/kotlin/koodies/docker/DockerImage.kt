@@ -1,16 +1,10 @@
 package koodies.docker
 
-import koodies.docker.DockerImage.Builder
+import koodies.builder.SlipThroughBuilder
+import koodies.docker.DockerImage.ImageContext
 
-/**
- * Micro DSL to build a [DockerImage] in the style of:
- * - `dockerImage { "bkahlert" / "libguestfs" }`
- * - `dockerImage { "bkahlert" / "libguestfs" tag "latest" }`
- * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
- */
-@Suppress("SpellCheckingInspection")
-@DockerCommandLineDsl
-fun dockerImage(init: Builder.() -> DockerImage): DockerImage = (object : Builder {}).init()
+@Deprecated("use DockerImage{...}", ReplaceWith("DockerImage(this)"))
+fun dockerImage(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -23,7 +17,6 @@ fun dockerImage(init: Builder.() -> DockerImage): DockerImage = (object : Builde
  * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
  */
 @Suppress("SpellCheckingInspection")
-@DockerCommandLineDsl
 open class DockerImage(
     /**
      * The repository name
@@ -36,7 +29,7 @@ open class DockerImage(
     /**
      * Optional tag or digest.
      */
-    @Suppress("SpellCheckingInspection") val specifier: String?,
+    val specifier: String?,
 ) {
 
     private val repoAndPath = listOf(repository, *path.toTypedArray())
@@ -52,12 +45,32 @@ open class DockerImage(
     }
 
     override fun toString(): String = repoAndPath.joinToString("/") + (specifier ?: "")
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DockerImage
+
+        if (repository != other.repository) return false
+        if (path != other.path) return false
+        if (specifier != other.specifier) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = repository.hashCode()
+        result = 31 * result + path.hashCode()
+        result = 31 * result + (specifier?.hashCode() ?: 0)
+        return result
+    }
+
 
     /**
      * Builder to provide DSL elements to create instances of [DockerImage].
      */
     @DockerCommandLineDsl
-    interface Builder {
+    object ImageContext {
 
         /**
          * Describes an official [DockerImage](https://docs.docker.com/docker-hub/official_images/).
@@ -88,15 +101,38 @@ open class DockerImage(
     /**
      * Helper class to enforce consecutive [RepositoryWithPath.path] calls.
      */
-    @DockerCommandLineDsl
     class RepositoryWithPath(repository: String, path: List<String>) : DockerImage(repository, path, null) {
         constructor(repository: String, path: String) : this(repository, listOf(path))
     }
 
-    companion object {
+    /**
+     * Micro DSL to build a [DockerImage] in the style of:
+     * - `dockerImage { "bkahlert" / "libguestfs" }`
+     * - `dockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+     * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     */
+    @Suppress("SpellCheckingInspection")
+    companion object : SlipThroughBuilder<ImageContext, DockerImage, DockerImage> {
+        override val context: ImageContext = ImageContext
+        override val transform: DockerImage.() -> DockerImage = { DockerImage(repository, path, specifier) }
+
         /**
          * Pattern that the [repository] and all [path] elements match.
          */
         val PATH_REGEX: Regex = Regex("[a-z0-9]+(?:[._-][a-z0-9]+)*")
+
+        /**
+         * Parses any valid [DockerImage] identifier and returns it.
+         *
+         * If the input is invalid, an [IllegalArgumentException] with details is thrown.
+         */
+        fun parse(image: String): DockerImage {
+            val imageWithTag = image.substringBeforeLast("@").split(":").also { require(it.size <= 2) { "Invalid format. More than one tag found: $it" } }
+            val imageWithDigest = image.split("@").also { require(it.size <= 2) { "Invalid format. More than one digest found: $it" } }
+            require(!(imageWithTag.size > 1 && imageWithDigest.size > 1)) { "Invalid format. Both tag ${imageWithTag[1]} and digest ${imageWithDigest[1]} found." }
+            val specifier: String? = imageWithTag.takeIf { it.size == 2 }?.let { ":${it[1]}" } ?: imageWithDigest.takeIf { it.size == 2 }?.let { "@${it[1]}" }
+            val (repository, path) = imageWithTag[0].split("/").map { it.trim() }.let { it[0] to it.drop(1) }
+            return DockerImage(repository, path, specifier)
+        }
     }
 }

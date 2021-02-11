@@ -4,11 +4,14 @@ import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.unit.bytes
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 
+@Execution(SAME_THREAD)
 class FileSizeKtTest {
 
     private fun Path.getSmall() = randomFile("small").writeText("123")

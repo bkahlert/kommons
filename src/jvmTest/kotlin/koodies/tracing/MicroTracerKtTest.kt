@@ -2,8 +2,8 @@ package koodies.tracing
 
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
-import koodies.test.matchesCurlyPattern
 import koodies.text.Grapheme
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT

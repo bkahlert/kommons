@@ -3,6 +3,7 @@ package koodies.concurrent.process
 import koodies.concurrent.process
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.scriptPath
+import koodies.concurrent.toManagedProcess
 import koodies.exception.rootCause
 import koodies.exception.rootCauseMessage
 import koodies.io.path.Locations
@@ -10,11 +11,11 @@ import koodies.io.path.asString
 import koodies.shell.ShellScript
 import koodies.test.Slow
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.testWithTempDir
 import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.lines
+import koodies.text.matchesCurlyPattern
 import koodies.text.styling.wrapWithBorder
 import koodies.time.poll
 import koodies.time.sleep

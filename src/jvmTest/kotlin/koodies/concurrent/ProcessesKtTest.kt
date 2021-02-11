@@ -11,9 +11,9 @@ import koodies.concurrent.process.processSynchronously
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -157,21 +157,20 @@ class ProcessesKtTest {
                 val process = processFactory()
                 process.processSynchronously()
                 expectThat(output).get { out }.matchesCurlyPattern("""
-                ▶{}commandLine{}
-                · Executing {}
+                ▶{}commandLine{{}}
+                · Executing {{}}
                 · {} file:{}
                 · test output 1
                 · test output 2
                 · Unfortunately an error occurred: test error 1
-                · Unfortunately an error occurred: test error 2
-                · Process {} terminated successfully at {}.
+                · Unfortunately an error occurred: test error 2{{}}
             """.trimIndent())
                 expectThat(output).get { err }.isEmpty()
             }
 
         @SystemIoRead
         @TestFactory
-        fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
+        fun `should process without logging to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
             getFactories().testWithTempDir(uniqueId) { processFactory ->
                 val process = processFactory()
                 process.processSynchronously(Processors.noopProcessor())

@@ -1,6 +1,7 @@
 package koodies.docker
 
-import koodies.concurrent.process.CommandLineBuilder
+import koodies.builder.Init
+import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.shell.HereDocBuilder.hereDoc
@@ -13,12 +14,13 @@ import koodies.text.withRandomSuffix
 fun Docker.busybox(
     name: String = "busybox".withRandomSuffix(),
     processor: Processor<DockerProcess> = Processors.consoleLoggingProcessor(),
-    init: CommandLineBuilder.() -> Unit,
+    init: Init<CommandLineContext>,
 ): DockerProcess =
-    docker({ official("busybox") }, processor) {
+    docker({
+        image { official("busybox") }
         options { name { name } }
         commandLine(init)
-    }
+    }, processor = processor)
 
 /**
  * Prepares a [DockerRunCommandLine] that runs a dockerized [busybox](https://hub.docker.com/_/busybox)
@@ -32,7 +34,7 @@ fun Docker.busybox(
     busybox(name, processor) {
         if (lines.isNotEmpty()) {
             arguments {
-                +hereDoc { +lines }
+                +hereDoc { addAll(lines) }
             }
         }
     }

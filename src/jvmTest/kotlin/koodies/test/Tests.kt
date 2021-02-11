@@ -8,6 +8,7 @@ import koodies.io.path.readLine
 import koodies.logging.SLF4J
 import koodies.runtime.deleteOnExit
 import koodies.terminal.AnsiColors.red
+import koodies.test.DynamicTestsBuilder.ExpectationBuilder
 import koodies.test.TestLabeler.callerSource
 import koodies.test.TestLabeler.property
 import koodies.test.TestLabeler.subject
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.isA
 import java.net.URI
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
@@ -226,12 +228,21 @@ inline fun <reified T> DynamicTestsBuilder.PropertyTestBuilder<Any?>.asA(crossin
         (this as DynamicTestsBuilder<T>).block(it as T)
     }
 
+/**
+ * Combines the [ExpectationBuilder.that] with the type assertion [isA].
+ */
+@DynamicTestsDsl
+inline fun <reified T> ExpectationBuilder<*>.thatA(crossinline block: Assertion.Builder<T>.() -> Unit) {
+    isA<T>().block()
+}
+
 
 /**
  * Builder for arbitrary test trees consisting of instances of [DynamicContainer] and [DynamicTest]
  * and a fluent transition to [Strikt](https://strikt.io) assertions.
  */
 @DynamicTestsDsl
+// TODO refactor using BuilderTemplate
 interface DynamicTestsBuilder<T> {
 
     @DslMarker
@@ -305,7 +316,7 @@ interface DynamicTestsBuilder<T> {
         private class CallbackCallingDynamicTestsBuilder<T>(private val subject: T, private val callback: (DynamicNode) -> Unit) : DynamicTestsBuilder<T> {
 
             override fun group(name: String, init: DynamicTestsBuilder<T>.(T) -> Unit) {
-                callback(DynamicContainer.dynamicContainer(name, callerSource, build(subject, init).asStream()))
+                callback(dynamicContainer(name, callerSource, build(subject, init).asStream()))
             }
 
             override fun test(description: String?, executable: (T) -> Unit) {

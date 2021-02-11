@@ -92,6 +92,11 @@ by dictOf("unicode.dict.tsv"
     const val nextLine = "\u0085"
 
     /**
+     * [PILCROW SIGN](https://codepoints.net/U+00B6) ¶
+     */
+    const val pilcrowSign = "\u00B6"
+
+    /**
      * [RIGHT-TO-LEFT MARK](https://codepoints.net/U+200F)
      */
     const val rightToLeftMark = '\u200F'

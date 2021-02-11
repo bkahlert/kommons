@@ -1,6 +1,8 @@
 package koodies.exception
 
 import koodies.concurrent.process.Process
+import koodies.debug.replaceNonPrintableCharacters
+import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.withoutSuffix
 import java.nio.file.Path
@@ -11,7 +13,15 @@ fun Any?.toCompactString(): String = when (this) {
     is Iterable<*> -> joinToString(prefix = "[", postfix = "]") { it.toCompactString() }
     is Process -> also { waitFor() }.exitValue.toString()
     is java.lang.Process -> also { waitFor() }.exitValue().toString()
-    else -> if (this == null || this == Unit) "" else toString().lines().joinToString(separator = "⏎").withoutSuffix("⏎")
+    else -> when (this) {
+        null -> ""
+        Unit -> ""
+        else -> {
+            val string = toString()
+            if (string in LineSeparators) string.replaceNonPrintableCharacters()
+            else string.lines().joinToString(separator = "⏎").withoutSuffix("⏎")
+        }
+    }
 }
 
 fun Throwable?.toCompactString(): String {

@@ -12,7 +12,7 @@ import strikt.assertions.isEqualTo
 class PairBuilderTest {
 
     @TestFactory
-    fun `should build pair`() = listOf<Any?.() -> Pair<String, Int>>(
+    fun `should build pair`() = listOf(
         { "three" to 4 },
         { "three" to 4 },
     ).testEach { init ->
@@ -21,7 +21,7 @@ class PairBuilderTest {
 
     @Test
     fun `should only consider last pair`() {
-        expectThat(PairBuilder<String, Int>().build {
+        expectThat(PairBuilder {
             "two" to 3
             "three" to 4
         }).isEqualTo("three" to 4)

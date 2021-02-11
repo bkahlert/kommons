@@ -13,6 +13,8 @@ import koodies.io.path.randomPath
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.Companion.build
+import koodies.shell.shebang
+import koodies.terminal.contains
 import java.nio.file.Path
 import kotlin.io.path.name
 
@@ -22,6 +24,24 @@ private const val shellScriptExtension: String = ".sh"
 internal fun Path.scriptPath(): Path = randomPath(base = shellScriptPrefix, extension = shellScriptExtension)
 internal fun Path.isScriptFile(): Boolean = name.startsWith(shellScriptPrefix) && name.endsWith(shellScriptExtension)
 
+/**
+ * Builds a shell script that runs this command line.
+ */
+fun CommandLine.toShellScript(): ShellScript =
+    ShellScript().apply {
+        shebang
+        changeDirectoryOrExit(directory = workingDirectory)
+        command(commandLine)
+    }
+
+/**
+ * Saves a shell script to a temporary `.sh` file
+ * that runs this command line.
+ */
+fun CommandLine.toShellScriptFile(): Path =
+    toShellScript().buildTo(workingDirectory.scriptPath())
+
+/* ALL SCRIPT METHODS BELOW ALWAYS START THE PROCESS AND AND PROCESS IT SYNCHRONOUSLY */
 
 /**
  * Runs the specified [shellScript] with the specified [environment]
@@ -168,8 +188,5 @@ private fun <P : Process> RenderingLogger?.toProcessor() =
  * contains the specified [substring] (case-**in**sensitive by default,
  * that is ignoring the case).
  */
-fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean = runCatching {
-    val flags = if (caseSensitive) "" else "i"
-    val shellScript = ShellScript { line("$command | grep -q$flags '$substring'") }
-    check(Locations.Temp.script(shellScript, processor = Processors.noopProcessor()).waitFor() == 0)
-}.isSuccess
+fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean =
+    script(Processors.noopProcessor()) { !command }.output().contains(substring, ignoreCase = !caseSensitive)

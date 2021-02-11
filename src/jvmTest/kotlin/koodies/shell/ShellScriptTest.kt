@@ -13,10 +13,10 @@ import koodies.shell.HereDocBuilder.hereDoc
 import koodies.terminal.AnsiCode.Companion.ESC
 import koodies.test.Smoke
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.joinLinesToString
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -53,7 +53,7 @@ class ShellScriptTest {
             echo "Hello World!"
             echo "Bye!"
             exit 42
-            
+
         """.trimIndent())
     }
 
@@ -68,18 +68,18 @@ class ShellScriptTest {
             echo "Hello World!"
             echo "Bye!"
             exit 42
-            
+
         """.trimIndent())
     }
 
     @Test
     fun `should sanitize script`() {
         val sanitized = ShellScript(name = "Custom Name", content = """
-              
-              
-            cd "/some/where" 
+
+
+            cd "/some/where"
             echo "Hello World!"
-            
+
             #!/bin/sh
             echo "Bye!"
             exit 42
@@ -90,10 +90,10 @@ class ShellScriptTest {
             echo "░░░░░░░ CUSTOM NAME"
             cd "{}" || exit -1
             echo "Hello World!"
-            
+
             echo "Bye!"
             exit 42
-            
+
         """.trimIndent())
     }
 
@@ -124,7 +124,7 @@ class ShellScriptTest {
                 cat <<HERE-{} >>"file.txt"
                 content
                 HERE-{}
-                
+
             """.trimIndent())
         }
 
@@ -138,7 +138,7 @@ class ShellScriptTest {
                 cat <<HERE-{} >>"file.txt"
                 content
                 HERE-{}
-                
+
             """.trimIndent())
         }
     }
@@ -216,7 +216,8 @@ class ShellScriptTest {
         fun `should build valid docker run`() {
             expectThat(ShellScript {
                 `#!`
-                docker { "image" / "name" } run {
+                docker.run {
+                    image { "image" / "name" }
                     options {
                         name { "container-name" }
                         mounts {
@@ -260,10 +261,31 @@ class ShellScriptTest {
         }
 
         @Test
+        fun `should build valid docker stop`() {
+            expectThat(ShellScript {
+                `#!`
+                docker.stop {
+                    containers { +"busybox" + "guestfish" }
+                    options { time(42) }
+                }
+            }.build()).isEqualTo("""
+            #!/bin/sh
+            docker \
+            stop \
+            --time \
+            42 \
+            busybox \
+            guestfish
+
+        """.trimIndent())
+        }
+
+        @Test
         fun `should build allow redirection`() {
             expectThat(ShellScript().apply {
                 shebang
-                docker { "image" / "name" } run {
+                docker.run {
+                    image { "image" / "name" }
                     options { name { "container-name" } }
                     commandLine {
                         redirects { +"2>&1" }
@@ -303,7 +325,7 @@ class ShellScriptTest {
             expectThat(sh.build()).isEqualTo("""
             echo "$testBanner"
             exit 0
-            
+
         """.trimIndent())
         }
 
@@ -313,7 +335,7 @@ class ShellScriptTest {
             expectThat(sh.build("test")).isEqualTo("""
             echo "$testBanner"
             exit 0
-            
+
         """.trimIndent())
         }
     }

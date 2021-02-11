@@ -1,6 +1,7 @@
 package koodies.docker
 
 import koodies.docker.DockerRunCommandLineTest.Companion.DOCKER_RUN_COMMAND
+import koodies.docker.MountOptionContext.Type.bind
 import koodies.shell.HereDocBuilder.hereDoc
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Test
@@ -17,27 +18,37 @@ class DockerRunCommandLineBuilderTest {
 
     @Test
     fun `should build valid docker run`() {
-        val dockerRunCommand = DockerRunCommandLine.build(dockerImage) {
+        val dockerRunCommand = DockerRunCommandLine {
+            image(dockerImage)
             options {
+                detached { on }
+                publish {
+                    +"8080:6060"
+                    +"1234-1236:1234-1236/tcp"
+                }
                 name { "container-name" }
-                privileged { true }
-                autoCleanup { true }
+                privileged { on }
+                autoCleanup { on }
                 workingDirectory { "/c".asContainerPath() }
-                interactive { true }
-                pseudoTerminal { true }
+                interactive { on }
+                pseudoTerminal { on }
                 mounts {
-                    "/a/b".asHostPath() mountAt "/c/d".asContainerPath()
-                    +MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath())
+                    "/a/b" mountAt "/c/d"
+                    "/e/f/../g" mountAs bind at "//h"
+                }
+                custom {
+                    +"custom1"
+                    +"custom2"
                 }
             }
-            commandLine("work") {
+            commandLine {
                 redirects {}
                 environment {
                     "key1" to "value1"
                     "KEY2" to "VALUE 2"
                 }
                 workingDirectory { "/a".asHostPath() }
-
+                command { "work" }
                 arguments {
                     +"/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/"
                     +"-arg1"
@@ -60,8 +71,9 @@ class DockerRunCommandLineBuilderTest {
 
     @Test
     fun `should build same format for no sub builders and empty sub builders`() {
-        val commandBuiltWithNoBuilders = DockerRunCommandLine.build(dockerImage)
-        val commandBuiltWithEmptyBuilders = DockerRunCommandLine.build(dockerImage) {
+        val commandBuiltWithNoBuilders = DockerRunCommandLine { image(dockerImage) }
+        val commandBuiltWithEmptyBuilders = DockerRunCommandLine {
+            image(dockerImage)
             options { }
             commandLine { }
         }
@@ -71,11 +83,11 @@ class DockerRunCommandLineBuilderTest {
 
     @Test
     fun `should set auto cleanup as default`() {
-        expectThat(DockerRunCommandLine.build(dockerImage).arguments).contains("--rm")
+        expectThat(DockerRunCommandLine { image(dockerImage) }.arguments).contains("--rm")
     }
 
     @Test
     fun `should set interactive as default`() {
-        expectThat(DockerRunCommandLine.build(dockerImage).arguments).contains("-i")
+        expectThat(DockerRunCommandLine { image(dockerImage) }.arguments).contains("-i")
     }
 }

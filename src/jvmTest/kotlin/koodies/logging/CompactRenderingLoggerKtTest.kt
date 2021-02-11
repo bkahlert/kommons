@@ -1,7 +1,7 @@
 package koodies.logging
 
 import koodies.concurrent.process.IO
-import koodies.test.matchesCurlyPattern
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT

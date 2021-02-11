@@ -22,6 +22,7 @@ import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.appendText
 
+
 @Execution(CONCURRENT)
 class SizeTest {
 

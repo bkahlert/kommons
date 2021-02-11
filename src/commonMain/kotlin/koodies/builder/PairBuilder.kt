@@ -1,5 +1,7 @@
 package koodies.builder
 
+import koodies.asString
+
 /**
  * Builder to build a single pair of two elements.
  *
@@ -9,15 +11,11 @@ package koodies.builder
  */
 open class PairBuilder<A, B> : NoopBuilder<Pair<A, B>> {
     companion object {
-        fun <A, B> buildPair(init: Init<Nothing?, Pair<A, B>>) = invoke(init)
-        operator fun <A, B> invoke(init: Init<Nothing?, Pair<A, B>>) = PairBuilder<A, B>().build(init)
+        fun <A, B> buildPair(init: () -> Pair<A, B>) = invoke(init)
+        operator fun <A, B> invoke(init: () -> Pair<A, B>) = PairBuilder<A, B>().invoke(init)
     }
-}
 
-fun abc(init: Unit?.() -> String) {}
-
-val x = abc {
-    ""
+    override fun toString(): String = asString()
 }
 
 @Suppress("UNUSED_VARIABLE", "RemoveRedundantQualifierName")
@@ -25,13 +23,13 @@ private object PairBuilderSamples {
 
     fun directUse() {
 
-        val pair: Pair<String, Int> = PairBuilder<String, Int>().build { "three" to 4 }
+        val pair: Pair<String, Int> = PairBuilder { "three" to 4 }
 
     }
 
     fun indirectUse() {
 
-        fun builderAcceptingFunction(init: Nothing?.() -> Pair<String, Int>) {
+        fun builderAcceptingFunction(init: () -> Pair<String, Int>) {
             val pair = PairBuilder.buildPair(init)
             println("Et voilà, $pair")
         }
@@ -42,7 +40,7 @@ private object PairBuilderSamples {
 
     fun transformUse() {
 
-        fun builderAcceptingFunction(init: Any?.() -> Pair<String, Int>) {
+        fun builderAcceptingFunction(init: () -> Pair<String, Int>) {
             val transformed = PairBuilder<String, Int>().build(init) { first.length + second }
             println("Et voilà, $transformed")
         }

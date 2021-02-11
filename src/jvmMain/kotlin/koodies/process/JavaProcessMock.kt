@@ -6,10 +6,10 @@ import koodies.concurrent.process.IO.Type.META
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
-import koodies.concurrent.process.TeeOutputStream
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
+import koodies.io.TeeOutputStream
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
@@ -147,18 +147,18 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
             RedirectingOutputStream {
                 // ugly hack; META logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
-                // therefor we delay here
+                // therefore we delay here
                 1.milliseconds.sleep { ioLog.add(IO.Type.META, it) }
             },
             RedirectingOutputStream { inputCallback(META typed it.decodeToString()) },
         )
     }
-    override val outputStream: OutputStream by lazy {
+    override val inputStream: OutputStream by lazy {
         TeeOutputStream(
             RedirectingOutputStream {
                 // ugly hack; IN logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
-                // therefor we delay here
+                // therefore we delay here
                 1.milliseconds.sleep { ioLog.add(IO.Type.IN, it) }
             },
             javaProcess.outputStream,

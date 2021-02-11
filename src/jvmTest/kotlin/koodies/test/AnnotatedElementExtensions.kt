@@ -66,3 +66,6 @@ inline fun <reified A : Annotation> ExtensionContext.isAnnotated(
     crossinline annotationFilter: (A) -> Boolean = { true },
 ): Boolean = element { isA(annotationFilter) }
 
+inline fun <reified A : Annotation, reified T> ExtensionContext.withAnnotation(crossinline annotationFilter: A.() -> T): T? =
+    AnnotationSupport.findAnnotation(element, A::class.java).orElseGet { null }?.run(annotationFilter)
+

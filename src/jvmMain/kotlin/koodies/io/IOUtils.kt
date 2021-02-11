@@ -1030,9 +1030,10 @@ object IOUtils {
      * Gets contents of an `InputStream` as a `byte[]`.
      * Use this method instead of `toByteArray(InputStream)`
      * when `InputStream` size is known.
-     * **NOTE:** the method checks that the length can safely be cast to an int without truncation
+     *
+     * ***Note:** the method checks that the length can safely be cast to an int without truncation
      * before using [IOUtils.toByteArray] to read into the byte array.
-     * (Arrays can have no more than Integer.MAX_VALUE entries anyway)
+     * (Arrays can have no more than Integer.MAX_VALUE entries anyway)*
      *
      * @param input the `InputStream` to read from
      * @param size the size of `InputStream`

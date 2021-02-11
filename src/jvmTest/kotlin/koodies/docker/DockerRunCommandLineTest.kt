@@ -19,9 +19,11 @@ class DockerRunCommandLineTest {
 
     companion object {
         val DOCKER_RUN_COMMAND: DockerRunCommandLine = DockerRunCommandLine(
-            dockerImage { "repo" / "name" tag "tag" },
+            DockerImage { "repo" / "name" tag "tag" },
             DockerRunCommandLineOptions(
+                detached = true,
                 name = "container-name".toContainerName(),
+                publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
                 privileged = true,
                 autoCleanup = true,
                 workingDirectory = "/c".asContainerPath(),
@@ -31,6 +33,7 @@ class DockerRunCommandLineTest {
                     MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
                     MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath()),
                 ),
+                custom = listOf("custom1", "custom2")
             ),
             CommandLine(
                 redirects = emptyList(),
@@ -60,8 +63,13 @@ class DockerRunCommandLineTest {
                 key1=value1 \
                 --env \
                 "KEY2=VALUE 2" \
+                -d \
                 --name \
                 container-name \
+                -p \
+                8080:6060 \
+                -p \
+                1234-1236:1234-1236/tcp \
                 --privileged \
                 -w \
                 /c \
@@ -72,6 +80,8 @@ class DockerRunCommandLineTest {
                 type=bind,source=/a/b,target=/c/d \
                 --mount \
                 type=bind,source=/e/f/../g,target=/h \
+                custom1 \
+                custom2 \
                 repo/name:tag \
                 work \
                 /etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/ \
