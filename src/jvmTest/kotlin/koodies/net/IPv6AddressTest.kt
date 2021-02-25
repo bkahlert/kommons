@@ -2,7 +2,6 @@ package koodies.net
 
 import koodies.collections.to
 import koodies.number.ubyteArrayOfDecimalString
-import koodies.test.isFailure
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
@@ -10,10 +9,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isEmpty
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 @Execution(SAME_THREAD)
 class IPv6AddressTest {
@@ -39,7 +40,7 @@ class IPv6AddressTest {
             { IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001:0:0:0") },
             { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
         ).testEach { ip ->
-            expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
+            expectThrowing { ip() }.that { isFailure().isA<IllegalArgumentException>() }
         }
 
     @Nested
@@ -79,8 +80,8 @@ class IPv6AddressTest {
         }
 
         @Test
-        fun `should return empty range if greater start than end`() {
-            expectThat(range.endInclusive..range.start).isEmpty()
+        fun `should throw on empty range if greater start than end`() {
+            expectCatching { range.endInclusive..range.start }.isFailure().isA<IllegalArgumentException>()
         }
 
         @Test

@@ -8,9 +8,9 @@ import koodies.concurrent.synchronized
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.text.LineSeparators
 import koodies.text.containsAny
+import koodies.text.matchesCurlyPattern
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -29,20 +29,19 @@ import kotlin.time.seconds
 @Execution(CONCURRENT)
 class DockerProcessTest {
 
-    @DockerRequiring @Test
+    @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should start docker`(uniqueId: UniqueId) {
         val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
-        kotlin.runCatching {
-            poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
-                .every(100.milliseconds).forAtMost(8.seconds) {
-                    if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
-                    fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
-                }
-        }.onFailure { dockerProcess.kill() }.getOrThrow()
+        poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
+            .every(100.milliseconds).forAtMost(8.seconds) {
+                if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
+                fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
+            }
+        dockerProcess.kill()
     }
 
-    @DockerRequiring @Test
+    @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should override toString`(uniqueId: UniqueId) {
         val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
         expectThat(dockerProcess.toString())
@@ -54,33 +53,32 @@ class DockerProcessTest {
     @Nested
     inner class Lifecycle {
 
-        @DockerRequiring @Test
+        @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and pass arguments`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
-            kotlin.runCatching {
-                poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
-                    .every(100.milliseconds).forAtMost(8.seconds) {
-                        if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
-                        fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
-                    }
-            }.onFailure { dockerProcess.kill() }.getOrThrow()
+            poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
+                .every(100.milliseconds).forAtMost(8.seconds) {
+                    if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
+                    fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
+                }
+            dockerProcess.kill()
         }
 
-        @DockerRequiring @Test
+        @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and process input`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
-            kotlin.runCatching {
-                dockerProcess.enter("echo 'test'")
-                poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
-                    .every(100.milliseconds).forAtMost(8.seconds) { fail("Did not log self-induced \"test\" output within 8 seconds.") }
-                dockerProcess.stop()
-            }.onFailure { dockerProcess.kill() }.getOrThrow()
+            dockerProcess.enter("echo 'test'")
+            poll { dockerProcess.ioLog.logged.any { it.type == OUT && it.unformatted == "test" } }
+                .every(100.milliseconds).forAtMost(8.seconds) { fail("Did not log self-induced \"test\" output within 8 seconds.") }
+            dockerProcess.kill()
         }
 
-        @DockerRequiring @Test
+        @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and process output`(uniqueId: UniqueId) {
+            if (Docker.isContainerRunning(uniqueId.simple)) fail("Container already running!")
+
             val dockerProcess = Docker.busybox(
                 uniqueId.simple,
                 """while true; do""",
@@ -89,13 +87,12 @@ class DockerProcessTest {
                 """done""",
                 processor = noopProcessor())
 
-            kotlin.runCatching {
-                poll { dockerProcess.ioLog.logged.any { it.type == OUT } }
-                    .every(100.milliseconds).forAtMost(8.seconds) { fail("Did not log any output within 8 seconds.") }
-            }.onFailure { dockerProcess.kill() }.getOrThrow()
+            poll { dockerProcess.ioLog.logged.any { it.type == OUT } }
+                .every(100.milliseconds).forAtMost(8.seconds) { fail("Did not log any output within 8 seconds.") }
+            dockerProcess.kill()
         }
 
-        @DockerRequiring @Smoke @Test
+        @DockerRequiring(requiredImages = ["busybox"]) @Smoke @Test
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) {
             val logged = mutableListOf<String>().synchronized()
             val dockerProcess =
@@ -108,20 +105,19 @@ class DockerProcessTest {
                     }
                 }
 
-            kotlin.runCatching {
-                dockerProcess.enter("echo 'test'")
-                poll {
-                    dockerProcess.ioLog.logged.mapNotNull { if (it.type == OUT) it.unformatted else null }.containsAll(listOf("test", "test 4", "test 4 6"))
-                }
-                    .every(100.milliseconds)
-                    .forAtMost(30.seconds) { fail("Did not log self-produced \"test\", \"test 4\" and \"test 4 6\" output within 30 seconds.") }
-            }.onFailure { dockerProcess.kill() }.getOrThrow()
+            dockerProcess.enter("echo 'test'")
+            poll {
+                dockerProcess.ioLog.logged.mapNotNull { if (it.type == OUT) it.unformatted else null }.containsAll(listOf("test", "test 4", "test 4 6"))
+            }
+                .every(100.milliseconds)
+                .forAtMost(30.seconds) { fail("Did not log self-produced \"test\", \"test 4\" and \"test 4 6\" output within 30 seconds.") }
+            dockerProcess.kill()
         }
 
         @Nested
         inner class IsRunning {
 
-            @DockerRequiring @Test
+            @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should return false on not yet started container container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
                     uniqueId.simple,
@@ -131,12 +127,11 @@ class DockerProcessTest {
                     """done""",
                     processor = noopProcessor())
 
-                kotlin.runCatching {
-                    expectThat(dockerProcess.alive).isFalse()
-                }.onFailure { dockerProcess.kill() }.getOrThrow()
+                expectThat(dockerProcess.alive).isFalse()
+                dockerProcess.kill()
             }
 
-            @DockerRequiring @Test
+            @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should return true on running container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
                     uniqueId.simple,
@@ -146,14 +141,13 @@ class DockerProcessTest {
                     """done""",
                     processor = noopProcessor())
 
-                kotlin.runCatching {
-                    poll { dockerProcess.alive }
-                        .every(100.milliseconds).forAtMost(5.seconds) { fail("$dockerProcess not start container within 5 seconds.") }
-                    expectThat(dockerProcess.alive).isTrue()
-                }.onFailure { dockerProcess.kill() }.getOrThrow()
+                poll { dockerProcess.alive }
+                    .every(100.milliseconds).forAtMost(5.seconds) { fail("$dockerProcess not start container within 5 seconds.") }
+                expectThat(dockerProcess.alive).isTrue()
+                dockerProcess.kill()
             }
 
-            @DockerRequiring @Test
+            @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should return false on completed container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
                     uniqueId.simple,
@@ -163,19 +157,18 @@ class DockerProcessTest {
                     """done""",
                     processor = noopProcessor())
 
-                kotlin.runCatching {
-                    poll { dockerProcess.alive }
-                        .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not start container within 5 seconds.") }
+                poll { dockerProcess.alive }
+                    .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not start container within 5 seconds.") }
 
-                    dockerProcess.stop()
+                dockerProcess.stop()
 
-                    poll { !dockerProcess.alive }
-                        .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not stop container within 5 seconds.") }
-                    expectThat(dockerProcess.alive).isFalse()
-                }.onFailure { dockerProcess.kill() }.getOrThrow()
+                poll { !dockerProcess.alive }
+                    .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not stop container within 5 seconds.") }
+                expectThat(dockerProcess.alive).isFalse()
+                dockerProcess.kill()
             }
 
-            @DockerRequiring @Test
+            @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should stop started container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
                     uniqueId.simple,
@@ -185,20 +178,19 @@ class DockerProcessTest {
                     """done""",
                     processor = noopProcessor())
 
-                kotlin.runCatching {
-                    poll { dockerProcess.alive }
-                        .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not start container within 5 seconds.") }
+                poll { dockerProcess.alive }
+                    .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not start container within 5 seconds.") }
 
-                    dockerProcess.stop()
+                dockerProcess.stop()
 
-                    poll { !dockerProcess.alive }
-                        .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not stop container within 5 seconds.") }
-                    expectThat(dockerProcess.alive).isFalse()
-                }.onFailure { dockerProcess.kill() }.getOrThrow()
+                poll { !dockerProcess.alive }
+                    .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not stop container within 5 seconds.") }
+                expectThat(dockerProcess.alive).isFalse()
+                dockerProcess.kill()
             }
         }
 
-        @Slow @DockerRequiring @Test
+        @Slow @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should remove docker container after completion`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(
                 uniqueId.simple,
@@ -208,21 +200,20 @@ class DockerProcessTest {
                 """done""",
                 processor = noopProcessor())
 
-            kotlin.runCatching {
-                poll { Docker.exists(dockerProcess.name) }
-                    .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not start container within 5 seconds.") }
-                expectThat(Docker.exists(dockerProcess.name)).isTrue()
+            poll { Docker.exists(dockerProcess.name) }
+                .every(100.milliseconds).forAtMost(5.seconds) { fail("Did not start container within 5 seconds.") }
+            expectThat(Docker.exists(dockerProcess.name)).isTrue()
 
-                dockerProcess.stop()
+            dockerProcess.stop()
 
-                poll { !Docker.exists(dockerProcess.name) }
-                    .every(100.milliseconds).forAtMost(15.seconds) { fail("Did not stop container within 15 seconds.") }
-                expectThat(Docker.exists(dockerProcess.name)).isFalse()
-            }.onFailure { dockerProcess.kill() }.getOrThrow()
+            poll { !Docker.exists(dockerProcess.name) }
+                .every(100.milliseconds).forAtMost(15.seconds) { fail("Did not stop container within 15 seconds.") }
+            expectThat(Docker.exists(dockerProcess.name)).isFalse()
+            dockerProcess.kill()
         }
     }
 
-    @Slow @DockerRequiring @Test
+    @Slow @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should not produce incorrect empty lines`(uniqueId: UniqueId) {
         val output = mutableListOf<IO>().synchronized()
         val dockerProcess = Docker.busybox(
@@ -235,11 +226,10 @@ class DockerProcessTest {
             output.add(it)
         }
 
-        kotlin.runCatching {
-            20.seconds.sleep()
-            dockerProcess.stop()
-            expectThat(output).get { size }.isGreaterThan(20)
-            expectThat(output.filter { it.isBlank() }.size).isLessThan(output.size / 4)
-        }.onFailure { dockerProcess.kill() }.getOrThrow()
+        20.seconds.sleep()
+        dockerProcess.stop()
+        expectThat(output).get { size }.isGreaterThan(20)
+        expectThat(output.filter { it.isBlank() }.size).isLessThan(output.size / 4)
+        dockerProcess.kill()
     }
 }

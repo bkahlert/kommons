@@ -3,6 +3,8 @@ package koodies.nio
 import koodies.concurrent.thread
 import koodies.time.sleep
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -11,6 +13,7 @@ import strikt.assertions.isGreaterThanOrEqualTo
 import kotlin.time.measureTime
 import kotlin.time.seconds
 
+@Execution(SAME_THREAD)
 class DynamicInputStreamTest {
 
     @Test

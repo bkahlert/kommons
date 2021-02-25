@@ -1,8 +1,8 @@
 package koodies.test.output
 
 import koodies.collections.withNegativeIndices
+import koodies.io.ByteArrayOutputStream
 import koodies.test.output.OutputCapture.Companion.splitOutput
-import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.OutputStream
 import java.io.PrintStream
 

@@ -14,7 +14,7 @@ import strikt.assertions.isFalse
 @Execution(CONCURRENT)
 class BusyboxKtTest {
 
-    @DockerRequiring @Test
+    @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should start busybox`(uniqueId: UniqueId) {
         val processed = mutableListOf<IO>()
         val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simple, "echo busybox") { io ->

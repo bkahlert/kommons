@@ -1,6 +1,5 @@
 package koodies.io.file
 
-import koodies.functional.letIf
 import koodies.io.path.asString
 import java.nio.file.Path
 
@@ -13,7 +12,8 @@ import java.nio.file.Path
 fun Path.resolveSibling(order: Int = 1, transform: Path.() -> Path): Path {
     val ancestor = requireAncestor(order + 1)
     val transformed = getName(nameCount - order - 1).transform()
-    return ancestor.resolve(transformed).letIf(order > 0) { it.resolve(subpath(order)) }
+    val resolve = ancestor.resolve(transformed)
+    return if (order > 0) resolve.resolve(subpath(order)) else resolve
 }
 
 

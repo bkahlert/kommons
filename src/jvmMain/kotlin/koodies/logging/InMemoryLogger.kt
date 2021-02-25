@@ -4,13 +4,13 @@ import koodies.collections.withNegativeIndices
 import koodies.concurrent.output
 import koodies.concurrent.script
 import koodies.concurrent.synchronized
+import koodies.io.TeeOutputStream
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.padStartFixedLength
 import koodies.text.prefixLinesWith
 import koodies.time.Now
-import org.apache.commons.io.output.TeeOutputStream
 import java.io.OutputStream
 
 open class InMemoryLogger private constructor(

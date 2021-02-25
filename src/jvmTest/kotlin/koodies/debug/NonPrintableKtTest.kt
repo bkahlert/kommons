@@ -9,7 +9,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 @Execution(CONCURRENT)
-class NonPrintablesKtTest {
+class NonPrintableKtTest {
 
     @Test
     fun `should not replace common characters`() {

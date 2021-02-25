@@ -1,9 +1,9 @@
 package koodies.logging
 
-import koodies.test.matchesCurlyPattern
 import koodies.test.output.Bordered
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

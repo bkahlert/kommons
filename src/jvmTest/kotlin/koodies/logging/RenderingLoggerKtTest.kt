@@ -9,7 +9,6 @@ import koodies.io.path.containsExactly
 import koodies.io.path.randomFile
 import koodies.terminal.AnsiColors.red
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach

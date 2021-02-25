@@ -6,7 +6,6 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import koodies.number.formatScientifically
 import koodies.number.formatToExactDecimals
 import koodies.number.toBigDecimal
-import koodies.number.toInt
 import koodies.text.CharRanges
 import koodies.text.quoted
 import kotlin.reflect.KClass
@@ -27,7 +26,7 @@ inline class Size(val bytes: BigDecimal) : Comparable<Size> {
      * E.g. `2.bytes.maxLengthOfRepresentationToBaseOf(8) == 4`
      * which is the max length of two bytes represented in octal notation.
      */
-    fun maxLengthOfRepresentationToBaseOf(base: Int): Int = (BigInteger.TWO shl bits.dec().toInt()).dec().toString(base).length
+    fun maxLengthOfRepresentationToBaseOf(base: Int): Int = (BigInteger.TWO shl bits.dec().intValue()).dec().toString(base).length
 
     companion object {
         val ZERO: Size = Size(BigDecimal.ZERO)

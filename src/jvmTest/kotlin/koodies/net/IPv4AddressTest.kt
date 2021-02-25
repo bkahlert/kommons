@@ -6,7 +6,6 @@ import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
 import koodies.net.IPv4Address.Companion.RFC1918_24block
 import koodies.number.toUBytes
-import koodies.test.isFailure
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
@@ -14,10 +13,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isEmpty
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 @Execution(SAME_THREAD)
 class IPv4AddressTest {
@@ -42,7 +43,7 @@ class IPv4AddressTest {
             { IPv4Address.parse("192.168.16.1.2") },
             { IPv4Address.parse("192.168.16.x") },
         ).testEach { ip ->
-            expectThrowing { ip() }.that { isFailure<IllegalArgumentException>() }
+            expectThrowing { ip() }.that { isFailure().isA<IllegalArgumentException>() }
         }
 
     @Nested
@@ -71,8 +72,8 @@ class IPv4AddressTest {
         }
 
         @Test
-        fun `should return empty range if greater start than end`() {
-            expectThat(range.endInclusive..range.start).isEmpty()
+        fun `should throw on empty range if greater start than end`() {
+            expectCatching { range.endInclusive..range.start }.isFailure().isA<IllegalArgumentException>()
         }
 
         @Test

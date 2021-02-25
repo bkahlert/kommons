@@ -8,11 +8,21 @@ import koodies.number.bigIntegerOf
 import koodies.number.trim
 import koodies.ranges.map
 
+/**
+ * Implementations of this interface provide means to map
+ * instances of [IPv4Address] to instances of [IPv6Address] and
+ * vice versa.
+ */
 interface IPv4toIPv6Mapping {
     fun IPv4Address.toIPv6Address(): IPv6Address
     fun IPv6Address.toIPv4Address(): IPv4Address
 }
 
+/**
+ * Default implementation that maps instances of [IPv4Address] to instances of [IPv6Address]
+ * by adding respectively instances of [IPv6Address] to [IPv4Address] by subtracting
+ * the specified fixed [offset] to the [IPAddress.value] of the address to be mapped.
+ */
 open class OffsetIPv4toIPv6Mapping(val offset: BigInteger) : IPv4toIPv6Mapping {
     val range = IPv4Address.RANGE
         .map { value + offset }

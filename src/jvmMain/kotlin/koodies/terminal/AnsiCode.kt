@@ -27,7 +27,7 @@ class AnsiCode(
 
     /**
      * Creates an [AnsiCode] based on a [MordantAnsiCode] providing access
-     * to the open and close codes of the latter.
+     * to the open and close codes of the letter.
      */
     constructor(mordantAnsiCode: MordantAnsiCode) : this(mordantAnsiCode.publicCodes)
 
@@ -165,14 +165,14 @@ class AnsiCode(
         /**
          * Searches this char sequence for [AnsiCode] and returns a stream of codes.
          *
-         * *Note: This method makes no difference between opening and closing codes.
+         * ***Note:** This method makes no difference between opening and closing codes.*
          */
         fun CharSequence.parseAnsiCodesAsSequence(): Sequence<Int> = ansiCodeRegex.findAll(this).flatMap { parseAnsiCode(it) }
 
         /**
          * Given a [matchResult] resulting from [ansiCodeRegex] all found ANSI codes are returned.
          *
-         * *Note: This method makes no difference between opening and closing codes.
+         * ***Note:** This method makes no difference between opening and closing codes.*
          */
         fun parseAnsiCode(matchResult: MatchResult): Sequence<Int> {
             val intermediateBytes = matchResult.namedGroups["intermediateBytes"]?.value ?: ""

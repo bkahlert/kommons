@@ -11,7 +11,7 @@ class FileOperations(private val shellScript: ShellScript, private val path: Str
     constructor(shellScript: ShellScript, path: Path) : this(shellScript, path.asString())
 
     private val optionalLineSeparator = LineSeparators
-        .map { it.mapCodePoints { it.`N{U+XXXX}` }.joinToString("") }
+        .map { lineSeparator -> lineSeparator.mapCodePoints { codePoint -> "N{U+" + codePoint.toHexadecimalString() + "}" }.joinToString("") }
         .joinToString(prefix = "(", separator = "|", postfix = ")?")
 
     /**

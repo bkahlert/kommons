@@ -18,7 +18,7 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Isolated
-@DockerRequiring
+@DockerRequiring(requiredImages = ["busybox"])
 @Execution(SAME_THREAD)
 class DockerPsTest {
 

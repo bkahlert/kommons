@@ -2,8 +2,8 @@ package koodies.io.path
 
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.UniqueId
-import koodies.test.matchesCurlyPattern
 import koodies.test.withTempDir
+import koodies.text.matchesCurlyPattern
 import koodies.unit.Size
 import koodies.unit.bytes
 import org.junit.jupiter.api.Test

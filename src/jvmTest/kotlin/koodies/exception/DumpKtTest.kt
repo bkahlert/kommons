@@ -88,7 +88,7 @@ class DumpKtTest {
     }
 
     @Nested
-    class PersistDump {
+    inner class PersistDump {
 
         @Test
         fun `should dump data`(uniqueId: UniqueId) = withTempDir(uniqueId) {

@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.collections.toLinkedMap
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 
@@ -66,15 +67,15 @@ object LineSeparators : Collection<String> {
      */
     val LINE_PATTERN: Regex by lazy { "${INTERMEDIARY_LINE_PATTERN.pattern}|${LAST_LINE_PATTERN.pattern}".toRegex() }
 
-    val Dict: Map<String, String> by lazy {
-        linkedMapOf(
+    val Dict: Map<String, String> by lazy<Map<String, String>> {
+        listOf(
             "CARRIAGE RETURN + LINE FEED" to CRLF,
             "LINE FEED" to LF,
             "CARRIAGE RETURN" to CR,
             "LINE SEPARATOR" to LS,
             "PARAGRAPH SEPARATOR" to PS,
             "NEXT LINE" to NEL,
-        )
+        ).toLinkedMap()
     }
 
     private val ALL by lazy { arrayOf(CRLF, LF, CR, LS, PS, NEL) }
@@ -132,6 +133,12 @@ object LineSeparators : Collection<String> {
             ignoreTrailingSeparator = ignoreTrailingSeparator,
             keepDelimiters = keepDelimiters
         ).toList()
+
+    /**
+     * Replaces all lines separators by [LF].
+     */
+    fun unify(charSequence: CharSequence): String =
+        fold(charSequence.toString()) { acc, sep -> acc.replace(sep, LF) }
 
     /**
      * If this [CharSequence] ends with one of the [LineSeparators] this property includes it.

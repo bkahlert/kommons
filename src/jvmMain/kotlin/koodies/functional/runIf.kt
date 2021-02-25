@@ -1,5 +1,6 @@
 package koodies.functional
 
+import kotlin.DeprecationLevel.ERROR
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -8,6 +9,7 @@ import kotlin.contracts.contract
  *
  * @see [run]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <R> runIf(condition: Boolean, block: () -> R): R? {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -20,6 +22,7 @@ inline fun <R> runIf(condition: Boolean, block: () -> R): R? {
  *
  * @see [run]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <R> runIf(predicate: () -> Boolean, block: () -> R): R? {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -32,6 +35,7 @@ inline fun <R> runIf(predicate: () -> Boolean, block: () -> R): R? {
  *
  * @see [run]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T : R, R> T.runIf(condition: Boolean, block: T.() -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -44,6 +48,7 @@ inline fun <T : R, R> T.runIf(condition: Boolean, block: T.() -> R): R {
  *
  * @see [run]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T : R, R> T.runIf(predicate: (T) -> Boolean, block: T.() -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

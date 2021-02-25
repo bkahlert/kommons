@@ -1,6 +1,6 @@
 package koodies.test.junit
 
-import org.apache.commons.io.output.ByteArrayOutputStream
+import koodies.io.ByteArrayOutputStream
 import org.junit.platform.engine.DiscoverySelector
 import org.junit.platform.launcher.Launcher
 import org.junit.platform.launcher.core.LauncherConfig

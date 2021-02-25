@@ -6,6 +6,7 @@ import koodies.regex.group
 import koodies.regex.groupValues
 import koodies.regex.matchEntire
 import koodies.regex.value
+import koodies.test.testEach
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.INTERMEDIARY_LINE_PATTERN
@@ -20,6 +21,7 @@ import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.trailingLineSeparator
+import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -305,6 +307,11 @@ class LineSeparatorsTest {
                 },
             )),
         ))
+    }
+
+    @TestFactory
+    fun `each unify each line separator`() = LineSeparators.testEach { lineSeparator ->
+        expect { unify("abc${lineSeparator}def") }.that { isEqualTo("abc\ndef") }
     }
 }
 

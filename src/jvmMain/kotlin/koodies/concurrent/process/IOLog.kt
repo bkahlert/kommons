@@ -2,12 +2,12 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.Type
 import koodies.exception.persistDump
+import koodies.io.ByteArrayOutputStream
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.Unicode.Emojis.heavyCheckMark
 import koodies.text.joinLinesToString
 import koodies.time.busyWait
-import org.apache.commons.io.output.ByteArrayOutputStream
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.Map.Entry

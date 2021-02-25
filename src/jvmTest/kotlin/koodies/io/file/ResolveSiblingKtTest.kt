@@ -1,6 +1,5 @@
 package koodies.io.file
 
-import koodies.functional.alsoIf
 import koodies.io.path.asString
 import koodies.test.testEach
 import org.junit.jupiter.api.Test
@@ -53,8 +52,9 @@ fun <T : Path> Assertion.Builder<T>.isSiblingOf(expected: Path, order: Int = 1) 
         val otherNames = expected.map { name -> name.asString() }.toList()
         val actualIndex = actualNames.size - order - 1
         val otherIndex = otherNames.size - order - 1
-        val missing = (actualIndex - otherNames.size + 1).alsoIf({ it > 0 }) {
-            fail("$expected is too short. At least $it segments are missing to be able to be sibling.")
+        val missing = (actualIndex - otherNames.size + 1)
+        if (missing > 0) {
+            fail("$expected is too short. At least $missing segments are missing to be able to be sibling.")
         }
         if (missing <= 0) {
             val evaluation = actualNames.zip(otherNames).mapIndexed { index, namePair ->

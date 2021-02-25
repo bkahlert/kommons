@@ -1,6 +1,5 @@
 package koodies.io
 
-import org.apache.commons.io.output.ByteArrayOutputStream
 import java.nio.charset.Charset
 
 /**

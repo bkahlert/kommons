@@ -73,7 +73,7 @@ inline fun <reified T> useRequiredClassPath(path: String, crossinline transform:
  * an operation is executed. Should a [FileSystem] need to be loaded this
  * will be done transparently as it will be closed afterwards.
  */
-fun classPath(path: String): ReadOnlyProperty<Nothing?, Path> = ReadOnlyProperty<Nothing?, Path> { _, _ -> DelegatingPath(path) }
+fun classPath(path: String): ReadOnlyProperty<Any?, Path> = ReadOnlyProperty<Any?, Path> { _, _ -> DelegatingPath(path) }
 
 private inline class DelegatingPath(inline val path: String) : WrappedPath, Path {
 

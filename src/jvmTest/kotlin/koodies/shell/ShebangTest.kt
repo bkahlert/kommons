@@ -16,7 +16,7 @@ class ShebangTest {
         }).built.isEqualTo("""
             #!/bin/sh
             echo 'shebang'
-            
+
         """.trimIndent())
     }
 
@@ -28,7 +28,7 @@ class ShebangTest {
         }).built.isEqualTo("""
             #!/my/custom/interpreter
             echo 'shebang'
-            
+
         """.trimIndent())
     }
 
@@ -40,7 +40,7 @@ class ShebangTest {
         }).built.isEqualTo("""
             #!/my/custom/interpreter
             echo 'shebang'
-            
+
         """.trimIndent())
     }
 
@@ -54,7 +54,7 @@ class ShebangTest {
         }).built.isEqualTo("""
             #!/I/win
             echo 'shebang'
-            
+
         """.trimIndent())
     }
 
@@ -66,7 +66,7 @@ class ShebangTest {
         }).built.isEqualTo("""
             #!/bin/csh
             echo 'shebang'
-            
+
         """.trimIndent())
     }
 }

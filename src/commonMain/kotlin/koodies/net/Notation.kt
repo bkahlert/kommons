@@ -1,7 +1,6 @@
 package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.number.ZERO
 import koodies.number.bigIntegerOf
 import koodies.number.padStart
 import koodies.number.trim
@@ -85,7 +84,7 @@ interface Notation {
         require(byteCount > 0) { "Byte count must be positive." }
         require(value >= 0 && value <= BigInteger.TWO shl (byteCount * Byte.SIZE_BITS)) { "$value exceeds 2^${byteCount * Byte.SIZE_BITS}." }
         val conventional = value.toUByteArray().trim() // minimal bytes
-            .padStart(ceil(byteCount.div(groupSize.toDouble())).times(groupSize).toInt(), UByte.ZERO) // all bytes
+            .padStart(ceil(byteCount.div(groupSize.toDouble())).times(groupSize).toInt()) // all bytes
             .windowed(groupSize, groupSize) // groups
             .map { bigIntegerOf(it.toUByteArray()) }
             .map { it.toString(base) } // base
@@ -97,7 +96,7 @@ interface Notation {
             }
             Verbosity.Compressed -> {
                 val string = conventional.joinToString(groupSeparator.toString())
-                if (Regex.fromLiteral("$groupSeparator$groupSeparator").countMatches(string) == 0) {
+                Regex.fromLiteral("$groupSeparator$groupSeparator").countMatches(string).takeIf { it == 0 }?.let {
                     val pattern = Regex("(?:^|$groupSeparator)(0+(?:${groupSeparator}0+)+)")
                     pattern.findAll(string)
                         .maxByOrNull { it.value.length }?.run {
@@ -109,10 +108,8 @@ interface Notation {
                                     string.replaceRange(range, groupSeparator.toString())
                                 }
                             }
-                        } ?: string
-                } else {
-                    string
-                }
+                        }
+                } ?: string
             }
             Verbosity.Conventional -> {
                 conventional.joinToString(groupSeparator.toString())

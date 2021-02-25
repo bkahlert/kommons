@@ -38,7 +38,7 @@ interface IPRange<IP : IPAddress> : ClosedRange<IP> {
         fun from(start: IP, endInclusive: IP): IPRange<IP> = from(start.value, endInclusive.value)
         fun parse(ipRange: String): IPRange<IP> = ipRange.split("..").map { it.trim() }.run {
             require(size == 2) { "Expected format <IP1>..<IP2>" }
-            from(first().toAnyIP().value, last().toAnyIP().value)
+            from(first().toIP().value, last().toIP().value)
         }
     }
 }

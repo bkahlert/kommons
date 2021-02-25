@@ -2,45 +2,51 @@
 
 package koodies.docker
 
+import koodies.docker.DockerImage.ImageContext
+import koodies.test.test
+import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.Assertion
-import strikt.api.expectCatching
-import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
 @Execution(CONCURRENT)
 class DockerImageTest {
-    
-    @Test
-    fun `should format image`() {
-        expectThat(DockerImage.image(DockerRepository.of("repo", "name"))).formatted.isEqualTo("repo/name")
+
+    private val imageInit: DockerImageInit = { "repo" / "name" }
+    private val officialImageInit: DockerImageInit = { official("repo") }
+    private val imageWithTagInit: DockerImageInit = { "repo" / "name" tag "my-tag" }
+    private val imageWithDigestInit: DockerImageInit = { "repo" / "name" digest "sha256:abc" }
+
+    @TestFactory
+    fun `should format and parse image instance `() = listOf(
+        imageInit to "repo/name",
+        officialImageInit to "repo",
+        imageWithTagInit to "repo/name:my-tag",
+        imageWithDigestInit to "repo/name@sha256:abc",
+    ).testEach { (init, string) ->
+        expect { DockerImage(init) }.that { toStringIsEqualTo(string) }
+        expect { DockerImage.parse(string) }.that { isEqualTo(DockerImage(init)) }
     }
 
-    @Test
-    fun `should format image with tag`() {
-        expectThat(DockerImage.imageWithTag(DockerRepository.of("repo", "name"), Tag("my-tag"))).formatted.isEqualTo("repo/name:my-tag")
+    @TestFactory
+    fun `should throw on illegal repository`() = testEach("", "REPO", "r'e'p'o") { repo ->
+        expectThrowing { DockerImage { repo / "path" } }.that { isFailure().isA<IllegalArgumentException>() }
     }
 
-    @Test
-    fun `should format image with digest`() {
-        expectThat(DockerImage.imageWithDigest(DockerRepository.of("repo", "name"), Digest("sha..."))).formatted.isEqualTo("repo/name@sha...")
+    @TestFactory
+    fun `should throw on illegal path`() = testEach("", "PATH", "p'a't'h") { path ->
+        expectThrowing { DockerImage { "repo" / path } }.that { isFailure().isA<IllegalArgumentException>() }
     }
 
-    @Test
-    fun `should return formatted as toString()`() {
-        expectThat(DockerImage.imageWithDigest(DockerRepository.of("repo", "name"), Digest("sha..."))).toStringIsEqualTo("repo/name@sha...")
-    }
-
-    @Test
-    fun `should throw on empty paths`() {
-        expectCatching { DockerImage(DockerRepository(emptyList()), OptionalTagOrDigest.none()) }.isFailure().isA<IllegalArgumentException>()
+    @TestFactory
+    fun `should throw on illegal specifier`() = test("") { specifier ->
+        expectThrowing { DockerImage { "repo" / "path" tag specifier } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrowing { DockerImage { "repo" / "path" digest specifier } }.that { isFailure().isA<IllegalArgumentException>() }
     }
 }
 
-val <T : DockerImage> Assertion.Builder<T>.formatted
-    get() = get("formatted %s") { formatted }
+typealias DockerImageInit = ImageContext.() -> DockerImage

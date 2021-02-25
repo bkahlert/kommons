@@ -11,6 +11,6 @@ class SystemResourcesKtTest {
 
     @Test
     fun `should resolve to valid URL`() {
-        expectThat("junit-platform.properties".asSystemResourceUrl().readBytes().size).isEqualTo(871)
+        expectThat("junit-platform.properties".asSystemResourceUrl().readBytes().size).isEqualTo(926)
     }
 }

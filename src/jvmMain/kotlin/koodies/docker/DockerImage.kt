@@ -1,104 +1,134 @@
 package koodies.docker
 
-import koodies.text.quoted
+import koodies.builder.SlipThroughBuilder
 
 /**
- * Client side usage: `"repo" / "path" [ / ... ] [tag "tag" | digest "sha..."]`,
+ * Descriptor of a [DockerImage] identified by the specified [repository],
+ * a non-empty list of [path] elements and an optional [specifier]
+ * than can either be a tag `@tag` or a digest `@hash`.
  *
- * e.g. `"bkahlert" / "guestfish" tag "latest"`
+ * Examples:
+ * - `DockerImage { "bkahlert" / "libguestfs" }`
+ * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+ * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
  */
-@DockerCommandLineDsl
-interface DockerImageBuilder {
-    companion object {
-        fun build(init: DockerImageBuilder.() -> Any): DockerImage {
-            return when (val rawResult = object : DockerImageBuilder {}.run(init)) {
-                is String -> DockerImage(DockerRepository.of(rawResult), OptionalTagOrDigest.none())
-                is List<*> -> DockerImage(DockerRepository(rawResult.map { PathComponent.of(it as String) }), OptionalTagOrDigest.none())
-                is Pair<*, *> -> {
-                    val pathComponents = rawResult.first?.let { it as List<*> }?.map { PathComponent.of(it as String) } ?: error("unknown $rawResult")
-                    val optionalTagOrDigest = rawResult.second?.let { it as? OptionalTagOrDigest } ?: error("unknown $rawResult")
-                    DockerImage(DockerRepository(pathComponents), optionalTagOrDigest)
-                }
-                else -> error("unknown $rawResult")
-            }
-        }
-    }
+@Suppress("SpellCheckingInspection")
+open class DockerImage(
+    /**
+     * The repository name
+     */
+    val repository: String,
+    /**
+     * Non-empty list of path elements
+     */
+    val path: List<String>,
+    /**
+     * Optional tag or digest.
+     */
+    val specifier: String?,
+) {
 
-    infix operator fun String.div(next: String): List<String> = listOf(this@div, next)
-    infix operator fun List<String>.div(next: String): List<String> = this + next
-    infix fun List<String>.tag(tag: String): Pair<List<String>, OptionalTagOrDigest> = this to OptionalTagOrDigest.of(Tag(tag))
-    infix fun List<String>.digest(digest: String): Pair<List<String>, OptionalTagOrDigest> = this to OptionalTagOrDigest.of(Digest(digest))
-}
-
-@DockerCommandLineDsl
-data class DockerImage(val repository: DockerRepository, val optionalTagOrDigest: OptionalTagOrDigest) {
-    companion object {
-        fun image(repository: DockerRepository) = DockerImage(repository, OptionalTagOrDigest.none())
-        fun imageWithTag(repository: DockerRepository, tag: Tag) = DockerImage(repository, OptionalTagOrDigest.of(tag))
-        fun imageWithDigest(repository: DockerRepository, digest: Digest) = DockerImage(repository, OptionalTagOrDigest.of(digest))
-    }
+    private val repoAndPath = listOf(repository, *path.toTypedArray())
 
     init {
-        require(repository.components.isNotEmpty()) { "At least one path components must be present." }
-    }
-
-    val formatted: String by lazy {
-        "${repository.format()}${optionalTagOrDigest.format()}"
-    }
-
-    override fun toString(): String = formatted
-}
-
-inline class DockerRepository(val components: List<PathComponent>) {
-    companion object {
-        fun of(components: List<String>) = DockerRepository(components.run {
-            require(isNotEmpty()) { "At least one path components must be present." }
-            map { PathComponent.of(it) }
-        })
-
-        fun of(vararg components: String) = DockerRepository(components.run {
-            require(isNotEmpty()) { "At least one path components must be present." }
-            map { PathComponent.of(it) }
-        })
-    }
-
-    fun format(): String {
-        require(components.isNotEmpty()) { "At least one path components must be present." }
-        return components.joinToString("/") { it.component }
-    }
-}
-
-inline class PathComponent(val component: String) {
-    companion object {
-        /**
-         * Pattern a valid [PathComponent] matches.
-         */
-        val REGEX: Regex = Regex("[a-z0-9]+(?:[._-][a-z0-9]+)*")
-        fun isValid(component: String) = REGEX.matches(component)
-        fun of(component: String): PathComponent {
-            require(isValid(component)) { "${component.quoted} is invalid as it does not match: ${REGEX.pattern}" }
-            return PathComponent(component)
+        repoAndPath.forEach {
+            require(PATH_REGEX.matches(it)) { "$it is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)" }
+        }
+        specifier?.also {
+            require(specifier.startsWith(":") || specifier.startsWith("@")) { "The specifier must either describe a tag `:tagname` or be a digest `@hash`." }
+            require(specifier.length > 1) { "The specifier is too short." }
         }
     }
-}
 
-inline class OptionalTagOrDigest(val tagOrDigest: Pair<Tag?, Digest?>) {
-    companion object {
-        private val NONE = OptionalTagOrDigest(null to null)
-        fun none() = NONE
-        fun of(tag: Tag) = OptionalTagOrDigest(tag to null)
-        fun of(digest: Digest) = OptionalTagOrDigest(null to digest)
+    override fun toString(): String = repoAndPath.joinToString("/") + (specifier ?: "")
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DockerImage
+
+        if (repository != other.repository) return false
+        if (path != other.path) return false
+        if (specifier != other.specifier) return false
+
+        return true
     }
 
-    fun format(): String = tagOrDigest.let { (tag, digest) ->
-        tag?.format() ?: digest?.format() ?: ""
+    override fun hashCode(): Int {
+        var result = repository.hashCode()
+        result = 31 * result + path.hashCode()
+        result = 31 * result + (specifier?.hashCode() ?: 0)
+        return result
     }
-}
 
-inline class Tag(val tag: String) {
-    fun format() = ":$tag"
-}
 
-inline class Digest(val digest: String) {
-    fun format() = "@$digest"
+    /**
+     * Builder to provide DSL elements to create instances of [DockerImage].
+     */
+    @DockerCommandLineDsl
+    object ImageContext {
+
+        /**
+         * Describes an official [DockerImage](https://docs.docker.com/docker-hub/official_images/).
+         */
+        fun official(repository: String): RepositoryWithPath = RepositoryWithPath(repository, emptyList())
+
+        /**
+         * Adds a [path] element to `this` repository.
+         */
+        infix operator fun String.div(path: String): RepositoryWithPath = RepositoryWithPath(this, path)
+
+        /**
+         * Adds another [path] element to `this` [DockerImage].
+         */
+        infix operator fun RepositoryWithPath.div(path: String): RepositoryWithPath = RepositoryWithPath(repository, this.path + path)
+
+        /**
+         * Specifies the [tag] for this [DockerImage].
+         */
+        infix fun RepositoryWithPath.tag(tag: String): DockerImage = DockerImage(repository, path, ":$tag")
+
+        /**
+         * Specifies the [digest] for this [DockerImage].
+         */
+        infix fun RepositoryWithPath.digest(digest: String): DockerImage = DockerImage(repository, path, "@$digest")
+    }
+
+    /**
+     * Helper class to enforce consecutive [RepositoryWithPath.path] calls.
+     */
+    class RepositoryWithPath(repository: String, path: List<String>) : DockerImage(repository, path, null) {
+        constructor(repository: String, path: String) : this(repository, listOf(path))
+    }
+
+    /**
+     * Micro DSL to build a [DockerImage] in the style of:
+     * - `DockerImage { "bkahlert" / "libguestfs" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     */
+    @Suppress("SpellCheckingInspection")
+    companion object : SlipThroughBuilder<ImageContext, DockerImage, DockerImage> {
+        override val context: ImageContext = ImageContext
+        override val transform: DockerImage.() -> DockerImage = { DockerImage(repository, path, specifier) }
+
+        /**
+         * Pattern that the [repository] and all [path] elements match.
+         */
+        val PATH_REGEX: Regex = Regex("[a-z0-9]+(?:[._-][a-z0-9]+)*")
+
+        /**
+         * Parses any valid [DockerImage] identifier and returns it.
+         *
+         * If the input is invalid, an [IllegalArgumentException] with details is thrown.
+         */
+        fun parse(image: String): DockerImage {
+            val imageWithTag = image.substringBeforeLast("@").split(":").also { require(it.size <= 2) { "Invalid format. More than one tag found: $it" } }
+            val imageWithDigest = image.split("@").also { require(it.size <= 2) { "Invalid format. More than one digest found: $it" } }
+            require(!(imageWithTag.size > 1 && imageWithDigest.size > 1)) { "Invalid format. Both tag ${imageWithTag[1]} and digest ${imageWithDigest[1]} found." }
+            val specifier: String? = imageWithTag.takeIf { it.size == 2 }?.let { ":${it[1]}" } ?: imageWithDigest.takeIf { it.size == 2 }?.let { "@${it[1]}" }
+            val (repository, path) = imageWithTag[0].split("/").map { it.trim() }.let { it[0] to it.drop(1) }
+            return DockerImage(repository, path, specifier)
+        }
+    }
 }

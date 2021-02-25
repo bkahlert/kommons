@@ -8,8 +8,15 @@ package koodies.text
  * @sample Samples.singleLineMatches
  * @sample Samples.multiLineMatches
  */
-fun <T : CharSequence> T.matchesCurlyPattern(curlyPattern: String, placeholder: String = "{}"): Boolean =
-    this.matches(Regex(curlyPattern.split(placeholder).joinToString(".*") { Regex.escape(it) }))
+fun CharSequence.matchesCurlyPattern(curlyPattern: String, placeholder: String = "{}", multilinePlaceholder: String = "{{}}"): Boolean {
+    val regex = Regex(curlyPattern.mapLines { it.mapToRegexPlaceholders(multilinePlaceholder, placeholder) }.replace("\\Q\\E", ""))
+    return LineSeparators.unify(this).matches(regex)
+}
+
+private fun CharSequence.mapToRegexPlaceholders(multilinePlaceholder: String, placeholder: String) =
+    split(multilinePlaceholder).joinToString("[\\s\\S]*") { it.protectAllButPlaceHolder(placeholder) }
+
+private fun String.protectAllButPlaceHolder(placeholder: String) = split(placeholder).joinToString(".*") { Regex.escape(it) }
 
 
 private object Samples {

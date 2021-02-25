@@ -1,6 +1,6 @@
 object Versions {
 
-    val kotlin = "1.4.21"
+    val kotlin = "1.4.30"
 
     val antlr4 = "4.7.4"
 

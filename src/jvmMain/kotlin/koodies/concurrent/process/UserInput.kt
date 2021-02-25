@@ -20,7 +20,7 @@ object UserInput {
      * each input on the [Process]'s [InputStream].
      */
     fun Process.enter(vararg input: String, delay: Duration = 10.milliseconds): Unit =
-        outputStream.enter(*input, delay = delay)
+        inputStream.enter(*input, delay = delay)
 
 
     /**
@@ -28,7 +28,7 @@ object UserInput {
      * each input on the [Process]'s [InputStream].
      */
     fun Process.input(vararg input: String, delay: Duration = 10.milliseconds): Unit =
-        outputStream.enter(*input, delay = delay)
+        inputStream.enter(*input, delay = delay)
 
     /**
      * Write the given [input] strings with a slight delay between

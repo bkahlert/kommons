@@ -5,6 +5,7 @@ import koodies.text.LineSeparators
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
 import koodies.text.mapCodePoints
+import koodies.text.unicodeName
 
 
 /**
@@ -18,7 +19,12 @@ fun String.replaceNonPrintableCharacters(): String {
         prefix + when {
             codePoint.char == ' ' -> " "
             codePoint.replacementSymbol != null -> codePoint.replacementSymbol.toString()
-            codePoint.string in LineSeparators -> "⏎"
+            codePoint.string in LineSeparators -> when (this) {
+                LineSeparators.LS -> "ₛᷞ"
+                LineSeparators.PS -> "ₛᷮ"
+                LineSeparators.NEL -> "␤"
+                else -> "⏎"
+            }
             codePoint.isHighSurrogate -> codePoint.codePoint.toHexadecimalString(pad = true) + "▌﹍"
             codePoint.isLowSurrogate -> "﹍▐" + codePoint.codePoint.toHexadecimalString(pad = true)
             codePoint.isWhitespace || codePoint.char in Unicode.whitespaces -> "❲${codePoint.unicodeName}❳"

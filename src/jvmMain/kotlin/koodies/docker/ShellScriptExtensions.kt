@@ -1,18 +1,20 @@
 package koodies.docker
 
+import koodies.builder.mapBuild
+import koodies.callable
 import koodies.shell.ShellScript
-
 
 /**
  * Extends [ShellScript] with an entry point to build docker commands.
  */
-fun ShellScript.docker(init: DockerImageBuilder.() -> Any): ShellScriptAttachingBuilder =
-    ShellScriptAttachingBuilder(this, DockerImageBuilder.build(init))
+val ShellScript.docker
+    get(): ShellScriptAttachingBuilder =
+        ShellScriptAttachingBuilder(this)
 
 /**
  * Builder that adds the built commands directly to the [shellScript].
  */
-class ShellScriptAttachingBuilder(private val shellScript: ShellScript, private val image: DockerImage) {
-    infix fun run(init: DockerCommandLineBuilder.() -> Unit): Unit =
-        DockerCommandLineBuilder.build(image, init).run { shellScript.command(this) }
+class ShellScriptAttachingBuilder(private val shellScript: ShellScript) {
+    val run by callable(DockerRunCommandLine.mapBuild { also { shellScript.command(it) } })
+    val stop by callable(DockerStopCommandLine.mapBuild { also { shellScript.command(it) } })
 }

@@ -12,18 +12,18 @@ import strikt.assertions.isEqualTo
 class PairBuilderTest {
 
     @TestFactory
-    fun `should build pair`() = listOf<PairBuilderInit<String, Int>>(
+    fun `should build pair`() = listOf(
         { "three" to 4 },
-        { "three" and 4 },
+        { "three" to 4 },
     ).testEach { init ->
-        expect { init.buildPair() }.that { isEqualTo("three" to 4) }
+        expect { PairBuilder<String, Int>().build(init) }.that { isEqualTo("three" to 4) }
     }
 
     @Test
-    fun `should only consider returned pair`() {
-        expectThat(with(PairBuilder) {
+    fun `should only consider last pair`() {
+        expectThat(PairBuilder {
             "two" to 3
-            "three" and 4
+            "three" to 4
         }).isEqualTo("three" to 4)
     }
 }

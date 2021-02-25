@@ -14,8 +14,6 @@ import koodies.test.withTempDir
 import koodies.text.fuzzyLevenshteinDistance
 import koodies.text.joinLinesToString
 import koodies.text.repeat
-import org.apache.commons.io.input.TeeInputStream
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest

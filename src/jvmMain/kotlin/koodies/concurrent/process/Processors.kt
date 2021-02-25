@@ -50,7 +50,7 @@ object Processors {
         return object : (P, IO) -> Unit {
             private lateinit var process: P
             private val logger by lazy { BlockRenderingLogger(process.toString()) }
-            private val loggingProcessor by lazy { loggingProcessor(logger) }
+            private val loggingProcessor by lazy { loggingProcessor<P>(logger) }
             override fun invoke(process: P, io: IO) {
                 this.process = process
                 loggingProcessor.invoke(process, io)
@@ -75,7 +75,7 @@ inline fun <reified P : ManagedProcess> P.processSilently(): P =
     process(false, InputStream.nullInputStream(), noopProcessor())
 
 /**
- * Attaches to the [Process.outputStream] and [Process.errorStream]
+ * Attaches to the [Process.inputStream] and [Process.errorStream]
  * of the specified [Process] and passed all [IO] to the specified [processor].
  *
  * If no [processor] is specified a [Processors.consoleLoggingProcessor] prints
@@ -87,7 +87,7 @@ fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggingProce
     process(true, InputStream.nullInputStream(), processor)
 
 /**
- * Attaches to the [Process.outputStream] and [Process.errorStream]
+ * Attaches to the [Process.inputStream] and [Process.errorStream]
  * of the specified [Process] and passed all [IO] to the specified [processor].
  *
  * If no [processor] is specified, the output and the error stream will be
@@ -113,7 +113,7 @@ fun <P : ManagedProcess> P.process(
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 var bytes = it.read(buffer)
                 while (bytes >= 0) {
-                    outputStream.write(buffer, 0, bytes)
+                    inputStream.write(buffer, 0, bytes)
                     bytesCopied += bytes
                     bytes = it.read(buffer)
                 }
@@ -121,7 +121,7 @@ fun <P : ManagedProcess> P.process(
         }.exceptionallyThrow("stdin")
 
         val outputConsumer = ioProcessingThreadPool.completableFuture {
-            inputStream.readerForStream(nonBlockingReader).forEachLine { line ->
+            outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
                 processor(this, IO.Type.OUT typed line)
             }
         }.exceptionallyThrow("stdout")
@@ -137,7 +137,7 @@ fun <P : ManagedProcess> P.process(
 }
 
 /**
- * Attaches to the [Process.outputStream] and [Process.errorStream]
+ * Attaches to the [Process.inputStream] and [Process.errorStream]
  * of the specified [Process] and passed all [IO] to the specified [processor]
  * **synchronously**.
  *
@@ -147,7 +147,6 @@ fun <P : ManagedProcess> P.process(
 fun <P : ManagedProcess> P.processSynchronously(
     processor: Processor<P> = consoleLoggingProcessor(),
 ): P = apply {
-
     val metaAndInputIO = mutableListOf<IO>()
     val metaAndInputIOLock = ReentrantLock()
 
@@ -156,7 +155,7 @@ fun <P : ManagedProcess> P.processSynchronously(
     }
 
     val readers = listOf(
-        NonBlockingLineReader(inputStream) { line -> processor(this, IO.Type.OUT typed line) },
+        NonBlockingLineReader(outputStream) { line -> processor(this, IO.Type.OUT typed line) },
         NonBlockingLineReader(errorStream) { line -> processor(this, IO.Type.ERR typed line) },
     )
 

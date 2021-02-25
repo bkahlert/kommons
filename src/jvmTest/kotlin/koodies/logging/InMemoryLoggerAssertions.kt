@@ -1,6 +1,6 @@
 package koodies.logging
 
-import koodies.test.matchesCurlyPattern
+import koodies.text.matchesCurlyPattern
 import strikt.api.Assertion
 
 

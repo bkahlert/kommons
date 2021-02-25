@@ -2,11 +2,14 @@ package koodies.process
 
 import koodies.concurrent.process.DelegatingProcess
 import koodies.concurrent.process.IO
+import koodies.concurrent.process.IO.Type.META
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
-import koodies.concurrent.process.TeeOutputStream
 import koodies.debug.debug
+import koodies.io.ByteArrayOutputStream
+import koodies.io.RedirectingOutputStream
+import koodies.io.TeeOutputStream
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
@@ -21,7 +24,6 @@ import koodies.tracing.MiniTracer
 import koodies.tracing.microTrace
 import koodies.tracing.miniTrace
 import koodies.tracing.trace
-import org.apache.commons.io.output.ByteArrayOutputStream
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -140,10 +142,30 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
     }
 
     override val ioLog: IOLog by lazy { IOLog() }
-    override var inputCallback: (IO) -> Unit
-        get() = TODO("Not yet implemented")
-        set(value) {}
-
+    override val metaStream: OutputStream by lazy {
+        TeeOutputStream(
+            RedirectingOutputStream {
+                // ugly hack; META logs are just there and the processor is just notified;
+                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
+                // therefore we delay here
+                1.milliseconds.sleep { ioLog.add(IO.Type.META, it) }
+            },
+            RedirectingOutputStream { inputCallback(META typed it.decodeToString()) },
+        )
+    }
+    override val inputStream: OutputStream by lazy {
+        TeeOutputStream(
+            RedirectingOutputStream {
+                // ugly hack; IN logs are just there and the processor is just notified;
+                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
+                // therefore we delay here
+                1.milliseconds.sleep { ioLog.add(IO.Type.IN, it) }
+            },
+            javaProcess.outputStream,
+            RedirectingOutputStream { inputCallback(IO.Type.IN typed it.decodeToString()) },
+        )
+    }
+    override var inputCallback: (IO) -> Unit = {}
     override var externalSync: CompletableFuture<*> = CompletableFuture.completedFuture(Unit)
     override var onExit: CompletableFuture<Process>
         get() = externalSync.thenCombine(javaProcess.onExit()) { _, _ -> this }
