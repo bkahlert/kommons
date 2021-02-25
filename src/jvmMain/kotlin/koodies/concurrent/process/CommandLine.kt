@@ -1,6 +1,8 @@
 package koodies.concurrent.process
 
 import koodies.builder.BuilderTemplate
+import koodies.builder.context.CapturesMap
+import koodies.builder.context.CapturingContext
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
@@ -161,7 +163,7 @@ open class CommandLine(
          * Context to build a [CommandLine].
          */
         @CommandLineDsl
-        class CommandLineContext {
+        class CommandLineContext(override val captures: CapturesMap) : CapturingContext() {
 
             /**
              * Specifies the redirects like `2>&1` to be used when running this built command line.

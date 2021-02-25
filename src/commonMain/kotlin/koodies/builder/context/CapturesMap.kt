@@ -82,7 +82,7 @@ class CapturesMap(val mappings: MutableMap<KProperty<*>, Deferred<*>> = mutableM
      * property with the given [propertyName]. If no invocation is stored the optionally provided exception is thrown.
      */
     inline fun <reified R> getOrThrow(propertyName: String, noinline lazyException: (() -> Throwable)? = null): Deferred<out R> =
-        get<R>(propertyName).letContent { this ?: throw (lazyException?.invoke() ?: defaultException(propertyName)) }
+        get<R>(propertyName).letContent { if (this is R) this else throw (lazyException?.invoke() ?: defaultException(propertyName)) }
 
     /**
      * Checks if a capture can be found for `this` property and if so,

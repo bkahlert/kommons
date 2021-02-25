@@ -66,12 +66,12 @@ open class DockerStartCommandLine(
                 /**
                  * Attach STDOUT/STDERR and forward signals
                  */
-                val attach by builder(YesNo)
+                val attach by YesNo default true
 
                 /**
                  * Attach container's STDIN
                  */
-                val interactive by builder(YesNo)
+                val interactive by YesNo default false
             }
 
             override fun BuildContext.build() = withContext(::StartOptionsContext) {

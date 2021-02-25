@@ -4,7 +4,6 @@ import koodies.builder.SkippableBuilderTest.AllVariantsBuilder.Lists
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.callable
-import koodies.provideDelegate
 import koodies.test.test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -26,7 +25,6 @@ class SkippableBuilderTest {
 
             val callableBuilderInstance by callable(ListBuilder<String>())
             val callableInvokeFunction by callable(ListBuilder<String>()::invoke)
-            val callableInvokeFunctionShorthand by ListBuilder<String>()::invoke
 
             val capturingBuilderInstance by builder(emptyList(), ListBuilder<String>())
             val capturingBuilderInstanceShorthand by ListBuilder<String>()
@@ -38,7 +36,6 @@ class SkippableBuilderTest {
                 ::explicitBuilderFunction.evalOrDefault(emptyList()),
                 ::callableBuilderInstance.evalOrDefault(emptyList()),
                 ::callableInvokeFunction.evalOrDefault(emptyList()),
-                ::callableInvokeFunctionShorthand.evalOrDefault(emptyList()),
                 ::capturingBuilderInstance.eval(),
                 ::capturingBuilderInstanceShorthand.evalOrDefault(emptyList()),
             )
@@ -49,7 +46,6 @@ class SkippableBuilderTest {
             val explicitBuilderFunction: List<String>,
             val callableBuilderInstance: List<String>,
             val callableInvokeFunction: List<String>,
-            val callableInvokeFunctionShorthand: List<String>,
             val capturingBuilderInstance: List<String>,
             val capturingBuilderInstanceShorthand: List<String>,
         )
@@ -63,7 +59,6 @@ class SkippableBuilderTest {
             expect { explicitBuilderFunction { +"a" + "b" } }.that { isEqualTo(abList) }
             expect { callableBuilderInstance { +"a" + "b" } }.that { isEqualTo(abList) }
             expect { callableInvokeFunction { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { callableInvokeFunctionShorthand { +"a" + "b" } }.that { isEqualTo(abList) }
             expect { capturingBuilderInstance { +"a" + "b" } }.that { isEqualTo(Unit) }
             expect { capturingBuilderInstanceShorthand { +"a" + "b" } }.that { isEqualTo(Unit) }
         }
@@ -79,7 +74,6 @@ class SkippableBuilderTest {
             expect { explicitBuilderFunction.build { +"a" + "b" } }.that { isEqualTo(abList) }
             expect { callableBuilderInstance.build { +"a" + "b" } }.that { isEqualTo(abList) }
             expect { callableInvokeFunction.build { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { callableInvokeFunctionShorthand.build { +"a" + "b" } }.that { isEqualTo(abList) }
             expect { capturingBuilderInstance.build { +"a" + "b" } }.that { isEqualTo(Unit) }
             expect { capturingBuilderInstanceShorthand.build { +"a" + "b" } }.that { isEqualTo(Unit) }
         }
@@ -95,7 +89,6 @@ class SkippableBuilderTest {
             expect { explicitBuilderFunction(abList) }.that { isEqualTo(abList) }
             expect { callableBuilderInstance(abList) }.that { isEqualTo(abList) }
             expect { callableInvokeFunction(abList) }.that { isEqualTo(abList) }
-            expect { callableInvokeFunctionShorthand(abList) }.that { isEqualTo(abList) }
             expect { capturingBuilderInstance(abList) }.that { isEqualTo(Unit) }
             expect { capturingBuilderInstanceShorthand(abList) }.that { isEqualTo(Unit) }
         }
@@ -111,7 +104,6 @@ class SkippableBuilderTest {
             expect { explicitBuilderFunction instead abList }.that { isEqualTo(abList) }
             expect { callableBuilderInstance instead abList }.that { isEqualTo(abList) }
             expect { callableInvokeFunction instead abList }.that { isEqualTo(abList) }
-            expect { callableInvokeFunctionShorthand instead abList }.that { isEqualTo(abList) }
             expect { capturingBuilderInstance instead abList }.that { isEqualTo(Unit) }
             expect { capturingBuilderInstanceShorthand instead abList }.that { isEqualTo(Unit) }
         }
@@ -124,7 +116,6 @@ class SkippableBuilderTest {
         get { explicitBuilderFunction }.isEqualTo(emptyList())
         get { callableBuilderInstance }.isEqualTo(emptyList())
         get { callableInvokeFunction }.isEqualTo(emptyList())
-        get { callableInvokeFunctionShorthand }.isEqualTo(emptyList())
         get { capturingBuilderInstance }.isEqualTo(expected)
         get { capturingBuilderInstanceShorthand }.isEqualTo(expected)
     }.then { if (allPassed) pass() else fail() }

@@ -29,8 +29,8 @@ import kotlin.jvm.JvmName
  *
  * ### Step 1: Context Creation
  * A context is created to hold build information, provide helpful functions or
- * to model a domain specific language. If the context has a state its needs to
- * be either reset or recreated for each build so consecutive builds do not interfere.
+ * to model a domain specific language. If the context has a state a new instance
+ * needs to be created for each build to guarantee thread-safety on all platforms.
  *
  * ### Step 2: Context Initialization
  * A build is triggered by invocation of the [build] function.
@@ -39,7 +39,8 @@ import kotlin.jvm.JvmName
  * on the context, it manipulates the context's state.
  *
  * ### Step 3: Instantiation
- * In the last step the context state is used to create an instance of [R].
+ * The last step consists of using the modified context state to create an
+ * instance of [R].
  *
  * @see BuilderTemplate
  * @see SlipThroughBuilder

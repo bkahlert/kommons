@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.io.IOUtils
+import koodies.io.EOF
 import koodies.io.directoryNotEmpty
 import koodies.io.file.CopyOptions
 import koodies.io.file.resolveBetweenFileSystems
@@ -10,7 +10,9 @@ import koodies.io.fileAlreadyExists
 import koodies.io.fileSystemException
 import koodies.io.noSuchFile
 import koodies.text.withRandomSuffix
+import java.io.BufferedInputStream
 import java.io.File
+import java.io.InputStream
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystemException
 import java.nio.file.Files
@@ -59,7 +61,7 @@ fun Path.copyTo(
                 if (dstFile.exists()) {
                     if (!src.isDirectory() || !dstFile.isDirectory()) {
                         if (src.isRegularFile() && dstFile.isRegularFile() && src.size == dstFile.size) {
-                            if (IOUtils.contentEquals(src.inputStream(), dstFile.inputStream())) continue
+                            if (src.inputStream().contentEquals(dstFile.inputStream())) continue
                         }
                         val stillExists = if (overwrite) dstFile.deleteRecursively().exists() else true
 
@@ -98,6 +100,19 @@ fun Path.copyTo(
     } catch (e: TerminateException) {
         return target
     }
+}
+
+private fun InputStream.contentEquals(otherStream: InputStream): Boolean {
+    if (this === otherStream) return true
+    val thisBufferStream: BufferedInputStream = buffered()
+    val otherBufferedStream: BufferedInputStream = otherStream.buffered()
+    var ch = thisBufferStream.read()
+    while (EOF != ch) {
+        val ch2 = otherBufferedStream.read()
+        if (ch != ch2) return false
+        ch = thisBufferStream.read()
+    }
+    return otherBufferedStream.read() == EOF
 }
 
 

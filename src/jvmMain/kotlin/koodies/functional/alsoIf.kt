@@ -1,5 +1,6 @@
 package koodies.functional
 
+import kotlin.DeprecationLevel.ERROR
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -9,6 +10,7 @@ import kotlin.contracts.contract
  *
  * @see [also]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T> T.alsoIf(condition: Boolean, block: (T) -> Unit): T {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -22,6 +24,7 @@ inline fun <T> T.alsoIf(condition: Boolean, block: (T) -> Unit): T {
  *
  * @see [also]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T> T.alsoIf(predicate: (T) -> Boolean, block: (T) -> Unit): T {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

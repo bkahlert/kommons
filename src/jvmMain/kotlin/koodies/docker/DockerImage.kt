@@ -1,10 +1,6 @@
 package koodies.docker
 
 import koodies.builder.SlipThroughBuilder
-import koodies.docker.DockerImage.ImageContext
-
-@Deprecated("use DockerImage{...}", ReplaceWith("DockerImage(this)"))
-fun dockerImage(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -12,9 +8,9 @@ fun dockerImage(init: ImageContext.() -> DockerImage): DockerImage = DockerImage
  * than can either be a tag `@tag` or a digest `@hash`.
  *
  * Examples:
- * - `dockerImage { "bkahlert" / "libguestfs" }`
- * - `dockerImage { "bkahlert" / "libguestfs" tag "latest" }`
- * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+ * - `DockerImage { "bkahlert" / "libguestfs" }`
+ * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+ * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
  */
 @Suppress("SpellCheckingInspection")
 open class DockerImage(
@@ -107,9 +103,9 @@ open class DockerImage(
 
     /**
      * Micro DSL to build a [DockerImage] in the style of:
-     * - `dockerImage { "bkahlert" / "libguestfs" }`
-     * - `dockerImage { "bkahlert" / "libguestfs" tag "latest" }`
-     * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
      */
     @Suppress("SpellCheckingInspection")
     companion object : SlipThroughBuilder<ImageContext, DockerImage, DockerImage> {

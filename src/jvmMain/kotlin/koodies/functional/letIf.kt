@@ -1,5 +1,6 @@
 package koodies.functional
 
+import kotlin.DeprecationLevel.ERROR
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -8,6 +9,7 @@ import kotlin.contracts.contract
  *
  * @see [let]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T : R, R> T.letIf(condition: Boolean, block: (T) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -20,6 +22,7 @@ inline fun <T : R, R> T.letIf(condition: Boolean, block: (T) -> R): R {
  *
  * @see [let]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T : R, R> T.letIf(predicate: (T) -> Boolean, block: (T) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -32,6 +35,7 @@ inline fun <T : R, R> T.letIf(predicate: (T) -> Boolean, block: (T) -> R): R {
  *
  * @see [let]
  */
+@Deprecated("delete", level = ERROR)
 inline fun <T : R, R> T.letIf(predicate: (T) -> Boolean, value: R): R =
     if (predicate(this)) value else this
 
@@ -40,5 +44,6 @@ inline fun <T : R, R> T.letIf(predicate: (T) -> Boolean, value: R): R =
  *
  * @see [let]
  */
+@Deprecated("delete", level = ERROR)
 fun <T : R, R> T.letIf(predicate: T, value: R): R =
     if (this == predicate) value else this

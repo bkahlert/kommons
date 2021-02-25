@@ -31,6 +31,82 @@ Koodies is a random selection of utility goodies to make a Kotlin developer's li
 
 ## Features
 
+### Multi-Platform Builder Template
+
+#### What the client sees …
+
+```kotlin
+
+val myObject = MyBuilder().build {
+
+    buildOther {
+        depends {
+            on { .. }
+            the(builder)
+        }
+    }
+
+    list {
+        +"abc"
+        add("123")
+        addAll(iterable)
+    }
+
+    ref(p1, p2) {
+        a = "b"
+        f(arg)
+        …
+    }
+
+}
+```
+
+#### What the implementation is like …
+
+```kotlin
+class MyBuilder : BuilderTemplate<MyContext, MyObject> {
+
+    inner class MyContext(…) : CapturingContext() {
+        // DSL is specified here
+        val buildOther by anyBuilder()   // captures calls to anyBuilder
+        val list by by listBuilder ()    // captures list building calls
+        val ref by ::anyFunction         // capturing calls to anyFunction
+        val ref2 by ::anyFunction default …  // same as ref but with default if ref is never called
+    }
+
+    override fun BuildContext.build(): MyObject = withContext(::MyContext) {
+        // Instance is built here
+        MyObject(
+            ::buildOther.eval(),        // triggers the captured build of using anyBuilder ()
+            ::list.evalOrDefault { … }, // builds the list
+            ::ref.evalOrNull(),         // calls anyFunction(…) and provides the result
+            ::buildOther.eval(),        // resolves to above specified default since ref2 was never called
+        )
+    }
+}
+```
+
+#### Hightlights
+
+* Compose and re-use builders, functions and callable properties
+    * a couple of default builders like **EnumSetBuilder**, **ArrayBuilder**, **ListBuilder** and **MapBuilder** are already provided
+* Auto-generate simple builders, functions and setters
+* BuilderTemplate based builders are **thread-safe**
+    * **skippable**, that is, are callable as `build { … }` and also as `build(myObject)` in case you don't need to build
+        * infix skippable using `build instead myObject`
+    * usable as **singleton** `object MyBuilder`
+    * usable as **companion object**
+      ```kotlin
+      class MyObject(val other:Other, val list:List<String>, …) {
+          companion object : BuilderTemplate<MyContext, MyObject> {
+               // same implementation as above 
+          }      
+      } 
+      ```
+      which lets you
+        * **instantiate by constructor** `MyObject(other, list)` and
+        * **build by builder** `MyObject { buildOther { … }; list instead emptyList() }`
+
 ### Processes
 
 #### Running a Process
@@ -71,7 +147,7 @@ println(process.ioLog)
 Executing /some/where/koodies.process.bka.sh
 file:///some/where/koodies.process.bka.sh // <- simply click on it in your IDE
 starting to install
-installing...
+installing…
 completed.
 ```
 
@@ -86,7 +162,7 @@ Docker.busybox("""
 """).execute()
 ```
 
-... and if something goes wrong, easy to read error message:
+… and if something goes wrong, easy to read error message:
 
 ```shell
 ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(ManagedProcess.kt:126)
@@ -96,7 +172,7 @@ Docker.busybox("""
   ➜ The last 6 lines are:
     🐳 docker attach "download-latest-bkahlert_koodies"
     Executing docker run --name download-latest-bkahlert_koodies --rm -i --mount type=bind,source=/var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T,target=/tmp zero88/ghrd --regex bkahlert/koodies
-    Searching release 'latest' in repository 'bkahlert/koodies'...
+    Searching release 'latest' in repository 'bkahlert/koodies'…
     Not Found artifact '' with regex option 'on'
     Process 67008 terminated with exit code 2. Expected 0.
 ```
@@ -194,7 +270,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
 Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 ```
 
-### Borders, Boxes, ...
+### Borders, Boxes, …
 
 ```shell
  ╭───────────────────────────────────────────────────╮ 
@@ -206,33 +282,13 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 ```
 
 ```shell
-█ ▉ ▊ ▋ ▌ ▍ ▎ ▏ PILLARS  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
+  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+  ████▌▄▌▄▐▐▌█████
+  ████▌▄▌▄▐▐▌▀████
+  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
-### More...
-
-* Generic Builders
-
-  ```kotlin
-  enum class Features {
-      FeatureA, FeatureB, FeatureC
-  }
-  
-  val features = EnumSetBuilder.build<Features> {
-      +Features.FeatureA + Features.FeatureC
-  }
-  ```
-
-  ```kotlin
-  fun buildList(init: ListBuilder<String>.() -> Unit) {
-      val list = init.build()
-  }
-  
-  buildList {
-      +"element"
-      +existingList
-  }
-  ```
+### More…
 
 * Logging
   ```kotlin
@@ -248,14 +304,14 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   object HtmlFile : Fixture by TextFixture("example.html", 
     """
       <html>
-      ...
+      …
       </html>
     """.trimIndent())
   
   HtmlFile.copyTo(Locations.Temp)
   ```
 
-  **Embedded in Jar / Class Path**
+  **Jar / Class Path**
   ```kotlin
   object META_INF : ClassPathDirectoryFixture("META-INF") {
       object Services : Dir("services") {
@@ -287,7 +343,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   ```
 
   ```kotlin
-  if(file.age > 3.minutes) ...
+  if(file.age > 3.minutes) …
   ```
 
 * Unicode, Code Points & Graphemes
@@ -301,7 +357,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   ━	BOX DRAWINGS HEAVY HORIZONTAL
   │	BOX DRAWINGS LIGHT VERTICAL
   ┃	BOX DRAWINGS HEAVY VERTICAL
-  ...
+  …
   ```  
 
   **Process Each Actual Character** (and not each `char`)
@@ -362,7 +418,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   )
   ```
 
-  Split string into its lines...
+  Split string into its lines…
   ```kotlin
   """
   line 1
@@ -371,7 +427,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   """.lines() // line 1, line 2 
   ```
 
-  Split string into its lines lazily and keep the line separator...
+  Split string into its lines lazily and keep the line separator…
     ```kotlin
     """
     line 1

@@ -16,10 +16,10 @@ import strikt.assertions.isFailure
 @Execution(CONCURRENT)
 class DockerImageTest {
 
-    private val imageInit: Init = { "repo" / "name" }
-    private val officialImageInit: Init = { official("repo") }
-    private val imageWithTagInit: Init = { "repo" / "name" tag "my-tag" }
-    private val imageWithDigestInit: Init = { "repo" / "name" digest "sha256:abc" }
+    private val imageInit: DockerImageInit = { "repo" / "name" }
+    private val officialImageInit: DockerImageInit = { official("repo") }
+    private val imageWithTagInit: DockerImageInit = { "repo" / "name" tag "my-tag" }
+    private val imageWithDigestInit: DockerImageInit = { "repo" / "name" digest "sha256:abc" }
 
     @TestFactory
     fun `should format and parse image instance `() = listOf(
@@ -31,22 +31,22 @@ class DockerImageTest {
         expect { DockerImage(init) }.that { toStringIsEqualTo(string) }
         expect { DockerImage.parse(string) }.that { isEqualTo(DockerImage(init)) }
     }
-    
+
     @TestFactory
     fun `should throw on illegal repository`() = testEach("", "REPO", "r'e'p'o") { repo ->
-        expectThrowing { dockerImage { repo / "path" } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrowing { DockerImage { repo / "path" } }.that { isFailure().isA<IllegalArgumentException>() }
     }
 
     @TestFactory
     fun `should throw on illegal path`() = testEach("", "PATH", "p'a't'h") { path ->
-        expectThrowing { dockerImage { "repo" / path } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrowing { DockerImage { "repo" / path } }.that { isFailure().isA<IllegalArgumentException>() }
     }
 
     @TestFactory
     fun `should throw on illegal specifier`() = test("") { specifier ->
-        expectThrowing { dockerImage { "repo" / "path" tag specifier } }.that { isFailure().isA<IllegalArgumentException>() }
-        expectThrowing { dockerImage { "repo" / "path" digest specifier } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrowing { DockerImage { "repo" / "path" tag specifier } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrowing { DockerImage { "repo" / "path" digest specifier } }.that { isFailure().isA<IllegalArgumentException>() }
     }
 }
 
-typealias Init = ImageContext.() -> DockerImage
+typealias DockerImageInit = ImageContext.() -> DockerImage

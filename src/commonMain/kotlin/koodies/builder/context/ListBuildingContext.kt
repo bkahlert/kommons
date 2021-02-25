@@ -1,5 +1,6 @@
 package koodies.builder.context
 
+import kotlin.DeprecationLevel.ERROR
 import kotlin.experimental.ExperimentalTypeInference
 
 @DslMarker
@@ -72,18 +73,18 @@ interface ListBuildingContext<E> {
     /**
      * Adds all elements of `this` collection.
      */
-    @Deprecated("use addAll", replaceWith = ReplaceWith("addAll(this)"))
+    @Deprecated("delete", level = ERROR)
     operator fun List<E>.unaryPlus(): Unit = addAll(this)
 
     /**
      * Adds all elements of `this` array.
      */
-    @Deprecated("use addAll", replaceWith = ReplaceWith("addAll(this)"))
+    @Deprecated("delete", level = ERROR)
     operator fun Array<out E>.unaryPlus(): Unit = addAll(this)
 
     /**
      * Adds all elements of `this` sequence.
      */
-    @Deprecated("use addAll", replaceWith = ReplaceWith("addAll(this)"))
+    @Deprecated("delete", level = ERROR)
     operator fun Sequence<E>.unaryPlus(): Unit = addAll(this)
 }

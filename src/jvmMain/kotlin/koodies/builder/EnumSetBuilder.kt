@@ -4,6 +4,8 @@ package koodies.builder
 
 import java.util.EnumSet
 
+// TODO refactor
+
 /**
  * Builder of an [EnumSet] of any enum type [T].
  *

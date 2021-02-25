@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.builder.Init
 import koodies.concurrent.daemon
+import koodies.concurrent.execute
 import koodies.concurrent.output
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
@@ -18,6 +19,7 @@ import koodies.concurrent.toManagedProcess
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext
 import koodies.docker.DockerRunCommandLineOptions.Companion.OptionsContext
+import koodies.provideDelegate
 import koodies.text.LineSeparators.lines
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -54,19 +56,36 @@ object Docker {
         scriptOutputContains("""docker ps --no-trunc --format "{{.Names}}" --filter "name=^$sanitizedName${'$'}" --all""", sanitizedName)
     }
 
-//    val run by DockerRunCommandLine.transforming { TODO("") } // TODO test
-//    val stop by DockerStopCommandLine
+    /**
+     * Builds a [DockerStartCommandLine].
+     */
+    val start by DockerStartCommandLine
+
+    /**
+     * Builds a [DockerRunCommandLine].
+     */
+    val run by DockerRunCommandLine
+
+    /**
+     * Builds a [DockerStopCommandLine].
+     */
+    val stop by DockerStopCommandLine
+
+    /**
+     * Builds a [DockerRemoveCommandLine].
+     */
+    val remove by DockerRemoveCommandLine
 
     /**
      * Micro DSL to build a [DockerImage] in the style of:
-     * - `dockerImage { "bkahlert" / "libguestfs" }`
-     * - `dockerImage { "bkahlert" / "libguestfs" tag "latest" }`
-     * - `dockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
      *
-     * Convenience alias for [dockerImage].
+     * Convenience alias for [DockerImage].
      */
     @Suppress("SpellCheckingInspection")
-    fun image(init: ImageContext.() -> DockerImage): DockerImage = dockerImage(init)
+    fun image(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
     fun options(init: Init<OptionsContext>): DockerRunCommandLineOptions =
@@ -83,20 +102,20 @@ object Docker {
     /**
      * Explicitly stops the Docker container with the given [name] **asynchronously**.
      */
-    fun stop(name: String) {
-        DockerStopCommandLine { containers { +name } }.fireAndForget(expectedExitValue = null)
-    }
+    fun stop(name: String) = stop { containers { +name } }.fireAndForget(expectedExitValue = null)
 
     /**
      * Explicitly (stops and) removes the Docker container with the given [name] **synchronously**.
      *
      * If needed even [forcibly].
      */
-    fun remove(name: String, forcibly: Boolean = false): String {
-        val forceOption = if (forcibly) " --force" else ""
-        val script = script(noopProcessor(), expectedExitValue = null) { !"docker rm$forceOption \"$name\"" }
-        return script.apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }.output()
-    }
+    fun remove(name: String, forcibly: Boolean = false): String = remove {
+        options { force(forcibly) }
+        containers { +name }
+    }.execute(expectedExitValue = null)
+        .process(noopProcessor())
+        .apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }
+        .output()
 }
 
 /**

@@ -12,7 +12,7 @@ import kotlin.experimental.ExperimentalTypeInference
  *
  * The most convenient way to actually build a map is using [buildMap].
  */
-open class MapBuilder<K, V> : StatefulContextBuilder<MapBuildingContext<K, V>, Map<K, V>, Map<K, V>> {
+open class MapBuilder<K, V> : StatefulContextBuilder<MapBuildingContext<K, V>, Map<K, V>, Map<K, V>> {  // TODO get rid of indermediate map<k,v>
 
     override val statefulContext: StatefulContext<MapBuildingContext<K, V>, Map<K, V>> get() = StatefulMapBuildingContext()
 

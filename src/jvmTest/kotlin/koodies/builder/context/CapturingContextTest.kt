@@ -15,10 +15,10 @@ import strikt.assertions.isFailure
 class CapturingContextTest {
 
     inner class TestContext(override val captures: CapturesMap) : CapturingContext() {
-        val initializedWithNonNullable: (String) -> Unit by capture<String>("initial")
-        val initializedWithNullable: (String?) -> Unit by capture<String?>("nullable")
-        val initializedWithNull: (String?) -> Unit by capture<String?>(null)
-        val uninitialized: (String?) -> Unit by capture<String>()
+        val initializedWithNonNullable: (String) -> Unit by function<String>("initial")
+        val initializedWithNullable: (String?) -> Unit by function<String?>("nullable")
+        val initializedWithNull: (String?) -> Unit by function<String?>(null)
+        val uninitialized: (String?) -> Unit by function<String>()
     }
 
     @Test

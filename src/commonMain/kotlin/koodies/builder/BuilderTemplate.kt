@@ -1,6 +1,7 @@
 package koodies.builder
 
 import koodies.asString
+import koodies.builder.BuilderTemplate.BuildContext
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import kotlin.reflect.KProperty
@@ -14,81 +15,72 @@ import kotlin.reflect.KProperty
  * Context [C]—in contrast to other builders—is not predefined but built
  * using a **[CapturingContext] which lets you re-use virtually everything.**
  *
- * After the user called your builder the build needs to assemble an the actual
+ * After a user has called your builder the build needs to assemble an the actual
  * instance of [T]. Since all of the user's interactions are captured and made
  * easily accessible using a [CapturesMap], all you have to do is call
- * [KProperty.build] or one of its variants to compute the corresponding values.
+ * `::property.eval()` or one of its variants to compute the corresponding values.
  *
  * ```
  * ```
  *
  * ## Step 1/3: Specifying the Context / Domain Language
  *
- * ### CAPTURING BUILDERS { … }
  * ```kotlin
  *
- *     val customBuild by CustomBuilder()          👉 capturing builder
- *                                                                    (shorthand)
+ *     val build by anyBuilder() default ...      👉 capturing builder with
+ *                                                           optional default result
  *
- *     val build by builder(ListBuilder<String>()) 👉 capturing builder
- *                                                               (regular syntax)
+ *     val array by arrayBuilder()                👉 container builders with
+ *          list by listBuilder()                    empty array/list/map as default
+ *           map by mapBuilder()
  *
- *     val provide by builder<Int>()               👉 capturing builder
- *                                                                (takes () -> R)
+ * val reference by ::anyFunction default ...     👉 capturing function or
+ *                                                    callable property with default
  *
- * ```
- *
- * ### CAPTURING FUNCTIONS(…)
- * ```kotlin
- *
- *     val delegate by capture(::anyFunction)      👉 capturing function or
- *                                                    callable property reference
- *
- *     val function by capture<Double>()           👉 capturing function (takes R)
- *
- * ```
- *
- * ### CAPTURING PROPERTY=…
- * ```kotlin
- *
- *     val prop by setter<String>()                👉 capturing property
- *                                                       (can be assigned with R)
+ *   val builder by builder<T>()                  👉 capturing f(init: ()->T)
+ *      val func by function<T>()                 👉 capturing f(value: T)
+ *      var prop by setter<T>()                   👉 capturing prop: T = ...
  *
  * ```
  *
  *
- * ## Step 2/3: Calling Your Builder
+ * ## Step 2/3: Triggering Build
  *
  * ```kotlin
  * myBuild {
  *
- *     customBuild {
+ *     build {
  *          depends = on { the(builder) }
  *     }
  *
- *     build {
+ *     list {
  *          +"abc"
  *          add("123")
  *          addAll(iterable)
  *     }
  *
- *     provide { 42 }
+ *     reference(p1, p2) { … }
  *
- *     delegate(p1, p2) { … }
+ *     builder { 42 }
+ *     func(42)
+ *     prop = 42
  *
- *     function(kotlin.math.PI)
- *
- *     prop = "a string"
  * }
  *
  * ```
  *
  *
- * ## Step 3/3: Building Your Domain Object
+ * ## Step 3/3: Building Domain Object
  *
- * Time to assemble your object using the captures values. Those have been
- * stored and linked to their respective property in an instance of [CapturesMap]
- * which makes evaluating the captures as snap.
+ * The domain object is created using the captured values from the previous
+ * build invocation. These have been stored with their respective property linked,
+ * in an instance of [CapturesMap] which makes evaluating the captures as snap.
+ *
+ * If some of the builder functions were not called by the user the optionally
+ * specified default is used. Otherwise [BuildContext.evalOrNull] and
+ * [BuildContext.evalOrDefault] can be used to handle those cases in this last
+ * step. [BuildContext.eval] throws an exception if no default was specified
+ * in step 1, no invocation was recorded and a non-nullable type is needed.
  *
  *
  * ```kotlin
@@ -96,17 +88,17 @@ import kotlin.reflect.KProperty
  *
  *     MyDomainObject(
  *
- *         ::customBuild.buildOrThrow(),
+ *         ::build.eval(),
  *
- *         ::build.buildOrDefault { … },
+ *         ::list.eval(),
  *
- *         ::provide.buildOrDefault(0),
+ *         ::reference.evalOrNull(),
  *
- *         ::delegate.buildOrNull(),
+ *         ::builder.evalOrDefault { … },
  *
- *         ::function.buildOrNull(),
+ *         ::function.eval(),
  *
- *         ::prop.buildOrNull()?:"",
+ *         ::prop.eval(),
  *
  *     )
  * }
@@ -191,8 +183,6 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * evaluates and returns it. Otherwise throws a [NoSuchElementException].
          */
         inline fun <reified T> KProperty<*>.eval(): T = with(captures) { eval() }
-
-        inline infix fun <reified T> KProperty<*>.or(default: T) = evalOrDefault(default) // TODO
     }
 
     override fun toString(): String = asString()

@@ -56,8 +56,10 @@ abstract class ProxyInputStream(proxy: InputStream?) : FilterInputStream(proxy) 
         0
     }
 
-    override fun close() {
-        IOUtils.close(inputStream) { e: IOException -> handleIOException(e) }
+    override fun close(): Unit = try {
+        inputStream.close()
+    } catch (e: IOException) {
+        handleIOException(e)
     }
 
     override fun mark(readlimit: Int) = lock.withLock { inputStream.mark(readlimit) }

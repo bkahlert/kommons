@@ -77,7 +77,7 @@ fun Path.process(
 /**
  * Starts a new [ManagedProcess] that runs this command line.
  */
-fun CommandLine.execute(expectedExitValue: Int = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
+fun CommandLine.execute(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
     process(this, expectedExitValue, processTerminationCallback)//.apply { start() }
 
 /**
