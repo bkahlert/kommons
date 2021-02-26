@@ -11,6 +11,7 @@ import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
 import koodies.logging.RenderingLogger
 import koodies.logging.logging
+import koodies.logging.logging2
 import koodies.terminal.ANSI
 import koodies.text.LineSeparators
 import java.io.InputStream
@@ -84,27 +85,91 @@ fun CommandLine.execute(expectedExitValue: Int? = 0, processTerminationCallback:
  * Starts a new [ManagedProcess] that runs this command line
  * and has it fully processed using `this` [RenderingLogger].
  */
-fun CommandLine.executeLogging(
+fun CommandLine.execute(
     caption: String,
     bordered: Boolean = true,
     ansiCode: AnsiColorCode = ANSI.termColors.brightBlue,
     nonBlockingReader: Boolean = false,
-    expectedExitValue: Int = 0,
+    expectedExitValue: Int? = 0,
 ): Int = logging(caption = caption, bordered = bordered, ansiCode = ansiCode) {
-    execute(expectedExitValue).process(
+    this@execute.execute(expectedExitValue).process(
         nonBlockingReader = nonBlockingReader,
         processInputStream = InputStream.nullInputStream(),
         processor = Processors.loggingProcessor(this)
-    )
-}.waitForTermination()
+    ).waitForTermination()
+}
+
+
+/**
+ * Starts a new [ManagedProcess] that runs this command line
+ * and has it fully processed using `this` [RenderingLogger].
+ */
+val RenderingLogger.execute: CommandLine.(
+    caption: String,
+    bordered: Boolean,
+    ansiCode: AnsiColorCode?,
+    nonBlockingReader: Boolean?,
+    expectedExitValue: Int?,
+) -> Int
+    get() {
+        val outLogger = this
+        return { caption, bordered, ansiCode, nonBlockingReader, expectedExitValue ->
+            val command = this
+            outLogger.logging2(caption = caption, bordered = bordered, ansiCode = ansiCode ?: ANSI.termColors.brightBlue) {
+                execute(expectedExitValue ?: 0).process(
+                    nonBlockingReader = nonBlockingReader ?: false,
+                    processInputStream = InputStream.nullInputStream(),
+                    processor = Processors.loggingProcessor(this)
+                ).waitForTermination()
+            }
+        }
+    }
+
+fun main() {
+    val commandLine = CommandLine("echo", "test")
+
+    commandLine.execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
+    System.exit(0)
+    with(commandLine) {
+        execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
+    }
+    logging2("existing logging context") {
+        with(commandLine) {
+            execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
+        }
+    }
+    with(commandLine) {
+        logging2("existing logging context", bordered = true, ansiCode = ANSI.termColors.brightMagenta) {
+            logLine { "abc" }
+            execute("command line logging context", true, ANSI.termColors.magenta, true, null)
+        }
+    }
+    with(commandLine) {
+        logging2("existing logging context", ansiCode = ANSI.termColors.brightBlue) {
+            logLine { "abc" }
+            execute("command line logging context", false, ANSI.termColors.blue, true, null)
+        }
+    }
+    with(commandLine) {
+        logging2("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightMagenta) {
+            logLine { "abc" }
+            execute("command line logging context", true, ANSI.termColors.magenta, true, null)
+        }
+    }
+    with(commandLine) {
+        logging2("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightBlue) {
+            logLine { "abc" }
+            execute("command line logging context", false, ANSI.termColors.blue, true, null)
+        }
+    }
+}
 
 /**
  * Returns (and possibly blocks until finished) the output of `this` [ManagedProcess].
  *
  * This method is idempotent.
  */
-fun ManagedProcess.output(
-): String = run {
+fun ManagedProcess.output(): String = run {
     processSynchronously(Processors.noopProcessor())
     ioLog.logged.filter { it.type == IO.Type.OUT }.joinToString(LineSeparators.LF) { it.unformatted }
 }

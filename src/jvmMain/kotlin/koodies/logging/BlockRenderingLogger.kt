@@ -38,7 +38,7 @@ open class BlockRenderingLogger(
 
     final override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit =
         block().let { message: CharSequence ->
-            val finalMessage: String = "$message" + if (trailingNewline) "\n" else ""
+            val finalMessage: String = message.toString() + if (trailingNewline) LF else ""
             log.invoke(finalMessage)
         }
 
@@ -46,10 +46,9 @@ open class BlockRenderingLogger(
     private val whitePlaySymbol = ANSI.termColors.green("▷")
 
     private val blockStart: String
-        get() = buildList<String> {
+        get() = buildList {
             val captionLines = caption.asAnsiString().lines()
             if (bordered) {
-                +""
                 +"╭─────╴${captionLines.first().bold()}"
                 captionLines.drop(1).forEach {
                     +"$prefix   ${it.bold()}"
@@ -69,7 +68,7 @@ open class BlockRenderingLogger(
         val message: String =
             if (returnValue.successful) {
                 val renderedSuccess = formatReturnValue(returnValue)
-                if (bordered) "│\n╰─────╴$renderedSuccess\n"
+                if (bordered) "│$LF╰─────╴$renderedSuccess"
                 else "$renderedSuccess"
             } else {
                 if (bordered) {
@@ -176,3 +175,46 @@ fun Any?.createBlockRenderingLogger(
     ) { output -> logText { ansiCode.invoke(output) } }
     else -> BlockRenderingLogger(caption = caption, bordered = bordered)
 }
+
+
+fun createBlockRenderingLogger2(
+    caption: CharSequence,
+    bordered: Boolean,
+    ansiCode: AnsiCode?,
+) = BlockRenderingLogger(caption = caption, bordered = bordered)
+
+fun MutedRenderingLogger.createBlockRenderingLogger2(
+    caption: CharSequence,
+    bordered: Boolean,
+    ansiCode: AnsiCode?,
+) = this
+
+fun BorderedRenderingLogger.createBlockRenderingLogger2(
+    caption: CharSequence,
+    bordered: Boolean,
+    ansiCode: AnsiCode?,
+) = BlockRenderingLogger(
+    caption = caption,
+    bordered = bordered,
+    statusInformationColumn = statusInformationColumn - prefix.length,
+    statusInformationPadding = statusInformationPadding,
+    statusInformationColumns = statusInformationColumns - prefix.length,
+) { output -> logText { ansiCode.invoke(output) } }
+
+fun RenderingLogger.createBlockRenderingLogger2(
+    caption: CharSequence,
+    bordered: Boolean,
+    ansiCode: AnsiCode?,
+) = BlockRenderingLogger(
+    caption = caption,
+    bordered = bordered
+) { output -> logText { ansiCode.invoke(output) } }
+
+fun BlockRenderingLogger.createBlockRenderingLogger2(
+    caption: CharSequence,
+    bordered: Boolean,
+    ansiCode: AnsiCode?,
+) = BlockRenderingLogger(
+    caption = caption,
+    bordered = bordered
+) { output -> logText { ansiCode.invoke(output) } }
