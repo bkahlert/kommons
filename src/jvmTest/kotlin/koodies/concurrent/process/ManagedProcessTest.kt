@@ -411,10 +411,10 @@ val <T : ManagedProcess> Assertion.Builder<T>.io
     }
 
 
-fun Assertion.Builder<String>.containsDump() {
+fun Assertion.Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh")) {
     compose("contains dump") {
         contains("dump has been written")
-        contains(".sh")
+        containedStrings.forEach { contains(it) }
         contains(".log")
         contains(".no-ansi.log")
     }.then { if (allPassed) pass() else fail() }

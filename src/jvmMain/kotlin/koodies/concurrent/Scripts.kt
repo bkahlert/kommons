@@ -3,10 +3,10 @@ package koodies.concurrent
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.Process
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.processSynchronously
+import koodies.concurrent.process.toProcessor
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.io.path.randomPath
@@ -174,14 +174,6 @@ fun script(
     processTerminationCallback = processTerminationCallback,
     shellScript = shellScript
 )
-
-/**
- * Creates a [Processor] from `this` [RenderingLogger].
- *
- * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
- */
-private fun <P : Process> RenderingLogger?.toProcessor() =
-    this?.let { Processors.loggingProcessor(it) } ?: Processors.consoleLoggingProcessor<P>()
 
 /**
  * Convenience function to tests if the output of the specified [command]

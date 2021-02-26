@@ -1,14 +1,19 @@
 package koodies.concurrent
 
 import com.github.ajalt.mordant.AnsiColorCode
+import koodies.builder.Init
 import koodies.concurrent.process.CommandLine
+import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSynchronously
+import koodies.concurrent.process.toProcessor
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
+import koodies.io.path.Locations
 import koodies.logging.RenderingLogger
 import koodies.logging.logging
 import koodies.logging.logging2
@@ -73,7 +78,139 @@ fun Path.process(
 ): ManagedProcess = process(CommandLine(redirects, environment, this, command, arguments.toList()), expectedExitValue, processTerminationCallback)
 
 
-// TODO refactor so there is a family of functions that starts and processes a commandline
+/* ALL EXECUTE METHODS BELOW ALWAYS START THE COMMANDLINE/PROCESS AND AND PROCESS IT SYNCHRONOUSLY */
+
+/**
+ * Runs the specified [commandLine] with the specified [environment]
+ * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
+ *
+ * The output of the created [ManagedProcess] will be processed by the specified [processor]
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
+ *
+ * If provided, the [processTerminationCallback] will be called on process
+ * termination and before other [ManagedProcess.onExit] registered listeners
+ * get called.
+ */
+fun Path.execute(
+    commandLine: CommandLine,
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
+): ManagedProcess {
+    return process(commandLine, expectedExitValue, processTerminationCallback).processSynchronously(processor)
+}
+
+/**
+ * Runs the specified [commandLine] with the specified [environment]
+ * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
+ *
+ * The output of the created [ManagedProcess] will be processed by the specified [processor]
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
+ *
+ * If provided, the [processTerminationCallback] will be called on process
+ * termination and before other [ManagedProcess.onExit] registered listeners
+ * get called.
+ */
+fun execute(
+    commandLine: CommandLine,
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
+): ManagedProcess = Locations.Temp.execute(commandLine, environment, expectedExitValue, processTerminationCallback, processor)
+
+
+/**
+ * Runs the specified [commandLine] with the specified [environment]
+ * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
+ *
+ * The output of the created [ManagedProcess] will be processed by the specified [processor]
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
+ *
+ * If provided, the [processTerminationCallback] will be called on process
+ * termination and before other [ManagedProcess.onExit] registered listeners
+ * get called.
+ */
+fun Path.execute(
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
+    commandLine: Init<CommandLineContext>,
+): ManagedProcess = execute(CommandLine(commandLine), environment, expectedExitValue, processTerminationCallback, processor)
+
+/**
+ * Runs the specified [commandLine] with the specified [environment]
+ * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
+ *
+ * The output of the created [ManagedProcess] will be processed by the specified [processor]
+ * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
+ *
+ * If provided, the [processTerminationCallback] will be called on process
+ * termination and before other [ManagedProcess.onExit] registered listeners
+ * get called.
+ */
+fun execute(
+    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
+    commandLine: Init<CommandLineContext>,
+): ManagedProcess = execute(CommandLine(commandLine), environment, expectedExitValue, processTerminationCallback, processor)
+
+
+/**
+ * Runs the specified [commandLine] with the specified [environment]
+ * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
+ *
+ * The output of the created [ManagedProcess] will be logged by the specified [logger]
+ * which prints all [IO] to the console if `null`
+ *
+ * If provided, the [processTerminationCallback] will be called on process
+ * termination and before other [ManagedProcess.onExit] registered listeners
+ * get called.
+ */
+fun Path.execute(
+    logger: RenderingLogger?,
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
+    commandLine: Init<CommandLineContext>,
+): ManagedProcess = execute(
+    processor = logger.toProcessor(),
+    environment = environment,
+    expectedExitValue = expectedExitValue,
+    processTerminationCallback = processTerminationCallback,
+    commandLine = commandLine
+)
+
+/**
+ * Runs the specified [commandLine] with the specified [environment]
+ * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
+ *
+ * The output of the created [ManagedProcess] will be logged by the specified [logger]
+ * which prints all [IO] to the console if `null`
+ *
+ * If provided, the [processTerminationCallback] will be called on process
+ * termination and before other [ManagedProcess.onExit] registered listeners
+ * get called.
+ */
+fun execute(
+    logger: RenderingLogger?,
+    environment: Map<String, String> = emptyMap(),
+    expectedExitValue: Int? = 0,
+    processTerminationCallback: (() -> Unit)? = null,
+    commandLine: Init<CommandLineContext>,
+): ManagedProcess = execute(
+    processor = logger.toProcessor(),
+    environment = environment,
+    expectedExitValue = expectedExitValue,
+    processTerminationCallback = processTerminationCallback,
+    commandLine = commandLine
+)
+
+// TODO match signatures below
 
 /**
  * Starts a new [ManagedProcess] that runs this command line.
@@ -111,25 +248,24 @@ val RenderingLogger.execute: CommandLine.(
     nonBlockingReader: Boolean?,
     expectedExitValue: Int?,
 ) -> Int
-    get() {
-        val outLogger = this
-        return { caption, bordered, ansiCode, nonBlockingReader, expectedExitValue ->
-            val command = this
-            outLogger.logging2(caption = caption, bordered = bordered, ansiCode = ansiCode ?: ANSI.termColors.brightBlue) {
-                execute(expectedExitValue ?: 0).process(
-                    nonBlockingReader = nonBlockingReader ?: false,
-                    processInputStream = InputStream.nullInputStream(),
-                    processor = Processors.loggingProcessor(this)
-                ).waitForTermination()
-            }
+    get() = { caption, bordered, ansiCode, nonBlockingReader, expectedExitValue ->
+        this@execute.logging2(caption = caption, bordered = bordered, ansiCode = ansiCode ?: ANSI.termColors.brightBlue) {
+            execute(expectedExitValue ?: 0).process(
+                nonBlockingReader = nonBlockingReader ?: false,
+                processInputStream = InputStream.nullInputStream(),
+                processor = Processors.loggingProcessor(this)
+            ).waitForTermination()
         }
     }
 
+
 fun main() {
+    // TODO refactor: alles auf logging2?
+    // TODO refactor: process nach execute umbenenen und wie script dann die signatur
+
     val commandLine = CommandLine("echo", "test")
 
     commandLine.execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
-    System.exit(0)
     with(commandLine) {
         execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
     }
