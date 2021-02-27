@@ -21,5 +21,7 @@ interface MapBuildingContext<K, V> : MutableMap<K, V> {
      * effects, e.g. if the insertion order is important.
      */
     @BuilderInference
-    infix fun K.to(value: V)
+    infix fun K.to(value: V) {
+        put(this, value)
+    }
 }

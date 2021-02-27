@@ -83,7 +83,7 @@ class NonBlockingReader(
                 }
                 logStatus { META typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milliseconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
                 if (read == 1) {
-//                    println(this@NonBlockingReader)
+
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF
 
                     if (lineComplete) {

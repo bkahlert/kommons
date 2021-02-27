@@ -103,12 +103,14 @@ import kotlin.reflect.KProperty
  *     )
  * }
  * ```
+ *
+ * @sample CarDSL
  */
 abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
 
-    override fun invoke(init: Init<C>): T = CapturesMap().run {
+    override fun invoke(init: Init<C>): T = CapturesMap().let {
         runCatching {
-            BuildContext(this, init).build()
+            BuildContext(it, init).build()
         }.getOrElse {
             throw IllegalStateException("An error occurred while building: $this", it)
         }
@@ -116,21 +118,16 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
 
     /**
      * Builds an instance of type [T].
-     *
-     * On invocation needs to pass a context to [BuildContext.withContext].
      */
     protected abstract fun BuildContext.build(): T
 
     /**
      * Context that serves as the receiver of the final build step.
-     *
-     * Expects [withContext] to be called with an instance of context [C]
-     * and a lambda performing the instantiation of [T].
      */
     inner class BuildContext(val captures: CapturesMap, val init: Init<C>) {
 
         /**
-         * Creates a new [context] instance using the given producer,
+         * Creates a new [C] instance using the given producer,
          * applies the build argument to it—capturing all invocations—
          * and calls the given [build] to assemble an instance of type [T].
          *
@@ -139,7 +136,7 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * and [eval] to conveniently evaluate the most recent invocation
          * of the corresponding property.
          */
-        fun withContext(context: (CapturesMap) -> C, build: C.() -> T): T = context(captures).run {
+        operator fun ((CapturesMap) -> C).invoke(build: C.() -> T): T = this(captures).run {
             init(this)
             build()
         }
@@ -187,3 +184,4 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
 
     override fun toString(): String = asString()
 }
+

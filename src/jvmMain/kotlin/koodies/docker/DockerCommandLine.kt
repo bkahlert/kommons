@@ -74,7 +74,7 @@ open class DockerCommandLine(
     override fun hashCode(): Int = commandLineParts.contentHashCode()
 
     companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
-        override fun BuildContext.build() = withContext(::CommandLineContext) {
+        override fun BuildContext.build() = ::CommandLineContext {
             DockerCommandLine(
                 redirects = ::redirects.eval(),
                 environment = ::environment.eval(),

@@ -7,11 +7,11 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 @Execution(SAME_THREAD)
-class NoopBuilderTest {
+class PseudoBuilderTest {
 
-    private class CustomNoopBuilder : NoopBuilder<String>
+    private class CustomPseudoBuilder : PseudoBuilder<String>
 
-    private val builder = CustomNoopBuilder()
+    private val builder = CustomPseudoBuilder()
 
     @Test
     fun `should return compute result as build result`() {

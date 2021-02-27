@@ -15,7 +15,7 @@ annotation class ListBuildingDsl
  */
 @OptIn(ExperimentalTypeInference::class)
 @ListBuildingDsl
-interface ListBuildingContext<E> {
+fun interface ListBuildingContext<E> {
     /**
      * Adds `this` element.
      */
@@ -44,7 +44,7 @@ interface ListBuildingContext<E> {
      * Adds all elements of the specified [collection].
      */
     @BuilderInference
-    fun addAll(collection: Collection<E>)
+    fun addAll(collection: Collection<E>) = collection.forEach { add(it) }
 
     /**
      * Adds all elements of the specified [array].

@@ -68,6 +68,14 @@ object Processors {
 }
 
 /**
+ * Creates a [Processor] that processes [IO] by logging it using the `this` [RenderingLogger].
+ *
+ * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
+ */
+fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
+    this?.let { Processors.loggingProcessor(it) } ?: consoleLoggingProcessor()
+
+/**
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */

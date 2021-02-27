@@ -2,7 +2,7 @@
 
 # Koodies [![Download from Maven Central](https://img.shields.io/maven-central/v/com.bkahlert.koodies/koodies?color=FFD726&label=Maven%20Central&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI1LjEuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI%2BCjxnPgoJPGRlZnM%2BCgkJPHBhdGggaWQ9IlNWR0lEXzFfIiBkPSJNMTAxLjcsMzQ1LjJWMTY3TDI1Niw3Ny45TDQxMC40LDE2N3YxNzguMkwyNTYsNDM0LjNMMTAxLjcsMzQ1LjJ6IE0yNTYsNkwzOS42LDEzMS4ydjI0OS45TDI1Niw1MDYKCQkJbDIxNi40LTEyNC45VjEzMS4yTDI1Niw2eiIvPgoJPC9kZWZzPgoJPHVzZSB4bGluazpocmVmPSIjU1ZHSURfMV8iICBzdHlsZT0ib3ZlcmZsb3c6dmlzaWJsZTtmaWxsOiNGRkZGRkY7Ii8%2BCgk8Y2xpcFBhdGggaWQ9IlNWR0lEXzJfIj4KCQk8dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF8xXyIgIHN0eWxlPSJvdmVyZmxvdzp2aXNpYmxlOyIvPgoJPC9jbGlwUGF0aD4KPC9nPgo8L3N2Zz4K)](https://search.maven.org/search?q=g:com.bkahlert.koodies%20AND%20a:koodies) [![Download from Bintray JCenter](https://img.shields.io/bintray/v/bkahlert/koodies/koodies?color=69B745&label=Bintray%20JCenter&logo=JFrog-Bintray&logoColor=fff&style=round)](https://bintray.com/bkahlert/koodies/koodies/_latestVersion) [![Download from GitHub Packages](https://img.shields.io/github/v/release/bkahlert/koodies?color=01818F&label=GitHub&logo=GitHub&logoColor=fff&style=round)](https://github.com/bkahlert/koodies/releases/latest) [![Repository Size](https://img.shields.io/github/repo-size/bkahlert/koodies?color=29ABE2&label=Repo%20Size&logo=Git&logoColor=fff)](https://github.com/bkahlert/koodies) [![Repository Size](https://img.shields.io/github/license/bkahlert/koodies?color=C21E73&label=License&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1OTAgNTkwIiAgeG1sbnM6dj0iaHR0cHM6Ly92ZWN0YS5pby9uYW5vIj48cGF0aCBkPSJNMzI4LjcgMzk1LjhjNDAuMy0xNSA2MS40LTQzLjggNjEuNC05My40UzM0OC4zIDIwOSAyOTYgMjA4LjljLTU1LjEtLjEtOTYuOCA0My42LTk2LjEgOTMuNXMyNC40IDgzIDYyLjQgOTQuOUwxOTUgNTYzQzEwNC44IDUzOS43IDEzLjIgNDMzLjMgMTMuMiAzMDIuNCAxMy4yIDE0Ny4zIDEzNy44IDIxLjUgMjk0IDIxLjVzMjgyLjggMTI1LjcgMjgyLjggMjgwLjhjMCAxMzMtOTAuOCAyMzcuOS0xODIuOSAyNjEuMWwtNjUuMi0xNjcuNnoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxOS4yMTIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4%3D)](https://github.com/bkahlert/koodies/blob/master/LICENSE)
 
-**RANDOM SELECTION OF KOTLIN GOODIES**
+*RANDOM SELECTION OF KOTLIN GOODIES*
 
 ## Install
 
@@ -30,79 +30,136 @@
 
 ### Multi-Platform Builder Template
 
-#### What the client sees …
+#### Example: Car DSL *[full example](src/commonMain/kotlin/koodies/builder/CarDSL.kt)*
+
+##### CarBuilder Implementation
 
 ```kotlin
+data class Car(
+    val name: String,
+    val color: String,
+    val traits: Set<Trait>,
+    val engine: Engine,
+    val wheels: Int,
+)
 
-val myObject = MyBuilder().build {
+class CarBuilder : BuilderTemplate<CarContext, Car>() {
 
-    buildOther {
-        depends {
-            on { … }
-            the(builder)
-        }
+    class CarContext(override val captures: CapturesMap) : CapturingContext() {
+        var name by setter<String>()
+        val color by External::color
+        val traits by enumSetBuilder<Trait>()
+        val engine by Engine
+        val wheels by builder<Int>()
     }
 
-    list {
-        +"abc"
-        add("123")
-        addAll(iterable)
-    }
-
-    ref(p1, p2) {
-        a = "b"
-        f(arg)
-        …
-    }
-
-}
-```
-
-#### What the implementation is like …
-
-```kotlin
-class MyBuilder : BuilderTemplate<MyContext, MyObject> {
-
-    inner class MyContext(…) : CapturingContext() {
-        // DSL is specified here
-        val buildOther by anyBuilder()   // captures calls to anyBuilder
-        val list by by listBuilder ()    // captures list building calls
-        val ref by ::anyFunction         // capturing calls to anyFunction
-        val ref2 by ::anyFunction default …  // same as ref but with default if ref is never called
-    }
-
-    override fun BuildContext.build(): MyObject = withContext(::MyContext) {
-        // Instance is built here
-        MyObject(
-            ::buildOther.eval(),        // triggers the captured build of using anyBuilder ()
-            ::list.evalOrDefault { … }, // builds the list
-            ::ref.evalOrNull(),         // calls anyFunction(…) and provides the result
-            ::buildOther.eval(),        // resolves to above specified default since ref2 was never called
+    override fun BuildContext.build() = ::CarContext {
+        Car(
+            ::name.eval(),
+            ::color.evalOrDefault("#111111"),
+            ::traits.eval(),
+            ::engine.eval(),
+            ::wheels.evalOrDefault(4)
         )
     }
 }
 ```
 
-#### Hightlights
+##### CarBuilder Usage
+
+```kotlin
+val car = CarBuilder()
+
+val exclusiveCar = car {
+    name = "Koodies Car"
+    color(198, 82, 89)
+    engine {
+        power { 145.kW }
+        maxSpeed { 244.km per hour }
+    }
+    wheels { 4 }
+    traits { +Exclusive + TaxExempt }
+}
+println(exclusiveCar)
+
+val defaultCarWithCopiedMotor = car {
+    name = "Default Car"
+    engine instead exclusiveCar.engine
+}
+println(defaultCarWithCopiedMotor)
+```
+
+```text
+Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], wheels=4, 
+    engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
+Car(name=Default Car, color=#111111, traits=[], wheels=4,
+    engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
+```
+
+##### CarBuilder Parts
+
+```kotlin
+inline class EnginePower(val watts: BigDecimal) {
+    companion object : StatelessBuilder.Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
+        object EnginePowerContext {
+            val Int.kW get() = kilo.W
+            val BigDecimal.W: EnginePower get() = EnginePower(this)
+        }
+    }
+}
+
+data class Speed(val distance: Distance, val time: Duration) {
+    companion object : StatelessBuilder.Returning<SpeedContext, Speed>(SpeedContext) {
+        object SpeedContext {
+            val Int.km get() = kilo.m
+            val hour = 1.hours
+            infix fun Distance.per(time: Duration) = Speed(Distance(this), time)
+            val BigDecimal.m: Distance get() = Distance(this)
+        }
+    }
+}
+
+data class Engine(val power: EnginePower, val maxSpeed: Speed) {
+    companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
+
+        class EngineContext(
+            override val captures: CapturesMap,
+        ) : CapturingContext() {
+            val power by EnginePower
+            val maxSpeed by Speed
+        }
+
+        override fun BuildContext.build() = ::EngineContext {
+            Engine(::power.evalOrDefault { EnginePower { 130.kW } }, ::maxSpeed.evalOrDefault { Speed { 228.km per hour } })
+        }
+    }
+}
+
+enum class Trait { Exclusive, PreOwned, TaxExempt }
+````
+
+#### Highlights
 
 * Compose and re-use builders, functions and callable properties
     * a couple of default builders like **EnumSetBuilder**, **ArrayBuilder**, **ListBuilder** and **MapBuilder** are already provided
 * Auto-generate simple builders, functions and setters
-* BuilderTemplate based builders are **thread-safe**
-    * **skippable**, that is, are callable as `build { … }` and also as `build(myObject)` in case you don't need to build
-        * infix skippable using `build instead myObject`
-    * usable as **singleton** `object MyBuilder`
+* BuilderTemplate based builders are...
+    * **thread-safe**
+    * **skippable**
+        * call `build { … }` to build and `build(myCar)` if you already have an instance
+        * infix alternative: `build instead myCar`
+    * usable as **singleton** `object CarBuilder`
     * usable as **companion object**
       ```kotlin
-      class MyObject(val other:Other, val list:List<String>, …) {
-          companion object : BuilderTemplate<MyContext, MyObject> {
+      class Car(val name: String, …, val engine: Engine, val wheels: Int) {
+          companion object : BuilderTemplate<CarContext, Car> {
                // same implementation as above 
           }      
       } 
       ```
       which lets you
-        * **instantiate by constructor** `MyObject(other, list)` and
-        * **build by builder** `MyObject { buildOther { … }; list instead emptyList() }`
+        * **instantiate using a constructor** `Car("boring", …, engine, 4)` and
+        * **build using the builder** `Car { name{ "exceptionel" }; engine { speed{ 1_200.km per hour } } }`
 
 ### Processes
 

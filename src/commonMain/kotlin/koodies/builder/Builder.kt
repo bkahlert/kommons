@@ -1,6 +1,5 @@
 package koodies.builder
 
-import koodies.builder.context.StatefulContext
 import kotlin.jvm.JvmName
 
 
@@ -43,8 +42,7 @@ import kotlin.jvm.JvmName
  * instance of [R].
  *
  * @see BuilderTemplate
- * @see SlipThroughBuilder
- * @see StatefulContextBuilder
+ * @see StatelessBuilder
  * @see SkippableBuilder
  */
 fun interface Builder<in T : Function<*>, out R> {
@@ -111,74 +109,57 @@ inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMu
  * Simple default interface of a builder that does nothing but
  * return the result of the build argument.
  *
- * @see SlipThroughBuilder
+ * @see StatelessBuilder
  */
-interface NoopBuilder<T> : Builder<() -> T, T> {
+interface PseudoBuilder<T> : Builder<() -> T, T> {
     override fun invoke(init: () -> T): T = init()
 }
 
 /**
  * Convenience interface for a [Builder] that features an immutable context.
- * The build argument is a series of manipulations mostly based on functions
- * provided by the context.
+ * Consequently the build process is restricted to transformations of the build
+ * argument itself using functions provided by the context.
  *
- * Apart from that the build argument leaves no traces as the context is immutable
- * and therefore simply `slips through` the build process.
+ * What sounds like a downside is quite handy to model **micro domain specific
+ * languages** of which the scope reaches from
+ * here 👉 `{ "mini".DSL to result }` 👈 to here.
  *
- * The build can only be finalized if the transformations leads to a return
+ * The build can only be finalized if the transformations lead to a return
  * value of type [R] (respectively [S] if post-processing is applied).
  *
  * If all transformations are provided by the context (i.e. transitions only
  * possible with the context; or non-final intermediary states) and can be
  * chained, crisp mini domain specific languages can be implemented.
  *
- * **Example**
+ * **Examples**
  * ```kotlin
  * DockerImage { "bkahlert" / "libguestfs" tag "latest" }
  * ```
- */
-interface SlipThroughBuilder<C, R, S> : Builder<C.() -> R, S> {
-    /**
-     * A (typically immutable) context that provides functions
-     * to transform the initial argument of the [build]'s [InitCompute]
-     */
-    val context: C
-    val transform: R.() -> S
-    override fun invoke(init: C.() -> R): S = context.init().transform()
-}
-
-/**
- * Builder that stores the context state [S] separately from the context [C].
  *
- * @see Builder
+ * ```kotlin
+ * DockerMounts {
+ *     "/some/directory" mountAs bind at "/app/data"
+ *     HomeDir mountAt "/home"
+ * }
  */
-interface StatefulContextBuilder<C, S, R> : Builder<Init<C>, R> {
-    /**
-     * Stores the aggregated [StatefulContext.state] of all operations
-     * performed on the [StatefulContext.context].
-     */
-    val statefulContext: StatefulContext<C, S>
+interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
 
     /**
-     * Build step that builds instances of [R]
-     * based on the aggregated [StatefulContext.state]
-     * that resulted from the operations
-     * performed on the immutable [StatefulContext.context].
+     * Implementation of a [StatelessBuilder] that builds by applying
+     * the build argument to the given [context] and passing the intermediary
+     * build result to the given [finalize].
      */
-    val transform: S.() -> R
+    open class PostProcessing<C, R, S>(private val context: C, private val finalize: R.() -> S) : Builder<C.() -> R, S> {
+        override fun invoke(init: C.() -> R): S = context.init().finalize()
+    }
 
     /**
-     * Builds a new instance of [R] by providing an [StatefulContext.context]
-     * that aggregates all operations performed by the specified [init].
-     *
-     * The resulting [StatefulContext.state] will be used by [compose]
-     * to build an actual instance of [R].
+     * Implementation of a [StatelessBuilder] that builds by applying
+     * the build argument to the given [context].
      */
-    override fun invoke(init: Init<C>): R =
-        with(statefulContext) {
-            context.init()
-            state.transform()
-        }
+    open class Returning<C, R>(private val context: C) : Builder<C.() -> R, R> {
+        override fun invoke(init: C.() -> R): R = context.init()
+    }
 }
 
 /**

@@ -7,9 +7,11 @@ import koodies.asString
 import koodies.builder.ArrayBuilder
 import koodies.builder.Builder
 import koodies.builder.BuilderTemplate
+import koodies.builder.EnumSetBuilder
 import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.MapBuilder
+import koodies.builder.SetBuilder
 import koodies.builder.SkippableBuilder
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -84,34 +86,82 @@ abstract class CapturingContext {
     // @formatter:off
     /** Creates a builder that captures all invocations to `this` builder. */
     open operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, this)
-    /** Returns a callable that captures all invocations to `this` builder. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` builder. If no invocations take place, the evaluation later returns the result of building with the given [defaultInit]. */
+    infix fun <T : Function<*>, R> Builder<T, R>.default(defaultInit: T): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R>  = builder(this(defaultInit), this)
+    /** Returns a callable that captures all invocations to `this` builder. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : Function<*>, R> Builder<T, R>.default(defaultResult: R): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R> = builder(defaultResult, this)
 
     /** Returns a callable that captures all invocations to `this` reference. */
     open operator fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R?> = function(null, this)
-    /** Returns a callable that captures all invocations to `this` reference. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
     open operator fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3, P4) -> Unit, R?> = function(null, this)
-    /** Returns a callable that captures all invocations to `this` reference. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3, P4) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
     open operator fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3) -> Unit, R?> = function(null, this)
-    /** Returns a callable that captures all invocations to `this` reference. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
     open operator fun <T : (P1, P2) -> R, P1, P2, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2) -> Unit, R?> = function(null, this)
-    /** Returns a callable that captures all invocations to `this` reference. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : (P1, P2) -> R, P1, P2, R> T.default(defaultResult: R): CapturingCallable<(P1, P2) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
     open operator fun <T : (P1) -> R, P1, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1) -> Unit, R?> = function(null, this)
-    /** Returns a callable that captures all invocations to `this` reference. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : (P1) -> R, P1, R> T.default(defaultResult: R): CapturingCallable<(P1) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
     open operator fun <T : () -> R, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<() -> Unit, R?> = function(null, this)
-    /** Returns a callable that captures all invocations to `this` reference. If no invocations takes place, the evaluation later returns the given [defaultResult]. */
+    /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
     infix fun <T : () -> R, R> T.default(defaultResult: R): CapturingCallable<() -> Unit, R> = function(defaultResult, this)
     // @formatter:on
+
+    /**
+     * Returns a [SetBuilder] that captures the building of a [Set]
+     * with elements of type [E].
+     *
+     * **Example** *of what the user sees*
+     *
+     * ```kotlin
+     *     build {
+     *         capturingSetBuilder {
+     *              +"abc"
+     *              add("123")
+     *              addAll(iterable)
+     *         }
+     *
+     *         👉 captures: SetBuilder{ +"abc"; add("123"); addAll(iterable) }
+     *     }
+     * ```
+     *
+     * @see builder
+     */
+    fun <E> setBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Set<E>>, Set<E>> =
+        builder(emptySet(), SetBuilder())
+
+
+    /**
+     * Returns a [EnumSetBuilder] that captures the building of an enum set
+     * with elements of type [E].
+     *
+     * **Example** *of what the user sees*
+     *
+     * ```kotlin
+     *     build {
+     *         capturingEnumSetBuilder {
+     *              +IGNORE_CASE
+     *              add(MULTILINE)
+     *         }
+     *
+     *         👉 captures: EnumSetBuilder{ +RegexOption.IGNORE_CASE; add(RegexOption.MULTLINE) }
+     *     }
+     * ```
+     *
+     * @see builder
+     */
+    fun <E : Enum<E>> enumSetBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Set<E>>, Set<E>> =
+        builder(emptySet(), EnumSetBuilder())
 
     /**
      * Returns an [ArrayBuilder] that captures the building of an [E]
@@ -269,36 +319,6 @@ abstract class CapturingContext {
      */
     fun <T : Function<*>, R> builder(builder: Builder<T, R>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, builder)
 
-
-    /**
-     * Returns a callable that captures a simple lambda of
-     * the form `() -> R`.
-     *
-     * Uses [initialValue] as the captured value if no invocations are recorded.
-     *
-     * **Example** *of what the user sees*
-     *
-     * ```kotlin
-     *     build {
-     *         capturingBuilder { … } 👉 captures: { … }
-     *     }
-     * ```
-     *
-     * **Manual Implementation**
-     *
-     * The following code snippet roughly shows how this feature is implemented:
-     * ```
-     * class Builder {
-     *     protected val captured = mutableMapOf<KProperty<*>, Captured<*>>()
-     *     fun build() = … // build using captured values
-     *
-     *     val <R> capturingBuilder: (R)->Unit = { lambda ->
-     *         captured[::capturingBuilder] = capture { lambda() }
-     *     }
-     * }
-     */
-    fun <R> builder(initialValue: R): CapturingCallable<SkippableCapturingBuilderInterface<() -> R, R>, R> = builder(initialValue) { it() }
-
     /**
      * Returns a callable that captures a simple lambda of
      * the form `() -> R`.
@@ -324,7 +344,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <R> builder(): CapturingCallable<SkippableCapturingBuilderInterface<() -> R?, R?>, R?> = builder(null) { it() }
+    fun <R> builder(): Builder<() -> R, R> = Builder { it() }
 
     /**
      * Returns a callable that has the same argument list
@@ -747,8 +767,6 @@ abstract class CapturingContext {
     /**
      * Returns a callable that captures the value it is called with.
      *
-     * Uses [initialValue] as the captured value if no invocations are recorded.
-     *
      * **Example** *of what the user sees*
      *
      * ```kotlin
@@ -770,36 +788,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T> function(initialValue: T): CapturingCallable<(T) -> Unit, T> =
-        CapturingCallable(initialValue, captures) { callback ->
-            { value -> callback(Deferred { value }) }
-        }
-
-    /**
-     * Returns a callable that captures the value it is called with.
-     *
-     * **Example** *of what the user sees*
-     *
-     * ```kotlin
-     *     build {
-     *         capturingFunction(value) 👉 captures: value
-     *     }
-     * ```
-     *
-     * **Manual Implementation**
-     *
-     * The following code snippet roughly shows how this feature is implemented:
-     * ```
-     * class Builder {
-     *     protected val captured = mutableMapOf<KProperty<*>, Captured<*>>()
-     *     fun build() = … // build using captured values
-     *
-     *     val <T> capturingFunction: (T) -> Unit = { value ->
-     *         captured[::capturingFunction] = capture { value }
-     *     }
-     * }
-     */
-    fun <T> function(): CapturingCallable<(T?) -> Unit, T?> = function(null)
+    fun <T> function(): (T) -> T = { it }
 
     /**
      * Returns a property that captures the value it is assigned with.
@@ -887,6 +876,9 @@ abstract class CapturingContext {
      * }
      */
     inline fun <reified T> setter(): CapturingProperty<T?> = setter(null) { it as T }
+
+    /** Returns a property that captures the value it is assigned with. If no assignments take place, the evaluation later returns the given [defaultResult]. */
+    inline infix fun <reified T> T.default(defaultResult: T): CapturingProperty<T> = setter(defaultResult) { it as T }
 
     override fun toString(): String = asString(::captures)
 }

@@ -36,7 +36,7 @@ open class DockerStartCommandLine(
             val containers by ListBuilder<String>()
         }
 
-        override fun BuildContext.build() = withContext(::StartContext) {
+        override fun BuildContext.build() = ::StartContext {
             DockerStartCommandLine(
                 ::options.evalOrDefault { Options() },
                 ::containers.eval(),
@@ -74,7 +74,7 @@ open class DockerStartCommandLine(
                 val interactive by YesNo default false
             }
 
-            override fun BuildContext.build() = withContext(::StartOptionsContext) {
+            override fun BuildContext.build() = ::StartOptionsContext {
                 Options(::attach.evalOrDefault(true), ::interactive.evalOrDefault(false))
             }
         }
