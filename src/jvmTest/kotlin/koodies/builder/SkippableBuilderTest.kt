@@ -30,7 +30,7 @@ class SkippableBuilderTest {
             val capturingBuilderInstanceShorthand by ListBuilder<String>()
         }
 
-        override fun BuildContext.build(): Lists = withContext(::Context) {
+        override fun BuildContext.build(): Lists = ::Context {
             Lists(
                 ::explicitBuilderInstance.evalOrDefault(emptyList()),
                 ::explicitBuilderFunction.evalOrDefault(emptyList()),

@@ -3,8 +3,6 @@ package koodies.builder
 import koodies.asString
 import koodies.builder.ArrayBuilder.Companion
 import koodies.builder.context.ListBuildingContext
-import koodies.builder.context.StatefulContext
-import koodies.builder.context.StatefulListBuildingContext
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
@@ -16,10 +14,30 @@ import kotlin.experimental.ExperimentalTypeInference
  * If you must you can call [Companion.createInstance] for a non-reifying
  * instantiation.
  */
-open class ArrayBuilder<E> private constructor(override val transform: List<E>.() -> Array<E>) :
-    StatefulContextBuilder<ListBuildingContext<E>, List<E>, Array<E>> {
+open class ArrayBuilder<E> private constructor(val transform: List<E>.() -> Array<E>) :
+    Builder<Init<ListBuildingContext<E>>, Array<E>> {
 
-    override val statefulContext: StatefulContext<ListBuildingContext<E>, List<E>> get() = StatefulListBuildingContext()
+    /**
+     * A context to collection all elements added by means
+     * of the [ListBuildingContext].
+     */
+    protected class BackedListBuildingContext<E>(
+        /**
+         * The mutable list to which all context operations should be delegated.
+         */
+        val list: MutableList<E> = mutableListOf(),
+    ) : ListBuildingContext<E> {
+        override fun add(element: E, vararg elements: E) {
+            list.add(element)
+            list.addAll(elements.toList())
+        }
+    }
+
+    override fun invoke(init: Init<ListBuildingContext<E>>): Array<E> {
+        return BackedListBuildingContext<E>().apply(init).list.transform()
+    }
+
+    override fun toString(): String = asString()
 
     @OptIn(ExperimentalTypeInference::class)
     companion object {
@@ -45,6 +63,4 @@ open class ArrayBuilder<E> private constructor(override val transform: List<E>.(
         inline operator fun <reified E> invoke(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> =
             createInstance<E> { toTypedArray() }(init)
     }
-
-    override fun toString(): String = asString(::statefulContext)
 }

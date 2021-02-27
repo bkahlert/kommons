@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.builder.SlipThroughBuilder
+import koodies.builder.StatelessBuilder
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -108,10 +108,7 @@ open class DockerImage(
      * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
      */
     @Suppress("SpellCheckingInspection")
-    companion object : SlipThroughBuilder<ImageContext, DockerImage, DockerImage> {
-        override val context: ImageContext = ImageContext
-        override val transform: DockerImage.() -> DockerImage = { DockerImage(repository, path, specifier) }
-
+    companion object : StatelessBuilder.PostProcessing<ImageContext, DockerImage, DockerImage>(ImageContext, { DockerImage(repository, path, specifier) }) {
         /**
          * Pattern that the [repository] and all [path] elements match.
          */

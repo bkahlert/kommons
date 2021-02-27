@@ -1,16 +1,16 @@
 package koodies.builder
 
 import koodies.asString
-import koodies.builder.ListBuilder.Companion.buildList
+import koodies.builder.SetBuilder.Companion.buildSet
 import koodies.builder.context.ListBuildingContext
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
- * Builder to build lists of type [E].
+ * Builder to build sets of type [E].
  *
- * The most convenient way to actually build a list is using [buildList].
+ * The most convenient way to actually build a set is using [buildSet].
  */
-open class ListBuilder<E> : Builder<Init<ListBuildingContext<E>>, List<E>> {
+open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
 
     /**
      * A context to collection all elements added by means
@@ -28,8 +28,8 @@ open class ListBuilder<E> : Builder<Init<ListBuildingContext<E>>, List<E>> {
         }
     }
 
-    override fun invoke(init: Init<ListBuildingContext<E>>): List<E> {
-        return BackedListBuildingContext<E>().apply(init).list
+    override fun invoke(init: Init<ListBuildingContext<E>>): Set<E> {
+        return BackedListBuildingContext<E>().apply(init).list.toSet()
     }
 
     override fun toString(): String = asString()
@@ -37,10 +37,10 @@ open class ListBuilder<E> : Builder<Init<ListBuildingContext<E>>, List<E>> {
     @OptIn(ExperimentalTypeInference::class)
     companion object {
         /**
-         * Builds a list of type [E] as specified by [init].
+         * Builds a set of type [E] as specified by [init].
          */
-        fun <E> buildList(@BuilderInference init: Init<ListBuildingContext<E>>): List<E> = invoke(init)
+        fun <E> buildSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = invoke(init)
 
-        operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): List<E> = ListBuilder<E>().invoke(init)
+        operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = SetBuilder<E>().invoke(init)
     }
 }

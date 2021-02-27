@@ -45,7 +45,7 @@ open class DockerStopCommandLine(
                 val time by builder<Int>()
             }
 
-            override fun BuildContext.build() = withContext(::StopOptionsContext) {
+            override fun BuildContext.build() = ::StopOptionsContext {
                 Options(::time.eval())
             }
         }
@@ -61,7 +61,7 @@ open class DockerStopCommandLine(
             val containers by ListBuilder<String>()
         }
 
-        override fun BuildContext.build() = withContext(::StopContext) {
+        override fun BuildContext.build() = ::StopContext {
             DockerStopCommandLine(
                 ::options.evalOrDefault { Options() },
                 ::containers.eval(),

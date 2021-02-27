@@ -20,7 +20,7 @@ import kotlin.contracts.contract
  * Logger interface to implement loggers that don't just log
  * but render log messages to provide easier understandable feedback.
  */
-interface RenderingLogger {
+fun interface RenderingLogger {
 
     /**
      * Method that is responsible to render what gets logged.
@@ -155,6 +155,5 @@ inline fun <reified R> RenderingLogger?.fileLogging(
             writer.appendLine(output.removeEscapeSequences())
         },
     )
-//    writer.use { logger.runLogging(block) }
     kotlin.runCatching { block(logger) }.also { logger.logResult { it }; writer.close() }.getOrThrow()
 }

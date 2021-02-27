@@ -63,7 +63,7 @@ open class DockerRemoveCommandLine(
                 val volumes by listBuilder<String>()
             }
 
-            override fun BuildContext.build() = withContext(::RemoveOptionsContext) {
+            override fun BuildContext.build() = ::RemoveOptionsContext {
                 val link1: String? = ::link.eval<String?>()
                 Options(::force.eval(), link1, ::volumes.eval())
             }
@@ -80,7 +80,7 @@ open class DockerRemoveCommandLine(
             val containers by ListBuilder<String>()
         }
 
-        override fun BuildContext.build() = withContext(::RemoveContext) {
+        override fun BuildContext.build() = ::RemoveContext {
             DockerRemoveCommandLine(
                 ::options.evalOrDefault { Options() },
                 ::containers.eval(),

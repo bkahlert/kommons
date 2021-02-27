@@ -193,7 +193,7 @@ open class CommandLine(
             val arguments by listBuilder<String>()
         }
 
-        override fun BuildContext.build() = withContext(::CommandLineContext) {
+        override fun BuildContext.build() = ::CommandLineContext {
             CommandLine(
                 redirects = ::redirects.evalOrDefault(emptyList()),
                 environment = ::environment.evalOrDefault(emptyMap()),

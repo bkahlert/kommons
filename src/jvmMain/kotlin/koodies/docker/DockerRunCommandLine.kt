@@ -4,7 +4,7 @@ import koodies.builder.BooleanBuilder.OnOff
 import koodies.builder.BuilderTemplate
 import koodies.builder.ListBuilder
 import koodies.builder.ListBuilder.Companion.buildList
-import koodies.builder.SlipThroughBuilder
+import koodies.builder.StatelessBuilder
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.concurrent.process.CommandLine
@@ -68,7 +68,7 @@ open class DockerRunCommandLine private constructor(
             val commandLine by CommandLine
         }
 
-        override fun BuildContext.build() = withContext(::DockerRunCommandContext) {
+        override fun BuildContext.build() = ::DockerRunCommandContext {
             DockerRunCommandLine(
                 ::image.eval(),
                 ::options.evalOrDefault { DockerRunCommandLineOptions() },
@@ -203,7 +203,7 @@ data class DockerRunCommandLineOptions(
             val custom by ListBuilder<String>()
         }
 
-        override fun BuildContext.build() = withContext(::OptionsContext) {
+        override fun BuildContext.build() = ::OptionsContext {
             DockerRunCommandLineOptions(
                 ::detached.evalOrDefault(false),
                 ::entrypoint.evalOrNull(),
@@ -268,7 +268,7 @@ class MountOptions(private val mountOptions: List<MountOption>) : AbstractList<M
                 super.mount(type, source, target).also { mounts.add(it) }
         }
 
-        override fun BuildContext.build() = withContext(::CollectingMountOptionsContext) {
+        override fun BuildContext.build() = ::CollectingMountOptionsContext {
             MountOptions(mounts)
         }
     }
@@ -293,10 +293,7 @@ data class MountOption(val type: String = "bind", val source: HostPath, val targ
         return target.resolve(relativePath)
     }
 
-    companion object : SlipThroughBuilder<MountOptionContext, MountOption, MountOption> {
-        override val context: MountOptionContext = object : MountOptionContext {}
-        override val transform: MountOption.() -> MountOption = { this }
-    }
+    companion object : StatelessBuilder.Returning<MountOptionContext, MountOption>(object : MountOptionContext {})
 }
 
 interface MountOptionContext {

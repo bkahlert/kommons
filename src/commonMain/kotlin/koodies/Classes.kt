@@ -22,7 +22,7 @@ inline fun <reified T : Any> T.asString(vararg properties: KProperty<*>): String
             val value: Any? = when (property) {
                 is KProperty0<*> -> kotlin.runCatching { property.get() }.recover { "<$it>" }.getOrThrow()
                 is KProperty1<*, *> -> kotlin.runCatching {
-                    val typedProperty = property as KProperty1<T, *>
+                    @Suppress("UNCHECKED_CAST") val typedProperty = property as KProperty1<T, *>
                     typedProperty.get(this@asString)
                 }.recover { "<$it>" }.getOrThrow()
                 else -> "<unexpected property type ${property::class.simpleName}>"

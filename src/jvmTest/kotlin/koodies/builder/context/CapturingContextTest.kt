@@ -10,15 +10,16 @@ import strikt.api.expectCatching
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isFailure
+import strikt.assertions.isNull
 
 @Execution(SAME_THREAD)
 class CapturingContextTest {
 
     inner class TestContext(override val captures: CapturesMap) : CapturingContext() {
-        val initializedWithNonNullable: (String) -> Unit by function<String>("initial")
-        val initializedWithNullable: (String?) -> Unit by function<String?>("nullable")
-        val initializedWithNull: (String?) -> Unit by function<String?>(null)
-        val uninitialized: (String?) -> Unit by function<String>()
+        val initializedWithNonNullable: (String) -> Unit by function<String>() default "initial"
+        val initializedWithNullable: (String?) -> Unit by function<String?>() default "nullable"
+        val initializedWithNull: (String?) -> Unit by function<String?>() default null
+        val uninitialized: (String?) -> Unit by function<String?>()
     }
 
     @Test
@@ -30,11 +31,11 @@ class CapturingContextTest {
 
     @TestFactory
     fun `with no invocations`() = test(CapturesMap().also { TestContext(it) }) {
-        expect("all delegates have initial invocation") { mappings }.that { hasSize(4) }
+        expect("all initialized delegates have initial invocation") { mappings }.that { hasSize(3) }
         expect { mappings[TestContext::initializedWithNonNullable.name] }.that { isA<Deferred<out String>>().evaluatesTo("initial") }
         expect { mappings[TestContext::initializedWithNullable.name] }.that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
         expect { mappings[TestContext::initializedWithNull.name] }.that { isA<Deferred<out String?>>().evaluatesTo(null) }
-        expect { mappings[TestContext::uninitialized.name] }.that { isA<Deferred<out String?>>().evaluatesTo(null) }
+        expect { mappings[TestContext::uninitialized.name] }.that { isNull() }
     }
 
     @TestFactory

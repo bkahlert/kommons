@@ -74,14 +74,14 @@ class BuilderTemplateTest {
             val byNullableCapture1 by Owner()::f1
             val byNullableCapture0 by Owner()::f0
 
-            val byCapture by function("initial")
+            val byCapture by function<String>() default "initial"
             val byNullableCapture by function<String>()
 
-            var bySetter by setter("initial")
+            var bySetter by setter<String>() default "initial"
             var byNullableSetter by setter<String>()
         }
 
-        override fun BuildContext.build(): CustomObject = withContext(::CustomContext) {
+        override fun BuildContext.build() = ::CustomContext {
             CustomObject(
                 ::byBuilder.evalOrDefault(listOf("default")) to ::byBuilder.eval(),
                 ::byNullableBuilder.evalOrDefault(listOf("default")) to ::byNullableBuilder.evalOrNull(),

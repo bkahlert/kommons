@@ -30,79 +30,136 @@
 
 ### Multi-Platform Builder Template
 
-#### What the client sees …
+#### Example: Car DSL *[full example](src/commonMain/kotlin/koodies/builder/CarDSL.kt)*
+
+##### CarBuilder Implementation
 
 ```kotlin
+data class Car(
+    val name: String,
+    val color: String,
+    val traits: Set<Trait>,
+    val engine: Engine,
+    val wheels: Int,
+)
 
-val myObject = MyBuilder().build {
+class CarBuilder : BuilderTemplate<CarContext, Car>() {
 
-    buildOther {
-        depends {
-            on { … }
-            the(builder)
-        }
+    class CarContext(override val captures: CapturesMap) : CapturingContext() {
+        var name by setter<String>()
+        val color by External::color
+        val traits by enumSetBuilder<Trait>()
+        val engine by Engine
+        val wheels by builder<Int>()
     }
 
-    list {
-        +"abc"
-        add("123")
-        addAll(iterable)
-    }
-
-    ref(p1, p2) {
-        a = "b"
-        f(arg)
-        …
-    }
-
-}
-```
-
-#### What the implementation is like …
-
-```kotlin
-class MyBuilder : BuilderTemplate<MyContext, MyObject> {
-
-    inner class MyContext(…) : CapturingContext() {
-        // DSL is specified here
-        val buildOther by anyBuilder()   // captures calls to anyBuilder
-        val list by by listBuilder ()    // captures list building calls
-        val ref by ::anyFunction         // capturing calls to anyFunction
-        val ref2 by ::anyFunction default …  // same as ref but with default if ref is never called
-    }
-
-    override fun BuildContext.build(): MyObject = withContext(::MyContext) {
-        // Instance is built here
-        MyObject(
-            ::buildOther.eval(),        // triggers the captured build of using anyBuilder ()
-            ::list.evalOrDefault { … }, // builds the list
-            ::ref.evalOrNull(),         // calls anyFunction(…) and provides the result
-            ::buildOther.eval(),        // resolves to above specified default since ref2 was never called
+    override fun BuildContext.build() = ::CarContext {
+        Car(
+            ::name.eval(),
+            ::color.evalOrDefault("#111111"),
+            ::traits.eval(),
+            ::engine.eval(),
+            ::wheels.evalOrDefault(4)
         )
     }
 }
 ```
 
-#### Hightlights
+##### CarBuilder Usage
+
+```kotlin
+val car = CarBuilder()
+
+val exclusiveCar = car {
+    name = "Koodies Car"
+    color(198, 82, 89)
+    engine {
+        power { 145.kW }
+        maxSpeed { 244.km per hour }
+    }
+    wheels { 4 }
+    traits { +Exclusive + TaxExempt }
+}
+println(exclusiveCar)
+
+val defaultCarWithCopiedMotor = car {
+    name = "Default Car"
+    engine instead exclusiveCar.engine
+}
+println(defaultCarWithCopiedMotor)
+```
+
+```text
+Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], wheels=4, 
+    engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
+Car(name=Default Car, color=#111111, traits=[], wheels=4,
+    engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
+```
+
+##### CarBuilder Parts
+
+```kotlin
+inline class EnginePower(val watts: BigDecimal) {
+    companion object : StatelessBuilder.Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
+        object EnginePowerContext {
+            val Int.kW get() = kilo.W
+            val BigDecimal.W: EnginePower get() = EnginePower(this)
+        }
+    }
+}
+
+data class Speed(val distance: Distance, val time: Duration) {
+    companion object : StatelessBuilder.Returning<SpeedContext, Speed>(SpeedContext) {
+        object SpeedContext {
+            val Int.km get() = kilo.m
+            val hour = 1.hours
+            infix fun Distance.per(time: Duration) = Speed(Distance(this), time)
+            val BigDecimal.m: Distance get() = Distance(this)
+        }
+    }
+}
+
+data class Engine(val power: EnginePower, val maxSpeed: Speed) {
+    companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
+
+        class EngineContext(
+            override val captures: CapturesMap,
+        ) : CapturingContext() {
+            val power by EnginePower
+            val maxSpeed by Speed
+        }
+
+        override fun BuildContext.build() = ::EngineContext {
+            Engine(::power.evalOrDefault { EnginePower { 130.kW } }, ::maxSpeed.evalOrDefault { Speed { 228.km per hour } })
+        }
+    }
+}
+
+enum class Trait { Exclusive, PreOwned, TaxExempt }
+````
+
+#### Highlights
 
 * Compose and re-use builders, functions and callable properties
     * a couple of default builders like **EnumSetBuilder**, **ArrayBuilder**, **ListBuilder** and **MapBuilder** are already provided
 * Auto-generate simple builders, functions and setters
-* BuilderTemplate based builders are **thread-safe**
-    * **skippable**, that is, are callable as `build { … }` and also as `build(myObject)` in case you don't need to build
-        * infix skippable using `build instead myObject`
-    * usable as **singleton** `object MyBuilder`
+* BuilderTemplate based builders are...
+    * **thread-safe**
+    * **skippable**
+        * call `build { … }` to build and `build(myCar)` if you already have an instance
+        * infix alternative: `build instead myCar`
+    * usable as **singleton** `object CarBuilder`
     * usable as **companion object**
       ```kotlin
-      class MyObject(val other:Other, val list:List<String>, …) {
-          companion object : BuilderTemplate<MyContext, MyObject> {
+      class Car(val name: String, …, val engine: Engine, val wheels: Int) {
+          companion object : BuilderTemplate<CarContext, Car> {
                // same implementation as above 
           }      
       } 
       ```
       which lets you
-        * **instantiate by constructor** `MyObject(other, list)` and
-        * **build by builder** `MyObject { buildOther { … }; list instead emptyList() }`
+        * **instantiate using a constructor** `Car("boring", …, engine, 4)` and
+        * **build using the builder** `Car { name{ "exceptionel" }; engine { speed{ 1_200.km per hour } } }`
 
 ### Processes
 

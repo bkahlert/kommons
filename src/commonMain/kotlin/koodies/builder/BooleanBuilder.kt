@@ -31,13 +31,10 @@ import koodies.builder.BooleanBuilder.OnOff
  * @see OnOff
  * @see ON_OFF
  */
-abstract class BooleanBuilder<C> protected constructor(protected val contextProvider: () -> C) : SlipThroughBuilder<C, BooleanValue, Boolean> {
+abstract class BooleanBuilder<C> protected constructor(context: C) : StatelessBuilder.PostProcessing<C, BooleanValue, Boolean>(context, { booleanValue() }) {
     fun interface BooleanValue {
         fun booleanValue(): Boolean
     }
-
-    override val context: C get() = contextProvider()
-    override val transform: BooleanValue.() -> Boolean = { booleanValue() }
 
     /**
      * Builder to "build" booleans using semantic boolean `on` and `off`.
@@ -47,7 +44,7 @@ abstract class BooleanBuilder<C> protected constructor(protected val contextProv
      * BooleanBuilder.OnOff { off }
      * ```
      */
-    object OnOff : BooleanBuilder<OnOff.Context>({ Context }) {
+    object OnOff : BooleanBuilder<OnOff.Context>(Context) {
         object Context {
             val on = BooleanValue { true }
             val off = BooleanValue { false }
@@ -62,7 +59,7 @@ abstract class BooleanBuilder<C> protected constructor(protected val contextProv
      * BooleanBuilder.ON_OFF { OFF }
      * ```
      */
-    object ON_OFF : BooleanBuilder<ON_OFF.Context>({ Context }) {
+    object ON_OFF : BooleanBuilder<ON_OFF.Context>(Context) {
         object Context {
             val ON = BooleanValue { true }
             val OFF = BooleanValue { false }
@@ -77,7 +74,7 @@ abstract class BooleanBuilder<C> protected constructor(protected val contextProv
      * BooleanBuilder.YesNo { no }
      * ```
      */
-    object YesNo : BooleanBuilder<YesNo.Context>({ Context }) {
+    object YesNo : BooleanBuilder<YesNo.Context>(Context) {
         object Context {
             val yes = BooleanValue { true }
             val no = BooleanValue { false }
@@ -92,7 +89,7 @@ abstract class BooleanBuilder<C> protected constructor(protected val contextProv
      * BooleanBuilder.YES_NO { NO }
      * ```
      */
-    object YES_NO : BooleanBuilder<YES_NO.Context>({ Context }) {
+    object YES_NO : BooleanBuilder<YES_NO.Context>(Context) {
         object Context {
             val YES = BooleanValue { true }
             val NO = BooleanValue { false }
@@ -100,8 +97,8 @@ abstract class BooleanBuilder<C> protected constructor(protected val contextProv
     }
 
     /**
-     * If an interface demands for a builder this builder can be used to provide
-     * to provide booleans `true` and `false`.
+     * If an interface demands for a builder,
+     * this one just accepts `true` and `false`.
      */
-    companion object : NoopBuilder<Boolean>
+    companion object : PseudoBuilder<Boolean>
 }
