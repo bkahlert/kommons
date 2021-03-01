@@ -30,4 +30,23 @@
     <DebugAllEnabled>false</DebugAllEnabled>
     <method v="2" />
   </configuration>
+  <configuration default="false" name="All Smoke Tests" type="JUnit" factoryName="JUnit">
+    <module name="koodies.jvmTest" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="koodies.test.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="PACKAGE_NAME" value="koodies.shell" />
+    <option name="MAIN_CLASS_NAME" value="koodies.shell.ShellScriptTest" />
+    <option name="METHOD_NAME" value="should assert using builder" />
+    <option name="TEST_OBJECT" value="tags" />
+    <tag value="Smoke" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
 </component>
