@@ -262,14 +262,15 @@ class MountOptions(private val mountOptions: List<MountOption>) : AbstractList<M
 
     companion object : BuilderTemplate<CollectingMountOptionsContext, MountOptions>() {
         @DockerCommandLineDsl
-        class CollectingMountOptionsContext(override val captures: CapturesMap) : CapturingContext(), MountOptionContext {
-            val mounts: MutableList<MountOption> = mutableListOf()
-            override fun mount(type: String, source: HostPath, target: ContainerPath): MountOption =
-                super.mount(type, source, target).also { mounts.add(it) }
+        class CollectingMountOptionsContext(override val captures: CapturesMap) : CapturingContext(), MountOptionContext<Unit> {
+            val addMount by MountOption
+            override fun mount(type: String, source: HostPath, target: ContainerPath) {
+                addMount(MountOption(type, source, target))
+            }
         }
 
         override fun BuildContext.build() = ::CollectingMountOptionsContext {
-            MountOptions(mounts)
+            MountOptions(::addMount.evalAll())
         }
     }
 }
@@ -293,26 +294,30 @@ data class MountOption(val type: String = "bind", val source: HostPath, val targ
         return target.resolve(relativePath)
     }
 
-    companion object : StatelessBuilder.Returning<MountOptionContext, MountOption>(object : MountOptionContext {})
+    companion object : StatelessBuilder.Returning<MountOptionContext<MountOption>, MountOption>(object : MountOptionContext<MountOption> {
+        override fun mount(type: String, source: HostPath, target: ContainerPath): MountOption {
+            return MountOption(type, source, target)
+        }
+    })
 }
 
-interface MountOptionContext {
+interface MountOptionContext<T> {
     enum class Type { bind, volume, tmpfs }
     data class Mount(val type: String, val source: HostPath)
 
-    fun mount(type: String = "bind", source: HostPath, target: ContainerPath): MountOption = MountOption(type, source, target)
+    fun mount(type: String = "bind", source: HostPath, target: ContainerPath): T
 
-    open infix fun String.mountAt(target: String): MountOption = mount(source = asHostPath(), target = target.asContainerPath())
-    open infix fun HostPath.mountAt(target: ContainerPath): MountOption = mount(source = this, target = target)
-    open infix fun HostPath.mountAt(target: String): MountOption = mount(source = this, target = target.asContainerPath())
+    infix fun String.mountAt(target: String): T = mount(source = asHostPath(), target = target.asContainerPath())
+    infix fun HostPath.mountAt(target: ContainerPath): T = mount(source = this, target = target)
+    infix fun HostPath.mountAt(target: String): T = mount(source = this, target = target.asContainerPath())
 
     infix fun String.mountAs(type: String): Mount = Mount(type, asHostPath())
     infix fun HostPath.mountAs(type: String): Mount = Mount(type, this)
     infix fun String.mountAs(type: Type): Mount = Mount(type.name, asHostPath())
     infix fun HostPath.mountAs(type: Type): Mount = Mount(type.name, this)
 
-    open infix fun Mount.at(target: String): MountOption = mount(type = type, source = source, target = target.asContainerPath())
-    open infix fun Mount.at(target: ContainerPath): MountOption = mount(type = type, source = source, target = target)
+    infix fun Mount.at(target: String): T = mount(type = type, source = source, target = target.asContainerPath())
+    infix fun Mount.at(target: ContainerPath): T = mount(type = type, source = source, target = target)
 }
 
 inline class ContainerPath(private val containerPath: Path) {

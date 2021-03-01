@@ -3,6 +3,7 @@ package koodies.concurrent.process
 import koodies.concurrent.process.IO.Type
 import koodies.exception.persistDump
 import koodies.io.ByteArrayOutputStream
+import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.Unicode.Emojis.heavyCheckMark

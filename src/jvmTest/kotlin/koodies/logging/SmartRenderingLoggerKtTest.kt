@@ -44,13 +44,11 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   
             │   ╭─────╴bordered caption
             │   │   
             │   │   text
             │   │
             │   ╰─────╴✔
-            │
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
@@ -66,13 +64,11 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   
             │   ╭─────╴bordered caption
             │   │   
             │   │   line
             │   │
             │   ╰─────╴✔
-            │
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
@@ -92,10 +88,9 @@ class SmartRenderingLoggerKtTest {
                 logException { RuntimeException("exception") }
             }
 
-            expectThat(logged.lines().take(7).joinToString(LF)).matchesCurlyPattern(
+            expectThat(logged.lines().take(6).joinToString(LF)).matchesCurlyPattern(
                 """
                     ╭─────╴SmartRenderingLoggerKtTest ➜ LogException ➜ should log exception bordered(InMemoryLogger)
-                    │   
                     │   
                     │   ╭─────╴bordered
                     │   │   
@@ -128,13 +123,11 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   
             │   ╭─────╴bordered caption
             │   │   
             │   │   line                                                              ◀◀ status
             │   │
             │   ╰─────╴✔
-            │
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
@@ -188,7 +181,6 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   
             │   ╭─────╴bordered caption
             │   │   
             │   │   text
@@ -196,7 +188,6 @@ class SmartRenderingLoggerKtTest {
             │   │   line                                                              ◀◀ status
             │   │
             │   ╰─────╴✔
-            │
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   

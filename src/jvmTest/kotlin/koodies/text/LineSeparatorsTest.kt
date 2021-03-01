@@ -9,9 +9,7 @@ import koodies.regex.value
 import koodies.test.testEach
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
-import koodies.text.LineSeparators.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators.LAST_LINE_PATTERN
-import koodies.text.LineSeparators.LINE_PATTERN
 import koodies.text.LineSeparators.PS
 import koodies.text.LineSeparators.SEPARATOR_PATTERN
 import koodies.text.LineSeparators.firstLineSeparator
@@ -256,7 +254,7 @@ class LineSeparatorsTest {
                 },
             )),
 
-            dynamicContainer(::LAST_LINE_PATTERN.name, listOf(
+            dynamicContainer(LineSeparators::LAST_LINE_PATTERN.name, listOf(
                 dynamicTest("should not match empty string") {
                     expectThat(LAST_LINE_PATTERN).not { matchEntire("") }
                 },
@@ -271,39 +269,39 @@ class LineSeparatorsTest {
                 },
             )),
 
-            dynamicContainer(::INTERMEDIARY_LINE_PATTERN.name, listOf(
+            dynamicContainer(LineSeparators::INTERMEDIARY_LINE_PATTERN.name, listOf(
                 dynamicTest("should not match empty string") {
-                    expectThat(INTERMEDIARY_LINE_PATTERN).not { matchEntire("") }
+                    expectThat(LineSeparators.INTERMEDIARY_LINE_PATTERN).not { matchEntire("") }
                 },
                 dynamicTest("should match itself") {
-                    expectThat(INTERMEDIARY_LINE_PATTERN).matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator, lineSeparator)
+                    expectThat(LineSeparators.INTERMEDIARY_LINE_PATTERN).matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator, lineSeparator)
                 },
                 dynamicTest("should not match line") {
-                    expectThat(INTERMEDIARY_LINE_PATTERN).not { matchEntire("line") }
+                    expectThat(LineSeparators.INTERMEDIARY_LINE_PATTERN).not { matchEntire("line") }
                 },
                 dynamicTest("should match line$lineSeparator".replaceNonPrintableCharacters()) {
-                    expectThat(INTERMEDIARY_LINE_PATTERN).matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
+                    expectThat(LineSeparators.INTERMEDIARY_LINE_PATTERN).matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
                 },
                 dynamicTest("should not match line$lineSeparator...".replaceNonPrintableCharacters()) {
-                    expectThat(INTERMEDIARY_LINE_PATTERN).not { matchEntire("line$lineSeparator...") }
+                    expectThat(LineSeparators.INTERMEDIARY_LINE_PATTERN).not { matchEntire("line$lineSeparator...") }
                 },
             )),
 
-            dynamicContainer(::LINE_PATTERN.name, listOf(
+            dynamicContainer(LineSeparators::LINE_PATTERN.name, listOf(
                 dynamicTest("should not match empty string") {
-                    expectThat(LINE_PATTERN).not { matchEntire("") }
+                    expectThat(LineSeparators.LINE_PATTERN).not { matchEntire("") }
                 },
                 dynamicTest("should match itself") {
-                    expectThat(LINE_PATTERN).matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator, lineSeparator)
+                    expectThat(LineSeparators.LINE_PATTERN).matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator, lineSeparator)
                 },
                 dynamicTest("should match line") {
-                    expectThat(LINE_PATTERN).matchEntire("line").groupValues.first().isEqualTo("line")
+                    expectThat(LineSeparators.LINE_PATTERN).matchEntire("line").groupValues.first().isEqualTo("line")
                 },
                 dynamicTest("should match line$lineSeparator".replaceNonPrintableCharacters()) {
-                    expectThat(LINE_PATTERN).matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
+                    expectThat(LineSeparators.LINE_PATTERN).matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
                 },
                 dynamicTest("should not match line$lineSeparator...".replaceNonPrintableCharacters()) {
-                    expectThat(LINE_PATTERN).not { matchEntire("line$lineSeparator...") }
+                    expectThat(LineSeparators.LINE_PATTERN).not { matchEntire("line$lineSeparator...") }
                 },
             )),
         ))

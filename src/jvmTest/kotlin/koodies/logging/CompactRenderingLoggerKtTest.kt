@@ -185,7 +185,6 @@ class CompactRenderingLoggerKtTest {
             """
             ╭─────╴{}
             │   
-            │   
             │   ╭─────╴block
             │   │   
             │   │   something
@@ -193,7 +192,6 @@ class CompactRenderingLoggerKtTest {
             │   │   something
             │   │
             │   ╰─────╴✔
-            │
         """.trimIndent()
         )
     }

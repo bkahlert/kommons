@@ -1,7 +1,6 @@
 package koodies.text
 
 import koodies.text.Unicode.Emojis.Emoji
-import koodies.text.Unicode.Emojis.emoji
 import koodies.time.Now
 import org.antlr.v4.runtime.ANTLRErrorListener
 import org.antlr.v4.runtime.CharStreams

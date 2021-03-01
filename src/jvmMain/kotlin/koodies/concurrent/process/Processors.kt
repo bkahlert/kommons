@@ -107,41 +107,38 @@ fun <P : ManagedProcess> P.process(
     nonBlockingReader: Boolean,
     processInputStream: InputStream = InputStream.nullInputStream(),
     processor: Processor<P> = noopProcessor(),
-): P {
+): P = apply {
 
-    return apply {
-
-        inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
-            processor(this, line.type typed line.trim())
-        }
-
-        val inputProvider = ioProcessingThreadPool.completableFuture {
-            processInputStream.use {
-                var bytesCopied: Long = 0
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                var bytes = it.read(buffer)
-                while (bytes >= 0) {
-                    inputStream.write(buffer, 0, bytes)
-                    bytesCopied += bytes
-                    bytes = it.read(buffer)
-                }
-            }
-        }.exceptionallyThrow("stdin")
-
-        val outputConsumer = ioProcessingThreadPool.completableFuture {
-            outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
-                processor(this, IO.Type.OUT typed line)
-            }
-        }.exceptionallyThrow("stdout")
-
-        val errorConsumer = ioProcessingThreadPool.completableFuture {
-            errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
-                processor(this, IO.Type.ERR typed line)
-            }
-        }.exceptionallyThrow("stderr")
-
-        externalSync = CompletableFuture.allOf(inputProvider, outputConsumer, errorConsumer)
+    inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
+        processor(this, line.type typed line.trim())
     }
+
+    val inputProvider = ioProcessingThreadPool.completableFuture {
+        processInputStream.use {
+            var bytesCopied: Long = 0
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var bytes = it.read(buffer)
+            while (bytes >= 0) {
+                inputStream.write(buffer, 0, bytes)
+                bytesCopied += bytes
+                bytes = it.read(buffer)
+            }
+        }
+    }.exceptionallyThrow("stdin")
+
+    val outputConsumer = ioProcessingThreadPool.completableFuture {
+        outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
+            processor(this, IO.Type.OUT typed line)
+        }
+    }.exceptionallyThrow("stdout")
+
+    val errorConsumer = ioProcessingThreadPool.completableFuture {
+        errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
+            processor(this, IO.Type.ERR typed line)
+        }
+    }.exceptionallyThrow("stderr")
+
+    externalSync = CompletableFuture.allOf(inputProvider, outputConsumer, errorConsumer)
 }
 
 /**

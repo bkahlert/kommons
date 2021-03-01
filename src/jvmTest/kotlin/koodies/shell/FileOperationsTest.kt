@@ -1,9 +1,12 @@
 package koodies.shell
 
 import koodies.concurrent.script
+import koodies.debug.replaceNonPrintableCharacters
 import koodies.io.path.appendText
 import koodies.io.path.hasContent
+import koodies.logging.InMemoryLogger
 import koodies.test.UniqueId
+import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -30,19 +33,21 @@ class FileOperationsTest {
 
 
         @TestFactory
-        fun `should remove intermediary line`(uniqueId: UniqueId) = LineSeparators.Dict.testWithTempDir(uniqueId) { (name, sep) ->
-            val fixture = file(name, sep)
-            script { file(fixture).removeLine("line 2") }
-            if (sep !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
-                expectThat(fixture).hasContent("line 1${sep}line 2.1${sep}last line")
+        fun InMemoryLoggerFactory.`should remove intermediary line`(uniqueId: UniqueId) = LineSeparators.testWithTempDir(uniqueId) { lineSeparator ->
+            val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
+            val fixture = file(lineSeparator.replaceNonPrintableCharacters(), lineSeparator)
+            script(logger) { file(fixture).removeLine("line 2") }
+            if (lineSeparator !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
+                expectThat(fixture).hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line")
             }
         }
 
         @TestFactory
-        fun `should remove last line`(uniqueId: UniqueId) = LineSeparators.Dict.testWithTempDir(uniqueId) { (name, sep) ->
-            val fixture = file(name, sep)
-            script { file(fixture).removeLine("last line") }
-            expectThat(fixture).hasContent("line 1${sep}line 2${sep}line 2.1$sep")
+        fun InMemoryLoggerFactory.`should remove last line`(uniqueId: UniqueId) = LineSeparators.testWithTempDir(uniqueId) { lineSeparator ->
+            val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
+            val fixture = file(lineSeparator.replaceNonPrintableCharacters(), lineSeparator)
+            script(logger) { file(fixture).removeLine("last line") }
+            expectThat(fixture).hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator")
         }
     }
 
@@ -58,23 +63,26 @@ class FileOperationsTest {
             }
 
         @Test
-        fun `should append single-line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun InMemoryLogger.`should append single-line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val logger = this@`should append single-line`
             val fixture = file()
-            script { file(fixture).appendLine("line 3") }
+            script(logger) { file(fixture).appendLine("line 3") }
             expectThat(fixture).hasContent("line 1\nline 2\nline 3\n")
         }
 
         @Test
-        fun `should append multi-line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun InMemoryLogger.`should append multi-line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val logger = this@`should append multi-line`
             val fixture = file()
-            script { file(fixture).appendLine("line 3\nline 4") }
+            script(logger) { file(fixture).appendLine("line 3\nline 4") }
             expectThat(fixture).hasContent("line 1\nline 2\nline 3\nline 4\n")
         }
 
         @Test
-        fun `should not append on already existing line separator`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun InMemoryLogger.`should not append on already existing line separator`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val logger = this@`should not append on already existing line separator`
             val fixture = file()
-            script { file(fixture).appendLine("line 3\r") }
+            script(logger) { file(fixture).appendLine("line 3\r") }
             expectThat(fixture).hasContent("line 1\nline 2\nline 3\n")
         }
     }

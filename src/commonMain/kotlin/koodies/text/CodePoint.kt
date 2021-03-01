@@ -1,10 +1,12 @@
 package koodies.text
 
-import koodies.CODE_POINT_RANGE
-import koodies.SURROGATE_CODE_POINT_RANGE
 import koodies.number.mod
 import koodies.number.toHexadecimalString
 import koodies.text.CodePoint.Companion.isDefined
+import kotlin.Char.Companion.MAX_SURROGATE
+import kotlin.Char.Companion.MAX_VALUE
+import kotlin.Char.Companion.MIN_SURROGATE
+import kotlin.Char.Companion.MIN_VALUE
 import kotlin.random.Random
 
 private val Whitespaces = listOf(
@@ -86,7 +88,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      *
      * Otherwise [chars] or [string] must be used.
      */
-    val char: Char? get() = codePoint.takeIf { it in Char.CODE_POINT_RANGE }?.toChar()
+    val char: Char? get() = codePoint.takeIf { it in MIN_VALUE.toInt()..MAX_VALUE.toInt() }?.toChar()
 
     /**
      * Determines if a character (Unicode code point) is defined in Unicode.
@@ -95,6 +97,14 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @see isDefined
      */
     val isDefined: Boolean get() = codePoint.isDefined()
+
+    /**
+     * Determines if this code point is a [LineSeparator].
+     *
+     * @return `true` if this code point is a [LineSeparator]
+     * @see LineSeparators
+     */
+    val isLineSeparator: Boolean get() = string in LineSeparators
 
     /**
      * Determines if this code point is a
@@ -189,7 +199,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
         }
 
         private fun Int.surrogate(): Boolean =
-            this in Char.SURROGATE_CODE_POINT_RANGE
+            this in MIN_SURROGATE.toInt()..MAX_SURROGATE.toInt()
 
         private fun Int.isDefined(): Boolean {
             val assignedPlanes = listOf(0, 1, 2, 14, 15)

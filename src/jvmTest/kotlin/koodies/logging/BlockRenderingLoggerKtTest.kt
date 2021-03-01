@@ -125,7 +125,6 @@ class BlockRenderingLoggerKtTest {
             │{}
             │{}
             ╰─────╴✔
-            
             │
             ╰─────╴✔
         """.trimIndent(), """
@@ -143,13 +142,10 @@ class BlockRenderingLoggerKtTest {
             │{}
             │{}
             ╰─────╴✔
-            
             │
             ╰─────╴✔
-            
             │
             ╰─────╴✔
-            
             │
             ╰─────╴✔
         """.trimIndent(), """

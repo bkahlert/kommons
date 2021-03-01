@@ -15,7 +15,7 @@ class DebugPropertyKtTest {
     @Test
     fun `should render String`() {
         expectThat(TextFile.data.decodeToString().debug.removeEscapeSequences())
-            .isEqualTo("❬a⏎⏎𝕓⏎␍⏎␊☰⏎␊👋⏎␊⫻11❭")
+            .isEqualTo("❬a⏎␤𝕓⏎␍⏎␊☰⏎␊👋⏎␊⫻11❭")
     }
 
     @Test

@@ -115,10 +115,7 @@ private open class ManagedJavaProcess(
 }), ManagedProcess {
     companion object;
 
-    override fun start(): ManagedProcess {
-        super.start()
-        return this
-    }
+    override fun start(): ManagedProcess = also { super.start() }
 
     override var inputCallback: (IO) -> Unit = {}
 

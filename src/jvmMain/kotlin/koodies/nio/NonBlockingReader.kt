@@ -8,12 +8,13 @@ import koodies.logging.RenderingLogger
 import koodies.logging.compactLogging
 import koodies.logging.logging
 import koodies.terminal.ANSI
+import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.Unicode.Emojis.emoji
+import koodies.text.emoji
 import koodies.text.quoted
 import koodies.time.Now
 import java.io.BufferedReader

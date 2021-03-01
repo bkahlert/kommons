@@ -1,7 +1,7 @@
 package koodies.text
 
 import kotlin.random.Random
- 
+
 object CharRanges {
     val Numeric: CharRange = ('0'..'9')
     val LowerCaseAtoZ: CharRange = ('a'..'z')

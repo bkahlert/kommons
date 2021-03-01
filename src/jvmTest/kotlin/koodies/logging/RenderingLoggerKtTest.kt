@@ -72,7 +72,6 @@ class RenderingLoggerKtTest {
                     │{}
                     │   outer 1                                               {}                                      ▮▮
                     │   outer 2                                               {}                                      ▮▮
-                    │{}
                     │   ╭─────╴nested log
                     │   │{}
                     │   │   nested 1                                          {}                                      ▮▮
@@ -80,7 +79,6 @@ class RenderingLoggerKtTest {
                     │   │   nested 3                                          {}                                      ▮▮
                     │   │{}
                     │   ╰─────╴✔{}
-                    │{}
                     │   outer 3                                               {}                                      ▮▮
                     │   outer 4                                               {}                                      ▮▮
                     │{}
@@ -97,12 +95,10 @@ class RenderingLoggerKtTest {
             │{}
             │   outer 1                                               {}                                      ▮▮
             │   outer 2{}
-            │{}
             │   ╭─────╴nested log
             │   │{}
             │   │   nested 1                                          {}                                      ▮▮
             │   │   mini segment 12345 sample ✔
-            │   │{}
             │   │   ╭─────╴nested log
             │   │   │{}
             │   │   │   nested 1                                      {}                                      ▮▮
@@ -111,12 +107,10 @@ class RenderingLoggerKtTest {
             │   │   │   nested 3                                      {}                                      ▮▮
             │   │   │{}
             │   │   ╰─────╴✔{}
-            │   │{}
             │   │   nested 2                                          {}                                      ▮▮
             │   │   nested 3                                          {}                                      ▮▮
             │   │{}
             │   ╰─────╴✔{}
-            │{}
             │   outer 3                                               {}                                      ▮▮
             │   outer 4                                               {}                                      ▮▮
             │{}
@@ -241,13 +235,11 @@ class RenderingLoggerKtTest {
                     │{}
                     │   outer 1                                               {}                                      ▮▮
                     │   outer 2                                               {}                                      ▮▮
-                    │{}
                     │   ╭─────╴nested log
                     │   │{}
                     │   │   nested 1                                          {}                                      ▮▮
                     │   ϟ{}
                     │   ╰─────╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
-                    │{}
                 """.trimIndent(), ignoreTrailingLines = true
         )
     }
@@ -338,14 +330,12 @@ class RenderingLoggerKtTest {
                     │{}
                     │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │{}
                     │   ╭─────╴Some logging heavy operation{}
                     │   │{}
                     │   │   This process might produce pretty much log messages. Logging to …
                     │   │   ${Unicode.Emojis.pageFacingUp} ${file.toUri()}
                     │   │{}
                     │   ╰─────╴✔
-                    │{}
                     │   Normal logging continues...
                     │{}
                     ╰─────╴✔{}
@@ -404,14 +394,12 @@ class RenderingLoggerKtTest {
         true to """
             ╭─────╴{}
             │   
-            │   
             │   ╭─────╴line #1
             │   │      line #2
             │   │   
             │   │   logged line
             │   │
             │   ╰─────╴✔
-            │   
             │
             ╰─────╴✔{}
         """.trimIndent(),
@@ -435,13 +423,11 @@ class RenderingLoggerKtTest {
         expect { logger.logged }.that { matchesCurlyPattern(expectation) }
     }
 
-
     @Execution(SAME_THREAD)
     @TestFactory
     fun `should show unsuccessful return statuses`() = listOf(
         true to """
             ╭─────╴{}
-            │   
             │   
             │   ╭─────╴{}
             │   │   

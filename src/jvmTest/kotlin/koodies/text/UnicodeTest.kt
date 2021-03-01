@@ -3,7 +3,6 @@ package koodies.text
 import koodies.number.ApproximationMode
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
-import koodies.text.Unicode.Emojis.asEmoji
 import koodies.text.Unicode.nextLine
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest

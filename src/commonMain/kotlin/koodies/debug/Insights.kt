@@ -2,8 +2,29 @@
 
 package koodies.debug
 
+import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.isMultiline
+
 private fun highlight(subject: Any?) = "\u001B[96m$subject\u001B[39m"
-private val brackets = highlight("｛") to highlight("｝")
+private val selfBrackets = highlight("⟨") to highlight("⟩")
+private val transformedBrackets = highlight("{") to highlight("}")
+
+private fun <T> asString(subject: T): String = when (subject) {
+    is Array<*> -> asString(subject.toList())
+    else -> subject.toString()
+}
+
+fun <T> T.selfString(): String = if (toString().isMultiline) {
+    "${selfBrackets.first}$LF${asString(this)}$LF${selfBrackets.second}"
+} else {
+    "${selfBrackets.first} ${asString(this)} ${selfBrackets.second}"
+}
+
+private fun <T> T.transformedString(): String = if (asString(this).isMultiline) {
+    "${transformedBrackets.first}$LF${asString(this)}$LF${transformedBrackets.second}"
+} else {
+    "${transformedBrackets.first} ${asString(this)} ${transformedBrackets.second}"
+}
 
 /**
  * Helper property that supports
@@ -31,8 +52,7 @@ private val brackets = highlight("｛") to highlight("｝")
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 val <T> T.trace: T
-    get() : T = also { println(highlight(it)) }
-
+    get() : T = apply { println(selfString()) }
 
 /**
  * Helper function that supports
@@ -61,4 +81,4 @@ val <T> T.trace: T
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 fun <T> T.trace(transform: (T.() -> Any?)): T =
-    also { println("$it${brackets.first} ${it.transform()} ${brackets.second}") }
+    apply { println("${selfString()} ${transform().transformedString()}") }
