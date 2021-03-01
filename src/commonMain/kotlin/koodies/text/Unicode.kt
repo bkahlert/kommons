@@ -240,7 +240,7 @@ object Unicode {
      *
      * This only applies to the so called [controlCharacters].
      */
-    val CodePoint.replacementSymbol: Char? get() = char?.let { controlCharacters[char] }
+    val CodePoint.replacementSymbol: Char? get() = char?.replacementSymbol
 
 
     /**

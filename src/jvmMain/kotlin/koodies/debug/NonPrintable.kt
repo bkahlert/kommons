@@ -19,7 +19,7 @@ fun String.replaceNonPrintableCharacters(): String {
         prefix + when {
             codePoint.char == ' ' -> " "
             codePoint.replacementSymbol != null -> codePoint.replacementSymbol.toString()
-            codePoint.string in LineSeparators -> when (this) {
+            codePoint.isLineSeparator -> when (codePoint.string) {
                 LineSeparators.LS -> "ₛᷞ"
                 LineSeparators.PS -> "ₛᷮ"
                 LineSeparators.NEL -> "␤"
