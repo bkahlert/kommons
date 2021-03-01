@@ -20,7 +20,7 @@ class CarDSL {
 
     data class Car(val name: String, val color: String, val traits: Set<Trait>, val engine: Engine, val wheels: Int)
 
-    class CarBuilder : BuilderTemplate<CarContext, Car>() {
+    object CarBuilder : BuilderTemplate<CarContext, Car>() {
 
         class CarContext(
             override val captures: CapturesMap,
@@ -33,13 +33,13 @@ class CarDSL {
         }
 
         override fun BuildContext.build() = ::CarContext {
-            Car(::name.eval(), ::color.evalOrDefault("#111111"), ::traits.eval(), ::engine.eval(), ::wheels.eval(4))
+            Car(::name.eval(), ::color.evalOrDefault("#111111"), ::traits.eval(), ::engine.eval(), ::wheels.eval())
         }
     }
 
-    fun printSamples() {
+    fun car(init: Init<CarContext>): Car = CarBuilder(init)
 
-        val car = CarBuilder()
+    fun printSamples() {
 
         val exclusiveCar = car {
             name = "Koodies Car"
@@ -51,12 +51,13 @@ class CarDSL {
             wheels { 4 }
             traits { +Exclusive + TaxExempt }
         }
-        println(exclusiveCar)
 
         val defaultCarWithCopiedMotor = car {
             name = "Default Car"
             engine instead exclusiveCar.engine
         }
+
+        println(exclusiveCar)
         println(defaultCarWithCopiedMotor)
     }
 

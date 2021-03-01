@@ -7,7 +7,6 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
-import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isNull
@@ -31,11 +30,10 @@ class CapturingContextTest {
 
     @TestFactory
     fun `with no invocations`() = test(CapturesMap().also { TestContext(it) }) {
-        expect("all initialized delegates have initial invocation") { mappings }.that { hasSize(3) }
-        expect { mappings[TestContext::initializedWithNonNullable.name] }.that { isA<Deferred<out String>>().evaluatesTo("initial") }
-        expect { mappings[TestContext::initializedWithNullable.name] }.that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
-        expect { mappings[TestContext::initializedWithNull.name] }.that { isA<Deferred<out String?>>().evaluatesTo(null) }
-        expect { mappings[TestContext::uninitialized.name] }.that { isNull() }
+        expect { mostRecent(TestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("initial") }
+        expect { mostRecent(TestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
+        expect { mostRecent(TestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo(null) }
+        expect { mostRecent(TestContext::uninitialized) }.that { isNull() }
     }
 
     @TestFactory
@@ -47,11 +45,10 @@ class CapturingContextTest {
             uninitialized("value")
         }
     }) {
-        expect("all delegates have stored invocations") { mappings }.that { hasSize(4) }
-        expect { mappings[TestContext::initializedWithNonNullable.name] }.that { isA<Deferred<out String>>().evaluatesTo("value") }
-        expect { mappings[TestContext::initializedWithNullable.name] }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-        expect { mappings[TestContext::initializedWithNull.name] }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-        expect { mappings[TestContext::uninitialized.name] }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
+        expect { mostRecent(TestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("value") }
+        expect { mostRecent(TestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
+        expect { mostRecent(TestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
+        expect { mostRecent(TestContext::uninitialized) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
     }
 
     @TestFactory
@@ -67,10 +64,9 @@ class CapturingContextTest {
             uninitialized("new value")
         }
     }) {
-        expect("all delegates have stored invocation") { mappings }.that { hasSize(4) }
-        expect { mappings[TestContext::initializedWithNonNullable.name] }.that { isA<Deferred<out String>>().evaluatesTo("new value") }
-        expect { mappings[TestContext::initializedWithNullable.name] }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-        expect { mappings[TestContext::initializedWithNull.name] }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-        expect { mappings[TestContext::uninitialized.name] }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+        expect { mostRecent(TestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("new value") }
+        expect { mostRecent(TestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+        expect { mostRecent(TestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+        expect { mostRecent(TestContext::uninitialized) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
     }
 }

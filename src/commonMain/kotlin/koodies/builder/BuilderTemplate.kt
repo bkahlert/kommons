@@ -81,6 +81,7 @@ import kotlin.reflect.KProperty
  * [BuildContext.evalOrDefault] can be used to handle those cases in this last
  * step. [BuildContext.eval] throws an exception if no default was specified
  * in step 1, no invocation was recorded and a non-nullable type is needed.
+ * [BuildContext.evalAll] not only returns the most recent but all invocations.
  *
  *
  * ```kotlin
@@ -140,6 +141,22 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
             init(this)
             build()
         }
+
+        /**
+         * Evaluates all captures for all properties and returns them.
+         *
+         * If no capture are found, the returned list is empty.
+         * An eventually defined default is ignored.
+         */
+        inline fun <reified T> evalAll(): List<T> = captures.evalAll()
+
+        /**
+         * Evaluates all captures for `this` property and returns them.
+         *
+         * If no capture are found, the returned list is empty.
+         * An eventually defined default is ignored.
+         */
+        inline fun <reified T> KProperty<*>.evalAll(): List<T> = with(captures) { this@evalAll.evalAll() }
 
         /**
          * Checks if a capture can be found for `this` property and if so,

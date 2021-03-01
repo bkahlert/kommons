@@ -50,7 +50,7 @@ class CarBuilder : BuilderTemplate<CarContext, Car>() {
         val color by External::color
         val traits by enumSetBuilder<Trait>()
         val engine by Engine
-        val wheels by builder<Int>()
+        val wheels by builder<Int>() default 4
     }
 
     override fun BuildContext.build() = ::CarContext {
@@ -59,7 +59,7 @@ class CarBuilder : BuilderTemplate<CarContext, Car>() {
             ::color.evalOrDefault("#111111"),
             ::traits.eval(),
             ::engine.eval(),
-            ::wheels.evalOrDefault(4)
+            ::wheels.eval()
         )
     }
 }
@@ -68,7 +68,7 @@ class CarBuilder : BuilderTemplate<CarContext, Car>() {
 ##### CarBuilder Usage
 
 ```kotlin
-val car = CarBuilder()
+fun car(init: Init<CarContext>): Car = CarBuilder(init)
 
 val exclusiveCar = car {
     name = "Koodies Car"
@@ -80,12 +80,13 @@ val exclusiveCar = car {
     wheels { 4 }
     traits { +Exclusive + TaxExempt }
 }
-println(exclusiveCar)
 
 val defaultCarWithCopiedMotor = car {
     name = "Default Car"
     engine instead exclusiveCar.engine
 }
+
+println(exclusiveCar)
 println(defaultCarWithCopiedMotor)
 ```
 
@@ -96,7 +97,7 @@ Car(name=Default Car, color=#111111, traits=[], wheels=4,
     engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
 ```
 
-##### CarBuilder Parts
+##### CarBuilder Parts uses *[DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
 
 ```kotlin
 inline class EnginePower(val watts: BigDecimal) {
@@ -148,6 +149,22 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
     * **skippable**
         * call `build { … }` to build and `build(myCar)` if you already have an instance
         * infix alternative: `build instead myCar`
+    * **defaultable**
+        * defaults can be specified for each property, e.g. `val wheels by builder<Int>() default 4`
+        * defaults can be provided during build, e.g. `::wheels.evalOrDefault(4)`
+        * container-like builders (ListBuilder, MapBuilder, etc.) have all non-null pre-defined default (emptyList(), emptyMap(), etc)
+    * **versatile**
+        * get single instances using `::engine.eval()`, `::engine.evalOrDefault()` or `::engine.evalOrNull()`
+        * get multiple instances using `::engine.evalAll()` *(order of invocations preserved)*
+        * get all instances for all fields using `evalAll()` *(order of invocations preserved)*
+        * implicitly build lists using infix functions, e.g.
+          ```kotlin
+          wheels {
+            // three-wheeler
+            axis with wheel { … }
+            axis with wheel { … } + wheel { … } 
+          }
+          ```
     * usable as **singleton** `object CarBuilder`
     * usable as **companion object**
       ```kotlin

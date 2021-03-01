@@ -11,10 +11,13 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
+import strikt.assertions.containsExactly
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNull
+import strikt.assertions.map
 
 @Execution(SAME_THREAD)
 class CapturesMapTest {
@@ -38,12 +41,17 @@ class CapturesMapTest {
         private val capturesMap = CapturesMap()
         private val delegatedFunction by CallableProperty { _, property ->
             { init: Context.() -> Unit ->
-                capturesMap[property] = Deferred { BuilderClass(init) }
+                capturesMap.add(property, Deferred { BuilderClass(init) })
             }
         }
 
         @TestFactory
         fun `using member functions`() = test(capturesMap) {
+            test("getAll") {
+                expect { getAll() }.that { evaluateTo() }
+                expect { getAll<String>(::delegatedFunction) }.that { evaluateTo() }
+            }
+
             group("get") {
                 test { expect { get<String>(::delegatedFunction) }.that { evaluatesTo(null) } }
                 test { expect { get<String>(::delegatedFunction) { it as String } }.that { evaluatesTo(null) } }
@@ -77,6 +85,7 @@ class CapturesMapTest {
 
         @TestFactory
         fun `using extension functions`() = test(capturesMap) {
+            test { expect { ::delegatedFunction.evalAll<String>() }.isEmpty() }
             test { expect { ::delegatedFunction.evalOrNull<String>() }.isNull() }
             test { expect { ::delegatedFunction.evalOrDefault("default") }.isEqualTo("default") }
             test { expect { ::delegatedFunction.evalOrDefault { "default" } }.isEqualTo("default") }
@@ -90,7 +99,7 @@ class CapturesMapTest {
         private val capturesMap = CapturesMap()
         private val delegatedFunction by CallableProperty { _, property ->
             { init: Context.() -> Unit ->
-                capturesMap[property] = Deferred { BuilderClass(init) }
+                capturesMap.add(property, Deferred { BuilderClass(init) })
             }
         }
 
@@ -102,6 +111,10 @@ class CapturesMapTest {
 
         @TestFactory
         fun `using member functions`() = test(capturesMap) {
+            test("getAll") {
+                expect { getAll() }.that { evaluateTo("2", "1", "3") }
+                expect { getAll<String>(::delegatedFunction) }.that { evaluateTo("2", "1", "3") }
+            }
 
             group("get") {
                 test { expect { get<String>(::delegatedFunction) }.that { evaluatesTo("3") } }
@@ -136,6 +149,7 @@ class CapturesMapTest {
 
         @TestFactory
         fun `using extension functions`() = test(capturesMap) {
+            test { expect { ::delegatedFunction.evalAll<String>() }.containsExactly("2", "1", "3") }
             test { expect { ::delegatedFunction.evalOrNull<String>() }.isEqualTo("3") }
             test { expect { ::delegatedFunction.evalOrDefault("default") }.isEqualTo("3") }
             test { expect { ::delegatedFunction.evalOrDefault { "default" } }.isEqualTo("3") }
@@ -146,3 +160,6 @@ class CapturesMapTest {
 
 inline fun <reified T> Assertion.Builder<Deferred<out T>>.evaluatesTo(value: T) =
     get("evaluating") { evaluate() }.isEqualTo(value)
+
+inline fun <reified T> Assertion.Builder<List<Deferred<out T>>>.evaluateTo(vararg values: T) =
+    map { it.evaluate() }.containsExactly(values)

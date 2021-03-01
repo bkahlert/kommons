@@ -898,11 +898,8 @@ class CapturingProperty<T>(
     private val cast: (Any?) -> T,
 ) : ReadWriteProperty<Any?, T> {
 
-    private fun KProperty<*>.store(value: T): Unit =
-        Deferred { value }.let { capturesMap[this] = it }
-
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingProperty<T> =
-        also { property.store(initialValue) }
+        also { capturesMap.setDefault(property, Deferred { initialValue }) }
 
     /**
      * Returns the most recently captured value.
@@ -915,7 +912,7 @@ class CapturingProperty<T>(
      * Captures the set value by storing it in [capturesMap].
      */
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        property.store(value)
+        capturesMap.add(property, Deferred { value })
     }
 }
 
@@ -932,15 +929,11 @@ class CapturingCallable<T, R>(
     private val adapter: ((Deferred<R>) -> Unit) -> T,
 ) : CallableProperty<Any?, T> {
 
-    private fun KProperty<*>.store(invocation: Deferred<R>) {
-        capturesMap[this] = invocation
-    }
-
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<T, R> =
-        also { property.store(Deferred { initialValue }) }
+        also { capturesMap.setDefault(property, Deferred { initialValue }) }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T =
-        adapter { property.store(it) }
+        adapter { capturesMap.add(property, it) }
 }
 
 /**

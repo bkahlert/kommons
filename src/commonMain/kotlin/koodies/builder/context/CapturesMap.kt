@@ -10,37 +10,71 @@ import kotlin.reflect.KProperty
  * Helper context to easy access the evaluation result of [Deferred] delegates using
  * the corresponding delegated property.
  */
-class CapturesMap(val mappings: MutableMap<KProperty<*>, Deferred<*>> = mutableMapOf()) {
+class CapturesMap {
 
-    operator fun Map<KProperty<*>, Deferred<*>>.get(propertyName: String): Deferred<*>? = mapKeys { (prop, _) -> prop.name }[propertyName]
+    private val defaults = mutableMapOf<String, Deferred<*>>()
+    private val history = mutableListOf<Pair<String, Deferred<*>>>()
 
-    operator fun set(property: KProperty<*>, deferred: Deferred<*>) {
-        mappings[property] = deferred
+    fun setDefault(property: KProperty<*>, deferred: Deferred<*>) {
+        defaults[property.name] = deferred
     }
+
+    fun add(property: KProperty<*>, deferred: Deferred<*>) {
+        history.add(property.name to deferred)
+    }
+
+    fun mostRecent(property: KProperty<*>): Deferred<*>? = mostRecent(property.name)
+    fun mostRecent(propertyName: String): Deferred<*>? =
+        history.lastOrNull { it.first == propertyName }?.second ?: defaults[propertyName]
+
+    /**
+     * Returns all [Deferred] evaluations for all properties matching the
+     * specified [filter] or an empty list. Eventually set defaults are ignored.
+     */
+    fun getAll(filter: Pair<String, Deferred<*>>.() -> Boolean = { true }): List<Deferred<*>> =
+        history.filter { it.filter() }.map { it.second }
+
+    /**
+     * Returns all [Deferred] evaluations for the given [property] or
+     * an empty list. An eventually set default is ignored.
+     */
+    inline fun <reified R> getAll(property: KProperty<*>): List<Deferred<out R>> =
+        getAll(property.name)
+
+    /**
+     * Returns all [Deferred] evaluations for the given [propertyName] or
+     * an empty list. An eventually set default is ignored.
+     */
+    inline fun <reified R> getAll(propertyName: String): List<Deferred<out R>> =
+        getAll { first == propertyName }.map { it.letContent { this as R } }
 
     /**
      * Returns the [Deferred] evaluation of the most recent invocation of the
      * given [property] or `null` if no invocation is stored.
      */
-    inline operator fun <reified R> get(property: KProperty<*>): Deferred<out R?> = mappings[property.name]?.letContent { this@letContent as R? } ?: deferNull()
+    inline operator fun <reified R> get(property: KProperty<*>): Deferred<out R?> =
+        mostRecent(property.name)?.letContent { this@letContent as R? } ?: deferNull()
 
     /**
      * Returns the [Deferred] evaluation of the most recent invocation of the
      * property with the given [property] or `null` if no invocation is stored.
      */
-    fun <R> get(property: KProperty<*>, cast: (Any?) -> R?): Deferred<out R?> = mappings[property.name]?.letContent { cast(this@letContent) } ?: deferNull()
+    fun <R> get(property: KProperty<*>, cast: (Any?) -> R?): Deferred<out R?> =
+        mostRecent(property.name)?.letContent { cast(this@letContent) } ?: deferNull()
 
     /**
      * Returns the [Deferred] evaluation of the most recent invocation of the
      * property with the given [propertyName] or `null` if no invocation is stored.
      */
-    inline operator fun <reified R> get(propertyName: String): Deferred<out R?> = mappings[propertyName]?.letContent { this@letContent as? R } ?: deferNull()
+    inline operator fun <reified R> get(propertyName: String): Deferred<out R?> =
+        mostRecent(propertyName)?.letContent { this@letContent as? R } ?: deferNull()
 
     /**
      * Returns the [Deferred] evaluation of the most recent invocation of the
      * property with the given [propertyName] or `null` if no invocation is stored.
      */
-    fun <R> get(propertyName: String, cast: (Any?) -> R?): Deferred<out R?> = mappings[propertyName]?.letContent { cast(this@letContent) } ?: deferNull()
+    fun <R> get(propertyName: String, cast: (Any?) -> R?): Deferred<out R?> =
+        mostRecent(propertyName)?.letContent { cast(this@letContent) } ?: deferNull()
 
     /**
      * Returns the [Deferred] evaluation of the most recent invocation of the
@@ -84,6 +118,23 @@ class CapturesMap(val mappings: MutableMap<KProperty<*>, Deferred<*>> = mutableM
     inline fun <reified R> getOrThrow(propertyName: String, noinline lazyException: (() -> Throwable)? = null): Deferred<out R> =
         get<R>(propertyName).letContent { if (this is R) this else throw (lazyException?.invoke() ?: defaultException(propertyName)) }
 
+
+    /**
+     * Evaluates all captures for all properties and returns them.
+     *
+     * If no capture are found, the returned list is empty.
+     * An eventually defined default is ignored.
+     */
+    inline fun <reified T> evalAll(): List<T> = getAll { true }.map { it.evaluate() as T }
+
+    /**
+     * Evaluates all captures for `this` property and returns them.
+     *
+     * If no capture are found, the returned list is empty.
+     * An eventually defined default is ignored.
+     */
+    inline fun <reified T> KProperty<*>.evalAll(): List<T> = getAll<T>(this).map { it.evaluate() }
+
     /**
      * Checks if a capture can be found for `this` property and if so,
      * evaluates and returns it. Otherwise returns `null`.
@@ -123,11 +174,7 @@ class CapturesMap(val mappings: MutableMap<KProperty<*>, Deferred<*>> = mutableM
      */
     inline fun <reified T> KProperty<*>.eval(): T = getOrThrow<T>(this).evaluate()
 
-    override fun toString(): String = asString {
-        mappings.map { (property, delegate) ->
-            property.name to delegate
-        }
-    }
+    override fun toString(): String = asString(::defaults, ::history)
 
     companion object {
         /**

@@ -1,6 +1,7 @@
 package koodies.test
 
-import koodies.builder.ElementGroupsBuilder
+import koodies.builder.Init
+import koodies.builder.NestedListsBuilder
 import koodies.collections.removeFirst
 import org.junit.jupiter.api.fail
 import strikt.api.Assertion
@@ -18,10 +19,8 @@ import strikt.assertions.containsExactlyInAnyOrder
  *
  * @sample [ContainsExactlyInSomeOrderKtTest.PassingAssertion]
  */
-fun <T : Iterable<E>, E> Assertion.Builder<T>.containsExactlyInSomeOrder(init: ElementGroupsBuilder<E>.() -> Unit): Assertion.Builder<T> {
-    val mutableListOf = mutableListOf<MutableList<E>>()
-    return containsExactlyInSomeOrder(*mutableListOf.also { ElementGroupsBuilder(it).init() }.toTypedArray())
-}
+fun <T : Iterable<E>, E> Assertion.Builder<T>.containsExactlyInSomeOrder(init: Init<NestedListsBuilder<E>.NestedListsContext>): Assertion.Builder<T> =
+    containsExactlyInSomeOrder(*NestedListsBuilder(init).toTypedArray())
 
 /**
  * Asserts if this [Iterable] contains exactly the provided elements groups.
