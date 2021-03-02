@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.LineSeparators.LF
 import kotlin.random.Random
 
 object CharRanges {
@@ -90,3 +91,12 @@ fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): Str
     }
     return this
 }
+
+/**
+ * Wraps this char sequence with the given [prefix] and [suffix].
+ * - a line feed (`\n`) is added to separate the [prefix] from this char sequence
+ * - a line feed (`\n`) is added to separate this char sequence from the [suffix].
+ * - the indentation of [prefix] and [suffix] is trimmed using [String.trimIndent]
+ */
+fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
+    "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"

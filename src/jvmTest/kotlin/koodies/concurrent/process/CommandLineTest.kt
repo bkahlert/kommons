@@ -300,7 +300,7 @@ val Assertion.Builder<CommandLine>.continuationsRemoved
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<ManagedProcess>
     get() = get("evaluated %s") {
-        toManagedProcess(expectedExitValue = null).processSynchronously()
+        toManagedProcess(expectedExitValue = null).processSynchronously(Processors.noopProcessor())
     }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<ManagedProcess>.() -> Unit) =

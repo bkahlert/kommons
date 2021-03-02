@@ -9,6 +9,7 @@ import koodies.io.path.asString
 import koodies.io.path.hasContent
 import koodies.io.path.randomFile
 import koodies.io.path.single
+import koodies.logging.InMemoryLogger
 import koodies.shell.HereDocBuilder.hereDoc
 import koodies.terminal.AnsiCode.Companion.ESC
 import koodies.test.Smoke
@@ -21,10 +22,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.exists
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isExecutable
@@ -145,33 +146,31 @@ class ShellScriptTest {
 
     @Nested
     inner class Embed {
-        private fun Path.getEmbeddedShellScript() = ShellScript("embedded script 📝") {
+        private fun getEmbeddedShellScript() = ShellScript("embedded script 📝") {
             shebang
-            changeDirectoryOrExit(this@getEmbeddedShellScript)
             !"""mkdir "dir""""
             !"""cd "dir""""
             !"""sleep 1"""
             !"""echo "test" > file.txt"""
         }
 
-        private fun Path.shellScript() = ShellScript {
+        private fun ShellScript.shellScript() {
             shebang
             !"""echo "about to run embedded script""""
             embed(getEmbeddedShellScript())
-            !"""echo "finish to run embedded script""""
+            !"""echo "finished to run embedded script""""
             !"""echo $(pwd)"""
         }
 
         @Test
         fun `should embed shell script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(shellScript()).built.matchesCurlyPattern("""
+            expectThat(ShellScript { shellScript() }.build()).matchesCurlyPattern("""
                 #!/bin/sh
                 echo "about to run embedded script"
                 (
                 cat <<'EMBEDDED-SCRIPT-{}'
                 #!/bin/sh
                 echo "{}"
-                cd "${asString()}" || exit -1
                 mkdir "dir"
                 cd "dir"
                 sleep 1
@@ -186,14 +185,18 @@ class ShellScriptTest {
                 else
                   echo "Error creating \"embedded-script-_.sh\""
                 fi
-                echo "finish to run embedded script"
+                echo "finished to run embedded script"
                 echo $(pwd)
             """.trimIndent())
         }
 
         @Smoke @Test
-        fun `should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = script(shellScript())
+        fun InMemoryLogger.`should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val logger = this@`should preserve functionality`
+            val process = script(logger = logger) {
+                changeDirectoryOrExit(this@withTempDir)
+                shellScript()
+            }
             expect {
                 that(process.exitValue).isEqualTo(0)
                 that(process.logged.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
@@ -202,10 +205,13 @@ class ShellScriptTest {
                         📄 file://${asString()}/koodies.process.{}.sh
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝
-                        finish to run embedded script
+                        finished to run embedded script
                         ${asString()}
                     """.trimIndent())
-                that(resolve("dir/file.txt")).hasContent("test\n")
+                that(resolve("dir/file.txt")) {
+                    exists()
+                    hasContent("test\n")
+                }
             }
         }
     }
@@ -346,7 +352,7 @@ class ShellScriptTest {
             comment("test")
             !"exit 0"
         }
-        expectThat(sh.lines).containsExactly("# test", "exit 0")
+        expectThat(sh).containsExactly("# test", "exit 0")
     }
 
     @Test
@@ -359,7 +365,7 @@ class ShellScriptTest {
             """.trimIndent())
             !"exit 0"
 
-        }.lines).containsExactly("# line 1", "# line 2", "exit 0")
+        }).containsExactly("# line 1", "# line 2", "exit 0")
     }
 
     @Nested
@@ -369,7 +375,7 @@ class ShellScriptTest {
         fun `should create sudo line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(ShellScript {
                 sudo("a password", "a command")
-            }).get { lines.last() }
+            }).get { last() }
                 .isEqualTo("echo \"a password\" | sudo -S a command")
         }
     }
@@ -380,28 +386,25 @@ class ShellScriptTest {
         @Test
         fun `should create rm line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(ShellScript {
-                deleteOnCompletion()
-            }).get { lines.last() }
+                deleteSelf()
+            }).get { last() }
                 .isEqualTo("rm -- \"\$0\"")
         }
 
         @Test
-        fun `should not remove itself without`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            script { }
+        fun InMemoryLogger.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            script(logger = this@`should not remove itself by default`) { }
             expectThat(this) {
                 get { listDirectoryEntries() }.single { fileName.endsWith(".sh") }
             }
         }
 
         @Test
-        fun `should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            script { deleteOnCompletion() }
+        fun InMemoryLogger.`should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            script(logger = this@`should remove itself`) { deleteSelf() }
             expectThat(this) {
                 get { listDirectoryEntries() }.isEmpty()
             }
         }
     }
 }
-
-val Assertion.Builder<ShellScript>.built
-    get() = get("built shell script %s") { build() }

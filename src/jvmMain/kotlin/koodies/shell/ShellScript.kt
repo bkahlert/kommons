@@ -11,6 +11,7 @@ import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.prefixLinesWith
 import koodies.text.quoted
 import koodies.text.withRandomSuffix
+import koodies.text.wrapMultiline
 import koodies.toBaseName
 import java.nio.file.Path
 import kotlin.io.path.createFile
@@ -20,13 +21,24 @@ import kotlin.io.path.notExists
 annotation class ShellScriptMarker
 
 @ShellScriptMarker
-class ShellScript(val name: String? = null, content: String? = null) {
+class ShellScript(val name: String? = null, content: String? = null) : Iterable<String> {
 
-    val lines: MutableList<String> = mutableListOf()
+    private val lines: MutableList<String> = mutableListOf()
 
     init {
         if (content != null) lines.addAll(content.trimIndent().lines())
     }
+
+    /**
+     * Returns an iterator over the lines this script is made of.
+     */
+    override fun iterator(): Iterator<String> {
+        return lines.toList().iterator()
+    }
+
+    val `#!`: Shebang get() = Shebang(lines)
+
+    val shebang: Shebang get() = Shebang(lines)
 
     fun changeDirectoryOrExit(directory: Path, @Suppress("UNUSED_PARAMETER") errorCode: Int = -1) {
         lines.add("cd \"$directory\" || exit -1")
@@ -37,17 +49,24 @@ class ShellScript(val name: String? = null, content: String? = null) {
     }
 
     /**
-     * Builds a script line based on [words]. All words are combined using a single space.
+     * Adds the given [words] concatenated with a whitespace to this script.
      */
     fun line(vararg words: String) {
         lines.add(words.joinToString(" "))
     }
 
     /**
-     * Builds a script [line] based on a single string already making up that script.
+     * Adds the given [line] to this script.
      */
     fun line(line: String) {
         lines.add(line)
+    }
+
+    /**
+     * Adds the given [lines] to this script.
+     */
+    fun lines(lines: Iterable<String>) {
+        this.lines.addAll(lines)
     }
 
     /**
@@ -77,25 +96,28 @@ class ShellScript(val name: String? = null, content: String? = null) {
     fun file(path: Path, init: FileOperations.() -> Unit = {}) = FileOperations(this, path).apply(init)
 
     fun embed(shellScript: ShellScript) {
-        val fileName = "${shellScript.name.toBaseName()}.sh"
-        val delimiter = "EMBEDDED-SCRIPT".withRandomSuffix()
-        lines.add("""
-            (
-            cat <<'$delimiter'
-        """.trimIndent())
-        lines.add(shellScript.build().withoutTrailingLineSeparator)
-        lines.add("""
-            $delimiter
-            ) > "$fileName"
-            if [ -f "$fileName" ]; then
-              chmod 755 "$fileName"
-              "./$fileName"
-              wait
-              rm "$fileName"
-            else
-              echo "Error creating \"$fileName\""
-            fi
-        """.trimIndent())
+        val baseName = shellScript.name.toBaseName()
+        val fileName = "$baseName.sh"
+        val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
+        val finalScript = shellScript.build().withoutTrailingLineSeparator
+        lines.add(finalScript.wrapMultiline(
+            """
+                (
+                cat <<'$delimiter'
+            """,
+            """
+                $delimiter
+                ) > "$fileName"
+                if [ -f "$fileName" ]; then
+                  chmod 755 "$fileName"
+                  "./$fileName"
+                  wait
+                  rm "$fileName"
+                else
+                  echo "Error creating \"$fileName\""
+                fi
+            """,
+        ))
     }
 
     fun exit(code: Int) {
@@ -110,7 +132,13 @@ class ShellScript(val name: String? = null, content: String? = null) {
         lines += "echo ${password.quoted} | sudo -S $command"
     }
 
-    fun deleteOnCompletion() {
+    /**
+     * Adds a command that removes / deletes the running script file.
+     *
+     * It's highly recommended to only "self-destruct" as the last
+     * command.
+     */
+    fun deleteSelf() {
         lines += "rm -- \"\$0\""
     }
 

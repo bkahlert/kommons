@@ -1,5 +1,6 @@
 package koodies.exception
 
+import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.script
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.UniqueId
@@ -35,7 +36,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(runtimeException.toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:23)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:24)")
                 isSingleLine()
             }
         }
@@ -43,7 +44,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(emptyException.toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:21)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
         }
@@ -55,7 +56,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(Result.failure<String>(runtimeException).toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:23)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:24)")
                 isSingleLine()
             }
         }
@@ -63,7 +64,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(Result.failure<String>(emptyException).toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:21)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
         }
@@ -93,7 +94,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format run processes as exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(script(expectedExitValue = 42) { !"exit 42" }).toCompactString()) {
+                expectThat(Result.success(script(processor = noopProcessor(), expectedExitValue = 42) { !"exit 42" }).toCompactString()) {
                     get { removeEscapeSequences() }.isEqualTo("42")
                     isSingleLine()
                 }

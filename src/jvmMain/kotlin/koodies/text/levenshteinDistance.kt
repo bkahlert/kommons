@@ -1,11 +1,15 @@
 package koodies.text
 
+/**
+ * Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between `this`
+ * char sequence and the given [other] one.
+ */
 fun CharSequence.levenshteinDistance(other: CharSequence): Int {
     val cost = Array(length + 1) { IntArray(other.length + 1) }
     (0..length).forEach { i -> cost[i][0] = i }
     (0..other.length).forEach { i -> cost[0][i] = i }
 
-    val thisInOtherIndex = hashMapOf<Char, Int>()
+    val thisInOtherIndex = mutableMapOf<Char, Int>()
     (1..length).forEach { thisIndex ->
         var prevMatchingOtherIndex = 0
         (1..other.length).forEach { otherIndex ->

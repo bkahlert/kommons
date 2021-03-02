@@ -1,7 +1,9 @@
 package koodies.text
 
+import koodies.test.test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
@@ -107,6 +109,19 @@ class StringsKtTest {
         @Test
         fun `should not append suffix if present`() {
             expectThat("foobar".withSuffix("bar")).isEqualTo("foobar")
+        }
+    }
+
+    @TestFactory
+    fun `wrap multiline`() = test("foo".wrapMultiline("  bar 1\n    bar 2", "  \n    baz 1\n    baz 2\n        ")) {
+        expect { this }.that {
+            isEqualTo("""
+            bar 1
+              bar 2
+            foo
+            baz 1
+            baz 2
+        """.trimIndent())
         }
     }
 }

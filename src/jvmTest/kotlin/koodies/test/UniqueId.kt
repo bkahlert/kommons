@@ -5,6 +5,7 @@ import koodies.text.withoutSuffix
 import org.junit.jupiter.api.extension.ExtensionContext
 
 class UniqueId(val uniqueId: String) {
+
     companion object {
         fun ExtensionContext.uniqueId(): UniqueId = UniqueId(uniqueId)
     }

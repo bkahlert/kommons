@@ -2,12 +2,12 @@ package koodies.text
 
 import koodies.test.HtmlFile
 import koodies.test.Slow
+import koodies.test.test
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -18,7 +18,7 @@ import kotlin.system.measureTimeMillis
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class LevenshteinDistanceKtTest {
 
     @Suppress("SpellCheckingInspection")
@@ -62,30 +62,36 @@ class LevenshteinDistanceKtTest {
 
     @Nested
     inner class Fuzzy {
-        @Test @Slow
-        fun `should calculate fuzzy distance between similar strings`() {
-            val a = HtmlFile.text.repeat(200) + "abc"
-            val b = "xyz" + HtmlFile.text.repeat(200)
-
-            expectThat(measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b).isLessThan(0.05) }.milliseconds)
-                .isLessThanOrEqualTo(5.seconds)
+        @TestFactory @Slow
+        fun `should calculate fuzzy distance between similar strings`() = test(
+            (HtmlFile.text.repeat(200) + "abc") to ("xyz" + HtmlFile.text.repeat(200))
+        ) { (a, b) ->
+            expect { a }.that { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
+            expect { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds }.that { isLessThanOrEqualTo(5.seconds) }
         }
 
-        @Test @Slow
-        fun `should calculate fuzzy distance between completely different strings`() {
-            val a = randomString(1000)
-            val b = randomString(123)
-
-            expectThat(measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b).isGreaterThan(0.85) }.milliseconds)
-                .isLessThanOrEqualTo(5.seconds)
+        @TestFactory @Slow
+        fun `should calculate fuzzy distance between completely different strings`() = test(
+            randomString(1000) to randomString(123)
+        ) { (a, b) ->
+            expect { a }.that { fuzzyLevenshteinDistance(b).isGreaterThan(0.85) }
+            expect { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds }.that { isLessThanOrEqualTo(5.seconds) }
         }
     }
 }
 
+/**
+ * Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between the
+ * char sequence of `this` assertion and the given [other] one char sequence and returns an assertion on the distance.
+ */
 fun <T : CharSequence> Assertion.Builder<T>.levenshteinDistance(other: CharSequence): Assertion.Builder<Int> =
-    get("Levenshtein distance") { this.levenshteinDistance(other) }
+    get("Levenshtein distance") { levenshteinDistance(other) }
 
-
+/**
+ * Fuzzy variant of the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) algorithm
+ * that only compares each string's first and last 500 characters for strings with more than 1000 characters.
+ * For strings of length 1000 or less the result is the same as of [levenshteinDistance].
+ */
 fun <T : CharSequence> Assertion.Builder<T>.fuzzyLevenshteinDistance(other: CharSequence): Assertion.Builder<Double> =
     get("fuzzy Levenshtein distance %s") {
         val thisString = "$this"

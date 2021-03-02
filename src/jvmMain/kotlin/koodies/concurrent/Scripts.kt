@@ -13,7 +13,6 @@ import koodies.io.path.randomPath
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.Companion.build
-import koodies.shell.shebang
 import koodies.terminal.contains
 import java.nio.file.Path
 import kotlin.io.path.name
@@ -130,7 +129,7 @@ fun script(
  * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of this script will be logged by the specified [logger]
- * which prints all [IO] to the console if `null`
+ * which prints all [IO] to the console if `null`.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -155,7 +154,7 @@ fun Path.script(
  * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of this script will be logged by the specified [logger]
- * which prints all [IO] to the console if `null`
+ * which prints all [IO] to the console if `null`.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners

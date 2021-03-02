@@ -12,14 +12,14 @@ import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.endsWith
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.startsWith
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class KaomojisTest {
 
     @RepeatedTest(10)
@@ -74,6 +74,7 @@ class KaomojisTest {
 
     @Nested
     inner class Categories {
+
         @Test
         fun `should use manually specified form`() {
             val kaomoji = Kaomojis.Angry.`(`A´)`
