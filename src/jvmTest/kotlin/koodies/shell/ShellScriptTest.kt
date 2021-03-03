@@ -272,7 +272,7 @@ class ShellScriptTest {
                 `#!`
                 docker.stop {
                     containers { +"busybox" + "guestfish" }
-                    options { time(42) }
+                    options { time by 42 }
                 }
             }.build()).isEqualTo("""
             #!/bin/sh

@@ -20,7 +20,7 @@ public class NestedListsBuilder<E> : BuilderTemplate<NestedListsBuilder<E>.Neste
 
     public inner class NestedListsContext(override val captures: CapturesMap) : CapturingContext() {
         public val list: SkippableCapturingBuilderInterface<ListBuildingContext<E>.() -> Unit, List<E>?> by ListBuilder<E>()
-        public operator fun E.unaryPlus(): MutableList<E> = mutableListOf(this).also { list(it) }
+        public operator fun E.unaryPlus(): MutableList<E> = mutableListOf(this).also { list by it }
         public operator fun MutableList<E>.plus(element: E): MutableList<E> = also { it.add(element) }
     }
 

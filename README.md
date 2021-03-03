@@ -114,7 +114,7 @@ data class Speed(val distance: Distance, val time: Duration) {
         object SpeedContext {
             val Int.km get() = kilo.m
             val hour = 1.hours
-            infix fun Distance.per(time: Duration) = Speed(Distance(this), time)
+            infix fun Distance.per(time: Duration) = Speed(this, time)
             val BigDecimal.m: Distance get() = Distance(this)
         }
     }
@@ -147,8 +147,9 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
 * BuilderTemplate based builders are...
     * **thread-safe**
     * **skippable**
-        * call `build { … }` to build and `build(myCar)` if you already have an instance
-        * infix alternative: `build instead myCar`
+        * call `build { … }` to build an instance **or**  
+          call `build using myCar` if you want to use an already existing instance
+        * alternatively you can call `build by myCar`
     * **defaultable**
         * defaults can be specified for each property, e.g. `val wheels by builder<Int>() default 4`
         * defaults can be provided during build, e.g. `::wheels.evalOrDefault(4)`

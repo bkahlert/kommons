@@ -27,13 +27,13 @@ import java.nio.file.Path
 /**
  * Creates a [DockerProcess] that executes this command line.
  */
-fun DockerRunCommandLine.toManagedProcess(expectedExitValue: Int?, processTerminationCallback: (() -> Unit)?): DockerProcess =
+public fun DockerRunCommandLine.toManagedProcess(expectedExitValue: Int?, processTerminationCallback: (() -> Unit)?): DockerProcess =
     DockerProcess.from(this, expectedExitValue, processTerminationCallback)
 
 /**
  * Creates a [ManagedProcess] that executes this command line.
  */
-fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
+public fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
     ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
 
 /**
@@ -48,7 +48,7 @@ fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTermination
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun process(
+public fun process(
     commandLine: CommandLine,
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,

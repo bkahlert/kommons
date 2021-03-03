@@ -110,7 +110,7 @@ public object Docker {
      * If needed even [forcibly].
      */
     public fun remove(name: String, forcibly: Boolean = false): String = remove {
-        options { force instead forcibly }
+        options { force using forcibly }
         containers { +name }
     }.execute(expectedExitValue = null, processor = noopProcessor())
         .apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }

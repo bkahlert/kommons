@@ -56,7 +56,7 @@ public class CarDSL {
 
         val defaultCarWithCopiedMotor = car {
             name = "Default Car"
-            engine instead exclusiveCar.engine
+            engine using exclusiveCar.engine
         }
 
         println(exclusiveCar)
@@ -87,7 +87,7 @@ public class CarDSL {
             public object SpeedContext {
                 public val Int.km: Distance get() = kilo.m
                 public val hour: Duration = 1.hours
-                public infix fun Distance.per(time: Duration): Speed = Speed(Distance(this), time)
+                public infix fun Distance.per(time: Duration): Speed = Speed(this, time)
                 public val BigDecimal.m: Distance get() = Distance(this)
             }
         }

@@ -20,7 +20,7 @@ class PseudoBuilderTest {
 
     @Test
     fun `should return value as build result`() {
-        expectThat(builder.instead("abc")).isEqualTo("abc")
+        expectThat(builder.using("abc")).isEqualTo("abc")
     }
 
     @Test

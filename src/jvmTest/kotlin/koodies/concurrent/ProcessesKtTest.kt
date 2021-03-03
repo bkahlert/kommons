@@ -220,15 +220,15 @@ class ProcessesKtTest {
             logger: RenderingLogger? = InMemoryLogger(),
         ) = listOf<Path.() -> ManagedProcess>(
             {
-                processor?.let { CommandLine { command("/bin/sh"); arguments { +"-c" + commandLineContent } }.execute(processor = processor) }
-                    ?: CommandLine { command("/bin/sh"); arguments { +"-c" + commandLineContent } }.execute()
+                processor?.let { CommandLine { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }.execute(processor = processor) }
+                    ?: CommandLine { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }.execute()
             },
             {
-                processor?.let { execute(processor) { command("/bin/sh"); arguments { +"-c" + commandLineContent } } }
-                    ?: execute { command("/bin/sh"); arguments { +"-c" + commandLineContent } }
+                processor?.let { execute(processor) { command by "/bin/sh"; arguments { +"-c" + commandLineContent } } }
+                    ?: execute { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }
             },
             {
-                execute(logger) { command("/bin/sh"); arguments { +"-c" + commandLineContent } }
+                execute(logger) { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }
             },
         )
 
@@ -250,11 +250,11 @@ class ProcessesKtTest {
 
             @TestFactory
             fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
-                { CommandLine { command("/bin/sh"); arguments { +"-c" + echoingCommands } }.execute(processor = it) },
-                { execute(it) { command("/bin/sh"); arguments { +"-c" + echoingCommands } } },
+                { CommandLine { command by "/bin/sh"; arguments { +"-c" + echoingCommands } }.execute(processor = it) },
+                { execute(it) { command by "/bin/sh"; arguments { +"-c" + echoingCommands } } },
                 { processor ->
                     val logger = InMemoryLogger()
-                    val process = execute(logger) { command("/bin/sh"); arguments { +"-c" + echoingCommands } }
+                    val process = execute(logger) { command by "/bin/sh"; arguments { +"-c" + echoingCommands } }
                     logger.logged.lines().forEach { line ->
                         if (line.contains("test output 1")) process.processor(OUT typed "test output 1")
                         if (line.contains("test output 2")) process.processor(OUT typed "test output 2")

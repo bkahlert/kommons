@@ -33,5 +33,10 @@ public interface Skippable<T, R> {
     /**
      * Skips this operation.
      */
-    public infix fun instead(result: T): R
+    public infix fun using(result: T): R
+
+    /**
+     * Skips this operation.
+     */
+    public infix fun by(result: T): R = using(result)
 }

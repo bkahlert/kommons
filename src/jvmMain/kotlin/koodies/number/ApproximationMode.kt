@@ -5,7 +5,7 @@ package koodies.number
  *
  * Not only can you round to integer but also fractional numbers (e.g. halves or thirds).
  */
-public enum class ApproximationMode(private val calc: (Double, Double) -> Double) {
+public enum class ApproximationMode(public val calc: (Double, Double) -> Double) {
     /**
      * If the number is not already rounded the next valid number will be calculated.
      */

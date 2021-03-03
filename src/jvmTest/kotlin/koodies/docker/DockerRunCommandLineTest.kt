@@ -199,9 +199,9 @@ class DockerRunCommandLineTest {
 
         @Test
         fun `should build same format for no sub builders and empty sub builders`() {
-            val commandBuiltWithNoBuilders = DockerRunCommandLine { image(dockerImage) }
+            val commandBuiltWithNoBuilders = DockerRunCommandLine { image by dockerImage }
             val commandBuiltWithEmptyBuilders = DockerRunCommandLine {
-                image(dockerImage)
+                image by dockerImage
                 options { }
                 commandLine { }
             }
@@ -211,12 +211,12 @@ class DockerRunCommandLineTest {
 
         @Test
         fun `should set auto cleanup as default`() {
-            expectThat(DockerRunCommandLine { image(dockerImage) }.arguments).contains("--rm")
+            expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("--rm")
         }
 
         @Test
         fun `should set interactive as default`() {
-            expectThat(DockerRunCommandLine { image(dockerImage) }.arguments).contains("-i")
+            expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("-i")
         }
     }
 

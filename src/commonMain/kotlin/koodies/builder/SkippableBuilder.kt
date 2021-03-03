@@ -10,53 +10,31 @@ public interface SkippableBuilder<T : Function<*>, U, R> : Builder<T, R>, Skippa
     /**
      * Skips the build process by using the given [result] instead.
      */
-    override operator fun invoke(result: U): R
+    public override infix fun using(result: U): R
 
     /**
      * Skips the build process by using the given [result] instead.
      */
-    infix fun instead(result: U): R
+    public override infix fun by(result: U): R = using(result)
 }
-
-/**
- * Skips the build process by using the given [result] instead.
- */
-public operator fun <T : Function<*>, R> Builder<T, R>.invoke(result: R): R = result
 
 /**
  * Skips the build process by using the  given [result] instead.
  */
-public infix fun <T : Function<*>, R> Builder<T, R>.instead(result: R): R = result
-
-/**
- * Skips the build process by using the given [result] instead.
- *
- * ***Note:** Due to Kotlin's resolution strategy, this operator overload is
- *            only used / discovered if caller is in the same package or
- *            if this function is explicitly imported.
- *
- * @see instead
- */
-public operator fun <T : Function<*>, R> ((T) -> R).invoke(result: R): R = result
+public infix fun <T : Function<*>, R> Builder<T, R>.using(result: R): R = result
 
 /**
  * Skips the build process by using the given [result] instead.
  */
-public infix fun <T : Function<*>, R> ((T) -> R).instead(result: R): R = result
+public infix fun <T : Function<*>, R> ((T) -> R).using(result: R): R = result
 
 
 /**
- * Builds an instance of type [R] using `this` [Builder] and
- * the given build argument [init].
- *
- * This function is provided as a an more explicit alternative to [invoke].
+ * Skips the build process by using the  given [result] instead.
  */
-public fun <T : Function<*>, R> Builder<T, R>.build(init: T): R = invoke(init)
+public infix fun <T : Function<*>, R> Builder<T, R>.by(result: R): R = result
 
 /**
- * Builds an instance of type [R] using `this` [Builder] and
- * the given build argument [init].
- *
- * This function is provided as a an more explicit alternative to [invoke].
+ * Skips the build process by using the given [result] instead.
  */
-public infix fun <T : Function<*>, R> ((T) -> R).build(init: T): R = invoke(init)
+public infix fun <T : Function<*>, R> ((T) -> R).by(result: R): R = result

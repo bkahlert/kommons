@@ -269,9 +269,9 @@ public class MountOptions(private val mountOptions: List<MountOption>) : Abstrac
     public companion object : BuilderTemplate<CollectingMountOptionsContext, MountOptions>() {
         @DockerCommandLineDsl
         public class CollectingMountOptionsContext(override val captures: CapturesMap) : CapturingContext(), MountOptionContext<Unit> {
-            public val addMount by MountOption
+            public val addMount: SkippableCapturingBuilderInterface<MountOptionContext<MountOption>.() -> MountOption, MountOption?> by MountOption
             override fun mount(type: String, source: HostPath, target: ContainerPath) {
-                addMount instead MountOption(type, source, target)
+                addMount using MountOption(type, source, target)
             }
         }
 

@@ -82,30 +82,31 @@ class SkippableBuilderTest {
     }
 
     @TestFactory
-    fun `all builder variants can be skipped using invoke`() = abList.test {
+    fun `all builder variants can be skipped with using`() = abList.test {
 
         val built = AllVariantsBuilder().build {
-            expect { explicitBuilderInstance(abList) }.that { isEqualTo(abList) }
-            expect { explicitBuilderFunction(abList) }.that { isEqualTo(abList) }
-            expect { callableBuilderInstance(abList) }.that { isEqualTo(abList) }
-            expect { callableInvokeFunction(abList) }.that { isEqualTo(abList) }
-            expect { capturingBuilderInstance(abList) }.that { isEqualTo(Unit) }
-            expect { capturingBuilderInstanceShorthand(abList) }.that { isEqualTo(Unit) }
+            expect { explicitBuilderInstance using abList }.that { isEqualTo(abList) }
+            expect { explicitBuilderFunction using abList }.that { isEqualTo(abList) }
+            expect { callableBuilderInstance using abList }.that { isEqualTo(abList) }
+            expect { callableInvokeFunction using abList }.that { isEqualTo(abList) }
+            expect { capturingBuilderInstance using abList }.that { isEqualTo(Unit) }
+            expect { capturingBuilderInstanceShorthand using abList }.that { isEqualTo(Unit) }
         }
 
         expect { built }.that { captured(abList) }
     }
 
+
     @TestFactory
-    fun `all builder variants can be skipped using instead`() = abList.test {
+    fun `all builder variants can be skipped with by`() = abList.test {
 
         val built = AllVariantsBuilder().build {
-            expect { explicitBuilderInstance instead abList }.that { isEqualTo(abList) }
-            expect { explicitBuilderFunction instead abList }.that { isEqualTo(abList) }
-            expect { callableBuilderInstance instead abList }.that { isEqualTo(abList) }
-            expect { callableInvokeFunction instead abList }.that { isEqualTo(abList) }
-            expect { capturingBuilderInstance instead abList }.that { isEqualTo(Unit) }
-            expect { capturingBuilderInstanceShorthand instead abList }.that { isEqualTo(Unit) }
+            expect { explicitBuilderInstance by abList }.that { isEqualTo(abList) }
+            expect { explicitBuilderFunction by abList }.that { isEqualTo(abList) }
+            expect { callableBuilderInstance by abList }.that { isEqualTo(abList) }
+            expect { callableInvokeFunction by abList }.that { isEqualTo(abList) }
+            expect { capturingBuilderInstance by abList }.that { isEqualTo(Unit) }
+            expect { capturingBuilderInstanceShorthand by abList }.that { isEqualTo(Unit) }
         }
 
         expect { built }.that { captured(abList) }

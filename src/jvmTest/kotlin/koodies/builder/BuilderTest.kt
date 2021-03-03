@@ -46,8 +46,8 @@ class BuilderTest {
         }
 
         group("skip") {
-            expect { invoke(built) }.that { isEqualTo(built) }
-            expect { instead(built) }.that { isEqualTo(built) }
+            expect { using(built) }.that { isEqualTo(built) }
+            expect { by(built) }.that { isEqualTo(built) }
         }
 
         group("build transform") {

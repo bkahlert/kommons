@@ -51,7 +51,18 @@ public fun interface Builder<in T : Function<*>, out R> {
      */
     public operator fun invoke(init: T): R
 }
-}
+
+/**
+ * Builds an instance of type [R] using the given
+ * build argument [init].
+ */
+public inline fun <reified T : Function<*>, reified R> Builder<T, R>.build(init: T): R = invoke(init)
+
+/**
+ * Builds an instance of type [R] using the given
+ * build argument [init].
+ */
+public inline fun <reified T : Function<*>, reified R> Function1<T, R>.build(init: T): R = invoke(init)
 
 /**
  * Builds an instance of [S] by applying [transform] to the originally
@@ -197,6 +208,11 @@ public interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
  * Function that initializes a context.
  */
 public typealias Init<C> = C.() -> Unit
+
+/**
+ * Function that initializes a context and accepts one argument.
+ */
+public typealias Init1<P1, C> = C.(P1) -> Unit
 
 
 public inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: R.() -> S): Builder<T, S> =

@@ -23,7 +23,7 @@ public operator fun Unicode.get(codePoint: Long): String = UnicodeDict.get(codeP
 /**
  * Returns this character's [Unicode name](https://unicode.org/charts/charindex.html).
  */
-val Char.unicodeName: String get() = UnicodeDict[this.toLong()]
+public val Char.unicodeName: String get() = UnicodeDict[this.toLong()]
 
 public fun Instant.asEmoji(approximationMode: ApproximationMode = ApproximationMode.Ceil): Emoji {
     val zonedDateTime: ZonedDateTime = atZone(ZoneId.systemDefault())
@@ -33,9 +33,9 @@ public fun Instant.asEmoji(approximationMode: ApproximationMode = ApproximationM
     return listOf(FullHoursDictionary[hour - 1], HalfHoursDictionary[hour - 1], FullHoursDictionary[hour])[closest]
 }
 
-val Now.emoji get() = instant.asEmoji()
+public val Now.emoji: Emoji get() = instant.asEmoji()
 
-fun <T> UnicodeBlockMeta<T>.asTable(): String where T : Unicode.UnicodeBlock<T>, T : Enum<T> = with(unicodeBlock) {
+public fun <T> UnicodeBlockMeta<T>.asTable(): String where T : Unicode.UnicodeBlock<T>, T : Enum<T> = with(unicodeBlock) {
     check(isValid) { "Unicode block must have the same number of values ($valueCount) as code points ($codePointCount)." }
     val table = StringBuilder()
     for (codePoint in range) {
