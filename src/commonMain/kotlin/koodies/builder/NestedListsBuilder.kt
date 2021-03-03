@@ -4,6 +4,8 @@ import koodies.asString
 import koodies.builder.ListBuilder.Companion.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
+import koodies.builder.context.ListBuildingContext
+import koodies.builder.context.SkippableCapturingBuilderInterface
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
@@ -14,12 +16,12 @@ import kotlin.experimental.ExperimentalTypeInference
  * @sample elementsDemo
  * @sample unitDemo
  */
-class NestedListsBuilder<E> : BuilderTemplate<NestedListsBuilder<E>.NestedListsContext, List<List<E>>>() {
+public class NestedListsBuilder<E> : BuilderTemplate<NestedListsBuilder<E>.NestedListsContext, List<List<E>>>() {
 
-    inner class NestedListsContext(override val captures: CapturesMap) : CapturingContext() {
-        val list by ListBuilder<E>()
-        operator fun E.unaryPlus(): MutableList<E> = mutableListOf(this).also { list(it) }
-        operator fun MutableList<E>.plus(element: E): MutableList<E> = also { it.add(element) }
+    public inner class NestedListsContext(override val captures: CapturesMap) : CapturingContext() {
+        public val list: SkippableCapturingBuilderInterface<ListBuildingContext<E>.() -> Unit, List<E>?> by ListBuilder<E>()
+        public operator fun E.unaryPlus(): MutableList<E> = mutableListOf(this).also { list(it) }
+        public operator fun MutableList<E>.plus(element: E): MutableList<E> = also { it.add(element) }
     }
 
     override fun BuildContext.build(): List<List<E>> = ::NestedListsContext { ::list.evalAll() }
@@ -27,13 +29,14 @@ class NestedListsBuilder<E> : BuilderTemplate<NestedListsBuilder<E>.NestedListsC
     override fun toString(): String = asString()
 
     @OptIn(ExperimentalTypeInference::class)
-    companion object {
+    public companion object {
         /**
          * Builds a list of type [E] as specified by [init].
          */
-        fun <E> buildNestedLists(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> = invoke(init)
+        public fun <E> buildNestedLists(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> = invoke(init)
 
-        operator fun <E> invoke(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> = NestedListsBuilder<E>().invoke(init)
+        public operator fun <E> invoke(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> =
+            NestedListsBuilder<E>().invoke(init)
     }
 }
 

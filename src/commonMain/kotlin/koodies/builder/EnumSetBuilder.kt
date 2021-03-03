@@ -12,7 +12,7 @@ import kotlin.experimental.ExperimentalTypeInference
  * @see EnumSetBuilderSamples.directUse
  * @see EnumSetBuilderSamples.indirectUse
  */
-open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
+public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
 
     /**
      * A context to collection all elements added by means
@@ -22,7 +22,7 @@ open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext<E>>, S
         /**
          * The mutable list to which all context operations should be delegated.
          */
-        val list: MutableList<E> = mutableListOf(),
+        public val list: MutableList<E> = mutableListOf(),
     ) : ListBuildingContext<E> {
         override fun add(element: E, vararg elements: E) {
             list.add(element)
@@ -37,13 +37,13 @@ open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext<E>>, S
     override fun toString(): String = asString()
 
     @OptIn(ExperimentalTypeInference::class)
-    companion object {
+    public companion object {
         /**
          * Builds an enum set of enum type [E] as specified by [init].
          */
-        fun <E : Enum<E>> buildEnumSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = invoke(init)
+        public fun <E : Enum<E>> buildEnumSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = invoke(init)
 
-        operator fun <E : Enum<E>> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = EnumSetBuilder<E>().invoke(init)
+        public operator fun <E : Enum<E>> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = EnumSetBuilder<E>().invoke(init)
     }
 }
 

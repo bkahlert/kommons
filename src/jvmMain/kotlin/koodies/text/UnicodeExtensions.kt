@@ -18,14 +18,14 @@ import kotlin.streams.toList
 private object UnicodeDict : Dictionary<Long, String> by
 dictOf("unicode.dict.tsv".asSystemResourceUrl().loadTabSeparatedValues(skipLines = 1), { "\\u${it.toString(16)}!!${it.toChar().category.name}" })
 
-operator fun Unicode.get(codePoint: Long): String = UnicodeDict.get(codePoint)
+public operator fun Unicode.get(codePoint: Long): String = UnicodeDict.get(codePoint)
 
 /**
  * Returns this character's [Unicode name](https://unicode.org/charts/charindex.html).
  */
 val Char.unicodeName: String get() = UnicodeDict[this.toLong()]
 
-fun Instant.asEmoji(approximationMode: ApproximationMode = ApproximationMode.Ceil): Emoji {
+public fun Instant.asEmoji(approximationMode: ApproximationMode = ApproximationMode.Ceil): Emoji {
     val zonedDateTime: ZonedDateTime = atZone(ZoneId.systemDefault())
     val hour = zonedDateTime.hour
     val minute = zonedDateTime.minute

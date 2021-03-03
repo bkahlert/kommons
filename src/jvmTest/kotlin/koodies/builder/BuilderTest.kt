@@ -55,18 +55,42 @@ class BuilderTest {
         }
 
         group("build to") {
-            val builderTarget = mutableListOf<Pair<Int, List<String>>>()
-            with { buildTo(builderTarget, init) }.then {
-                expect { this }.that { isEqualTo(built) }
-                expect { builderTarget }.that { containsExactly(built) }
+            group("list") {
+                val destinationList = mutableListOf<Pair<Int, List<String>>>()
+                with { buildTo(destinationList, init) }.then {
+                    expect { this }.that { isEqualTo(built) }
+                    expect { destinationList }.that { containsExactly(built) }
+                }
+            }
+            group("function") {
+                var destinationFunctionArgument: Pair<Int, List<String>>? = null
+                fun destinationFunction(value: Pair<Int, List<String>>) {
+                    destinationFunctionArgument = value
+                }
+                with { buildTo(::destinationFunction, init) }.then {
+                    expect { this }.that { isEqualTo(built) }
+                    expect { destinationFunctionArgument }.that { isEqualTo(built) }
+                }
             }
         }
 
         group("build transform to") {
-            val builderTarget = mutableListOf<String>()
-            with { buildTo(init, builderTarget, transform) }.then {
-                expect { this }.that { isEqualTo(transformed) }
-                expect { builderTarget }.that { containsExactly(transformed) }
+            group("list") {
+                val destinationList = mutableListOf<String>()
+                with { buildTo(init, destinationList, transform) }.then {
+                    expect { this }.that { isEqualTo(transformed) }
+                    expect { destinationList }.that { containsExactly(transformed) }
+                }
+            }
+            group("function") {
+                var destinationFunctionArgument: String? = null
+                fun destinationFunction(value: String) {
+                    destinationFunctionArgument = value
+                }
+                with { buildTo(init, ::destinationFunction, transform) }.then {
+                    expect { this }.that { isEqualTo(transformed) }
+                    expect { destinationFunctionArgument }.that { isEqualTo(transformed) }
+                }
             }
         }
 
@@ -77,10 +101,22 @@ class BuilderTest {
         }
 
         group("build multiple to") {
-            val builderTarget = mutableListOf<String>()
-            with { buildMultipleTo(init, builderTarget, transformMultiple) }.then {
-                expect { this }.that { isEqualTo(transformedMultiple) }
-                expect { builderTarget }.that { containsExactly(transformedMultiple) }
+            group("list") {
+                val destinationList = mutableListOf<String>()
+                with { buildMultipleTo(init, destinationList, transformMultiple) }.then {
+                    expect { this }.that { isEqualTo(transformedMultiple) }
+                    expect { destinationList }.that { containsExactly(transformedMultiple) }
+                }
+            }
+            group("function") {
+                var destinationFunctionArguments: MutableList<String> = mutableListOf()
+                fun destinationFunction(value: String) {
+                    destinationFunctionArguments.add(value)
+                }
+                with { buildMultipleTo(init, ::destinationFunction, transformMultiple) }.then {
+                    expect { this }.that { isEqualTo(transformedMultiple) }
+                    expect { destinationFunctionArguments }.that { containsExactly(transformedMultiple) }
+                }
             }
         }
     }

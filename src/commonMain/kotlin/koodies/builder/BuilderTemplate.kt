@@ -107,15 +107,14 @@ import kotlin.reflect.KProperty
  *
  * @sample CarDSL
  */
-abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
+public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
 
-    override fun invoke(init: Init<C>): T = CapturesMap().let {
+    override fun invoke(init: Init<C>): T =
         runCatching {
-            BuildContext(it, init).build()
+            BuildContext(init).build()
         }.getOrElse {
             throw IllegalStateException("An error occurred while building: $this", it)
         }
-    }
 
     /**
      * Builds an instance of type [T].
@@ -125,7 +124,9 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
     /**
      * Context that serves as the receiver of the final build step.
      */
-    inner class BuildContext(val captures: CapturesMap, val init: Init<C>) {
+    public inner class BuildContext(public val init: Init<C>) {
+
+        public val captures: CapturesMap = CapturesMap()
 
         /**
          * Creates a new [C] instance using the given producer,
@@ -137,7 +138,7 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * and [eval] to conveniently evaluate the most recent invocation
          * of the corresponding property.
          */
-        operator fun ((CapturesMap) -> C).invoke(build: C.() -> T): T = this(captures).run {
+        public operator fun ((CapturesMap) -> C).invoke(build: C.() -> T): T = this(captures).run {
             init(this)
             build()
         }
@@ -148,7 +149,7 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * If no capture are found, the returned list is empty.
          * An eventually defined default is ignored.
          */
-        inline fun <reified T> evalAll(): List<T> = captures.evalAll()
+        public inline fun <reified T> evalAll(): List<T> = captures.evalAll()
 
         /**
          * Evaluates all captures for `this` property and returns them.
@@ -156,26 +157,26 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * If no capture are found, the returned list is empty.
          * An eventually defined default is ignored.
          */
-        inline fun <reified T> KProperty<*>.evalAll(): List<T> = with(captures) { this@evalAll.evalAll() }
+        public inline fun <reified T> KProperty<*>.evalAll(): List<T> = with(captures) { this@evalAll.evalAll() }
 
         /**
          * Checks if a capture can be found for `this` property and if so,
          * evaluates and returns it. Otherwise returns `null`.
          */
-        inline fun <reified T> KProperty<*>.evalOrNull(): T? = with(captures) { evalOrNull() }
+        public inline fun <reified T> KProperty<*>.evalOrNull(): T? = with(captures) { evalOrNull() }
 
         /**
          * Checks if a capture can be found for `this` property and if so,
          * evaluates and returns it. Otherwise returns the given [default].
          */
-        inline fun <reified T> KProperty<*>.evalOrDefault(default: T): T = with(captures) { evalOrDefault(default) }
+        public inline fun <reified T> KProperty<*>.evalOrDefault(default: T): T = with(captures) { evalOrDefault(default) }
 
         /**
          * Checks if a capture can be found for `this` property and if so,
          * applies the given [transform] to its evaluation and returns it.
          * Otherwise [transform] applied to the given [default] is returned.
          */
-        inline fun <reified T, reified U> KProperty<*>.evalOrDefault(default: T, transform: T.() -> U): U =
+        public inline fun <reified T, reified U> KProperty<*>.evalOrDefault(default: T, transform: T.() -> U): U =
             with(captures) { evalOrDefault(default, transform) }
 
         /**
@@ -183,20 +184,21 @@ abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * evaluates and returns it. Otherwise returns the result of the
          * given [default].
          */
-        inline fun <reified T> KProperty<*>.evalOrDefault(noinline default: () -> T): T = with(captures) { evalOrDefault(default) }
+        public inline fun <reified T> KProperty<*>.evalOrDefault(noinline default: () -> T): T = with(captures) { evalOrDefault(default) }
 
         /**
          * Checks if a capture can be found for `this` property and if so,
          * applies the given [transform] to its evaluation and returns it.
          * Otherwise [transform] applied to the result of the given [default] is returned.
          */
-        inline fun <reified T, reified U> KProperty<*>.evalOrDefault(noinline default: () -> T, transform: T.() -> U): U = evalOrDefault(default).transform()
+        public inline fun <reified T, reified U> KProperty<*>.evalOrDefault(noinline default: () -> T, transform: T.() -> U): U =
+            evalOrDefault(default).transform()
 
         /**
          * Checks if a capture can be found for `this` property and if so,
          * evaluates and returns it. Otherwise throws a [NoSuchElementException].
          */
-        inline fun <reified T> KProperty<*>.eval(): T = with(captures) { eval() }
+        public inline fun <reified T> KProperty<*>.eval(): T = with(captures) { eval() }
     }
 
     override fun toString(): String = asString()

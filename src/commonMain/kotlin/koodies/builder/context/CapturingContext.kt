@@ -76,7 +76,7 @@ import kotlin.reflect.KProperty
  *
  * @see BuilderTemplate
  */
-abstract class CapturingContext {
+public abstract class CapturingContext {
 
     /**
      * Contains the mapping between property and its captured result.
@@ -85,36 +85,36 @@ abstract class CapturingContext {
 
     // @formatter:off
     /** Creates a builder that captures all invocations to `this` builder. */
-    open operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, this)
+    public open operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, this)
     /** Returns a callable that captures all invocations to `this` builder. If no invocations take place, the evaluation later returns the result of building with the given [defaultInit]. */
-    infix fun <T : Function<*>, R> Builder<T, R>.default(defaultInit: T): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R>  = builder(this(defaultInit), this)
+    public infix fun <T : Function<*>, R> Builder<T, R>.default(defaultInit: T): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R>  = builder(this(defaultInit), this)
     /** Returns a callable that captures all invocations to `this` builder. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : Function<*>, R> Builder<T, R>.default(defaultResult: R): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R> = builder(defaultResult, this)
+    public infix fun <T : Function<*>, R> Builder<T, R>.default(defaultResult: R): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R> = builder(defaultResult, this)
 
     /** Returns a callable that captures all invocations to `this` reference. */
-    open operator fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R?> = function(null, this)
+    public open operator fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R?> = function(null, this)
     /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R> = function(defaultResult, this)
+    public infix fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
-    open operator fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3, P4) -> Unit, R?> = function(null, this)
+    public open operator fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3, P4) -> Unit, R?> = function(null, this)
     /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3, P4) -> Unit, R> = function(defaultResult, this)
+    public infix fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3, P4) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
-    open operator fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3) -> Unit, R?> = function(null, this)
+    public open operator fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2, P3) -> Unit, R?> = function(null, this)
     /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3) -> Unit, R> = function(defaultResult, this)
+    public infix fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> T.default(defaultResult: R): CapturingCallable<(P1, P2, P3) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
-    open operator fun <T : (P1, P2) -> R, P1, P2, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2) -> Unit, R?> = function(null, this)
+    public open operator fun <T : (P1, P2) -> R, P1, P2, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1, P2) -> Unit, R?> = function(null, this)
     /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : (P1, P2) -> R, P1, P2, R> T.default(defaultResult: R): CapturingCallable<(P1, P2) -> Unit, R> = function(defaultResult, this)
+    public infix fun <T : (P1, P2) -> R, P1, P2, R> T.default(defaultResult: R): CapturingCallable<(P1, P2) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
-    open operator fun <T : (P1) -> R, P1, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1) -> Unit, R?> = function(null, this)
+    public open operator fun <T : (P1) -> R, P1, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<(P1) -> Unit, R?> = function(null, this)
     /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : (P1) -> R, P1, R> T.default(defaultResult: R): CapturingCallable<(P1) -> Unit, R> = function(defaultResult, this)
+    public infix fun <T : (P1) -> R, P1, R> T.default(defaultResult: R): CapturingCallable<(P1) -> Unit, R> = function(defaultResult, this)
     /** Returns a callable that captures all invocations to `this` reference. */
-    open operator fun <T : () -> R, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<() -> Unit, R?> = function(null, this)
+    public open operator fun <T : () -> R, R> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<() -> Unit, R?> = function(null, this)
     /** Returns a callable that captures all invocations to `this` reference. If no invocations take place, the evaluation later returns the given [defaultResult]. */
-    infix fun <T : () -> R, R> T.default(defaultResult: R): CapturingCallable<() -> Unit, R> = function(defaultResult, this)
+    public infix fun <T : () -> R, R> T.default(defaultResult: R): CapturingCallable<() -> Unit, R> = function(defaultResult, this)
     // @formatter:on
 
     /**
@@ -137,7 +137,7 @@ abstract class CapturingContext {
      *
      * @see builder
      */
-    fun <E> setBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Set<E>>, Set<E>> =
+    public fun <E> setBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Set<E>>, Set<E>> =
         builder(emptySet(), SetBuilder())
 
 
@@ -160,7 +160,7 @@ abstract class CapturingContext {
      *
      * @see builder
      */
-    fun <E : Enum<E>> enumSetBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Set<E>>, Set<E>> =
+    public fun <E : Enum<E>> enumSetBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Set<E>>, Set<E>> =
         builder(emptySet(), EnumSetBuilder())
 
     /**
@@ -183,7 +183,7 @@ abstract class CapturingContext {
      *
      * @see builder
      */
-    inline fun <reified E> arrayBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Array<E>>, Array<E>> =
+    public inline fun <reified E> arrayBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, Array<E>>, Array<E>> =
         builder(emptyArray(), ArrayBuilder.createInstance { toTypedArray() })
 
     /**
@@ -206,7 +206,7 @@ abstract class CapturingContext {
      *
      * @see builder
      */
-    fun <E> listBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, List<E>>, List<E>> =
+    public fun <E> listBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<ListBuildingContext<E>>, List<E>>, List<E>> =
         builder(emptyList(), ListBuilder())
 
     /**
@@ -229,7 +229,7 @@ abstract class CapturingContext {
      *
      * @see builder
      */
-    fun <K, V> mapBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<MapBuildingContext<K, V>>, Map<K, V>>, Map<K, V>> =
+    public fun <K, V> mapBuilder(): CapturingCallable<SkippableCapturingBuilderInterface<Init<MapBuildingContext<K, V>>, Map<K, V>>, Map<K, V>> =
         builder(emptyMap(), MapBuilder())
 
     /**
@@ -273,7 +273,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : Function<*>, R> builder(initialValue: R, builder: Builder<T, R>): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R> =
+    public fun <T : Function<*>, R> builder(initialValue: R, builder: Builder<T, R>): CapturingCallable<SkippableCapturingBuilderInterface<T, R>, R> =
         CapturingCallable(initialValue, captures) { callback ->
             SkippableCapturingBuilderInterface(builder) { callback(it) }
         }
@@ -317,7 +317,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : Function<*>, R> builder(builder: Builder<T, R>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, builder)
+    public fun <T : Function<*>, R> builder(builder: Builder<T, R>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, builder)
 
     /**
      * Returns a callable that captures a simple lambda of
@@ -344,7 +344,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <R> builder(): Builder<() -> R, R> = Builder { it() }
+    public fun <R> builder(): Builder<() -> R, R> = Builder { it() }
 
     /**
      * Returns a callable that has the same argument list
@@ -378,7 +378,10 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R> =
+    public fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> function(
+        initialValue: R,
+        callable: T,
+    ): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R> =
         CapturingCallable(initialValue, captures) { callback ->
             { p1, p2, p3, p4, p5 -> callback(Deferred { callable(p1, p2, p3, p4, p5) }) }
         }
@@ -413,7 +416,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> function(callable: T): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R?> =
+    public fun <T : (P1, P2, P3, P4, P5) -> R, P1, P2, P3, P4, P5, R> function(callable: T): CapturingCallable<(P1, P2, P3, P4, P5) -> Unit, R?> =
         function(null, callable)
 
 
@@ -449,7 +452,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2, P3, P4) -> Unit, R> =
+    public fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2, P3, P4) -> Unit, R> =
         CapturingCallable(initialValue, captures) { callback ->
             { p1, p2, p3, p4 -> callback(Deferred { callable(p1, p2, p3, p4) }) }
         }
@@ -485,7 +488,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> function(callable: T): CapturingCallable<(P1, P2, P3, P4) -> Unit, R?> = function(null, callable)
+    public fun <T : (P1, P2, P3, P4) -> R, P1, P2, P3, P4, R> function(callable: T): CapturingCallable<(P1, P2, P3, P4) -> Unit, R?> = function(null, callable)
 
 
     /**
@@ -520,7 +523,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2, P3) -> Unit, R> =
+    public fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2, P3) -> Unit, R> =
         CapturingCallable(initialValue, captures) { callback ->
             { p1, p2, p3 -> callback(Deferred { callable(p1, p2, p3) }) }
         }
@@ -555,7 +558,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> function(callable: T): CapturingCallable<(P1, P2, P3) -> Unit, R?> = function(null, callable)
+    public fun <T : (P1, P2, P3) -> R, P1, P2, P3, R> function(callable: T): CapturingCallable<(P1, P2, P3) -> Unit, R?> = function(null, callable)
 
     /**
      * Returns a callable that has the same argument list
@@ -589,7 +592,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2) -> R, P1, P2, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2) -> Unit, R> =
+    public fun <T : (P1, P2) -> R, P1, P2, R> function(initialValue: R, callable: T): CapturingCallable<(P1, P2) -> Unit, R> =
         CapturingCallable(initialValue, captures) { callback ->
             { p1, p2 -> callback(Deferred { callable(p1, p2) }) }
         }
@@ -624,7 +627,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1, P2) -> R, P1, P2, R> function(callable: T): CapturingCallable<(P1, P2) -> Unit, R?> = function(null, callable)
+    public fun <T : (P1, P2) -> R, P1, P2, R> function(callable: T): CapturingCallable<(P1, P2) -> Unit, R?> = function(null, callable)
 
     /**
      * Returns a callable that has the same argument list
@@ -658,7 +661,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1) -> R, P1, R> function(initialValue: R, callable: T): CapturingCallable<(P1) -> Unit, R> =
+    public fun <T : (P1) -> R, P1, R> function(initialValue: R, callable: T): CapturingCallable<(P1) -> Unit, R> =
         CapturingCallable(initialValue, captures) { callback ->
             { p1 -> callback(Deferred { callable(p1) }) }
         }
@@ -693,7 +696,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : (P1) -> R, P1, R> function(callable: T): CapturingCallable<(P1) -> Unit, R?> = function(null, callable)
+    public fun <T : (P1) -> R, P1, R> function(callable: T): CapturingCallable<(P1) -> Unit, R?> = function(null, callable)
 
     /**
      * Returns a callable that has the same argument list
@@ -727,7 +730,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : () -> R, R> function(initialValue: R, callable: T): CapturingCallable<() -> Unit, R> =
+    public fun <T : () -> R, R> function(initialValue: R, callable: T): CapturingCallable<() -> Unit, R> =
         CapturingCallable(initialValue, captures) { callback ->
             { callback(Deferred { callable() }) }
         }
@@ -762,7 +765,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T : () -> R, R> function(callable: T): CapturingCallable<() -> Unit, R?> = function(null, callable)
+    public fun <T : () -> R, R> function(callable: T): CapturingCallable<() -> Unit, R?> = function(null, callable)
 
     /**
      * Returns a callable that captures the value it is called with.
@@ -788,7 +791,7 @@ abstract class CapturingContext {
      *     }
      * }
      */
-    fun <T> function(): (T) -> T = { it }
+    public fun <T> function(): (T) -> T = { it }
 
     /**
      * Returns a property that captures the value it is assigned with.
@@ -819,7 +822,7 @@ abstract class CapturingContext {
      *         set() { captured[::capturingSetter] = capture{ value }
      * }
      */
-    fun <T> setter(initialValue: T, cast: (Any?) -> T): CapturingProperty<T> =
+    public fun <T> setter(initialValue: T, cast: (Any?) -> T): CapturingProperty<T> =
         CapturingProperty(initialValue, captures, cast)
 
 
@@ -849,7 +852,7 @@ abstract class CapturingContext {
      *         set() { captured[::capturingSetter] = capture{ value }
      * }
      */
-    inline fun <reified T> setter(initialValue: T): CapturingProperty<T> = setter(initialValue) { it as T }
+    public inline fun <reified T> setter(initialValue: T): CapturingProperty<T> = setter(initialValue) { it as T }
 
     /**
      * Returns a property that captures the value it is assigned with.
@@ -875,10 +878,10 @@ abstract class CapturingContext {
      *         set() { captured[::capturingSetter] = capture{ value }
      * }
      */
-    inline fun <reified T> setter(): CapturingProperty<T?> = setter(null) { it as T }
+    public inline fun <reified T> setter(): CapturingProperty<T?> = setter(null) { it as T }
 
     /** Returns a property that captures the value it is assigned with. If no assignments take place, the evaluation later returns the given [defaultResult]. */
-    inline infix fun <reified T> T.default(defaultResult: T): CapturingProperty<T> = setter(defaultResult) { it as T }
+    public inline infix fun <reified T> T.default(defaultResult: T): CapturingProperty<T> = setter(defaultResult) { it as T }
 
     override fun toString(): String = asString(::captures)
 }
@@ -892,13 +895,13 @@ abstract class CapturingContext {
  * If the caller reads this property the most recent invocation is read
  * and cast to the correct type using [cast].
  */
-class CapturingProperty<T>(
+public class CapturingProperty<T>(
     private val initialValue: T,
     private val capturesMap: CapturesMap,
     private val cast: (Any?) -> T,
 ) : ReadWriteProperty<Any?, T> {
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingProperty<T> =
+    public operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingProperty<T> =
         also { capturesMap.setDefault(property, Deferred { initialValue }) }
 
     /**
@@ -923,13 +926,13 @@ class CapturingProperty<T>(
  *
  * Uses [initialValue] as the captured value if no invocations are recorded.
  */
-class CapturingCallable<T, R>(
+public class CapturingCallable<T, R>(
     private val initialValue: R,
     private val capturesMap: CapturesMap,
     private val adapter: ((Deferred<R>) -> Unit) -> T,
 ) : CallableProperty<Any?, T> {
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<T, R> =
+    public operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): CapturingCallable<T, R> =
         also { capturesMap.setDefault(property, Deferred { initialValue }) }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T =
@@ -946,11 +949,10 @@ class CapturingCallable<T, R>(
  * All invocations to this interface don't trigger a build. Instead the build
  * is captured an passed to the given [callback].
  */
-class SkippableCapturingBuilderInterface<T : Function<*>, R>(
-    val builder: Builder<T, R>,
-    val callback: (Deferred<R>) -> Unit,
+public class SkippableCapturingBuilderInterface<T : Function<*>, R>(
+    private val builder: Builder<T, R>,
+    private val callback: (Deferred<R>) -> Unit,
 ) : SkippableBuilder<T, R, Unit> {
-    override operator fun invoke(init: T) = callback(Deferred { builder(init) })
-    override operator fun invoke(result: R) = callback(Deferred { result })
-    override infix fun instead(result: R) = callback(Deferred { result })
+    override operator fun invoke(init: T): Unit = callback(Deferred { builder(init) })
+    override infix fun instead(result: R): Unit = callback(Deferred { result })
 }

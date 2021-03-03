@@ -14,7 +14,7 @@ import kotlin.experimental.ExperimentalTypeInference
  * If you must you can call [Companion.createInstance] for a non-reifying
  * instantiation.
  */
-open class ArrayBuilder<E> private constructor(val transform: List<E>.() -> Array<E>) :
+public open class ArrayBuilder<E> private constructor(public val transform: List<E>.() -> Array<E>) :
     Builder<Init<ListBuildingContext<E>>, Array<E>> {
 
     /**
@@ -25,7 +25,7 @@ open class ArrayBuilder<E> private constructor(val transform: List<E>.() -> Arra
         /**
          * The mutable list to which all context operations should be delegated.
          */
-        val list: MutableList<E> = mutableListOf(),
+        public val list: MutableList<E> = mutableListOf(),
     ) : ListBuildingContext<E> {
         override fun add(element: E, vararg elements: E) {
             list.add(element)
@@ -40,27 +40,27 @@ open class ArrayBuilder<E> private constructor(val transform: List<E>.() -> Arra
     override fun toString(): String = asString()
 
     @OptIn(ExperimentalTypeInference::class)
-    companion object {
+    public companion object {
         /**
          * Convenience method to build instances of an [E] typed [Array].
          */
-        inline fun <reified E> buildArray(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> = invoke(init)
+        public inline fun <reified E> buildArray(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> = invoke(init)
 
         /**
          * Non-reifying method to create new instances of this builder.
          */
-        fun <E> createInstance(transform: List<E>.() -> Array<E>): ArrayBuilder<E> = ArrayBuilder(transform)
+        public fun <E> createInstance(transform: List<E>.() -> Array<E>): ArrayBuilder<E> = ArrayBuilder(transform)
 
         /**
          * Creates a new array builder with the array's type variable [E] reified.
          */
-        inline operator fun <reified E> invoke(): ArrayBuilder<E> =
+        public inline operator fun <reified E> invoke(): ArrayBuilder<E> =
             createInstance { toTypedArray() }
 
         /**
          * Builds a new [E] typed [Array].
          */
-        inline operator fun <reified E> invoke(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> =
+        public inline operator fun <reified E> invoke(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> =
             createInstance<E> { toTypedArray() }(init)
     }
 }

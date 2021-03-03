@@ -49,8 +49,7 @@ class ClassPathsKtTest {
     @Nested
     inner class UseClassPaths {
 
-        @Test
-        fun `should map root with no provided path`() {
+        @Test fun `should map root with no provided path`() {
             expectThat(useClassPaths("") {
                 listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
             }).filter { true }.size.isGreaterThan(2)

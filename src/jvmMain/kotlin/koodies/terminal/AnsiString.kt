@@ -19,23 +19,23 @@ import kotlin.text.contains as containsRegex
  * - [subSequence] returns the same char sequence as an unformatted [String] would do—but with the formatting ANSI escape sequences intact.
  * the sub sequence. Also escape sequences are ignored from [length].
  */
-open class AnsiString private constructor(val string: String) : CharSequence {
-    constructor(charSequence: CharSequence) : this("$charSequence")
+public open class AnsiString private constructor(public val string: String) : CharSequence {
+    public constructor(charSequence: CharSequence) : this("$charSequence")
 
     private val tokens: Array<Pair<CharSequence, Int>> by lazy { string.tokenize() }
 
-    companion object {
-        val EMPTY = AnsiString("")
+    public companion object {
+        public val EMPTY: AnsiString = AnsiString("")
 
         private val ansiStringCache = mutableMapOf<Int, AnsiString>().synchronized()
-        fun <T : CharSequence> T.asAnsiString(): AnsiString = when {
+        public fun <T : CharSequence> T.asAnsiString(): AnsiString = when {
             this is AnsiString -> this
             this.isEmpty() -> EMPTY
             else -> ansiStringCache.computeIfAbsent(hashCode()) { AnsiString(this) }
         }
 
         private val tokenizationCache = mutableMapOf<Int, Array<Pair<CharSequence, Int>>>().synchronized()
-        fun String.tokenize(): Array<Pair<CharSequence, Int>> = tokenizationCache.computeIfAbsent(hashCode()) {
+        public fun String.tokenize(): Array<Pair<CharSequence, Int>> = tokenizationCache.computeIfAbsent(hashCode()) {
             val tokens = mutableListOf<Pair<CharSequence, Int>>()
             val codes = mutableListOf<Int>()
             var consumed = 0
@@ -62,7 +62,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
             tokens.toTypedArray()
         }
 
-        val Array<Pair<CharSequence, Int>>.length get():Int = sumBy { it.second }
+        public val Array<Pair<CharSequence, Int>>.length: Int get():Int = sumBy { it.second }
 
         private fun Array<Pair<CharSequence, Int>>.subSequence(endIndex: Int): Pair<String, List<Int>> {
             if (endIndex == 0) return "" to emptyList()
@@ -89,7 +89,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
         }
 
         private val subSequenceCache = mutableMapOf<Pair<Int, Pair<Int, Int>>, String>().synchronized()
-        fun Array<Pair<CharSequence, Int>>.subSequence(startIndex: Int, endIndex: Int): String =
+        public fun Array<Pair<CharSequence, Int>>.subSequence(startIndex: Int, endIndex: Int): String =
             subSequenceCache.computeIfAbsent(hashCode() to (startIndex to endIndex)) {
                 if (startIndex > 0) {
                     subSequence(startIndex).let { (prefix, unclosedCodes) ->
@@ -104,7 +104,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
                 }
             }
 
-        fun Array<Pair<CharSequence, Int>>.getChar(index: Int): Char {
+        public fun Array<Pair<CharSequence, Int>>.getChar(index: Int): Char {
             if (index > length) throw IndexOutOfBoundsException(index)
             var read = 0
             forEach { (token, tokenLength) ->
@@ -119,7 +119,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
             error("must not happen")
         }
 
-        fun Array<Pair<CharSequence, Int>>.render(ansi: Boolean = true) =
+        public fun Array<Pair<CharSequence, Int>>.render(ansi: Boolean = true): String =
             if (ansi) subSequence(0, length)
             else filter { it.second != 0 }.joinToString("") { it.first }
     }
@@ -128,7 +128,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
      * Contains this [string] with all ANSI escape sequences removed.
      */
     @Suppress("SpellCheckingInspection")
-    val unformatted by lazy { tokens.render(ansi = false) }
+    public val unformatted by lazy { tokens.render(ansi = false) }
 
     /**
      * Returns the logical length of this string. That is, the same length as the unformatted [String] would return.
@@ -155,15 +155,15 @@ open class AnsiString private constructor(val string: String) : CharSequence {
      * Whether this [text] (ignoring eventually existing ANSI escape sequences)
      * is blank (≝ is empty or consists of nothing but whitespaces).
      */
-    fun isBlank(): Boolean = unformatted.isBlank()
+    public fun isBlank(): Boolean = unformatted.isBlank()
 
     /**
      * Whether this [text] (ignoring eventually existing ANSI escape sequences)
      * is not blank (≝ is not empty and consists of at least one non-whitespace).
      */
-    fun isNotBlank() = unformatted.isNotBlank()
+    public fun isNotBlank() = unformatted.isNotBlank()
 
-    fun toString(withoutAnsi: Boolean = false): String =
+    public fun toString(withoutAnsi: Boolean = false): String =
         if (withoutAnsi) unformatted
         else string
 
@@ -192,7 +192,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
      * @return Returns an ANSI string of length at least [length] consisting of `this` ANSI string prepended with [padChar] as many times
      * as are necessary to reach that length.
      */
-    fun CharSequence.padStart(length: Int, padChar: Char = ' '): CharSequence {
+    public fun CharSequence.padStart(length: Int, padChar: Char = ' '): CharSequence {
         require(length >= 0) { "Desired length $length is less than zero." }
         return if (length <= this.length) this.subSequence(0, this.length)
         else padChar.repeat(length - this.length) + this
@@ -207,7 +207,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
      * @return Returns an ANSI string of length at least [length] consisting of `this` ANSI string appended with [padChar] as many times
      * as are necessary to reach that length.
      */
-    fun padEnd(length: Int, padChar: Char = ' '): AnsiString {
+    public fun padEnd(length: Int, padChar: Char = ' '): AnsiString {
         require(length >= 0) { "Desired length $length is less than zero." }
         return if (length <= this.length) this.subSequence(0, this.length)
         else this + padChar.repeat(length - this.length)
@@ -216,7 +216,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
     /**
      * Returns a sequence of strings of which each but possibly the last is of length [size].
      */
-    fun chunkedSequence(size: Int): Sequence<AnsiString> {
+    public fun chunkedSequence(size: Int): Sequence<AnsiString> {
         check(size > 0)
         var processed = 0
         var unprocessed = length
@@ -233,7 +233,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
         }
     }
 
-    operator fun plus(other: CharSequence): AnsiString = "$string$other".asAnsiString()
+    public operator fun plus(other: CharSequence): AnsiString = "$string$other".asAnsiString()
 }
 
 /**
@@ -242,8 +242,7 @@ open class AnsiString private constructor(val string: String) : CharSequence {
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
  * @param ignoreAnsiFormatting ANSI formatting / escapes are ignored by default. Use `false` consider escape codes as well
  */
-@Suppress("INAPPLICABLE_OPERATOR_MODIFIER")
-operator fun <T : CharSequence> T.contains(
+public fun <T : CharSequence> T.contains(
     other: CharSequence,
     ignoreCase: Boolean = false,
     ignoreAnsiFormatting: Boolean = false,

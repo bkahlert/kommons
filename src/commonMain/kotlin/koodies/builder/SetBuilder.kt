@@ -10,7 +10,7 @@ import kotlin.experimental.ExperimentalTypeInference
  *
  * The most convenient way to actually build a set is using [buildSet].
  */
-open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
+public open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
 
     /**
      * A context to collection all elements added by means
@@ -20,7 +20,7 @@ open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
         /**
          * The mutable list to which all context operations should be delegated.
          */
-        val list: MutableList<E> = mutableListOf(),
+        public val list: MutableList<E> = mutableListOf(),
     ) : ListBuildingContext<E> {
         override fun add(element: E, vararg elements: E) {
             list.add(element)
@@ -35,12 +35,12 @@ open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
     override fun toString(): String = asString()
 
     @OptIn(ExperimentalTypeInference::class)
-    companion object {
+    public companion object {
         /**
          * Builds a set of type [E] as specified by [init].
          */
-        fun <E> buildSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = invoke(init)
+        public fun <E> buildSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = invoke(init)
 
-        operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = SetBuilder<E>().invoke(init)
+        public operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = SetBuilder<E>().invoke(init)
     }
 }

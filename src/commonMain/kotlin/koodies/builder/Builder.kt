@@ -1,7 +1,5 @@
 package koodies.builder
 
-import kotlin.jvm.JvmName
-
 
 /**
  * # Builder
@@ -45,20 +43,21 @@ import kotlin.jvm.JvmName
  * @see StatelessBuilder
  * @see SkippableBuilder
  */
-fun interface Builder<in T : Function<*>, out R> {
+public fun interface Builder<in T : Function<*>, out R> {
 
     /**
      * Builds an instance of type [R] using the given
      * build argument [init].
      */
-    operator fun invoke(init: T): R
+    public operator fun invoke(init: T): R
+}
 }
 
 /**
  * Builds an instance of [S] by applying [transform] to the originally
  * built instance of [T].
  */
-inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.build(
+public inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.build(
     init: T,
     transform: R.() -> S,
 ): S = invoke(init).run(transform)
@@ -66,11 +65,10 @@ inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.build(
 /**
  * Builds an instance of [T] and adds it to the specified [destination].
  */
-inline fun <reified T : Function<*>, reified R> Builder<T, R>.buildTo(
+public inline fun <reified T : Function<*>, reified R> Builder<T, R>.buildTo(
     destination: MutableCollection<in R>,
     init: T,
 ): R = invoke(init).also { destination.add(it) }
-
 
 /**
  * Builds an instance of [S] and adds it to the specified [destination].
@@ -78,17 +76,38 @@ inline fun <reified T : Function<*>, reified R> Builder<T, R>.buildTo(
  * The instance of [S] is built by applying [transform] to the originally
  * built instance of [T].
  */
-inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildTo(
+public inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildTo(
     init: T,
     destination: MutableCollection<in S>,
     transform: R.() -> S,
 ): S = build(init, transform).also { destination.add(it) }
 
+
+/**
+ * Builds an instance of [T] and calls the specified [destination] with it.
+ */
+public inline fun <reified T : Function<*>, reified R> Builder<T, R>.buildTo(
+    destination: Function1<R, *>,
+    init: T,
+): R = invoke(init).also { destination(it) }
+
+/**
+ * Builds an instance of [S] and calls the specified [destination] with it.
+ *
+ * The instance of [S] is built by applying [transform] to the originally
+ * built instance of [T].
+ */
+public inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildTo(
+    init: T,
+    destination: Function1<S, *>,
+    transform: R.() -> S,
+): S = build(init, transform).also { destination(it) }
+
 /**
  * Builds multiple instances of [S] by applying [transform] to the originally
  * built instance of [T].
  */
-inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMultiple(
+public inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMultiple(
     init: T,
     transform: R.() -> List<S>,
 ): List<S> = invoke(init).run(transform)
@@ -96,14 +115,26 @@ inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMu
 /**
  * Builds multiple instances of [S] and adds them to the specified [destination].
  *
- * The instance of [S] is built by applying [transform] to the originally
+ * The instances of [S] are built by applying [transform] to the originally
  * built instance of [T].
  */
-inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMultipleTo(
+public inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMultipleTo(
     init: T,
     destination: MutableCollection<in S>,
     transform: R.() -> List<S>,
 ): List<S> = invoke(init).run(transform).also { destination.addAll(it) }
+
+/**
+ * Builds multiple instances of [S] and calls the specified [destination] with each of them.
+ *
+ * The instances of [S] are built by applying [transform] to the originally
+ * built instance of [T].
+ */
+public inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMultipleTo(
+    init: T,
+    destination: Function1<S, *>,
+    transform: R.() -> List<S>,
+): List<S> = invoke(init).run(transform).onEach { destination(it) }
 
 /**
  * Simple default interface of a builder that does nothing but
@@ -111,7 +142,7 @@ inline fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.buildMu
  *
  * @see StatelessBuilder
  */
-interface PseudoBuilder<T> : Builder<() -> T, T> {
+public interface PseudoBuilder<T> : Builder<() -> T, T> {
     override fun invoke(init: () -> T): T = init()
 }
 
@@ -142,14 +173,14 @@ interface PseudoBuilder<T> : Builder<() -> T, T> {
  *     HomeDir mountAt "/home"
  * }
  */
-interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
+public interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
 
     /**
      * Implementation of a [StatelessBuilder] that builds by applying
      * the build argument to the given [context] and passing the intermediary
      * build result to the given [finalize].
      */
-    open class PostProcessing<C, R, S>(private val context: C, private val finalize: R.() -> S) : Builder<C.() -> R, S> {
+    public open class PostProcessing<C, R, S>(private val context: C, private val finalize: R.() -> S) : Builder<C.() -> R, S> {
         override fun invoke(init: C.() -> R): S = context.init().finalize()
     }
 
@@ -157,7 +188,7 @@ interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
      * Implementation of a [StatelessBuilder] that builds by applying
      * the build argument to the given [context].
      */
-    open class Returning<C, R>(private val context: C) : Builder<C.() -> R, R> {
+    public open class Returning<C, R>(private val context: C) : Builder<C.() -> R, R> {
         override fun invoke(init: C.() -> R): R = context.init()
     }
 }
@@ -165,13 +196,12 @@ interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
 /**
  * Function that initializes a context.
  */
-typealias Init<C> = C.() -> Unit
+public typealias Init<C> = C.() -> Unit
 
 
-@JvmName("mapSingle")
-inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: R.() -> S) =
+public inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: R.() -> S): Builder<T, S> =
     Builder<T, S> { this(it).transform() }
 
-inline fun <T : Function<*>, reified R, reified S> Builder<T, Iterable<R>>.mapBuild(crossinline transform: List<R>.() -> Iterable<S>) =
-    Builder<T, S> { this(it).toList().transform().single() }
-
+public fun interface BuilderFactory<U, T : Function<*>, R> {
+    public operator fun invoke(arg: U): Builder<T, R>
+}

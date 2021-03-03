@@ -17,7 +17,7 @@ import koodies.text.randomString
  * - start with a letter
  * - have no extension
  */
-fun String?.toBaseName(minLength: Int = 8): String {
+public fun String?.toBaseName(minLength: Int = 8): String {
     val sanitizedChars: List<String> = this?.asCodePointSequence()?.withIndex()?.map { (index: Int, codePoint: CodePoint) ->
         if (index == 0 && !codePoint.isAsciiAlphanumeric) "X"
         else when {

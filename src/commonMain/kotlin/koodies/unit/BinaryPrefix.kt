@@ -9,7 +9,7 @@ import kotlin.math.absoluteValue
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-enum class BinaryPrefix(
+public enum class BinaryPrefix(
     override val symbol: String,
     override val exponent: Int,
     override val factor: BigDecimal =
@@ -45,49 +45,49 @@ enum class BinaryPrefix(
 
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Yobi]. */
-val Number.Yobi: BigDecimal by BinaryPrefix.Yobi
+public val Number.Yobi: BigDecimal by BinaryPrefix.Yobi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Zebi]. */
-val Number.Zebi: BigDecimal by BinaryPrefix.Zebi
+public val Number.Zebi: BigDecimal by BinaryPrefix.Zebi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Exbi]. */
-val Number.Exbi: BigDecimal by BinaryPrefix.Exbi
+public val Number.Exbi: BigDecimal by BinaryPrefix.Exbi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Pebi]. */
-val Number.Pebi: BigDecimal by BinaryPrefix.Pebi
+public val Number.Pebi: BigDecimal by BinaryPrefix.Pebi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Tebi]. */
-val Number.Tebi: BigDecimal by BinaryPrefix.Tebi
+public val Number.Tebi: BigDecimal by BinaryPrefix.Tebi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Gibi]. */
-val Number.Gibi: BigDecimal by BinaryPrefix.Gibi
+public val Number.Gibi: BigDecimal by BinaryPrefix.Gibi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Mebi]. */
-val Number.Mebi: BigDecimal by BinaryPrefix.Mebi
+public val Number.Mebi: BigDecimal by BinaryPrefix.Mebi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.Kibi]. */
-val Number.Kibi: BigDecimal by BinaryPrefix.Kibi
+public val Number.Kibi: BigDecimal by BinaryPrefix.Kibi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.mibi]. */
-val Number.mibi: BigDecimal by BinaryPrefix.mibi
+public val Number.mibi: BigDecimal by BinaryPrefix.mibi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.mubi]. */
-val Number.mubi: BigDecimal by BinaryPrefix.mubi
+public val Number.mubi: BigDecimal by BinaryPrefix.mubi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.nabi]. */
-val Number.nabi: BigDecimal by BinaryPrefix.nabi
+public val Number.nabi: BigDecimal by BinaryPrefix.nabi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.pibi]. */
-val Number.pibi: BigDecimal by BinaryPrefix.pibi
+public val Number.pibi: BigDecimal by BinaryPrefix.pibi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.fembi]. */
-val Number.fembi: BigDecimal by BinaryPrefix.fembi
+public val Number.fembi: BigDecimal by BinaryPrefix.fembi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.abi]. */
-val Number.abi: BigDecimal by BinaryPrefix.abi
+public val Number.abi: BigDecimal by BinaryPrefix.abi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.zebi]. */
-val Number.zebi_: BigDecimal by BinaryPrefix.zebi
+public val Number.zebi_: BigDecimal by BinaryPrefix.zebi
 
 /** Returns a [BigDecimal] equal to this [Number] times [BinaryPrefix.yobi]. */
-val Number.yobi_: BigDecimal by BinaryPrefix.yobi
+public val Number.yobi_: BigDecimal by BinaryPrefix.yobi

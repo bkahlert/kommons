@@ -42,7 +42,7 @@ import kotlin.reflect.KProperty
  * @see <a href="https://kotlinlang.org/spec/overload-resolution.html#resolving-callable-references">Resolving
  * callable references</a>
  */
-fun <T : Function<*>> callable(function: T): CallableProperty<Any?, T> = CallableProperty { _, _ -> function }
+public fun <T : Function<*>> callable(function: T): CallableProperty<Any?, T> = CallableProperty { _, _ -> function }
 
 /**
  * Creates a callable property that delegates all invocations to `this` function
@@ -62,7 +62,7 @@ fun <T : Function<*>> callable(function: T): CallableProperty<Any?, T> = Callabl
  *
  * @see callable
  */
-operator fun <T : Function<*>> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CallableProperty<Any?, T> = callable(this)
+public operator fun <T : Function<*>> T.provideDelegate(thisRef: Any?, property: KProperty<*>): CallableProperty<Any?, T> = callable(this)
 
 /**
  * Returns a callable property that delegates all invocations to the
@@ -90,7 +90,7 @@ operator fun <T : Function<*>> T.provideDelegate(thisRef: Any?, property: KPrope
  *
  * ***Note:** The [callable] is optional. Shorthand: **`val build by ListBuilder<String>()`***
  */
-fun <T : Function<*>, R> callable(builder: Builder<T, R>): CallableProperty<Any?, (T) -> R> =
+public fun <T : Function<*>, R> callable(builder: Builder<T, R>): CallableProperty<Any?, (T) -> R> =
     CallableProperty { _, _ -> { init: T -> builder.invoke(init) } }
 
 /**
@@ -108,7 +108,7 @@ fun <T : Function<*>, R> callable(builder: Builder<T, R>): CallableProperty<Any?
  *
  * @see callable
  */
-operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: Any?, property: KProperty<*>): CallableProperty<Any?, (T) -> R> =
+public operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: Any?, property: KProperty<*>): CallableProperty<Any?, (T) -> R> =
     callable(this@provideDelegate)
 
 /**
@@ -119,12 +119,12 @@ operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: Any?, p
  * @param T the type of object which owns the delegated functional property.
  * @param R the type of the callable.
  */
-fun interface CallableProperty<in T, out R> {
+public fun interface CallableProperty<in T, out R> {
     /**
      * Returns the functional value of the property for the given object.
      * @param thisRef the object for which the functional value is requested.
      * @param property the metadata for the property.
      * @return the functional property value.
      */
-    operator fun getValue(thisRef: T, property: KProperty<*>): R
+    public operator fun getValue(thisRef: T, property: KProperty<*>): R
 }

@@ -27,12 +27,12 @@ import java.util.concurrent.TimeUnit
 /**
  * Provides methods to create and interact with a [DockerProcess].
  */
-object Docker {
+public object Docker {
 
     /**
      * Contains the locally existing docker images.
      */
-    val images: List<DockerImage>
+    public val images: List<DockerImage>
         get() = script(noopProcessor()) { !"""docker image ls  --no-trunc --format "{{.Repository}}"""" }.output().lines().map {
             DockerImage.parse(it)
         }
@@ -40,41 +40,41 @@ object Docker {
     /**
      * Whether the Docker engine itself is running.
      */
-    val engineRunning: Boolean get() = !scriptOutputContains("docker info", "error")
+    public val engineRunning: Boolean get() = !scriptOutputContains("docker info", "error")
 
     /**
      * Whether a Docker container with the given [name] is running.
      */
-    fun isContainerRunning(name: String): Boolean = name.let { sanitizedName ->
+    public fun isContainerRunning(name: String): Boolean = name.let { sanitizedName ->
         scriptOutputContains("""docker ps --no-trunc --format "{{.Names}}" --filter "name=^$sanitizedName${'$'}"""", sanitizedName)
     }
 
     /**
      * Whether a Docker container—no matter if it's running or not—exists.
      */
-    fun exists(name: String): Boolean = name.let { sanitizedName ->
+    public fun exists(name: String): Boolean = name.let { sanitizedName ->
         scriptOutputContains("""docker ps --no-trunc --format "{{.Names}}" --filter "name=^$sanitizedName${'$'}" --all""", sanitizedName)
     }
 
     /**
      * Builds a [DockerStartCommandLine].
      */
-    val start by DockerStartCommandLine
+    public val start by DockerStartCommandLine
 
     /**
      * Builds a [DockerRunCommandLine].
      */
-    val run by DockerRunCommandLine
+    public val run by DockerRunCommandLine
 
     /**
      * Builds a [DockerStopCommandLine].
      */
-    val stop by DockerStopCommandLine
+    public val stop by DockerStopCommandLine
 
     /**
      * Builds a [DockerRemoveCommandLine].
      */
-    val remove by DockerRemoveCommandLine
+    public val remove by DockerRemoveCommandLine
 
     /**
      * Micro DSL to build a [DockerImage] in the style of:
@@ -85,35 +85,34 @@ object Docker {
      * Convenience alias for [DockerImage].
      */
     @Suppress("SpellCheckingInspection")
-    fun image(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
+    public fun image(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    fun options(init: Init<OptionsContext>): DockerRunCommandLineOptions =
+    public fun options(init: Init<OptionsContext>): DockerRunCommandLineOptions =
         DockerRunCommandLineOptions(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    fun commandLine(init: Init<CommandLineContext>): CommandLine =
+    public fun commandLine(init: Init<CommandLineContext>): CommandLine =
         CommandLine(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    fun commandLine(image: DockerImage, options: DockerRunCommandLineOptions, commandLine: CommandLine) =
+    public fun commandLine(image: DockerImage, options: DockerRunCommandLineOptions, commandLine: CommandLine) =
         DockerRunCommandLine(image, options, commandLine)
 
     /**
      * Explicitly stops the Docker container with the given [name] **asynchronously**.
      */
-    fun stop(name: String) = stop { containers { +name } }.fireAndForget(expectedExitValue = null)
+    public fun stop(name: String) = stop { containers { +name } }.fireAndForget(expectedExitValue = null)
 
     /**
      * Explicitly (stops and) removes the Docker container with the given [name] **synchronously**.
      *
      * If needed even [forcibly].
      */
-    fun remove(name: String, forcibly: Boolean = false): String = remove {
-        options { force(forcibly) }
+    public fun remove(name: String, forcibly: Boolean = false): String = remove {
+        options { force instead forcibly }
         containers { +name }
-    }.execute(expectedExitValue = null)
-        .process(noopProcessor())
+    }.execute(expectedExitValue = null, processor = noopProcessor())
         .apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }
         .output()
 }
@@ -160,7 +159,7 @@ private fun Path.dockerRunCommandLine(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.docker(
+public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
     optionsInit: Init<OptionsContext>,
     vararg arguments: String,
@@ -187,7 +186,7 @@ fun Path.docker(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.docker(
+public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
     optionsInit: Init<OptionsContext>,
     vararg arguments: String,
@@ -212,7 +211,7 @@ fun Path.docker(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun docker(
+public fun docker(
     init: Init<DockerRunCommandContext>,
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
@@ -236,7 +235,7 @@ fun docker(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun docker(
+public fun docker(
     processor: Processor<DockerProcess> = Processors.consoleLoggingProcessor(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,

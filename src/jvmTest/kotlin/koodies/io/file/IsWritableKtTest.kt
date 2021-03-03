@@ -4,8 +4,7 @@ import strikt.api.Assertion
 import java.nio.file.Files
 import java.nio.file.Path
 
-class IsWritableKtTest {
-}
+class IsWritableKtTest
 
 
 /**

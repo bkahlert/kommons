@@ -18,7 +18,7 @@ open class DockerProcess private constructor(
 ) : ManagedProcess by managedProcess {
 
     companion object {
-        fun from(
+        public fun from(
             dockerRunCommandLine: DockerRunCommandLine,
             expectedExitValue: Int?,
             processTerminationCallback: (() -> Unit)? = null,

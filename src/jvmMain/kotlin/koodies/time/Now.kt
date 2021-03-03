@@ -28,11 +28,11 @@ object Now {
 
     val millis: Long get() = instant.toEpochMilli()
 
-    fun passedSince(start: Long): Duration = (System.currentTimeMillis() - start).milliseconds
+    public fun passedSince(start: Long): Duration = (System.currentTimeMillis() - start).milliseconds
 
-    operator fun plus(duration: Duration): Instant = instant.plusMillis(duration.toLongMilliseconds())
+    public operator fun plus(duration: Duration): Instant = instant.plusMillis(duration.toLongMilliseconds())
 
-    operator fun minus(duration: Duration): Instant = instant.minusMillis(duration.toLongMilliseconds())
+    public operator fun minus(duration: Duration): Instant = instant.minusMillis(duration.toLongMilliseconds())
 
-    override fun toString(): String = "$instant"
+    public override fun toString(): String = "$instant"
 }

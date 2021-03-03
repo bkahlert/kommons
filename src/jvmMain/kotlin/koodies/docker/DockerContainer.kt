@@ -48,12 +48,12 @@ inline class DockerContainerName(val name: String) {
         /**
          * Transforms this [String] to a valid [DockerContainerName].
          */
-        fun String.toContainerName(): DockerContainerName = DockerContainerName(sanitize())
+        public fun String.toContainerName(): DockerContainerName = DockerContainerName(sanitize())
 
         /**
          * Transforms this [Path] to a unique [DockerContainerName].
          */
-        fun Path.toUniqueContainerName(): DockerContainerName =
+        public fun Path.toUniqueContainerName(): DockerContainerName =
             DockerContainerName(fileName.asString().take(18).withRandomSuffix())
     }
 }

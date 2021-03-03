@@ -3,7 +3,7 @@ package koodies.builder.context
 import kotlin.experimental.ExperimentalTypeInference
 
 @DslMarker
-annotation class MapBuildingDsl
+public annotation class MapBuildingDsl
 
 /**
  * A context that supports the [MutableMap] API
@@ -11,7 +11,7 @@ annotation class MapBuildingDsl
  */
 @OptIn(ExperimentalTypeInference::class)
 @MapBuildingDsl
-interface MapBuildingContext<K, V> : MutableMap<K, V> {
+public interface MapBuildingContext<K, V> : MutableMap<K, V> {
 
     /**
      * Adds `this` key and the specified [value] to the map.
@@ -21,7 +21,7 @@ interface MapBuildingContext<K, V> : MutableMap<K, V> {
      * effects, e.g. if the insertion order is important.
      */
     @BuilderInference
-    infix fun K.to(value: V) {
+    public infix fun K.to(value: V) {
         put(this, value)
     }
 }

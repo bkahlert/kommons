@@ -7,7 +7,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
-val cloneFileSupport: Boolean by lazy {
+public val cloneFileSupport: Boolean by lazy {
     val file: Path = tempFile().apply {
         writeText("cloneFile test")
         deleteOnExit()
@@ -25,7 +25,7 @@ val cloneFileSupport: Boolean by lazy {
  *
  * In contract to [copyTo] this method tries a [clone copy](https://www.unix.com/man-page/mojave/2/clonefile/) first.
  */
-fun Path.cloneTo(target: Path): Path {
+public fun Path.cloneTo(target: Path): Path {
     return if (cloneFileSupport) {
         if (target.exists()) throw fileAlreadyExists(this, target)
         Runtime.getRuntime()?.exec(arrayOf("cp", "-c", asString(), target.asString()))?.waitFor()?.let { exitValue ->

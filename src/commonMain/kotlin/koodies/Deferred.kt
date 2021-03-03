@@ -61,14 +61,14 @@ fun <T : R, R> Deferred<T>.evaluateOrThrow(): T =
  * Returns a capture evaluating to the result of applying the given [transform]
  * function to the evaluation of `this` deferred invocation.
  */
-inline fun <T, R> Deferred<T>.letContent(crossinline transform: T.() -> R): Deferred<R> =
+public inline fun <T, R> Deferred<T>.letContent(crossinline transform: T.() -> R): Deferred<R> =
     defer { evaluate().transform() }
 
 /**
  * Returns a capture evaluating to the result of applying applying the given [transform]
  * function to each element of the evaluation of `this` deferred invocation.
  */
-inline fun <T, R> Deferred<Iterable<T>>.map(crossinline transform: T.() -> R): Deferred<List<R>> =
+public inline fun <T, R> Deferred<Iterable<T>>.map(crossinline transform: T.() -> R): Deferred<List<R>> =
     defer { evaluate().map { it.transform() } }
 
 /**
@@ -76,7 +76,7 @@ inline fun <T, R> Deferred<Iterable<T>>.map(crossinline transform: T.() -> R): D
  * the given [transform] to each element of the evaluation of `this` deferred
  * invocation.
  */
-inline fun <T, R : Any> Deferred<Iterable<T>>.mapNotNull(crossinline transform: T.() -> R?): Deferred<List<R>> =
+public inline fun <T, R : Any> Deferred<Iterable<T>>.mapNotNull(crossinline transform: T.() -> R?): Deferred<List<R>> =
     defer { evaluate().mapNotNull { element -> element.transform() } }
 
 /**
@@ -84,7 +84,7 @@ inline fun <T, R : Any> Deferred<Iterable<T>>.mapNotNull(crossinline transform: 
  * [transform] to each element of the its result and appends only the returned
  * non-null values to the given [destination].
  */
-inline fun <T, R : Any, C : MutableCollection<in R>> Deferred<Iterable<T>>.mapNotNullTo(destination: C, crossinline transform: T.() -> R?): C =
+public inline fun <T, R : Any, C : MutableCollection<in R>> Deferred<Iterable<T>>.mapNotNullTo(destination: C, crossinline transform: T.() -> R?): C =
     destination.apply { defer { evaluate().map { element -> element.transform()?.let { add(it) } } } }
 
 /**
@@ -92,5 +92,5 @@ inline fun <T, R : Any, C : MutableCollection<in R>> Deferred<Iterable<T>>.mapNo
  * [transform] to each element of the its result and appends the returned
  * values to the given [destination].
  */
-inline fun <T, R, C : MutableCollection<in R>> Deferred<Iterable<T>>.mapTo(destination: C, crossinline transform: T.() -> R): C =
+public inline fun <T, R, C : MutableCollection<in R>> Deferred<Iterable<T>>.mapTo(destination: C, crossinline transform: T.() -> R): C =
     destination.apply { defer { evaluate().map { add(it.transform()) } } }

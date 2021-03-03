@@ -9,10 +9,10 @@ import koodies.asString
  * @sample PairBuilderSamples.indirectUse
  * @sample PairBuilderSamples.transformUse
  */
-open class PairBuilder<A, B> : PseudoBuilder<Pair<A, B>> {
-    companion object {
-        fun <A, B> buildPair(init: () -> Pair<A, B>) = invoke(init)
-        operator fun <A, B> invoke(init: () -> Pair<A, B>) = PairBuilder<A, B>().invoke(init)
+public open class PairBuilder<A, B> : PseudoBuilder<Pair<A, B>> {
+    public companion object {
+        public fun <A, B> buildPair(init: () -> Pair<A, B>): Pair<A, B> = invoke(init)
+        public operator fun <A, B> invoke(init: () -> Pair<A, B>): Pair<A, B> = PairBuilder<A, B>().invoke(init)
     }
 
     override fun toString(): String = asString()

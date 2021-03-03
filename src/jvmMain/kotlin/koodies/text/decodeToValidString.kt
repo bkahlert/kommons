@@ -9,7 +9,7 @@ import java.nio.charset.Charset
  * Due to the fact that some Unicode codepoints take up more than one byte
  * corrupted characters can occur which are ignored by this implementation.
  */
-fun ByteArray.decodeToValidString(charset: Charset = Charsets.UTF_8): String {
+public fun ByteArray.decodeToValidString(charset: Charset = Charsets.UTF_8): String {
     var decoded = decodeToString()
     var skipBytes = 1
     while (skipBytes <= size && decoded.endsWithReplacementCharacter) {

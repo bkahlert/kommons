@@ -7,7 +7,7 @@ import koodies.text.LineSeparators.lineSequence
 /**
  * Returns a sequence of lines of which none is longer than [maxLineLength].
  */
-fun CharSequence.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+public fun CharSequence.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
     val ansiString = this is AnsiString
     val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
     return lines.flatMap { line: String ->

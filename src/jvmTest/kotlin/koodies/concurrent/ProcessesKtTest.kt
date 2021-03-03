@@ -220,8 +220,8 @@ class ProcessesKtTest {
             logger: RenderingLogger? = InMemoryLogger(),
         ) = listOf<Path.() -> ManagedProcess>(
             {
-                processor?.let { execute(CommandLine { command("/bin/sh"); arguments { +"-c" + commandLineContent } }, processor = processor) }
-                    ?: execute(CommandLine { command("/bin/sh"); arguments { +"-c" + commandLineContent } })
+                processor?.let { CommandLine { command("/bin/sh"); arguments { +"-c" + commandLineContent } }.execute(processor = processor) }
+                    ?: CommandLine { command("/bin/sh"); arguments { +"-c" + commandLineContent } }.execute()
             },
             {
                 processor?.let { execute(processor) { command("/bin/sh"); arguments { +"-c" + commandLineContent } } }
@@ -250,7 +250,7 @@ class ProcessesKtTest {
 
             @TestFactory
             fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
-                { execute(CommandLine { command("/bin/sh"); arguments { +"-c" + echoingCommands } }, processor = it) },
+                { CommandLine { command("/bin/sh"); arguments { +"-c" + echoingCommands } }.execute(processor = it) },
                 { execute(it) { command("/bin/sh"); arguments { +"-c" + echoingCommands } } },
                 { processor ->
                     val logger = InMemoryLogger()

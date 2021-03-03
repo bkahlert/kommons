@@ -5,7 +5,7 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
 private var indent: Int = 0
-fun <T> T.indenting(block: T.(String) -> Unit) {
+public fun <T> T.indenting(block: T.(String) -> Unit) {
     runWrapping({ indent++ }, { indent-- }) {
         val prefix = "    ".repeat(indent)
         block(prefix)
@@ -16,7 +16,7 @@ fun <T> T.indenting(block: T.(String) -> Unit) {
  * Returns a string representing `this` class and all specified [properties]
  * in the format `ClassName(name1=value1, name2=value2, ...)`.
  */
-inline fun <reified T : Any> T.asString(vararg properties: KProperty<*>): String =
+public inline fun <reified T : Any> T.asString(vararg properties: KProperty<*>): String =
     StringBuilder(T::class.simpleName ?: "<object>").apply {
         properties.joinTo(this, prefix = "(", postfix = ")") { property ->
             val value: Any? = when (property) {
@@ -36,7 +36,7 @@ inline fun <reified T : Any> T.asString(vararg properties: KProperty<*>): String
  * Returns a string representing `this` class and all specified [properties]
  * in the format `ClassName(name1=value1, name2=value2, ...)`.
  */
-inline fun <reified T : Any> T.asString(crossinline transform: T.() -> List<Pair<Any?, Any?>>): String =
+public inline fun <reified T : Any> T.asString(crossinline transform: T.() -> List<Pair<Any?, Any?>>): String =
     StringBuilder(T::class.simpleName ?: "<object>").apply {
         append(" {")
         indenting { indent ->

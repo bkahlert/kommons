@@ -11,35 +11,37 @@ import koodies.builder.CarDSL.Trait.TaxExempt
 import koodies.builder.StatelessBuilder.Returning
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
+import koodies.builder.context.ListBuildingContext
+import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.unit.kilo
 import koodies.unit.milli
 import kotlin.time.Duration
 import kotlin.time.hours
 
-class CarDSL {
+public class CarDSL {
 
-    data class Car(val name: String, val color: String, val traits: Set<Trait>, val engine: Engine, val wheels: Int)
+    public data class Car(val name: String, val color: String, val traits: Set<Trait>, val engine: Engine, val wheels: Int)
 
-    object CarBuilder : BuilderTemplate<CarContext, Car>() {
+    public object CarBuilder : BuilderTemplate<CarContext, Car>() {
 
-        class CarContext(
+        public class CarContext(
             override val captures: CapturesMap,
         ) : CapturingContext() {
-            var name by setter<String>()
-            val color by External::color
-            val traits by enumSetBuilder<Trait>()
-            val engine by Engine
-            val wheels by builder<Int>() default 4
+            public var name: String? by setter<String>()
+            public val color: (h: Int, s: Int, v: Int) -> Unit by External::color
+            public val traits: SkippableCapturingBuilderInterface<ListBuildingContext<Trait>.() -> Unit, Set<Trait>> by enumSetBuilder<Trait>()
+            public val engine: SkippableCapturingBuilderInterface<EngineContext.() -> Unit, Engine?> by Engine
+            public val wheels: SkippableCapturingBuilderInterface<() -> Int, Int> by builder<Int>() default 4
         }
 
-        override fun BuildContext.build() = ::CarContext {
+        override fun BuildContext.build(): Car = ::CarContext {
             Car(::name.eval(), ::color.evalOrDefault("#111111"), ::traits.eval(), ::engine.eval(), ::wheels.eval())
         }
     }
 
-    fun car(init: Init<CarContext>): Car = CarBuilder(init)
+    public fun car(init: Init<CarContext>): Car = CarBuilder(init)
 
-    fun printSamples() {
+    public fun printSamples() {
 
         val exclusiveCar = car {
             name = "Koodies Car"
@@ -62,55 +64,55 @@ class CarDSL {
     }
 
 
-    inline class EnginePower(val watts: BigDecimal) {
-        companion object : Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
-            object EnginePowerContext {
-                val Int.kW get() = kilo.W
-                val BigDecimal.W: EnginePower get() = EnginePower(this)
+    public inline class EnginePower(public val watts: BigDecimal) {
+        public companion object : Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
+            public object EnginePowerContext {
+                public val Int.kW: EnginePower get() = kilo.W
+                public val BigDecimal.W: EnginePower get() = EnginePower(this)
             }
         }
     }
 
-    inline class Distance(val meter: BigDecimal) {
-        companion object : Returning<DistanceContext, Distance>(DistanceContext) {
-            object DistanceContext {
-                val Int.mm get() = milli.m
-                val BigDecimal.m: Distance get() = Distance(this)
+    public inline class Distance(public val meter: BigDecimal) {
+        public companion object : Returning<DistanceContext, Distance>(DistanceContext) {
+            public object DistanceContext {
+                public val Int.mm: Distance get() = milli.m
+                public val BigDecimal.m: Distance get() = Distance(this)
             }
         }
     }
 
-    data class Speed(val distance: Distance, val time: Duration) {
-        companion object : Returning<SpeedContext, Speed>(SpeedContext) {
-            object SpeedContext {
-                val Int.km get() = kilo.m
-                val hour = 1.hours
-                infix fun Distance.per(time: Duration) = Speed(Distance(this), time)
-                val BigDecimal.m: Distance get() = Distance(this)
+    public data class Speed(val distance: Distance, val time: Duration) {
+        public companion object : Returning<SpeedContext, Speed>(SpeedContext) {
+            public object SpeedContext {
+                public val Int.km: Distance get() = kilo.m
+                public val hour: Duration = 1.hours
+                public infix fun Distance.per(time: Duration): Speed = Speed(Distance(this), time)
+                public val BigDecimal.m: Distance get() = Distance(this)
             }
         }
     }
 
-    data class Engine(val power: EnginePower, val maxSpeed: Speed) {
-        companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
+    public data class Engine(val power: EnginePower, val maxSpeed: Speed) {
+        public companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
 
-            class EngineContext(
+            public class EngineContext(
                 override val captures: CapturesMap,
             ) : CapturingContext() {
-                val power by EnginePower
-                val maxSpeed by Speed
+                public val power: SkippableCapturingBuilderInterface<EnginePowerContext.() -> EnginePower, EnginePower?> by EnginePower
+                public val maxSpeed: SkippableCapturingBuilderInterface<SpeedContext.() -> Speed, Speed?> by Speed
             }
 
-            override fun BuildContext.build() = ::EngineContext {
+            override fun BuildContext.build(): Engine = ::EngineContext {
                 Engine(::power.evalOrDefault { EnginePower { 130.kW } }, ::maxSpeed.evalOrDefault { Speed { 228.km per hour } })
             }
         }
     }
 
-    enum class Trait { Exclusive, PreOwned, TaxExempt }
+    public enum class Trait { Exclusive, PreOwned, TaxExempt }
 
-    object External {
-        fun color(h: Int, s: Int, v: Int): String = "hsv($h, $s, $v)"
+    public object External {
+        public fun color(h: Int, s: Int, v: Int): String = "hsv($h, $s, $v)"
     }
 
 }

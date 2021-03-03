@@ -11,7 +11,7 @@ import kotlin.experimental.ExperimentalTypeInference
  *
  * The most convenient way to actually build a map is using [buildMap].
  */
-open class MapBuilder<K, V> : Builder<Init<MapBuildingContext<K, V>>, Map<K, V>> {
+public open class MapBuilder<K, V> : Builder<Init<MapBuildingContext<K, V>>, Map<K, V>> {
 
     /**
      * A context to collection all elements added by means
@@ -21,7 +21,7 @@ open class MapBuilder<K, V> : Builder<Init<MapBuildingContext<K, V>>, Map<K, V>>
         /**
          * The mutable map to which all context operations should be delegated.
          */
-        val map: MutableMap<K, V> = mutableMapOf(),
+        public val map: MutableMap<K, V> = mutableMapOf(),
     ) : MapBuildingContext<K, V>, MutableMap<K, V> by map
 
     override fun invoke(init: Init<MapBuildingContext<K, V>>): Map<K, V> {
@@ -31,15 +31,15 @@ open class MapBuilder<K, V> : Builder<Init<MapBuildingContext<K, V>>, Map<K, V>>
     override fun toString(): String = asString()
 
     @OptIn(ExperimentalTypeInference::class)
-    companion object {
+    public companion object {
         /**
          * Builds a map of with keys of type [K] and values of type [V].
          */
-        fun <K, V> buildMap(@BuilderInference init: Init<MapBuildingContext<K, V>>) = MapBuilder<K, V>().invoke(init)
+        public fun <K, V> buildMap(@BuilderInference init: Init<MapBuildingContext<K, V>>): Map<K, V> = MapBuilder<K, V>().invoke(init)
 
         /**
          * Builds a map with keys of type [K] and values of type [V].
          */
-        operator fun <K, V> invoke(@BuilderInference init: Init<MapBuildingContext<K, V>>) = MapBuilder<K, V>().invoke(init)
+        public operator fun <K, V> invoke(@BuilderInference init: Init<MapBuildingContext<K, V>>): Map<K, V> = MapBuilder<K, V>().invoke(init)
     }
 }

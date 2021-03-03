@@ -8,7 +8,7 @@ package koodies.text
  * @sample Samples.singleLineMatches
  * @sample Samples.multiLineMatches
  */
-fun CharSequence.matchesCurlyPattern(curlyPattern: String, placeholder: String = "{}", multilinePlaceholder: String = "{{}}"): Boolean {
+public fun CharSequence.matchesCurlyPattern(curlyPattern: String, placeholder: String = "{}", multilinePlaceholder: String = "{{}}"): Boolean {
     val regex = Regex(curlyPattern.mapLines { it.mapToRegexPlaceholders(multilinePlaceholder, placeholder) }.replace("\\Q\\E", ""))
     return LineSeparators.unify(this).matches(regex)
 }

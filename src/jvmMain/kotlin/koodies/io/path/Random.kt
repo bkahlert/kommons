@@ -14,7 +14,7 @@ import kotlin.io.path.exists
  *
  * The newly created [Path] is guaranteed to not already exist.
  */
-tailrec fun Path.randomPath(base: String = randomString(4), extension: String = ""): Path {
+public tailrec fun Path.randomPath(base: String = randomString(4), extension: String = ""): Path {
     val minLength = 6
     val length = base.length + extension.length
     val randomLength = (minLength - length).coerceAtLeast(3)
@@ -27,7 +27,7 @@ tailrec fun Path.randomPath(base: String = randomString(4), extension: String = 
  *
  * Eventually missing directories are automatically created.
  */
-fun Path.randomDirectory(base: String = randomString(4), extension: String = "-tmp"): Path =
+public fun Path.randomDirectory(base: String = randomString(4), extension: String = "-tmp"): Path =
     randomPath(base, extension).createDirectories()
 
 /**

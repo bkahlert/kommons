@@ -18,7 +18,7 @@ import kotlin.concurrent.withLock
  * @see Paths.get
  * @see Path.of
  */
-fun String.asPath(): Path =
+public fun String.asPath(): Path =
     kotlin.runCatching { URI.create(this).asPath() }
         .recover {
             if (startsWith("classpath:")) {
@@ -33,7 +33,7 @@ fun String.asPath(): Path =
  * @see Paths.get
  * @see Path.of
  */
-fun URI.asPath(): Path =
+public fun URI.asPath(): Path =
     Paths.get(this)
 
 

@@ -6,7 +6,7 @@ import koodies.Skippable
  * A [Builder] that can be skipped by providing an instance of type [U]
  * which typically but not necessarily matches the type of the build result.
  */
-interface SkippableBuilder<T : Function<*>, U, R> : Builder<T, R>, Skippable<U, R> {
+public interface SkippableBuilder<T : Function<*>, U, R> : Builder<T, R>, Skippable<U, R> {
     /**
      * Skips the build process by using the given [result] instead.
      */
@@ -21,12 +21,12 @@ interface SkippableBuilder<T : Function<*>, U, R> : Builder<T, R>, Skippable<U, 
 /**
  * Skips the build process by using the given [result] instead.
  */
-operator fun <T : Function<*>, R> Builder<T, R>.invoke(result: R): R = result
+public operator fun <T : Function<*>, R> Builder<T, R>.invoke(result: R): R = result
 
 /**
  * Skips the build process by using the  given [result] instead.
  */
-infix fun <T : Function<*>, R> Builder<T, R>.instead(result: R): R = result
+public infix fun <T : Function<*>, R> Builder<T, R>.instead(result: R): R = result
 
 /**
  * Skips the build process by using the given [result] instead.
@@ -37,12 +37,12 @@ infix fun <T : Function<*>, R> Builder<T, R>.instead(result: R): R = result
  *
  * @see instead
  */
-operator fun <T : Function<*>, R> ((T) -> R).invoke(result: R): R = result
+public operator fun <T : Function<*>, R> ((T) -> R).invoke(result: R): R = result
 
 /**
  * Skips the build process by using the given [result] instead.
  */
-infix fun <T : Function<*>, R> ((T) -> R).instead(result: R): R = result
+public infix fun <T : Function<*>, R> ((T) -> R).instead(result: R): R = result
 
 
 /**
@@ -51,7 +51,7 @@ infix fun <T : Function<*>, R> ((T) -> R).instead(result: R): R = result
  *
  * This function is provided as a an more explicit alternative to [invoke].
  */
-fun <T : Function<*>, R> Builder<T, R>.build(init: T): R = invoke(init)
+public fun <T : Function<*>, R> Builder<T, R>.build(init: T): R = invoke(init)
 
 /**
  * Builds an instance of type [R] using `this` [Builder] and
@@ -59,4 +59,4 @@ fun <T : Function<*>, R> Builder<T, R>.build(init: T): R = invoke(init)
  *
  * This function is provided as a an more explicit alternative to [invoke].
  */
-infix fun <T : Function<*>, R> ((T) -> R).build(init: T): R = invoke(init)
+public infix fun <T : Function<*>, R> ((T) -> R).build(init: T): R = invoke(init)

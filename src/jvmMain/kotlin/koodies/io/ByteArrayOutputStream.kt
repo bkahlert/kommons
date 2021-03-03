@@ -13,7 +13,7 @@ import kotlin.concurrent.withLock
 /**
  * Thread-safe version of [AbstractByteArrayOutputStream] using [ReentrantLock] locking.
  */
-class ByteArrayOutputStream @JvmOverloads constructor(size: Int = DEFAULT_BUFFER_SIZE) : AbstractByteArrayOutputStream() {
+public class ByteArrayOutputStream @JvmOverloads constructor(size: Int = DEFAULT_BUFFER_SIZE) : AbstractByteArrayOutputStream() {
 
     private val lock = ReentrantLock()
 
@@ -35,7 +35,7 @@ class ByteArrayOutputStream @JvmOverloads constructor(size: Int = DEFAULT_BUFFER
     override fun write(inputStream: InputStream): Int = lock.withLock { writeToBuffers(inputStream) }
     override fun size(): Int = lock.withLock { totalBytesWritten }
     override fun reset(): Unit = lock.withLock { resetBuffers() }
-    override fun writeTo(out: OutputStream) = lock.withLock { writeBytesTo(out) }
+    override fun writeTo(out: OutputStream): Unit = lock.withLock { writeBytesTo(out) }
     override fun toInputStream(): InputStream = lock.withLock { toInputStream { buffer, offset, length -> ByteArrayInputStream(buffer, offset, length) } }
     override fun toByteArray(): ByteArray = lock.withLock { toByteArrayImpl() }
 }
@@ -45,15 +45,15 @@ class ByteArrayOutputStream @JvmOverloads constructor(size: Int = DEFAULT_BUFFER
  * An [OutputStream] implementation that does not need
  * to know the necessary space but dynamically grows if needed.
  */
-abstract class AbstractByteArrayOutputStream : OutputStream() {
+public abstract class AbstractByteArrayOutputStream : OutputStream() {
     private val buffers: MutableList<ByteArray> = ArrayList()
     private var bufferIndex = 0
     private var bytesWritten = 0
     private var currentBuffer: ByteArray? = null
-    protected var totalBytesWritten = 0
+    protected var totalBytesWritten: Int = 0
     private var reuseBuffersAfterReset = true
 
-    protected val requireBuffer get() = checkNotNull(currentBuffer)
+    protected val requireBuffer: ByteArray get() = checkNotNull(currentBuffer)
 
     /**
      * Provides a new buffer either by allocating
@@ -104,7 +104,7 @@ abstract class AbstractByteArrayOutputStream : OutputStream() {
         totalBytesWritten++
     }
 
-    abstract fun write(inputStream: InputStream): Int
+    public abstract fun write(inputStream: InputStream): Int
     protected fun writeToBuffers(inputStream: InputStream): Int {
         var readCount = 0
         var inBufferPos = totalBytesWritten - bytesWritten
@@ -122,10 +122,10 @@ abstract class AbstractByteArrayOutputStream : OutputStream() {
         return readCount
     }
 
-    abstract fun size(): Int
+    public abstract fun size(): Int
     override fun close() {}
 
-    abstract fun reset()
+    public abstract fun reset()
     protected fun resetBuffers() {
         totalBytesWritten = 0
         bytesWritten = 0
@@ -139,7 +139,7 @@ abstract class AbstractByteArrayOutputStream : OutputStream() {
         }
     }
 
-    abstract fun writeTo(out: OutputStream)
+    public abstract fun writeTo(out: OutputStream)
     protected fun writeBytesTo(out: OutputStream) {
         var remaining = totalBytesWritten
         buffers.forEach { buf ->
@@ -150,7 +150,7 @@ abstract class AbstractByteArrayOutputStream : OutputStream() {
         }
     }
 
-    abstract fun toInputStream(): InputStream
+    public abstract fun toInputStream(): InputStream
     protected fun <T : InputStream?> toInputStream(factory: (ByteArray, Int, Int) -> T): InputStream {
         var remaining = totalBytesWritten
         if (remaining == 0) return ClosedInputStream
@@ -165,7 +165,7 @@ abstract class AbstractByteArrayOutputStream : OutputStream() {
         return SequenceInputStream(Collections.enumeration(list))
     }
 
-    abstract fun toByteArray(): ByteArray
+    public abstract fun toByteArray(): ByteArray
     protected fun toByteArrayImpl(): ByteArray {
         var remaining = totalBytesWritten
         if (remaining == 0) return EmptyByteArray
@@ -181,13 +181,13 @@ abstract class AbstractByteArrayOutputStream : OutputStream() {
         return newBuffer
     }
 
-    fun toString(charset: Charset): String = String(toByteArray(), charset)
+    public fun toString(charset: Charset): String = String(toByteArray(), charset)
     override fun toString(): String = toString(Charsets.UTF_8)
 }
 
-val EOF: Int = -1
+public val EOF: Int = -1
 
-object ClosedInputStream : InputStream() {
+public object ClosedInputStream : InputStream() {
     override fun read(): Int = EOF
 }
 

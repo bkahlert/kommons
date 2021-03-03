@@ -97,7 +97,7 @@ Car(name=Default Car, color=#111111, traits=[], wheels=4,
     engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
 ```
 
-##### CarBuilder Parts uses *[DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
+##### CarBuilder Parts *uses [DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
 
 ```kotlin
 inline class EnginePower(val watts: BigDecimal) {
