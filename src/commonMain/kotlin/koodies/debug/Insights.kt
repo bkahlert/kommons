@@ -14,7 +14,7 @@ private fun <T> asString(subject: T): String = when (subject) {
     else -> subject.toString()
 }
 
-fun <T> T.selfString(): String = if (toString().isMultiline) {
+public fun <T> T.selfString(): String = if (toString().isMultiline) {
     "${selfBrackets.first}$LF${asString(this)}$LF${selfBrackets.second}"
 } else {
     "${selfBrackets.first} ${asString(this)} ${selfBrackets.second}"
@@ -51,7 +51,7 @@ private fun <T> T.transformedString(): String = if (asString(this).isMultiline) 
  * will be printed.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-val <T> T.trace: T
+public val <T> T.trace: T
     get() : T = apply { println(selfString()) }
 
 /**
@@ -80,5 +80,5 @@ val <T> T.trace: T
  * at the property `prop` of that value are printed.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-fun <T> T.trace(transform: (T.() -> Any?)): T =
+public fun <T> T.trace(transform: (T.() -> Any?)): T =
     apply { println("${selfString()} ${transform().transformedString()}") }

@@ -9,7 +9,7 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 /**
  * Returns the value of this number as a [BigInteger], which may involve rounding.
  */
-fun Number.toBigInteger(): BigInteger = when (this) {
+public fun Number.toBigInteger(): BigInteger = when (this) {
     is Float -> toBigDecimal(DecimalMode.DEFAULT).toBigInteger()
     is Double -> toBigDecimal(DecimalMode.DEFAULT).toBigInteger()
     is Long -> toBigInteger()
@@ -22,7 +22,7 @@ fun Number.toBigInteger(): BigInteger = when (this) {
 /**
  * Returns the value of this number as a [BigDecimal], which may involve rounding.
  */
-fun Number.toBigDecimal(): BigDecimal = when (this) {
+public fun Number.toBigDecimal(): BigDecimal = when (this) {
     is Float -> toBigDecimal(DecimalMode.DEFAULT)
     is Double -> toBigDecimal(DecimalMode.DEFAULT)
     is Long -> toBigDecimal()
@@ -32,4 +32,4 @@ fun Number.toBigDecimal(): BigDecimal = when (this) {
     else -> BigDecimal.fromDouble(toDouble(), DecimalMode.DEFAULT)
 }
 
-fun BigInteger.toBigDecimal() = toString(10).toBigDecimal(10)
+public fun BigInteger.toBigDecimal() = toString(10).toBigDecimal(10)

@@ -17,7 +17,7 @@ import kotlin.io.path.isRegularFile
 import kotlin.time.Duration
 import kotlin.time.minutes
 
-actual fun <T : OnExitHandler> onExit(handler: T): T =
+public actual fun <T : OnExitHandler> onExit(handler: T): T =
     addShutDownHook(handler)
 
 private fun <T : OnExitHandler> addShutDownHook(handler: T): T =
@@ -60,32 +60,32 @@ private val onExitHandlers: MutableList<OnExitHandler> = object : MutableList<On
 /**
  * Runs this [OnExitHandler] on exit.
  */
-fun <T : OnExitHandler> T.runOnExit(): T = apply { onExitHandlers.add(this) }
+public fun <T : OnExitHandler> T.runOnExit(): T = apply { onExitHandlers.add(this) }
 
 /**
  * Deletes this file on shutdown.
  */
-fun <T : Path> T.deleteOnExit(): T = apply { onExitHandlers.add { this.deleteRecursively() } }
+public fun <T : Path> T.deleteOnExit(): T = apply { onExitHandlers.add { this.deleteRecursively() } }
 
 /**
  * Builder to specify which files to delete on shutdown.
  */
-class OnExitDeletionBuilder(private val jobs: MutableList<OnExitHandler>) {
+public class OnExitDeletionBuilder(private val jobs: MutableList<OnExitHandler>) {
     /**
      * Returns whether this file's name starts with the specified [prefix].
      */
-    fun Path.fileNameStartsWith(prefix: String): Boolean = "$fileName".startsWith(prefix)
+    public fun Path.fileNameStartsWith(prefix: String): Boolean = "$fileName".startsWith(prefix)
 
     /**
      * Returns whether this file's name ends with the specified [suffix].
      */
-    fun Path.fileNameEndsWith(suffix: String): Boolean = "$fileName".endsWith(suffix)
+    public fun Path.fileNameEndsWith(suffix: String): Boolean = "$fileName".endsWith(suffix)
 
     /**
      * Registers a lambda that is called during shutdown and
      * which deletes all files that pass the specified [filter].
      */
-    fun tempFiles(filter: Path.() -> Boolean) {
+    public fun tempFiles(filter: Path.() -> Boolean) {
         jobs.add {
             Temp.listDirectoryEntriesRecursively()
                 .filter { it.isRegularFile() }
@@ -98,7 +98,7 @@ class OnExitDeletionBuilder(private val jobs: MutableList<OnExitHandler>) {
      * Registers a lambda that is called during shutdown and
      * which deletes all returned files..
      */
-    fun allTempFiles(filter: (List<Path>) -> List<Path>) {
+    public fun allTempFiles(filter: (List<Path>) -> List<Path>) {
         jobs.add {
             filter(Temp.listDirectoryEntriesRecursively()).forEach {
                 it.delete()
@@ -110,7 +110,7 @@ class OnExitDeletionBuilder(private val jobs: MutableList<OnExitHandler>) {
 /**
  * Builds and returns a lambda that is called during shutdown.
  */
-fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): OnExitHandler =
+public fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): OnExitHandler =
     mutableListOf<OnExitHandler>().also { OnExitDeletionBuilder(it).apply(block) }
         .let { jobs -> { jobs.forEach { job -> job() } } }.runOnExit()
 
@@ -122,7 +122,7 @@ fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): OnExitHandler =
  *
  * Files matching these criteria are deleted during shutdown.
  */
-fun deleteOldTempFilesOnExit(prefix: String, suffix: String, minAge: Duration = 10.minutes, keepAtMost: Int = 100) {
+public fun deleteOldTempFilesOnExit(prefix: String, suffix: String, minAge: Duration = 10.minutes, keepAtMost: Int = 100) {
     deleteOnExit {
         allTempFiles { allFiles ->
             val relevantFiles = allFiles

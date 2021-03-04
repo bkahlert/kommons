@@ -10,7 +10,7 @@ package koodies.debug
  * @sample Samples.emoji.nullValue
  * @sample Samples.emoji.nonNullValue
  */
-val Any?.asEmoji: String
+public val Any?.asEmoji: String
     inline get() = when (this) {
         true -> "✅"
         false -> "❌"

@@ -35,8 +35,8 @@ private val Whitespaces = listOf(
 /**
  * Representation of a [Unicode code point](http://www.unicode.org/glossary/#code_point)
  */
-inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
-    constructor(charSequence: CharSequence) : this("$charSequence".also {
+public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint> {
+    public constructor(charSequence: CharSequence) : this("$charSequence".also {
         require(it.isValidCodePoint()) { "$it does not represent a single Unicode code point" }
     }.singleCodePoint()!!)
 
@@ -45,12 +45,12 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * e.g. `0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    fun toHexadecimalString(): String = codePoint.toHexadecimalString(pad = true)
+    public fun toHexadecimalString(): String = codePoint.toHexadecimalString(pad = true)
 
     /**
      * Contains the character pointed to and represented by a [String].
      */
-    val string: String
+    public val string: String
         get() = when {
             codePoint <= 0x7F -> {
                 byteArrayOf(codePoint.toByte())
@@ -88,7 +88,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      *
      * Otherwise [chars] or [string] must be used.
      */
-    val char: Char? get() = codePoint.takeIf { it in MIN_VALUE.toInt()..MAX_VALUE.toInt() }?.toChar()
+    public val char: Char? get() = codePoint.takeIf { it in MIN_VALUE.toInt()..MAX_VALUE.toInt() }?.toChar()
 
     /**
      * Determines if a character (Unicode code point) is defined in Unicode.
@@ -96,15 +96,15 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @return `true` if this code point is defined
      * @see isDefined
      */
-    val isDefined: Boolean get() = codePoint.isDefined()
+    public val isDefined: Boolean get() = codePoint.isDefined()
 
     /**
-     * Determines if this code point is a [LineSeparator].
+     * Determines if this code point is a line separator.
      *
-     * @return `true` if this code point is a [LineSeparator]
+     * @return `true` if this code point is a line separator
      * @see LineSeparators
      */
-    val isLineSeparator: Boolean get() = string in LineSeparators
+    public val isLineSeparator: Boolean get() = string in LineSeparators
 
     /**
      * Determines if this code point is a
@@ -115,7 +115,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @see isHighSurrogate
      * @see isLowSurrogate
      */
-    val isSurrogate: Boolean get() = char?.isSurrogate() == true
+    public val isSurrogate: Boolean get() = char?.isSurrogate() == true
 
     /**
      * Determines if this code point is a
@@ -126,7 +126,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @see isSurrogate
      * @see isLowSurrogate
      */
-    val isHighSurrogate: Boolean get() = char?.isHighSurrogate() == true
+    public val isHighSurrogate: Boolean get() = char?.isHighSurrogate() == true
 
     /**
      * Determines if this code point is a
@@ -137,21 +137,21 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @see isSurrogate
      * @see isHighSurrogate
      */
-    val isLowSurrogate: Boolean get() = char?.isLowSurrogate() == true
+    public val isLowSurrogate: Boolean get() = char?.isLowSurrogate() == true
 
     /**
      * Returns `true` if this character is upper case.
      *
      * @see isLowerCase
      */
-    val isUpperCase: Boolean get() = char?.isUpperCase() == true
+    public val isUpperCase: Boolean get() = char?.isUpperCase() == true
 
     /**
      * Returns `true` if this character is lower case.
      *
      * @see isUpperCase
      */
-    val isLowerCase: Boolean get() = char?.isLowerCase() == true
+    public val isLowerCase: Boolean get() = char?.isLowerCase() == true
 
     /**
      * Determines if this code point is a
@@ -160,7 +160,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @return `true` if this code point is a space character
      * @see isWhitespace
      */
-    val isWhitespace: Boolean get() = this in Whitespaces || char?.isWhitespace() == true
+    public val isWhitespace: Boolean get() = this in Whitespaces || char?.isWhitespace() == true
 
     /**
      * Determines if this code point is an alphanumeric ASCII character, that is,
@@ -169,10 +169,10 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
      * @return `true` if this code point is between a high surrogate
      * @see isHighSurrogate
      */
-    val isAsciiAlphanumeric: Boolean get() = (codePoint in 0x30..0x39) || (codePoint in 0x41..0x5a) || (codePoint in 0x61..0x7a)
+    public val isAsciiAlphanumeric: Boolean get() = (codePoint in 0x30..0x39) || (codePoint in 0x41..0x5a) || (codePoint in 0x61..0x7a)
 
 
-    companion object {
+    public companion object {
 
         /**
          * The minimum value of a Unicode code point: `U+0000`.
@@ -184,7 +184,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
          */
         private const val MAX_CODE_POINT: Int = 0X10FFFF
 
-        fun random(): CodePoint {
+        public fun random(): CodePoint {
             var possibleCodePoint = Random.nextInt(MIN_CODE_POINT, MAX_CODE_POINT)
             while (!possibleCodePoint.isUsableCodePoint()) possibleCodePoint =
                 Random.nextInt(MIN_CODE_POINT, MAX_CODE_POINT)
@@ -212,7 +212,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
          * - not belongs to a private plane
          * - not represents a surrogate
          */
-        fun Int.isUsableCodePoint(): Boolean = isDefined() && !privateUse() && !surrogate()
+        public fun Int.isUsableCodePoint(): Boolean = isDefined() && !privateUse() && !surrogate()
 
         private fun String.singleCodePoint(): Int? {
             val bytes = encodeToByteArray()
@@ -246,25 +246,25 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
         /**
          * `true` if these [Char] instances represent a *single* Unicode character.
          */
-        fun String.isValidCodePoint(): Boolean = asCodePoint() != null
+        public fun String.isValidCodePoint(): Boolean = asCodePoint() != null
 
         /**
          * If this string represents exactly one valid Unicode code point, returns this Unicode code point.
          * In all other cases, returns `null`.
          */
-        fun String.asCodePoint(): CodePoint? = singleCodePoint()?.takeIf { it.isUsableCodePoint() }?.let { CodePoint(it) }
+        public fun String.asCodePoint(): CodePoint? = singleCodePoint()?.takeIf { it.isUsableCodePoint() }?.let { CodePoint(it) }
 
         /**
          * Returns the Unicode code point with the same value.
          */
-        fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
+        public fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
     }
 
 
-    operator fun rangeTo(to: CodePoint): CodePointRange = CodePointRange(this, to)
+    public operator fun rangeTo(to: CodePoint): CodePointRange = CodePointRange(this, to)
 
     @Suppress("KDocMissingDocumentation")
-    class CodePointRange(override val start: CodePoint, override val endInclusive: CodePoint, step: Int = 1) :
+    public class CodePointRange(override val start: CodePoint, override val endInclusive: CodePoint, step: Int = 1) :
         CodePointProgression(start, endInclusive, step), ClosedRange<CodePoint> {
         @Suppress("ConvertTwoComparisonsToRangeCheck") override fun contains(value: CodePoint): Boolean = start <= value && value <= endInclusive
         override fun isEmpty(): Boolean = if (step > 0) first > last else first < last
@@ -296,7 +296,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
     /**
      * A progression of values of type [CodePoint].
      */
-    open class CodePointProgression internal constructor(start: CodePoint, endInclusive: CodePoint, val step: Int) : Iterable<CodePoint> {
+    public open class CodePointProgression internal constructor(start: CodePoint, endInclusive: CodePoint, public val step: Int) : Iterable<CodePoint> {
         init {
             require(step != 0) { "Step must be non-zero." }
             require(step != Int.MIN_VALUE) { "Step must be greater than Int.MIN_VALUE to avoid overflow on negation." }
@@ -305,17 +305,17 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
         /**
          * The first element in the progression.
          */
-        val first: CodePoint = start
+        public val first: CodePoint = start
 
         /**
          * The last element in the progression.
          */
-        val last: CodePoint = getProgressionLastElement(start, endInclusive, step)
+        public val last: CodePoint = getProgressionLastElement(start, endInclusive, step)
 
         override fun iterator(): CodePointIterator = CodePointProgressionIterator(first, last, step)
 
         /** Checks if the progression is empty. */
-        open fun isEmpty(): Boolean = if (step > 0) first > last else first < last
+        public open fun isEmpty(): Boolean = if (step > 0) first > last else first < last
 
         override fun equals(other: Any?): Boolean =
             other is CodePointProgression && (isEmpty() && other.isEmpty() ||
@@ -326,7 +326,7 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
 
         override fun toString(): String = if (step > 0) "$first..$last step $step" else "$first downTo $last step ${-step}"
 
-        companion object {
+        private companion object {
             /**
              * Calculates the final element of a bounded arithmetic progression, i.e. the last element of the progression which is in the range
              * from [start] to [end] in case of a positive [step], or from [end] to [start] in case of a negative
@@ -379,17 +379,17 @@ inline class CodePoint(val codePoint: Int) : Comparable<CodePoint> {
     /**
      * An iterator over a sequence of values of type [CodePoint].
      */
-    abstract class CodePointIterator : Iterator<CodePoint> {
-        final override fun next() = nextCodePoint()
-        abstract fun nextCodePoint(): CodePoint
+    public abstract class CodePointIterator : Iterator<CodePoint> {
+        final override fun next(): CodePoint = nextCodePoint()
+        public abstract fun nextCodePoint(): CodePoint
     }
 
     override operator fun compareTo(other: CodePoint): Int = codePoint.compareTo(other.codePoint)
-    operator fun plus(other: CodePoint): Int = codePoint + other.codePoint
-    operator fun plus(other: Int): CodePoint = CodePoint(codePoint + other)
-    operator fun minus(other: CodePoint): Int = codePoint - other.codePoint
-    operator fun minus(other: Int): CodePoint = CodePoint(codePoint - other)
-    @Suppress("AddOperatorModifier") fun mod(other: Int): Int = codePoint.mod(other)
-    operator fun inc(): CodePoint = CodePoint(codePoint + 1)
-    operator fun dec(): CodePoint = CodePoint(codePoint - 1)
+    public operator fun plus(other: CodePoint): Int = codePoint + other.codePoint
+    public operator fun plus(other: Int): CodePoint = CodePoint(codePoint + other)
+    public operator fun minus(other: CodePoint): Int = codePoint - other.codePoint
+    public operator fun minus(other: Int): CodePoint = CodePoint(codePoint - other)
+    @Suppress("AddOperatorModifier") public fun mod(other: Int): Int = codePoint.mod(other)
+    public operator fun inc(): CodePoint = CodePoint(codePoint + 1)
+    public operator fun dec(): CodePoint = CodePoint(codePoint - 1)
 }

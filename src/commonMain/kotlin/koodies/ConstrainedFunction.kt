@@ -10,13 +10,13 @@ import kotlin.reflect.KProperty
  * If the [function] is called although constraint the result
  * of the last successful invocation is returned.
  */
-class ConstrainedFunction<T, V>(
+public class ConstrainedFunction<T, V>(
     private val thisRef: T,
     private val function: T.() -> V?,
     private val isConstrained: () -> Boolean,
 ) : ReadOnlyProperty<T, () -> V?> {
     private var result: V? = null
-    operator fun invoke(): V? {
+    public operator fun invoke(): V? {
         if (!isConstrained()) {
             result = thisRef.function()
         }
@@ -32,7 +32,7 @@ class ConstrainedFunction<T, V>(
  * If the [function] is called although constraint the result
  * of the last successful invocation is returned.
  */
-fun <T, V> constrained(function: T.() -> V, isConstrained: () -> Boolean): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> =
+public fun <T, V> constrained(function: T.() -> V, isConstrained: () -> Boolean): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> =
     PropertyDelegateProvider { thisRef, _ -> ConstrainedFunction(thisRef, function, isConstrained) }
 
 /**
@@ -40,7 +40,7 @@ fun <T, V> constrained(function: T.() -> V, isConstrained: () -> Boolean): Prope
  *
  * On all further calls the last computation's result is returned.
  */
-fun <T, V> callable(atMost: Int, block: T.() -> V): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> {
+public fun <T, V> callable(atMost: Int, block: T.() -> V): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> {
     var computationCount = 0
     return constrained(block) {
         val i = ++computationCount
@@ -53,5 +53,5 @@ fun <T, V> callable(atMost: Int, block: T.() -> V): PropertyDelegateProvider<T, 
  *
  * On all further calls the last computation's result is returned.
  */
-fun <T, V> callableOnce(block: T.() -> V) =
+public fun <T, V> callableOnce(block: T.() -> V) =
     callable(1, block)

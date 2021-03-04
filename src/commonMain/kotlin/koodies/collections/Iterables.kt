@@ -6,7 +6,7 @@ package koodies.collections
  *
  * Throws [NoSuchElementException] is no element is present.
  */
-fun <T : Comparable<T>> Iterable<T>.maxOrThrow(): T {
+public fun <T : Comparable<T>> Iterable<T>.maxOrThrow(): T {
     val iterator = iterator()
     if (!iterator.hasNext()) throw NoSuchElementException()
     var max = iterator.next()
@@ -22,7 +22,7 @@ fun <T : Comparable<T>> Iterable<T>.maxOrThrow(): T {
  *
  * Throws [NoSuchElementException] is no element is present.
  */
-fun <T : Comparable<T>> Iterable<T>.minOrThrow(): T {
+public fun <T : Comparable<T>> Iterable<T>.minOrThrow(): T {
     val iterator = iterator()
     if (!iterator.hasNext()) throw NoSuchElementException()
     var min = iterator.next()
@@ -39,7 +39,7 @@ fun <T : Comparable<T>> Iterable<T>.minOrThrow(): T {
  * using the provided [transform] function applied to each pair of elements.
  * The returned list has length of the longest collection—filling missing values with [default].
  */
-inline fun <T, R, V> Iterable<T>.zipWithDefault(other: Iterable<R>, default: Pair<T, R>, transform: (a: T, b: R) -> V): List<V> {
+public inline fun <T, R, V> Iterable<T>.zipWithDefault(other: Iterable<R>, default: Pair<T, R>, transform: (a: T, b: R) -> V): List<V> {
     val first = iterator()
     val second = other.iterator()
     val list = ArrayList<V>(maxOf(collectionSizeOrDefault(10), other.collectionSizeOrDefault(10)))
@@ -56,8 +56,8 @@ inline fun <T, R, V> Iterable<T>.zipWithDefault(other: Iterable<R>, default: Pai
  *
  * The operation is _intermediate_ and _stateless_.
  */
-fun <T, R, V> Sequence<T>.zipWithDefault(other: Sequence<R>, default: Pair<T, R>, transform: (a: T, b: R) -> V): Sequence<V> {
+public fun <T, R, V> Sequence<T>.zipWithDefault(other: Sequence<R>, default: Pair<T, R>, transform: (a: T, b: R) -> V): Sequence<V> {
     return MergingSequenceWithDefault(this, other, default, transform)
 }
 
-fun <T> Iterable<T>.collectionSizeOrDefault(default: Int): Int = if (this is Collection<*>) this.size else default
+public fun <T> Iterable<T>.collectionSizeOrDefault(default: Int): Int = if (this is Collection<*>) this.size else default

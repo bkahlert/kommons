@@ -3,7 +3,7 @@ package koodies.test
 /**
  * A HTML file [Fixture] showing the "Hello World!".
  */
-object HtmlFile : Fixture by TextFixture(
+public object HtmlFile : Fixture by TextFixture(
     "example.html", """
         <html>
         <head><title>Hello Title!</title>

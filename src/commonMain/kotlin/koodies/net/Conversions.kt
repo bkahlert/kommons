@@ -13,9 +13,9 @@ import koodies.ranges.map
  * instances of [IPv4Address] to instances of [IPv6Address] and
  * vice versa.
  */
-interface IPv4toIPv6Mapping {
-    fun IPv4Address.toIPv6Address(): IPv6Address
-    fun IPv6Address.toIPv4Address(): IPv4Address
+public interface IPv4toIPv6Mapping {
+    public fun IPv4Address.toIPv6Address(): IPv6Address
+    public fun IPv6Address.toIPv4Address(): IPv4Address
 }
 
 /**
@@ -23,8 +23,8 @@ interface IPv4toIPv6Mapping {
  * by adding respectively instances of [IPv6Address] to [IPv4Address] by subtracting
  * the specified fixed [offset] to the [IPAddress.value] of the address to be mapped.
  */
-open class OffsetIPv4toIPv6Mapping(val offset: BigInteger) : IPv4toIPv6Mapping {
-    val range = IPv4Address.RANGE
+public open class OffsetIPv4toIPv6Mapping(public val offset: BigInteger) : IPv4toIPv6Mapping {
+    public val range: IPv6Range = IPv4Address.RANGE
         .map { value + offset }
         .let { IPv6Address(it.start.toUByteArray().trim())..IPv6Address(it.endInclusive.toUByteArray().trim()) }
 
@@ -40,7 +40,7 @@ open class OffsetIPv4toIPv6Mapping(val offset: BigInteger) : IPv4toIPv6Mapping {
 /**
  * [Stateless IP translation](https://en.wikipedia.org/wiki/IPv6_transition_mechanism#Stateless_IP/ICMP_Translation) of [IPv4Address] to [IPv6Address] and vice versa.
  */
-object DefaultIPv4toIPv6Mapping : OffsetIPv4toIPv6Mapping(bigIntegerOf(ubyteArrayOf(
+public object DefaultIPv4toIPv6Mapping : OffsetIPv4toIPv6Mapping(bigIntegerOf(ubyteArrayOf(
     UByte.OOu, UByte.OOu, UByte.OOu, UByte.OOu,
     UByte.OOu, UByte.OOu, UByte.OOu, UByte.OOu,
     UByte.OOu, UByte.OOu, UByte.FFu, UByte.FFu,
@@ -49,11 +49,11 @@ object DefaultIPv4toIPv6Mapping : OffsetIPv4toIPv6Mapping(bigIntegerOf(ubyteArra
 /**
  * [NAT64](https://en.wikipedia.org/wiki/NAT64) based mapping of [IPv4Address] to [IPv6Address] and vice versa.
  */
-object Nat64IPv4toIPv6Mapping : OffsetIPv4toIPv6Mapping(bigIntegerOf(ubyteArrayOf(
+public object Nat64IPv4toIPv6Mapping : OffsetIPv4toIPv6Mapping(bigIntegerOf(ubyteArrayOf(
     UByte.OOu, 0x64u, UByte.FFu, 0x9Bu,
     UByte.OOu, UByte.OOu, UByte.OO, UByte.OOu,
     UByte.OOu, UByte.OOu, UByte.OO, UByte.OOu,
 )) shl IPv4Address.bitCount)
 
-fun IPv4Address.toIPv6Address(mapping: IPv4toIPv6Mapping = DefaultIPv4toIPv6Mapping): IPv6Address = with(mapping) { toIPv6Address() }
-fun IPv6Address.toIPv4Address(mapping: IPv4toIPv6Mapping = DefaultIPv4toIPv6Mapping): IPv4Address = with(mapping) { toIPv4Address() }
+public fun IPv4Address.toIPv6Address(mapping: IPv4toIPv6Mapping = DefaultIPv4toIPv6Mapping): IPv6Address = with(mapping) { toIPv6Address() }
+public fun IPv6Address.toIPv4Address(mapping: IPv4toIPv6Mapping = DefaultIPv4toIPv6Mapping): IPv4Address = with(mapping) { toIPv4Address() }

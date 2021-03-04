@@ -6,7 +6,7 @@ package koodies.ranges
  * the specified [transform] to the [ClosedRange.start] and
  * [ClosedRange.endInclusive].
  */
-inline fun <reified T : Comparable<T>, reified R : Comparable<R>> ClosedRange<T>.map(
+public inline fun <reified T : Comparable<T>, reified R : Comparable<R>> ClosedRange<T>.map(
     transform: T.() -> R,
 ): ClosedRange<R> = start.transform()..endInclusive.transform()
 
@@ -15,7 +15,7 @@ inline fun <reified T : Comparable<T>, reified R : Comparable<R>> ClosedRange<T>
  * Contains the absolute difference between the [ClosedRange.start]
  * and [ClosedRange.endInclusive] `+1`.
  */
-inline val <reified T> ClosedRange<T>.size: Int
+public inline val <reified T> ClosedRange<T>.size: Int
     where T : Comparable<T>, T : Number
     get() {
         val x = start.toInt()

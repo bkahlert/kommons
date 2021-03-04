@@ -123,7 +123,7 @@ public abstract class AbstractByteArrayOutputStream : OutputStream() {
     }
 
     public abstract fun size(): Int
-    override fun close() {}
+    override fun close(): Unit = Unit
 
     public abstract fun reset()
     protected fun resetBuffers() {

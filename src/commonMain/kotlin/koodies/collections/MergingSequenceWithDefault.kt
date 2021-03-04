@@ -5,8 +5,7 @@ package koodies.collections
  * [transform] function and returns the values returned by that function. The sequence returns all
  * values and uses default values as soon as one of the underlying sequences stops returning values.
  */
-class MergingSequenceWithDefault<T1, T2, V>
-constructor(
+public class MergingSequenceWithDefault<T1, T2, V>(
     private val sequence1: Sequence<T1>,
     private val sequence2: Sequence<T2>,
     private val defaultValues: Pair<T1, T2>,

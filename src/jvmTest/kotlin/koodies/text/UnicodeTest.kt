@@ -24,7 +24,7 @@ class UnicodeTest {
 
         @TestFactory
         fun `should return code point`() = listOf(
-            133 to nextLine,
+            133 to nextLine.toString(),
             119594 to Unicode.DivinationSymbols.Tetragrams.Purity.toString(),
         ).testEach("\"{}\" ？⃔ \"{}\"") { (codePoint, expected) ->
             val actual: CodePoint = Unicode[codePoint]

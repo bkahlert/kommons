@@ -1,8 +1,8 @@
 object Versions {
 
-    val kotlin = "1.4.30"
+    val kotlin = "1.4.31"
 
-    val antlr4 = "4.7.4"
+    val antlr4 = "4.9.0"
 
     object junit {
         val jupiter = "5.7.0"

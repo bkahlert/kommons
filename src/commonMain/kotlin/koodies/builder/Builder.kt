@@ -216,8 +216,4 @@ public typealias Init1<P1, C> = C.(P1) -> Unit
 
 
 public inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: R.() -> S): Builder<T, S> =
-    Builder<T, S> { this(it).transform() }
-
-public fun interface BuilderFactory<U, T : Function<*>, R> {
-    public operator fun invoke(arg: U): Builder<T, R>
-}
+    Builder { this(it).transform() }

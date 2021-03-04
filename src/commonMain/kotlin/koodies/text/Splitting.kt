@@ -4,7 +4,7 @@ package koodies.text
  * Splits this strings using the specified [delimiter] applies [transform]
  * to each substrings and joins back the mapped substrings to a string using the same [delimiter].
  */
-fun String.splitAndMap(delimiter: String, ignoreCase: Boolean = false, limit: Int = 0, transform: String.() -> String): String =
+public fun String.splitAndMap(delimiter: String, ignoreCase: Boolean = false, limit: Int = 0, transform: String.() -> String): String =
     split(delimiter, ignoreCase = ignoreCase, limit = limit).map { transform(it) }.joinToString(delimiter)
 
 /**
@@ -19,7 +19,7 @@ fun String.splitAndMap(delimiter: String, ignoreCase: Boolean = false, limit: In
  * the beginning to the end of this string, and finds at each position the first element in [delimiters]
  * that matches this string at that position.
  */
-fun CharSequence.splitToSequence(
+public fun CharSequence.splitToSequence(
     delimiters: Array<String>,
     keepDelimiters: Boolean = false,
     ignoreTrailingSeparator: Boolean = false,

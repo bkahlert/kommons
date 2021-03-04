@@ -11,4 +11,4 @@ import kotlin.time.DurationUnit
  *
  * The range of durations that can be expressed as a `Int` number of milliseconds is approximately ±292 million years.
  */
-fun Duration.toIntMilliseconds(): Int = toLong(DurationUnit.MILLISECONDS).toInt()
+public fun Duration.toIntMilliseconds(): Int = toLong(DurationUnit.MILLISECONDS).toInt()

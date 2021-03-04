@@ -9,7 +9,7 @@ import kotlin.collections.dropLast as kotlinDropLast
  *
  * @see kotlinDropLast
  */
-fun <T> List<T>.dropLast(n: Int = 1): List<T> =
+public fun <T> List<T>.dropLast(n: Int = 1): List<T> =
     kotlinDropLast(n)
 
 /**
@@ -17,5 +17,5 @@ fun <T> List<T>.dropLast(n: Int = 1): List<T> =
  *
  * In contrast to most other sets, this one keeps the order of the elements.
  */
-fun <E> Iterable<E>.toLinkedSet(): LinkedHashSet<in E> =
+public fun <E> Iterable<E>.toLinkedSet(): LinkedHashSet<in E> =
     LinkedHashSet<E>().also { it.addAll(this) }

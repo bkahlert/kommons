@@ -6,13 +6,13 @@ package koodies
  *
  * @see Capture
  */
-class Deferred<R>(function: () -> R) {
+public class Deferred<R>(function: () -> R) {
     private val result: R by lazy(function)
 
     /**
      * Evaluates the captured invocation and returns its result.
      */
-    fun evaluate(): R = result
+    public fun evaluate(): R = result
 
     override fun toString(): String = asString(this::result)
 }
@@ -20,40 +20,40 @@ class Deferred<R>(function: () -> R) {
 /**
  * Creates a [Deferred] evaluation of the given [function].
  */
-fun <R> defer(function: () -> R): Deferred<R> = Deferred(function)
+public fun <R> defer(function: () -> R): Deferred<R> = Deferred(function)
 
 /**
  * Returns [Deferred] that evaluates to `null`.
  */
-fun <R> deferNull(): Deferred<out R?> = deferredNull
+public fun <R> deferNull(): Deferred<out R?> = deferredNull
 private val deferredNull: Deferred<Nothing?> = Deferred { null }
 
 /**
  * Evaluates the captured invocation and returns its result if it is an instance
  * of type [T] or `null` otherwise.
  */
-fun <T> Deferred<T>.evaluateOrNull(): T? =
+public fun <T> Deferred<T>.evaluateOrNull(): T? =
     kotlin.runCatching { evaluate() }.getOrNull()
 
 /**
  * Evaluates the captured invocation and returns its result if it is an instance
  * of type [T] or the given [defaultValue] otherwise.
  */
-fun <T : R, R> Deferred<T>.evaluateOrDefault(defaultValue: R): R =
+public fun <T : R, R> Deferred<T>.evaluateOrDefault(defaultValue: R): R =
     kotlin.runCatching { evaluate() }.getOrDefault(defaultValue)
 
 /**
  * Evaluates the captured invocation and returns its result if it is an instance
  * of type [T] or the otherwise caught exception mapped using the given [onFailure].
  */
-fun <T : R, R> Deferred<T>.evaluateOrElse(onFailure: (exception: Throwable) -> R): R =
+public fun <T : R, R> Deferred<T>.evaluateOrElse(onFailure: (exception: Throwable) -> R): R =
     kotlin.runCatching { evaluate() }.getOrElse(onFailure)
 
 /**
  * Evaluates the captured invocation and returns its result if it is an instance
  * or rethrows the otherwise caught exceptions.
  */
-fun <T : R, R> Deferred<T>.evaluateOrThrow(): T =
+public fun <T : R, R> Deferred<T>.evaluateOrThrow(): T =
     kotlin.runCatching { evaluate() }.getOrThrow()
 
 

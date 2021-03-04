@@ -18,7 +18,7 @@ public inline fun <reified T> ((T) -> T)?.compose(crossinline function: ((T) -> 
  * Returns a new identity function that composes `this` optional identity function
  * with the given mandatory identity [function] by chaining them.
  */
-inline operator fun <reified T> ((T) -> T)?.plus(crossinline function: ((T) -> T)): ((T) -> T) =
+public inline operator fun <reified T> ((T) -> T)?.plus(crossinline function: ((T) -> T)): ((T) -> T) =
     { function(this?.invoke(it) ?: it) }
 
 /**

@@ -74,7 +74,6 @@ kotlin {
     }
 
     val features = listOf(
-        "-Xinline-classes",
         "-Xopt-in=kotlin.RequiresOptIn",
         "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
         "-Xopt-in=kotlin.time.ExperimentalTime",
@@ -143,6 +142,7 @@ kotlin {
             features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
                 languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
             }
+            languageSettings.enableLanguageFeature("InlineClasses")
         }
 
         val commonMain by getting {

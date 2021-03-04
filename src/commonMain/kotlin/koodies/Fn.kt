@@ -10,7 +10,7 @@ package koodies
  * Returns the invocations result on success and throws the encountered exception on failure.
  * In both cases [after] will be called.
  */
-fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: () -> R): R {
+public fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: () -> R): R {
     val u = before()
     val r = runCatching(block)
     after(u)
@@ -27,7 +27,7 @@ fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: () -> R): R {
  * Returns the invocations result on success and throws the encountered exception on failure.
  * In both cases [after] will be called.
  */
-fun <T, U, R> T.runWrapping(before: T.() -> U, after: T.(U) -> Unit, block: T.() -> R): R {
+public fun <T, U, R> T.runWrapping(before: T.() -> U, after: T.(U) -> Unit, block: T.() -> R): R {
     val u = before()
     val r = runCatching(block)
     after(u)

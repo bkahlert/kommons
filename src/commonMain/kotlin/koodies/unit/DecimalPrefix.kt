@@ -10,7 +10,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 @Suppress("KDocMissingDocumentation")
-enum class DecimalPrefix(
+public enum class DecimalPrefix(
     override val symbol: String,
     override val exponent: Int,
     override val factor: BigDecimal =
@@ -50,61 +50,61 @@ enum class DecimalPrefix(
 
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Yotta]. */
-val Number.Yotta: BigDecimal by DecimalPrefix.Yotta
+public val Number.Yotta: BigDecimal by DecimalPrefix.Yotta
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Zetta]. */
-val Number.Zetta: BigDecimal by DecimalPrefix.Zetta
+public val Number.Zetta: BigDecimal by DecimalPrefix.Zetta
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Exa]. */
-val Number.Exa: BigDecimal by DecimalPrefix.Exa
+public val Number.Exa: BigDecimal by DecimalPrefix.Exa
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Peta]. */
-val Number.Peta: BigDecimal by DecimalPrefix.Peta
+public val Number.Peta: BigDecimal by DecimalPrefix.Peta
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Tera]. */
-val Number.Tera: BigDecimal by DecimalPrefix.Tera
+public val Number.Tera: BigDecimal by DecimalPrefix.Tera
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Giga]. */
-val Number.Giga: BigDecimal by DecimalPrefix.Giga
+public val Number.Giga: BigDecimal by DecimalPrefix.Giga
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.Mega]. */
-val Number.Mega: BigDecimal by DecimalPrefix.Mega
+public val Number.Mega: BigDecimal by DecimalPrefix.Mega
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.kilo]. */
-val Number.kilo: BigDecimal by DecimalPrefix.kilo
+public val Number.kilo: BigDecimal by DecimalPrefix.kilo
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.hecto]. */
-val Number.hecto: BigDecimal by DecimalPrefix.hecto
+public val Number.hecto: BigDecimal by DecimalPrefix.hecto
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.deca]. */
-val Number.deca: BigDecimal by DecimalPrefix.deca
+public val Number.deca: BigDecimal by DecimalPrefix.deca
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.deci]. */
-val Number.deci: BigDecimal by DecimalPrefix.deci
+public val Number.deci: BigDecimal by DecimalPrefix.deci
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.centi]. */
-val Number.centi: BigDecimal by DecimalPrefix.centi
+public val Number.centi: BigDecimal by DecimalPrefix.centi
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.milli]. */
-val Number.milli: BigDecimal by DecimalPrefix.milli
+public val Number.milli: BigDecimal by DecimalPrefix.milli
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.micro]. */
-val Number.micro: BigDecimal by DecimalPrefix.micro
+public val Number.micro: BigDecimal by DecimalPrefix.micro
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.nano]. */
-val Number.nano: BigDecimal by DecimalPrefix.nano
+public val Number.nano: BigDecimal by DecimalPrefix.nano
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.pico]. */
-val Number.pico: BigDecimal by DecimalPrefix.pico
+public val Number.pico: BigDecimal by DecimalPrefix.pico
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.femto]. */
-val Number.femto: BigDecimal by DecimalPrefix.femto
+public val Number.femto: BigDecimal by DecimalPrefix.femto
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.atto]. */
-val Number.atto: BigDecimal by DecimalPrefix.atto
+public val Number.atto: BigDecimal by DecimalPrefix.atto
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.zepto]. */
-val Number.zepto: BigDecimal by DecimalPrefix.zepto
+public val Number.zepto: BigDecimal by DecimalPrefix.zepto
 
 /** Returns a [BigDecimal] equal to this [Number] times [DecimalPrefix.yocto]. */
-val Number.yocto: BigDecimal by DecimalPrefix.yocto
+public val Number.yocto: BigDecimal by DecimalPrefix.yocto

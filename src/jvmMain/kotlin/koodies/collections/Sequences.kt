@@ -6,19 +6,19 @@ import kotlin.streams.asStream
 /**
  * Creates a [Stream] instance that wraps this array returning its elements when being iterated.
  */
-fun <T> Array<T>.asStream(): Stream<T> = asSequence().asStream()
+public fun <T> Array<T>.asStream(): Stream<T> = asSequence().asStream()
 
 /**
  * Creates a [Stream] instance that wraps this list returning its elements when being iterated.
  */
-fun <T> List<T>.asStream(): Stream<T> = stream()
+public fun <T> List<T>.asStream(): Stream<T> = stream()
 
 /**
  * Creates a [Stream] instance that wraps this iterable returning its elements when being iterated.
  */
-fun <T> Iterable<T>.asStream(): Stream<T> = asSequence().asStream()
+public fun <T> Iterable<T>.asStream(): Stream<T> = asSequence().asStream()
 
 /**
  * Creates a [Stream] instance that wraps this iterator returning its elements when being iterated.
  */
-fun <T> Iterator<T>.asStream(): Stream<T> = asSequence().asStream()
+public fun <T> Iterator<T>.asStream(): Stream<T> = asSequence().asStream()

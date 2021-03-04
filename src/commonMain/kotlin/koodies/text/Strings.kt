@@ -3,20 +3,20 @@ package koodies.text
 import koodies.text.LineSeparators.LF
 import kotlin.random.Random
 
-object CharRanges {
-    val Numeric: CharRange = ('0'..'9')
-    val LowerCaseAtoZ: CharRange = ('a'..'z')
-    val UpperCaseAtoZ: CharRange = ('A'..'Z')
+public object CharRanges {
+    public val Numeric: CharRange = ('0'..'9')
+    public val LowerCaseAtoZ: CharRange = ('a'..'z')
+    public val UpperCaseAtoZ: CharRange = ('A'..'Z')
 
-    val Alphanumeric: CharArray = (Numeric + LowerCaseAtoZ + UpperCaseAtoZ).toCharArray()
-    val UpperCaseAlphanumeric: CharArray = (Numeric + UpperCaseAtoZ).toCharArray()
+    public val Alphanumeric: CharArray = (Numeric + LowerCaseAtoZ + UpperCaseAtoZ).toCharArray()
+    public val UpperCaseAlphanumeric: CharArray = (Numeric + UpperCaseAtoZ).toCharArray()
 }
 
 
 /**
  * Creates a random string of the specified [length] made up of the specified [allowedCharacters].
  */
-fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRanges.Alphanumeric): String =
+public fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRanges.Alphanumeric): String =
     StringBuilder().apply {
         repeat(length) { append(allowedCharacters[Random.nextInt(0, allowedCharacters.size)]) }
     }.toString()
@@ -25,13 +25,13 @@ fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRanges.Alp
 /**
  * Returns this [CharSequence] with the [prefix] prepended if it is not already there.
  */
-fun CharSequence.withPrefix(prefix: String): String =
+public fun CharSequence.withPrefix(prefix: String): String =
     if (startsWith(prefix)) toString() else prefix + toString()
 
 /**
  * Returns this [CharSequence] with a random suffix of one dash and four alpha-numeric characters.
  */
-fun CharSequence.withRandomSuffix(): String {
+public fun CharSequence.withRandomSuffix(): String {
     if (randomSuffixMatcher.matches(this)) return this.toString()
     return "$this-${randomString(length = randomSuffixLength, allowedCharacters = CharRanges.Alphanumeric)}"
 }
@@ -44,7 +44,7 @@ private val randomSuffixMatcher: Regex = Regex(".*-[0-9a-zA-Z]{$randomSuffixLeng
  * If this char sequence starts with the given [prefix], returns a new char sequence
  * with the prefix removed. Otherwise, returns a new char sequence with the same characters.
  */
-fun CharSequence.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): CharSequence {
+public fun CharSequence.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): CharSequence {
     if (startsWith(prefix, ignoreCase = ignoreCase)) {
         return subSequence(prefix.length, length)
     }
@@ -55,7 +55,7 @@ fun CharSequence.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false
  * If this string starts with the given [prefix], returns a copy of this string
  * with the prefix removed. Otherwise, returns this string.
  */
-fun String.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): String {
+public fun String.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): String {
     if (startsWith(prefix, ignoreCase = ignoreCase)) {
         return substring(prefix.length)
     }
@@ -66,7 +66,7 @@ fun String.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): Str
 /**
  * Returns this [CharSequence] with the [suffix] appended if it is not already there.
  */
-fun CharSequence.withSuffix(suffix: String): String =
+public fun CharSequence.withSuffix(suffix: String): String =
     if (endsWith(suffix)) toString() else toString() + suffix
 
 
@@ -74,7 +74,7 @@ fun CharSequence.withSuffix(suffix: String): String =
  * If this char sequence ends with the given [suffix], returns a new char sequence
  * with the suffix removed. Otherwise, returns a new char sequence with the same characters.
  */
-fun CharSequence.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): CharSequence {
+public fun CharSequence.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): CharSequence {
     if (endsWith(suffix, ignoreCase = ignoreCase)) {
         return subSequence(0, length - suffix.length)
     }
@@ -85,7 +85,7 @@ fun CharSequence.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false
  * If this string ends with the given [suffix], returns a copy of this string
  * with the suffix removed. Otherwise, returns this string.
  */
-fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): String {
+public fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): String {
     if (endsWith(suffix, ignoreCase = ignoreCase)) {
         return substring(0, length - suffix.length)
     }
@@ -98,5 +98,5 @@ fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): Str
  * - a line feed (`\n`) is added to separate this char sequence from the [suffix].
  * - the indentation of [prefix] and [suffix] is trimmed using [String.trimIndent]
  */
-fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
+public fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
     "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"

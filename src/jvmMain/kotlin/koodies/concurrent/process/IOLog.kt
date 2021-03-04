@@ -20,7 +20,7 @@ import kotlin.time.seconds
  *
  * In order to log I/O only [add] must be called.
  */
-class IOLog {
+public class IOLog {
 
     private val lock = ReentrantLock()
 
@@ -30,7 +30,7 @@ class IOLog {
      * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
      * to have non-corrupted data (e.g. split characters).
      */
-    val logged: List<IO> get() = lock.withLock { log.toList() }
+    public val logged: List<IO> get() = lock.withLock { log.toList() }
 
     /**
      * Contains the currently logged I/O of the corresponding [ManagedProcess].
@@ -38,7 +38,7 @@ class IOLog {
      * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
      * to have non-corrupted data (e.g. split characters).
      */
-    fun logged(type: Type): IO = type typed logged.filter { it.type == type }.joinToString(LineSeparators.LF) { it.unformatted }
+    public fun logged(type: Type): IO = type typed logged.filter { it.type == type }.joinToString(LineSeparators.LF) { it.unformatted }
 
     /**
      * Contains the currently logged I/O of the corresponding [ManagedProcess].
@@ -46,7 +46,7 @@ class IOLog {
      * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
      * to have non-corrupted data (e.g. split characters).
      */
-    fun logged(): String = logged.joinToString(LineSeparators.LF) { it.unformatted }
+    public fun logged(): String = logged.joinToString(LineSeparators.LF) { it.unformatted }
 
     /**
      * Contains the currently logged I/O. See [logged] for more details.
@@ -64,7 +64,7 @@ class IOLog {
      * [content] does not have to be *complete* in any way (like a complete line) but also be provided
      * in chunks of any size. The I/O will be correctly reconstructed and can be accessed using [logged].
      */
-    fun add(type: Type, content: ByteArray) = lock.withLock {
+    public fun add(type: Type, content: ByteArray): Unit = lock.withLock {
         with(incompleteLines.getOrPut(type, { ByteArrayOutputStream() })) {
             write(content)
             while (true) {
@@ -94,7 +94,7 @@ class IOLog {
     /**
      * Returns a dump of the logged I/O log.
      */
-    fun dump(): String {
+    public fun dump(): String {
         2.seconds.busyWait()
         return logged.joinLinesToString { it.formatted }
     }
@@ -102,7 +102,7 @@ class IOLog {
     /**
      * Dumps the logged I/O log in the specified [directory] using the name scheme `koodies.process.{PID}.{RANDOM}.log".
      */
-    fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
+    public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
 
     override fun toString(): String =
         "${this::class.simpleName}(${log.size} $heavyCheckMark; ${incompleteLines.filterValues { it.toByteArray().isNotEmpty() }.size} …)"
@@ -114,7 +114,7 @@ class IOLog {
  * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
  * to have non-corrupted data (e.g. split characters).
  */
-fun ManagedProcess.logged(type: Type): IO = ioLog.logged(type)
+public fun ManagedProcess.logged(type: Type): IO = ioLog.logged(type)
 
 /**
  * Contains the currently logged I/O of this [ManagedProcess].
@@ -122,4 +122,4 @@ fun ManagedProcess.logged(type: Type): IO = ioLog.logged(type)
  * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
  * to have non-corrupted data (e.g. split characters).
  */
-val ManagedProcess.logged: String get() = ioLog.logged()
+public val ManagedProcess.logged: String get() = ioLog.logged()

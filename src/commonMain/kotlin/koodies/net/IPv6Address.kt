@@ -15,10 +15,10 @@ import koodies.unit.bits
 /**
  * [Internet Protocol version 6](https://en.wikipedia.org/wiki/IPv6) address
  */
-class IPv6Address private constructor(override val value: BigInteger, override val bytes: UByteArray) : IPAddress {
-    constructor(value: BigInteger) : this(value, value.toUByteArray().trim().padStart(IPv6Address.byteCount))
-    constructor(value: UInt) : this(value.toBigInteger(), value.toUBytes().trim().padStart(IPv6Address.byteCount))
-    constructor(bytes: UByteArray) : this(bigIntegerOf(bytes), bytes.trim().padStart(IPv6Address.byteCount))
+public class IPv6Address private constructor(override val value: BigInteger, override val bytes: UByteArray) : IPAddress {
+    public constructor(value: BigInteger) : this(value, value.toUByteArray().trim().padStart(IPv6Address.byteCount))
+    public constructor(value: UInt) : this(value.toBigInteger(), value.toUBytes().trim().padStart(IPv6Address.byteCount))
+    public constructor(bytes: UByteArray) : this(bigIntegerOf(bytes), bytes.trim().padStart(IPv6Address.byteCount))
 
     init {
         require(value in MIN_VALUE..MAX_VALUE) {
@@ -27,7 +27,7 @@ class IPv6Address private constructor(override val value: BigInteger, override v
     }
 
     override val version: IPAddress.Version = IPv6Address
-    operator fun rangeTo(endInclusive: IPv6Address): IPv6Range = IPv6Range(value, endInclusive.value)
+    public operator fun rangeTo(endInclusive: IPv6Address): IPv6Range = IPv6Range(value, endInclusive.value)
 
     /**
      * Returns the [Notation.compressedRepresentation] of this IPv6 address, e.g. `::ffff:c0a8:1001`.
@@ -40,17 +40,17 @@ class IPv6Address private constructor(override val value: BigInteger, override v
     override fun equals(other: Any?): Boolean = isEqual(other)
     override fun hashCode(): Int = hash()
 
-    companion object : IPAddress.Version by VersionImpl(6, 128.bits) {
+    public companion object : IPAddress.Version by VersionImpl(6, 128.bits) {
         private const val sizeHextets = 8
 
-        val MIN_VALUE: BigInteger = BigInteger.ZERO
-        val MAX_VALUE: BigInteger = bigIntegerOfHexadecimalString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+        public val MIN_VALUE: BigInteger = BigInteger.ZERO
+        public val MAX_VALUE: BigInteger = bigIntegerOfHexadecimalString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
 
-        val DEFAULT_ROOT = IPv6Address(MIN_VALUE)
-        val LOOPBACK = IPv6Address(MIN_VALUE + 1)
-        val RANGE = DEFAULT_ROOT..IPv6Address(MAX_VALUE)
+        public val DEFAULT_ROOT: IPv6Address = IPv6Address(MIN_VALUE)
+        public val LOOPBACK: IPv6Address = IPv6Address(MIN_VALUE + 1)
+        public val RANGE: IPv6Range = DEFAULT_ROOT..IPv6Address(MAX_VALUE)
 
-        fun parse(ipAddress: String): IPv6Address {
+        public fun parse(ipAddress: String): IPv6Address {
             val mixedStrings = ipAddress.split(":")
             val hextetStrings = mixedStrings.takeUnless { it.last().contains(".") }
                 ?: mixedStrings.take(mixedStrings.size - 1) + IPv4Address.parse(mixedStrings.last())
@@ -80,12 +80,12 @@ class IPv6Address private constructor(override val value: BigInteger, override v
     }
 }
 
-fun String.toIPv6(): IPv6Address = IPv6Address.parse(this)
-fun ip6Of(value: String): IPv6Address = value.toIPv6()
+public fun String.toIPv6(): IPv6Address = IPv6Address.parse(this)
+public fun ip6Of(value: String): IPv6Address = value.toIPv6()
 
-fun BigInteger.toIPv6(): IPv6Address = IPv6Address(this)
-fun UInt.toIPv6(): IPv6Address = IPv6Address(this.toBigInteger())
-fun Int.toIPv6(): IPv6Address = IPv6Address(this.toBigInteger())
-fun ip6Of(value: BigInteger): IPv6Address = value.toIPv6()
-fun ip6Of(value: UInt): IPv6Address = value.toBigInteger().toIPv6()
-fun ip6Of(value: Int): IPv6Address = value.toBigInteger().toIPv6()
+public fun BigInteger.toIPv6(): IPv6Address = IPv6Address(this)
+public fun UInt.toIPv6(): IPv6Address = IPv6Address(this.toBigInteger())
+public fun Int.toIPv6(): IPv6Address = IPv6Address(this.toBigInteger())
+public fun ip6Of(value: BigInteger): IPv6Address = value.toIPv6()
+public fun ip6Of(value: UInt): IPv6Address = value.toBigInteger().toIPv6()
+public fun ip6Of(value: Int): IPv6Address = value.toBigInteger().toIPv6()

@@ -2,7 +2,7 @@ package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class IPv6Subnet private constructor(override val value: BigInteger, override val prefixLength: Int) : IPSubnet<IPv6Address> {
+public class IPv6Subnet private constructor(override val value: BigInteger, override val prefixLength: Int) : IPSubnet<IPv6Address> {
     override val maxLength: Int = IPv6Address.bitCount
 
     init {
@@ -15,7 +15,7 @@ class IPv6Subnet private constructor(override val value: BigInteger, override va
     override fun equals(other: Any?): Boolean = isEqual(other)
     override fun hashCode(): Int = hash
 
-    companion object : IPSubnet.Factory<IPv6Address> {
+    public companion object : IPSubnet.Factory<IPv6Address> {
         override fun address(value: BigInteger): IPv6Address = IPv6Address(value)
         override fun from(value: BigInteger, prefixLength: Int): IPv6Subnet = IPv6Subnet(value, prefixLength)
         override fun from(ip: IPv6Address, prefixLength: Int): IPv6Subnet = from(ip.value, prefixLength)
@@ -27,8 +27,8 @@ class IPv6Subnet private constructor(override val value: BigInteger, override va
     }
 }
 
-operator fun IPv6Address.div(prefixLength: Int): IPv6Subnet = IPv6Subnet.from(this, prefixLength)
-val ClosedRange<IPv6Address>.smallestCommonSubnet: IPv6Subnet get() = IPv6Subnet.getSmallestCommonSubnet(this)
+public operator fun IPv6Address.div(prefixLength: Int): IPv6Subnet = IPv6Subnet.from(this, prefixLength)
+public val ClosedRange<IPv6Address>.smallestCommonSubnet: IPv6Subnet get() = IPv6Subnet.getSmallestCommonSubnet(this)
 
-fun String.toIPv6Subnet(): IPv6Subnet = IPv6Subnet.parse(this)
-fun ip6SubnetOf(value: String): IPv6Subnet = value.toIPv6Subnet()
+public fun String.toIPv6Subnet(): IPv6Subnet = IPv6Subnet.parse(this)
+public fun ip6SubnetOf(value: String): IPv6Subnet = value.toIPv6Subnet()

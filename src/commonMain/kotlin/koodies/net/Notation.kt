@@ -1,6 +1,7 @@
 package koodies.net
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import koodies.net.Notation.Verbosity
 import koodies.number.bigIntegerOf
 import koodies.number.padStart
 import koodies.number.trim
@@ -19,12 +20,12 @@ import kotlin.math.ceil
  * of 24 bytes in 8 groups of quadlets formatted to the base of 32 and
  * the longest consecutive groups of zeros replaced by `⌁⌁`, see [format]).
  */
-interface Notation {
+public interface Notation {
 
     /**
      * Level of detail of a Internet Protocol address representation.
      */
-    enum class Verbosity {
+    public enum class Verbosity {
         /**
          * Fully detailed representation
          */
@@ -47,40 +48,40 @@ interface Notation {
     /**
      * Specifies how many bytes one address has (e.g. `16` bytes = `128` Bit for IPv6).
      */
-    val byteCount: Int
+    public val byteCount: Int
 
     /**
      * Specifies how many bytes make up one group (IPv4: `1`, IPv6: `2`).
      */
-    val groupSize: Int
+    public val groupSize: Int
 
     /**
      * Specifies how groups are separated.
      */
-    val groupSeparator: Char
+    public val groupSeparator: Char
 
     /**
      * Specifies the base of the representation respectively how many states a single digit can have.
      */
-    val base: Int
+    public val base: Int
 
     /**
      * Specifies which [Verbosity] to use by default.
      */
-    val defaultVerbosity: Verbosity
+    public val defaultVerbosity: Verbosity
 
     /**
      * Formats the Internet Protocol address specified by its [value] using
      * this notations [byteCount], [groupSize], [groupSeparator], [base] and [defaultVerbosity].
      */
-    fun format(value: BigInteger): String = format(value, defaultVerbosity)
+    public fun format(value: BigInteger): String = format(value, defaultVerbosity)
 
     /**
      * Formats the Internet Protocol address specified by its [value] using
      * this notations [byteCount], [groupSize], [groupSeparator], [base] and
      * the specified [defaultVerbosity].
      */
-    fun format(value: BigInteger, verbosity: Verbosity): String {
+    public fun format(value: BigInteger, verbosity: Verbosity): String {
         require(byteCount > 0) { "Byte count must be positive." }
         require(value >= 0 && value <= BigInteger.TWO shl (byteCount * Byte.SIZE_BITS)) { "$value exceeds 2^${byteCount * Byte.SIZE_BITS}." }
         val conventional = value.toUByteArray().trim() // minimal bytes
@@ -118,12 +119,12 @@ interface Notation {
     }
 }
 
-object IPv4Notation : Notation {
-    override val byteCount = IPv4Address.byteCount
-    override val groupSize = 1
-    override val groupSeparator = '.'
-    override val base = 10
-    override val defaultVerbosity = Notation.Verbosity.Conventional
+public object IPv4Notation : Notation {
+    override val byteCount: Int = IPv4Address.byteCount
+    override val groupSize: Int = 1
+    override val groupSeparator: Char = '.'
+    override val base: Int = 10
+    override val defaultVerbosity: Verbosity = Notation.Verbosity.Conventional
 }
 
 /**
@@ -132,15 +133,15 @@ object IPv4Notation : Notation {
  *
  * Example: `192.168.0.1`
  */
-val IPv4Address.conventionalRepresentation get() = IPv4Notation.format(value)
+public val IPv4Address.conventionalRepresentation: String get() = IPv4Notation.format(value)
 
 
-object IPv6Notation : Notation {
-    override val byteCount = IPv6Address.byteCount
-    override val groupSize = 2
-    override val groupSeparator = ':'
-    override val base = 16
-    override val defaultVerbosity = Notation.Verbosity.Compressed
+public object IPv6Notation : Notation {
+    override val byteCount: Int = IPv6Address.byteCount
+    override val groupSize: Int = 2
+    override val groupSeparator: Char = ':'
+    override val base: Int = 16
+    override val defaultVerbosity: Verbosity = Verbosity.Compressed
 }
 
 /**
@@ -153,7 +154,7 @@ object IPv6Notation : Notation {
  * @see compressedRepresentation
  * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
  */
-val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Full)
+public val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Full)
 
 /**
  * This representation consists of eight hextets each consisting of
@@ -165,7 +166,7 @@ val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(value, No
  * @see compressedRepresentation
  * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
  */
-val IPv6Address.conventionalRepresentation get() = IPv6Notation.format(value, Notation.Verbosity.Conventional)
+public val IPv6Address.conventionalRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Conventional)
 
 /**
  * This representation consists of up to eight hextets each consisting of
@@ -180,4 +181,4 @@ val IPv6Address.conventionalRepresentation get() = IPv6Notation.format(value, No
  * @see conventionalRepresentation
  * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
  */
-val IPv6Address.compressedRepresentation get() = IPv6Notation.format(value, Notation.Verbosity.Compressed)
+public val IPv6Address.compressedRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Compressed)

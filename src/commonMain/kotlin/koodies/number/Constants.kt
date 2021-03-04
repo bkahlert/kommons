@@ -1,29 +1,29 @@
 package koodies.number
 
-object Constants {
+public object Constants {
 
-    const val TWO_POW_128_PLUS_1_HEX_STRING =
+    public const val TWO_POW_128_PLUS_1_HEX_STRING: String =
         "01" +
             "00" + "00" + "00" + "00" +
             "00" + "00" + "00" + "00" +
             "00" + "00" + "00" + "00" +
             "00" + "00" + "00" + "00"
-    const val TWO_POW_128_PLUS_1_DEC_STRING =
+    public const val TWO_POW_128_PLUS_1_DEC_STRING: String =
         "340282366920938463463374607431768211456"
-    const val TWO_POW_128_PLUS_1_BIN_STRING =
+    public const val TWO_POW_128_PLUS_1_BIN_STRING: String =
         "00000001" +
             "00000000" + "00000000" + "00000000" + "00000000" +
             "00000000" + "00000000" + "00000000" + "00000000" +
             "00000000" + "00000000" + "00000000" + "00000000" +
             "00000000" + "00000000" + "00000000" + "00000000"
-    val TWO_POW_128_PLUS_1_BYTES = byteArrayOf(
+    public val TWO_POW_128_PLUS_1_BYTES: ByteArray = byteArrayOf(
         0x1,
         0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0,
     )
-    val TWO_POW_128_PLUS_1_UBYTES = ubyteArrayOf(
+    public val TWO_POW_128_PLUS_1_UBYTES: UByteArray = ubyteArrayOf(
         0x1u,
         0x0u, 0x0u, 0x0u, 0x0u,
         0x0u, 0x0u, 0x0u, 0x0u,
@@ -31,25 +31,25 @@ object Constants {
         0x0u, 0x0u, 0x0u, 0x0u,
     )
 
-    const val TWO_POW_128_HEX_STRING = "" +
+    public const val TWO_POW_128_HEX_STRING: String = "" +
         "ff" + "ff" + "ff" + "ff" +
         "ff" + "ff" + "ff" + "ff" +
         "ff" + "ff" + "ff" + "ff" +
         "ff" + "ff" + "ff" + "ff"
-    const val TWO_POW_128_DEC_STRING =
+    public const val TWO_POW_128_DEC_STRING: String =
         "340282366920938463463374607431768211455"
-    const val TWO_POW_128_BIN_STRING = "" +
+    public const val TWO_POW_128_BIN_STRING: String = "" +
         "11111111" + "11111111" + "11111111" + "11111111" +
         "11111111" + "11111111" + "11111111" + "11111111" +
         "11111111" + "11111111" + "11111111" + "11111111" +
         "11111111" + "11111111" + "11111111" + "11111111"
-    val TWO_POW_128_BYTES = byteArrayOf(
+    public val TWO_POW_128_BYTES: ByteArray = byteArrayOf(
         -0x01, -0x01, -0x01, -0x01,
         -0x01, -0x01, -0x01, -0x01,
         -0x01, -0x01, -0x01, -0x01,
         -0x01, -0x01, -0x01, -0x01,
     )
-    val TWO_POW_128_UBYTES = ubyteArrayOf(
+    public val TWO_POW_128_UBYTES: UByteArray = ubyteArrayOf(
         0xffu, 0xffu, 0xffu, 0xffu,
         0xffu, 0xffu, 0xffu, 0xffu,
         0xffu, 0xffu, 0xffu, 0xffu,

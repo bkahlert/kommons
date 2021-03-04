@@ -6,8 +6,8 @@ import com.ionspin.kotlin.bignum.decimal.RoundingMode
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-fun Double.formatScientifically(): String = toBigDecimal().formatScientifically()
-fun BigDecimal.formatScientifically(): String = roundSignificand(DecimalMode(5, RoundingMode.ROUND_HALF_CEILING)).run {
+public fun Double.formatScientifically(): String = toBigDecimal().formatScientifically()
+public fun BigDecimal.formatScientifically(): String = roundSignificand(DecimalMode(5, RoundingMode.ROUND_HALF_CEILING)).run {
 
     fun placeADotInString(input: String, position: Int): String {
 
@@ -35,8 +35,8 @@ fun BigDecimal.formatScientifically(): String = roundSignificand(DecimalMode(5, 
     }
 }
 
-fun Double.formatToExactDecimals(decimals: Int): String = toBigDecimal().formatToExactDecimals(decimals)
-fun BigDecimal.formatToExactDecimals(decimals: Int): String =
+public fun Double.formatToExactDecimals(decimals: Int): String = toBigDecimal().formatToExactDecimals(decimals)
+public fun BigDecimal.formatToExactDecimals(decimals: Int): String =
     roundToDigitPositionAfterDecimalPoint(decimals.toLong(), RoundingMode.ROUND_HALF_TOWARDS_ZERO).toStringExpanded()
         .split(".").run { first() to lastOrNull()?.takeIf { size > 1 } }.let { (integer, actualDecimals) ->
             StringBuilder(integer).apply {
@@ -48,6 +48,6 @@ fun BigDecimal.formatToExactDecimals(decimals: Int): String =
             }.toString()
         }
 
-fun Double.formatUpToDecimals(decimals: Int): String = toBigDecimal().formatUpToDecimals(decimals)
-fun BigDecimal.formatUpToDecimals(decimals: Int): String =
+public fun Double.formatUpToDecimals(decimals: Int): String = toBigDecimal().formatUpToDecimals(decimals)
+public fun BigDecimal.formatUpToDecimals(decimals: Int): String =
     roundToDigitPositionAfterDecimalPoint(decimals.toLong(), RoundingMode.ROUND_HALF_CEILING).toStringExpanded()
