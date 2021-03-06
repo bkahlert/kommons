@@ -20,10 +20,10 @@ import kotlin.reflect.KProperty
  *      👉 reference to function or callable property
  *
  *
- * val memberFunction by callable(SomeClass()?::someMemberFunction)
+ * val memberFunction by callable(SomeClass()::someMemberFunction)
  *
  *      👉 reference to member function / member callable property
- *         of nullable SomeClass instance
+ *         of instance of SomeClass
  *
  * ```
  *
@@ -50,14 +50,14 @@ public fun <T : Function<*>> callable(function: T): CallableProperty<Any?, T> = 
  *
  * ```kotlin
  *     val function by ::someFunction
- *     val function by SomeClass()?::someFunction
+ *     val function by SomeClass()::someFunction
  * ```
  *
  * The above code snippet corresponds to:
  *
  * ```kotlin
  *     val function by callable(::someFunction)
- *     val function by callable(SomeClass()?::someFunction)
+ *     val function by callable(SomeClass()::someFunction)
  * ```
  *
  * @see callable
