@@ -25,12 +25,12 @@ import kotlin.concurrent.write
  * There are no restrictions in terms of yielded data as the used buffer
  * dynamically grows in size.
  */
-class DynamicReadableByteChannel : ReadableByteChannel {
+public class DynamicReadableByteChannel : ReadableByteChannel {
 
     private val buffer: MemoryReclaimableByteArrayOutputStream = MemoryReclaimableByteArrayOutputStream()
     private val lock: ReentrantReadWriteLock = ReentrantReadWriteLock()
 
-    val available: Int get() = buffer.size()
+    public val available: Int get() = buffer.size()
     private val depleted: Boolean get() = buffer.size() == 0
     private var closed: Boolean = false
 
@@ -44,11 +44,11 @@ class DynamicReadableByteChannel : ReadableByteChannel {
         readable
     }
 
-    override fun close() = lock.write { closed = true }
+    override fun close(): Unit = lock.write { closed = true }
 
-    override fun toString() = "${this::class.simpleName}(open=${isOpen.asEmoji}; buffer=$buffer)"
+    override fun toString(): String = "${this::class.simpleName}(open=${isOpen.asEmoji}; buffer=$buffer)"
 
-    fun yield(bytes: ByteArray) = lock.write {
+    public fun yield(bytes: ByteArray): Unit = lock.write {
         if (closed) throw ClosedChannelException()
         buffer.writeBytes(bytes)
     }

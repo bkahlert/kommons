@@ -16,7 +16,7 @@ import java.util.Optional
  * @sample Samples.process
  * @sample Samples.throwException
  */
-val <T> Optional<T>?.unwrap: T?
+public val <T> Optional<T>?.unwrap: T?
     get() = this?.orElse(null)
 
 private object Samples {

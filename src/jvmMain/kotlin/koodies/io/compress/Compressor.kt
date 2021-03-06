@@ -16,13 +16,13 @@ import kotlin.io.path.outputStream
  *
  * @see CompressorStreamFactory
  */
-object Compressor {
+public object Compressor {
     /**
      * Compresses this file using the provided compression algorithm.
      *
      * By default the existing file name is used and the appropriate extension (e.g. `.gz` or `.bzip2`) appended.
      */
-    fun Path.compress(
+    public fun Path.compress(
         format: String = CompressorStreamFactory.BZIP2,
         destination: Path = addExtensions(format),
         overwrite: Boolean = false,
@@ -42,7 +42,7 @@ object Compressor {
      *
      * By default the existing file name is used with the extension removed.
      */
-    fun Path.decompress(
+    public fun Path.decompress(
         destination: Path = removeExtensions(extensionOrNull!!),
         overwrite: Boolean = false,
     ): Path {

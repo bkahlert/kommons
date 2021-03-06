@@ -19,18 +19,18 @@ import java.nio.channels.WritableByteChannel
  * and as can be buffered is read. [done] automatically flips to `true`
  * as soon the the [inputStream] is depleted / closed.
  */
-open class NonBlockingPipe(
-    val inputStream: InputStream,
-    val outputStream: OutputStream,
+public open class NonBlockingPipe(
+    public val inputStream: InputStream,
+    public val outputStream: OutputStream,
 ) {
     private val readBuffer: ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
     private val readChannel: ReadableByteChannel = Channels.newChannel(inputStream)
     private val writeChannel: WritableByteChannel = Channels.newChannel(outputStream)
 
     private var closed = false
-    val done: Boolean get() = closed
+    public val done: Boolean get() = closed
 
-    fun read() {
+    public fun read() {
         while (true) {
             kotlin.runCatching {
                 when (readChannel.read(readBuffer)) {
@@ -58,5 +58,5 @@ open class NonBlockingPipe(
         }
     }
 
-    protected open fun readChannelRead() = Unit
+    protected open fun readChannelRead(): Unit = Unit
 }

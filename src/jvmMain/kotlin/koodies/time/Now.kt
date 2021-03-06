@@ -13,21 +13,18 @@ import java.time.ZonedDateTime
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 
-object Now {
-    val instant: Instant get() = Instant.now()
-    val localTime: LocalTime get() = LocalTime.now()
-    val localDate: LocalDate get() = LocalDate.now()
-    val localDateTime: LocalDateTime get() = LocalDateTime.now()
-    val zonedDateTime: ZonedDateTime get() = ZonedDateTime.now()
-    val offsetDateTime: OffsetDateTime get() = OffsetDateTime.now()
-    val offsetTime: OffsetTime get() = OffsetTime.now()
-    val yearMonth: YearMonth get() = YearMonth.now()
-    val year: Year get() = Year.now()
-
-    val fileTime: FileTime get() = FileTime.from(instant)
-
-    val millis: Long get() = instant.toEpochMilli()
-
+public object Now {
+    public val instant: Instant get() = Instant.now()
+    public val localTime: LocalTime get() = LocalTime.now()
+    public val localDate: LocalDate get() = LocalDate.now()
+    public val localDateTime: LocalDateTime get() = LocalDateTime.now()
+    public val zonedDateTime: ZonedDateTime get() = ZonedDateTime.now()
+    public val offsetDateTime: OffsetDateTime get() = OffsetDateTime.now()
+    public val offsetTime: OffsetTime get() = OffsetTime.now()
+    public val yearMonth: YearMonth get() = YearMonth.now()
+    public val year: Year get() = Year.now()
+    public val fileTime: FileTime get() = FileTime.from(instant)
+    public val millis: Long get() = instant.toEpochMilli()
     public fun passedSince(start: Long): Duration = (System.currentTimeMillis() - start).milliseconds
 
     public operator fun plus(duration: Duration): Instant = instant.plusMillis(duration.toLongMilliseconds())

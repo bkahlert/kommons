@@ -12,7 +12,7 @@ import kotlin.io.path.listDirectoryEntries
  * There are two of them: beginning from parents, ending with children,
  * and beginning from children, ending with parents. Both use depth-first search.
  */
-enum class PathWalkDirection {
+public enum class PathWalkDirection {
     /** Depth-first search, directory is visited BEFORE its paths */
     TOP_DOWN,
 
@@ -30,7 +30,7 @@ enum class PathWalkDirection {
  * If the file path given is just a file, walker iterates only it.
  * If the file path given does not exist, walker iterates nothing, i.e. it's equivalent to an empty sequence.
  */
-class PathTreeWalk private constructor(
+public class PathTreeWalk private constructor(
     private val start: Path,
     private val direction: PathWalkDirection = PathWalkDirection.TOP_DOWN,
     private val onEnter: ((Path) -> Boolean)?,
@@ -211,14 +211,14 @@ class PathTreeWalk private constructor(
      *
      * If the [function] returns `false` the directory is not entered and neither it nor its paths are visited.
      */
-    fun onEnter(function: (Path) -> Boolean): PathTreeWalk {
+    public fun onEnter(function: (Path) -> Boolean): PathTreeWalk {
         return PathTreeWalk(start, direction, onEnter = function, onLeave = onLeave, onFail = onFail, maxDepth = maxDepth)
     }
 
     /**
      * Sets a callback [function], that is called on any left directory after its paths are visited and after it is visited itself.
      */
-    fun onLeave(function: (Path) -> Unit): PathTreeWalk {
+    public fun onLeave(function: (Path) -> Unit): PathTreeWalk {
         return PathTreeWalk(start, direction, onEnter = onEnter, onLeave = function, onFail = onFail, maxDepth = maxDepth)
     }
 
@@ -227,7 +227,7 @@ class PathTreeWalk private constructor(
      *
      * [onEnter] and [onLeave] callback functions are called even in this case.
      */
-    fun onFail(function: (Path, FileSystemException) -> Unit): PathTreeWalk {
+    public fun onFail(function: (Path, FileSystemException) -> Unit): PathTreeWalk {
         return PathTreeWalk(start, direction, onEnter = onEnter, onLeave = onLeave, onFail = function, maxDepth = maxDepth)
     }
 
@@ -239,7 +239,7 @@ class PathTreeWalk private constructor(
      * With a value of 1, walker visits only the origin directory and all its immediate children,
      * with a value of 2 also grandchildren, etc.
      */
-    fun maxDepth(depth: Int): PathTreeWalk {
+    public fun maxDepth(depth: Int): PathTreeWalk {
         if (depth <= 0)
             throw IllegalArgumentException("depth must be positive, but was $depth.")
         return PathTreeWalk(start, direction, onEnter, onLeave, onFail, depth)
@@ -251,17 +251,17 @@ class PathTreeWalk private constructor(
  *
  * @param direction walk direction, top-down (by default) or bottom-up.
  */
-fun Path.walk(direction: PathWalkDirection = PathWalkDirection.TOP_DOWN): PathTreeWalk =
+public fun Path.walk(direction: PathWalkDirection = PathWalkDirection.TOP_DOWN): PathTreeWalk =
     PathTreeWalk(this, direction)
 
 /**
  * Gets a sequence for visiting this directory and all its content in top-down order.
  * Depth-first search is used and directories are visited before all their paths.
  */
-fun Path.walkTopDown(): PathTreeWalk = walk(PathWalkDirection.TOP_DOWN)
+public fun Path.walkTopDown(): PathTreeWalk = walk(PathWalkDirection.TOP_DOWN)
 
 /**
  * Gets a sequence for visiting this directory and all its content in bottom-up order.
  * Depth-first search is used and directories are visited after all their paths.
  */
-fun Path.walkBottomUp(): PathTreeWalk = walk(PathWalkDirection.BOTTOM_UP)
+public fun Path.walkBottomUp(): PathTreeWalk = walk(PathWalkDirection.BOTTOM_UP)

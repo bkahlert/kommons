@@ -1,10 +1,10 @@
 package koodies.number
 
 /** `true` if even. */
-val Byte.isEven get():Boolean = this % 2 == 0
+public val Byte.isEven: Boolean get():Boolean = this % 2 == 0
 
 /** `true` if even. */
-val Short.isEven get():Boolean = this % 2 == 0
+public val Short.isEven: Boolean get():Boolean = this % 2 == 0
 
 /** `true` if even. */
-val Int.isEven get():Boolean = this % 2 == 0
+public val Int.isEven: Boolean get():Boolean = this % 2 == 0

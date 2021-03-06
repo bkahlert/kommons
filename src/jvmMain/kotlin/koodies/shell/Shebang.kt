@@ -3,7 +3,7 @@ package koodies.shell
 import koodies.io.path.asString
 import java.nio.file.Path
 
-class Shebang(private val contents: MutableList<String>) {
+public class Shebang(private val contents: MutableList<String>) {
 
     private var interpreter: String = "/bin/sh"
 
@@ -22,4 +22,4 @@ class Shebang(private val contents: MutableList<String>) {
     public operator fun not(): Unit = run { updateContents() }
 }
 
-public fun String.isShebang() = startsWith("#!")
+public fun String.isShebang(): Boolean = startsWith("#!")

@@ -10,5 +10,5 @@ import koodies.text.LineSeparators.lines
  *
  * @see CharSequence.otherLines
  */
-val CharSequence.firstLine: String
+public val CharSequence.firstLine: String
     get() = lines().head

@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Weapons : Category() {
-    val ` ̿̿`̿`＼̵͇̿̿＼=(•̪●)=／̵͇̿̿／`̿̿ ̿ ̿ ̿` by auto()
+public object Weapons : Category() {
+    public val ` ̿̿`̿`＼̵͇̿̿＼=(•̪●)=／̵͇̿̿／`̿̿ ̿ ̿ ̿`: Kaomoji by auto()
 }

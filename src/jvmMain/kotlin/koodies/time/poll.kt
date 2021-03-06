@@ -12,7 +12,7 @@ import kotlin.time.seconds
  *
  * @sample PollSample.pollAtMostOneSecond
  */
-fun Duration.poll(targetState: () -> Boolean): Polling {
+public fun Duration.poll(targetState: () -> Boolean): Polling {
     require(this > Duration.ZERO) { "Interval to sleep must be positive." }
     return IntervalPolling(targetState).every(this)
 }
@@ -23,21 +23,21 @@ fun Duration.poll(targetState: () -> Boolean): Polling {
  *
  * @sample PollSample.pollTargetState
  */
-fun poll(targetState: () -> Boolean): IntervalPolling = IntervalPolling(targetState)
+public fun poll(targetState: () -> Boolean): IntervalPolling = IntervalPolling(targetState)
 
 /**
  * Specifies the interval by which [targetState] should be polled.
  *
  * @sample PollSample.pollTargetState
  */
-inline class IntervalPolling(private val targetState: () -> Boolean) {
+public inline class IntervalPolling(private val targetState: () -> Boolean) {
     /**
      * Specifies the [pollInterval] by which [targetState] should be polled.
      *
      * @sample PollSample.pollAtMostOneSecond
      * @sample PollSample.pollTargetState
      */
-    fun every(pollInterval: Duration): Polling {
+    public fun every(pollInterval: Duration): Polling {
         require(pollInterval > Duration.ZERO) { "Interval to sleep must be positive." }
         return Polling(pollInterval, targetState)
     }
@@ -48,7 +48,7 @@ inline class IntervalPolling(private val targetState: () -> Boolean) {
      * @sample PollSample.pollAtMostOneSecond
      * @sample PollSample.pollTargetState
      */
-    class Polling(private val pollInterval: Duration, private val targetState: () -> Boolean) {
+    public class Polling(private val pollInterval: Duration, private val targetState: () -> Boolean) {
         private var condition: () -> Boolean = { true }
         private var callback: (Duration) -> Unit = {}
 
@@ -59,7 +59,7 @@ inline class IntervalPolling(private val targetState: () -> Boolean) {
          * Since this method only returns in case of success, *if* this
          * method returns, the return value is always `true`.
          */
-        fun indefinitely(): Boolean = poll()
+        public fun indefinitely(): Boolean = poll()
 
         /**
          * Polls the [targetState] for at most the specified [timeout]
@@ -68,7 +68,7 @@ inline class IntervalPolling(private val targetState: () -> Boolean) {
          *
          * Returns whether the [targetState] was reached in time.
          */
-        fun forAtMost(timeout: Duration, callback: (Duration) -> Unit = {}): Boolean {
+        public fun forAtMost(timeout: Duration, callback: (Duration) -> Unit = {}): Boolean {
             val failAfter = Now.instant + timeout
             condition = { Now.instant <= failAfter }
             this.callback = callback
@@ -81,7 +81,7 @@ inline class IntervalPolling(private val targetState: () -> Boolean) {
          *
          * Returns whether the [targetState] was reached.
          */
-        fun forAsLongAs(invariant: () -> Boolean, callback: (Duration) -> Unit = {}): Boolean {
+        public fun forAsLongAs(invariant: () -> Boolean, callback: (Duration) -> Unit = {}): Boolean {
             condition = invariant
             this.callback = callback
             return poll()
@@ -94,7 +94,7 @@ inline class IntervalPolling(private val targetState: () -> Boolean) {
          *
          * Returns whether the [targetState] was reached in time and held invariant.
          */
-        fun noLongerThan(invariant: () -> Boolean, timeout: Duration, callback: (Duration) -> Unit = {}): Boolean {
+        public fun noLongerThan(invariant: () -> Boolean, timeout: Duration, callback: (Duration) -> Unit = {}): Boolean {
             val failAfter = Now.instant + timeout
             condition = { Now.instant <= failAfter && invariant() }
             this.callback = callback

@@ -4,12 +4,12 @@ import koodies.text.Grapheme
 import kotlin.properties.Delegates.vetoable
 import kotlin.reflect.KProperty
 
-abstract class MicroLogger(private val symbol: Grapheme? = null) : RenderingLogger {
+public abstract class MicroLogger(private val symbol: Grapheme? = null) : RenderingLogger {
 
-    var strings: List<String>? by vetoable(listOf(),
+    public var strings: List<String>? by vetoable(listOf(),
         onChange = { _: KProperty<*>, oldValue: List<String>?, _: List<String>? -> oldValue != null })
 
-    abstract fun render(block: () -> CharSequence)
+    public abstract fun render(block: () -> CharSequence)
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
         strings = strings?.plus("${block()}")

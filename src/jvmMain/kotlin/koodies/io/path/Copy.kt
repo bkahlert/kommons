@@ -40,7 +40,7 @@ import kotlin.io.path.notExists
  *
  * @see copyToDirectory
  */
-fun Path.copyTo(
+public fun Path.copyTo(
     target: Path,
     overwrite: Boolean = false,
     preserve: Boolean = false,
@@ -133,7 +133,7 @@ private fun InputStream.contentEquals(otherStream: InputStream): Boolean {
  *
  * @see copyTo
  */
-fun Path.copyToDirectory(
+public fun Path.copyToDirectory(
     targetDirectory: Path,
     overwrite: Boolean = false,
     preserve: Boolean = false,
@@ -167,10 +167,10 @@ fun Path.copyToDirectory(
  *
  * E.g. `/a/b/c`'s 2 order duplication can be found at `/a/b-random/c`.
  */
-fun Path.duplicate(order: Int = 1, suffix: String = "".withRandomSuffix()): Path {
+public fun Path.duplicate(order: Int = 1, suffix: String = "".withRandomSuffix()): Path {
     val sibling = resolveSibling(order) { resolveSibling(fileName.asString() + suffix) }
     return copyTo(sibling)
 }
 
 
-class TerminateException(path: Path) : FileSystemException(path.toString())
+public class TerminateException(path: Path) : FileSystemException(path.toString())

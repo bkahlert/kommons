@@ -9,14 +9,14 @@ import koodies.terminal.colorize
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.reflect.KProperty
 
-object Kaomojis {
+public object Kaomojis {
     @Suppress("unused")
-    enum class Generator(
-        val leftArm: List<String>,
-        val rightArm: List<String>,
-        val leftEye: List<String>,
-        val rightEye: List<String>,
-        val mouth: List<String>,
+    public enum class Generator(
+        public val leftArm: List<String>,
+        public val rightArm: List<String>,
+        public val leftEye: List<String>,
+        public val rightEye: List<String>,
+        public val mouth: List<String>,
     ) {
         INDIFFERENCE(
             leftArm = listOf("ヽ", "┐", "╮", "ᕕ", "¯\\_"),
@@ -44,7 +44,7 @@ object Kaomojis {
             mouth = listOf("_", "ヘ", "ω", "﹏", "Д", "︿", "-ω-", "︵", "╭╮", "Ｏ", "><")),
         ;
 
-        fun random(
+        public fun random(
             fixedLeftArm: String = leftArm.random(),
             fixedLeftEye: String = leftEye.random(),
             fixedMouth: String = mouth.random(),
@@ -52,23 +52,23 @@ object Kaomojis {
             fixedRightArm: String = rightArm.random(),
         ): String = "$fixedLeftArm$fixedLeftEye$fixedMouth$fixedRightEye$fixedRightArm"
 
-        companion object {
-            val leftArms: List<String> = values().flatMap { it.leftArm }
-            val rightArms: List<String> = values().flatMap { it.rightArm }
-            val leftEyes: List<String> = values().flatMap { it.leftEye }
-            val rightEyes: List<String> = values().flatMap { it.rightEye }
-            val mouths: List<String> = values().flatMap { it.mouth }
+        public companion object {
+            public val leftArms: List<String> = values().flatMap { it.leftArm }
+            public val rightArms: List<String> = values().flatMap { it.rightArm }
+            public val leftEyes: List<String> = values().flatMap { it.leftEye }
+            public val rightEyes: List<String> = values().flatMap { it.rightEye }
+            public val mouths: List<String> = values().flatMap { it.mouth }
 
-            fun CharSequence.removeRightArm(): CharSequence {
+            public fun CharSequence.removeRightArm(): CharSequence {
                 val rightArm = rightArms.dropWhile { !this.endsWith(it) }
                 return if (rightArm.isNotEmpty()) this.removeSuffix(rightArm.first()) else this
             }
         }
     }
 
-    fun random(): String = with(Generator) { listOf(leftArms, leftEyes, mouths, rightEyes, rightArms).joinToString("") { it.random() } }
+    public fun random(): String = with(Generator) { listOf(leftArms, leftEyes, mouths, rightEyes, rightArms).joinToString("") { it.random() } }
 
-    data class Kaomoji(
+    public data class Kaomoji(
         private val template: String,
         private val leftArmRange: IntRange? = null,
         private val rightArmRange: IntRange? = null,
@@ -84,14 +84,14 @@ object Kaomojis {
         val mouth: CharSequence = mouthRange?.let { template.subSequence(it) } ?: ""
         val wand: CharSequence = wandRange?.let { template.subSequence(it) } ?: ""
 
-        fun random(): String {
+        public fun random(): String {
             val listOfNotNull: List<IntRange> = listOfNotNull(leftArmRange, leftEyeRange, mouthRange, rightEyeRange, rightArmRange)
             return listOfNotNull.foldRight(template) { intRange, acc ->
                 acc.substring(0 until intRange.first) + Generator.mouths.random() + acc.subSequence(intRange.last, acc.lastIndex)
             }
         }
 
-        fun withMagic(): String {
+        public fun withMagic(): String {
             val listOfNotNull: List<IntRange> = listOfNotNull(wandRange)
             return listOfNotNull.fold(template) { acc, intRange ->
                 acc.substring(0 until intRange.first) + ANSI.termColors.colorize(acc.substring(intRange)) + acc.subSequence(intRange.last, acc.lastIndex + 1)
@@ -105,7 +105,7 @@ object Kaomojis {
          * （♯▼皿▼）o/￣￣￣<゜)))彡
          * ```
          */
-        fun fishing(fish: Kaomoji = (Fish + Whales).random()): String {
+        public fun fishing(fish: Kaomoji = (Fish + Whales).random()): String {
             val fishingRod = "/￣￣￣"
             val fishingArm = "o"
             val notFishingKaomoji = this.removeSuffix(fishingRod)
@@ -113,7 +113,7 @@ object Kaomojis {
             return "$armLessFisher$fishingArm$fishingRod$fish"
         }
 
-        operator fun getValue(kaomojis: Any, property: KProperty<*>): Kaomoji = this
+        public operator fun getValue(kaomojis: Any, property: KProperty<*>): Kaomoji = this
         override val length: Int get() = toString().length
         override fun get(index: Int): Char = toString().get(index)
         override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = toString().subSequence(startIndex, endIndex)
@@ -121,9 +121,9 @@ object Kaomojis {
     }
 
     @Suppress("KDocMissingDocumentation", "ObjectPropertyName", "NonAsciiCharacters")
-    val `(＃￣_￣)o︠・━・・━・━━・━☆`: Kaomoji by five(mouth = 3..4, rightArm = 6..7, wand = 8..16)
+    public val `(＃￣_￣)o︠・━・・━・━━・━☆`: Kaomoji by five(mouth = 3..4, rightArm = 6..7, wand = 8..16)
 
-    fun five(
+    public fun five(
         leftArm: IntRange? = null, rightArm: IntRange? = null, leftEye: IntRange? = null, rightEye: IntRange? = null, mouth: IntRange? = null,
         wand: IntRange? = null,
     ): PropertyDelegateProvider<Any, Kaomoji> =
@@ -131,7 +131,7 @@ object Kaomojis {
 
 
     @Suppress("unused")
-    val Wizards: List<CharSequence> = listOf(
+    public val Wizards: List<CharSequence> = listOf(
         "(ﾉ>ω<)ﾉ :｡･:*:･ﾟ’★,｡･:*:･ﾟ’☆",
         `(＃￣_￣)o︠・━・・━・━━・━☆`,
         "(/￣‿￣)/~~☆’.･.･:★’.･.･:☆",
@@ -150,287 +150,287 @@ object Kaomojis {
      * (^～^) ˙
      * ```
      */
-    fun CharSequence.thinking(value: String): String {
+    public fun CharSequence.thinking(value: String): String {
         val kaomoji = this
         val thinkLine = "${kaomoji.hidden()}   ͚͔˱ ❨ ( $value )"
         return "$thinkLine\n$kaomoji ˙"
     }
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Angry = koodies.kaomoji.categories.Angry
+    public val Angry: koodies.kaomoji.categories.Angry = koodies.kaomoji.categories.Angry
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val BadMood = koodies.kaomoji.categories.BadMood
+    public val BadMood: koodies.kaomoji.categories.BadMood = koodies.kaomoji.categories.BadMood
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Bear = koodies.kaomoji.categories.Bear
+    public val Bear: koodies.kaomoji.categories.Bear = koodies.kaomoji.categories.Bear
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Beg = koodies.kaomoji.categories.Beg
+    public val Beg: koodies.kaomoji.categories.Beg = koodies.kaomoji.categories.Beg
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Blush = koodies.kaomoji.categories.Blush
+    public val Blush: koodies.kaomoji.categories.Blush = koodies.kaomoji.categories.Blush
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Cat = koodies.kaomoji.categories.Cat
+    public val Cat: koodies.kaomoji.categories.Cat = koodies.kaomoji.categories.Cat
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Confused = koodies.kaomoji.categories.Confused
+    public val Confused: koodies.kaomoji.categories.Confused = koodies.kaomoji.categories.Confused
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Cry = koodies.kaomoji.categories.Cry
+    public val Cry: koodies.kaomoji.categories.Cry = koodies.kaomoji.categories.Cry
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Cute = koodies.kaomoji.categories.Cute
+    public val Cute: koodies.kaomoji.categories.Cute = koodies.kaomoji.categories.Cute
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Dance = koodies.kaomoji.categories.Dance
+    public val Dance: koodies.kaomoji.categories.Dance = koodies.kaomoji.categories.Dance
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Depressed = koodies.kaomoji.categories.Depressed
+    public val Depressed: koodies.kaomoji.categories.Depressed = koodies.kaomoji.categories.Depressed
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Devil = koodies.kaomoji.categories.Devil
+    public val Devil: koodies.kaomoji.categories.Devil = koodies.kaomoji.categories.Devil
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Disappointed = koodies.kaomoji.categories.Disappointed
+    public val Disappointed: koodies.kaomoji.categories.Disappointed = koodies.kaomoji.categories.Disappointed
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Drool = koodies.kaomoji.categories.Drool
+    public val Drool: koodies.kaomoji.categories.Drool = koodies.kaomoji.categories.Drool
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Eat = koodies.kaomoji.categories.Eat
+    public val Eat: koodies.kaomoji.categories.Eat = koodies.kaomoji.categories.Eat
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Evil = koodies.kaomoji.categories.Evil
+    public val Evil: koodies.kaomoji.categories.Evil = koodies.kaomoji.categories.Evil
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Excited = koodies.kaomoji.categories.Excited
+    public val Excited: koodies.kaomoji.categories.Excited = koodies.kaomoji.categories.Excited
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val FallDown = koodies.kaomoji.categories.FallDown
+    public val FallDown: koodies.kaomoji.categories.FallDown = koodies.kaomoji.categories.FallDown
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Feces = koodies.kaomoji.categories.Feces
+    public val Feces: koodies.kaomoji.categories.Feces = koodies.kaomoji.categories.Feces
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Feminine = koodies.kaomoji.categories.Feminine
+    public val Feminine: koodies.kaomoji.categories.Feminine = koodies.kaomoji.categories.Feminine
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val FlipTable = koodies.kaomoji.categories.FlipTable
+    public val FlipTable: koodies.kaomoji.categories.FlipTable = koodies.kaomoji.categories.FlipTable
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Flower = koodies.kaomoji.categories.Flower
+    public val Flower: koodies.kaomoji.categories.Flower = koodies.kaomoji.categories.Flower
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Funny = koodies.kaomoji.categories.Funny
+    public val Funny: koodies.kaomoji.categories.Funny = koodies.kaomoji.categories.Funny
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Glasses = koodies.kaomoji.categories.Glasses
+    public val Glasses: koodies.kaomoji.categories.Glasses = koodies.kaomoji.categories.Glasses
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Grin = koodies.kaomoji.categories.Grin
+    public val Grin: koodies.kaomoji.categories.Grin = koodies.kaomoji.categories.Grin
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Gross = koodies.kaomoji.categories.Gross
+    public val Gross: koodies.kaomoji.categories.Gross = koodies.kaomoji.categories.Gross
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Happy = koodies.kaomoji.categories.Happy
+    public val Happy: koodies.kaomoji.categories.Happy = koodies.kaomoji.categories.Happy
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Heart = koodies.kaomoji.categories.Heart
+    public val Heart: koodies.kaomoji.categories.Heart = koodies.kaomoji.categories.Heart
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Hello = koodies.kaomoji.categories.Hello
+    public val Hello: koodies.kaomoji.categories.Hello = koodies.kaomoji.categories.Hello
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Helpless = koodies.kaomoji.categories.Helpless
+    public val Helpless: koodies.kaomoji.categories.Helpless = koodies.kaomoji.categories.Helpless
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Hide = koodies.kaomoji.categories.Hide
+    public val Hide: koodies.kaomoji.categories.Hide = koodies.kaomoji.categories.Hide
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Hug = koodies.kaomoji.categories.Hug
+    public val Hug: koodies.kaomoji.categories.Hug = koodies.kaomoji.categories.Hug
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Kiss = koodies.kaomoji.categories.Kiss
+    public val Kiss: koodies.kaomoji.categories.Kiss = koodies.kaomoji.categories.Kiss
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Laugh = koodies.kaomoji.categories.Laugh
+    public val Laugh: koodies.kaomoji.categories.Laugh = koodies.kaomoji.categories.Laugh
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val LennyFace = koodies.kaomoji.categories.LennyFace
+    public val LennyFace: koodies.kaomoji.categories.LennyFace = koodies.kaomoji.categories.LennyFace
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Love = koodies.kaomoji.categories.Love
+    public val Love: koodies.kaomoji.categories.Love = koodies.kaomoji.categories.Love
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Magic = koodies.kaomoji.categories.Magic
+    public val Magic: koodies.kaomoji.categories.Magic = koodies.kaomoji.categories.Magic
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val MakeUpMyMind = koodies.kaomoji.categories.MakeUpMyMind
+    public val MakeUpMyMind: koodies.kaomoji.categories.MakeUpMyMind = koodies.kaomoji.categories.MakeUpMyMind
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val MiddleFinger = koodies.kaomoji.categories.MiddleFinger
+    public val MiddleFinger: koodies.kaomoji.categories.MiddleFinger = koodies.kaomoji.categories.MiddleFinger
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Monkey = koodies.kaomoji.categories.Monkey
+    public val Monkey: koodies.kaomoji.categories.Monkey = koodies.kaomoji.categories.Monkey
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Music = koodies.kaomoji.categories.Music
+    public val Music: koodies.kaomoji.categories.Music = koodies.kaomoji.categories.Music
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Nervious = koodies.kaomoji.categories.Nervious
+    public val Nervious: koodies.kaomoji.categories.Nervious = koodies.kaomoji.categories.Nervious
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val PeaceSign = koodies.kaomoji.categories.PeaceSign
+    public val PeaceSign: koodies.kaomoji.categories.PeaceSign = koodies.kaomoji.categories.PeaceSign
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Proud = koodies.kaomoji.categories.Proud
+    public val Proud: koodies.kaomoji.categories.Proud = koodies.kaomoji.categories.Proud
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Punch = koodies.kaomoji.categories.Punch
+    public val Punch: koodies.kaomoji.categories.Punch = koodies.kaomoji.categories.Punch
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Rabbit = koodies.kaomoji.categories.Rabbit
+    public val Rabbit: koodies.kaomoji.categories.Rabbit = koodies.kaomoji.categories.Rabbit
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val RogerThat = koodies.kaomoji.categories.RogerThat
+    public val RogerThat: koodies.kaomoji.categories.RogerThat = koodies.kaomoji.categories.RogerThat
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val RollOver = koodies.kaomoji.categories.RollOver
+    public val RollOver: koodies.kaomoji.categories.RollOver = koodies.kaomoji.categories.RollOver
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Run = koodies.kaomoji.categories.Run
+    public val Run: koodies.kaomoji.categories.Run = koodies.kaomoji.categories.Run
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Sad = koodies.kaomoji.categories.Sad
+    public val Sad: koodies.kaomoji.categories.Sad = koodies.kaomoji.categories.Sad
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Salute = koodies.kaomoji.categories.Salute
+    public val Salute: koodies.kaomoji.categories.Salute = koodies.kaomoji.categories.Salute
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Scared = koodies.kaomoji.categories.Scared
+    public val Scared: koodies.kaomoji.categories.Scared = koodies.kaomoji.categories.Scared
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Sheep = koodies.kaomoji.categories.Sheep
+    public val Sheep: koodies.kaomoji.categories.Sheep = koodies.kaomoji.categories.Sheep
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Shocked = koodies.kaomoji.categories.Shocked
+    public val Shocked: koodies.kaomoji.categories.Shocked = koodies.kaomoji.categories.Shocked
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Shrug = koodies.kaomoji.categories.Shrug
+    public val Shrug: koodies.kaomoji.categories.Shrug = koodies.kaomoji.categories.Shrug
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Shy = koodies.kaomoji.categories.Shy
+    public val Shy: koodies.kaomoji.categories.Shy = koodies.kaomoji.categories.Shy
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Sleep = koodies.kaomoji.categories.Sleep
+    public val Sleep: koodies.kaomoji.categories.Sleep = koodies.kaomoji.categories.Sleep
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Smile = koodies.kaomoji.categories.Smile
+    public val Smile: koodies.kaomoji.categories.Smile = koodies.kaomoji.categories.Smile
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Sparkle = koodies.kaomoji.categories.Sparkle
+    public val Sparkle: koodies.kaomoji.categories.Sparkle = koodies.kaomoji.categories.Sparkle
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Spin = koodies.kaomoji.categories.Spin
+    public val Spin: koodies.kaomoji.categories.Spin = koodies.kaomoji.categories.Spin
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Surprised = koodies.kaomoji.categories.Surprised
+    public val Surprised: koodies.kaomoji.categories.Surprised = koodies.kaomoji.categories.Surprised
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Sweat = koodies.kaomoji.categories.Sweat
+    public val Sweat: koodies.kaomoji.categories.Sweat = koodies.kaomoji.categories.Sweat
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val TakeABow = koodies.kaomoji.categories.TakeABow
+    public val TakeABow: koodies.kaomoji.categories.TakeABow = koodies.kaomoji.categories.TakeABow
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val ThatsIt = koodies.kaomoji.categories.ThatsIt
+    public val ThatsIt: koodies.kaomoji.categories.ThatsIt = koodies.kaomoji.categories.ThatsIt
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val ThumbsUp = koodies.kaomoji.categories.ThumbsUp
+    public val ThumbsUp: koodies.kaomoji.categories.ThumbsUp = koodies.kaomoji.categories.ThumbsUp
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Tired = koodies.kaomoji.categories.Tired
+    public val Tired: koodies.kaomoji.categories.Tired = koodies.kaomoji.categories.Tired
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Tremble = koodies.kaomoji.categories.Tremble
+    public val Tremble: koodies.kaomoji.categories.Tremble = koodies.kaomoji.categories.Tremble
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val TryMyBest = koodies.kaomoji.categories.TryMyBest
+    public val TryMyBest: koodies.kaomoji.categories.TryMyBest = koodies.kaomoji.categories.TryMyBest
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Unicode = koodies.kaomoji.categories.Unicode
+    public val Unicode: koodies.kaomoji.categories.Unicode = koodies.kaomoji.categories.Unicode
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Upset = koodies.kaomoji.categories.Upset
+    public val Upset: koodies.kaomoji.categories.Upset = koodies.kaomoji.categories.Upset
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Vomit = koodies.kaomoji.categories.Vomit
+    public val Vomit: koodies.kaomoji.categories.Vomit = koodies.kaomoji.categories.Vomit
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Weird = koodies.kaomoji.categories.Weird
+    public val Weird: koodies.kaomoji.categories.Weird = koodies.kaomoji.categories.Weird
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Wink = koodies.kaomoji.categories.Wink
+    public val Wink: koodies.kaomoji.categories.Wink = koodies.kaomoji.categories.Wink
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Writing = koodies.kaomoji.categories.Writing
+    public val Writing: koodies.kaomoji.categories.Writing = koodies.kaomoji.categories.Writing
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Smoking = koodies.kaomoji.categories.Smoking
+    public val Smoking: koodies.kaomoji.categories.Smoking = koodies.kaomoji.categories.Smoking
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Rain = koodies.kaomoji.categories.Rain
+    public val Rain: koodies.kaomoji.categories.Rain = koodies.kaomoji.categories.Rain
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val TV = koodies.kaomoji.categories.TV
+    public val TV: koodies.kaomoji.categories.TV = koodies.kaomoji.categories.TV
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Fishing = koodies.kaomoji.categories.Fishing
+    public val Fishing: koodies.kaomoji.categories.Fishing = koodies.kaomoji.categories.Fishing
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Fish = koodies.kaomoji.categories.Fish
+    public val Fish: koodies.kaomoji.categories.Fish = koodies.kaomoji.categories.Fish
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Whales = koodies.kaomoji.categories.Whales
+    public val Whales: koodies.kaomoji.categories.Whales = koodies.kaomoji.categories.Whales
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Weapons = koodies.kaomoji.categories.Weapons
+    public val Weapons: koodies.kaomoji.categories.Weapons = koodies.kaomoji.categories.Weapons
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Babies = koodies.kaomoji.categories.Babies
+    public val Babies: koodies.kaomoji.categories.Babies = koodies.kaomoji.categories.Babies
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Money = koodies.kaomoji.categories.Money
+    public val Money: koodies.kaomoji.categories.Money = koodies.kaomoji.categories.Money
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Screaming = koodies.kaomoji.categories.Screaming
+    public val Screaming: koodies.kaomoji.categories.Screaming = koodies.kaomoji.categories.Screaming
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Why = koodies.kaomoji.categories.Why
+    public val Why: koodies.kaomoji.categories.Why = koodies.kaomoji.categories.Why
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Geeks = koodies.kaomoji.categories.Geeks
+    public val Geeks: koodies.kaomoji.categories.Geeks = koodies.kaomoji.categories.Geeks
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Pointing = koodies.kaomoji.categories.Pointing
+    public val Pointing: koodies.kaomoji.categories.Pointing = koodies.kaomoji.categories.Pointing
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Chasing = koodies.kaomoji.categories.Chasing
+    public val Chasing: koodies.kaomoji.categories.Chasing = koodies.kaomoji.categories.Chasing
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Celebrities = koodies.kaomoji.categories.Celebrities
+    public val Celebrities: koodies.kaomoji.categories.Celebrities = koodies.kaomoji.categories.Celebrities
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Heroes = koodies.kaomoji.categories.Heroes
+    public val Heroes: koodies.kaomoji.categories.Heroes = koodies.kaomoji.categories.Heroes
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val Dogs = koodies.kaomoji.categories.Dogs
+    public val Dogs: koodies.kaomoji.categories.Dogs = koodies.kaomoji.categories.Dogs
 
     @Suppress("KDocMissingDocumentation", "unused")
-    val StereoTypes = koodies.kaomoji.categories.StereoTypes
+    public val StereoTypes: koodies.kaomoji.categories.StereoTypes = koodies.kaomoji.categories.StereoTypes
 
     /**
      * Returns a random fishing [Kaomoji] of the form:
@@ -439,6 +439,6 @@ object Kaomojis {
      * （♯▼皿▼）o/￣￣￣<゜)))彡
      * ```
      */
-    fun fishing(fish: Kaomoji = (Fish + Whales).random()): String =
+    public fun fishing(fish: Kaomoji = (Fish + Whales).random()): String =
         Fishing.random().fishing(fish)
 }

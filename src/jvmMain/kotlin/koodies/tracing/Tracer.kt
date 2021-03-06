@@ -16,12 +16,12 @@ public interface Tracer {
     public fun <R> macroTrace3(f: KFunction3<*, *, *, R>, block: MacroTracer.() -> R): R
 }
 
-public fun Tracer?.trace(input: String) = this?.trace(input)
-public fun <R> Tracer?.macroTrace(f: String, block: MacroTracer?.() -> R) = this@macroTrace?.macroTrace(f, block)
-public fun <R> Tracer?.macroTrace(f: KCallable<R>, block: MacroTracer?.() -> R) = this@macroTrace?.macroTrace(f, block)
-public fun <R> Tracer?.macroTrace(f: KFunction0<R>, block: MacroTracer?.() -> R) = this@macroTrace?.macroTrace(f, block)
-public fun <R> Tracer?.macroTrace1(f: KFunction1<*, R>, block: MacroTracer?.() -> R) = this@macroTrace1?.macroTrace1(f, block)
-public fun <R> Tracer?.macroTrace2(f: KFunction2<*, *, R>, block: MacroTracer?.() -> R) = this@macroTrace2?.macroTrace2(f, block)
-public fun <R> Tracer?.macroTrace3(f: KFunction3<*, *, *, R>, block: MacroTracer?.() -> R) = this@macroTrace3?.macroTrace3(f, block)
+public fun Tracer?.trace(input: String): Unit = this?.trace(input) ?: Unit
+public fun <R> Tracer?.macroTrace(f: String, block: MacroTracer?.() -> R): R? = this@macroTrace?.macroTrace(f, block)
+public fun <R> Tracer?.macroTrace(f: KCallable<R>, block: MacroTracer?.() -> R): R? = this@macroTrace?.macroTrace(f, block)
+public fun <R> Tracer?.macroTrace(f: KFunction0<R>, block: MacroTracer?.() -> R): R? = this@macroTrace?.macroTrace(f, block)
+public fun <R> Tracer?.macroTrace1(f: KFunction1<*, R>, block: MacroTracer?.() -> R): R? = this@macroTrace1?.macroTrace1(f, block)
+public fun <R> Tracer?.macroTrace2(f: KFunction2<*, *, R>, block: MacroTracer?.() -> R): R? = this@macroTrace2?.macroTrace2(f, block)
+public fun <R> Tracer?.macroTrace3(f: KFunction3<*, *, *, R>, block: MacroTracer?.() -> R): R? = this@macroTrace3?.macroTrace3(f, block)
 
 public fun <R> KCallable<R>.format(): String = name + " -- TODO"

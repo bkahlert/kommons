@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object TV : Category() {
-    val `【 TV 】      -o(․￣ )` by auto("【 TV 】      -o(.￣ )")
+public object TV : Category() {
+    public val `【 TV 】      -o(․￣ )`: Kaomoji by auto("【 TV 】      -o(.￣ )")
 }

@@ -9,7 +9,7 @@ import java.nio.file.Path
  *
  * @sample Samples.resolveSibling
  */
-fun Path.resolveSibling(order: Int = 1, transform: Path.() -> Path): Path {
+public fun Path.resolveSibling(order: Int = 1, transform: Path.() -> Path): Path {
     val ancestor = requireAncestor(order + 1)
     val transformed = getName(nameCount - order - 1).transform()
     val resolve = ancestor.resolve(transformed)

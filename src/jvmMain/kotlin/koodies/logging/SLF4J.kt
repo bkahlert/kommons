@@ -3,8 +3,8 @@ package koodies.logging
 import java.text.MessageFormat
 import java.util.regex.Pattern
 
-object SLF4J {
-    
+public object SLF4J {
+
     private const val SLF4J_ANCHOR = "{}"
     private val SLF4J_PATTERN = Pattern.compile(Pattern.quote(SLF4J_ANCHOR))
     private const val MESSAGE_FORMAT_REPLACEMENT = "{%d}"
@@ -12,7 +12,7 @@ object SLF4J {
     /**
      * `slf4jFormat("This is a log {} with {} {}", "message", "some", "parameters") == "This is a log message with some parameters"`
      */
-    fun format(slf4jLogMessage: String, vararg args: Any?): String {
+    public fun format(slf4jLogMessage: String, vararg args: Any?): String {
         var messageFormatPattern = slf4jLogMessage
         var index = 0
 

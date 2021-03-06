@@ -14,30 +14,30 @@ import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.writeBytes
 
-object Fixtures {
+public object Fixtures {
 
-    fun Fixture.copyTo(file: Path): Path =
+    public fun Fixture.copyTo(file: Path): Path =
         file.withDirectoriesCreated().apply { writeBytes(data) }
 
-    fun Fixture.copyToDirectory(directory: Path): Path =
+    public fun Fixture.copyToDirectory(directory: Path): Path =
         copyTo(directory.resolve(name))
 
-    fun Path.singleFile(): Path = HtmlFile.copyToDirectory(this)
+    public fun Path.singleFile(): Path = HtmlFile.copyToDirectory(this)
         .apply { check(exists()) { "Failed to provide archive with single file." } }
 
-    fun Path.archiveWithSingleFile(format: String = CompressorStreamFactory.BZIP2): Path =
+    public fun Path.archiveWithSingleFile(format: String = CompressorStreamFactory.BZIP2): Path =
         singleFile().run {
             val archive = compress(format, overwrite = true)
             delete()
             archive
         }.apply { check(exists()) { "Failed to provide archive with single file." } }
 
-    fun Path.directoryWithTwoFiles(): Path = randomDirectory().also {
+    public fun Path.directoryWithTwoFiles(): Path = randomDirectory().also {
         HtmlFile.copyToDirectory(it)
         TextFile.copyToDirectory(it.resolve("sub-dir")).renameTo("config.txt")
     }.apply { check(listDirectoryEntries().size == 2) { "Failed to provide directory with two files." } }
 
-    fun Path.archiveWithTwoFiles(format: String = ArchiveStreamFactory.ZIP): Path =
+    public fun Path.archiveWithTwoFiles(format: String = ArchiveStreamFactory.ZIP): Path =
         directoryWithTwoFiles().run {
             val archive = archive(format, overwrite = true)
             deleteRecursively()

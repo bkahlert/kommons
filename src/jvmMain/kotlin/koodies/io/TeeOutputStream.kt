@@ -5,33 +5,33 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 
-open class TeeOutputStream(out: OutputStream, private vararg val branches: OutputStream) : ProxyOutputStream(out) {
+public open class TeeOutputStream(out: OutputStream, private vararg val branches: OutputStream) : ProxyOutputStream(out) {
 
     private val lock = ReentrantLock()
-    protected fun each(block: (OutputStream).() -> Unit) =
+    protected fun each(block: (OutputStream).() -> Unit): Unit =
         branches.forEach { it.block() }
 
-    override fun write(bytes: ByteArray) = lock.withLock {
+    override fun write(bytes: ByteArray): Unit = lock.withLock {
         super.write(bytes)
         each { write(bytes) }
     }
 
-    override fun write(bytes: ByteArray, offset: Int, length: Int) = lock.withLock {
+    override fun write(bytes: ByteArray, offset: Int, length: Int): Unit = lock.withLock {
         super.write(bytes, offset, length)
         each { write(bytes, offset, length) }
     }
 
-    override fun write(byte: Int) = lock.withLock {
+    override fun write(byte: Int): Unit = lock.withLock {
         super.write(byte)
         each { write(byte) }
     }
 
-    override fun flush() = lock.withLock {
+    override fun flush(): Unit = lock.withLock {
         super.flush()
         each { flush() }
     }
 
-    override fun close() = lock.withLock {
+    override fun close(): Unit = lock.withLock {
         try {
             super.close()
         } finally {

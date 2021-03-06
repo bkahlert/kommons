@@ -7,7 +7,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.moveTo
 
-fun Path.moveTo(
+public fun Path.moveTo(
     target: Path,
     overwrite: Boolean = false,
     preserve: Boolean = false,
@@ -18,7 +18,7 @@ fun Path.moveTo(
         .also { deleteRecursively() }
 }
 
-fun Path.moveToDirectory(
+public fun Path.moveToDirectory(
     target: Path,
     overwrite: Boolean = false,
     preserve: Boolean = false,
@@ -30,12 +30,12 @@ fun Path.moveToDirectory(
         .also { deleteRecursively() }
 }
 
-fun Path.renameTo(target: Path): Path {
+public fun Path.renameTo(target: Path): Path {
     requireExists()
     return moveTo(resolveSibling(target.fileName))
 }
 
-fun Path.renameTo(fileName: String): Path {
+public fun Path.renameTo(fileName: String): Path {
     requireExists()
     return moveTo(resolveSibling(fileName))
 }

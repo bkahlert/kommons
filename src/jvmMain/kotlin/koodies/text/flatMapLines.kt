@@ -9,7 +9,7 @@ import koodies.text.LineSeparators.hasTrailingLineSeparator
  *
  * If this char sequence has a trailing line that trailing line is left unchanged.
  */
-fun <T : CharSequence> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
+public fun <T : CharSequence> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
     (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
         lines().map { line -> transform(line).joinToString("\n") }
             .let { if (trailingLineSeparator) it.dropLast(1) else it }

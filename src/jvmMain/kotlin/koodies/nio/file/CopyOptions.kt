@@ -3,8 +3,8 @@ package koodies.io.file
 import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
 
-object CopyOptions {
-    fun enumArrayOf(
+public object CopyOptions {
+    public fun enumArrayOf(
         replaceExisting: Boolean = false,
         copyAttributes: Boolean = false,
         atomicMove: Boolean = false,

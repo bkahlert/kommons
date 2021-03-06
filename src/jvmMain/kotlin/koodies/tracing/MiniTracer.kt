@@ -22,17 +22,17 @@ public interface MiniTracer {
     public fun <R> microTrace3(f: KFunction3<*, *, *, R>, block: MicroTracer.() -> R): R
 }
 
-public fun MiniTracer?.trace(input: String) = this?.trace(input)
-public fun <R> MiniTracer?.microTrace(f: String, block: MicroTracer?.() -> R) = this@microTrace?.microTrace(f, block)
-public fun <R> MiniTracer?.microTrace(f: KCallable<R>, block: MicroTracer?.() -> R) = this@microTrace?.microTrace(f, block)
-public fun <R> MiniTracer?.microTrace(f: KFunction0<R>, block: MicroTracer?.() -> R) = this@microTrace?.microTrace(f, block)
-public fun <R> MiniTracer?.microTrace1(f: KFunction1<*, R>, block: MicroTracer?.() -> R) = this@microTrace1?.microTrace1(f, block)
-public fun <R> MiniTracer?.microTrace2(f: KFunction2<*, *, R>, block: MicroTracer?.() -> R) = this@microTrace2?.microTrace2(f, block)
-public fun <R> MiniTracer?.microTrace3(f: KFunction3<*, *, *, R>, block: MicroTracer?.() -> R) = this@microTrace3?.microTrace3(f, block)
+public fun MiniTracer?.trace(input: String): Unit = this?.trace(input) ?: Unit
+public fun <R> MiniTracer?.microTrace(f: String, block: MicroTracer?.() -> R): R? = this@microTrace?.microTrace(f, block)
+public fun <R> MiniTracer?.microTrace(f: KCallable<R>, block: MicroTracer?.() -> R): R? = this@microTrace?.microTrace(f, block)
+public fun <R> MiniTracer?.microTrace(f: KFunction0<R>, block: MicroTracer?.() -> R): R? = this@microTrace?.microTrace(f, block)
+public fun <R> MiniTracer?.microTrace1(f: KFunction1<*, R>, block: MicroTracer?.() -> R): R? = this@microTrace1?.microTrace1(f, block)
+public fun <R> MiniTracer?.microTrace2(f: KFunction2<*, *, R>, block: MicroTracer?.() -> R): R? = this@microTrace2?.microTrace2(f, block)
+public fun <R> MiniTracer?.microTrace3(f: KFunction3<*, *, *, R>, block: MicroTracer?.() -> R): R? = this@microTrace3?.microTrace3(f, block)
 
 
 public class RenderingLoggerBasedMiniTracer(private val renderingLogger: RenderingLogger) : MiniTracer {
-    public override fun trace(input: String) = renderingLogger.logStatus { IO.Type.META typed input }
+    public override fun trace(input: String): Unit = renderingLogger.logStatus { IO.Type.META typed input }
     public override fun <R> microTrace(grapheme: Grapheme, block: MicroTracer.() -> R): R = microTrace(grapheme, block)
     public override fun <R> microTrace(f: String, block: MicroTracer.() -> R): R = microTrace(Grapheme("𝙛"), block)
     public override fun <R> microTrace(f: KCallable<R>, block: MicroTracer.() -> R): R = microTrace(Grapheme("𝙛"), block)

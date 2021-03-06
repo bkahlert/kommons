@@ -1,26 +1,26 @@
 package koodies.text.styling
 
-class Effects(private val text: String) {
+public class Effects(private val text: String) {
     /**
      * `·<❮❰❰❰ echo ❱❱❱❯>·`
      */
-    fun echo(): String = "·<❮❰❰❰ $text ❱❱❱❯>·"
+    public fun echo(): String = "·<❮❰❰❰ $text ❱❱❱❯>·"
 
     /**
      * `͔˱❮❰( saying`
      */
-    fun saying(): String = "͔˱❮❰( $text"
+    public fun saying(): String = "͔˱❮❰( $text"
 
     /**
      * `【tag】`
      */
-    fun tag(): String = "【$text】"
+    public fun tag(): String = "【$text】"
 
     /**
      * `❲unit❳`
      */
-    fun unit(): String = "❲$text❳"
+    public fun unit(): String = "❲$text❳"
 }
 
-val CharSequence.effects get() = Effects(this.toString())
-val String.effects get() = Effects(this)
+public val CharSequence.effects: Effects get() = Effects(this.toString())
+public val String.effects: Effects get() = Effects(this)

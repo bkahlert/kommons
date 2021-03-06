@@ -19,4 +19,4 @@ public fun ByteArray.decodeToValidString(charset: Charset = Charsets.UTF_8): Str
     return decoded
 }
 
-val CharSequence.endsWithReplacementCharacter get() = this.endsWith(Unicode.replacementCharacter)
+public val CharSequence.endsWithReplacementCharacter: Boolean get() = this.endsWith(Unicode.replacementCharacter)

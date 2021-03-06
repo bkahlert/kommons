@@ -6,12 +6,12 @@ import koodies.terminal.AnsiColors.brightCyan
 import koodies.terminal.AnsiColors.brightMagenta
 import koodies.terminal.AnsiColors.cyan
 
-object Banner {
+public object Banner {
     private val delimiters = Regex("\\s+")
     private val capitalLetter = Regex("[A-Z]")
     private val palette = listOf(cyan, cyan, cyan, cyan, cyan, cyan)
 
-    fun banner(text: String): String {
+    public fun banner(text: String): String {
         return text.split(delimiters).mapIndexed { index, word ->
             if (index == 0) {
                 val (first: String, second: String) = word.splitCamelCase()

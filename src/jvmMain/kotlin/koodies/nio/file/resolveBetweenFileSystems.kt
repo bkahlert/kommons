@@ -17,7 +17,7 @@ import java.nio.file.Path
  * an absolute path is already "fully-qualified" it is
  * the resolved result *(and its file system the resulting file system)*.
  */
-fun Path.resolveBetweenFileSystems(path: Path): Path =
+public fun Path.resolveBetweenFileSystems(path: Path): Path =
     when {
         fileSystem == path.fileSystem -> resolve(path)
         path.isAbsolute -> path

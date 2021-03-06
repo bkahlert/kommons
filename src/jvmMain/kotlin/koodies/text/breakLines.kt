@@ -6,7 +6,7 @@ package koodies.text
  *
  * @param maxLength The maximum length of each returned line.
  */
-fun CharSequence.breakLines(maxLength: Int, ignoreTrailingSeparator: Boolean = true): String {
+public fun CharSequence.breakLines(maxLength: Int, ignoreTrailingSeparator: Boolean = true): String {
     return flatMapLines(ignoreTrailingSeparator) { line ->
         line.chunked(maxLength)
     }

@@ -6,7 +6,7 @@ public interface MicroTracer {
     public fun trace(input: String)
 }
 
-public fun MicroTracer?.trace(input: String) = this?.trace(input)
+public fun MicroTracer?.trace(input: String): Unit = this?.trace(input) ?: Unit
 
 public class SimpleMicroTracer(private val symbol: Grapheme) : MicroTracer {
     private val traces = mutableListOf<String>()

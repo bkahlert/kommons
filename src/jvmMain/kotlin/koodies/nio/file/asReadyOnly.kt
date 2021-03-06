@@ -27,17 +27,17 @@ import java.nio.file.spi.FileSystemProvider
 /**
  * Wraps this file system provider in order to make it read-only.
  */
-fun FileSystemProvider.asReadOnly(): FileSystemProvider = privateAsReadyOnly()
+public fun FileSystemProvider.asReadOnly(): FileSystemProvider = privateAsReadyOnly()
 
 /**
  * Wraps this file system in order to make it read-only.
  */
-fun FileSystem.asReadOnly(): FileSystem = privateAsReadyOnly()
+public fun FileSystem.asReadOnly(): FileSystem = privateAsReadyOnly()
 
 /**
  * Wraps this path in order to make it read-only.
  */
-fun Path.asReadOnly(): Path = privateAsReadyOnly()
+public fun Path.asReadOnly(): Path = privateAsReadyOnly()
 
 private val Path.wrappedPath: Path get() = if (this is WrappedPath) wrappedPath.wrappedPath else this
 

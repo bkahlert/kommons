@@ -13,10 +13,11 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Pointing : Category() {
-    val `☜ق❂Ⴢ❂ق☞` by auto()
-    val `☜(⌒▽⌒)☞` by auto()
-    val `☜(ﾟヮﾟ☜)` by auto()
-    val `☜-(ΘLΘ)-☞` by auto()
+public object Pointing : Category() {
+    public val `☜ق❂Ⴢ❂ق☞`: Kaomoji by auto()
+    public val `☜(⌒▽⌒)☞`: Kaomoji by auto()
+    public val `☜(ﾟヮﾟ☜)`: Kaomoji by auto()
+    public val `☜-(ΘLΘ)-☞`: Kaomoji by auto()
 }

@@ -10,5 +10,5 @@ import java.nio.file.Path
  *
  * @see tempJar
  */
-fun Path.asNewJarFileSystem(vararg env: Pair<String, Any?>): FileSystem =
+public fun Path.asNewJarFileSystem(vararg env: Pair<String, Any?>): FileSystem =
     FileSystems.newFileSystem(URI.create("jar:${toUri()}"), env.toMap())

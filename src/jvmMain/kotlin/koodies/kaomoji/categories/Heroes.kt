@@ -13,8 +13,9 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Heroes : Category() {
-    val `─=≡Σ((［ ⊐•̀⌂•́］⊐` by auto("─=≡Σ(([ ⊐•̀⌂•́]⊐")
-    val `‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞o` by auto()
+public object Heroes : Category() {
+    public val `─=≡Σ((［ ⊐•̀⌂•́］⊐`: Kaomoji by auto("─=≡Σ(([ ⊐•̀⌂•́]⊐")
+    public val `‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞o`: Kaomoji by auto()
 }

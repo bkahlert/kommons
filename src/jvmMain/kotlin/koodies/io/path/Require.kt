@@ -14,7 +14,7 @@ import kotlin.io.path.notExists
 /**
  * Requires this to be a directory and throws an [IllegalArgumentException] otherwise.
  */
-fun Path.requireDirectory() {
+public fun Path.requireDirectory() {
     if (!isDirectory()) throw NotDirectoryException("$this")
 }
 
@@ -23,7 +23,7 @@ fun Path.requireDirectory() {
  * - this file is not empty, that is, has size greater zero
  * - this directory is not empty, that is, has entries
  */
-fun Path.requireEmpty() {
+public fun Path.requireEmpty() {
     if (isNotEmpty) {
         if (isDirectory()) throw directoryNotEmpty()
         throw fileAlreadyExists(this, "Must be empty but has $size.")
@@ -33,21 +33,21 @@ fun Path.requireEmpty() {
 /**
  * Throws if this [Path] does not exist.
  */
-fun Path.requireExists() {
+public fun Path.requireExists() {
     if (notExists()) throw noSuchFile()
 }
 
 /**
  * Throws if this [Path] does exist.
  */
-fun Path.requireExistsNot() {
+public fun Path.requireExistsNot() {
     if (exists()) throw FileAlreadyExistsException(asString())
 }
 
 /**
  * Requires this to be a file and throws an [IllegalArgumentException] otherwise.
  */
-fun Path.requireFile() {
+public fun Path.requireFile() {
     require(isRegularFile()) { "$this is no file." }
 }
 
@@ -56,7 +56,7 @@ fun Path.requireFile() {
  * - this file is empty, that is, has zero size
  * - this directory is empty, that is, has no entries
  */
-fun Path.requireNotEmpty() {
+public fun Path.requireNotEmpty() {
     if (isEmpty) {
         if (isDirectory()) throw noSuchFile(this, "Directory must not be empty but has no entries.")
         throw noSuchFile(this, "File must not be empty but has zero size.")
@@ -68,5 +68,5 @@ fun Path.requireNotEmpty() {
  *
  * @throws IllegalArgumentException this path is not inside [Locations.Temp]
  */
-fun Path.requireTempSubPath(): Path =
+public fun Path.requireTempSubPath(): Path =
     apply { require(!isDefaultFileSystem() || isSubPathOf(Locations.Temp)) { "${this.normalize().toAbsolutePath()} is not inside ${Locations.Temp}." } }

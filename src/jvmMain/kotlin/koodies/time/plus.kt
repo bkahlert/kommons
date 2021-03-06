@@ -16,11 +16,11 @@ import kotlin.time.toJavaDuration
  * **Important:** This operation does not work for date types like [LocalDate], [YearMonth] or [Year]
  * as they they don't differ in [Duration] but in [Period].
  */
-inline operator fun <reified T : Temporal> T.plus(duration: Duration): T =
+public inline operator fun <reified T : Temporal> T.plus(duration: Duration): T =
     this.plus(duration.toJavaDuration()) as? T ?: error("broken contract of Temporal operations returning the same type")
 
 /**
  * Returns this file time with with the specified [duration] added.
  */
-operator fun FileTime.plus(duration: Duration): FileTime =
+public operator fun FileTime.plus(duration: Duration): FileTime =
     FileTime.from(toInstant().plus(duration))

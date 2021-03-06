@@ -12,4 +12,4 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 @Retention(RUNTIME)
 @MustBeDocumented
 @Inherited
-annotation class Debug(val includeInReport: Boolean = true)
+public annotation class Debug(val includeInReport: Boolean = true)

@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 @Suppress("MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
-abstract class ProxyInputStream(proxy: InputStream?) : FilterInputStream(proxy) {
+public abstract class ProxyInputStream(proxy: InputStream?) : FilterInputStream(proxy) {
 
     private val lock: ReentrantLock = ReentrantLock()
     private val inputStream = `in`
@@ -62,7 +62,7 @@ abstract class ProxyInputStream(proxy: InputStream?) : FilterInputStream(proxy) 
         handleIOException(e)
     }
 
-    override fun mark(readlimit: Int) = lock.withLock { inputStream.mark(readlimit) }
+    override fun mark(readlimit: Int): Unit = lock.withLock { inputStream.mark(readlimit) }
 
     override fun reset() {
         lock.withLock {

@@ -7,12 +7,12 @@ import koodies.text.withRandomSuffix
 import java.nio.file.Path
 
 
-inline class DockerContainerName(val name: String) {
-    val sanitized: String get() = name.sanitize()
+public inline class DockerContainerName(public val name: String) {
+    public val sanitized: String get() = name.sanitize()
 
     override fun toString(): String = sanitized
 
-    companion object {
+    public companion object {
         /**
          * A [Regex] that matches valid Docker container names.
          */

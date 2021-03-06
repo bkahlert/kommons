@@ -6,18 +6,20 @@ import koodies.builder.ListBuilder
 import koodies.builder.ListBuilder.Companion.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
+import koodies.builder.context.ListBuildingContext
+import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.docker.DockerStopCommandLine.Companion.StopContext
 import koodies.docker.DockerStopCommandLine.Options.Companion.StopOptionsContext
 
 /**
  * [DockerCommandLine] that stops the specified [containers] using the specified [options].
  */
-open class DockerStopCommandLine(
+public open class DockerStopCommandLine(
     /**
      * Options that specify how this command line is run.
      */
-    val options: Options,
-    val containers: List<String>,
+    public val options: Options,
+    public val containers: List<String>,
 ) : DockerCommandLine(
     dockerCommand = "stop",
     arguments = ArrayBuilder.buildArray {
@@ -25,43 +27,43 @@ open class DockerStopCommandLine(
         addAll(containers)
     },
 ) {
-    open class Options(
+    public open class Options(
         /**
          * 	Seconds to wait for stop before killing it
          */
-        val time: Int? = null,
+        public val time: Int? = null,
     ) : List<String> by (buildList {
         time?.also { +"--time" + "$time" }
     }) {
-        companion object : BuilderTemplate<StopOptionsContext, Options>() {
+        public companion object : BuilderTemplate<StopOptionsContext, Options>() {
             /**
              * Context for building [Options].
              */
             @DockerCommandLineDsl
-            class StopOptionsContext(override val captures: CapturesMap) : CapturingContext() {
+            public class StopOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * 	Seconds to wait for stop before killing it
                  */
-                val time by builder<Int>()
+                public val time: SkippableCapturingBuilderInterface<() -> Int, Int?> by builder<Int>()
             }
 
-            override fun BuildContext.build() = ::StopOptionsContext {
+            override fun BuildContext.build(): Options = ::StopOptionsContext {
                 Options(::time.eval())
             }
         }
     }
 
-    companion object : BuilderTemplate<StopContext, DockerStopCommandLine>() {
+    public companion object : BuilderTemplate<StopContext, DockerStopCommandLine>() {
         /**
          * Context for building a [DockerStopCommandLine].
          */
         @DockerCommandLineDsl
-        class StopContext(override val captures: CapturesMap) : CapturingContext() {
-            val options by Options
-            val containers by ListBuilder<String>()
+        public class StopContext(override val captures: CapturesMap) : CapturingContext() {
+            public val options: SkippableCapturingBuilderInterface<StopOptionsContext.() -> Unit, Options?> by Options
+            public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder()
         }
 
-        override fun BuildContext.build() = ::StopContext {
+        override fun BuildContext.build(): DockerStopCommandLine = ::StopContext {
             DockerStopCommandLine(
                 ::options.evalOrDefault { Options() },
                 ::containers.eval(),

@@ -3,13 +3,14 @@ package koodies.docker
 import koodies.builder.BuilderTemplate
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
+import koodies.concurrent.process.ManagedProcess
 import koodies.io.path.Locations
 import java.nio.file.Path
 
 /**
  * A docker command as it can be run in a shell.
  */
-open class DockerCommandLine(
+public open class DockerCommandLine(
     /**
      * Redirects like `2>&1` to be used when running this command line.
      */
@@ -34,7 +35,7 @@ open class DockerCommandLine(
     arguments: List<String>,
 ) : CommandLine(redirects, environment, workingDirectory, "docker", listOf(dockerCommand, *arguments.toTypedArray())) {
 
-    constructor(
+    public constructor(
         redirects: List<String>,
         environment: Map<String, String>,
         workingDirectory: Path,
@@ -42,20 +43,20 @@ open class DockerCommandLine(
         vararg arguments: String,
     ) : this(redirects, environment, workingDirectory, dockerCommand, arguments.toList())
 
-    constructor(
+    public constructor(
         environment: Map<String, String>,
         workingDirectory: Path,
         dockerCommand: String,
         vararg arguments: String,
     ) : this(emptyList(), environment, workingDirectory, dockerCommand, arguments.toList())
 
-    constructor(
+    public constructor(
         workingDirectory: Path,
         dockerCommand: String,
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), workingDirectory, dockerCommand, arguments.toList())
 
-    constructor(
+    public constructor(
         dockerCommand: String,
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
@@ -73,8 +74,8 @@ open class DockerCommandLine(
 
     override fun hashCode(): Int = commandLineParts.contentHashCode()
 
-    companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
-        override fun BuildContext.build() = ::CommandLineContext {
+    public companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
+        override fun BuildContext.build(): DockerCommandLine = ::CommandLineContext {
             DockerCommandLine(
                 redirects = ::redirects.eval(),
                 environment = ::environment.eval(),

@@ -13,23 +13,24 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object StereoTypes : Category() {
-    val `O RLY?` by auto("""
+public object StereoTypes : Category() {
+    public val `O RLY?`: Kaomoji by auto("""
         ,___,
         [O.o] - O RLY?
         /)__)
         -"--"-
     """.trimIndent())
 
-    val Hare by auto("""
+    public val Hare: Kaomoji by auto("""
         (\_/)
         (O.o)
         (> <)
         /_|_\
     """.trimIndent())
 
-    val Cthulhu by auto("""
+    public val Cthulhu: Kaomoji by auto("""
           (jIj)
           (;,;)
          (o,.,O)
@@ -39,14 +40,14 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Korean character
      */
-    val Nidā by auto("""
+    public val Nidā: Kaomoji by auto("""
         <丶｀∀´>
     """.trimIndent())
 
     /**
      * Stereotypical North Korean character
      */
-    val Kigā by auto("""
+    public val Kigā: Kaomoji by auto("""
         ［　(★)　］
          <丶´Д｀>
     """.trimIndent())
@@ -54,7 +55,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Japanese character
      */
-    val Monā by auto("""
+    public val Monā: Kaomoji by auto("""
             ∧＿∧
         （ ；´Д｀）
         """.trimIndent())
@@ -62,7 +63,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Chinese Korean character
      */
-    val Sinā by auto("""
+    public val Sinā: Kaomoji by auto("""
             ∧∧
           ／ 中＼
         （ 　｀ハ´）
@@ -71,7 +72,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Taiwanese character
      */
-    val Wanā by auto("""
+    public val Wanā: Kaomoji by auto("""
               ∧∧
            ／　台＼
          （　＾∀＾）
@@ -80,7 +81,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Vietamese character
      */
-    val Venā by auto("""
+    public val Venā: Kaomoji by auto("""
            ∧∧
          ／ 越 ＼
         （ ・∀・ ）
@@ -89,7 +90,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Indian character
      */
-    val Monastē by auto(""" 
+    public val Monastē: Kaomoji by auto(""" 
           γ~三ヽ 
          (三彡０ﾐ) 
         （　´∀｀）
@@ -98,7 +99,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical American character
      */
-    val Samū by auto(""" 
+    public val Samū: Kaomoji by auto(""" 
           |￣￣| 
          ＿☆☆☆＿ 
         （ ´_⊃｀）
@@ -107,7 +108,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Jewish character
      */
-    val Yudā by auto("""
+    public val Yudā: Kaomoji by auto("""
             ┏━┓
            ━━━━━━
            ﾐΘc_Θ-ﾐ
@@ -116,7 +117,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical English character
      */
-    val Jakū by auto(""" 
+    public val Jakū: Kaomoji by auto(""" 
            ＿＿ 
           │〓.│ 
           ━━━━━
@@ -126,7 +127,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical French character
      */
-    val Torirī by auto("""  
+    public val Torirī: Kaomoji by auto("""  
           ____ 
         （〓__＞
         ξ ・_>・）
@@ -135,7 +136,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical German character
      */
-    val Gerumandamu by auto(""" 
+    public val Gerumandamu: Kaomoji by auto(""" 
          _、,_ 
         ﾐ　　_⊃）
         """.trimIndent())
@@ -143,7 +144,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Austrian character
      */
-    val Osutō by auto("""  
+    public val Osutō: Kaomoji by auto("""  
            ≡≡彡
         彡 ´_)｀ ）
         """.trimIndent())
@@ -151,7 +152,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Russian character
      */
-    val Rosukī by auto("""
+    public val Rosukī: Kaomoji by auto("""
          ,,,,,,,,,,,,, 
          ﾐ;;;,,,,,,,ﾐ　 
           （　｀_っ´）
@@ -160,7 +161,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Mexican character
      */
-    val Amīgo by auto(""" 
+    public val Amīgo: Kaomoji by auto(""" 
             _γ⌒ヽ_
           lXXXXXXXXl
          （　´ｍ｀）
@@ -169,7 +170,7 @@ object StereoTypes : Category() {
     /**
      * Stereotypical Persian character
      */
-    val Jujø by auto("""
+    public val Jujø: Kaomoji by auto("""
                  _
            <(o0o)>
         (>ミ — ミ)>

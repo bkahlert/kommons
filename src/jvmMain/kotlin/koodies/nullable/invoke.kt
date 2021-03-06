@@ -13,7 +13,7 @@ package koodies.nullable
  * @sample InvokeSamples.optionalTransformation
  * @sample InvokeSamples.optionalNullableReturningTransformation
  */
-operator fun <A, F : (A) -> A> F?.invoke(arg: A) = this?.invoke(arg) ?: arg
+public operator fun <A, F : (A) -> A> F?.invoke(arg: A): A = this?.invoke(arg) ?: arg
 
 /**
  * 👍 ✅ `... transform(a) ...`
@@ -33,7 +33,7 @@ operator fun <A, F : (A) -> A> F?.invoke(arg: A) = this?.invoke(arg) ?: arg
     replaceWith = ReplaceWith("this.invoke(arg)", "koodies.nullable.invoke"),
     DeprecationLevel.WARNING
 )
-fun <A, F : (A) -> A> F?.invokeIfSet(arg: A) = this.invoke(arg)
+public fun <A, F : (A) -> A> F?.invokeIfSet(arg: A): A = this.invoke(arg)
 
 /**
  * 👍 ✅ `... transform(a) ...`
@@ -48,7 +48,7 @@ fun <A, F : (A) -> A> F?.invokeIfSet(arg: A) = this.invoke(arg)
  * @sample InvokeSamples.optionalTransformation
  * @sample InvokeSamples.optionalNullableReturningTransformation
  */
-fun <A> A.let(block: ((A) -> A?)?): A = block?.invoke(this) ?: this
+public fun <A> A.let(block: ((A) -> A?)?): A = block?.invoke(this) ?: this
 
 /**
  * 👍 ✅ `...  interceptor.invokeOrArg(additionalInterceptor.invokeOrArg(msg)) ...`
@@ -68,7 +68,7 @@ fun <A> A.let(block: ((A) -> A?)?): A = block?.invoke(this) ?: this
     message = "Replace to easily import \"koodies.nullable.let\" ...",
     replaceWith = ReplaceWith("this.let(block)", "koodies.nullable.let"),
     DeprecationLevel.WARNING
-) fun <A> A.letIfSet(block: ((A) -> A?)?): A = block?.invoke(this) ?: this
+) public fun <A> A.letIfSet(block: ((A) -> A?)?): A = block?.invoke(this) ?: this
 
 private object InvokeSamples {
     fun optionalTransformation() {

@@ -9,26 +9,26 @@ import java.io.OutputStream
  * Output stream that delegates all calls to the specified [proxy].
  */
 @Suppress("MemberVisibilityCanBePrivate")
-open class ProxyOutputStream(proxy: OutputStream) : FilterOutputStream(proxy) {
+public open class ProxyOutputStream(proxy: OutputStream) : FilterOutputStream(proxy) {
     /**
      * Writes the specified [byte] to the proxied [out] and
      * passes an eventually thrown [IOException] to [handleIOException].
      */
-    override fun write(byte: Int) =
+    override fun write(byte: Int): Unit =
         out.runExceptionHandling { runWrapping({ beforeWrite(1) }, { afterWrite(1) }) { write(byte) } }
 
     /**
      * Writes [bytes] to the proxied [out] and
      * passes an eventually thrown [IOException] to [handleIOException].
      */
-    override fun write(bytes: ByteArray) =
+    override fun write(bytes: ByteArray): Unit =
         out.runExceptionHandling { runWrapping({ beforeWrite(bytes.size) }, { afterWrite(bytes.size) }) { write(bytes) } }
 
     /**
      * Writes [length] [bytes] starting at [offset] to the proxied [out] and
      * passes an eventually thrown [IOException] to [handleIOException].
      */
-    override fun write(bytes: ByteArray, offset: Int, length: Int) =
+    override fun write(bytes: ByteArray, offset: Int, length: Int): Unit =
         out.runExceptionHandling { runWrapping({ beforeWrite(length) }, { afterWrite(length) }) { write(bytes, offset, length) } }
 
     /**
@@ -41,7 +41,7 @@ open class ProxyOutputStream(proxy: OutputStream) : FilterOutputStream(proxy) {
      * Closes the proxied [out] and passes an eventually thrown [IOException]
      * to [handleIOException].
      */
-    override fun close() = out.runExceptionHandling { close() }
+    override fun close(): Unit = out.runExceptionHandling { close() }
 
     /**
      * Callback before [length] bytes are written.

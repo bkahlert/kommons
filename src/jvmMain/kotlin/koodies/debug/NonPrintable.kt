@@ -12,7 +12,7 @@ import koodies.text.unicodeName
  * Replaces control (e.g. [Unicode.escape], surrogate (e.g. `\ubd00`) and whitespace (e.g. [Unicode.lineFeed]) characters
  * with a visual representation or, if unavailable, with their written Unicode name.
  */
-fun String.replaceNonPrintableCharacters(): String {
+public fun String.replaceNonPrintableCharacters(): String {
     return mapCodePoints { codePoint ->
         val prefix = if (codePoint.string in LineSeparators) "⏎" else ""
         val suffix = if (codePoint.char in Unicode.controlCharacters.values) "ꜝ" else ""

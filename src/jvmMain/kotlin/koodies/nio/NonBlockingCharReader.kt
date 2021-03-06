@@ -2,6 +2,7 @@ package koodies.nio
 
 import koodies.concurrent.process.IO.Type.META
 import koodies.debug.debug
+import koodies.io.ByteArrayOutputStream
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.compactLogging
@@ -21,7 +22,7 @@ import org.jline.utils.NonBlockingReader as JLineNonBlockingReader
  * This happens all over again until that line is complete, that is, terminated
  * by `\r\n` or `\n`.
  */
-class NonBlockingCharReader(
+public class NonBlockingCharReader(
     private val inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
     private val charset: Charset = Charsets.UTF_8,
@@ -31,9 +32,9 @@ class NonBlockingCharReader(
     private val timeoutMillis: Long = timeout.toLongMilliseconds()
     private inline val inlineTimeoutMillis get() = timeoutMillis
 
-    var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)
+    public var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)
 
-    fun read(buffer: CharArray, off: Int, logger: RenderingLogger): Int = if (reader == null) -1 else
+    public fun read(buffer: CharArray, off: Int, logger: RenderingLogger): Int = if (reader == null) -1 else
         logger.compactLogging(NonBlockingCharReader::class.simpleName + ".read(CharArray, Int, Int, Logger)") {
             when (val read = kotlin.runCatching { reader?.read(inlineTimeoutMillis) ?: throw IOException("No reader. Likely already closed.") }
                 .recover {

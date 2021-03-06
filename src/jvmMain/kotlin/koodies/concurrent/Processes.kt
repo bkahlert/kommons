@@ -68,7 +68,7 @@ public fun process(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.process(
+public fun Path.process(
     command: String,
     vararg arguments: String,
     redirects: List<String> = emptyList(),
@@ -81,8 +81,7 @@ fun Path.process(
 /* ALL EXECUTE METHODS BELOW ALWAYS START THE COMMANDLINE/PROCESS AND AND PROCESS IT SYNCHRONOUSLY */
 
 /**
- * Runs the specified [commandLine] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
+ * Runs `this` [CommandLine] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of the created [ManagedProcess] will be processed by the specified [processor]
  * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
@@ -91,9 +90,7 @@ fun Path.process(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.execute(
-    commandLine: CommandLine,
-    environment: Map<String, String> = emptyMap(),
+public fun CommandLine.execute(
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
@@ -151,9 +148,8 @@ fun Path.execute(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun execute(
+public fun execute(
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-    environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     commandLine: Init<CommandLineContext>,
@@ -196,9 +192,8 @@ fun Path.execute(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun execute(
+public fun execute(
     logger: RenderingLogger?,
-    environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     commandLine: Init<CommandLineContext>,
@@ -305,7 +300,7 @@ fun main() {
  *
  * This method is idempotent.
  */
-fun ManagedProcess.output(): String = run {
+public fun ManagedProcess.output(): String = run {
     processSynchronously(Processors.noopProcessor())
     ioLog.logged.filter { it.type == IO.Type.OUT }.joinToString(LineSeparators.LF) { it.unformatted }
 }

@@ -16,47 +16,47 @@ import koodies.text.mapLines
 /**
  * Instances are ANSI formatted output with a certain [Type].
  */
-class IO(
+public class IO(
     /**
      * Contains the originally encountered [IO].
      */
-    val text: AnsiString,
+    public val text: AnsiString,
     /**
      * Contains the [Type] of this [IO].
      */
-    val type: Type,
+    public val type: Type,
 ) : AnsiString(text.toString(withoutAnsi = false)) {
 
     /**
      * Contains this [text] with the format of it's [type] applied.
      */
-    val formatted: String by lazy { type.format(this) }
+    public val formatted: String by lazy { type.format(this) }
 
     private val lines by lazy { text.lines().map { type typed it }.toList() }
 
     /**
      * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
      */
-    fun lines(): List<IO> = lines
+    public fun lines(): List<IO> = lines
 
     override fun toString(): String = formatted
 
-    companion object {
+    public companion object {
         /**
          * Formats a [Throwable] as an [ERR].
          */
-        fun Throwable.format(): String = ERR.format(stackTraceToString().asAnsiString())
+        public fun Throwable.format(): String = ERR.format(stackTraceToString().asAnsiString())
     }
 
     /**
      * Classifier for different types of [IO].
      */
-    enum class Type(
+    public enum class Type(
         @Suppress("unused") private val symbol: String,
         /**
          * Formats a strings to like an output of this [Type].
          */
-        val formatAnsi: (AnsiString) -> String,
+        public val formatAnsi: (AnsiString) -> String,
     ) {
 
         /**
@@ -81,7 +81,7 @@ class IO(
             /**
              * Factory to classify an [ERR] [IO].
              */
-            infix fun typed(value: Result<*>): IO {
+            public infix fun typed(value: Result<*>): IO {
                 require(value.isFailure)
                 val message = value.exceptionOrNull()?.stackTraceToString() ?: throw IllegalStateException("Exception was unexpectedly null")
                 return IO(message.asAnsiString(), ERR)
@@ -96,16 +96,16 @@ class IO(
         /**
          * Factory to classify different [Type]s of [IO].
          */
-        infix fun typed(value: CharSequence?): IO = if (value?.isEmpty() == true) EMPTY else IO(value?.asAnsiString() ?: "❔".asAnsiString(), this)
+        public infix fun typed(value: CharSequence?): IO = if (value?.isEmpty() == true) EMPTY else IO(value?.asAnsiString() ?: "❔".asAnsiString(), this)
 
         /**
          * Factory to classify different [Type]s of [IO]s.
          */
-        infix fun <T : CharSequence> typed(value: Iterable<T>): List<IO> = value.map { typed(it) }
+        public infix fun <T : CharSequence> typed(value: Iterable<T>): List<IO> = value.map { typed(it) }
 
-        infix fun formatted(string: String): String = formatAnsi(string.asAnsiString())
-        infix fun formatted(string: AnsiString): String = formatAnsi(string)
-        fun format(string: String): String = formatAnsi(string.asAnsiString())
-        fun format(string: AnsiString): String = formatAnsi(string)
+        public infix fun formatted(string: String): String = formatAnsi(string.asAnsiString())
+        public infix fun formatted(string: AnsiString): String = formatAnsi(string)
+        public fun format(string: String): String = formatAnsi(string.asAnsiString())
+        public fun format(string: AnsiString): String = formatAnsi(string)
     }
 }

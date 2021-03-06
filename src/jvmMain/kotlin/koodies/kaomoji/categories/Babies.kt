@@ -13,9 +13,10 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Babies : Category() {
-    val `ლ(´ڡ´ლ)` by auto("ლ(´ڡ`ლ)")
-    val `ლ(́◉◞౪◟◉‵ლ)` by auto()
-    val `(●´ω｀●)` by auto()
+public object Babies : Category() {
+    public val `ლ(´ڡ´ლ)`: Kaomoji by auto("ლ(´ڡ`ლ)")
+    public val `ლ(́◉◞౪◟◉‵ლ)`: Kaomoji by auto()
+    public val `(●´ω｀●)`: Kaomoji by auto()
 }

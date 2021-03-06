@@ -7,5 +7,5 @@ import java.nio.file.Path
 /**
  * Contains the likely MIME type guessed from the file name.
  */
-val Path.guessedMimeType: String?
+public val Path.guessedMimeType: String?
     get() = kotlin.runCatching { URLConnection.guessContentTypeFromName(fileName.asString()) }.getOrNull()

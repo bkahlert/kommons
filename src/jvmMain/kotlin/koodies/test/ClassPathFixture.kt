@@ -24,7 +24,7 @@ import kotlin.io.path.readBytes
  * @see ClassPathDirectoryFixture
  * @see ClassPathFileFixture
  */
-open class ClassPathFixture(val path: String) : Fixture {
+public open class ClassPathFixture(public val path: String) : Fixture {
     override val name: String by lazy { Path.of(path).fileName.asString() }
     override val data: ByteArray by lazy { useClassPath(path) { readBytes() } ?: throw noSuchFile(path) }
 }
@@ -33,37 +33,37 @@ open class ClassPathFixture(val path: String) : Fixture {
  * A class path based fixture than is guaranteed to point at
  * an existing directory.
  */
-open class ClassPathDirectoryFixture(path: String) : ClassPathFixture(path) {
+public open class ClassPathDirectoryFixture(path: String) : ClassPathFixture(path) {
     init {
         require(this { isDirectory() }) { "$this is no directory" }
     }
 
-    fun dir(dir: String) = Dir(dir)
-    fun file(file: String) = File(file)
+    public fun dir(dir: String): Dir = Dir(dir)
+    public fun file(file: String): File = File(file)
 
-    open inner class Dir(dir: String) : ClassPathDirectoryFixture("$path/$dir")
-    open inner class File(file: String) : ClassPathFileFixture("$path/$file")
+    public open inner class Dir(dir: String) : ClassPathDirectoryFixture("$path/$dir")
+    public open inner class File(file: String) : ClassPathFileFixture("$path/$file")
 }
 
 /**
  * A class path based fixture than is guaranteed to point to
  * an existing file.
  */
-open class ClassPathFileFixture(path: String) : ClassPathFixture(path) {
+public open class ClassPathFileFixture(path: String) : ClassPathFixture(path) {
     init {
         require(this { isRegularFile() }) { "$this is no regular file" }
     }
 }
 
-fun Fixture.copyTo(target: Path): Path = when (this) {
+public fun Fixture.copyTo(target: Path): Path = when (this) {
     is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyTo(target))
     else -> target.writeBytes(data)
 } ?: error("Error copying ${name.quoted} to ${target.quoted}")
 
-fun Fixture.copyToDirectory(target: Path): Path = when (this) {
+public fun Fixture.copyToDirectory(target: Path): Path = when (this) {
     is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyToDirectory(target))
     else -> target.resolve(name).withDirectoriesCreated().writeBytes(data)
 } ?: error("Error copying ${name.quoted} to ${target.quoted}")
 
-inline operator fun <reified T> ClassPathFixture.invoke(crossinline transform: Path.() -> T) = useClassPath(path, transform)
+public inline operator fun <reified T> ClassPathFixture.invoke(crossinline transform: Path.() -> T): T = useClassPath(path, transform)
     ?: error("Error processing ${path.quoted}")

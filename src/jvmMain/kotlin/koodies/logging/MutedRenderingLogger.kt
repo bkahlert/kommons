@@ -3,7 +3,7 @@ package koodies.logging
 /**
  * A logger that can be used if no logging is needed.
  */
-open class MutedRenderingLogger : BlockRenderingLogger("", log = {}) {
+public open class MutedRenderingLogger : BlockRenderingLogger("", log = {}) {
 
     override fun logText(block: () -> CharSequence) {}
     override fun logLine(block: () -> CharSequence) {}

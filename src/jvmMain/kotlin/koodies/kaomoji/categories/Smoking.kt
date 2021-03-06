@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Smoking : Category() {
-    val `౦０o ｡ (‾́。‾́ )y~~` by auto()
+public object Smoking : Category() {
+    public val `౦０o ｡ (‾́。‾́ )y~~`: Kaomoji by auto()
 }

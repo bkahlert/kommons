@@ -2,12 +2,12 @@ package koodies.concurrent.process
 
 import koodies.text.LineSeparators
 
-class ProcessExecutionException(
-    val pid: Long,
-    val commandLine: CommandLine,
-    val exitValue: Int,
-    val expectedExitValue: Int,
-    val additionalInformation: String? = null,
+public class ProcessExecutionException(
+    public val pid: Long,
+    public val commandLine: CommandLine,
+    public val exitValue: Int,
+    public val expectedExitValue: Int,
+    public val additionalInformation: String? = null,
     cause: Throwable? = null,
 ) : Exception(
     StringBuilder("Process $pid terminated with exit code $exitValue. Expected $expectedExitValue.").apply {
@@ -17,7 +17,7 @@ class ProcessExecutionException(
     }.toString(),
     cause
 ) {
-    fun withCause(cause: Throwable?) =
+    public fun withCause(cause: Throwable?): ProcessExecutionException =
         ProcessExecutionException(
             pid,
             commandLine,

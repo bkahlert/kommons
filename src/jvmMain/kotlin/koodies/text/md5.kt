@@ -3,5 +3,5 @@ package koodies.text
 
 import java.security.MessageDigest
 
-val CharSequence.md5: String
+public val CharSequence.md5: String
     get() = MessageDigest.getInstance("MD5").digest(toString().toByteArray()).joinToString("") { byte -> "%02x".format(byte) }

@@ -26,7 +26,7 @@ internal fun Path.isScriptFile(): Boolean = name.startsWith(shellScriptPrefix) &
 /**
  * Builds a shell script that runs this command line.
  */
-fun CommandLine.toShellScript(): ShellScript =
+public fun CommandLine.toShellScript(): ShellScript =
     ShellScript().apply {
         shebang
         changeDirectoryOrExit(directory = workingDirectory)
@@ -37,7 +37,7 @@ fun CommandLine.toShellScript(): ShellScript =
  * Saves a shell script to a temporary `.sh` file
  * that runs this command line.
  */
-fun CommandLine.toShellScriptFile(): Path =
+public fun CommandLine.toShellScriptFile(): Path =
     toShellScript().buildTo(workingDirectory.scriptPath())
 
 /* ALL SCRIPT METHODS BELOW ALWAYS START THE PROCESS AND AND PROCESS IT SYNCHRONOUSLY */
@@ -53,7 +53,7 @@ fun CommandLine.toShellScriptFile(): Path =
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.script(
+public fun Path.script(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
@@ -76,7 +76,7 @@ fun Path.script(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun script(
+public fun script(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
@@ -96,7 +96,7 @@ fun script(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.script(
+public fun Path.script(
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
@@ -115,7 +115,7 @@ fun Path.script(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun script(
+public fun script(
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
@@ -135,7 +135,7 @@ fun script(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun Path.script(
+public fun Path.script(
     logger: RenderingLogger?,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
@@ -160,7 +160,7 @@ fun Path.script(
  * termination and before other [ManagedProcess.onExit] registered listeners
  * get called.
  */
-fun script(
+public fun script(
     logger: RenderingLogger?,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
@@ -179,5 +179,5 @@ fun script(
  * contains the specified [substring] (case-**in**sensitive by default,
  * that is ignoring the case).
  */
-fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean =
+public fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean =
     script(Processors.noopProcessor()) { !command }.output().contains(substring, ignoreCase = !caseSensitive)

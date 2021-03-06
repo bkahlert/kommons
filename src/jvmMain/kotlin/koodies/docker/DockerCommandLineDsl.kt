@@ -1,4 +1,4 @@
 package koodies.docker
 
 @DslMarker
-annotation class DockerCommandLineDsl
+public annotation class DockerCommandLineDsl

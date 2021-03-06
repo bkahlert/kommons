@@ -8,7 +8,7 @@ import java.nio.file.attribute.FileTime
 /**
  * This path's last accessed time.
  */
-var Path.lastAccessed: FileTime
+public var Path.lastAccessed: FileTime
     get() = Files.getFileAttributeView(this, BasicFileAttributeView::class.java).readAttributes().lastAccessTime()
     set(fileTime) {
         Files.setAttribute(this, "basic:lastAccessTime", fileTime)

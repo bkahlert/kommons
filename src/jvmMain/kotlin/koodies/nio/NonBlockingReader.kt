@@ -31,7 +31,7 @@ import kotlin.time.seconds
  * [LineSeparators] will also be read by [readLine], [readLines] and usual
  * helper functions.
  */
-class NonBlockingReader(
+public class NonBlockingReader(
     inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
     private val logger: RenderingLogger = MutedRenderingLogger(),
@@ -124,7 +124,7 @@ class NonBlockingReader(
      * for the next attempt. The unfinished line will be completed until a line separator
      * or EOF was encountered.
      */
-    fun forEachLine(block: (String) -> Unit): String = logger.compactLogging(NonBlockingReader::class.simpleName + "." + ::forEachLine.name + "()") {
+    public fun forEachLine(block: (String) -> Unit): String = logger.compactLogging(NonBlockingReader::class.simpleName + "." + ::forEachLine.name + "()") {
         var lineCount = 0
         while (true) {
             val readLine: String? = readLine()

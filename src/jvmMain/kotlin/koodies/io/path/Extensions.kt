@@ -6,20 +6,20 @@ import java.nio.file.Path
 import kotlin.io.path.extension
 
 
-class Extensions(private val path: Path) : List<String> by path.fileNameParts.drop(1) {
+public class Extensions(private val path: Path) : List<String> by path.fileNameParts.drop(1) {
 
-    fun add(extensions: String, vararg more: String): Path {
+    public fun add(extensions: String, vararg more: String): Path {
         val normalized = normalizedExtensionString(extensions, *more)
         return path.resolveSibling(path.fileName.asString() + normalized)
     }
 
-    fun remove(extensions: String, vararg more: String): Path {
+    public fun remove(extensions: String, vararg more: String): Path {
         val normalized = normalizedExtensionString(extensions, *more)
         require(path.fileName.asString().endsWith(normalized))
         return path.resolveSibling(path.fileName.asString().withoutSuffix(normalized))
     }
 
-    fun hasExtension(extensions: String, vararg more: String): Boolean {
+    public fun hasExtension(extensions: String, vararg more: String): Boolean {
         val normalized = normalizedExtensionString(extensions, *more)
         return path.fileName.asString().endsWith(normalized)
     }
@@ -52,7 +52,7 @@ private val Path.fileBaseName: String get() = fileNameParts.head
  *
  * @see [basePath]
  */
-val Path.baseName: Path
+public val Path.baseName: Path
     get() = fileName.basePath
 
 /**
@@ -61,7 +61,7 @@ val Path.baseName: Path
  *
  * @see [baseName]
  */
-val Path.basePath: Path
+public val Path.basePath: Path
     get() {
         return fileName.extensionIndex.let { extensionIndex ->
             if (extensionIndex >= 0) resolveSibling(fileName.asString().take(extensionIndex))
@@ -74,7 +74,7 @@ val Path.basePath: Path
  * Contains the position of the period `.` separating the extension from this
  * [asString] path.
  */
-val Path.extensionIndex
+public val Path.extensionIndex: Int
     get() = asString().lastIndexOf(".").takeIf { fileName.asString().contains(".") } ?: -1
 
 /**
@@ -83,13 +83,13 @@ val Path.extensionIndex
  *
  * If no extension is present, `null` is returned.
  */
-val Path.extensionOrNull: String?
+public val Path.extensionOrNull: String?
     get() = extension.takeUnless { it.isBlank() }
 
-val Path.extensions: Extensions
+public val Path.extensions: Extensions
     get() = Extensions(this)
 
-fun Path.addExtensions(extensions: String, vararg more: String): Path =
+public fun Path.addExtensions(extensions: String, vararg more: String): Path =
     this.extensions.add(extensions, *more)
 
 /**
@@ -99,21 +99,21 @@ fun Path.addExtensions(extensions: String, vararg more: String): Path =
  *
  * That is, `.ext`, `ext`, `.EXT` and `EXT` are all treated the same way.
  */
-fun Path.hasExtensions(extensions: String, vararg more: String): Boolean =
+public fun Path.hasExtensions(extensions: String, vararg more: String): Boolean =
     this.extensions.hasExtension(extensions, *more)
 
 /**
  * Returns this [Path] with a replaced [extension].
  * If no extension is present, it will be added.
  */
-fun Path.withExtension(extension: String): Path =
+public fun Path.withExtension(extension: String): Path =
     resolveSibling(fileNameWithExtension(extension))
 
 /**
  * Returns the name of the file described by this [Path] with a replaced [extension].
  * If no extension is present, it will be added.
  */
-fun Path.fileNameWithExtension(extension: String): String = "$baseName.$extension"
+public fun Path.fileNameWithExtension(extension: String): String = "$baseName.$extension"
 
 /**
  * Removes [extensionOrNull] from this [Path].
@@ -122,5 +122,5 @@ fun Path.fileNameWithExtension(extension: String): String = "$baseName.$extensio
  *
  * @throws IllegalArgumentException if the [extensionOrNull] to be removed is not present
  */
-fun Path.removeExtensions(extensions: String, vararg more: String): Path =
+public fun Path.removeExtensions(extensions: String, vararg more: String): Path =
     this.extensions.remove(extensions, *more)

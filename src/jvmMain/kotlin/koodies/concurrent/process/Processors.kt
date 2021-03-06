@@ -20,21 +20,21 @@ import org.jline.utils.InputStreamReader as JlineInputStreamReader
 /**
  * A function that processes the [IO] of a [Process].
  */
-typealias Processor<P> = P.(IO) -> Unit
+public typealias Processor<P> = P.(IO) -> Unit
 
 /**
  * All about processing processes.
  */
-object Processors {
+public object Processors {
     /**
      * Thread pool used for processing the [IO] of [Process].
      */
-    var ioProcessingThreadPool: ExecutorService = Executors.newCachedThreadPool()
+    public var ioProcessingThreadPool: ExecutorService = Executors.newCachedThreadPool()
 
     /**
      * A [Processor] that prints the encountered [IO] using the specified [logger].
      */
-    fun <P : Process> loggingProcessor(logger: RenderingLogger): Processor<P> = { io ->
+    public fun <P : Process> loggingProcessor(logger: RenderingLogger): Processor<P> = { io ->
         when (io.type) {
             IO.Type.META -> logger.logLine { io }
             IO.Type.IN -> logger.logLine { io }
@@ -46,7 +46,7 @@ object Processors {
     /**
      * A [Processor] that prints all [IO] to the console.
      */
-    fun <P : Process> consoleLoggingProcessor(): Processor<P> {
+    public fun <P : Process> consoleLoggingProcessor(): Processor<P> {
         return object : (P, IO) -> Unit {
             private lateinit var process: P
             private val logger by lazy { BlockRenderingLogger(process.toString()) }
@@ -64,7 +64,7 @@ object Processors {
      * This processor is suited if the process's input and output streams
      * should just be completely consumed—with the side effect of getting logged.
      */
-    fun <P : Process> noopProcessor(): Processor<P> = { }
+    public fun <P : Process> noopProcessor(): Processor<P> = { }
 }
 
 /**
@@ -72,14 +72,14 @@ object Processors {
  *
  * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
  */
-fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
+public fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
     this?.let { Processors.loggingProcessor(it) } ?: consoleLoggingProcessor()
 
 /**
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */
-inline fun <reified P : ManagedProcess> P.processSilently(): P =
+public inline fun <reified P : ManagedProcess> P.processSilently(): P =
     process(false, InputStream.nullInputStream(), noopProcessor())
 
 /**
@@ -91,7 +91,7 @@ inline fun <reified P : ManagedProcess> P.processSilently(): P =
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggingProcessor()): P =
+public fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggingProcessor()): P =
     process(true, InputStream.nullInputStream(), processor)
 
 /**
@@ -103,7 +103,7 @@ fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggingProce
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-fun <P : ManagedProcess> P.process(
+public fun <P : ManagedProcess> P.process(
     nonBlockingReader: Boolean,
     processInputStream: InputStream = InputStream.nullInputStream(),
     processor: Processor<P> = noopProcessor(),
@@ -149,7 +149,7 @@ fun <P : ManagedProcess> P.process(
  * If no [processor] is specified a [Processors.consoleLoggingProcessor] prints
  * all [IO] to the console.
  */
-fun <P : ManagedProcess> P.processSynchronously(
+public fun <P : ManagedProcess> P.processSynchronously(
     processor: Processor<P> = consoleLoggingProcessor(),
 ): P = apply {
     val metaAndInputIO = mutableListOf<IO>()

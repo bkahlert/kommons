@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Celebrities : Category() {
-    val `⪿ ↂ ˒̫̮ ↂ ⫀` by auto() // Elton John
+public object Celebrities : Category() {
+    public val `⪿ ↂ ˒̫̮ ↂ ⫀`: Kaomoji by auto() // Elton John
 }

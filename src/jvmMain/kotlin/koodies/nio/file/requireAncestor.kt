@@ -9,7 +9,7 @@ import java.nio.file.Path
  *
  * @see [ancestor]
  */
-fun Path.requireAncestor(order: Int): Path {
+public fun Path.requireAncestor(order: Int): Path {
     require(order >= 0) { "The ancestor order $order must not be negative." }
     return ancestor(order) ?: throw IllegalArgumentException("No ancestor of order $order")
 }

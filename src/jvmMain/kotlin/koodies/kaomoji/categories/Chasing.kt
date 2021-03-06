@@ -13,9 +13,10 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Chasing : Category() {
-    val `(○｀д´)ﾉｼ Σ(っﾟДﾟ)っ` by auto()
-    val `☎Σ⊂⊂(☉ω☉∩)` by auto()
+public object Chasing : Category() {
+    public val `(○｀д´)ﾉｼ Σ(っﾟДﾟ)っ`: Kaomoji by auto()
+    public val `☎Σ⊂⊂(☉ω☉∩)`: Kaomoji by auto()
 }
 

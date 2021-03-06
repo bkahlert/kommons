@@ -13,9 +13,10 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Why : Category() {
-    val `щ（ﾟДﾟщ` by auto()
-    val `щ(ಠ益ಠщ)` by auto()
-    val `щ(ಥДಥщ)` by auto()
+public object Why : Category() {
+    public val `щ（ﾟДﾟщ`: Kaomoji by auto()
+    public val `щ(ಠ益ಠщ)`: Kaomoji by auto()
+    public val `щ(ಥДಥщ)`: Kaomoji by auto()
 }

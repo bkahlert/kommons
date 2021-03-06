@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Writing : Category() {
-    val `( ￣ー￣)φ__` by auto()
+public object Writing : Category() {
+    public val `( ￣ー￣)φ__`: Kaomoji by auto()
 }

@@ -17,8 +17,11 @@ import koodies.concurrent.script
 import koodies.concurrent.scriptOutputContains
 import koodies.concurrent.toManagedProcess
 import koodies.docker.DockerImage.ImageContext
+import koodies.docker.DockerRemoveCommandLine.Companion.RemoveContext
 import koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext
 import koodies.docker.DockerRunCommandLineOptions.Companion.OptionsContext
+import koodies.docker.DockerStartCommandLine.Companion.StartContext
+import koodies.docker.DockerStopCommandLine.Companion.StopContext
 import koodies.provideDelegate
 import koodies.text.LineSeparators.lines
 import java.nio.file.Path
@@ -59,22 +62,23 @@ public object Docker {
     /**
      * Builds a [DockerStartCommandLine].
      */
-    public val start by DockerStartCommandLine
+    public val start: (Init<StartContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */) -> DockerStartCommandLine by DockerStartCommandLine
 
     /**
      * Builds a [DockerRunCommandLine].
      */
-    public val run by DockerRunCommandLine
+    public val
+        run: (Init<DockerRunCommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */) -> DockerRunCommandLine by DockerRunCommandLine
 
     /**
      * Builds a [DockerStopCommandLine].
      */
-    public val stop by DockerStopCommandLine
+    public val stop: (Init<StopContext> /* = koodies.docker.DockerStopCommandLine.Companion.StopContext.() -> kotlin.Unit */) -> DockerStopCommandLine by DockerStopCommandLine
 
     /**
      * Builds a [DockerRemoveCommandLine].
      */
-    public val remove by DockerRemoveCommandLine
+    public val remove: (Init<RemoveContext> /* = koodies.docker.DockerRemoveCommandLine.Companion.RemoveContext.() -> kotlin.Unit */) -> DockerRemoveCommandLine by DockerRemoveCommandLine
 
     /**
      * Micro DSL to build a [DockerImage] in the style of:
@@ -96,13 +100,13 @@ public object Docker {
         CommandLine(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun commandLine(image: DockerImage, options: DockerRunCommandLineOptions, commandLine: CommandLine) =
+    public fun commandLine(image: DockerImage, options: DockerRunCommandLineOptions, commandLine: CommandLine): DockerRunCommandLine =
         DockerRunCommandLine(image, options, commandLine)
 
     /**
      * Explicitly stops the Docker container with the given [name] **asynchronously**.
      */
-    public fun stop(name: String) = stop { containers { +name } }.fireAndForget(expectedExitValue = null)
+    public fun stop(name: String): Unit = stop { containers { +name } }.fireAndForget(expectedExitValue = null)
 
     /**
      * Explicitly (stops and) removes the Docker container with the given [name] **synchronously**.

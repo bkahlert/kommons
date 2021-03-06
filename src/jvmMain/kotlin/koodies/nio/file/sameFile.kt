@@ -11,4 +11,4 @@ import java.nio.file.Path
  * at the same place with as few assumptions about the OS
  * as possible.
  */
-fun sameFile(name: String): Path = Temp.resolve(name)
+public fun sameFile(name: String): Path = Temp.resolve(name)

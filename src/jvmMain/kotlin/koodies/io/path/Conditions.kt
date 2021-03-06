@@ -13,7 +13,7 @@ import kotlin.io.path.listDirectoryEntries
  *
  * @throws IllegalArgumentException if this is neither a file nor a directory
  */
-val Path.isEmpty: Boolean
+public val Path.isEmpty: Boolean
     get() {
         requireExists()
         return when {
@@ -30,7 +30,7 @@ val Path.isEmpty: Boolean
  *
  * @throws IllegalArgumentException if this is neither a file nor a directory
  */
-val Path.isNotEmpty: Boolean
+public val Path.isNotEmpty: Boolean
     get() {
         requireExists()
         return when {

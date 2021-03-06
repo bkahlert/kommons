@@ -3,7 +3,7 @@ package koodies.io
 import java.io.InputStream
 import java.io.OutputStream
 
-open class TeeInputStream @JvmOverloads constructor(
+public open class TeeInputStream @JvmOverloads constructor(
     input: InputStream?,
     private val branch: OutputStream,
     private val closeBranch: Boolean = false,

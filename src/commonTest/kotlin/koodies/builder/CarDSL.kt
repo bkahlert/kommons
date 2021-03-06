@@ -76,7 +76,7 @@ class CarDSL {
     }
 
 
-    inline class EnginePower(val watts: BigDecimal) {
+    data class EnginePower(val watts: BigDecimal) {
         companion object : Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
             object EnginePowerContext {
                 val Int.kW: EnginePower get() = kilo.W
@@ -87,7 +87,7 @@ class CarDSL {
         override fun toString(): String = "${watts.doubleValue() / 1000.0}kW"
     }
 
-    inline class Distance(val meter: BigDecimal) {
+    data class Distance(val meter: BigDecimal) {
         companion object : Returning<DistanceContext, Distance>(DistanceContext) {
             object DistanceContext {
                 val Int.mm: Distance get() = milli.m

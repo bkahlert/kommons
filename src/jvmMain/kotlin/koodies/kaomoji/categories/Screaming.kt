@@ -13,10 +13,11 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Screaming : Category() {
-    val `ヽ(๏∀๏ )ﾉ` by auto()
-    val `ヽ(｀Д´)ﾉ` by auto()
-    val `ヽ(ｏ`皿′ｏ)ﾉ` by auto("ヽ(ｏ`皿′ｏ)ﾉ")
-    val `ヽ(`Д´)ﾉ` by auto("ヽ(`Д´)ﾉ")
+public object Screaming : Category() {
+    public val `ヽ(๏∀๏ )ﾉ`: Kaomoji by auto()
+    public val `ヽ(｀Д´)ﾉ`: Kaomoji by auto()
+    public val `ヽ(ｏ`皿′ｏ)ﾉ`: Kaomoji by auto("ヽ(ｏ`皿′ｏ)ﾉ")
+    public val `ヽ(`Д´)ﾉ`: Kaomoji by auto("ヽ(`Д´)ﾉ")
 }

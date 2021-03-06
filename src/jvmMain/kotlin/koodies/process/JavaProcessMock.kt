@@ -34,11 +34,11 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 import java.lang.Process as JavaProcess
 
-open class JavaProcessMock(
+public open class JavaProcessMock(
     private var outputStream: OutputStream = ByteArrayOutputStream(),
     private val inputStream: InputStream = InputStream.nullInputStream(),
     private val processExit: JavaProcessMock.() -> ProcessExitMock,
-    var logger: RenderingLogger,
+    public var logger: RenderingLogger,
 ) : JavaProcess() {
 
     private val completeOutputSequence = ByteArrayOutputStream()
@@ -50,14 +50,14 @@ open class JavaProcessMock(
         }
     }
 
-    companion object {
-        fun InMemoryLogger.processMock(
+    public companion object {
+        public fun InMemoryLogger.processMock(
             outputStream: OutputStream = ByteArrayOutputStream(),
             inputStream: InputStream = InputStream.nullInputStream(),
             processExit: JavaProcessMock.() -> ProcessExitMock,
-        ) = JavaProcessMock(outputStream, inputStream, processExit, this)
+        ): JavaProcessMock = JavaProcessMock(outputStream, inputStream, processExit, this)
 
-        fun InMemoryLogger.withSlowInput(
+        public fun InMemoryLogger.withSlowInput(
             vararg inputs: String,
             baseDelayPerInput: Duration = 1.seconds,
             echoInput: Boolean,
@@ -77,7 +77,7 @@ open class JavaProcessMock(
             )
         }
 
-        fun InMemoryLogger.withIndividuallySlowInput(
+        public fun InMemoryLogger.withIndividuallySlowInput(
             vararg inputs: Pair<Duration, String>,
             echoInput: Boolean,
             baseDelayPerInput: Duration = 1.seconds,
@@ -125,16 +125,16 @@ open class JavaProcessMock(
         }
     }
 
-    fun start(name: String? = null): ManagedProcessMock = ManagedProcessMock(this, name)
+    public fun start(name: String? = null): ManagedProcessMock = ManagedProcessMock(this, name)
 
     override fun destroy(): Unit = logger.miniTrace(::destroy) { }
 
-    val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
+    public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
 }
 
-class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : DelegatingProcess({ processMock }), ManagedProcess {
+public class ManagedProcessMock(public val processMock: JavaProcessMock, public val name: String?) : DelegatingProcess({ processMock }), ManagedProcess {
 
-    var logger: RenderingLogger = processMock.logger
+    public var logger: RenderingLogger = processMock.logger
 
     override fun start(): ManagedProcessMock {
         super.start()
@@ -148,7 +148,7 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
                 // ugly hack; META logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
                 // therefore we delay here
-                1.milliseconds.sleep { ioLog.add(IO.Type.META, it) }
+                1.milliseconds.sleep { ioLog.add(META, it) }
             },
             RedirectingOutputStream { inputCallback(META typed it.decodeToString()) },
         )
@@ -180,14 +180,14 @@ class ManagedProcessMock(val processMock: JavaProcessMock, val name: String?) : 
 }
 
 
-class SlowInputStream(
-    val baseDelayPerInput: Duration,
-    val byteArrayOutputStream: ByteArrayOutputStream? = null,
-    val echoInput: Boolean = false,
-    var logger: BlockRenderingLogger?,
+public class SlowInputStream(
+    public val baseDelayPerInput: Duration,
+    public val byteArrayOutputStream: ByteArrayOutputStream? = null,
+    public val echoInput: Boolean = false,
+    public var logger: BlockRenderingLogger?,
     vararg inputs: Pair<Duration, String>,
 ) : InputStream() {
-    constructor(
+    public constructor(
         inputs: List<String>,
         baseDelayPerInput: Duration,
         byteArrayOutputStream: ByteArrayOutputStream? = null,
@@ -201,36 +201,37 @@ class SlowInputStream(
         inputs = inputs.map { Duration.ZERO to it }.toTypedArray(),
     )
 
-    companion object {
-        fun prompt(): Pair<Duration, String> = Duration.INFINITE to ""
-        fun InMemoryLogger.slowInputStream(
+    public companion object {
+        public fun prompt(): Pair<Duration, String> = Duration.INFINITE to ""
+        public fun InMemoryLogger.slowInputStream(
             baseDelayPerInput: Duration,
             vararg inputs: Pair<Duration, String>,
             byteArrayOutputStream: ByteArrayOutputStream? = null,
             echoInput: Boolean = false,
-        ) = SlowInputStream(baseDelayPerInput, byteArrayOutputStream, echoInput, this, inputs = inputs)
+        ): SlowInputStream = SlowInputStream(baseDelayPerInput, byteArrayOutputStream, echoInput, this, inputs = inputs)
 
-        fun InMemoryLogger.slowInputStream(
+        public fun InMemoryLogger.slowInputStream(
             baseDelayPerInput: Duration,
             vararg inputs: String,
             byteArrayOutputStream: ByteArrayOutputStream? = null,
             echoInput: Boolean = false,
-        ) = SlowInputStream(baseDelayPerInput, byteArrayOutputStream, echoInput, this, inputs = inputs.map { Duration.ZERO to it }.toTypedArray())
+        ): SlowInputStream =
+            SlowInputStream(baseDelayPerInput, byteArrayOutputStream, echoInput, this, inputs = inputs.map { Duration.ZERO to it }.toTypedArray())
     }
 
-    val terminated: Boolean get() = unreadCount == 0 || !processAlive
+    public val terminated: Boolean get() = unreadCount == 0 || !processAlive
     private var closed = false
     private var processAlive: Boolean = true
     private var blockUntil: Long = System.currentTimeMillis()
     private val unread: MutableList<Pair<Duration, MutableList<Byte>>> =
         inputs.map { it.first to it.second.toByteArray().toMutableList() }.toMutableList()
-    val unreadCount: Int get() = unread.map { it.second.size }.sum()
+    public val unreadCount: Int get() = unread.map { it.second.size }.sum()
     private val originalCountLength = "$unreadCount".length
     private val blockedByPrompt get() = unread.isNotEmpty() && unread.first().first == Duration.INFINITE
     private val Int.padded get() = this.toString().padStart(originalCountLength)
 
     private val inputs = mutableListOf<String>()
-    fun processInput(logger: MiniTracer?): Boolean = logger.microTrace(Grapheme("✏️")) {
+    public fun processInput(logger: MiniTracer?): Boolean = logger.microTrace(Grapheme("✏️")) {
         byteArrayOutputStream?.apply {
             toString(Charsets.UTF_8).takeUnless { it.isEmpty() }?.let { newInput ->
                 inputs.add(newInput)
@@ -372,7 +373,7 @@ class SlowInputStream(
         }
     }
 
-    fun input(text: String): Unit = logger.miniTrace(::input) {
+    public fun input(text: String): Unit = logger.miniTrace(::input) {
         if (handleAndReturnBlockingState()) {
             trace("Input received: $text")
             unread.removeFirst()

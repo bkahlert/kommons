@@ -21,7 +21,7 @@ import kotlin.properties.ReadOnlyProperty
  * The context [ClassLoader] is provided by the creator of the [Thread] for use
  * by code running in this thread when loading classes and resources.
  */
-val ContextClassLoader: ClassLoader get() = Thread.currentThread().contextClassLoader
+public val ContextClassLoader: ClassLoader get() = Thread.currentThread().contextClassLoader
 
 /**
  * Gets the class path resources, the specified [path] points to and applies [transform] to each.
@@ -33,7 +33,7 @@ val ContextClassLoader: ClassLoader get() = Thread.currentThread().contextClassL
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
  */
-inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
+public inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
     return ContextClassLoader.getResources(normalizedPath).asSequence().map { url ->
         url.toMappedPath { classPath -> classPath.asReadOnly().transform() }
@@ -53,7 +53,7 @@ inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.(
  * >java.nio.file.Path for a classpath resource</a>
  * @see useClassPaths
  */
-inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
+public inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
     return ContextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
 }
@@ -65,7 +65,7 @@ inline fun <reified T> useClassPath(path: String, crossinline transform: Path.()
  *
  * @see useClassPath
  */
-inline fun <reified T> useRequiredClassPath(path: String, crossinline transform: Path.() -> T): T =
+public inline fun <reified T> useRequiredClassPath(path: String, crossinline transform: Path.() -> T): T =
     useClassPath(path, transform) ?: throw noSuchFile(path)
 
 /**
@@ -73,7 +73,7 @@ inline fun <reified T> useRequiredClassPath(path: String, crossinline transform:
  * an operation is executed. Should a [FileSystem] need to be loaded this
  * will be done transparently as it will be closed afterwards.
  */
-fun classPath(path: String): ReadOnlyProperty<Any?, Path> = ReadOnlyProperty<Any?, Path> { _, _ -> DelegatingPath(path) }
+public fun classPath(path: String): ReadOnlyProperty<Any?, Path> = ReadOnlyProperty<Any?, Path> { _, _ -> DelegatingPath(path) }
 
 private inline class DelegatingPath(inline val path: String) : WrappedPath, Path {
 

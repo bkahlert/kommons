@@ -19,7 +19,7 @@ import kotlin.time.Duration
  * **Important:** This operation does not work for date types like [LocalDate], [YearMonth] or [Year]
  * as they they don't differ in [Duration] but in [Period].
  */
-inline operator fun <reified T : Temporal> T.minus(duration: Duration): T {
+public inline operator fun <reified T : Temporal> T.minus(duration: Duration): T {
     return duration.toComponents { days, hours, minutes, seconds, nanoseconds ->
         sequenceOf(
             ofDays(days.toLong()),
@@ -38,5 +38,5 @@ inline operator fun <reified T : Temporal> T.minus(duration: Duration): T {
 /**
  * Returns this file time with with the specified [duration] subtracted.
  */
-operator fun FileTime.minus(duration: Duration): FileTime =
+public operator fun FileTime.minus(duration: Duration): FileTime =
     FileTime.from(toInstant().minus(duration))

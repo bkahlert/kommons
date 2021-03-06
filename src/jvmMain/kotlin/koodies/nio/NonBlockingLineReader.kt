@@ -1,6 +1,7 @@
 package koodies.nio
 
 import koodies.io.ByteArrayOutputStream
+import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -12,7 +13,7 @@ import java.io.InputStream
  * and calls the specified [lineProcessor] whenever a line of text was successfully
  * read. That is, a sequence of bytes ending with one of the known [LineSeparators].
  */
-open class NonBlockingLineReader(
+public open class NonBlockingLineReader(
     inputStream: InputStream,
     private val lineBuffer: ByteArrayOutputStream = ByteArrayOutputStream(),
     private val lineProcessor: (String) -> Unit,

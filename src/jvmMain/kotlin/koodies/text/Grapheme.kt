@@ -19,45 +19,45 @@ import java.util.Objects
  * Graphemes are actually the smallest distinctive unit in a writing system
  * and consist of 1 or more instances of [CodePoint].
  */
-inline class Grapheme(val codePoints: List<CodePoint>) {
+public inline class Grapheme(public val codePoints: List<CodePoint>) {
 
-    constructor(charSequence: CharSequence) : this(
+    public constructor(charSequence: CharSequence) : this(
         charSequence.asCodePointSequence().toList()
             .also { require(count(charSequence) == 1) { "$it does not represent a single grapheme" } })
 
-    val isWhitespace: Boolean get() = codePoints.size == 1 && codePoints[0].isWhitespace
-    val isAlphanumeric: Boolean get() = codePoints.size == 1 && codePoints[0].isAlphanumeric
+    public val isWhitespace: Boolean get() = codePoints.size == 1 && codePoints[0].isWhitespace
+    public val isAlphanumeric: Boolean get() = codePoints.size == 1 && codePoints[0].isAlphanumeric
 
     /**
      * Contains the character pointed to and represented by a [String].
      */
-    val asString: String get() = codePoints.joinToString("") { it.string }
+    public val asString: String get() = codePoints.joinToString("") { it.string }
 
     override fun toString(): String = asString
 
-    companion object {
+    public companion object {
         /**
          * `true` if these [Char] instances represent a *single* grapheme.
          */
-        fun isGrapheme(chars: CharSequence) = chars.let {
+        public fun isGrapheme(chars: CharSequence): Boolean = chars.let {
             it.asGraphemeSequence().drop(1).firstOrNull() == null
         }
 
-        fun count(emoji: Emoji): Int = count("$emoji")
-        fun count(string: CharSequence): Int = count("$string")
-        fun count(string: String): Int = parseToResults(string).size
+        public fun count(emoji: Emoji): Int = count("$emoji")
+        public fun count(string: CharSequence): Int = count("$string")
+        public fun count(string: String): Int = parseToResults(string).size
 
-        fun <T : CharSequence> T.getGrapheme(index: Int): String =
+        public fun <T : CharSequence> T.getGrapheme(index: Int): String =
             asGraphemeSequence().drop(index).firstOrNull()?.asString ?: throw StringIndexOutOfBoundsException()
 
-        fun <T : CharSequence> T.getGraphemeCount(): Int = count(this)
+        public fun <T : CharSequence> T.getGraphemeCount(): Int = count(this)
 
-        fun CharSequence.asGraphemeSequence(): Sequence<Grapheme> = parseToSequence(toString())
+        public fun CharSequence.asGraphemeSequence(): Sequence<Grapheme> = parseToSequence(toString())
 
-        fun toGraphemeList(string: String): List<Grapheme> =
+        public fun toGraphemeList(string: String): List<Grapheme> =
             parseToResults(string).map { Grapheme(string.subSequence(it.stringOffset, it.stringOffset + it.stringLength)) }
 
-        fun parseToSequence(string: String): Sequence<Grapheme> = object : Sequence<Grapheme> {
+        public fun parseToSequence(string: String): Sequence<Grapheme> = object : Sequence<Grapheme> {
             override fun iterator(): Iterator<Grapheme> = object : AbstractIterator<Grapheme>() {
                 var offset: Int = 0
                 override fun computeNext() =
@@ -168,4 +168,4 @@ inline class Grapheme(val codePoints: List<CodePoint>) {
     }
 }
 
-val Now.grapheme: Grapheme get() = Grapheme(emoji)
+public val Now.grapheme: Grapheme get() = Grapheme(emoji)

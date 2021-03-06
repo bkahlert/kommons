@@ -3,7 +3,7 @@ package koodies.kaomoji
 import koodies.text.Grapheme
 import kotlin.properties.PropertyDelegateProvider
 
-open class Category : AbstractList<Kaomojis.Kaomoji>() {
+public open class Category : AbstractList<Kaomojis.Kaomoji>() {
     private val _list = mutableListOf<Kaomojis.Kaomoji>()
 
     override val size: Int get() = _list.size
@@ -15,7 +15,7 @@ open class Category : AbstractList<Kaomojis.Kaomoji>() {
      * If the kaomoji contains illegal characters [kaomoji] can be used to specify the correct one
      * while using a similar kaomoji with only legal characters as the property name itself.
      */
-    fun auto(kaomoji: String? = null): PropertyDelegateProvider<Category, Kaomojis.Kaomoji> =
+    public fun auto(kaomoji: String? = null): PropertyDelegateProvider<Category, Kaomojis.Kaomoji> =
         PropertyDelegateProvider { category, property ->
             val template = kaomoji ?: property.name
             val parts = Grapheme.toGraphemeList(template).toMutableList()

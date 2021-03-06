@@ -22,7 +22,7 @@ import kotlin.math.floor
  * bar baz
  * ```
  */
-fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLength: Int = 0): List<String> {
+public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLength: Int = 0): List<String> {
     val trimmed = map { it.trim() }
     val maxLength = trimmed.maxLength()
     val finalLength = maxLength.coerceAtLeast(minLength)
@@ -48,5 +48,5 @@ fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLength: In
  * bar baz
  * ```
  */
-fun <T : CharSequence> T.center(whitespace: Char = NBSP, minLength: Int = 0): String =
+public fun <T : CharSequence> T.center(whitespace: Char = NBSP, minLength: Int = 0): String =
     lines().center(whitespace, minLength).joinToString("\n")

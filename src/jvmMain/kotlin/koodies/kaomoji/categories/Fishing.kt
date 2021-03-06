@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Fishing : Category() {
-    val `(;`ー´)o／￣￣￣` by auto("(;`ー´)o/￣￣￣")
+public object Fishing : Category() {
+    public val `(;`ー´)o／￣￣￣`: Kaomoji by auto("(;`ー´)o/￣￣￣")
 }

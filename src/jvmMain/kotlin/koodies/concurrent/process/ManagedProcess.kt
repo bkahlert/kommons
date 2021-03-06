@@ -29,9 +29,9 @@ import kotlin.time.milliseconds
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 import java.lang.Process as JavaProcess
 
-interface ManagedProcess : Process {
-    companion object {
-        fun from(
+public interface ManagedProcess : Process {
+    public companion object {
+        public fun from(
             commandLine: CommandLine,
             expectedExitValue: Int? = 0,
             processTerminationCallback: (() -> Unit)? = null,
@@ -41,15 +41,15 @@ interface ManagedProcess : Process {
             processTerminationCallback = processTerminationCallback)
     }
 
-    val ioLog: IOLog
+    public val ioLog: IOLog
 
-    var inputCallback: (IO) -> Unit
+    public var inputCallback: (IO) -> Unit
 
     /**
      * If set, the finalization of the process will be delayed until
      * [externalSync] completes.
      */
-    var externalSync: CompletableFuture<*>
+    public var externalSync: CompletableFuture<*>
 
     override fun start(): ManagedProcess
 }

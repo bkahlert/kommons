@@ -82,7 +82,7 @@ import koodies.text.styling.Borders.SpikedOutward
  *  ◺△△△△△△△△◿
  * ```
  */
-enum class Borders(private val matrix: String) : CharSequence by matrix {
+public enum class Borders(private val matrix: String) : CharSequence by matrix {
 
     /**
      * ```
@@ -220,7 +220,7 @@ enum class Borders(private val matrix: String) : CharSequence by matrix {
  * Centers this [CharSequence] and the specified [padding] and puts a [ansiCode] styled [border] (see [Borders] for predefined one) around it.
  * Furthermore a [margin] can be set to distance the bordered text.
  */
-fun <T : CharSequence> T.wrapWithBorder(
+public fun <T : CharSequence> T.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
@@ -250,17 +250,17 @@ fun <T : CharSequence> T.wrapWithBorder(
  * Centers this list of [CharSequence] and the specified [padding] and puts a [ansiCode] styled [border] (see [Borders] for predefined one) around it.
  * Furthermore a [margin] can be set to distance the bordered text.
  */
-fun <T : CharSequence> Iterable<T>.wrapWithBorder(
+public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
     ansiCode: AnsiCode = AnsiCode(emptyList()),
 ): String = joinLinesToString().wrapWithBorder(border, padding, margin, ansiCode)
 
-class Draw(val text: CharSequence) {
-    val border: Border get() = Border()
+public class Draw(public val text: CharSequence) {
+    public val border: Border get() = Border()
 
-    inner class Border {
+    public inner class Border {
         /**
          * ```
          *  ┌────────┐
@@ -268,7 +268,8 @@ class Draw(val text: CharSequence) {
          *  └────────┘
          * ```
          */
-        fun light(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String = text.wrapWithBorder(Light, padding, margin, ansiCode)
+        public fun light(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+            text.wrapWithBorder(Light, padding, margin, ansiCode)
 
         /**
          * ```
@@ -277,7 +278,8 @@ class Draw(val text: CharSequence) {
          *  ┗━━━━━━━━┛
          * ```
          */
-        fun heavy(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String = text.wrapWithBorder(Heavy, padding, margin, ansiCode)
+        public fun heavy(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+            text.wrapWithBorder(Heavy, padding, margin, ansiCode)
 
         /**
          * ```
@@ -286,7 +288,8 @@ class Draw(val text: CharSequence) {
          *  ██████████
          * ```
          */
-        fun block(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String = text.wrapWithBorder(Block, padding, margin, ansiCode)
+        public fun block(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+            text.wrapWithBorder(Block, padding, margin, ansiCode)
 
         /**
          * ```
@@ -295,7 +298,7 @@ class Draw(val text: CharSequence) {
          *  ╚════════╝
          * ```
          */
-        fun double(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+        public fun double(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
             text.wrapWithBorder(Double, padding, margin, ansiCode)
 
         /**
@@ -305,7 +308,7 @@ class Draw(val text: CharSequence) {
          *  ╰────────╯
          * ```
          */
-        fun rounded(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+        public fun rounded(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
             text.wrapWithBorder(Rounded, padding, margin, ansiCode)
 
         /**
@@ -315,7 +318,7 @@ class Draw(val text: CharSequence) {
          *  └┈┄┄┄┄┄┄┄┘
          * ```
          */
-        fun lightDotted(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+        public fun lightDotted(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
             text.wrapWithBorder(LightDotted, padding, margin, ansiCode)
 
         /**
@@ -325,7 +328,7 @@ class Draw(val text: CharSequence) {
          *  ┗╍╍╍╍╍╍╍╍┛
          * ```
          */
-        fun heavyDotted(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+        public fun heavyDotted(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
             text.wrapWithBorder(HeavyDotted, padding, margin, ansiCode)
 
         /**
@@ -335,7 +338,7 @@ class Draw(val text: CharSequence) {
          *   ▽▽▽▽▽▽▽▽
          * ```
          */
-        fun spikedOutward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+        public fun spikedOutward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
             text.wrapWithBorder(SpikedOutward, padding, margin, ansiCode)
 
 
@@ -346,9 +349,9 @@ class Draw(val text: CharSequence) {
          *  ◺△△△△△△△△◿
          * ```
          */
-        fun spikedInward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
+        public fun spikedInward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
             text.wrapWithBorder(SpikedInward, padding, margin, ansiCode)
     }
 }
 
-val CharSequence.draw: Draw get() = Draw(this.toString())
+public val CharSequence.draw: Draw get() = Draw(this.toString())

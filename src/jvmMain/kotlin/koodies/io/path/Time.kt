@@ -10,7 +10,7 @@ import kotlin.io.path.setLastModifiedTime
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 
-fun Path.touch(): Path {
+public fun Path.touch(): Path {
     require(parent.exists())
     if (exists()) setLastModifiedTime(Now.fileTime)
     else createFile()
@@ -20,7 +20,7 @@ fun Path.touch(): Path {
 /**
  * Contains since when this file was last modified.
  */
-var Path.age: Duration
+public var Path.age: Duration
     get() :Duration = (Now.millis - getLastModifiedTime().toMillis()).milliseconds
     set(value) {
         setLastModifiedTime(FileTime.from(Now.minus(value)))

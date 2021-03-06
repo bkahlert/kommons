@@ -3,15 +3,15 @@ package koodies.logging
 import koodies.terminal.ANSI
 import koodies.text.joinToTruncatedString
 
-interface HasStatus {
+public interface HasStatus {
 
     /**
      * Renders the status.
      */
-    fun renderStatus(): String
+    public fun renderStatus(): String
 }
 
-inline class StringStatus(val status: String) : HasStatus {
+public inline class StringStatus(public val status: String) : HasStatus {
     override fun renderStatus(): String = status
 }
 
@@ -23,7 +23,7 @@ private val fastForwardSymbol = ANSI.termColors.green("◀◀")
 /**
  * Convenience method in cases there is no complex object having a status.
  */
-fun String.asStatus(): HasStatus =
+public fun String.asStatus(): HasStatus =
     object : HasStatus {
         override fun renderStatus() = this@asStatus
     }
@@ -31,12 +31,12 @@ fun String.asStatus(): HasStatus =
 /**
  * Default implementation to render the status of a [List] of [HasStatus] instances.
  */
-fun List<HasStatus>.renderStatus(): String = map { it.renderStatus() }.asStatus()
+public fun List<HasStatus>.renderStatus(): String = map { it.renderStatus() }.asStatus()
 
 /**
  * Default implementation to render the status of a [List] of [HasStatus] instances.
  */
-fun List<String>.asStatus(): String {
+public fun List<String>.asStatus(): String {
     if (size == 0) return pauseSymbol
     return joinToTruncatedString("  $playSymbol ", "$fastForwardSymbol ",
         truncated = "…",

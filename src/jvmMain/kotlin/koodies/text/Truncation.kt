@@ -33,7 +33,7 @@ public fun <T> List<T>.joinToTruncatedString(
     }).toString()
 }
 
-enum class TruncationStrategy(private val implementation: (CharSequence).(Int, CharSequence) -> CharSequence) {
+public enum class TruncationStrategy(private val implementation: (CharSequence).(Int, CharSequence) -> CharSequence) {
     START({ maxLength, marker ->
         "$marker${subSequence(length - (maxLength - marker.length), length)}"
     }),
@@ -48,14 +48,14 @@ enum class TruncationStrategy(private val implementation: (CharSequence).(Int, C
         "${subSequence(0, maxLength - marker.length)}$marker"
     });
 
-    fun truncate(text: CharSequence, maxLength: Int, marker: String = "…"): CharSequence =
+    public fun truncate(text: CharSequence, maxLength: Int, marker: String = "…"): CharSequence =
         if (text.length > maxLength) implementation(text, maxLength, marker) else text
 }
 
 /**
  * Returns the [String] truncated to [maxLength] characters including the [marker].
  */
-fun CharSequence.truncate(maxLength: Int = 15, strategy: TruncationStrategy = TruncationStrategy.END, marker: String = "…"): CharSequence =
+public fun CharSequence.truncate(maxLength: Int = 15, strategy: TruncationStrategy = TruncationStrategy.END, marker: String = "…"): CharSequence =
     strategy.truncate(this, maxLength, marker)
 
 
@@ -66,7 +66,7 @@ fun CharSequence.truncate(maxLength: Int = 15, strategy: TruncationStrategy = Tr
  * (unless [minWhitespaceLength] is set to 0).
  * Therefore the truncated string might not be fully truncated than envisioned.
  */
-fun CharSequence.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0, minWhitespaceLength: Int = 1): String =
+public fun CharSequence.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0, minWhitespaceLength: Int = 1): String =
     toString().truncateBy(numberOfWhitespaces, startIndex, minWhitespaceLength)
 
 /**
@@ -76,7 +76,7 @@ fun CharSequence.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0, minWh
  * (unless [minWhitespaceLength] is set to 0).
  * Therefore the truncated string might not be fully truncated than envisioned.
  */
-fun String.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0, minWhitespaceLength: Int = 1): String =
+public fun String.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0, minWhitespaceLength: Int = 1): String =
     "${truncateTo(length - numberOfWhitespaces, startIndex, minWhitespaceLength)}"
 
 /**
@@ -86,7 +86,7 @@ fun String.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0, minWhitespa
  * (unless [minWhitespaceLength] is set to 0).
  * Therefore the truncated string might not be fully truncated than envisioned.
  */
-fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhitespaceLength: Int = 1): CharSequence {
+public fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhitespaceLength: Int = 1): CharSequence {
     val difference = length - maxLength
     if (difference <= 0) return this
     val trailingWhitespaces = trailingWhitespaces
@@ -96,7 +96,6 @@ fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhitespaceLe
     }
     val regex = Regex("[${Regex.fromLiteral(Unicode.whitespaces.joinToString(""))}]{${minWhitespaceLength + 1},}")
     val longestWhitespace = regex.findAll(this, startIndex).toList().reversed().maxByOrNull { it.value.length } ?: return this
-
     val whitespaceStart = longestWhitespace.range.first
     val truncated = replaceRange(whitespaceStart, whitespaceStart + 2, " ")
     if (truncated.length >= length) return truncated
@@ -106,7 +105,7 @@ fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhitespaceLe
 /**
  * Returns this [CharSequence] truncated to [length] and if necessary padded from the start.
  */
-fun CharSequence.padStartFixedLength(
+public fun CharSequence.padStartFixedLength(
     length: Int = 15,
     strategy: TruncationStrategy = TruncationStrategy.END,
     marker: String = "…",
@@ -117,7 +116,7 @@ fun CharSequence.padStartFixedLength(
 /**
  * Returns this [CharSequence] truncated to [length] and if necessary padded from the end.
  */
-fun CharSequence.padEndFixedLength(
+public fun CharSequence.padEndFixedLength(
     length: Int = 15,
     strategy: TruncationStrategy = TruncationStrategy.END,
     marker: String = "…",

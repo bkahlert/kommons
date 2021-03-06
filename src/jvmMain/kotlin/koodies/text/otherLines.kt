@@ -9,5 +9,5 @@ import koodies.text.LineSeparators.lines
  *
  * @see CharSequence.firstLine
  */
-val CharSequence.otherLines: List<String>
+public val CharSequence.otherLines: List<String>
     get() = lines().tail

@@ -13,8 +13,9 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Rain : Category() {
-    val `｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ` by auto()
-    val `｀ヽ｀((((( ( ⊃・ω・)⊃☂｀(´ω｀u)))ヽ｀、` by auto()
+public object Rain : Category() {
+    public val `｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ`: Kaomoji by auto()
+    public val `｀ヽ｀((((( ( ⊃・ω・)⊃☂｀(´ω｀u)))ヽ｀、`: Kaomoji by auto()
 }

@@ -46,7 +46,7 @@ import koodies.text.styling.Boxes.WIDE_PILLARS
  * █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ PILLARS  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
  * ```
  */
-enum class Boxes(private var render: (String) -> String) {
+public enum class Boxes(private var render: (String) -> String) {
     /**
      * ```
      * ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
@@ -119,7 +119,7 @@ enum class Boxes(private var render: (String) -> String) {
     }),
     ;
 
-    companion object {
+    public companion object {
         private const val sphericalLeft = """  █ ▉▕▊▕▋▕▌▕▍▕▎▕▏ ▏  ▏ """
         private const val sphericalRight = """ ▕  ▕  ▏▕▎▕▍▕▌▕▋▕▊▕▉ █"""
         private const val sphericalMiddleLeft = """█ ▉ ▊ ▋ ▌ ▍ ▎ ▏ """
@@ -128,12 +128,12 @@ enum class Boxes(private var render: (String) -> String) {
         /**
          * Centers this [CharSequence] and puts a styled [box] (see [Boxes]) around it.
          */
-        fun <T : CharSequence> T.wrapWithBox(
+        public fun <T : CharSequence> T.wrapWithBox(
             box: Boxes = SPHERICAL,
         ): String = box(this)
     }
 
-    operator fun invoke(text: CharSequence): String = render("$text")
+    public operator fun invoke(text: CharSequence): String = render("$text")
 
     override fun toString(): String = render(name)
 }

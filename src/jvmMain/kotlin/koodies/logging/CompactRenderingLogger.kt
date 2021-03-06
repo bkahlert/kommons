@@ -5,15 +5,15 @@ import koodies.terminal.AnsiFormats.bold
 import kotlin.properties.Delegates.vetoable
 import kotlin.reflect.KProperty
 
-abstract class CompactRenderingLogger(caption: CharSequence) : RenderingLogger {
+public abstract class CompactRenderingLogger(caption: CharSequence) : RenderingLogger {
     init {
         require(caption.isNotBlank()) { "No blank caption allowed." }
     }
 
-    var strings: List<String>? by vetoable(listOf(caption.bold()),
+    public var strings: List<String>? by vetoable(listOf(caption.bold()),
         onChange = { _: KProperty<*>, oldValue: List<String>?, _: List<String>? -> oldValue != null })
 
-    abstract fun render(block: () -> CharSequence)
+    public abstract fun render(block: () -> CharSequence)
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
         strings = strings?.plus("${block()}")
@@ -42,7 +42,7 @@ abstract class CompactRenderingLogger(caption: CharSequence) : RenderingLogger {
  * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
  */
 @RenderingLoggingDsl
-inline fun <reified R> RenderingLogger?.compactLogging(
+public inline fun <reified R> RenderingLogger?.compactLogging(
     caption: CharSequence,
     noinline block: CompactRenderingLogger.() -> R,
 ): R {
@@ -60,7 +60,7 @@ inline fun <reified R> RenderingLogger?.compactLogging(
  * This logger logs all events using only a couple of characters. If more room is needed [compactLogging] or even [blockLogging] is more suitable.
  */
 @RenderingLoggingDsl
-inline fun <reified R> CompactRenderingLogger.compactLogging(
+public inline fun <reified R> CompactRenderingLogger.compactLogging(
     noinline block: MicroLogger.() -> R,
 ): R = run {
     val logger: MicroLogger = object : MicroLogger() {

@@ -18,10 +18,10 @@ import kotlin.io.path.createFile
 import kotlin.io.path.notExists
 
 @DslMarker
-annotation class ShellScriptMarker
+public annotation class ShellScriptMarker
 
 @ShellScriptMarker
-class ShellScript(val name: String? = null, content: String? = null) : Iterable<String> {
+public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String> {
 
     private val lines: MutableList<String> = mutableListOf()
 
@@ -36,50 +36,50 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
         return lines.toList().iterator()
     }
 
-    val `#!`: Shebang get() = Shebang(lines)
+    public val `#!`: Shebang get() = Shebang(lines)
 
-    val shebang: Shebang get() = Shebang(lines)
+    public val shebang: Shebang get() = Shebang(lines)
 
-    fun changeDirectoryOrExit(directory: Path, @Suppress("UNUSED_PARAMETER") errorCode: Int = -1) {
+    public fun changeDirectoryOrExit(directory: Path, @Suppress("UNUSED_PARAMETER") errorCode: Int = -1) {
         lines.add("cd \"$directory\" || exit -1")
     }
 
-    operator fun String.not() {
+    public operator fun String.not() {
         lines.add(this)
     }
 
     /**
      * Adds the given [words] concatenated with a whitespace to this script.
      */
-    fun line(vararg words: String) {
+    public fun line(vararg words: String) {
         lines.add(words.joinToString(" "))
     }
 
     /**
      * Adds the given [line] to this script.
      */
-    fun line(line: String) {
+    public fun line(line: String) {
         lines.add(line)
     }
 
     /**
      * Adds the given [lines] to this script.
      */
-    fun lines(lines: Iterable<String>) {
+    public fun lines(lines: Iterable<String>) {
         this.lines.addAll(lines)
     }
 
     /**
      * Builds a [command] call using the [arguments].
      */
-    fun command(command: String, vararg arguments: String) {
+    public fun command(command: String, vararg arguments: String) {
         lines.add(listOf(command, *arguments).joinToString(" "))
     }
 
     /**
      * Builds a [command] call.
      */
-    fun command(command: CommandLine) {
+    public fun command(command: CommandLine) {
         lines.addAll(command.lines)
     }
 
@@ -87,15 +87,15 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
      * Initializes a [FileOperations] builder for the file specified by [path] and
      * the optional [init] applied to it.
      */
-    fun file(path: String, init: FileOperations.() -> Unit = {}) = FileOperations(this, path).apply(init)
+    public fun file(path: String, init: FileOperations.() -> Unit = {}): FileOperations = FileOperations(this, path).apply(init)
 
     /**
      * Initializes a [FileOperations] builder for the file specified by [path] and
      * the optional [init] applied to it.
      */
-    fun file(path: Path, init: FileOperations.() -> Unit = {}) = FileOperations(this, path).apply(init)
+    public fun file(path: Path, init: FileOperations.() -> Unit = {}): FileOperations = FileOperations(this, path).apply(init)
 
-    fun embed(shellScript: ShellScript) {
+    public fun embed(shellScript: ShellScript) {
         val baseName = shellScript.name.toBaseName()
         val fileName = "$baseName.sh"
         val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
@@ -120,15 +120,15 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
         ))
     }
 
-    fun exit(code: Int) {
+    public fun exit(code: Int) {
         lines.add("exit $code")
     }
 
-    fun comment(text: String) {
+    public fun comment(text: String) {
         lines += text.prefixLinesWith(prefix = "# ")
     }
 
-    fun sudo(password: String, command: String) {
+    public fun sudo(password: String, command: String) {
         lines += "echo ${password.quoted} | sudo -S $command"
     }
 
@@ -138,11 +138,11 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
      * It's highly recommended to only "self-destruct" as the last
      * command.
      */
-    fun deleteSelf() {
+    public fun deleteSelf() {
         lines += "rm -- \"\$0\""
     }
 
-    fun sanitize(workingDirectory: Path? = null): ShellScript {
+    public fun sanitize(workingDirectory: Path? = null): ShellScript {
         var linesKept = lines.dropWhile { it.isShebang() || it.isBlank() }
         if (workingDirectory != null && linesKept.firstOrNull()?.startsWith("cd ") == true) linesKept = linesKept.drop(1)
         return ShellScript(name = name).apply {
@@ -152,7 +152,7 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
         }
     }
 
-    fun build(name: String? = this.name): String {
+    public fun build(name: String? = this.name): String {
         var echoNameCommandAdded = false
         val echoNameCommand = bannerEchoingCommand(name)
         val script = lines.joinToString("") { line ->
@@ -166,7 +166,7 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
         return if (echoNameCommandAdded) script else echoNameCommand + script
     }
 
-    fun buildTo(path: Path): Path = path.apply {
+    public fun buildTo(path: Path): Path = path.apply {
         if (path.notExists()) path.withDirectoriesCreated().createFile()
         writeText(build())
         executable = true
@@ -191,14 +191,14 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
         return result
     }
 
-    companion object {
+    public companion object {
         /**
          * Builds and returns an actual instance.
          */
-        fun (ShellScript.() -> Unit).build(name: String? = null): ShellScript =
+        public fun (ShellScript.() -> Unit).build(name: String? = null): ShellScript =
             ShellScript(name = name).apply(this)
 
-        operator fun invoke(name: String? = null, block: ShellScript.() -> Unit): ShellScript {
+        public operator fun invoke(name: String? = null, block: ShellScript.() -> Unit): ShellScript {
             val build = block.build()
             val content = build.build()
             return ShellScript(name, content)
@@ -209,6 +209,6 @@ class ShellScript(val name: String? = null, content: String? = null) : Iterable<
          *
          * If [name] is `null` an empty string is returned.
          */
-        fun bannerEchoingCommand(name: String?): String = name?.let { "echo ${banner(name).quoted}$LF" } ?: ""
+        public fun bannerEchoingCommand(name: String?): String = name?.let { "echo ${banner(name).quoted}$LF" } ?: ""
     }
 }

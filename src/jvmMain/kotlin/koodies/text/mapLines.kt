@@ -10,7 +10,7 @@ import koodies.text.LineSeparators.lines
  *
  * If this char sequence has a trailing line that trailing line is left unchanged.
  */
-fun CharSequence.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
+public fun CharSequence.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
     (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
         lines().map(transform)
             .let { if (trailingLineSeparator) it.dropLast(1) else it }
@@ -25,5 +25,5 @@ fun CharSequence.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (C
  *
  * If this string has a trailing line that trailing line is left unchanged.
  */
-fun String.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
+public fun String.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
     (this as CharSequence).mapLines(ignoreTrailingSeparator, transform)

@@ -51,7 +51,9 @@ public open class AnsiString private constructor(public val string: String) : Ch
                     tokens.add(ansiCodeString to 0)
                 } else {
                     val first: Int? = range?.first
-                    val ansiAhead = if (first != null) first < length else false
+                    val ansiAhead = if (first != null) {
+                        first < length
+                    } else false
                     val substring1 = this.subSequence(consumed, if (ansiAhead) first!! else length)
                     val ansiCodeFreeString = substring1.also {
                         consumed += it.length
@@ -128,7 +130,7 @@ public open class AnsiString private constructor(public val string: String) : Ch
      * Contains this [string] with all ANSI escape sequences removed.
      */
     @Suppress("SpellCheckingInspection")
-    public val unformatted by lazy { tokens.render(ansi = false) }
+    public val unformatted: String by lazy { tokens.render(ansi = false) }
 
     /**
      * Returns the logical length of this string. That is, the same length as the unformatted [String] would return.
@@ -161,7 +163,7 @@ public open class AnsiString private constructor(public val string: String) : Ch
      * Whether this [text] (ignoring eventually existing ANSI escape sequences)
      * is not blank (≝ is not empty and consists of at least one non-whitespace).
      */
-    public fun isNotBlank() = unformatted.isNotBlank()
+    public fun isNotBlank(): Boolean = unformatted.isNotBlank()
 
     public fun toString(withoutAnsi: Boolean = false): String =
         if (withoutAnsi) unformatted

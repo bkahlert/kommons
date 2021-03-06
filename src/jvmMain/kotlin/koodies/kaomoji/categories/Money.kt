@@ -13,7 +13,8 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Money : Category() {
-    val `［̲̅$̲̅(̲̅5̲̅)̲̅$̲̅］` by auto("[̲̅\$̲̅(̲̅5̲̅)̲̅\$̲̅]")
+public object Money : Category() {
+    public val `［̲̅$̲̅(̲̅5̲̅)̲̅$̲̅］`: Kaomoji by auto("[̲̅\$̲̅(̲̅5̲̅)̲̅\$̲̅]")
 }

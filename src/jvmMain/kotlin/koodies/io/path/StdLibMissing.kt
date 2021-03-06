@@ -39,26 +39,26 @@ import kotlin.io.path.writeBytes as kotlinWriteBytes
 /**
  * Constructs a buffered input stream wrapping a new [FileInputStream] of this file and returns it as a result.
  */
-fun Path.bufferedInputStream(bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedInputStream = inputStream().buffered(bufferSize)
+public fun Path.bufferedInputStream(bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedInputStream = inputStream().buffered(bufferSize)
 
 /**
  * Constructs a buffered output stream wrapping a new [FileOutputStream] of this file and returns it as a result.
  */
-fun Path.bufferedOutputStream(bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedOutputStream = outputStream().buffered(bufferSize)
+public fun Path.bufferedOutputStream(bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedOutputStream = outputStream().buffered(bufferSize)
 
 
 /**
  * Returns a new [BufferedWriter] for writing the content of this file
  * encoded using [Charsets.UTF_8] and using the specified [DEFAULT_BUFFER_SIZE] by default.
  */
-fun Path.bufferedWriter(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter =
+public fun Path.bufferedWriter(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter =
     bufferedWriter(charset, bufferSize, *DEFAULT_WRITE_OPTIONS)
 
 /**
  * Returns a new [BufferedWriter] for appending to the content of this file
  * encoded using [Charsets.UTF_8] and using the specified [DEFAULT_BUFFER_SIZE] by default.
  */
-fun Path.bufferedAppendingWriter(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter =
+public fun Path.bufferedAppendingWriter(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter =
     bufferedWriter(charset, bufferSize, *DEFAULT_APPEND_OPTIONS)
 
 
@@ -71,7 +71,7 @@ fun Path.bufferedAppendingWriter(charset: Charset = Charsets.UTF_8, bufferSize: 
  * @param array byte array to write into this file.
  * @param options options to determine how the file is opened.
  */
-fun Path.writeBytes(array: ByteArray): Path =
+public fun Path.writeBytes(array: ByteArray): Path =
     apply { kotlinWriteBytes(array) }
 
 /**
@@ -79,7 +79,7 @@ fun Path.writeBytes(array: ByteArray): Path =
  *
  * @param array byte array to append to this file.
  */
-fun Path.appendBytes(array: ByteArray): Path =
+public fun Path.appendBytes(array: ByteArray): Path =
     apply { kotlinAppendBytes(array) }
 
 /**
@@ -88,7 +88,7 @@ fun Path.appendBytes(array: ByteArray): Path =
  *
  * The file will be overwritten if it already exists.
  */
-fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8): Path =
     apply { writeText(text, charset, *DEFAULT_WRITE_OPTIONS) }
 
 /**
@@ -97,7 +97,7 @@ fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8): Path =
  * @param text text to append to file.
  * @param charset character set to use for writing text, UTF-8 by default.
  */
-fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8, vararg options: StandardOpenOption = DEFAULT_APPEND_OPTIONS): Path =
+public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8, vararg options: StandardOpenOption = DEFAULT_APPEND_OPTIONS): Path =
     apply { outputStream(*options).writer(charset).use { it.write(text) } }
 
 /**
@@ -106,7 +106,7 @@ fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8, vararg opti
  *
  * The file will be overwritten if it already exists.
  */
-fun Path.writeLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.writeLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path =
     writeLines(listOf(line), charset, *DEFAULT_WRITE_OPTIONS)
 
 /**
@@ -116,7 +116,7 @@ fun Path.writeLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path 
  * @param charset character set to use for reading text, UTF-8 by default.
  * @return list of file lines.
  */
-fun Path.readLine(index: Int, charset: Charset = Charsets.UTF_8): String? {
+public fun Path.readLine(index: Int, charset: Charset = Charsets.UTF_8): String? {
     require(index > 0) { "Index $index must be positive. The first line has index 1." }
     return useLines(charset) { it.drop(index - 1).firstOrNull() }
 }
@@ -127,7 +127,7 @@ fun Path.readLine(index: Int, charset: Charset = Charsets.UTF_8): String? {
  *
  * The file will be overwritten if it already exists.
  */
-fun Path.writeLines(vararg lines: CharSequence, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.writeLines(vararg lines: CharSequence, charset: Charset = Charsets.UTF_8): Path =
     writeLines(lines.asIterable(), charset, *DEFAULT_WRITE_OPTIONS)
 
 /**
@@ -136,7 +136,7 @@ fun Path.writeLines(vararg lines: CharSequence, charset: Charset = Charsets.UTF_
  *
  * The file will be appended to if it already exists.
  */
-fun Path.appendLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.appendLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path =
     appendLines(listOf(line), charset)
 
 /**
@@ -145,7 +145,7 @@ fun Path.appendLine(line: CharSequence, charset: Charset = Charsets.UTF_8): Path
  *
  * The file will be appended to if it already exists.
  */
-fun Path.appendLines(vararg lines: CharSequence, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.appendLines(vararg lines: CharSequence, charset: Charset = Charsets.UTF_8): Path =
     appendLines(lines.asIterable(), charset)
 
 /**
@@ -154,7 +154,7 @@ fun Path.appendLines(vararg lines: CharSequence, charset: Charset = Charsets.UTF
  *
  * @param charset character set to use for writing text, UTF-8 by default.
  */
-fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.UTF_8): Path =
     Files.write(this, lines, charset, *DEFAULT_APPEND_OPTIONS)
 
 /**
@@ -163,14 +163,14 @@ fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.
  *
  * @param charset character set to use for writing text, UTF-8 by default.
  */
-fun Path.appendLines(lines: Sequence<CharSequence>, charset: Charset = Charsets.UTF_8): Path =
+public fun Path.appendLines(lines: Sequence<CharSequence>, charset: Charset = Charsets.UTF_8): Path =
     Files.write(this, lines.asIterable(), charset, *DEFAULT_APPEND_OPTIONS)
 
 
 /**
  * String representation of this path that does **not** rely on [toString].
  */
-fun Path.asString(): String = "${resolve("")}"
+public fun Path.asString(): String = "${resolve("")}"
 
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {
@@ -201,7 +201,7 @@ private fun Path.streamContentsRecursively(glob: String = "*"): Stream<Path> {
  *
  * @see Files.walk
  */
-fun Path.listDirectoryEntriesRecursively(glob: String = "*"): List<Path> =
+public fun Path.listDirectoryEntriesRecursively(glob: String = "*"): List<Path> =
     streamContentsRecursively(glob).toList()
 
 /**
@@ -217,7 +217,7 @@ fun Path.listDirectoryEntriesRecursively(glob: String = "*"): List<Path> =
  *
  * @see Files.walk
  */
-fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", block: (Sequence<Path>) -> T): T =
+public fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", block: (Sequence<Path>) -> T): T =
     streamContentsRecursively(glob).use { block(it.asSequence()) }
 
 /**
@@ -232,7 +232,7 @@ fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", block: (Sequence
  *
  * @see Files.walk
  */
-fun Path.forEachDirectoryEntryRecursively(glob: String = "*", action: (Path) -> Unit) =
+public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", action: (Path) -> Unit): Unit =
     streamContentsRecursively(glob).use { it.forEach(action) }
 
 
@@ -241,7 +241,7 @@ fun Path.forEachDirectoryEntryRecursively(glob: String = "*", action: (Path) -> 
  *
  * Returns the deletes path.
  */
-fun Path.delete(): Path =
+public fun Path.delete(): Path =
     apply {
         if (exists()) {
             Files.delete(this)
@@ -253,7 +253,7 @@ fun Path.delete(): Path =
  *
  * Returns the deletes path.
  */
-fun Path.deleteRecursively(): Path =
+public fun Path.deleteRecursively(): Path =
     apply {
         if (exists()) {
             if (isDirectory()) forEachDirectoryEntry { it.deleteRecursively() }
@@ -266,4 +266,4 @@ fun Path.deleteRecursively(): Path =
  *
  * @see [FileSystems.getDefault]
  */
-fun Path.isDefaultFileSystem(): Boolean = fileSystem == FileSystems.getDefault()
+public fun Path.isDefaultFileSystem(): Boolean = fileSystem == FileSystems.getDefault()

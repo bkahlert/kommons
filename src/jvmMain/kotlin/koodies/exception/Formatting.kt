@@ -7,7 +7,7 @@ import koodies.text.LineSeparators.lines
 import koodies.text.withoutSuffix
 import java.nio.file.Path
 
-fun Any?.toCompactString(): String = when (this) {
+public fun Any?.toCompactString(): String = when (this) {
     is Path -> toUri().toString()
     is Array<*> -> toList().toCompactString()
     is Iterable<*> -> joinToString(prefix = "[", postfix = "]") { it.toCompactString() }
@@ -24,7 +24,7 @@ fun Any?.toCompactString(): String = when (this) {
     }
 }
 
-fun Throwable?.toCompactString(): String {
+public fun Throwable?.toCompactString(): String {
     if (this == null) return ""
     val messagePart = message?.let { ": " + it.lines()[0] } ?: ""
     return rootCause.run {
@@ -33,7 +33,7 @@ fun Throwable?.toCompactString(): String {
     }
 }
 
-fun Result<*>?.toCompactString(): String {
+public fun Result<*>?.toCompactString(): String {
     if (this == null) return ""
     return if (isSuccess) getOrNull().toCompactString()
     else exceptionOrNull().toCompactString()

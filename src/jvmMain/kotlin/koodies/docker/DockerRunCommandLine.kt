@@ -275,7 +275,7 @@ public class MountOptions(private val mountOptions: List<MountOption>) : Abstrac
             }
         }
 
-        override fun BuildContext.build() = ::CollectingMountOptionsContext {
+        override fun BuildContext.build(): MountOptions = ::CollectingMountOptionsContext {
             MountOptions(::addMount.evalAll())
         }
     }
@@ -358,7 +358,7 @@ public fun Path.asContainerPath(): ContainerPath = ContainerPath(this)
 
 public typealias HostPath = Path
 
-public fun HostPath.mapToContainerPath(mountOptions: MountOptions) =
+public fun HostPath.mapToContainerPath(mountOptions: MountOptions): ContainerPath =
     mountOptions.mapToContainerPath(this)
 
 public fun String.asHostPath(): HostPath = asPath()

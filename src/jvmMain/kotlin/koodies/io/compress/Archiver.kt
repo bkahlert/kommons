@@ -33,13 +33,13 @@ import koodies.io.compress.TarArchiveGzCompressor.listArchive as tarGzListArchiv
  *
  * @see ArchiveStreamFactory
  */
-object Archiver {
+public object Archiver {
     /**
      * Archives this directory using the provided archive format.
      *
      * By default the existing file name is used and the appropriate extension (e.g. `.tar` or `.zip`) appended.
      */
-    fun Path.archive(
+    public fun Path.archive(
         format: String = ArchiveStreamFactory.ZIP,
         destination: Path = addExtensions(format),
         overwrite: Boolean = false,
@@ -56,7 +56,7 @@ object Archiver {
     /**
      * Archives this directory by adding each entry to the [archiveOutputStream].
      */
-    fun Path.addToArchive(archiveOutputStream: ArchiveOutputStream) {
+    public fun Path.addToArchive(archiveOutputStream: ArchiveOutputStream) {
         listDirectoryEntriesRecursively().forEach { path ->
             val entryName = "${relativize(path)}"
             val entry: ArchiveEntry = archiveOutputStream.createArchiveEntry(path.toFile(), entryName)
@@ -71,7 +71,7 @@ object Archiver {
      *
      * By default the existing file name is used with the extension removed.
      */
-    fun Path.unarchive(
+    public fun Path.unarchive(
         destination: Path = if (hasExtensions("tar", "gz")) removeExtensions("tar", "gz") else extensionOrNull?.let { removeExtensions(it) }
             ?: throw IllegalArgumentException("Cannot auto-detect the archive format due to missing file extension."),
         overwrite: Boolean = false,
@@ -90,7 +90,7 @@ object Archiver {
     /**
      * Unarchives this archive input stream to [destination].
      */
-    fun ArchiveInputStream.unarchiveTo(
+    public fun ArchiveInputStream.unarchiveTo(
         destination: Path,
     ) {
         var archiveEntry: ArchiveEntry?
@@ -112,7 +112,7 @@ object Archiver {
     /**
      * Lists this archive input stream.
      */
-    fun ArchiveInputStream.list(): List<ArchiveEntry> {
+    public fun ArchiveInputStream.list(): List<ArchiveEntry> {
         val archiveEntries = mutableListOf<ArchiveEntry>()
         var archiveEntry: ArchiveEntry?
         while (nextEntry.also { archiveEntry = it } != null) {
@@ -124,7 +124,7 @@ object Archiver {
     /**
      * Lists this archive without unarchiving it.
      */
-    fun Path.listArchive(): List<ArchiveEntry> =
+    public fun Path.listArchive(): List<ArchiveEntry> =
         if ("$fileName".endsWith("tar.gz")) {
             tarGzListArchive()
         } else {

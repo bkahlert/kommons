@@ -3,6 +3,9 @@ package koodies.concurrent.process
 import koodies.builder.BuilderTemplate
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
+import koodies.builder.context.ListBuildingContext
+import koodies.builder.context.MapBuildingContext
+import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
@@ -19,21 +22,21 @@ import kotlin.text.RegexOption.MULTILINE
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 
 @DslMarker
-annotation class CommandLineDsl
+public annotation class CommandLineDsl
 
 /**
  * A command as it can be run in a shell.
  */
-open class CommandLine(
+public open class CommandLine(
     /**
      * Redirects like `2>&1` to be used when running this command line.
      */
-    val redirects: List<String>,
+    public val redirects: List<String>,
     /**
      * The environment to be exposed to the [ManagedProcess] that runs this
      * command line.
      */
-    val environment: Map<String, String>,
+    public val environment: Map<String, String>,
     /**
      * The working directory of the [ManagedProcess] that runs this
      * command line.
@@ -42,14 +45,14 @@ open class CommandLine(
     /**
      * The command to be executed.
      */
-    val command: String,
+    public val command: String,
     /**
      * The arguments to be passed to [command].
      */
-    val arguments: List<String>,
+    public val arguments: List<String>,
 ) {
 
-    constructor(
+    public constructor(
         redirects: List<String>,
         environment: Map<String, String>,
         workingDirectory: Path,
@@ -57,20 +60,20 @@ open class CommandLine(
         vararg arguments: String,
     ) : this(redirects, environment, workingDirectory, command, arguments.toList())
 
-    constructor(
+    public constructor(
         environment: Map<String, String>,
         workingDirectory: Path,
         command: String,
         vararg arguments: String,
     ) : this(emptyList(), environment, workingDirectory, command, arguments.toList())
 
-    constructor(
+    public constructor(
         workingDirectory: Path,
         command: String,
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), workingDirectory, command, arguments.toList())
 
-    constructor(
+    public constructor(
         command: String,
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, command, arguments.toList())
@@ -80,7 +83,7 @@ open class CommandLine(
      * The working directory of the [ManagedProcess] that runs this
      * command line.
      */
-    val workingDirectory: Path = workingDirectory.toAbsolutePath()
+    public val workingDirectory: Path = workingDirectory.toAbsolutePath()
 
     private val formattedRedirects =
         redirects.takeIf { it.isNotEmpty() }?.joinToString(separator = " ", postfix = " ") ?: ""
@@ -89,13 +92,13 @@ open class CommandLine(
      * The array consisting of the command and its arguments that make up this command,
      * e.g. `[echo, Hello World!]`.
      */
-    val commandLineParts: Array<String> by lazy { arrayOf(command, *arguments.toTypedArray()) }
+    public val commandLineParts: Array<String> by lazy { arrayOf(command, *arguments.toTypedArray()) }
 
     /**
      * The command line as it can be used on the shell,
      * e.g. `echo "Hello World!"`.
      */
-    val commandLine: String by lazy {
+    public val commandLine: String by lazy {
         formattedRedirects + CommandLineUtils.toString(commandLineParts).fixHereDoc()
     }
 
@@ -110,7 +113,7 @@ open class CommandLine(
      * -org
      * ```
      */
-    val multiLineCommandLine: String by lazy {
+    public val multiLineCommandLine: String by lazy {
         commandLineParts.joinToString(separator = " \\${LineSeparators.LF}") {
             StringUtils.quoteAndEscape(
                 it.trim(),
@@ -122,7 +125,7 @@ open class CommandLine(
     /**
      * A human-readable representation of this command line.
      */
-    val summary: String
+    public val summary: String
         get() = arguments
             .map { line ->
                 line.split("\\b".toRegex()).filter { part -> part.trim().run { length > 1 && !startsWith("-") } }
@@ -140,7 +143,7 @@ open class CommandLine(
     /**
      * Contains all accessible files contained in this command line.
      */
-    val includedFiles: List<Path>
+    public val includedFiles: List<Path>
         get() = commandLineParts.map { it.unquoted.asPath() }
             .filter { it != it.root }
             .filter { it.exists() }
@@ -148,52 +151,52 @@ open class CommandLine(
     /**
      * Contains a formatted list of files contained in this command line.
      */
-    val formattedIncludesFiles: String get() = includedFiles.joinToString("\n") { "📄 ${it.toUri()}" }
+    public val formattedIncludesFiles: String get() = includedFiles.joinToString("\n") { "📄 ${it.toUri()}" }
 
     override fun toString(): String = multiLineCommandLine
 
     /**
      * The [multiLineCommandLine] represented as a list of single-line strings.
      */
-    val lines: List<String> get() = multiLineCommandLine.lines()
+    public val lines: List<String> get() = multiLineCommandLine.lines()
 
 
-    companion object : BuilderTemplate<CommandLineContext, CommandLine>() {
+    public companion object : BuilderTemplate<CommandLineContext, CommandLine>() {
         /**
          * Context to build a [CommandLine].
          */
         @CommandLineDsl
-        class CommandLineContext(override val captures: CapturesMap) : CapturingContext() {
+        public class CommandLineContext(override val captures: CapturesMap) : CapturingContext() {
 
             /**
              * Specifies the redirects like `2>&1` to be used when running this built command line.
              */
-            val redirects by listBuilder<String>()
+            public val redirects: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder<String>()
 
             /**
              * Specifies the environment to be exposed to the [ManagedProcess] that runs this built
              * command line.
              */
-            val environment by mapBuilder<String, String>()
+            public val environment: SkippableCapturingBuilderInterface<MapBuildingContext<String, String>.() -> Unit, Map<String, String>> by mapBuilder<String, String>()
 
             /**
              * Specifies the working directory of the [ManagedProcess] that runs this built
              * command line.
              */
-            val workingDirectory by builder<Path>()
+            public val workingDirectory: SkippableCapturingBuilderInterface<() -> Path, Path?> by builder<Path>()
 
             /**
              * The command to be executed.
              */
-            val command by builder<String>()
+            public val command: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>()
 
             /**
              * Specifies the arguments to be passed to [command].
              */
-            val arguments by listBuilder<String>()
+            public val arguments: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder<String>()
         }
 
-        override fun BuildContext.build() = ::CommandLineContext {
+        override fun BuildContext.build(): CommandLine = ::CommandLineContext {
             CommandLine(
                 redirects = ::redirects.evalOrDefault(emptyList()),
                 environment = ::environment.evalOrDefault(emptyMap()),
@@ -208,7 +211,7 @@ open class CommandLine(
          * Parses a [commandLine] string and returns an instance of [CommandLine]
          * that would generate the same string again.
          */
-        fun parse(commandLine: String, workingDirectory: Path): CommandLine {
+        public fun parse(commandLine: String, workingDirectory: Path): CommandLine {
             val plexusCommandLine = PlexusCommandLine(commandLine)
             val rawCommandline = plexusCommandLine.rawCommandline
             return rawCommandline.takeIf { it.isNotEmpty() }
@@ -226,7 +229,7 @@ open class CommandLine(
          * this function will returns a command line string where the here documents will no longer
          * be wrapped by double or single quotes.
          */
-        fun String.fixHereDoc(): String {
+        public fun String.fixHereDoc(): String {
             var fixed = this
             val hereDocNames = HEREDOC_START_PATTERN.findAll(fixed).map { it["name"] }
             hereDocNames.forEach { name ->

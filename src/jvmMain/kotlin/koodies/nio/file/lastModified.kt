@@ -7,7 +7,7 @@ import java.nio.file.attribute.FileTime
 /**
  * This path's last modified time.
  */
-var Path.lastModified: FileTime
+public var Path.lastModified: FileTime
     get() = Files.getLastModifiedTime(this)
     set(fileTime) {
         Files.setLastModifiedTime(this, fileTime)

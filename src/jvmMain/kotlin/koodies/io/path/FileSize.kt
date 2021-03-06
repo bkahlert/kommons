@@ -10,7 +10,7 @@ import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isSymbolicLink
 
-object FileSizeComparator : (Path, Path) -> Int {
+public object FileSizeComparator : (Path, Path) -> Int {
     override fun invoke(path1: Path, path2: Path): Int = path1.size.compareTo(path2.size)
 }
 
@@ -20,7 +20,7 @@ object FileSizeComparator : (Path, Path) -> Int {
  * If this target actually points to a directory, this property
  * contains the overall size of all contained files.
  */
-val Path.size: Size
+public val Path.size: Size
     get() {
         requireExists()
         return if (!isDirectory()) Files.size(toAbsolutePath()).bytes
@@ -37,4 +37,4 @@ val Path.size: Size
  *
  * Please note that the size is rounded in the decimal system (1 KB = 1.000 B).
  */
-val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).toSize()
+public val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).toSize()

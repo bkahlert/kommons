@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
  * The offset is already correcty, that the payload
  * starts at position `0` and ends at [ByteArray.size]`-1`.
  */
-val ByteBuffer.bytes: ByteArray
+public val ByteBuffer.bytes: ByteArray
     get() {
         check(hasArray()) { "This buffer has no backing byte array." }
         val backingArray = array()

@@ -13,19 +13,19 @@ import koodies.builder.StatelessBuilder
  * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
  */
 @Suppress("SpellCheckingInspection")
-open class DockerImage(
+public open class DockerImage(
     /**
      * The repository name
      */
-    val repository: String,
+    public val repository: String,
     /**
      * Non-empty list of path elements
      */
-    val path: List<String>,
+    public val path: List<String>,
     /**
      * Optional tag or digest.
      */
-    val specifier: String?,
+    public val specifier: String?,
 ) {
 
     private val repoAndPath = listOf(repository, *path.toTypedArray())
@@ -66,39 +66,39 @@ open class DockerImage(
      * Builder to provide DSL elements to create instances of [DockerImage].
      */
     @DockerCommandLineDsl
-    object ImageContext {
+    public object ImageContext {
 
         /**
          * Describes an official [DockerImage](https://docs.docker.com/docker-hub/official_images/).
          */
-        fun official(repository: String): RepositoryWithPath = RepositoryWithPath(repository, emptyList())
+        public fun official(repository: String): RepositoryWithPath = RepositoryWithPath(repository, emptyList())
 
         /**
          * Adds a [path] element to `this` repository.
          */
-        infix operator fun String.div(path: String): RepositoryWithPath = RepositoryWithPath(this, path)
+        public infix operator fun String.div(path: String): RepositoryWithPath = RepositoryWithPath(this, path)
 
         /**
          * Adds another [path] element to `this` [DockerImage].
          */
-        infix operator fun RepositoryWithPath.div(path: String): RepositoryWithPath = RepositoryWithPath(repository, this.path + path)
+        public infix operator fun RepositoryWithPath.div(path: String): RepositoryWithPath = RepositoryWithPath(repository, this.path + path)
 
         /**
          * Specifies the [tag] for this [DockerImage].
          */
-        infix fun RepositoryWithPath.tag(tag: String): DockerImage = DockerImage(repository, path, ":$tag")
+        public infix fun RepositoryWithPath.tag(tag: String): DockerImage = DockerImage(repository, path, ":$tag")
 
         /**
          * Specifies the [digest] for this [DockerImage].
          */
-        infix fun RepositoryWithPath.digest(digest: String): DockerImage = DockerImage(repository, path, "@$digest")
+        public infix fun RepositoryWithPath.digest(digest: String): DockerImage = DockerImage(repository, path, "@$digest")
     }
 
     /**
      * Helper class to enforce consecutive [RepositoryWithPath.path] calls.
      */
-    class RepositoryWithPath(repository: String, path: List<String>) : DockerImage(repository, path, null) {
-        constructor(repository: String, path: String) : this(repository, listOf(path))
+    public class RepositoryWithPath(repository: String, path: List<String>) : DockerImage(repository, path, null) {
+        public constructor(repository: String, path: String) : this(repository, listOf(path))
     }
 
     /**
@@ -108,18 +108,19 @@ open class DockerImage(
      * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
      */
     @Suppress("SpellCheckingInspection")
-    companion object : StatelessBuilder.PostProcessing<ImageContext, DockerImage, DockerImage>(ImageContext, { DockerImage(repository, path, specifier) }) {
+    public companion object :
+        StatelessBuilder.PostProcessing<ImageContext, DockerImage, DockerImage>(ImageContext, { DockerImage(repository, path, specifier) }) {
         /**
          * Pattern that the [repository] and all [path] elements match.
          */
-        val PATH_REGEX: Regex = Regex("[a-z0-9]+(?:[._-][a-z0-9]+)*")
+        public val PATH_REGEX: Regex = Regex("[a-z0-9]+(?:[._-][a-z0-9]+)*")
 
         /**
          * Parses any valid [DockerImage] identifier and returns it.
          *
          * If the input is invalid, an [IllegalArgumentException] with details is thrown.
          */
-        fun parse(image: String): DockerImage {
+        public fun parse(image: String): DockerImage {
             val imageWithTag = image.substringBeforeLast("@").split(":").also { require(it.size <= 2) { "Invalid format. More than one tag found: $it" } }
             val imageWithDigest = image.split("@").also { require(it.size <= 2) { "Invalid format. More than one digest found: $it" } }
             require(!(imageWithTag.size > 1 && imageWithDigest.size > 1)) { "Invalid format. Both tag ${imageWithTag[1]} and digest ${imageWithDigest[1]} found." }

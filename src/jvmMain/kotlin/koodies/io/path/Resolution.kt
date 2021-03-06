@@ -59,7 +59,7 @@ private fun <T> URI.internalToMappedPath(transform: (Path) -> T): T =
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
  */
-fun <T> URI.threadSafeToMappedPath(transform: (Path) -> T): T =
+public fun <T> URI.threadSafeToMappedPath(transform: (Path) -> T): T =
     lock.withLock { internalToMappedPath(transform) }
 
 /**
@@ -73,7 +73,7 @@ fun <T> URI.threadSafeToMappedPath(transform: (Path) -> T): T =
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
  */
-inline fun <reified T> URI.toMappedPath(noinline transform: (Path) -> T): T =
+public inline fun <reified T> URI.toMappedPath(noinline transform: (Path) -> T): T =
     threadSafeToMappedPath(transform)
 
 /**
@@ -87,5 +87,5 @@ inline fun <reified T> URI.toMappedPath(noinline transform: (Path) -> T): T =
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
  */
-inline fun <reified T> URL.toMappedPath(noinline transform: (Path) -> T): T =
+public inline fun <reified T> URL.toMappedPath(noinline transform: (Path) -> T): T =
     toURI().toMappedPath(transform)

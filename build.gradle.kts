@@ -67,7 +67,7 @@ repositories {
 }
 
 kotlin {
-    explicitApiWarning()
+    explicitApi()
 
     if (releasingFinal && !version.isFinal()) {
         println("\n\t\tProperty releasingFinal is set but the active version $version is not final.")

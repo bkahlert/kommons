@@ -19,13 +19,13 @@ import kotlin.io.path.exists
 /**
  * Provides (un-)archiving functionality for the TAR archive format.
  */
-object TarArchiver {
+public object TarArchiver {
     /**
      * Archives this directory using the TAR archive format.
      *
      * By default the existing directory name is used and `.tar` appended.
      */
-    fun Path.tar(
+    public fun Path.tar(
         destination: Path = addExtensions("tar"),
         overwrite: Boolean = false,
     ): Path {
@@ -40,7 +40,7 @@ object TarArchiver {
      *
      * By default the existing file name is used with the `.tar` suffix removed.
      */
-    fun Path.untar(
+    public fun Path.untar(
         destination: Path = removeExtensions("tar"),
         overwrite: Boolean = false,
     ): Path {

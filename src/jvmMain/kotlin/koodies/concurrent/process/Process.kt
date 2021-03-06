@@ -13,16 +13,16 @@ import java.lang.Process as JavaProcess
 /**
  * Platform independent representation of a running program.
  */
-interface Process {
+public interface Process {
     /**
      * Logs information about this process.
      */
-    fun metaLog(metaMessage: String) = metaStream.enter(metaMessage, delay = Duration.ZERO)
+    public fun metaLog(metaMessage: String): Unit = metaStream.enter(metaMessage, delay = Duration.ZERO)
 
     /**
      * Stream of this program's meta logs.
      */
-    val metaStream: OutputStream
+    public val metaStream: OutputStream
 
     /**
      * This program's input stream, that is,
@@ -32,7 +32,7 @@ interface Process {
      * *In contrast to the extremely misleading naming used in the Java world,
      * this property is named after its purpose—not its type.*
      */
-    val inputStream: OutputStream
+    public val inputStream: OutputStream
 
     /**
      * This program's output stream, that is,
@@ -42,31 +42,31 @@ interface Process {
      * *In contrast to the extremely misleading naming used in the Java world,
      * this property is named after its purpose—not its type.*
      */
-    val outputStream: InputStream
+    public val outputStream: InputStream
 
     /**
      * This program's error stream, that is,
      * the stream you can read in order to find
      * out what goes wrong.
      */
-    val errorStream: InputStream
+    public val errorStream: InputStream
 
     /**
      * The identifier of this process.
      */
-    val pid: Long
+    public val pid: Long
 
     /**
      * Starts the program represented by this process.
      */
-    fun start(): Process
+    public fun start(): Process
 
     /**
      * Returns whether [start] was called.
      *
      * Contrary to [alive] this property will never return `false` once [start] was called.
      */
-    val started: Boolean
+    public val started: Boolean
 
     /**
      * Returns whether the program represented by this process
@@ -75,48 +75,48 @@ interface Process {
      * Contrary to [started] this property reflects the actual running state of
      * the program represented by this process.
      */
-    val alive: Boolean
+    public val alive: Boolean
 
     /**
      * Returns the exit code of the program represented by process process once
      * it terminates. If the program has not terminated yet, it throws an
      * [IllegalStateException].
      */
-    val exitValue: Int
+    public val exitValue: Int
 
     /**
      * A completable future that returns an instances of this process once
      * the program represented by this process terminated.
      */
-    val onExit: CompletableFuture<out Process>
+    public val onExit: CompletableFuture<out Process>
 
     /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    fun waitFor(): Int = onExit.join().exitValue
+    public fun waitFor(): Int = onExit.join().exitValue
 
     /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    fun waitForTermination(): Int = onExit.thenApply { process -> process.exitValue }.join()
+    public fun waitForTermination(): Int = onExit.thenApply { process -> process.exitValue }.join()
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.
      */
-    fun stop(): Process
+    public fun stop(): Process
 
     /**
      * Forcefully stops the execution of the program represented by this process.
      */
-    fun kill(): Process
+    public fun kill(): Process
 }
 
 /**
  * A process that delegates to the [JavaProcess] provided by the specified [processProvider].
  */
-abstract class DelegatingProcess(private val processProvider: Process.() -> JavaProcess) : Process {
+public abstract class DelegatingProcess(private val processProvider: Process.() -> JavaProcess) : Process {
     override val metaStream: OutputStream by lazy { ByteArrayOutputStream() }
     override val inputStream: OutputStream by lazy { javaProcess.outputStream }
     override val outputStream: InputStream by lazy { javaProcess.inputStream }
@@ -137,7 +137,7 @@ abstract class DelegatingProcess(private val processProvider: Process.() -> Java
     override fun stop(): Process = also { javaProcess.destroy() }
     override fun kill(): Process = also { javaProcess.destroyForcibly() }
 
-    protected open val preparedToString = StringBuilder().apply { append(" started=${started}") }
+    protected open val preparedToString: StringBuilder /* = java.lang.StringBuilder */ = StringBuilder().apply { append(" started=${started}") }
     override fun toString(): String {
         val delegateString =
             if (started) "$javaProcess; result=${onExit.isCompletedExceptionally.not().asEmoji}"

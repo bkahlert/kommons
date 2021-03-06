@@ -19,16 +19,16 @@ import koodies.text.prefixLinesWith
 import koodies.text.truncate
 import koodies.text.wrapLines
 
-open class BlockRenderingLogger(
+public open class BlockRenderingLogger(
     private val caption: CharSequence,
     override val bordered: Boolean = false,
     override val statusInformationColumn: Int = 100,
     override val statusInformationPadding: Int = 5,
     override val statusInformationColumns: Int = 45,
-    val log: (String) -> Any = { output: String -> print(output) },
+    public val log: (String) -> Any = { output: String -> print(output) },
 ) : BorderedRenderingLogger {
 
-    val totalColumns: Int
+    public val totalColumns: Int
         get() {
             check(statusInformationColumn > 0)
             check(statusInformationPadding > 0)
@@ -63,7 +63,7 @@ open class BlockRenderingLogger(
         }.joinToString(LF)
 
     override val prefix: String get() = if (bordered) "│   " else "· "
-    fun <R> getBlockEnd(result: Result<R>): CharSequence {
+    public fun <R> getBlockEnd(result: Result<R>): CharSequence {
         val returnValue = result.toReturnValue()
         val message: String =
             if (returnValue.successful) {
@@ -114,7 +114,7 @@ open class BlockRenderingLogger(
         }
     }
 
-    var resultLogged = false
+    public var resultLogged: Boolean = false
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
@@ -144,7 +144,7 @@ open class BlockRenderingLogger(
  * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
  */
 @RenderingLoggingDsl
-inline fun <reified R> Any?.blockLogging(
+public inline fun <reified R> Any?.blockLogging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
@@ -156,11 +156,11 @@ inline fun <reified R> Any?.blockLogging(
     return result.getOrThrow()
 }
 
-fun Any?.createBlockRenderingLogger(
+public fun Any?.createBlockRenderingLogger(
     caption: CharSequence,
     bordered: Boolean,
     ansiCode: AnsiCode?,
-) = when (this) {
+): BlockRenderingLogger = when (this) {
     is MutedRenderingLogger -> this
     is BorderedRenderingLogger -> BlockRenderingLogger(
         caption = caption,
@@ -177,23 +177,23 @@ fun Any?.createBlockRenderingLogger(
 }
 
 
-fun createBlockRenderingLogger2(
+public fun createBlockRenderingLogger2(
     caption: CharSequence,
     bordered: Boolean,
     ansiCode: AnsiCode?,
-) = BlockRenderingLogger(caption = caption, bordered = bordered)
+): BlockRenderingLogger = BlockRenderingLogger(caption = caption, bordered = bordered)
 
-fun MutedRenderingLogger.createBlockRenderingLogger2(
+public fun MutedRenderingLogger.createBlockRenderingLogger2(
     caption: CharSequence,
     bordered: Boolean,
     ansiCode: AnsiCode?,
-) = this
+): MutedRenderingLogger = this
 
-fun BorderedRenderingLogger.createBlockRenderingLogger2(
+public fun BorderedRenderingLogger.createBlockRenderingLogger2(
     caption: CharSequence,
     bordered: Boolean,
     ansiCode: AnsiCode?,
-) = BlockRenderingLogger(
+): BlockRenderingLogger = BlockRenderingLogger(
     caption = caption,
     bordered = bordered,
     statusInformationColumn = statusInformationColumn - prefix.length,
@@ -201,20 +201,20 @@ fun BorderedRenderingLogger.createBlockRenderingLogger2(
     statusInformationColumns = statusInformationColumns - prefix.length,
 ) { output -> logText { ansiCode.invoke(output) } }
 
-fun RenderingLogger.createBlockRenderingLogger2(
+public fun RenderingLogger.createBlockRenderingLogger2(
     caption: CharSequence,
     bordered: Boolean,
     ansiCode: AnsiCode?,
-) = BlockRenderingLogger(
+): BlockRenderingLogger = BlockRenderingLogger(
     caption = caption,
     bordered = bordered
 ) { output -> logText { ansiCode.invoke(output) } }
 
-fun BlockRenderingLogger.createBlockRenderingLogger2(
+public fun BlockRenderingLogger.createBlockRenderingLogger2(
     caption: CharSequence,
     bordered: Boolean,
     ansiCode: AnsiCode?,
-) = BlockRenderingLogger(
+): BlockRenderingLogger = BlockRenderingLogger(
     caption = caption,
     bordered = bordered
 ) { output -> logText { ansiCode.invoke(output) } }

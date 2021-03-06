@@ -23,13 +23,13 @@ import kotlin.io.path.outputStream
 /**
  * Provides (de-)compression and (un-)archiving functionality for the TAR archive format compressed using the GNU GZIP format.
  */
-object TarArchiveGzCompressor {
+public object TarArchiveGzCompressor {
     /**
      * Archives this directory using the TAR archive format and compresses the archive using GNU ZIP.
      *
      * By default the existing file name is used and `.tar.gz` appended.
      */
-    fun Path.tarGzip(
+    public fun Path.tarGzip(
         destination: Path = addExtensions("tar.gz"),
         overwrite: Boolean = false,
     ): Path {
@@ -46,7 +46,7 @@ object TarArchiveGzCompressor {
      *
      * By default the existing file name is used with the `.tar.gz` suffix removed.
      */
-    fun Path.tarGunzip(
+    public fun Path.tarGunzip(
         destination: Path = removeExtensions("tar", "gz"),
         overwrite: Boolean = false,
     ): Path {
@@ -63,7 +63,7 @@ object TarArchiveGzCompressor {
     /**
      * Lists this archive without unarchiving it.
      */
-    fun Path.listArchive(): List<ArchiveEntry> {
+    public fun Path.listArchive(): List<ArchiveEntry> {
         requireExists()
         var archiveEntries: List<ArchiveEntry>
         GzipCompressorInputStream(bufferedInputStream()).use { gzipInput ->

@@ -9,4 +9,4 @@ import java.nio.file.Path
  * @see [ancestor]
  */
 @Suppress("SpellCheckingInspection")
-fun Path.subpath(order: Int): Path = subpath(nameCount - order, nameCount)
+public fun Path.subpath(order: Int): Path = subpath(nameCount - order, nameCount)

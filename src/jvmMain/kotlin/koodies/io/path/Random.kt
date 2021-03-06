@@ -35,5 +35,5 @@ public fun Path.randomDirectory(base: String = randomString(4), extension: Strin
  *
  * Eventually missing directories are automatically created.
  */
-fun Path.randomFile(base: String = randomString(4), extension: String = ".tmp"): Path =
+public fun Path.randomFile(base: String = randomString(4), extension: String = ".tmp"): Path =
     randomPath(base, extension).apply { parent.createDirectories() }.createFile()

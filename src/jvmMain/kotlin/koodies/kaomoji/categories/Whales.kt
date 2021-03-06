@@ -13,9 +13,10 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
+import koodies.kaomoji.Kaomojis.Kaomoji
 
-object Whales : Category() {
-    val `․ ＞＜{{{․______)` by auto(". ><{{{.______)")
-    val `․ ＞＜{{{o ______)` by auto(". ><{{{o ______)")
-    val `․ ＞＜{{{x_______)` by auto(". ><{{{x_______)")
+public object Whales : Category() {
+    public val `․ ＞＜{{{․______)`: Kaomoji by auto(". ><{{{.______)")
+    public val `․ ＞＜{{{o ______)`: Kaomoji by auto(". ><{{{o ______)")
+    public val `․ ＞＜{{{x_______)`: Kaomoji by auto(". ><{{{x_______)")
 }

@@ -14,13 +14,13 @@ import kotlin.io.path.outputStream
 /**
  * Provides (de-)compression functionality for the GNU GZIP format.
  */
-object GzCompressor {
+public object GzCompressor {
     /**
      * Compresses this file using GNU ZIP.
      *
      * By default the existing file name is used and `.gz` appended.
      */
-    fun Path.gzip(
+    public fun Path.gzip(
         destination: Path = addExtensions("gz"),
         overwrite: Boolean = false,
     ): Path {
@@ -39,7 +39,7 @@ object GzCompressor {
      *
      * By default the existing file name is used with the `.gz` suffix removed.
      */
-    fun Path.gunzip(
+    public fun Path.gunzip(
         destination: Path = removeExtensions("gz"),
         overwrite: Boolean = false,
     ): Path {

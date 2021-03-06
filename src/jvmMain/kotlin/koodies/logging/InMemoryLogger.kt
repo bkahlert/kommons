@@ -13,7 +13,7 @@ import koodies.text.prefixLinesWith
 import koodies.time.Now
 import java.io.OutputStream
 
-open class InMemoryLogger private constructor(
+public open class InMemoryLogger private constructor(
     caption: CharSequence,
     bordered: Boolean = false,
     statusInformationColumn: Int = -1,
@@ -32,7 +32,7 @@ open class InMemoryLogger private constructor(
         captured.add(message.withoutTrailingLineSeparator)
     },
 ) {
-    constructor(
+    public constructor(
         caption: String,
         bordered: Boolean = true,
         statusInformationColumn: Int = -1,
@@ -50,25 +50,25 @@ open class InMemoryLogger private constructor(
         start = System.currentTimeMillis(),
     )
 
-    constructor() : this("Test", true, -1, emptyList())
+    public constructor() : this("Test", true, -1, emptyList())
 
     /**
      * Runs this strings as a shell script,
      * logs the output and returns it.
      */
-    fun String.not(): String =
+    public fun String.not(): String =
         logging("$ ${this@not}", bordered = false) {
             script { !this@not }.output().also { it.prefixLinesWith("> ") }
         }
 
     private val messages: List<CharSequence> by withNegativeIndices { captured }
     private val raw: String get() = messages.joinToString("\n")
-    val logged: String get() = messages.joinToString("\n").removeEscapeSequences().withoutTrailingLineSeparator.trim()
+    public val logged: String get() = messages.joinToString("\n").removeEscapeSequences().withoutTrailingLineSeparator.trim()
 
     /**
      * Returns the so far rendered content—pretending this block was finished with [result].
      */
-    fun <R> finalizedDump(result: Result<R>): String = raw + "\n" + getBlockEnd(result)
+    public fun <R> finalizedDump(result: Result<R>): String = raw + "\n" + getBlockEnd(result)
 
     @Suppress("UNCHECKED_CAST")
     override fun toString(): String = finalizedDump(Result.success(Unit) as Result<Nothing>)

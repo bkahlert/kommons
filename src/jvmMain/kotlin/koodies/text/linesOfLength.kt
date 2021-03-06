@@ -26,5 +26,5 @@ public fun CharSequence.linesOfLengthSequence(maxLineLength: Int, ignoreTrailing
 /**
  * Returns a list of lines of which none is longer than [maxLineLength].
  */
-fun CharSequence.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
+public fun CharSequence.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
     linesOfLengthSequence(maxLineLength, ignoreTrailingSeparator).toList()

@@ -12,12 +12,12 @@ import kotlin.time.seconds
 /**
  * A [Process] responsible to run a [Docker] container.
  */
-open class DockerProcess private constructor(
-    val name: String,
+public open class DockerProcess private constructor(
+    public val name: String,
     private val managedProcess: ManagedProcess,
 ) : ManagedProcess by managedProcess {
 
-    companion object {
+    public companion object {
         public fun from(
             dockerRunCommandLine: DockerRunCommandLine,
             expectedExitValue: Int?,
@@ -47,7 +47,7 @@ open class DockerProcess private constructor(
      * If [async] is set, this call returns immediately, stopping the Docker
      * container in a separate thread.
      */
-    fun stop(async: Boolean = false, escalationTimeout: Duration = 10.seconds): Process = also {
+    public fun stop(async: Boolean = false, escalationTimeout: Duration = 10.seconds): Process = also {
         val block = {
             Docker.stop(name).also {
                 runCatching { pollTermination(escalationTimeout) }
@@ -67,7 +67,7 @@ open class DockerProcess private constructor(
      * If [async] is set, this call returns immediately, killing the Docker
      * container in a separate thread.
      */
-    fun kill(async: Boolean = false, gracefulStopTimeout: Duration = 2.seconds): Process = also {
+    public fun kill(async: Boolean = false, gracefulStopTimeout: Duration = 2.seconds): Process = also {
         val block = {
             Docker.stop(name).also {
                 runCatching { pollTermination(gracefulStopTimeout) }

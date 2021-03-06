@@ -13,6 +13,6 @@ import java.nio.file.Path
  * @see [subpath]
  */
 @Suppress("SpellCheckingInspection")
-tailrec fun Path.ancestor(order: Int): Path? =
+public tailrec fun Path.ancestor(order: Int): Path? =
     if (order == 0) this
     else parent?.ancestor(order - 1)

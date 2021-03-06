@@ -79,9 +79,9 @@ public class AnsiCode(
          * termColors.yellow.bg("Text on yellow background$PARTIAL_LINE_FORWARD")
          * ```
          */
-        public const val PARTIAL_LINE_FORWARD = "$ESC\\[K"
+        public const val PARTIAL_LINE_FORWARD: String = "$ESC\\[K"
 
-        public const val splitCodeMarker = "👈 ansi code splitter 👉"
+        public const val splitCodeMarker: String = "👈 ansi code splitter 👉"
 
         /**
          * Returns the control sequence needed to close all [codes] that are

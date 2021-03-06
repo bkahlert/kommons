@@ -10,7 +10,7 @@ import kotlin.io.path.setPosixFilePermissions
  *
  * The permissions POSIX are set to `700`.
  */
-fun tempDir(base: String = "", extension: String = ""): Path {
+public fun tempDir(base: String = "", extension: String = ""): Path {
     val randomPath = Locations.Temp.randomPath(base, extension).requireTempSubPath()
     return randomPath.createDirectories().apply {
         setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
@@ -22,7 +22,7 @@ fun tempDir(base: String = "", extension: String = ""): Path {
  *
  * The permissions POSIX are set to `700`.
  */
-fun tempFile(base: String = "", extension: String = ""): Path {
+public fun tempFile(base: String = "", extension: String = ""): Path {
     val randomPath = Locations.Temp.randomPath(base, extension).requireTempSubPath()
     return randomPath.createFile().apply {
         setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
