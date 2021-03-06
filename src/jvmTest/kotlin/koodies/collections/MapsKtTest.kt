@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
 @Execution(CONCURRENT)
@@ -28,7 +29,7 @@ class MapsKtTest {
         fun `should remove element from list`() {
             val map = mutableMapOf("test" to listOf("element"))
             map.removeElement("test", "element")
-            expectThat(map).isEqualTo(mutableMapOf("test" to emptyList()))
+            expectThat(map).isEmpty()
         }
     }
 }

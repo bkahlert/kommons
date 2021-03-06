@@ -30,7 +30,7 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
 
     public companion object {
         public val ZERO: Size = Size(BigDecimal.ZERO)
-        public val supportedPrefixes: Map<KClass<out UnitPrefix>, List<UnitPrefix>> = mapOf(
+        public val supportedPrefixes: Map<KClass<out UnitPrefix>, List<UnitPrefix?>> = mapOf(
             BinaryPrefix::class to listOf(
                 BinaryPrefix.Yobi,
                 BinaryPrefix.Zebi,
@@ -40,6 +40,15 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
                 BinaryPrefix.Gibi,
                 BinaryPrefix.Mebi,
                 BinaryPrefix.Kibi,
+                null,
+                BinaryPrefix.mibi,
+                BinaryPrefix.mubi,
+                BinaryPrefix.nabi,
+                BinaryPrefix.pibi,
+                BinaryPrefix.fembi,
+                BinaryPrefix.abi,
+                BinaryPrefix.zebi,
+                BinaryPrefix.yobi,
             ),
             DecimalPrefix::class to listOf(
                 DecimalPrefix.Yotta,
@@ -50,6 +59,19 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
                 DecimalPrefix.Giga,
                 DecimalPrefix.Mega,
                 DecimalPrefix.kilo,
+//                DecimalPrefix.hecto,
+//                DecimalPrefix.deca,
+                null,
+//                DecimalPrefix.deci,
+//                DecimalPrefix.centi,
+                DecimalPrefix.milli,
+                DecimalPrefix.micro,
+                DecimalPrefix.nano,
+                DecimalPrefix.pico,
+                DecimalPrefix.femto,
+                DecimalPrefix.atto,
+                DecimalPrefix.zepto,
+                DecimalPrefix.yocto,
             )
         )
         public const val SYMBOL: String = "B"
@@ -92,7 +114,7 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
      * @return the value of size in the automatically determined [UnitPrefix], e.g. 42.2 MB.
      */
     public inline fun <reified T : UnitPrefix> toString(prefixType: KClass<out UnitPrefix> = T::class, decimals: Int? = null): String {
-        val prefixes: List<UnitPrefix>? = supportedPrefixes[prefixType]
+        val prefixes: List<UnitPrefix?>? = supportedPrefixes[prefixType]
         require(prefixes != null) { "$prefixType is not supported. Valid options are: " + supportedPrefixes.keys }
         return when (bytes) {
             BigDecimal.ZERO -> "0 $SYMBOL"
@@ -100,7 +122,9 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
                 val absNs = bytes.abs()
                 var scientific = false
                 val index = prefixes.dropLastWhile { absNs >= it.factor }.size
-                val millionish = prefixes.first().basis.pow(2 * prefixes.first().baseExponent)
+                val millionish = prefixes.find { it != null }
+                    ?.let { unitPrefix -> unitPrefix.radix.pow(2 * unitPrefix.radixExponent) }
+                    ?: error("At least one supported unit prefix required.")
                 if (index == 0 && absNs >= prefixes.first().factor * millionish) scientific = true
                 val prefix = prefixes.getOrNull(index)
                 val value = bytes.divide(prefix.factor)
@@ -135,7 +159,7 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
 
     override fun compareTo(other: Size): Int = this.bytes.compareTo(other.bytes)
     public operator fun unaryPlus(): Size = this
-    public operator fun unaryMinus(): Size = ZERO - this
+    public operator fun unaryMinus(): Size = this * -BigDecimal.ONE
 
     public operator fun plus(other: BigDecimal): Size = Size(bytes + other)
     public operator fun plus(other: Number): Size = this + other.toBigDecimal()
@@ -177,7 +201,7 @@ public fun CharSequence.parse(): Size {
         when {
             it.isBlank() -> value.bytes
             it == "K" -> (value * BinaryPrefix.Kibi.factor).bytes
-            else -> Size.supportedPrefixes.flatMap { prefix -> prefix.value }.find { unit -> unit.symbol == it }?.let { (value * it.factor).bytes }
+            else -> Size.supportedPrefixes.flatMap { prefix -> prefix.value }.find { unit -> unit?.symbol == it }?.let { (value * it.factor).bytes }
         }
     } ?: throw IllegalArgumentException("${unitString.quoted} is no valid size unit like MB or GiB.")
 }
