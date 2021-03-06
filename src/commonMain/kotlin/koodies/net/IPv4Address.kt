@@ -37,11 +37,11 @@ public class IPv4Address private constructor(override val value: BigInteger, ove
     public companion object : IPAddress.Version by VersionImpl(4, 32.bits) {
         public val MIN_VALUE: BigInteger = UInt.MIN_VALUE.toBigInteger()
         public val MAX_VALUE: BigInteger = UInt.MAX_VALUE.toBigInteger()
-        public val RANGE = parse("0.0.0.0")..parse("255.255.255.255")
-        public val LOOPBACK = parse("127.0.0.1")
-        public val RFC1918_24block = parse("10.0.0.0")..parse("10.255.255.255")
-        public val RFC1918_20block = parse("172.16.0.0")..parse("172.31.255.255")
-        public val RFC1918_16block = parse("192.168.0.0")..parse("192.168.255.255")
+        public val RANGE: IPv4Range = parse("0.0.0.0")..parse("255.255.255.255")
+        public val LOOPBACK: IPv4Address = parse("127.0.0.1")
+        public val RFC1918_24block: IPv4Range = parse("10.0.0.0")..parse("10.255.255.255")
+        public val RFC1918_20block: IPv4Range = parse("172.16.0.0")..parse("172.31.255.255")
+        public val RFC1918_16block: IPv4Range = parse("192.168.0.0")..parse("192.168.255.255")
 
         public fun parse(ipAddress: String): IPv4Address {
             val byteStrings = ipAddress.split(".")

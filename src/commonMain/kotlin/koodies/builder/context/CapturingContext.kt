@@ -13,6 +13,8 @@ import koodies.builder.ListBuilder
 import koodies.builder.MapBuilder
 import koodies.builder.SetBuilder
 import koodies.builder.SkippableBuilder
+import koodies.builder.mapBuild
+import koodies.callable
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -82,6 +84,17 @@ public abstract class CapturingContext {
      * Contains the mapping between property and its captured result.
      */
     protected abstract val captures: CapturesMap
+
+    /**
+     * Creates a [Builder] that delegates its build result to the given [transform].
+     *
+     * Use cases are:
+     * - specifying a custom [Builder] based on `this` existing one
+     * - providing an alias for another function
+     */
+    public inline infix fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.delegate(
+        crossinline transform: (R) -> S,
+    ): CallableProperty<Any?, (T) -> S> = callable(mapBuild(transform))
 
     // @formatter:off
     /** Creates a builder that captures all invocations to `this` builder. */
@@ -318,6 +331,33 @@ public abstract class CapturingContext {
      * }
      */
     public fun <T : Function<*>, R> builder(builder: Builder<T, R>): CapturingCallable<SkippableCapturingBuilderInterface<T, R?>, R?> = builder(null, builder)
+
+    /**
+     * Returns a callable that captures a simple lambda of
+     * the form `() -> R`.
+     *
+     * **Example** *of what the user sees*
+     *
+     * ```kotlin
+     *     build {
+     *         capturingBuilder { … } 👉 captures: { … }
+     *     }
+     * ```
+     *
+     * **Manual Implementation**
+     *
+     * The following code snippet roughly shows how this feature is implemented:
+     * ```
+     * class Builder {
+     *     protected val captured = mutableMapOf<KProperty<*>, Captured<*>>()
+     *     fun build() = … // build using captured values
+     *
+     *     val <R> capturingBuilder: (R)->Unit = { lambda ->
+     *         captured[::capturingBuilder] = capture { lambda() }
+     *     }
+     * }
+     */
+    public fun <P1, R> builder(p1: P1): Builder<(P1) -> R, R> = Builder { it(p1) }
 
     /**
      * Returns a callable that captures a simple lambda of
@@ -954,5 +994,5 @@ public class SkippableCapturingBuilderInterface<T : Function<*>, R>(
     private val callback: (Deferred<R>) -> Unit,
 ) : SkippableBuilder<T, R, Unit> {
     override operator fun invoke(init: T): Unit = callback(Deferred { builder(init) })
-    override infix fun instead(result: R): Unit = callback(Deferred { result })
+    override infix fun using(result: R): Unit = callback(Deferred { result })
 }

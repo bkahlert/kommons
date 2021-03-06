@@ -215,5 +215,5 @@ public typealias Init<C> = C.() -> Unit
 public typealias Init1<P1, C> = C.(P1) -> Unit
 
 
-public inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: R.() -> S): Builder<T, S> =
-    Builder { this(it).transform() }
+public inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: (R) -> S): Builder<T, S> =
+    Builder { transform(this(it)) }

@@ -32,4 +32,7 @@ public fun Number.toBigDecimal(): BigDecimal = when (this) {
     else -> BigDecimal.fromDouble(toDouble(), DecimalMode.DEFAULT)
 }
 
-public fun BigInteger.toBigDecimal() = toString(10).toBigDecimal(10)
+/**
+ * Returns the value of this [BigInteger] as a [BigDecimal].
+ */
+public fun BigInteger.toBigDecimal(): BigDecimal = toString(10).toBigDecimal(10)

@@ -13,4 +13,4 @@ public class MapBasedDictionary<K, out V>(
 
 public fun <K, V> dictOf(map: Map<K, V>, default: (K) -> V): Dictionary<K, V> = MapBasedDictionary(map, default)
 public fun <K, V> dictOf(vararg pairs: Pair<K, V>, default: (K) -> V): Dictionary<K, V> = MapBasedDictionary(pairs.toMap(), default)
-public fun <K, V> Iterable<Pair<K, V>>.toDict(default: (K) -> V) = dictOf(toMap(), default)
+public fun <K, V> Iterable<Pair<K, V>>.toDict(default: (K) -> V): Dictionary<K, V> = dictOf(toMap(), default)

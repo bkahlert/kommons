@@ -40,26 +40,29 @@ data class Car(
     val color: String,
     val traits: Set<Trait>,
     val engine: Engine,
-    val wheels: Int,
+    val wheels: List<Wheel>
 )
 
-class CarBuilder : BuilderTemplate<CarContext, Car>() {
+object CarBuilder : BuilderTemplate<CarContext, Car>() {
 
-    class CarContext(override val captures: CapturesMap) : CapturingContext() {
+    class CarContext(
+        override val captures: CapturesMap,
+    ) : CapturingContext() {
         var name by setter<String>()
         val color by External::color
         val traits by enumSetBuilder<Trait>()
         val engine by Engine
-        val wheels by builder<Int>() default 4
+        val wheel by Wheel
+        val fourWheeler by Wheel delegate { repeat(4) { wheel using this } }
     }
 
-    override fun BuildContext.build() = ::CarContext {
+    override fun BuildContext.build(): Car = ::CarContext {
         Car(
             ::name.eval(),
             ::color.evalOrDefault("#111111"),
             ::traits.eval(),
             ::engine.eval(),
-            ::wheels.eval()
+            ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(3) { Wheel() },
         )
     }
 }
@@ -77,13 +80,13 @@ val exclusiveCar = car {
         power { 145.kW }
         maxSpeed { 244.km per hour }
     }
-    wheels { 4 }
+    fourWheeler { diameter { 16.inch } }
     traits { +Exclusive + TaxExempt }
 }
 
 val defaultCarWithCopiedMotor = car {
     name = "Default Car"
-    engine instead exclusiveCar.engine
+    engine using exclusiveCar.engine
 }
 
 println(exclusiveCar)
@@ -91,33 +94,35 @@ println(defaultCarWithCopiedMotor)
 ```
 
 ```text
-Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], wheels=4, 
-    engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
-Car(name=Default Car, color=#111111, traits=[], wheels=4,
-    engine=Engine(power=EnginePower(watts=1.45E+5), maxSpeed=Speed(distance=Distance(meter=2.44E+5), time=60.0m)))
+Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm])
+Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
 ```
 
 ##### CarBuilder Parts *uses [DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
 
 ```kotlin
+
 inline class EnginePower(val watts: BigDecimal) {
-    companion object : StatelessBuilder.Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
+    companion object : Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
         object EnginePowerContext {
-            val Int.kW get() = kilo.W
+            val Int.kW: EnginePower get() = kilo.W
             val BigDecimal.W: EnginePower get() = EnginePower(this)
         }
     }
+
+    override fun toString(): String = "${watts.doubleValue() / 1000.0}kW"
 }
 
-data class Speed(val distance: Distance, val time: Duration) {
-    companion object : StatelessBuilder.Returning<SpeedContext, Speed>(SpeedContext) {
-        object SpeedContext {
-            val Int.km get() = kilo.m
-            val hour = 1.hours
-            infix fun Distance.per(time: Duration) = Speed(this, time)
+inline class Distance(val meter: BigDecimal) {
+    companion object : Returning<DistanceContext, Distance>(DistanceContext) {
+        object DistanceContext {
+            val Int.mm: Distance get() = milli.m
+            val Int.inch: Distance get() = (toDouble() * 2.54).centi.m
             val BigDecimal.m: Distance get() = Distance(this)
         }
     }
+
+    override fun toString(): String = "${meter}m"
 }
 
 data class Engine(val power: EnginePower, val maxSpeed: Speed) {
@@ -130,10 +135,12 @@ data class Engine(val power: EnginePower, val maxSpeed: Speed) {
             val maxSpeed by Speed
         }
 
-        override fun BuildContext.build() = ::EngineContext {
+        override fun BuildContext.build(): Engine = ::EngineContext {
             Engine(::power.evalOrDefault { EnginePower { 130.kW } }, ::maxSpeed.evalOrDefault { Speed { 228.km per hour } })
         }
     }
+
+    override fun toString(): String = "$maxSpeed, $power"
 }
 
 enum class Trait { Exclusive, PreOwned, TaxExempt }

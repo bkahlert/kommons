@@ -144,9 +144,10 @@ public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
         }
 
         /**
-         * Evaluates all captures for all properties and returns them.
+         * Evaluates all captures for all properties and returns all results
+         * of type [T].
          *
-         * If no capture are found, the returned list is empty.
+         * If no captures are found, the returned list is empty.
          * An eventually defined default is ignored.
          */
         public inline fun <reified T> evalAll(): List<T> = captures.evalAll()
@@ -154,7 +155,7 @@ public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
         /**
          * Evaluates all captures for `this` property and returns them.
          *
-         * If no capture are found, the returned list is empty.
+         * If no captures are found, the returned list is empty.
          * An eventually defined default is ignored.
          */
         public inline fun <reified T> KProperty<*>.evalAll(): List<T> = with(captures) { this@evalAll.evalAll() }

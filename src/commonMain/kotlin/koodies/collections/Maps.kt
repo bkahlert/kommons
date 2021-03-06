@@ -14,7 +14,7 @@ public fun <K, V> Iterable<Pair<K, V>>.toLinkedMap(): LinkedHashMap<K, V> =
  * Returns a view on `this` map that matches keys by matching the result
  * of the specified [transform] applied to them.
  */
-public fun <K, V, `K'`> Map<K, V>.matchKeysBy(transform: K.() -> `K'`) = object : Map<K, V> by this {
+public fun <K, V, `K'`> Map<K, V>.matchKeysBy(transform: K.() -> `K'`): Map<K, V> = object : Map<K, V> by this {
     override fun get(key: K): V? {
         val transformedKey = key.transform()
         val entries = filterKeys { it.transform() == transformedKey }.entries

@@ -53,5 +53,5 @@ public fun <T, V> callable(atMost: Int, block: T.() -> V): PropertyDelegateProvi
  *
  * On all further calls the last computation's result is returned.
  */
-public fun <T, V> callableOnce(block: T.() -> V) =
+public fun <T, V> callableOnce(block: T.() -> V): PropertyDelegateProvider<T, ConstrainedFunction<T, V>> =
     callable(1, block)

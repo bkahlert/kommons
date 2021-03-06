@@ -5,7 +5,7 @@ package koodies.collections
  *
  * @sample tripleFromTo
  */
-public infix fun <A, B, C> Pair<A, B>.to(that: C) =
+public infix fun <A, B, C> Pair<A, B>.to(that: C): Triple<A, B, C> =
     Triple(first, second, that)
 
 private fun tripleFromTo() {
