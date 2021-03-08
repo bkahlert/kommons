@@ -1,6 +1,7 @@
 package koodies.io.path
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import java.nio.file.LinkOption
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
@@ -13,15 +14,14 @@ import kotlin.io.path.listDirectoryEntries
  *
  * @throws IllegalArgumentException if this is neither a file nor a directory
  */
-public val Path.isEmpty: Boolean
-    get() {
-        requireExists()
-        return when {
-            isRegularFile() -> size.bytes == BigDecimal.ZERO
-            isDirectory() -> listDirectoryEntries().none()
-            else -> throw IllegalArgumentException("$this must either be a file or a directory.")
-        }
+public fun Path.isEmpty(vararg options: LinkOption): Boolean {
+    requireExists(*options)
+    return when {
+        isRegularFile(*options) -> getSize().bytes == BigDecimal.ZERO
+        isDirectory(*options) -> listDirectoryEntries().none()
+        else -> throw IllegalArgumentException("$this must either be a file or a directory.")
     }
+}
 
 /**
  * Depending on the file type returns if
@@ -30,12 +30,11 @@ public val Path.isEmpty: Boolean
  *
  * @throws IllegalArgumentException if this is neither a file nor a directory
  */
-public val Path.isNotEmpty: Boolean
-    get() {
-        requireExists()
-        return when {
-            isRegularFile() -> size.bytes > BigDecimal.ZERO
-            isDirectory() -> listDirectoryEntries().any()
-            else -> throw IllegalArgumentException("$this must either be a file or a directory.")
-        }
+public fun Path.isNotEmpty(vararg options: LinkOption): Boolean {
+    requireExists(*options)
+    return when {
+        isRegularFile(*options) -> getSize().bytes > BigDecimal.ZERO
+        isDirectory(*options) -> listDirectoryEntries().any()
+        else -> throw IllegalArgumentException("$this must either be a file or a directory.")
     }
+}

@@ -3,6 +3,7 @@ package koodies.io.path
 import koodies.io.noDirectory
 import koodies.io.path.Defaults.DEFAULT_APPEND_OPTIONS
 import koodies.io.path.Defaults.DEFAULT_WRITE_OPTIONS
+import koodies.time.sleep
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.BufferedWriter
@@ -10,9 +11,12 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.charset.Charset
+import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
 import java.nio.file.PathMatcher
@@ -29,6 +33,7 @@ import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
 import kotlin.streams.asSequence
 import kotlin.streams.toList
+import kotlin.time.milliseconds
 import kotlin.io.path.appendBytes as kotlinAppendBytes
 import kotlin.io.path.writeBytes as kotlinWriteBytes
 
@@ -181,9 +186,10 @@ private fun Path.getPathMatcher(glob: String): PathMatcher? {
     return fileSystem.getPathMatcher("glob:$glob")
 }
 
-private fun Path.streamContentsRecursively(glob: String = "*"): Stream<Path> {
-    if (!isDirectory()) throw noDirectory()
-    val walk = Files.walk(this).filter { it != this }
+private fun Path.streamContentsRecursively(glob: String = "*", vararg options: LinkOption): Stream<Path> {
+    if (!isDirectory(*options)) throw noDirectory()
+    val fileVisitOptions = options.let { if (it.contains(LinkOption.NOFOLLOW_LINKS)) emptyArray() else arrayOf(FileVisitOption.FOLLOW_LINKS) }
+    val walk = Files.walk(this, *fileVisitOptions).filter { it != this }
     return getPathMatcher(glob)
         ?.let { matcher -> walk.filter { path -> matcher.matches(path) } }
         ?: walk
@@ -201,8 +207,8 @@ private fun Path.streamContentsRecursively(glob: String = "*"): Stream<Path> {
  *
  * @see Files.walk
  */
-public fun Path.listDirectoryEntriesRecursively(glob: String = "*"): List<Path> =
-    streamContentsRecursively(glob).toList()
+public fun Path.listDirectoryEntriesRecursively(glob: String = "*", vararg options: LinkOption): List<Path> =
+    streamContentsRecursively(glob, *options).toList()
 
 /**
  * Calls the [block] callback with a sequence of all entries in this directory
@@ -217,8 +223,8 @@ public fun Path.listDirectoryEntriesRecursively(glob: String = "*"): List<Path> 
  *
  * @see Files.walk
  */
-public fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", block: (Sequence<Path>) -> T): T =
-    streamContentsRecursively(glob).use { block(it.asSequence()) }
+public fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", vararg options: LinkOption, block: (Sequence<Path>) -> T): T =
+    streamContentsRecursively(glob, *options).use { block(it.asSequence()) }
 
 /**
  * Performs the given [action] on each entry in this directory and its sub directories
@@ -232,8 +238,8 @@ public fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", block: (S
  *
  * @see Files.walk
  */
-public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", action: (Path) -> Unit): Unit =
-    streamContentsRecursively(glob).use { it.forEach(action) }
+public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", vararg options: LinkOption, action: (Path) -> Unit): Unit =
+    streamContentsRecursively(glob, *options).use { it.forEach(action) }
 
 
 /**
@@ -241,23 +247,42 @@ public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", action: (Pa
  *
  * Returns the deletes path.
  */
-public fun Path.delete(): Path =
+public fun Path.delete(vararg options: LinkOption): Path =
     apply {
-        if (exists()) {
-            Files.delete(this)
+        if (exists(*options)) {
+            val ex: Throwable? = kotlin.runCatching { Files.delete(this) }.exceptionOrNull()
+            if (ex is DirectoryNotEmptyException) {
+                println("$this is not empty but contains: ${listDirectoryEntriesRecursively(options = options).joinToString(", ")}")
+            }
+            if (ex != null) throw ex
         }
     }
 
 /**
  * Deletes this file or directory recursively.
  *
+ * Symbolic links are not followed but deleted themselves.
+ *
  * Returns the deletes path.
  */
-public fun Path.deleteRecursively(): Path =
+public fun Path.deleteRecursively(vararg options: LinkOption): Path =
     apply {
-        if (exists()) {
-            if (isDirectory()) forEachDirectoryEntry { it.deleteRecursively() }
-            delete()
+        if (exists(*options, LinkOption.NOFOLLOW_LINKS)) {
+            if (isDirectory(*options, LinkOption.NOFOLLOW_LINKS)) {
+                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS) }
+            }
+
+            var maxAttempts = 3
+            var ex: Throwable? = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
+            while (ex != null && maxAttempts > 0) {
+                maxAttempts--
+                if (ex is DirectoryNotEmptyException) {
+                    listDirectoryEntriesRecursively(options = options).forEach { it.deleteRecursively(*options) }
+                }
+                100.milliseconds.sleep()
+                ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
+            }
+            if (ex != null) throw ex
         }
     }
 

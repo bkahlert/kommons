@@ -36,3 +36,30 @@ public fun Number.toBigDecimal(): BigDecimal = when (this) {
  * Returns the value of this [BigInteger] as a [BigDecimal].
  */
 public fun BigInteger.toBigDecimal(): BigDecimal = toString(10).toBigDecimal(10)
+
+
+/**
+ * Returns the sum of all values produced by [selector] function applied to each element in the sequence.
+ *
+ * The operation is _terminal_.
+ */
+public inline fun <T> Sequence<T>.sumBy(selector: (T) -> BigInteger): BigInteger {
+    var sum: BigInteger = BigInteger.ZERO
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+/**
+ * Returns the sum of all values produced by [selector] function applied to each element in the sequence.
+ *
+ * The operation is _terminal_.
+ */
+public inline fun <T> Sequence<T>.sumBy(selector: (T) -> BigDecimal): BigDecimal {
+    var sum: BigDecimal = BigDecimal.ZERO
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}

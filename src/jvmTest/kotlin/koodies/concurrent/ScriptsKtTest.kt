@@ -186,8 +186,8 @@ class ScriptsKtTest {
                 · {} file:{}
                 · test output 1
                 · test output 2
-                · Unfortunately an error occurred: test error 1
-                · Unfortunately an error occurred: test error 2{{}}
+                · test error 1
+                · test error 2{{}}
                 """.trimIndent())
                 expectThat(output).get { err }.isEmpty()
             }

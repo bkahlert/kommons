@@ -3,16 +3,20 @@ package koodies.io.path
 import koodies.unit.DecimalPrefix
 import koodies.unit.Size
 import koodies.unit.bytes
+import koodies.unit.sumBy
 import koodies.unit.toSize
-import java.io.File
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.isSymbolicLink
 
 public object FileSizeComparator : (Path, Path) -> Int {
-    override fun invoke(path1: Path, path2: Path): Int = path1.size.compareTo(path2.size)
+    override fun invoke(path1: Path, path2: Path): Int = path1.getSize().compareTo(path2.getSize())
 }
+
+private val Path.size get() = takeIf { it.isRegularFile() }?.let { Files.size(it) }?.bytes ?: Size.ZERO
 
 /**
  * Contains the decimal size of this file (`e.g. 3.12 MB`).
@@ -20,16 +24,19 @@ public object FileSizeComparator : (Path, Path) -> Int {
  * If this target actually points to a directory, this property
  * contains the overall size of all contained files.
  */
-public val Path.size: Size
-    get() {
-        requireExists()
-        return if (!isDirectory()) Files.size(toAbsolutePath()).bytes
-        else (toFile().listFiles() ?: return Size.ZERO) // TODO remove toFile
-            .asSequence()
-            .map(File::toPath)
-            .filterNot { it.isSymbolicLink() }
-            .fold(Size.ZERO) { size, path -> size + path.size }
+public fun Path.getSize(vararg options: LinkOption): Size {
+    requireExists(*options)
+    return if (!isDirectory(*options)) {
+        toAbsolutePath().size
+    } else {
+        useDirectoryEntriesRecursively(options = options) { seq ->
+            seq.sumBy { path ->
+                if (options.contains(LinkOption.NOFOLLOW_LINKS)) check(!path.isSymbolicLink())
+                path.size
+            }
+        }
     }
+}
 
 /**
  * Contains the size of this file or directory rounded so that
@@ -37,4 +44,4 @@ public val Path.size: Size
  *
  * Please note that the size is rounded in the decimal system (1 KB = 1.000 B).
  */
-public val Path.roundedSize: Size get() = size.toString<DecimalPrefix>(decimals = 0).toSize()
+public fun Path.getRoundedSize(vararg options: LinkOption): Size = getSize(*options).toString<DecimalPrefix>(decimals = 0).toSize()

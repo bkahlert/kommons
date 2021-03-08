@@ -125,7 +125,7 @@ public open class CommandLine(
     /**
      * A human-readable representation of this command line.
      */
-    public val summary: String
+    public open val summary: String
         get() = arguments
             .map { line ->
                 line.split("\\b".toRegex()).filter { part -> part.trim().run { length > 1 && !startsWith("-") } }
@@ -138,12 +138,14 @@ public open class CommandLine(
                     2 -> words.joinToString("…")
                     else -> words.first() + "…" + words.last()
                 }
-            }.asStatus()
+            }
+            .map { it.replace("\\s+".toRegex(), " ") }
+            .asStatus()
 
     /**
      * Contains all accessible files contained in this command line.
      */
-    public val includedFiles: List<Path>
+    public open val includedFiles: List<Path>
         get() = commandLineParts.map { it.unquoted.asPath() }
             .filter { it != it.root }
             .filter { it.exists() }

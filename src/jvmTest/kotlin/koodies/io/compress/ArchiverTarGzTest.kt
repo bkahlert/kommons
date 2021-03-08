@@ -7,12 +7,12 @@ import koodies.io.compress.TarArchiveGzCompressor.tarGunzip
 import koodies.io.compress.TarArchiveGzCompressor.tarGzip
 import koodies.io.path.addExtensions
 import koodies.io.path.copyTo
+import koodies.io.path.getSize
 import koodies.io.path.hasSameFiles
 import koodies.io.path.randomDirectory
 import koodies.io.path.randomPath
 import koodies.io.path.removeExtensions
 import koodies.io.path.renameTo
-import koodies.io.path.size
 import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
@@ -75,7 +75,7 @@ class ArchiverTarGzTest {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tarGzip()
-        expectThat(archivedDir.size).isLessThan(dir.size.coerceAtLeast(500.bytes))
+        expectThat(archivedDir.getSize()).isLessThan(dir.getSize().coerceAtLeast(500.bytes))
 
         val renamedDir = dir.renameTo("${dir.fileName}-renamed")
 

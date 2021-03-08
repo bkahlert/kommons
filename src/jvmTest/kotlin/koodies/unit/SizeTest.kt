@@ -1,7 +1,7 @@
 package koodies.unit
 
+import koodies.io.path.getSize
 import koodies.io.path.randomFile
-import koodies.io.path.size
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -18,7 +18,7 @@ import java.nio.file.Path
 import kotlin.io.path.appendText
 
 
-@Execution(SAME_THREAD)
+@Execution(CONCURRENT)
 class SizeTest {
 
     @Test
@@ -237,12 +237,12 @@ class SizeTest {
 
         @Test
         fun `should format size human-readable (10^x)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(createFile().size.toString<DecimalPrefix>()).isEqualTo("25.0 KB")
+            expectThat(createFile().getSize().toString<DecimalPrefix>()).isEqualTo("25.0 KB")
         }
 
         @Test
         fun `should format size human-readable (2^y)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(createFile().size.toString<BinaryPrefix>()).isEqualTo("24.4 KiB")
+            expectThat(createFile().getSize().toString<BinaryPrefix>()).isEqualTo("24.4 KiB")
         }
     }
 
@@ -271,8 +271,8 @@ class SizeTest {
             42.Giga.bytes to 42.bytes * decFactor * decFactor * decFactor,
             42.Mega.bytes to 42.bytes * decFactor * decFactor,
             42.kilo.bytes to 42.bytes * decFactor,
-            42.hecto.bytes to 42.bytes * 10 * 10, // ⛳️
-            42.deca.bytes to 42.bytes * 10, // 🌽
+            42.hecto.bytes to 42.bytes * 10 * 10,
+            42.deca.bytes to 42.bytes * 10,
             42.bytes to 42.bytes,
         ).flatMap { (decimalSize: Size, binarySize: Size) ->
             listOf(
@@ -386,13 +386,22 @@ class SizeTest {
             }
         }
     }
+
+    @Nested
+    inner class SumBy {
+        @Test
+        fun `should sum by`() {
+            expectThat(sequenceOf(1.bytes, 2.kilo.bytes, 3.Mebi.bytes).sumBy { it })
+                .isEqualTo(1.bytes + 2.kilo.bytes + 3.Mebi.bytes)
+        }
+    }
 }
 
-val Assertion.Builder<out Path>.size get() = get { size }
+val Assertion.Builder<out Path>.size get() = get { getSize() }
 
 fun <T : Path> Assertion.Builder<T>.hasSize(size: Size) =
     assert("has $size") {
-        val actualSize = it.size
+        val actualSize = it.getSize()
         when (actualSize == size) {
             true -> pass()
             else -> fail("was $actualSize (${actualSize.bytes} B; Δ: ${actualSize - size})")

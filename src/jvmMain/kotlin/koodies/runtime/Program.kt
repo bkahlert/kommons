@@ -2,12 +2,18 @@
 
 package koodies.runtime
 
+import com.github.ajalt.mordant.TermColors
+import com.github.ajalt.mordant.TermColors.Level.NONE
+import com.github.ajalt.mordant.TermColors.Level.TRUECOLOR
+import com.github.ajalt.mordant.TerminalCapabilities.detectANSISupport
 import koodies.io.path.Locations.Temp
 import koodies.io.path.age
 import koodies.io.path.appendLine
 import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.text.anyContainsAny
+import java.lang.management.ManagementFactory
 import java.nio.file.Path
 import java.security.AccessControlException
 import java.util.concurrent.locks.ReentrantLock
@@ -16,14 +22,27 @@ import kotlin.concurrent.withLock
 import kotlin.io.path.isRegularFile
 import kotlin.time.Duration
 import kotlin.time.minutes
+import java.lang.Runtime as JavaRuntime
 
-public actual fun <T : OnExitHandler> onExit(handler: T): T =
-    addShutDownHook(handler)
+public actual object Program {
+    private val jvmArgs: List<String> by lazy { ManagementFactory.getRuntimeMXBean().inputArguments }
+    private val jvmJavaAgents: List<String> by lazy { jvmArgs.filter { it.startsWith("-javaagent") } }
+
+    private val intellijTraits: List<String> by lazy { listOf("jetbrains", "intellij", "idea", "idea_rt.jar") }
+
+    public val isIntelliJ: Boolean by lazy { kotlin.runCatching { jvmJavaAgents.anyContainsAny(intellijTraits) }.getOrElse { false } }
+
+    public val ansiSupport: TermColors.Level by lazy { detectANSISupport().takeUnless { it == NONE } ?: if (isIntelliJ) TRUECOLOR else NONE }
+
+    public actual val isDebugging: Boolean by lazy { jvmJavaAgents.any { it.contains("debugger") } }
+
+    public actual fun <T : OnExitHandler> onExit(handler: T): T = addShutDownHook(handler)
+}
 
 private fun <T : OnExitHandler> addShutDownHook(handler: T): T =
     handler.also {
         val hook = handler.toHook()
-        Runtime.getRuntime().addShutdownHook(hook)
+        JavaRuntime.getRuntime().addShutdownHook(hook)
     }
 
 private fun <T : OnExitHandler> T.toHook() = thread(start = false) {
@@ -41,7 +60,7 @@ private val onExitHandlers: MutableList<OnExitHandler> = object : MutableList<On
     init {
         val log = Temp.resolve("koodies.onexit.log").delete()
 
-        onExit {
+        Program.onExit {
             val copy = lock.withLock { toList() }
             copy.forEach { onExitHandler ->
                 onExitHandler.runCatching {

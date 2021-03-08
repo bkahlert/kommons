@@ -101,29 +101,32 @@ class DockerRunCommandLineTest {
 
             @Test
             fun `should ignore guest command line`() {
-                expectThat(dockerCommandLine(
+                val dockerCommandLine = dockerCommandLine(
                     optionsWorkingDir = "/a",
                     guestWorkingDir = "/some/where",
                     "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h").options.workingDirectory).isEqualTo("/a".asContainerPath())
+                    "/e/f/../g" to "//h")
+                expectThat(dockerCommandLine.options.workingDirectory).isEqualTo("/a".asContainerPath())
             }
 
             @Test
             fun `should take as is - even if re-mappable`() {
-                expectThat(dockerCommandLine(
+                val dockerCommandLine = dockerCommandLine(
                     optionsWorkingDir = "/a/b/1",
                     guestWorkingDir = "/some/where",
                     "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h").options.workingDirectory).isEqualTo("/a/b/1".asContainerPath())
+                    "/e/f/../g" to "//h")
+                expectThat(dockerCommandLine.options.workingDirectory).isEqualTo("/a/b/1".asContainerPath())
             }
 
             @Test
             fun `should use re-use guest working dir`() {
-                expectThat(dockerCommandLine(
+                val dockerCommandLine = dockerCommandLine(
                     optionsWorkingDir = "/a",
                     guestWorkingDir = "/some/where",
                     "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h").workingDirectory).isEqualTo("/some/where".asPath())
+                    "/e/f/../g" to "//h")
+                expectThat(dockerCommandLine.workingDirectory).isEqualTo("/some/where".asPath())
             }
         }
 
@@ -132,29 +135,32 @@ class DockerRunCommandLineTest {
 
             @Test
             fun `should use guest working dir if re-mappable`() {
-                expectThat(dockerCommandLine(
+                val dockerCommandLine = dockerCommandLine(
                     optionsWorkingDir = null,
                     guestWorkingDir = "/a/b/1",
                     "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h").options.workingDirectory).isEqualTo("/c/d/1".asContainerPath())
+                    "/e/f/../g" to "//h")
+                expectThat(dockerCommandLine.options.workingDirectory).isEqualTo("/c/d/1".asContainerPath())
             }
 
             @Test
             fun `should ignore guest working dir if not re-mappable`() {
-                expectThat(dockerCommandLine(
+                val dockerCommandLine = dockerCommandLine(
                     optionsWorkingDir = null,
                     guestWorkingDir = "/some/where",
                     "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h").options.workingDirectory).isNull()
+                    "/e/f/../g" to "//h")
+                expectThat(dockerCommandLine.options.workingDirectory).isNull()
             }
 
             @Test
             fun `should use re-use guest working dir`() {
-                expectThat(dockerCommandLine(
+                val dockerCommandLine = dockerCommandLine(
                     optionsWorkingDir = null,
                     guestWorkingDir = "/some/where",
                     "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h").workingDirectory).isEqualTo("/some/where".asPath())
+                    "/e/f/../g" to "//h")
+                expectThat(dockerCommandLine.workingDirectory).isEqualTo("/some/where".asPath())
             }
         }
 

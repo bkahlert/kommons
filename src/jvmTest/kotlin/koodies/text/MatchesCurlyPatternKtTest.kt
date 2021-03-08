@@ -80,8 +80,8 @@ class MatchesCurlyPatternKtTest {
             · 📄 file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_console_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
             · test output 1
             · test output 2
-            · Unfortunately an error occurred: test error 1
-            · Unfortunately an error occurred: test error 2
+            · test error 1
+            · test error 2
             · Process 27252 terminated successfully at 2021-02-23T02:31:53.968444Z.
         """.trimIndent()) {
             matchesCurlyPattern("""
@@ -90,8 +90,8 @@ class MatchesCurlyPatternKtTest {
                     · {} file:{}
                     · test output 1
                     · test output 2
-                    · Unfortunately an error occurred: test error 1
-                    · Unfortunately an error occurred: test error 2{{}} 
+                    · test error 1
+                    · test error 2{{}} 
                 """.trimIndent())
         }
     }
@@ -103,8 +103,8 @@ class MatchesCurlyPatternKtTest {
             · {} file:{}
             · test output 1
             · test output 2
-            · Unfortunately an error occurred: test error 1
-            · Unfortunately an error occurred: test error 2{{}}
+            · test error 1
+            · test error 2{{}}
         """.trimIndent()) { pattern ->
 
         test("matching lines") {
@@ -115,8 +115,8 @@ class MatchesCurlyPatternKtTest {
             · 📄 file:///bin/sh
             · test output 1
             · test output 2
-            · Unfortunately an error occurred: test error 1
-            · Unfortunately an error occurred: test error 2
+            · test error 1
+            · test error 2
             Process 98199 terminated successfully at ….
             
         """.trimIndent()).matchesCurlyPattern(pattern)
@@ -129,8 +129,8 @@ class MatchesCurlyPatternKtTest {
             · 📄 file:///bin/sh
             · test output 1
             · test output 2
-            · Unfortunately an error occurred: test error 1
-            · Unfortunately an error occurred: test error 2
+            · test error 1
+            · test error 2
             
         """.trimIndent()).matchesCurlyPattern(pattern)
         }
@@ -143,8 +143,8 @@ class MatchesCurlyPatternKtTest {
             · 📄 file:///bin/sh
             · test output 1
             · test output 2
-            · Unfortunately an error occurred: test error 1
-            · Unfortunately an error occurred: test error 2
+            · test error 1
+            · test error 2
             
         """.trimIndent()).matchesCurlyPattern(pattern)
         }

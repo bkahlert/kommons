@@ -2,8 +2,8 @@ package koodies.kaomoji
 
 import koodies.kaomoji.Kaomojis.fishing
 import koodies.kaomoji.Kaomojis.thinking
+import koodies.runtime.Program
 import koodies.terminal.AnsiFormats.hidden
-import koodies.terminal.IDE
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.asCodePointSequence
@@ -51,7 +51,7 @@ class KaomojisTest {
     inner class RandomThinkingKaomoji {
         @Test
         fun `should create thinking Kaomoji`() {
-            val hidden = if (IDE.isIntelliJ) "    " else "・㉨・".hidden()
+            val hidden = if (Program.isIntelliJ) "    " else "・㉨・".hidden()
             expectThat(Kaomojis.Bear[0].thinking("oh no")).isEqualTo("""
                 $hidden   ͚͔˱ ❨ ( oh no )
                 ・㉨・ ˙

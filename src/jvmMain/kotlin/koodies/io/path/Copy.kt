@@ -16,6 +16,7 @@ import java.io.InputStream
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystemException
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -44,54 +45,67 @@ public fun Path.copyTo(
     target: Path,
     overwrite: Boolean = false,
     preserve: Boolean = false,
+    vararg options: LinkOption,
     onError: (Path, FileSystemException) -> OnErrorAction = { _, exception -> throw exception },
 ): Path {
 
-    if (notExists()) {
+    if (notExists(*options)) {
         onError(this, noSuchFile(this, target, "Source file doesn't exist.")) != OnErrorAction.TERMINATE
         return target
     }
 
     try {
         for (src in walkTopDown().onFail { f, e -> if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f) }) {
-            if (!src.exists()) {
+            if (!src.exists(*options)) {
                 if (onError(src, noSuchFile(src, "Source file doesn't exist.")) == OnErrorAction.TERMINATE) return target
             } else {
                 val dstFile = target.resolveBetweenFileSystems(relativize(src))
-                if (dstFile.exists()) {
-                    if (!src.isDirectory() || !dstFile.isDirectory()) {
-                        if (src.isRegularFile() && dstFile.isRegularFile() && src.size == dstFile.size) {
-                            if (src.inputStream().contentEquals(dstFile.inputStream())) continue
-                        }
-                        val stillExists = if (overwrite) dstFile.deleteRecursively().exists() else true
+                if (dstFile.exists(*options) && (!src.isDirectory(*options) || !dstFile.isDirectory(*options))) {
 
-                        if (stillExists) {
-                            if (onError(dstFile,
-                                    fileAlreadyExists(src, dstFile, "The destination file already exists.")) == OnErrorAction.TERMINATE
-                            ) return target
-                            continue
+                    if (src.isRegularFile(*options) &&
+                        dstFile.isRegularFile(*options) &&
+                        src.getSize() == dstFile.getSize() &&
+                        src.inputStream(*options).contentEquals(dstFile.inputStream(*options))
+                    ) continue
+
+                    val stillExists: Boolean = if (overwrite) {
+                        dstFile.deleteRecursively(*options).exists(*options)
+                    } else {
+                        true
+                    }
+
+                    if (stillExists) {
+                        if (onError(dstFile, fileAlreadyExists(src, dstFile, "The destination file already exists.")) == OnErrorAction.TERMINATE) {
+                            return target
                         }
+                        continue
                     }
                 }
 
-                if (!dstFile.parent.exists()) dstFile.parent.createDirectories()
+                if (!dstFile.parent.exists(*options)) dstFile.parent.createDirectories()
 
-                if (src.isDirectory()) {
-                    if (!dstFile.exists()) {
+                if (src.isDirectory(*options)) {
+                    if (!dstFile.exists(*options)) {
 
-                        val createdDir = Files.copy(src, dstFile, *CopyOptions.enumArrayOf(replaceExisting = overwrite, copyAttributes = preserve))
-                        val isEmpty = createdDir.run { isDirectory() && isEmpty }
-                        if (!isEmpty) {
-                            if (onError(src, dstFile.directoryNotEmpty()) == OnErrorAction.TERMINATE) return target
+                        val createdDir =
+                            Files.copy(src, dstFile, *CopyOptions.enumArrayOf(replaceExisting = overwrite, copyAttributes = preserve, copyOptions = options))
+                        val isEmpty = createdDir.run { isDirectory(*options) && isEmpty(*options) }
+                        if (!isEmpty && onError(src, dstFile.directoryNotEmpty()) == OnErrorAction.TERMINATE) {
+                            return target
                         }
                     }
                 } else {
-                    val copiedFile = Files.copy(src, dstFile, *CopyOptions.enumArrayOf(replaceExisting = overwrite, copyAttributes = preserve))
-                    if (copiedFile.size != src.size) {
-                        if (onError(src,
-                                fileSystemException(src, dstFile, "Only ${copiedFile.size} out of ${src.size} were copied.")) == OnErrorAction.TERMINATE
-                        )
-                            return target
+                    val copiedFile = Files.copy(src, dstFile, *CopyOptions.enumArrayOf(
+                        replaceExisting = overwrite,
+                        copyAttributes = preserve,
+                        copyOptions = options,
+                    ))
+                    val copiedFileSize = copiedFile.getSize(*options)
+                    val srcFileSize = src.getSize(*options)
+                    if (copiedFileSize != srcFileSize &&
+                        onError(src, fileSystemException(src, dstFile, "Only $copiedFileSize out of $srcFileSize were copied.")) == OnErrorAction.TERMINATE
+                    ) {
+                        return target
                     }
                 }
             }
@@ -137,21 +151,22 @@ public fun Path.copyToDirectory(
     targetDirectory: Path,
     overwrite: Boolean = false,
     preserve: Boolean = false,
+    vararg options: LinkOption,
     onError: (Path, FileSystemException) -> OnErrorAction = { _, exception -> throw exception },
 ): Path {
-    if (notExists()) {
+    if (notExists(*options)) {
         onError(this, NoSuchFileException(this.toString(), "$targetDirectory", "The source file doesn't exist.")) != OnErrorAction.TERMINATE
         return targetDirectory
     }
 
-    if (!targetDirectory.exists()) targetDirectory.createDirectories()
-    if (!targetDirectory.isDirectory()) {
+    if (!targetDirectory.exists(*options)) targetDirectory.createDirectories()
+    if (!targetDirectory.isDirectory(*options)) {
         onError(this,
             FileAlreadyExistsException(this.toString(), "$targetDirectory", "The destination must not exist or be a directory.")) != OnErrorAction.TERMINATE
         return targetDirectory
     }
 
-    return copyTo(targetDirectory.resolveBetweenFileSystems(fileName), overwrite = overwrite, preserve = preserve, onError = onError)
+    return copyTo(targetDirectory.resolveBetweenFileSystems(fileName), overwrite = overwrite, preserve = preserve, onError = onError, options = options)
 }
 
 /**
@@ -167,9 +182,9 @@ public fun Path.copyToDirectory(
  *
  * E.g. `/a/b/c`'s 2 order duplication can be found at `/a/b-random/c`.
  */
-public fun Path.duplicate(order: Int = 1, suffix: String = "".withRandomSuffix()): Path {
+public fun Path.duplicate(order: Int = 1, suffix: String = "".withRandomSuffix(), vararg options: LinkOption): Path {
     val sibling = resolveSibling(order) { resolveSibling(fileName.asString() + suffix) }
-    return copyTo(sibling)
+    return copyTo(sibling, options = options)
 }
 
 

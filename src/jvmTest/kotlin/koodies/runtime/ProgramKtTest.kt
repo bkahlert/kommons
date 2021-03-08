@@ -15,7 +15,7 @@ import kotlin.io.path.writeText
 
 @Isolated
 @Execution(CONCURRENT)
-class ExitKtTest {
+class ProgramKtTest {
 
     @Execution(CONCURRENT)
     class DeleteOnExit {

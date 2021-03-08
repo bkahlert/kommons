@@ -1,6 +1,5 @@
 package koodies.concurrent
 
-import com.github.ajalt.mordant.AnsiColorCode
 import koodies.builder.Init
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
@@ -8,18 +7,15 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.process
 import koodies.concurrent.process.processSynchronously
 import koodies.concurrent.process.toProcessor
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
-import koodies.io.path.Locations
+import koodies.logging.LoggingOptions
 import koodies.logging.RenderingLogger
-import koodies.logging.logging
 import koodies.logging.logging2
 import koodies.terminal.ANSI
 import koodies.text.LineSeparators
-import java.io.InputStream
 import java.nio.file.Path
 
 /* ALL PROCESS METHODS BELOW ALWAYS START THE PROCESS BUT DONT PROCESS */
@@ -95,7 +91,7 @@ public fun CommandLine.execute(
     processTerminationCallback: (() -> Unit)? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): ManagedProcess {
-    return process(commandLine, expectedExitValue, processTerminationCallback).processSynchronously(processor)
+    return process(this, expectedExitValue, processTerminationCallback).processSynchronously(processor)
 }
 
 /**

@@ -1,6 +1,9 @@
 package koodies.docker
 
+import koodies.CallableProperty
+import koodies.builder.Builder
 import koodies.builder.Init
+import koodies.builder.mapBuild
 import koodies.concurrent.daemon
 import koodies.concurrent.execute
 import koodies.concurrent.output
@@ -13,6 +16,7 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
+import koodies.concurrent.process.toProcessor
 import koodies.concurrent.script
 import koodies.concurrent.scriptOutputContains
 import koodies.concurrent.toManagedProcess
@@ -22,10 +26,12 @@ import koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext
 import koodies.docker.DockerRunCommandLineOptions.Companion.OptionsContext
 import koodies.docker.DockerStartCommandLine.Companion.StartContext
 import koodies.docker.DockerStopCommandLine.Companion.StopContext
+import koodies.logging.RenderingLogger
 import koodies.provideDelegate
 import koodies.text.LineSeparators.lines
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+
 
 /**
  * Provides methods to create and interact with a [DockerProcess].
@@ -60,15 +66,30 @@ public object Docker {
     }
 
     /**
-     * Builds a [DockerStartCommandLine].
+     * Builds a [DockerStartCommandLine] and executes it.
      */
-    public val start: (Init<StartContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */) -> DockerStartCommandLine by DockerStartCommandLine
+    public val start: (Init<StartContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */)
+    -> ManagedProcess by DockerStartCommandLine.mapBuild { it.execute() }
 
     /**
-     * Builds a [DockerRunCommandLine].
+     * Builds a [DockerStartCommandLine] and executes it using `this` [RenderingLogger].
      */
-    public val
-        run: (Init<DockerRunCommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */) -> DockerRunCommandLine by DockerRunCommandLine
+    public val RenderingLogger?.start: Builder<Init<StartContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+        DockerStartCommandLine.mapBuild { it.execute(processor = thisRef.toProcessor()) }
+    }
+
+    /**
+     * Builds a [DockerRunCommandLine] and executes it.
+     */
+    public val run: (Init<DockerRunCommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
+    -> ManagedProcess by DockerRunCommandLine.mapBuild { it.execute() }
+
+    /**
+     * Builds a [DockerRunCommandLine] and executes it using `this` [RenderingLogger].
+     */
+    public val RenderingLogger?.run: Builder<Init<DockerRunCommandContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+        DockerRunCommandLine.mapBuild { it.execute(processor = thisRef.toProcessor()) }
+    }
 
     /**
      * Builds a [DockerStopCommandLine].

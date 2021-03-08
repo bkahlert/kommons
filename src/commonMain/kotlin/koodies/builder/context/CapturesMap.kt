@@ -182,12 +182,12 @@ public class CapturesMap {
          * Default exception for problems evaluating a deferred invocation for the given [property].
          */
         public fun defaultException(property: KProperty<*>): NoSuchElementException =
-            NoSuchElementException("No deferred evaluation found for ${property.toString().substringBefore(":")}")
+            NoSuchElementException("No deferred invocations found for ${property.toString().substringBefore(":")}")
 
         /**
          * Default exception for problems evaluating a deferred invocation for the given [property].
          */
         public fun defaultException(propertyName: String): NoSuchElementException =
-            NoSuchElementException("No deferred evaluation found for property $propertyName.")
+            NoSuchElementException("No deferred invocations found for property $propertyName.")
     }
 }

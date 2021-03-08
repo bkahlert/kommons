@@ -1,6 +1,13 @@
 package koodies.concurrent.process
 
+import koodies.builder.BuilderTemplate
+import koodies.builder.Init
+import koodies.builder.context.CapturesMap
+import koodies.builder.context.CapturingContext
+import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.completableFuture
+import koodies.concurrent.process.ProcessingOptions.Mode.Asynchronous
+import koodies.concurrent.process.ProcessingOptions.Mode.Synchronous
 import koodies.concurrent.process.Processors.consoleLoggingProcessor
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
@@ -39,7 +46,7 @@ public object Processors {
             IO.Type.META -> logger.logLine { io }
             IO.Type.IN -> logger.logLine { io }
             IO.Type.OUT -> logger.logLine { io }
-            IO.Type.ERR -> logger.logLine { "Unfortunately an error occurred: ${io.formatted}" }
+            IO.Type.ERR -> logger.logLine { io.formatted }
         }
     }
 
@@ -194,3 +201,47 @@ private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
 private fun CompletableFuture<*>.exceptionallyThrow(type: String) = exceptionally {
     throw RuntimeException("An error occurred while processing ［$type］.", it)
 }
+
+
+public data class ProcessingOptions<P : ManagedProcess>(
+    val mode: Mode,
+    val processInputStream: InputStream = InputStream.nullInputStream(),
+    val processor: Processor<P>,
+) {
+
+    public enum class Mode { Synchronous, Asynchronous }
+
+    public companion object {
+        public operator fun <P : ManagedProcess> invoke(init: Init<Builder<P>.ProcessingOptionsContext>): ProcessingOptions<P> =
+            Builder<P>().invoke(init)
+
+        public class Builder<P : ManagedProcess> : BuilderTemplate<Builder<P>.ProcessingOptionsContext, ProcessingOptions<P>>() {
+            public inner class ProcessingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
+                public val mode: SkippableCapturingBuilderInterface<() -> Mode, Mode> by builder<Mode>() default Asynchronous
+                public val processInputStream: SkippableCapturingBuilderInterface<() -> InputStream, InputStream> by builder<InputStream>() default InputStream.nullInputStream()
+                public val processor: SkippableCapturingBuilderInterface<() -> P.(IO) -> Unit, P.(IO) -> Unit> by builder<Processor<P>>() default noopProcessor()
+            }
+
+            override fun BuildContext.build(): ProcessingOptions<P> = ::ProcessingOptionsContext {
+                ProcessingOptions(::mode.eval(), ::processInputStream.eval(), ::processor.eval())
+            }
+        }
+    }
+}
+
+/**
+ * Attaches to the [Process.inputStream] and [Process.errorStream]
+ * of the specified [Process] and passed all [IO] to the specified [processor].
+ *
+ * If no [processor] is specified, the output and the error stream will be
+ * printed to the console.
+ *
+ * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
+ */
+public fun <P : ManagedProcess> P.process(options: ProcessingOptions<P>): P =
+    with(options) {
+        when (mode) {
+            Synchronous -> processSynchronously(processor)
+            Asynchronous -> process(nonBlockingReader = true, processInputStream, processor)
+        }
+    }

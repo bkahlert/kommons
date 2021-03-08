@@ -30,7 +30,7 @@
 
 ### Multi-Platform Builder Template
 
-#### Example: Car DSL *[full example](src/commonMain/kotlin/koodies/builder/CarDSL.kt)*
+#### Example: Car DSL *[full example](src/commonTest/kotlin/koodies/builder/CarDSL.kt)*
 
 ##### CarBuilder Implementation
 
@@ -102,8 +102,8 @@ Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheel
 
 ```kotlin
 
-inline class EnginePower(val watts: BigDecimal) {
-    companion object : Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
+data class EnginePower(val watts: BigDecimal) {
+    companion object : StatelessBuilder.Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
         object EnginePowerContext {
             val Int.kW: EnginePower get() = kilo.W
             val BigDecimal.W: EnginePower get() = EnginePower(this)
@@ -113,8 +113,8 @@ inline class EnginePower(val watts: BigDecimal) {
     override fun toString(): String = "${watts.doubleValue() / 1000.0}kW"
 }
 
-inline class Distance(val meter: BigDecimal) {
-    companion object : Returning<DistanceContext, Distance>(DistanceContext) {
+data class Distance(val meter: BigDecimal) {
+    companion object : StatelessBuilder.Returning<DistanceContext, Distance>(DistanceContext) {
         object DistanceContext {
             val Int.mm: Distance get() = milli.m
             val Int.inch: Distance get() = (toDouble() * 2.54).centi.m
@@ -153,26 +153,14 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
 * Auto-generate simple builders, functions and setters
 * BuilderTemplate based builders are...
     * **thread-safe**
-    * **skippable**
-        * call `build { … }` to build an instance **or**  
-          call `build using myCar` if you want to use an already existing instance
-        * alternatively you can call `build by myCar`
-    * **defaultable**
-        * defaults can be specified for each property, e.g. `val wheels by builder<Int>() default 4`
-        * defaults can be provided during build, e.g. `::wheels.evalOrDefault(4)`
-        * container-like builders (ListBuilder, MapBuilder, etc.) have all non-null pre-defined default (emptyList(), emptyMap(), etc)
-    * **versatile**
-        * get single instances using `::engine.eval()`, `::engine.evalOrDefault()` or `::engine.evalOrNull()`
-        * get multiple instances using `::engine.evalAll()` *(order of invocations preserved)*
-        * get all instances for all fields using `evalAll()` *(order of invocations preserved)*
-        * implicitly build lists using infix functions, e.g.
-          ```kotlin
-          wheels {
-            // three-wheeler
-            axis with wheel { … }
-            axis with wheel { … } + wheel { … } 
-          }
-          ```
+        * Builders created with the builder template have no state.
+        * Instead, each build keeps its state in a dedicated context instance which you may implement on your own or assisted by
+          inheriting [CapturingContext](src/commonMain/kotlin/koodies/builder/context/CapturingContext.kt). The latter keeps your context free of any technical
+          concerns such as `build` methods which allows for clean DSLs.
+        * Some builders like the `Distance` builder in the [CarDSL](src/commonTest/kotlin/koodies/builder/CarDSL.kt) or
+          the [DockerImage](src/jvmMain/kotlin/koodies/docker/DockerImage.kt) builder
+          are [stateless context builders](src/commonMain/kotlin/koodies/builder/Builder.kt). Not having any state at all might sound very limiting but is ideal
+          for micro DSLs.
     * usable as **singleton** `object CarBuilder`
     * usable as **companion object**
       ```kotlin
@@ -183,8 +171,35 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
       } 
       ```
       which lets you
-        * **instantiate using a constructor** `Car("boring", …, engine, 4)` and
+        * **instantiate using a constructor** `Car("boring", …, engine, 4)` *or*
         * **build using the builder** `Car { name{ "exceptionel" }; engine { speed{ 1_200.km per hour } } }`
+    * **re-usable**
+        * just define a property like `val prop by CarBuilder` …
+            * … inside a BuilderTemplate to provide a function that looks like the builder but captures every invocation to be used as part of your own build
+              process
+            * … everywhere else to provide a function that delegates all invocations to the builder and returns the build result
+        * append `delegate` as in `val prop by Wheel delegate { builtWheel -> … }` to immediately build and handle the result …
+            * … to provide specialized build methods that delegate to an existing (build) method
+            * … extend existing builders inline with no overhead
+    * **optional**
+        * call `build { … }` to build an instance *or*
+        * call `build using …` / `build by …` (e.g. `build by myCar`) to skip the build process completely and use an already existing instance
+    * **defaultable**
+        * defaults can be specified for each property, e.g. `val wheels by builder<Int>() default 4`
+        * defaults can be provided during build, e.g. `::wheels.evalOrDefault(4)`
+        * container-like builders (ListBuilder, MapBuilder, etc.) have all non-null pre-defined defaults (emptyList(), emptyMap(), etc)
+    * **versatile**
+        * get single instances using `::engine.eval()`, `::engine.evalOrDefault()` or `::engine.evalOrNull()`
+        * get multiple instances using `::engine.evalAll()` *(order of invocations preserved)*
+        * get all instances of type `T` from all fields using `evalAll<T>()` *(order of invocations preserved)*
+        * implicitly build lists using infix functions, e.g.
+          ```kotlin
+          wheels {
+            // three-wheeler
+            axis with wheel { … } // 1st axis with one wheel
+            axis with wheel { … } + wheel { … } // 2nd axis with two wheels
+          }
+          ```
 
 ### Processes
 
@@ -232,6 +247,8 @@ completed.
 
 ### Docker Runner
 
+Run busybox …
+
 ```kotlin
 Docker.busybox("""
   while true; do
@@ -239,6 +256,20 @@ Docker.busybox("""
   sleep 1
   done
 """).execute()
+```
+
+… or any container you want …
+
+```kotlin
+Docker.run {
+    image { "lukechilds" / "dockerpi" tag "vm" }
+    options {
+        name { "raspberry-pi" }
+        remove { on }
+        interactive { on }
+        mount { Locations.HomeDir mountAt "/sdcard/filesystem.img" }
+    }
+}
 ```
 
 … and if something goes wrong, easy to read error message:
@@ -454,27 +485,11 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   "string in".cyan() + "or" + "bold".bold()
   ```
 
-* JUnit Extensions, e.g.
-  ```kotlin
-   @Test
-   fun InMemoryLogger.`should work`() {
-       logLine { "｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ" }
-   }
-  ```
-  leaves the console clean.  
-  Whereas if run with `@Debug` annotated or simply as the single test, the logger prints to the console.
+* Debugging
 
+  Check if your program currently runs in debugging mode.
   ```kotlin
-   @Debug @Test
-   fun InMemoryLogger.`should work`() {
-       logLine { "｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ" }
-   }
-  ```
-
-  ```shell
-  ╭─────╴MyTest ➜ should work
-  │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
-  ╰─────╴✔
+  Program.isDebugging
   ```
 
   Use `debug` to check what's actually inside a `String`:

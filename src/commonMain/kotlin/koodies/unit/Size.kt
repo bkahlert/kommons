@@ -178,6 +178,19 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
 }
 
 /**
+ * Returns the sum of all values produced by [selector] function applied to each element in the sequence.
+ *
+ * The operation is _terminal_.
+ */
+public inline fun <T> Sequence<T>.sumBy(selector: (T) -> Size): Size {
+    var sum: Size = Size.ZERO
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+/**
  * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
  *
  * @see parse

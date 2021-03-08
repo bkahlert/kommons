@@ -159,7 +159,7 @@ private open class ManagedJavaProcess(
         }.exceptionally { throwable ->
             val cause = if (throwable is CompletionException) throwable.cause else throwable
             val dump = commandLine.workingDirectory.dump("""
-                Process $commandLine terminated with ${cause.toCompactString()}.
+                Process ${commandLine.summary} terminated with ${cause.toCompactString()}.
             """.trimIndent()) { ioLog.dump() }.also { dump -> metaLog(dump) }
             throw RuntimeException(dump.removeEscapeSequences(), cause)
         }.thenApply { _ ->

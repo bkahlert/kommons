@@ -4,12 +4,12 @@ import koodies.io.compress.Compressor.compress
 import koodies.io.compress.Compressor.decompress
 import koodies.io.path.addExtensions
 import koodies.io.path.copyTo
+import koodies.io.path.getSize
 import koodies.io.path.hasEqualContent
 import koodies.io.path.randomPath
 import koodies.io.path.removeExtensions
 import koodies.io.path.renameTo
 import koodies.io.path.requireNotEmpty
-import koodies.io.path.size
 import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithSingleFile
@@ -67,7 +67,7 @@ class CompressorTest {
         file.requireNotEmpty()
 
         val compressedFile = file.compress()
-        expectThat(compressedFile.size).isLessThan(file.size)
+        expectThat(compressedFile.getSize()).isLessThan(file.getSize())
 
         val renamedFile = file.renameTo("example".withRandomSuffix() + ".html")
 

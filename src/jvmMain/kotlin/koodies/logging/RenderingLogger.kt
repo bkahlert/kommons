@@ -3,6 +3,7 @@ package koodies.logging
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.OUT
 import koodies.io.path.bufferedWriter
+import koodies.runtime.Program
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.green
@@ -157,3 +158,9 @@ public inline fun <reified R> RenderingLogger?.fileLogging(
     )
     kotlin.runCatching { block(logger) }.also { logger.logResult { it }; writer.close() }.getOrThrow()
 }
+
+/**
+ * Returns `this` [RenderingLogger] if [Program.isDebugging]—otherwise a [MutedRenderingLogger]
+ * is returned.
+ */
+public fun RenderingLogger?.onlyIfDebugging(): RenderingLogger? = if (Program.isDebugging) this else MutedRenderingLogger()

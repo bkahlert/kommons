@@ -3,11 +3,11 @@ package koodies.io.compress
 import koodies.io.compress.TarArchiver.tar
 import koodies.io.compress.TarArchiver.untar
 import koodies.io.path.addExtensions
+import koodies.io.path.getSize
 import koodies.io.path.hasSameFiles
 import koodies.io.path.randomPath
 import koodies.io.path.removeExtensions
 import koodies.io.path.renameTo
-import koodies.io.path.size
 import koodies.io.path.touch
 import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
@@ -62,7 +62,7 @@ class TarArchiverTest {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tar()
-        expectThat(archivedDir.size).isGreaterThan(dir.size)
+        expectThat(archivedDir.getSize()).isGreaterThan(dir.getSize())
 
         val renamedDir = dir.renameTo("${dir.fileName}-renamed")
 

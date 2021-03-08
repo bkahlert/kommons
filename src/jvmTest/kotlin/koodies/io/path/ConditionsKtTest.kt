@@ -52,7 +52,7 @@ class ConditionsKtTest {
         @Test
         fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching {
-                randomPath().isEmpty
+                randomPath().isEmpty()
             }.isFailure().isA<NoSuchFileException>()
         }
 
@@ -60,7 +60,7 @@ class ConditionsKtTest {
         fun `should throw in different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             @Suppress("BlockingMethodInNonBlockingContext")
             (expectCatching {
-                Files.createSymbolicLink(randomPath(), randomFile()).isEmpty
+                Files.createSymbolicLink(randomPath(), randomFile()).isEmpty()
             })
         }
     }
@@ -98,7 +98,7 @@ class ConditionsKtTest {
         @Test
         fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching {
-                randomPath().isNotEmpty
+                randomPath().isNotEmpty()
             }.isFailure().isA<NoSuchFileException>()
         }
 
@@ -106,7 +106,7 @@ class ConditionsKtTest {
         fun `should throw on different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             @Suppress("BlockingMethodInNonBlockingContext")
             expectCatching {
-                Files.createSymbolicLink(randomPath(), randomFile()).isNotEmpty
+                Files.createSymbolicLink(randomPath(), randomFile()).isNotEmpty()
             }
         }
     }
@@ -115,7 +115,7 @@ class ConditionsKtTest {
 
 fun <T : Path> Assertion.Builder<T>.isEmpty() =
     assert("is empty") {
-        when (it.isEmpty) {
+        when (it.isEmpty()) {
             true -> pass()
             else -> fail("was not empty")
         }
@@ -124,7 +124,7 @@ fun <T : Path> Assertion.Builder<T>.isEmpty() =
 
 fun <T : Path> Assertion.Builder<T>.isNotEmpty() =
     assert("is not empty") {
-        when (it.isNotEmpty) {
+        when (it.isNotEmpty()) {
             true -> pass()
             else -> fail("was empty")
         }

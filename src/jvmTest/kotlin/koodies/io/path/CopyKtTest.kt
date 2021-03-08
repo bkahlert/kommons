@@ -187,7 +187,7 @@ class CopyKtTest {
             fun `should copy attributes if specified for all but not-empty directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val dest = randomPath(extension = ".txt")
                 expectThat(getTestDir().copyTo(dest, preserve = true)) {
-                    get { listDirectoryEntriesRecursively().filter { !it.isDirectory() || it.isEmpty } }.all {
+                    get { listDirectoryEntriesRecursively().filter { !it.isDirectory() || it.isEmpty() } }.all {
                         get { age }.isGreaterThan(6.9.days).isLessThan(7.1.days)
                     }
                 }
@@ -362,7 +362,7 @@ class CopyKtTest {
                 val srcDir = getTestDir()
                 val dest = randomDirectory().resolve(fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent, preserve = true)) {
-                    get { listDirectoryEntriesRecursively().filter { !it.isDirectory() || it.isEmpty } }.all {
+                    get { listDirectoryEntriesRecursively().filter { !it.isDirectory() || it.isEmpty() } }.all {
                         get { age }.isGreaterThan(6.9.days).isLessThan(7.1.days)
                     }
                 }

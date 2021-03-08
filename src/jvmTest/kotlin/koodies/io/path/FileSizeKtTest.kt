@@ -28,11 +28,11 @@ class FileSizeKtTest {
 
     @Test
     fun `should have size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(getLarge().size).isEqualTo(3_123_456.bytes)
+        expectThat(getLarge().getSize()).isEqualTo(3_123_456.bytes)
     }
 
     @Test
     fun `should have rounded size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(getLarge().roundedSize).isEqualTo(3_000_000.bytes)
+        expectThat(getLarge().getRoundedSize()).isEqualTo(3_000_000.bytes)
     }
 }

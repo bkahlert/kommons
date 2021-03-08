@@ -6,6 +6,7 @@ import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.readLine
 import koodies.logging.SLF4J
+import koodies.regex.groupValue
 import koodies.runtime.deleteOnExit
 import koodies.terminal.AnsiColors.red
 import koodies.test.DynamicTestsBuilder.ExpectationBuilder
@@ -104,7 +105,7 @@ object TestLabeler {
         }
 
     private fun CallableReference.getPropertyName(callerMethodName: String): String =
-        "^$callerMethodName(.+)$".toRegex().find(name)?.run { groupValues[1].decapitalize() } ?: name
+        "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.decapitalize() } ?: name
 
     /**
      * Uses a dynamically provided and cached [FilePeek] instance to
@@ -263,7 +264,7 @@ interface DynamicTestsBuilder<T> {
     @DynamicTestsDsl
     interface PropertyTestBuilder<T> {
         @DynamicTestsDsl
-        fun then(block: DynamicTestsBuilder<T>.(T) -> Unit)
+        fun then(block: DynamicTestsBuilder<T>.(T) -> Unit): T
     }
 
     /**
@@ -293,7 +294,7 @@ interface DynamicTestsBuilder<T> {
     fun <R> expect(description: String? = null, transform: T.() -> R): ExpectationBuilder<R>
 
     /**
-     * Builds a builder to specifiy expectations for the exception thrown when [transform]
+     * Builds a builder to specify expectations for the exception thrown when [transform]
      * is applied to `this` subject.
      */
     @DynamicTestsDsl
@@ -364,8 +365,9 @@ interface DynamicTestsBuilder<T> {
             private val aspect: T,
             private val callback: (DynamicNode) -> Unit,
         ) : PropertyTestBuilder<T> {
-            override fun then(block: DynamicTestsBuilder<T>.(T) -> Unit) {
+            override fun then(block: DynamicTestsBuilder<T>.(T) -> Unit): T {
                 CallbackCallingDynamicTestsBuilder(aspect, callback).block(aspect)
+                return aspect
             }
         }
 
