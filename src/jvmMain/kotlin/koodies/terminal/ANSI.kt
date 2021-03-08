@@ -3,10 +3,20 @@ package koodies.terminal
 import com.github.ajalt.mordant.AnsiColorCode
 import com.github.ajalt.mordant.TermColors
 import koodies.collections.toLinkedMap
+import koodies.runtime.AnsiSupport
+import koodies.runtime.Program
 
 public object ANSI {
     public val randomColor: AnsiColorCode get() = termColors.hsv((Math.random() * 360.0).toInt(), 100, 94)
-    public val termColors: TermColors by lazy { TermColors(IDE.ansiSupport) }
+    public val termColors: TermColors by lazy {
+        TermColors(when (Program.ansiSupport) {
+            AnsiSupport.NONE -> TermColors.Level.NONE
+            AnsiSupport.ANSI4 -> TermColors.Level.ANSI16
+            AnsiSupport.ANSI8 -> TermColors.Level.ANSI256
+            AnsiSupport.ANSI24 -> TermColors.Level.TRUECOLOR
+            else -> error("Missing ANSI support mapping")
+        })
+    }
 }
 
 public val TermColors.rainbow: Map<AnsiColorCode, AnsiColorCode>

@@ -294,8 +294,8 @@ val ip4 = ipOf<IPv4Address>("192.168.16.25")
 val ip6 = ip4.toIPv6Address()
 val range = ip6.."::ffff:c0a8:1028".toIp() // ::ffff:c0a8:1019..::ffff:c0a8:1028
 val subnet = ip6 / 122 // ::ffff:c0a8:1000/122
-check(range.smallestCommonSubnet == subnet) // ✔
-check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔
+check(range.smallestCommonSubnet == subnet) // ✔︎
+check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔︎
 ```
 
 ### Improved Java NIO 2 Integration

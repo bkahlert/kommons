@@ -8,9 +8,8 @@ import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.green
 import koodies.terminal.AnsiColors.red
+import koodies.text.Semantics
 import koodies.text.Unicode
-import koodies.text.Unicode.Emojis.heavyCheckMark
-import koodies.text.Unicode.Emojis.heavyRoundTippedRightwardsArrow
 import koodies.text.Unicode.greekSmallLetterKoppa
 import java.io.BufferedWriter
 import java.nio.file.Path
@@ -108,8 +107,8 @@ public fun interface RenderingLogger {
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
         public fun formatReturnValue(returnValue: ReturnValue): CharSequence {
-            return if (returnValue.successful) heavyCheckMark.green()
-            else heavyRoundTippedRightwardsArrow.emojiVariant.green() + " $returnValue"
+            return if (returnValue.successful) Semantics.OK
+            else Semantics.PointNext.green() + " $returnValue"
         }
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")

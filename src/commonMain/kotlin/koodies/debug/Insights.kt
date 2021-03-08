@@ -4,8 +4,9 @@ package koodies.debug
 
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
+import koodies.text.Semantics.formattedAs
 
-private fun highlight(subject: Any?) = "\u001B[96m$subject\u001B[39m"
+private fun highlight(subject: Any?) = subject.toString().formattedAs.debug
 private val selfBrackets = highlight("⟨") to highlight("⟩")
 private val transformedBrackets = highlight("{") to highlight("}")
 

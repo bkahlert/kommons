@@ -3,6 +3,7 @@ package koodies.logging
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.Error
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -57,7 +58,7 @@ class ReturnValueKtTest {
             ╭─────╴{}
             │   
             │
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent())
             }
             expect {
@@ -65,7 +66,7 @@ class ReturnValueKtTest {
             }.that {
                 matchesCurlyPattern("""
             ▶ {}
-            ✔
+            ✔︎
         """.trimIndent())
             }
         }
@@ -146,7 +147,7 @@ class ReturnValueKtTest {
 
             @Test
             fun `should render only unsuccessful`() {
-                val expected = "Multiple exceptions encountered: " + LF + failedExpectations.joinToString(LF) { (_, expectation) -> expectation }
+                val expected = "Multiple problems encountered: " + failedExpectations.joinToString("") { (_, expectation) -> "$LF    $Error $expectation" }
                 expectThat(partlyUnsuccessfulReturnValues.format()).matchesCurlyPattern(expected)
             }
         }

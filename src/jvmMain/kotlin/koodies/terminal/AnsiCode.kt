@@ -2,6 +2,8 @@ package koodies.terminal
 
 import com.github.ajalt.mordant.TermColors
 import koodies.regex.namedGroups
+import koodies.runtime.AnsiSupport
+import koodies.runtime.Program
 import koodies.text.Unicode
 import com.github.ajalt.mordant.AnsiCode as MordantAnsiCode
 
@@ -39,7 +41,15 @@ public class AnsiCode(
     public companion object {
         public const val ESC: Char = Unicode.escape // `ESC[` also called 7Bit Control Sequence Introducer
         public const val CSI: Char = Unicode.controlSequenceIntroducer
-        private val termColors by lazy { TermColors(IDE.ansiSupport) }
+        private val termColors by lazy {
+            TermColors(when (Program.ansiSupport) {
+                AnsiSupport.NONE -> TermColors.Level.NONE
+                AnsiSupport.ANSI4 -> TermColors.Level.ANSI16
+                AnsiSupport.ANSI8 -> TermColors.Level.ANSI256
+                AnsiSupport.ANSI24 -> TermColors.Level.TRUECOLOR
+                else -> error("Missing ANSI support mapping")
+            })
+        }
 
         public object colors {
             public val black: AnsiCode = AnsiCode(termColors.black)

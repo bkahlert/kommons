@@ -32,11 +32,11 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   bordered caption ✔
+            │   bordered caption ✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
-            │   not-bordered caption ✔
+            │   not-bordered caption ✔︎
         """.trimIndent()) { }
 
     @TestFactory
@@ -48,13 +48,13 @@ class SmartRenderingLoggerKtTest {
             │   │   
             │   │   text
             │   │
-            │   ╰─────╴✔
+            │   ╰─────╴✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · text
-            │   ✔
+            │   ✔︎
         """.trimIndent()) {
         logText { "text" }
     }
@@ -68,13 +68,13 @@ class SmartRenderingLoggerKtTest {
             │   │   
             │   │   line
             │   │
-            │   ╰─────╴✔
+            │   ╰─────╴✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · line
-            │   ✔
+            │   ✔︎
         """.trimIndent()) {
         logLine { "line" }
     }
@@ -127,13 +127,13 @@ class SmartRenderingLoggerKtTest {
             │   │   
             │   │   line                                                              ◀◀ status
             │   │
-            │   ╰─────╴✔
+            │   ╰─────╴✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · line                                                              ◀◀ status
-            │   ✔
+            │   ✔︎
         """.trimIndent()) {
         logStatus("status") { "line" }
     }
@@ -143,13 +143,13 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   bordered caption ✔
-            │   bordered caption ✔ ✔
+            │   bordered caption ✔︎
+            │   bordered caption ✔︎ ✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
-            │   not-bordered caption ✔
-            │   not-bordered caption ✔ ✔
+            │   not-bordered caption ✔︎
+            │   not-bordered caption ✔︎ ✔︎
         """.trimIndent()) {
         logResult { Result.success("result") }
     }
@@ -159,17 +159,17 @@ class SmartRenderingLoggerKtTest {
         """
             ╭─────╴InMemoryLogger
             │   
-            │   bordered caption ✔
-            │   bordered caption ✔ ✔
-            │   bordered caption ✔ ✔ ✔
-            │   bordered caption ✔ ✔ ✔ ✔
+            │   bordered caption ✔︎
+            │   bordered caption ✔︎ ✔︎
+            │   bordered caption ✔︎ ✔︎ ✔︎
+            │   bordered caption ✔︎ ✔︎ ✔︎ ✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
-            │   not-bordered caption ✔
-            │   not-bordered caption ✔ ✔
-            │   not-bordered caption ✔ ✔ ✔
-            │   not-bordered caption ✔ ✔ ✔ ✔
+            │   not-bordered caption ✔︎
+            │   not-bordered caption ✔︎ ✔︎
+            │   not-bordered caption ✔︎ ✔︎ ✔︎
+            │   not-bordered caption ✔︎ ✔︎ ✔︎ ✔︎
         """.trimIndent()) {
         logResult { Result.success(1) }
         logResult { Result.success(2) }
@@ -187,7 +187,7 @@ class SmartRenderingLoggerKtTest {
             │   │   line
             │   │   line                                                              ◀◀ status
             │   │
-            │   ╰─────╴✔
+            │   ╰─────╴✔︎
         """.trimIndent(), """
             ╭─────╴InMemoryLogger
             │   
@@ -195,7 +195,7 @@ class SmartRenderingLoggerKtTest {
             │   · text
             │   · line
             │   · line                                                              ◀◀ status
-            │   ✔
+            │   ✔︎
         """.trimIndent()) {
         logText { "text" }
         logLine { "line" }

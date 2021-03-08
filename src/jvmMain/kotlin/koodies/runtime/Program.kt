@@ -2,7 +2,8 @@
 
 package koodies.runtime
 
-import com.github.ajalt.mordant.TermColors
+import com.github.ajalt.mordant.TermColors.Level.ANSI16
+import com.github.ajalt.mordant.TermColors.Level.ANSI256
 import com.github.ajalt.mordant.TermColors.Level.NONE
 import com.github.ajalt.mordant.TermColors.Level.TRUECOLOR
 import com.github.ajalt.mordant.TerminalCapabilities.detectANSISupport
@@ -32,11 +33,27 @@ public actual object Program {
 
     public val isIntelliJ: Boolean by lazy { kotlin.runCatching { jvmJavaAgents.anyContainsAny(intellijTraits) }.getOrElse { false } }
 
-    public val ansiSupport: TermColors.Level by lazy { detectANSISupport().takeUnless { it == NONE } ?: if (isIntelliJ) TRUECOLOR else NONE }
-
+    /**
+     * Whether this program is running in debug mode.
+     */
     public actual val isDebugging: Boolean by lazy { jvmJavaAgents.any { it.contains("debugger") } }
 
+    /**
+     * Registers [handler] as to be called when this program is about to stop.
+     */
     public actual fun <T : OnExitHandler> onExit(handler: T): T = addShutDownHook(handler)
+
+    /**
+     * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
+     */
+    public actual val ansiSupport: AnsiSupport by lazy {
+        when (detectANSISupport()) {
+            NONE -> AnsiSupport.NONE
+            ANSI16 -> AnsiSupport.ANSI4
+            ANSI256 -> AnsiSupport.ANSI8
+            TRUECOLOR -> AnsiSupport.ANSI24
+        }.takeUnless { it == AnsiSupport.NONE } ?: if (isIntelliJ) AnsiSupport.ANSI24 else AnsiSupport.NONE
+    }
 }
 
 private fun <T : OnExitHandler> addShutDownHook(handler: T): T =

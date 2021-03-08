@@ -33,10 +33,10 @@ class BlockRenderingLoggerKtTest {
             ╭─────╴bordered caption
             │{}
             │{}
-            ╰─────╴✔{}
+            ╰─────╴✔︎{}
         """.trimIndent(), """
             ▶ not-bordered caption
-            ✔
+            ✔︎
         """.trimIndent()) { }
 
     @TestFactory
@@ -46,11 +46,11 @@ class BlockRenderingLoggerKtTest {
             │{}
             │   text
             │{}
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · text
-            ✔
+            ✔︎
         """.trimIndent()) {
         logText { "text" }
     }
@@ -62,11 +62,11 @@ class BlockRenderingLoggerKtTest {
             │{}
             │   line
             │{}
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · line
-            ✔
+            ✔︎
         """.trimIndent()) {
         logLine { "line" }
     }
@@ -109,11 +109,11 @@ class BlockRenderingLoggerKtTest {
             │{}
             │   line                                                                  ◀◀ status
             │{}
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · line                                                                  ◀◀ status
-            ✔
+            ✔︎
         """.trimIndent()) {
         logStatus("status") { "line" }
     }
@@ -124,13 +124,13 @@ class BlockRenderingLoggerKtTest {
             ╭─────╴bordered caption
             │{}
             │{}
-            ╰─────╴✔
+            ╰─────╴✔︎
             │
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
-            ✔
-            ✔
+            ✔︎
+            ✔︎
         """.trimIndent()) {
         logResult { Result.success("result") }
     }
@@ -141,19 +141,19 @@ class BlockRenderingLoggerKtTest {
             ╭─────╴bordered caption
             │{}
             │{}
-            ╰─────╴✔
+            ╰─────╴✔︎
             │
-            ╰─────╴✔
+            ╰─────╴✔︎
             │
-            ╰─────╴✔
+            ╰─────╴✔︎
             │
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
-            ✔
-            ✔
-            ✔
-            ✔
+            ✔︎
+            ✔︎
+            ✔︎
+            ✔︎
         """.trimIndent()) {
         logResult { Result.success(1) }
         logResult { Result.success(2) }
@@ -169,13 +169,13 @@ class BlockRenderingLoggerKtTest {
             │   line
             │   line                                                                  ◀◀ status
             │{}
-            ╰─────╴✔
+            ╰─────╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · text
             · line
             · line                                                                  ◀◀ status
-            ✔
+            ✔︎
         """.trimIndent()) {
         logText { "text" }
         logLine { "line" }

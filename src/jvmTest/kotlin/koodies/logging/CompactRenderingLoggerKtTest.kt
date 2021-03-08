@@ -19,9 +19,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption ✔
+                    │   caption ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -37,9 +37,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption text ✔
+                    │   caption text ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -55,9 +55,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption line ✔
+                    │   caption line ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -73,9 +73,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) ✔
+                    │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -91,9 +91,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption line (◀◀ status) ✔
+                    │   caption line (◀◀ status) ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -109,9 +109,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption ✔
+                    │   caption ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -129,11 +129,11 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption ✔
-                    │   caption ✔ ✔
-                    │   caption ✔ ✔ ✔
+                    │   caption ✔︎
+                    │   caption ✔︎ ✔︎
+                    │   caption ✔︎ ✔︎ ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -153,9 +153,9 @@ class CompactRenderingLoggerKtTest {
             """
                     ╭─────╴{}
                     │{}
-                    │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:146) line (◀◀ status) ✔
+                    │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:146) line (◀◀ status) ✔︎
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -188,10 +188,10 @@ class CompactRenderingLoggerKtTest {
             │   ╭─────╴block
             │   │   
             │   │   something
-            │   │   single (ABC ˃  ˃ 123 ˃ ✔) 456 (XYZ ˃  ˃ 789 ˃ ✔) ✔
+            │   │   single (ABC ˃  ˃ 123 ˃ ✔︎) 456 (XYZ ˃  ˃ 789 ˃ ✔︎) ✔︎
             │   │   something
             │   │
-            │   ╰─────╴✔
+            │   ╰─────╴✔︎
         """.trimIndent()
         )
     }

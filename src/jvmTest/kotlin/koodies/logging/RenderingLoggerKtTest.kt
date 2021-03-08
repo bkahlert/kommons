@@ -48,7 +48,7 @@ class RenderingLoggerKtTest {
                     │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -78,11 +78,11 @@ class RenderingLoggerKtTest {
                     │   │   nested 2                                          {}                                      ▮▮
                     │   │   nested 3                                          {}                                      ▮▮
                     │   │{}
-                    │   ╰─────╴✔{}
+                    │   ╰─────╴✔︎{}
                     │   outer 3                                               {}                                      ▮▮
                     │   outer 4                                               {}                                      ▮▮
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -98,23 +98,23 @@ class RenderingLoggerKtTest {
             │   ╭─────╴nested log
             │   │{}
             │   │   nested 1                                          {}                                      ▮▮
-            │   │   mini segment 12345 sample ✔
+            │   │   mini segment 12345 sample ✔︎
             │   │   ╭─────╴nested log
             │   │   │{}
             │   │   │   nested 1                                      {}                                      ▮▮
-            │   │   │   mini segment 12345 sample ✔
+            │   │   │   mini segment 12345 sample ✔︎
             │   │   │   nested 2                                      {}                                      ▮▮
             │   │   │   nested 3                                      {}                                      ▮▮
             │   │   │{}
-            │   │   ╰─────╴✔{}
+            │   │   ╰─────╴✔︎{}
             │   │   nested 2                                          {}                                      ▮▮
             │   │   nested 3                                          {}                                      ▮▮
             │   │{}
-            │   ╰─────╴✔{}
+            │   ╰─────╴✔︎{}
             │   outer 3                                               {}                                      ▮▮
             │   outer 4                                               {}                                      ▮▮
             │{}
-            ╰─────╴✔{}
+            ╰─────╴✔︎{}
         """.trimIndent(),
         false to """
             ▶ {}
@@ -122,19 +122,19 @@ class RenderingLoggerKtTest {
             · outer 2
             · ▶ nested log{}
             · · nested 1                                                {}                                      ▮▮
-            · · mini segment 12345 sample ✔{}
+            · · mini segment 12345 sample ✔︎{}
             · · ▶ nested log{}
             · · · nested 1                                               {}                                      ▮▮
-            · · · mini segment 12345 sample ✔{}
+            · · · mini segment 12345 sample ✔︎{}
             · · · nested 2                                               {}                                      ▮▮
             · · · nested 3                                               {}                                      ▮▮
-            · · ✔{}
+            · · ✔︎{}
             · · nested 2                                                {}                                      ▮▮
             · · nested 3                                                {}                                      ▮▮
-            · ✔{}
+            · ✔︎{}
             · outer 3                                                  {}                                      ▮▮
             · outer 4                                                  {}                                      ▮▮
-            ✔{}
+            ✔︎{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
         val label = if (bordered) "bordered" else "not-bordered"
@@ -178,7 +178,7 @@ class RenderingLoggerKtTest {
                     │{}
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ◀◀ getting phone call
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -250,7 +250,7 @@ class RenderingLoggerKtTest {
         logResult { Result.success(Unit) }
         expectThat(logged)
             .containsAtMost("╰─────╴", 1)
-            .contains("✔")
+            .contains("✔︎")
     }
 
     @Test
@@ -288,7 +288,7 @@ class RenderingLoggerKtTest {
                 │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
                 │   、ヽ｀、ヽ                                                                 
                 │
-                ╰─────╴✔
+                ╰─────╴✔︎
                 """.trimIndent()
         )
     }
@@ -335,16 +335,16 @@ class RenderingLoggerKtTest {
                     │   │   This process might produce pretty much log messages. Logging to …
                     │   │   ${Unicode.Emojis.pageFacingUp} ${file.toUri()}
                     │   │{}
-                    │   ╰─────╴✔
+                    │   ╰─────╴✔︎
                     │   Normal logging continues...
                     │{}
-                    ╰─────╴✔{}
+                    ╰─────╴✔︎{}
                 """.trimIndent()
             )
 
             that(file.readLines().filter { it.isNotBlank() }) {
                 first().isEqualTo("▶ Some logging heavy operation")
-                get { last { it.isNotBlank() } }.endsWith("✔")
+                get { last { it.isNotBlank() } }.endsWith("✔︎")
             }
         }
     }
@@ -399,9 +399,9 @@ class RenderingLoggerKtTest {
             │   │   
             │   │   logged line
             │   │
-            │   ╰─────╴✔
+            │   ╰─────╴✔︎
             │
-            ╰─────╴✔{}
+            ╰─────╴✔︎{}
         """.trimIndent(),
         false to """
             ╭─────╴{}
@@ -409,9 +409,9 @@ class RenderingLoggerKtTest {
             │   ▶ line #1
             │   ▷ line #2
             │   · logged line
-            │   ✔
+            │   ✔︎
             │
-            ╰─────╴✔{}
+            ╰─────╴✔︎{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {

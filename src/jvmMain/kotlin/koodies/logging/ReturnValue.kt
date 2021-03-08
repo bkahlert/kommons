@@ -1,7 +1,8 @@
 package koodies.logging
 
 import koodies.exception.toCompactString
-import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
+import koodies.text.Semantics
 
 /**
  * Implementors of this interface gain control on
@@ -27,7 +28,11 @@ public interface ReturnValue {
 public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableListOf<E>(*elements), ReturnValue {
     private val unsuccessful: List<ReturnValue> get() = map { it.toReturnValue() }.filterNot { it.successful }
     override val successful: Boolean get() = unsuccessful.isEmpty()
-    override fun format(): CharSequence = unsuccessful.joinToString(LineSeparators.LF) { it.format() }
+    override fun format(): CharSequence = when (unsuccessful.size) {
+        0 -> ""
+        1 -> unsuccessful.single().format()
+        else -> "Multiple problems encountered: " + unsuccessful.joinToString("") { "$LF    ${Semantics.Error} ${it.format()}" }
+    }
 
     /**
      * Adds the elements of the given [returnValues] to this list.

@@ -24,8 +24,8 @@ class IPAddressTest {
             val ip6: IPv6Address = ip4.toIPv6Address()
             val range: IPv6Range = ip6.."::ffff:c0a8:1028".toIPv6() // ::ffff:c0a8:1019..::ffff:c0a8:1028
             val subnet = ip6 / 122 // ::ffff:c0a8:1000/122
-            check(getSmallestCommonSubnet(range) == subnet) // ✔
-            check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔
+            check(getSmallestCommonSubnet(range) == subnet) // ✔︎
+            check(subnet.broadcastAddress.toInetAddress().isSiteLocalAddress) // ✔︎
         }
 
         @TestFactory

@@ -6,7 +6,7 @@ import koodies.io.ByteArrayOutputStream
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
-import koodies.text.Unicode.Emojis.heavyCheckMark
+import koodies.text.Semantics.OK
 import koodies.text.joinLinesToString
 import koodies.time.busyWait
 import java.nio.file.Path
@@ -105,7 +105,7 @@ public class IOLog {
     public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
 
     override fun toString(): String =
-        "${this::class.simpleName}(${log.size} $heavyCheckMark; ${incompleteLines.filterValues { it.toByteArray().isNotEmpty() }.size} …)"
+        "${this::class.simpleName}(${log.size} $OK; ${incompleteLines.filterValues { it.toByteArray().isNotEmpty() }.size} …)"
 }
 
 /**
