@@ -43,12 +43,12 @@ class RenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -68,21 +68,21 @@ class RenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   outer 1                                               {}                                      ▮▮
                     │   outer 2                                               {}                                      ▮▮
-                    │   ╭─────╴nested log
+                    │   ╭──╴nested log
                     │   │{}
                     │   │   nested 1                                          {}                                      ▮▮
                     │   │   nested 2                                          {}                                      ▮▮
                     │   │   nested 3                                          {}                                      ▮▮
                     │   │{}
-                    │   ╰─────╴✔︎{}
+                    │   ╰──╴✔︎{}
                     │   outer 3                                               {}                                      ▮▮
                     │   outer 4                                               {}                                      ▮▮
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -91,30 +91,30 @@ class RenderingLoggerKtTest {
     @TestFactory
     fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = listOf(
         true to """
-            ╭─────╴{}
+            ╭──╴{}
             │{}
             │   outer 1                                               {}                                      ▮▮
             │   outer 2{}
-            │   ╭─────╴nested log
+            │   ╭──╴nested log
             │   │{}
             │   │   nested 1                                          {}                                      ▮▮
             │   │   mini segment 12345 sample ✔︎
-            │   │   ╭─────╴nested log
+            │   │   ╭──╴nested log
             │   │   │{}
             │   │   │   nested 1                                      {}                                      ▮▮
             │   │   │   mini segment 12345 sample ✔︎
             │   │   │   nested 2                                      {}                                      ▮▮
             │   │   │   nested 3                                      {}                                      ▮▮
             │   │   │{}
-            │   │   ╰─────╴✔︎{}
+            │   │   ╰──╴✔︎{}
             │   │   nested 2                                          {}                                      ▮▮
             │   │   nested 3                                          {}                                      ▮▮
             │   │{}
-            │   ╰─────╴✔︎{}
+            │   ╰──╴✔︎{}
             │   outer 3                                               {}                                      ▮▮
             │   outer 4                                               {}                                      ▮▮
             │{}
-            ╰─────╴✔︎{}
+            ╰──╴✔︎{}
         """.trimIndent(),
         false to """
             ▶ {}
@@ -174,11 +174,11 @@ class RenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ◀◀ getting phone call
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -231,15 +231,15 @@ class RenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   outer 1                                               {}                                      ▮▮
                     │   outer 2                                               {}                                      ▮▮
-                    │   ╭─────╴nested log
+                    │   ╭──╴nested log
                     │   │{}
                     │   │   nested 1                                          {}                                      ▮▮
                     │   ϟ{}
-                    │   ╰─────╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
+                    │   ╰──╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
                 """.trimIndent(), ignoreTrailingLines = true
         )
     }
@@ -249,7 +249,7 @@ class RenderingLoggerKtTest {
         logResult { Result.success(Unit) }
         logResult { Result.success(Unit) }
         expectThat(logged)
-            .containsAtMost("╰─────╴", 1)
+            .containsAtMost("╰──╴", 1)
             .contains("✔︎")
     }
 
@@ -272,7 +272,7 @@ class RenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                ╭─────╴{}
+                ╭──╴{}
                 │   
                 │   ┬┴┬┴┤(･_├┬┴┬┴
                 │   ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀
@@ -288,7 +288,7 @@ class RenderingLoggerKtTest {
                 │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
                 │   、ヽ｀、ヽ                                                                 
                 │
-                ╰─────╴✔︎
+                ╰──╴✔︎
                 """.trimIndent()
         )
     }
@@ -326,19 +326,19 @@ class RenderingLoggerKtTest {
         expect {
             that(logged).matchesCurlyPattern(
                 """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   ╭─────╴Some logging heavy operation{}
+                    │   ╭──╴Some logging heavy operation{}
                     │   │{}
                     │   │   This process might produce pretty much log messages. Logging to …
                     │   │   ${Unicode.Emojis.pageFacingUp} ${file.toUri()}
                     │   │{}
-                    │   ╰─────╴✔︎
+                    │   ╰──╴✔︎
                     │   Normal logging continues...
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
             )
 
@@ -392,26 +392,26 @@ class RenderingLoggerKtTest {
     @TestFactory
     fun `should render multi-line caption`() = listOf(
         true to """
-            ╭─────╴{}
+            ╭──╴{}
             │   
-            │   ╭─────╴line #1
+            │   ╭──╴line #1
             │   │      line #2
             │   │   
             │   │   logged line
             │   │
-            │   ╰─────╴✔︎
+            │   ╰──╴✔︎
             │
-            ╰─────╴✔︎{}
+            ╰──╴✔︎{}
         """.trimIndent(),
         false to """
-            ╭─────╴{}
+            ╭──╴{}
             │   
             │   ▶ line #1
             │   ▷ line #2
             │   · logged line
             │   ✔︎
             │
-            ╰─────╴✔︎{}
+            ╰──╴✔︎{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
@@ -427,25 +427,25 @@ class RenderingLoggerKtTest {
     @TestFactory
     fun `should show unsuccessful return statuses`() = listOf(
         true to """
-            ╭─────╴{}
+            ╭──╴{}
             │   
-            │   ╭─────╴{}
+            │   ╭──╴{}
             │   │   
             │   │   logged line
             │   ϟ
-            │   ╰─────╴𝟷↩
+            │   ╰──╴𝟷↩
             │   
             ϟ
-            ╰─────╴𝟷↩{}
+            ╰──╴𝟷↩{}
         """.trimIndent(),
         false to """
-            ╭─────╴{}
+            ╭──╴{}
             │   
             │   ▶ caption
             │   · logged line
             │   ϟ 𝟷↩
             ϟ
-            ╰─────╴𝟷↩{}
+            ╰──╴𝟷↩{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {

@@ -49,7 +49,7 @@ public open class BlockRenderingLogger(
         get() = buildList {
             val captionLines = caption.asAnsiString().lines()
             if (bordered) {
-                +"╭─────╴${captionLines.first().bold()}"
+                +"╭──╴${captionLines.first().bold()}"
                 captionLines.drop(1).forEach {
                     +"$prefix   ${it.bold()}"
                 }
@@ -68,11 +68,11 @@ public open class BlockRenderingLogger(
         val message: String =
             if (returnValue.successful) {
                 val renderedSuccess = formatReturnValue(returnValue)
-                if (bordered) "│$LF╰─────╴$renderedSuccess"
+                if (bordered) "│$LF╰──╴$renderedSuccess"
                 else "$renderedSuccess"
             } else {
                 if (bordered) {
-                    formatException("$LF╰─────╴", returnValue) + LF
+                    formatException("$LF╰──╴", returnValue) + LF
                 } else {
                     formatException(" ", returnValue)
                 }

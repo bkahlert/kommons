@@ -55,10 +55,10 @@ class ReturnValueKtTest {
                 loggerFactory.render(true, "$subject ➜ $expected") { subject }
             }.that {
                 matchesCurlyPattern("""
-            ╭─────╴{}
+            ╭──╴{}
             │   
             │
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent())
             }
             expect {
@@ -78,10 +78,10 @@ class ReturnValueKtTest {
                 loggerFactory.render(true, "$subject ➜ $expected") { subject }
             }.that {
                 matchesCurlyPattern("""
-            ╭─────╴{}
+            ╭──╴{}
             │   
             ϟ
-            ╰─────╴$expected
+            ╰──╴$expected
         """.trimIndent())
             }
             expect {

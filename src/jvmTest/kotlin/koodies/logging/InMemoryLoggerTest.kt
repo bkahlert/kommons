@@ -46,7 +46,7 @@ class InMemoryLoggerTest {
 
         val logger = InMemoryLogger("caption", true, -1, listOf(outputStream))
 
-        expectThat(logger.logged.removeEscapeSequences()).startsWith("╭─────╴caption")
+        expectThat(logger.logged.removeEscapeSequences()).startsWith("╭──╴caption")
     }
 }
 

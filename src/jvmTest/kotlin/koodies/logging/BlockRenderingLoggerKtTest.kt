@@ -30,10 +30,10 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log caption`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │{}
-            ╰─────╴✔︎{}
+            ╰──╴✔︎{}
         """.trimIndent(), """
             ▶ not-bordered caption
             ✔︎
@@ -42,11 +42,11 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log text`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │   text
             │{}
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · text
@@ -58,11 +58,11 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log line`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │   line
             │{}
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · line
@@ -80,7 +80,7 @@ class BlockRenderingLoggerKtTest {
 
             expectThat(logged.lines().take(4).joinToString(LF)).matchesCurlyPattern(
                 """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   java.lang.RuntimeException: exception
                     │   	at koodies.logging.{}
@@ -105,11 +105,11 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log status`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │   line                                                                  ◀◀ status
             │{}
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · line                                                                  ◀◀ status
@@ -121,12 +121,12 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log result`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │{}
-            ╰─────╴✔︎
+            ╰──╴✔︎
             │
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             ✔︎
@@ -138,16 +138,16 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log multiple results`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │{}
-            ╰─────╴✔︎
+            ╰──╴✔︎
             │
-            ╰─────╴✔︎
+            ╰──╴✔︎
             │
-            ╰─────╴✔︎
+            ╰──╴✔︎
             │
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             ✔︎
@@ -163,13 +163,13 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log multiple entries`() = borderedTest(
         """
-            ╭─────╴bordered caption
+            ╭──╴bordered caption
             │{}
             │   text
             │   line
             │   line                                                                  ◀◀ status
             │{}
-            ╰─────╴✔︎
+            ╰──╴✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             · text

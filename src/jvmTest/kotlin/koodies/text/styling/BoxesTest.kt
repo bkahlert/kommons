@@ -17,7 +17,7 @@ class BoxesTest {
     fun @receiver:Columns(150) InMemoryLogger.`should render FAIL`() {
         logLine { IO.Type.ERR typed Boxes.FAIL.toString() }
         expectThatLogged().matchesCurlyPattern("""
-            ╭─────╴BoxesTest ➜ should render FAIL{}
+            ╭──╴BoxesTest ➜ should render FAIL{}
             │   
             │   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
             │   ████▌▄▌▄▐▐▌█████
@@ -31,7 +31,7 @@ class BoxesTest {
         logLine { IO.Type.META typed Boxes.SPHERICAL("SPHERICAL\nlong ... l ... i ... n ... e") }
         val pad = NBSP.repeat(9)
         expectThatLogged().matchesCurlyPattern("""
-            ╭─────╴BoxesTest ➜ should render sphere box{}
+            ╭──╴BoxesTest ➜ should render sphere box{}
             │   
             │     █ ▉▕▊▕▋▕▌▕▍▕▎▕▏ ▏  ▏                ▕  ▕  ▏▕▎▕▍▕▌▕▋▕▊▕▉ █
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ${pad}SPHERICAL${pad}$NBSP  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
@@ -48,7 +48,7 @@ class BoxesTest {
         }
         val pad = NBSP.repeat(3)
         expectThatLogged().matchesCurlyPattern("""
-            ╭─────╴BoxesTest ➜ should render single line sphere box{}
+            ╭──╴BoxesTest ➜ should render single line sphere box{}
             │   
             │    ▕  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  ${pad}SINGLE LINE SPHERICAL${pad}$NBSP  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ▕  
             │    ▕  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  long ... l ... i ... n ... e  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ▕
@@ -63,7 +63,7 @@ class BoxesTest {
         }
         val pad = NBSP.repeat(8)
         expectThatLogged().matchesCurlyPattern("""
-            ╭─────╴BoxesTest ➜ should render wide pillars{}
+            ╭──╴BoxesTest ➜ should render wide pillars{}
             │   
             │   █ █ ▉▕▉ ▊▕▊▕▋ ▋▕▌ ▌ ▍▕▎ ▍ ▎▕▏ ▏ ${pad}WIDE PILLARS$pad  ▏ ▏▕▎ ▍ ▎▕▍ ▌ ▌▕▋ ▋▕▊▕▊ ▉▕▉ █ █
             │   █ █ ▉▕▉ ▊▕▊▕▋ ▋▕▌ ▌ ▍▕▎ ▍ ▎▕▏ ▏ long ... l ... i ... n ... e  ▏ ▏▕▎ ▍ ▎▕▍ ▌ ▌▕▋ ▋▕▊▕▊ ▉▕▉ █ █
@@ -78,7 +78,7 @@ class BoxesTest {
         }
         val pad = NBSP.repeat(10)
         expectThatLogged().matchesCurlyPattern("""
-            ╭─────╴BoxesTest ➜ should render pillars{}
+            ╭──╴BoxesTest ➜ should render pillars{}
             │   
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ${pad}PILLARS${pad}$NBSP  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ long ... l ... i ... n ... e  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █

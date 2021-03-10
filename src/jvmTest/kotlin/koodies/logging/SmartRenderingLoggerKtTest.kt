@@ -30,11 +30,11 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log caption`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   bordered caption ✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   not-bordered caption ✔︎
         """.trimIndent()) { }
@@ -42,15 +42,15 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log text`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
-            │   ╭─────╴bordered caption
+            │   ╭──╴bordered caption
             │   │   
             │   │   text
             │   │
-            │   ╰─────╴✔︎
+            │   ╰──╴✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · text
@@ -62,15 +62,15 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log line`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
-            │   ╭─────╴bordered caption
+            │   ╭──╴bordered caption
             │   │   
             │   │   line
             │   │
-            │   ╰─────╴✔︎
+            │   ╰──╴✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · line
@@ -90,9 +90,9 @@ class SmartRenderingLoggerKtTest {
 
             expectThat(logged.lines().take(6).joinToString(LF)).matchesCurlyPattern(
                 """
-                    ╭─────╴SmartRenderingLoggerKtTest ➜ LogException ➜ should log exception bordered(InMemoryLogger)
+                    ╭──╴SmartRenderingLoggerKtTest ➜ LogException ➜ should log exception bordered(InMemoryLogger)
                     │   
-                    │   ╭─────╴bordered
+                    │   ╭──╴bordered
                     │   │   
                     │   │   java.lang.RuntimeException: exception
                     │   │   	at koodies.logging.{}
@@ -108,7 +108,7 @@ class SmartRenderingLoggerKtTest {
 
             expectThat(logged.lines().take(5).joinToString(LF)).matchesCurlyPattern(
                 """
-                    ╭─────╴SmartRenderingLoggerKtTest ➜ LogException ➜ should log exception not bordered(InMemoryLogger)
+                    ╭──╴SmartRenderingLoggerKtTest ➜ LogException ➜ should log exception not bordered(InMemoryLogger)
                     │   
                     │   ▶ not-bordered
                     │   · java.lang.RuntimeException: exception
@@ -121,15 +121,15 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log status`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
-            │   ╭─────╴bordered caption
+            │   ╭──╴bordered caption
             │   │   
             │   │   line                                                              ◀◀ status
             │   │
-            │   ╰─────╴✔︎
+            │   ╰──╴✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · line                                                              ◀◀ status
@@ -141,12 +141,12 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log result`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   bordered caption ✔︎
             │   bordered caption ✔︎ ✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   not-bordered caption ✔︎
             │   not-bordered caption ✔︎ ✔︎
@@ -157,14 +157,14 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log multiple results`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   bordered caption ✔︎
             │   bordered caption ✔︎ ✔︎
             │   bordered caption ✔︎ ✔︎ ✔︎
             │   bordered caption ✔︎ ✔︎ ✔︎ ✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   not-bordered caption ✔︎
             │   not-bordered caption ✔︎ ✔︎
@@ -179,17 +179,17 @@ class SmartRenderingLoggerKtTest {
     @TestFactory
     fun `should log multiple entries`() = borderedTest(
         """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
-            │   ╭─────╴bordered caption
+            │   ╭──╴bordered caption
             │   │   
             │   │   text
             │   │   line
             │   │   line                                                              ◀◀ status
             │   │
-            │   ╰─────╴✔︎
+            │   ╰──╴✔︎
         """.trimIndent(), """
-            ╭─────╴InMemoryLogger
+            ╭──╴InMemoryLogger
             │   
             │   ▶ not-bordered caption
             │   · text

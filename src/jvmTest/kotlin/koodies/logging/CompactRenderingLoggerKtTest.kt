@@ -17,11 +17,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -35,11 +35,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption text ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -53,11 +53,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption line ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -71,11 +71,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -89,11 +89,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption line (◀◀ status) ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -107,11 +107,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -127,13 +127,13 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption ✔︎
                     │   caption ✔︎ ✔︎
                     │   caption ✔︎ ✔︎ ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -151,11 +151,11 @@ class CompactRenderingLoggerKtTest {
 
         expectThat(logged).matchesCurlyPattern(
             """
-                    ╭─────╴{}
+                    ╭──╴{}
                     │{}
                     │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:146) line (◀◀ status) ✔︎
                     │{}
-                    ╰─────╴✔︎{}
+                    ╰──╴✔︎{}
                 """.trimIndent()
         )
     }
@@ -183,15 +183,15 @@ class CompactRenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern(
             """
-            ╭─────╴{}
+            ╭──╴{}
             │   
-            │   ╭─────╴block
+            │   ╭──╴block
             │   │   
             │   │   something
             │   │   single (ABC ˃  ˃ 123 ˃ ✔︎) 456 (XYZ ˃  ˃ 789 ˃ ✔︎) ✔︎
             │   │   something
             │   │
-            │   ╰─────╴✔︎
+            │   ╰──╴✔︎
         """.trimIndent()
         )
     }
