@@ -37,7 +37,7 @@ class StdLibMissingKtTest {
         @Test
         fun `should read line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = HtmlFile.copyToDirectory(this)
-            expectThat(file.readLine(6)).isEqualTo("<p>Hello World!</p>")
+            expectThat(file.readLine(6)).isEqualTo("    <p>Hello World!</p>")
         }
 
         @Test

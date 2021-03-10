@@ -21,8 +21,8 @@ class ToBase64KtTest {
 
         @Suppress("SpellCheckingInspection")
         expectThat(htmlFile.toBase64())
-            .isEqualTo("PGh0bWw+CjxoZWFkPjx0aXRsZT5IZWxsbyBUaXRsZSE8L3RpdGxlP" +
-                "go8L2hlYWQ+Cjxib2R5Pgo8aDE+SGVsbG8gSGVhZGxpbmUhPC9oMT4KPHA+S" +
-                "GVsbG8gV29ybGQhPC9wPgo8L2JvZHk+CjwvaHRtbD4=")
+            .isEqualTo("PGh0bWw+CiAgPGhlYWQ+PHRpdGxlPkhlbGxvIFRpdGxlITwvdGl0b" +
+                "GU+CjwvaGVhZD4KPGJvZHk+CiAgICA8aDE+SGVsbG8gSGVhZGxpbmUhPC9oM" +
+                "T4KICAgIDxwPkhlbGxvIFdvcmxkITwvcD4KPC9ib2R5Pgo8L2h0bWw+")
     }
 }

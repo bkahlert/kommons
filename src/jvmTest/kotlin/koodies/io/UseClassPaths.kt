@@ -7,10 +7,13 @@ import koodies.io.path.isCopyOf
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.randomDirectory
 import koodies.io.path.randomPath
-import koodies.test.FixturePath61C285F09D95930D0AE298B00AF09F918B0A.fixtureContent
+import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A
+import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
+import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.text
 import koodies.test.UniqueId
+import koodies.test.test
+import koodies.test.testEach
 import koodies.test.testWithTempDir
-import koodies.test.toStringContains
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -57,7 +60,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(useClassPaths("junit-platform.properties") { readText() }).all { contains("LessUglyDisplayNameGenerator") }
+            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { readText() }).all { isEqualTo(text) }
         }
 
         @Test
@@ -66,14 +69,14 @@ class ClassPathsKtTest {
         }
 
         @TestFactory
-        fun `should support different notations`() = listOf(
-            "junit-platform.properties",
-            "/junit-platform.properties",
-            "classpath:junit-platform.properties",
-            "classpath:/junit-platform.properties",
-            "ClassPath:junit-platform.properties",
-            "ClassPath:/junit-platform.properties",
-        ).map { dynamicTest(it) { expectThat(useClassPaths(it) { readText() }).all { contains("LessUglyDisplayNameGenerator") } } }
+        fun `should support different notations`() = testEach(
+            Fixture61C285F09D95930D0AE298B00AF09F918B0A.path,
+            "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+        ) { expect { useClassPaths(this) { readText() } }.that { all { isEqualTo(text) } } }
 
         @Test
         fun `should map read-only root`() {
@@ -82,7 +85,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(useClassPaths("junit-platform.properties") { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(
+            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(
                 1)
         }
 
@@ -106,7 +109,7 @@ class ClassPathsKtTest {
                     target.operation(this@useClassPaths)
                 }.isFailure().isA<ReadOnlyFileSystemException>()
                 expectThat(exists()).isTrue()
-                expectThat(readBytes()).isEqualTo(fixtureContent)
+                expectThat(readBytes()).isEqualTo(data)
             }
         }
     }
@@ -124,7 +127,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(useClassPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
+            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { readText() }).isEqualTo(text)
         }
 
         @Test
@@ -133,14 +136,14 @@ class ClassPathsKtTest {
         }
 
         @TestFactory
-        fun `should support different notations`() = listOf(
-            "junit-platform.properties",
-            "/junit-platform.properties",
-            "classpath:junit-platform.properties",
-            "classpath:/junit-platform.properties",
-            "ClassPath:junit-platform.properties",
-            "ClassPath:/junit-platform.properties",
-        ).map { dynamicTest(it) { expectThat(useClassPath(it) { readText() }).toStringContains("LessUglyDisplayNameGenerator") } }
+        fun `should support different notations`() = testEach(
+            Fixture61C285F09D95930D0AE298B00AF09F918B0A.path,
+            "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
+        ) { expect { useClassPath(this) { readText() } }.that { isEqualTo(text) } }
 
         @Test
         fun `should map read-only root`() {
@@ -149,7 +152,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(useClassPath("junit-platform.properties") { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
+            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
         }
 
         @Test
@@ -173,7 +176,7 @@ class ClassPathsKtTest {
                         }
                     }.isFailure().isA<ReadOnlyFileSystemException>()
                     expectThat(exists()).isTrue()
-                    expectThat(readBytes()).isEqualTo(fixtureContent)
+                    expectThat(readBytes()).isEqualTo(data)
                 }
             }
         }
@@ -196,17 +199,40 @@ class ClassPathsKtTest {
         }
     }
 
-    @Nested
-    inner class UseRequiredClassPath {
-
-        @Test
-        fun `should map resource on matching path`() {
-            expectThat(useRequiredClassPath("junit-platform.properties") { readText() }).toStringContains("LessUglyDisplayNameGenerator")
+    @TestFactory
+    fun `use required class path`() = test {
+        with { Fixture61C285F09D95930D0AE298B00AF09F918B0A }.then {
+            expect { useRequiredClassPath(path) { readText() } }.that { isEqualTo(text) }
         }
 
-        @Test
-        fun `should throw on non-matching path`() {
-            expectCatching { useRequiredClassPath("invalid.file") { this } }.isFailure().isA<NoSuchFileException>()
+        with { "invalid.file" }.then {
+            expectThrowing { useRequiredClassPath(this) { } }.that { isFailure().isA<NoSuchFileException>() }
+        }
+    }
+
+    @TestFactory
+    fun `read class path`() = test {
+        with { Fixture61C285F09D95930D0AE298B00AF09F918B0A }.then {
+            expect { readClassPathText(path) }.that { isEqualTo(text) }
+            expect { readClassPathBytes(path) }.that { isEqualTo(data) }
+        }
+
+        with { "invalid.file" }.then {
+            expect { readClassPathText(this) }.that { isNull() }
+            expect { readClassPathBytes(this) }.that { isNull() }
+        }
+    }
+
+    @TestFactory
+    fun `require class path`() = test {
+        with { Fixture61C285F09D95930D0AE298B00AF09F918B0A }.then {
+            expect { requireClassPathText(path) }.that { isEqualTo(text) }
+            expect { requireClassPathBytes(path) }.that { isEqualTo(data) }
+        }
+
+        with { "invalid.file" }.then {
+            expectThrowing { requireClassPathText(this) }.that { isFailure().isA<NoSuchFileException>() }
+            expectThrowing { requireClassPathBytes(this) }.that { isFailure().isA<NoSuchFileException>() }
         }
     }
 

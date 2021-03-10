@@ -46,19 +46,18 @@ class ProcessesKtTest {
     @Nested
     inner class WithProcessMethod {
 
-
         private val echoingCommands =
-            "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
+            "echo \"test output ${'$'}TEST\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
 
         private fun getFactories(command: String = echoingCommands) = listOf<Path.() -> ManagedProcess>(
             {
                 process(CommandLine(
-                    environment = emptyMap(),
+                    environment = mapOf("TEST" to "env"),
                     workingDirectory = this,
                     command = "/bin/sh", "-c", command))
             },
             {
-                process("/bin/sh", "-c", command)
+                process("/bin/sh", "-c", command, environment = mapOf("TEST" to "env"))
             },
         )
 
@@ -87,7 +86,7 @@ class ProcessesKtTest {
 
                 lock.withLock {
                     expectThat(processed).contains(
-                        OUT typed "test output 1",
+                        OUT typed "test output env",
                         ERR typed "test error 1",
                         OUT typed "test output 2",
                         ERR typed "test error 2",
@@ -139,7 +138,7 @@ class ProcessesKtTest {
 
                 expectThat(process.ioLog.logged.drop(2).dropLast(1))
                     .containsExactlyInAnyOrder(
-                        OUT typed "test output 1",
+                        OUT typed "test output env",
                         ERR typed "test error 1",
                         OUT typed "test output 2",
                         ERR typed "test error 2",
@@ -151,7 +150,7 @@ class ProcessesKtTest {
                 val output = processFactory().output()
 
                 expectThat(output).isEqualTo("""
-                test output 1
+                test output env
                 test output 2
             """.trimIndent())
             }
@@ -170,7 +169,7 @@ class ProcessesKtTest {
                 ▶{}commandLine{{}}
                 · Executing {{}}
                 · {} file:{}
-                · test output 1
+                · test output env
                 · test output 2
                 · test error 1
                 · test error 2{{}}
@@ -197,7 +196,7 @@ class ProcessesKtTest {
                     expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
-                    test output 1
+                    test output env
                     test output 2
                     test error 1
                     test error 2
@@ -212,7 +211,7 @@ class ProcessesKtTest {
     inner class WithExecuteMethod {
 
         private val echoingCommands =
-            "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
+            "echo \"test output env\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
         private fun getFactories(
             commandLineContent: String = echoingCommands,
@@ -256,7 +255,7 @@ class ProcessesKtTest {
                     val logger = InMemoryLogger()
                     val process = execute(logger) { command by "/bin/sh"; arguments { +"-c" + echoingCommands } }
                     logger.logged.lines().forEach { line ->
-                        if (line.contains("test output 1")) process.processor(OUT typed "test output 1")
+                        if (line.contains("test output env")) process.processor(OUT typed "test output env")
                         if (line.contains("test output 2")) process.processor(OUT typed "test output 2")
                         if (line.contains("test error 1")) process.processor(ERR typed "test error 1")
                         if (line.contains("test error 2")) process.processor(ERR typed "test error 2")
@@ -267,7 +266,7 @@ class ProcessesKtTest {
                 val processed = mutableListOf<IO>()
                 processFactory { io -> processed.add(io) }
                 expectThat(processed).contains(
-                    OUT typed "test output 1",
+                    OUT typed "test output env",
                     OUT typed "test output 2",
                     ERR typed "test error 1",
                     ERR typed "test error 2",
@@ -299,7 +298,7 @@ class ProcessesKtTest {
 
                 expectThat(process.ioLog.logged.drop(2).dropLast(1))
                     .containsExactlyInAnyOrder(
-                        OUT typed "test output 1",
+                        OUT typed "test output env",
                         ERR typed "test error 1",
                         OUT typed "test output 2",
                         ERR typed "test error 2",
@@ -311,7 +310,7 @@ class ProcessesKtTest {
                 val output = processFactory().output()
 
                 expectThat(output).isEqualTo("""
-                test output 1
+                test output env
                 test output 2
             """.trimIndent())
             }
@@ -329,7 +328,7 @@ class ProcessesKtTest {
                 ▶{}commandLine{{}}
                 · Executing {{}}
                 · {} file:{}
-                · test output 1
+                · test output env
                 · test output 2
                 · test error 1
                 · test error 2{{}}
@@ -356,7 +355,7 @@ class ProcessesKtTest {
                     expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
-                    test output 1
+                    test output env
                     test output 2
                     test error 1
                     test error 2

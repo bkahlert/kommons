@@ -43,7 +43,7 @@ import java.util.concurrent.CompletionException
 class ScriptsKtTest {
 
     private val echoingCommands =
-        "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
+        "echo \"test output ${'$'}TEST\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
     private fun getFactories(
         scriptContent: String = echoingCommands,
@@ -51,15 +51,15 @@ class ScriptsKtTest {
         logger: RenderingLogger? = InMemoryLogger(),
     ) = listOf<Path.() -> ManagedProcess>(
         {
-            processor?.let { script(ShellScript { !scriptContent }, processor = processor) }
-                ?: script(ShellScript { !scriptContent })
+            processor?.let { script(ShellScript { !scriptContent }, mapOf("TEST" to "env"), processor = processor) }
+                ?: script(ShellScript { !scriptContent }, mapOf("TEST" to "env"))
         },
         {
-            processor?.let { script(processor) { !scriptContent } }
-                ?: script { !scriptContent }
+            processor?.let { script(processor, mapOf("TEST" to "env")) { !scriptContent } }
+                ?: script(environment = mapOf("TEST" to "env")) { !scriptContent }
         },
         {
-            script(logger) { !scriptContent }
+            script(logger, mapOf("TEST" to "env")) { !scriptContent }
         },
     )
 
@@ -81,13 +81,13 @@ class ScriptsKtTest {
 
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
-            { script(ShellScript { !echoingCommands }, processor = it) },
-            { script(it) { !echoingCommands } },
+            { script(ShellScript { !echoingCommands }, mapOf("TEST" to "env"), processor = it) },
+            { script(it, mapOf("TEST" to "env")) { !echoingCommands } },
             { processor ->
                 val logger = InMemoryLogger()
-                val process = script(logger) { !echoingCommands }
+                val process = script(logger, mapOf("TEST" to "env")) { !echoingCommands }
                 logger.logged.lines().forEach { line ->
-                    if (line.contains("test output 1")) process.processor(OUT typed "test output 1")
+                    if (line.contains("test output env")) process.processor(OUT typed "test output env")
                     if (line.contains("test output 2")) process.processor(OUT typed "test output 2")
                     if (line.contains("test error 1")) process.processor(ERR typed "test error 1")
                     if (line.contains("test error 2")) process.processor(ERR typed "test error 2")
@@ -98,7 +98,7 @@ class ScriptsKtTest {
             val processed = mutableListOf<IO>()
             processFactory { io -> processed.add(io) }
             expectThat(processed).contains(
-                OUT typed "test output 1",
+                OUT typed "test output env",
                 OUT typed "test output 2",
                 ERR typed "test error 1",
                 ERR typed "test error 2",
@@ -130,7 +130,7 @@ class ScriptsKtTest {
 
             expectThat(process.ioLog.logged.drop(2).dropLast(1))
                 .containsExactlyInAnyOrder(
-                    OUT typed "test output 1",
+                    OUT typed "test output env",
                     ERR typed "test error 1",
                     OUT typed "test output 2",
                     ERR typed "test error 2",
@@ -142,7 +142,7 @@ class ScriptsKtTest {
             val output = processFactory().output()
 
             expectThat(output).isEqualTo("""
-                test output 1
+                test output env
                 test output 2
             """.trimIndent())
         }
@@ -184,7 +184,7 @@ class ScriptsKtTest {
                 ▶{}commandLine{{}}
                 · Executing {{}}
                 · {} file:{}
-                · test output 1
+                · test output env
                 · test output 2
                 · test error 1
                 · test error 2{{}}
@@ -211,7 +211,7 @@ class ScriptsKtTest {
                 expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
-                    test output 1
+                    test output env
                     test output 2
                     test error 1
                     test error 2

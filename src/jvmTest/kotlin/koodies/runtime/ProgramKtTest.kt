@@ -1,9 +1,12 @@
 package koodies.runtime
 
+import koodies.debug.asEmoji
 import koodies.io.path.Locations
+import koodies.logging.InMemoryLogger
 import koodies.time.Now
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -17,8 +20,8 @@ import kotlin.io.path.writeText
 @Execution(CONCURRENT)
 class ProgramKtTest {
 
-    @Execution(CONCURRENT)
-    class DeleteOnExit {
+    @Nested
+    inner class DeleteOnExit {
 
         private val name = "koodies.onexit.does-not-work.txt"
         private val markerFile: Path = Locations.Temp.resolve(name)
@@ -42,6 +45,15 @@ class ProgramKtTest {
             
             The application was started by ${System.getProperty("sun.java.command")}.
         """.trimIndent())
+        }
+    }
+
+    @Nested
+    inner class IsDebugging {
+
+        @Test
+        fun InMemoryLogger.`should not throw`() {
+            logLine { "Debugging: ${Program.isDebugging.asEmoji}" }
         }
     }
 }

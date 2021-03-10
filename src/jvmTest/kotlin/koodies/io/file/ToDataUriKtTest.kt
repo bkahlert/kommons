@@ -20,9 +20,9 @@ class ToDataUriKtTest {
 
         @Suppress("SpellCheckingInspection")
         expectThat(htmlFile.toDataUri())
-            .isEqualTo("data:text/html;base64,PGh0bWw+CjxoZWFkPjx0aXRsZT5IZWx" +
-                "sbyBUaXRsZSE8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5Pgo8aDE+SGVsbG8gSGV" +
-                "hZGxpbmUhPC9oMT4KPHA+SGVsbG8gV29ybGQhPC9wPgo8L2JvZHk+CjwvaHR" +
-                "tbD4=")
+            .isEqualTo("data:text/html;base64,PGh0bWw+CiAgPGhlYWQ+PHRpdGxlPkh" +
+                "lbGxvIFRpdGxlITwvdGl0bGU+CjwvaGVhZD4KPGJvZHk+CiAgICA8aDE+SGV" +
+                "sbG8gSGVhZGxpbmUhPC9oMT4KICAgIDxwPkhlbGxvIFdvcmxkITwvcD4KPC9" +
+                "ib2R5Pgo8L2h0bWw+")
     }
 }

@@ -13,6 +13,8 @@ import java.nio.file.Path
 import java.nio.file.WatchEvent
 import java.nio.file.WatchKey
 import java.nio.file.WatchService
+import kotlin.io.path.readBytes
+import kotlin.io.path.readText
 import kotlin.properties.ReadOnlyProperty
 
 /**
@@ -22,6 +24,13 @@ import kotlin.properties.ReadOnlyProperty
  * by code running in this thread when loading classes and resources.
  */
 public val ContextClassLoader: ClassLoader get() = Thread.currentThread().contextClassLoader
+
+/**
+ * Attempts to load the [Class] with the given [name] using `this` [ClassLoader].
+ *
+ * Returns `null` if the class can't be loaded.
+ */
+public fun ClassLoader.loadClassOrNull(name: String): Class<*>? = kotlin.runCatching { loadClass(name) }.getOrNull()
 
 /**
  * Gets the class path resources, the specified [path] points to and applies [transform] to each.
@@ -45,7 +54,7 @@ public inline fun <reified T> useClassPaths(path: String, crossinline transform:
  *
  * Also this function does its best to avoid write access by wrapping the
  * actual [FileSystem] with a write protection layer. **Write protection
- * also covers paths generated from the one provided during the [transform] call.
+ * also covers paths generated from the one provided during the [transform] call.**
  *
  * **This function only returns one match out of possibly many. Use [useClassPaths] to get all.**
  *
@@ -67,6 +76,46 @@ public inline fun <reified T> useClassPath(path: String, crossinline transform: 
  */
 public inline fun <reified T> useRequiredClassPath(path: String, crossinline transform: Path.() -> T): T =
     useClassPath(path, transform) ?: throw noSuchFile(path)
+
+/**
+ * Reads the class path resource, the specified [path] points to and returns it.
+ *
+ * Returns `null` if no resource could be found.
+ *
+ * @see requireClassPathText
+ */
+public fun readClassPathText(path: String): String? =
+    useClassPath(path) { readText() }
+
+/**
+ * Reads the class path resource, the specified [path] points to and returns it.
+ *
+ * Throws an exception throws if no resource could be found.
+ *
+ * @see readClassPathText
+ */
+public fun requireClassPathText(path: String): String =
+    useRequiredClassPath(path) { readText() }
+
+/**
+ * Reads the class path resource, the specified [path] points to and returns it.
+ *
+ * Returns `null` if no resource could be found.
+ *
+ * @see requireClassPathBytes
+ */
+public fun readClassPathBytes(path: String): ByteArray? =
+    useClassPath(path) { readBytes() }
+
+/**
+ * Reads the class path resource, the specified [path] points to and returns it.
+ *
+ * Throws an exception throws if no resource could be found.
+ *
+ * @see readClassPathBytes
+ */
+public fun requireClassPathBytes(path: String): ByteArray =
+    useRequiredClassPath(path) { readBytes() }
 
 /**
  * Gets a proxied class path resource that get only accesses the moment

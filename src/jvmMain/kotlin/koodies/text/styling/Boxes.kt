@@ -12,7 +12,6 @@ import koodies.text.styling.Boxes.SINGLE_LINE_SPHERICAL
 import koodies.text.styling.Boxes.SPHERICAL
 import koodies.text.styling.Boxes.WIDE_PILLARS
 
-
 /**
  * # Boxes
  *

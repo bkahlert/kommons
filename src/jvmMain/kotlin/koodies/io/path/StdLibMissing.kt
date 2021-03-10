@@ -248,15 +248,7 @@ public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", vararg opti
  * Returns the deletes path.
  */
 public fun Path.delete(vararg options: LinkOption): Path =
-    apply {
-        if (exists(*options)) {
-            val ex: Throwable? = kotlin.runCatching { Files.delete(this) }.exceptionOrNull()
-            if (ex is DirectoryNotEmptyException) {
-                println("$this is not empty but contains: ${listDirectoryEntriesRecursively(options = options).joinToString(", ")}")
-            }
-            if (ex != null) throw ex
-        }
-    }
+    apply { if (exists(*options)) Files.delete(this) }
 
 /**
  * Deletes this file or directory recursively.
@@ -277,7 +269,8 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
             while (ex != null && maxAttempts > 0) {
                 maxAttempts--
                 if (ex is DirectoryNotEmptyException) {
-                    listDirectoryEntriesRecursively(options = options).forEach { it.deleteRecursively(*options) }
+                    val files = listDirectoryEntriesRecursively(options = options)
+                    files.forEach { it.deleteRecursively(*options) }
                 }
                 100.milliseconds.sleep()
                 ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()

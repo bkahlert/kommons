@@ -3,6 +3,7 @@ package koodies.docker
 import koodies.concurrent.process.output
 import koodies.docker.Docker.run
 import koodies.logging.InMemoryLogger
+import koodies.test.SystemIoExclusive
 import koodies.test.test
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -13,6 +14,7 @@ import strikt.assertions.isEqualTo
 @Execution(CONCURRENT)
 class DockerTest {
 
+    @SystemIoExclusive
     @DockerRequiring(["busybox"])
     @TestFactory
     fun `should provide builder access points`() = test(Docker) {
