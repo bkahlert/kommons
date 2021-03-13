@@ -35,7 +35,7 @@ class CarDSL {
             val traits by enumSetBuilder<Trait>() // traits { … }
             val engine by Engine // engine { power { … }; maxSpeed { … } }
             val wheel by Wheel // wheel { … }
-            val fourWheeler by Wheel delegate { builtWheel -> // same signature as wheel but …
+            val allWheels by Wheel then { builtWheel -> // same signature as wheel but …
                 repeat(4) { wheel using builtWheel } // … will call wheel builder 4 times with the same builtWheel instance
             }
         }
@@ -46,7 +46,7 @@ class CarDSL {
                 ::color.evalOrDefault("#111111"),
                 ::traits.eval(),
                 ::engine.eval(),
-                ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(3) { Wheel() },
+                ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(4) { Wheel() },
             )
         }
     }
@@ -62,7 +62,11 @@ class CarDSL {
                 power { 145.kW }
                 maxSpeed { 244.km per hour }
             }
-            fourWheeler { diameter { 16.inch } }
+            allWheels {
+                diameter {
+                    16.inch
+                }
+            }
             traits { +Exclusive + TaxExempt }
         }
 

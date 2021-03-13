@@ -210,10 +210,15 @@ public interface StatelessBuilder<C, R, S> : Builder<C.() -> R, S> {
 public typealias Init<C> = C.() -> Unit
 
 /**
- * Function that initializes a context and accepts one argument.
+ * Creates a [Builder] that builds by invoking `this` [Builder] and passing
+ * the result to the given [transform].
  */
-public typealias Init1<P1, C> = C.(P1) -> Unit
-
-
-public inline fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: (R) -> S): Builder<T, S> =
+public inline infix fun <T : Function<*>, reified R, reified S> Builder<T, R>.mapBuild(crossinline transform: (R) -> S): Builder<T, S> =
     Builder { transform(this(it)) }
+
+/**
+ * Creates a [Builder] that builds by invoking `this` [Builder] and passing
+ * the result to the given [builder].
+ */
+public infix fun <T : Function<*>, R : Function<*>, S> Builder<T, R>.mapBuild(builder: Builder<R, S>): Builder<T, S> =
+    Builder { builder(invoke(it)) }

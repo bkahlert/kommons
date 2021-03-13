@@ -14,6 +14,7 @@ import koodies.builder.MapBuilder
 import koodies.builder.SetBuilder
 import koodies.builder.SkippableBuilder
 import koodies.builder.mapBuild
+import koodies.builder.skippable
 import koodies.callable
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -92,9 +93,41 @@ public abstract class CapturingContext {
      * - specifying a custom [Builder] based on `this` existing one
      * - providing an alias for another function
      */
+    @Deprecated("replace by using")
     public inline infix fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.delegate(
         crossinline transform: (R) -> S,
     ): CallableProperty<Any?, (T) -> S> = callable(mapBuild(transform))
+
+    /**
+     * Creates a [SkippableBuilder] property that builds using `this` builder's result
+     * passed to the specified [builder].
+     */
+    public infix fun <T : Function<*>, R : Function<*>, S> Builder<T, R>.then(
+        builder: Builder<R, S>,
+    ): CallableProperty<Any?, SkippableBuilder<T, R, S>> =
+        CallableProperty { _, _ -> skippable().mapBuild(builder) }
+
+    /**
+     * Creates a [SkippableBuilder] property that builds using `this` builder's result
+     * applied to the specified [transform].
+     *
+     * Chain the result with another [then] to an existing builder to create an alias for it.
+     */
+    public infix fun <T : Function<*>, R, S> Builder<T, R>.then(
+        transform: (R) -> S,
+    ): CallableProperty<Any?, SkippableBuilder<T, R, S>> =
+        CallableProperty { _, _ -> skippable().mapBuild(transform) }
+
+    /**
+     * Creates a [SkippableBuilder] property that builds using `this` builder property's result
+     * passed to the specified [builder].
+     *
+     * Chain the result with another [then] to an existing builder to create an alias for it.
+     */
+    public infix fun <T : Function<*>, R, S : Function<*>, X> CallableProperty<Any?, SkippableBuilder<T, R, S>>.then(
+        builder: Builder<S, X>,
+    ): CallableProperty<Any?, SkippableBuilder<T, R, X>> =
+        CallableProperty { thisRef, property -> getValue(thisRef, property).mapBuild(builder) }
 
     // @formatter:off
     /** Creates a builder that captures all invocations to `this` builder. */

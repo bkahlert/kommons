@@ -53,7 +53,9 @@ object CarBuilder : BuilderTemplate<CarContext, Car>() {
         val traits by enumSetBuilder<Trait>()
         val engine by Engine
         val wheel by Wheel
-        val fourWheeler by Wheel delegate { repeat(4) { wheel using this } }
+        val allWheels by Wheel then { builtWheel ->
+            repeat(4) { wheel using builtWheel }
+        }
     }
 
     override fun BuildContext.build(): Car = ::CarContext {
@@ -62,7 +64,7 @@ object CarBuilder : BuilderTemplate<CarContext, Car>() {
             ::color.evalOrDefault("#111111"),
             ::traits.eval(),
             ::engine.eval(),
-            ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(3) { Wheel() },
+            ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(4) { Wheel() },
         )
     }
 }
@@ -80,7 +82,7 @@ val exclusiveCar = car {
         power { 145.kW }
         maxSpeed { 244.km per hour }
     }
-    fourWheeler { diameter { 16.inch } }
+    allWheels { diameter { 16.inch } }
     traits { +Exclusive + TaxExempt }
 }
 
@@ -95,7 +97,7 @@ println(defaultCarWithCopiedMotor)
 
 ```text
 Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm])
-Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
+Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
 ```
 
 ##### CarBuilder Parts *uses [DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
@@ -178,9 +180,7 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
             * … inside a BuilderTemplate to provide a function that looks like the builder but captures every invocation to be used as part of your own build
               process
             * … everywhere else to provide a function that delegates all invocations to the builder and returns the build result
-        * append `delegate` as in `val prop by Wheel delegate { builtWheel -> … }` to immediately build and handle the result …
-            * … to provide specialized build methods that delegate to an existing (build) method
-            * … extend existing builders inline with no overhead
+        * chain builders using `then`
     * **optional**
         * call `build { … }` to build an instance *or*
         * call `build using …` / `build by …` (e.g. `build by myCar`) to skip the build process completely and use an already existing instance
