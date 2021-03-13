@@ -53,6 +53,16 @@ public object Unicode {
     public const val zeroWidthSpace: Char = '\u200B'
 
     /**
+     * [ZERO WIDTH NON-JOINER](https://codepoints.net/U+200C)
+     */
+    public const val zeroWidthNonJoiner: Char = '\u200C'
+
+    /**
+     * [ZERO WIDTH JOINER](https://codepoints.net/U+200D)
+     */
+    public const val zeroWidthJoiner: Char = '\u200D'
+
+    /**
      * [LINE SEPARATOR](https://codepoints.net/U+2028)
      */
     public const val lineSeparator: Char = '\u2028'

@@ -20,9 +20,9 @@ public fun String.replaceNonPrintableCharacters(): String {
             codePoint.char == ' ' -> " "
             codePoint.replacementSymbol != null -> codePoint.replacementSymbol.toString()
             codePoint.isLineSeparator -> when (codePoint.string) {
-                LineSeparators.LS -> "ₛᷞ"
-                LineSeparators.PS -> "ₛᷮ"
                 LineSeparators.NEL -> "␤"
+                LineSeparators.PS -> "ₛᷮ"
+                LineSeparators.LS -> "ₛᷞ"
                 else -> "⏎"
             }
             codePoint.isHighSurrogate -> codePoint.codePoint.toHexadecimalString(pad = true) + "▌﹍"

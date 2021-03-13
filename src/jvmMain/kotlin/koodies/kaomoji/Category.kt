@@ -1,6 +1,7 @@
 package koodies.kaomoji
 
-import koodies.text.Grapheme
+import koodies.text.GraphemeCluster
+import koodies.text.asGraphemeClusterSequence
 import kotlin.properties.PropertyDelegateProvider
 
 public open class Category : AbstractList<Kaomojis.Kaomoji>() {
@@ -18,10 +19,10 @@ public open class Category : AbstractList<Kaomojis.Kaomoji>() {
     public fun auto(kaomoji: String? = null): PropertyDelegateProvider<Category, Kaomojis.Kaomoji> =
         PropertyDelegateProvider { category, property ->
             val template = kaomoji ?: property.name
-            val parts = Grapheme.toGraphemeList(template).toMutableList()
-            val ranges = parts.runningFold(IntRange(0, -1)) { previousRange: IntRange, grapheme: Grapheme ->
+            val parts = template.asGraphemeClusterSequence().toMutableList()
+            val ranges = parts.runningFold(IntRange(0, -1)) { previousRange: IntRange, graphemeCluster: GraphemeCluster ->
                 IntRange(previousRange.last + 1,
-                    previousRange.last + grapheme.codePoints.size)
+                    previousRange.last + graphemeCluster.codePoints.size)
             }.drop(1)
 
             var leftArmRange: IntRange? = null

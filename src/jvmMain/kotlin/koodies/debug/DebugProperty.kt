@@ -7,7 +7,7 @@ import koodies.debug.Debug.secondaryMeta
 import koodies.terminal.AnsiColors.brightCyan
 import koodies.terminal.AnsiColors.cyan
 import koodies.terminal.AnsiColors.gray
-import koodies.text.CodePoint.Companion.asCodePoint
+import koodies.text.asCodePoint
 import koodies.text.withoutPrefix
 import koodies.text.withoutSuffix
 import koodies.text.wrap

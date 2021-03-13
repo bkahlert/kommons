@@ -1,11 +1,10 @@
 package koodies.text
 
 import koodies.collections.to
+import koodies.regex.matchEntire
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
-import koodies.text.CodePoint.Companion.asCodePoint
 import koodies.text.CodePoint.Companion.isUsableCodePoint
-import koodies.text.CodePoint.Companion.isValidCodePoint
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -22,7 +21,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
 @Execution(SAME_THREAD)
-class CodePointTest {
+class CodePointKtTest {
 
     @TestFactory
     fun `should read code points`() = testEach(
@@ -66,6 +65,22 @@ class CodePointTest {
     @Test
     fun `should throw on multi codepoint string`() {
         expectCatching { CodePoint("ab") }.isFailure().isA<IllegalArgumentException>()
+    }
+
+    @TestFactory
+    fun columns() = testEach(
+        CodePoint("\u0006") to -1,
+        CodePoint("\u2406") to 1,
+        CodePoint("${Unicode.zeroWidthJoiner}") to 0,
+        CodePoint(" ") to 1,
+        CodePoint("a") to 1,
+//        CodePoint("😀") to 2,
+//        CodePoint("🤓") to 2,
+        CodePoint(Unicode.lineFeed.toString()) to -1,
+        CodePoint("►") to 1,
+        CodePoint("㍙") to 2,
+    ) { (codePoint, expectedColumns) ->
+        expect { codePoint.columns }.that { isEqualTo(expectedColumns) }
     }
 
     @TestFactory
@@ -116,6 +131,16 @@ class CodePointTest {
         expectThat(Unicode[66].formattedName).isEqualTo("❲LATIN CAPITAL LETTER B❳")
     }
 
+    @TestFactory
+    fun `should format as hex string`() = testEach(
+        Unicode.lineFeed to "0A",
+        Unicode.zeroWidthSpace to "200B",
+        "👽" to "01F47D",
+    ) { (codePoint, hex) ->
+        expect { CodePoint(codePoint.toString()).toHexadecimalString() }.isEqualTo(hex)
+        expect { CodePoint(codePoint.toString()).toRegex() }.matchEntire(codePoint.toString())
+    }
+
     @Nested
     inner class CodePointValidation {
 
@@ -133,12 +158,71 @@ class CodePointTest {
     }
 
     @Nested
+    inner class PropertyValidation {
+
+        @TestFactory
+        fun `is whitespace`() = testEach(
+            CodePoint(0x0020u.toInt()),
+            CodePoint(0x00A0u.toInt()),
+            CodePoint(0x1680u.toInt()),
+            CodePoint(0x180Eu.toInt()),
+            CodePoint(0x2000u.toInt()),
+            CodePoint(0x2001u.toInt()),
+            CodePoint(0x2002u.toInt()),
+            CodePoint(0x2003u.toInt()),
+            CodePoint(0x2004u.toInt()),
+            CodePoint(0x2005u.toInt()),
+            CodePoint(0x2006u.toInt()),
+            CodePoint(0x2007u.toInt()),
+            CodePoint(0x2008u.toInt()),
+            CodePoint(0x2009u.toInt()),
+            CodePoint(0x200Au.toInt()),
+            CodePoint(0x200Bu.toInt()),
+            CodePoint(0x202Fu.toInt()),
+            CodePoint(0x205Fu.toInt()),
+            CodePoint(0x3000u.toInt()),
+            CodePoint(0xFEFFu.toInt()),
+        ) {
+            expect { isWhitespace }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not whitespace`() = "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".asCodePointSequence().testEach {
+            expect { isWhitespace }.that { isFalse() }
+        }
+
+        @TestFactory
+        fun `is alphanumeric`() = "Az09Αωष".asCodePointSequence().testEach {
+            expect { isAlphanumeric }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not alphanumeric`() = "🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+            expect { isAlphanumeric }.that { isFalse() }
+        }
+//
+//        @TestFactory
+//        fun `is emoji`() = "😀💂👰🤶".asCodePointSequence().testEach {
+//            expect { isEmoji }.that { isTrue() }
+//        }
+//
+//        @TestFactory
+//        fun `is no emoji`() = "Az09Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+//            expect { isEmoji }.that { isFalse() }
+//        }
+    }
+
+    @Nested
     inner class CodePointSequence {
+
+        @Test
+        fun `should count all unicode points`() {
+            expectThat("Az09Αω𝌀𝍖षि\n\t\r".codePointCount).isEqualTo(13)
+        }
+
         @Test
         fun `should contain all unicode points`() {
-            expectThat("Az09Αω𝌀𝍖".asCodePointSequence())
-                .get { map { it.string }.joinToString("") }
-                .isEqualTo("Az09Αω𝌀𝍖")
+            expectThat("Az09Αω𝌀𝍖षि\n\t\r".asCodePointSequence()).get { map { it.string }.joinToString("") }.isEqualTo("Az09Αω𝌀𝍖षि\n\t\r")
         }
     }
 

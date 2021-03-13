@@ -15,8 +15,7 @@ import koodies.logging.RenderingLogger
 import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiColors.yellow
-import koodies.text.Grapheme
-import koodies.text.grapheme
+import koodies.text.GraphemeCluster
 import koodies.time.Now
 import koodies.time.sleep
 import koodies.tracing.MiniTracer
@@ -228,7 +227,7 @@ public class SlowInputStream(
     private val Int.padded get() = this.toString().padStart(originalCountLength)
 
     private val inputs = mutableListOf<String>()
-    public fun processInput(logger: MiniTracer): Boolean = logger.microTrace(Grapheme("✏️")) {
+    public fun processInput(logger: MiniTracer): Boolean = logger.microTrace(GraphemeCluster("✏️")) {
         byteArrayOutputStream?.apply {
             toString(Charsets.UTF_8).takeUnless { it.isEmpty() }?.let { newInput ->
                 inputs.add(newInput)
@@ -306,7 +305,7 @@ public class SlowInputStream(
 
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            microTrace<Unit>(Now.grapheme) {
+            microTrace<Unit>(Now.graphemeCluster) {
                 trace("blocking for the remaining ${yetBlocked.milliseconds}...")
                 Thread.sleep(yetBlocked)
             }
@@ -316,7 +315,7 @@ public class SlowInputStream(
             val currentLine: Pair<Duration, MutableList<Byte>> = it.first()
             val delay = currentLine.first
             if (delay > Duration.ZERO) {
-                this.microTrace<Unit>(Now.grapheme) {
+                this.microTrace<Unit>(Now.graphemeCluster) {
                     trace("output delayed by $delay...")
                     Thread.sleep(delay.toLongMilliseconds())
                     unread[0] = Duration.ZERO to currentLine.second

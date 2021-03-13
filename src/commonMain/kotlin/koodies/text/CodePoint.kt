@@ -3,6 +3,7 @@ package koodies.text
 import koodies.number.mod
 import koodies.number.toHexadecimalString
 import koodies.text.CodePoint.Companion.isDefined
+import koodies.text.CodePoint.Companion.isUsableCodePoint
 import kotlin.Char.Companion.MAX_SURROGATE
 import kotlin.Char.Companion.MAX_VALUE
 import kotlin.Char.Companion.MIN_SURROGATE
@@ -34,6 +35,8 @@ private val Whitespaces = listOf(
 
 /**
  * Representation of a [Unicode code point](http://www.unicode.org/glossary/#code_point)
+ *
+ * @see <a href="https://www.unicode.org/reports/tr18/">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
  */
 public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint> {
     public constructor(charSequence: CharSequence) : this("$charSequence".also {
@@ -45,7 +48,12 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
      * e.g. `0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    public fun toHexadecimalString(): String = codePoint.toHexadecimalString(pad = true)
+    public fun toHexadecimalString(): String = codePoint.toHexadecimalString(pad = true).toUpperCase()
+
+    /**
+     * Returns this code point as string that can be used to match exactly this code point using a regular expression.
+     */
+    public fun toRegex(): Regex = Regex("\\x{" + toHexadecimalString() + "}")
 
     /**
      * Contains the character pointed to and represented by a [String].
@@ -77,7 +85,7 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
                 )
             }
             else -> {
-                byteArrayOf(0xEF.toByte(), 0xBF.toByte(), 0xBD.toByte()) //  replacement character
+                byteArrayOf(0xEF.toByte(), 0xBF.toByte(), 0xBD.toByte())
             }
         }.decodeToString()
 
@@ -171,6 +179,15 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
      */
     public val isAsciiAlphanumeric: Boolean get() = (codePoint in 0x30..0x39) || (codePoint in 0x41..0x5a) || (codePoint in 0x61..0x7a)
 
+    /**
+     * Determines if this code point is alphanumeric, that is,
+     * if it is a [Unicode Letter](https://www.unicode.org/glossary/#letter) or
+     * a [Unicode Digit](http://www.unicode.org/glossary/#digits).
+     *
+     * @return `true` if this code point is a letter or digit
+     * @see <a href="https://www.unicode.org/reports/tr18/#property_syntax">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
+     */
+    public val isAlphanumeric: Boolean get() = Regex("[\\p{L} \\p{Nd}]").matches(string)
 
     public companion object {
 
@@ -213,51 +230,6 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
          * - not represents a surrogate
          */
         public fun Int.isUsableCodePoint(): Boolean = isDefined() && !privateUse() && !surrogate()
-
-        private fun String.singleCodePoint(): Int? {
-            val bytes = encodeToByteArray()
-            if (bytes.isEmpty() || bytes.size > 4) return null
-
-            fun getUInt(index: Int) = bytes[index].toUByte().toInt()
-            fun or(vararg values: Int) = values.fold(0) { acc, value -> acc or value }
-
-            val firstByte = getUInt(0)
-            return when {
-                firstByte < 0x80 -> if (bytes.size != 1) null else
-                    firstByte
-                firstByte < 0xE0 -> if (bytes.size != 2) null else or(
-                    (firstByte and 0x1F) shl 6,
-                    getUInt(1) and 0x3F,
-                )
-                firstByte < 0xF0 -> if (bytes.size != 3) null else or(
-                    (firstByte and 0x0F) shl 12,
-                    (getUInt(1) and 0x3F) shl 6,
-                    (getUInt(2) and 0x3F),
-                )
-                else -> if (bytes.size != 4) null else or(
-                    (firstByte and 0x07) shl 18,
-                    (getUInt(1) and 0x3F) shl 12,
-                    (getUInt(2) and 0x3F) shl 6,
-                    (getUInt(3) and 0x3F),
-                )
-            }
-        }
-
-        /**
-         * `true` if these [Char] instances represent a *single* Unicode character.
-         */
-        public fun String.isValidCodePoint(): Boolean = asCodePoint() != null
-
-        /**
-         * If this string represents exactly one valid Unicode code point, returns this Unicode code point.
-         * In all other cases, returns `null`.
-         */
-        public fun String.asCodePoint(): CodePoint? = singleCodePoint()?.takeIf { it.isUsableCodePoint() }?.let { CodePoint(it) }
-
-        /**
-         * Returns the Unicode code point with the same value.
-         */
-        public fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
     }
 
 
@@ -290,7 +262,6 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
             result = 31 * result + step
             return result
         }
-
     }
 
     /**
@@ -317,9 +288,11 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
         /** Checks if the progression is empty. */
         public open fun isEmpty(): Boolean = if (step > 0) first > last else first < last
 
-        override fun equals(other: Any?): Boolean =
-            other is CodePointProgression && (isEmpty() && other.isEmpty() ||
-                first == other.first && last == other.last && step == other.step)
+        override fun equals(other: Any?): Boolean {
+            if (other !is CodePointProgression) return false
+            if (isEmpty() && other.isEmpty()) return true
+            return first == other.first && last == other.last && step == other.step
+        }
 
         override fun hashCode(): Int =
             if (isEmpty()) -1 else (31 * (31 * first.codePoint + last.codePoint) + step)
@@ -393,3 +366,140 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
     public operator fun inc(): CodePoint = CodePoint(codePoint + 1)
     public operator fun dec(): CodePoint = CodePoint(codePoint - 1)
 }
+
+/**
+ * Attempts to read a code point from `this` byte array at the given [offset].
+ *
+ * The byte array is expected to be a UTF-8 encoded string.
+ *
+ * Returns a [Pair] with [Pair.first] being the number of bytes
+ * the code point contained in [Pair.second] consists of.
+ */
+private fun ByteArray.readCodePoint(offset: Int): Pair<Int, Int>? {
+    if (size <= offset) return null
+
+    fun read(index: Int): Int = this[offset + index].toUByte().toInt()
+    fun or(vararg values: Int): Int = values.fold(0) { acc, value -> acc or value }
+
+    val firstByte: Int = read(0)
+    return when {
+        firstByte < 0x80 ->
+            1 to firstByte
+        firstByte < 0xE0 -> if (size <= offset + 1) null
+        else 2 to or((firstByte and 0x1F) shl 6, read(1) and 0x3F)
+        firstByte < 0xF0 -> if (size <= offset + 2) null
+        else 3 to or((firstByte and 0x0F) shl 12, (read(1) and 0x3F) shl 6, (read(2) and 0x3F))
+        else -> if (size <= offset + 3) null else
+            4 to or((firstByte and 0x07) shl 18, (read(1) and 0x3F) shl 12, (read(2) and 0x3F) shl 6, (read(3) and 0x3F))
+    }
+}
+
+/**
+ * Attempts to read a code point from `this` char sequence at the given [offset].
+ *
+ * The characters are expected to be a UTF-18 encoded.
+ *
+ * Returns a [Pair] with [Pair.first] being the number of characters
+ * the code point contained in [Pair.second] consists of.
+ */
+private fun CharSequence.readCodePoint(offset: Int): Pair<Int, Int>? {
+    if (length <= offset) return null
+
+    val firstChar: Char = this[offset]
+    if (firstChar.isHighSurrogate()) {
+        if (length <= offset + 1) {
+            return 1 to firstChar.toInt()
+        }
+        val secondChar: Char = this[offset + 1]
+        if (secondChar.isLowSurrogate()) {
+            val left = (firstChar.toInt() - 0xD800) * 0x400
+            val right = secondChar.toInt() - 0xDC00
+            return 2 to (left + right + 0x10000)
+        }
+    }
+
+    return 1 to firstChar.toInt()
+}
+
+/**
+ * Attempts to read the single code point from `this` UTF-8 encoded string.
+ *
+ * Returns a [Pair] with [Pair.first] being the number of bytes
+ * the code point contained in [Pair.second] consists of.
+ */
+private fun String.singleCodePoint(): Int? {
+    val bytes = encodeToByteArray()
+    return bytes.readCodePoint(0)?.let { (length, codePoint) ->
+        when (length) {
+            bytes.size -> codePoint
+            else -> null
+        }
+    }
+}
+
+/**
+ * `true` if these [Char] instances represent a *single* Unicode character.
+ */
+public fun String.isValidCodePoint(): Boolean = asCodePoint() != null
+
+/**
+ * If this string represents exactly one valid Unicode code point, returns this Unicode code point.
+ * In all other cases, returns `null`.
+ */
+public fun String.asCodePoint(): CodePoint? = singleCodePoint()?.takeIf { it.isUsableCodePoint() }?.let { CodePoint(it) }
+
+/**
+ * Returns the Unicode code point with the same value.
+ */
+public fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
+
+/**
+ * Returns a lazily propagated sequence containing the [CodePoint] instances this string consists of.
+ */
+public fun ByteArray.asCodePointSequence(): Sequence<CodePoint> {
+    var offset = 0
+    return generateSequence {
+        readCodePoint(offset)?.let { (length, codePoint) ->
+            offset += length
+            CodePoint(codePoint)
+        }
+    }
+}
+
+/**
+ * Returns a sequence containing the [CodePoint] instances this string consists of.
+ */
+public fun CharSequence.asCodePointSequence(): Sequence<CodePoint> {
+    var offset = 0
+    return generateSequence {
+        readCodePoint(offset)?.let { (length, codePoint) ->
+            offset += length
+            CodePoint(codePoint)
+        }
+    }
+}
+
+/**
+ * Returns a list containing the [CodePoint] instances this string consists of.
+ */
+public fun CharSequence.toCodePointList(): List<CodePoint> =
+    asCodePointSequence().toList()
+
+/**
+ * Returns a sequence containing the [CodePoint] instances this string consists of.
+ */
+public val CharSequence.codePointCount: Int
+    get() {
+        val bytes = toString().encodeToByteArray()
+        var offset = 0
+        val lengthsSequence = generateSequence { bytes.readCodePoint(offset)?.let { (length, _) -> length.also { offset += it } } }
+        return lengthsSequence.count()
+    }
+
+/**
+ * Returns a list containing the results of applying the given [transform] function
+ * to each [CodePoint] of this string.
+ */
+public fun <R> String.mapCodePoints(transform: (CodePoint) -> R): List<R> =
+    asCodePointSequence().map(transform).toList()
+

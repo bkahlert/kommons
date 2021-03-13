@@ -1,7 +1,7 @@
 package koodies.test
 
 import koodies.text.CodePoint
-import koodies.text.Grapheme
+import koodies.text.GraphemeCluster
 import koodies.unit.BinaryPrefix
 import koodies.unit.Size
 import strikt.api.Assertion
@@ -35,7 +35,7 @@ fun Assertion.Builder<*>.asString(trim: Boolean = true): DescribeableBuilder<Str
     return this.get("asString") {
         val string = when (this) {
             is CodePoint -> this.string
-            is Grapheme -> this.asString
+            is GraphemeCluster -> this.asString
             is Size -> this.toString<BinaryPrefix>()
             else -> this.toString()
         }

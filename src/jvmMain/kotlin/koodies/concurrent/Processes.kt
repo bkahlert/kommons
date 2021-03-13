@@ -13,7 +13,7 @@ import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
 import koodies.logging.LoggingOptions
 import koodies.logging.RenderingLogger
-import koodies.logging.logging2
+import koodies.logging.logging
 import koodies.terminal.ANSI
 import koodies.text.LineSeparators
 import java.nio.file.Path

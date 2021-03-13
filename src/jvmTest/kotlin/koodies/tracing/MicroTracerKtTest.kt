@@ -2,7 +2,7 @@ package koodies.tracing
 
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
-import koodies.text.Grapheme
+import koodies.text.GraphemeCluster
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -15,7 +15,7 @@ class MicroTracerKtTest {
     fun InMemoryLogger.`should micro seq`() {
         subTrace<Any?>("segment") {
             trace("@")
-            microTrace<Any?>(Grapheme("🤠")) {
+            microTrace<Any?>(GraphemeCluster("🤠")) {
                 trace("a")
                 trace("")
                 trace("b c")

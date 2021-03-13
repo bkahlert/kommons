@@ -185,6 +185,19 @@ inline fun <reified T> Iterable<T>.testEach(
     .run { map { subject -> dynamicContainer("for".subject(subject, containerNamePattern), DynamicTestsBuilder.build(subject, init)) } }
 
 /**
+ * Creates one [DynamicContainer] for each instance of `this` collection of subjects
+ * using the specified [DynamicTestsBuilder] based [init].
+ *
+ * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
+ * which supports curly placeholders `{}` like [SLF4J] does.
+ */
+@DynamicTestsDsl
+inline fun <reified T> Sequence<T>.testEach(
+    containerNamePattern: String? = null,
+    noinline init: DynamicTestsBuilder<T>.(T) -> Unit,
+): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
+
+/**
  * Creates one [DynamicContainer] for each instance of the specified [subjects]
  * using the specified [DynamicTestsBuilder] based [init].
  *

@@ -1,6 +1,6 @@
 package koodies.text
 
-import kotlin.streams.asSequence
+import org.jline.utils.WCWidth
 
 /**
  * Contains the name of this code point
@@ -23,34 +23,10 @@ public val CodePoint.chars: CharArray get() = Character.toChars(codePoint)
  */
 public val CodePoint.charCount: Int get() = Character.charCount(codePoint)
 
-/**
- * Determines if this code point is alphanumeric, that is,
- * if it is a [Unicode Letter](https://www.unicode.org/glossary/#letter) or
- * a [Unicode Digit](http://www.unicode.org/glossary/#digits).
- *
- * @return `true` if this code point is a letter or digit
- * @see isLetterOrDigit
- */
-public val CodePoint.isAlphanumeric: Boolean get() = Character.isLetterOrDigit(codePoint)
 public operator fun String.minus(amount: Int): String =
     asCodePointSequence().map { it - amount }.joinToString("")
 
 /**
- * Returns a sequence containing the [CodePoint] instances this string consists of.
+ * Number of columns needed to represent the character described by this code point.
  */
-public fun CharSequence.asCodePointSequence(): Sequence<CodePoint> =
-    codePoints().mapToObj { CodePoint(it) }.asSequence()
-
-/**
- * Returns a sequence containing the [CodePoint] instances this string consists of.
- */
-public fun String.asCodePointSequence(): Sequence<CodePoint> =
-    (this as CharSequence).asCodePointSequence()
-
-/**
- * Returns a list containing the results of applying the given [transform] function
- * to each [CodePoint] of this string.
- */
-public fun <R> String.mapCodePoints(transform: (CodePoint) -> R): List<R> =
-    asCodePointSequence().map(transform).toList()
-
+public val CodePoint.columns: Int get() = WCWidth.wcwidth(codePoint)

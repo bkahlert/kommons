@@ -1,10 +1,10 @@
 package koodies.logging
 
-import koodies.text.Grapheme
+import koodies.text.GraphemeCluster
 import kotlin.properties.Delegates.vetoable
 import kotlin.reflect.KProperty
 
-public abstract class MicroLogger(private val symbol: Grapheme? = null) : RenderingLogger {
+public abstract class MicroLogger(private val symbol: GraphemeCluster? = null) : RenderingLogger {
 
     public var strings: List<String>? by vetoable(listOf(),
         onChange = { _: KProperty<*>, oldValue: List<String>?, _: List<String>? -> oldValue != null })

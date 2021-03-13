@@ -2,21 +2,24 @@ package koodies.text
 
 /**
  * Collection of line separators themselves and various corresponding methods
- * like [lines] or [lineSequence].
+ * like [lines] or [lineSequence]
+ *
+ * @see <a href="https://www.unicode.org/reports/tr18/#RL1.6">Unicode® Technical Standard #18—Line Boundaries</a>
+ * @see <a href="https://www.unicode.org/reports/tr18/">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
  */
 public object LineSeparators : Collection<String> {
 
     /**
      * Line break as used on Windows systems.
      *
-     * Representations: `\r\n`,  ␍␊
+     * Representations: `\r\n`,  `␍␊`, `⏎`
      */
     public const val CRLF: String = Unicode.carriageReturn.toString() + Unicode.lineFeed.toString()
 
     /**
      * Line break as used on Unix systems and modern Mac systems.
      *
-     * Representations: `\n`, ␊, ⏎
+     * Representations: `\n`, `␊`, `⏎`
      *
      */
     public const val LF: String = Unicode.lineFeed.toString()
@@ -24,24 +27,30 @@ public object LineSeparators : Collection<String> {
     /**
      * Line break as used on old Mac systems.
      *
-     * Representations: `\r`,  ␍
+     * Representations: `\r`, `␍`, `⏎`
      */
     public const val CR: String = Unicode.carriageReturn.toString()
 
     /**
-     * Line separator
+     * Next line separator
+     *
+     * Representations: `␤`, `⏎`
      */
-    public const val LS: String = Unicode.lineSeparator.toString()
+    public const val NEL: String = Unicode.nextLine.toString()
 
     /**
      * Paragraph separator
+     *
+     * Representations: `ₛᷮ`, `⏎`
      */
     public const val PS: String = Unicode.paragraphSeparator.toString()
 
     /**
-     * Next line separator
+     * Line separator
+     *
+     * Representations: `ₛᷞ`, `⏎`
      */
-    public const val NEL: String = Unicode.nextLine.toString()
+    public const val LS: String = Unicode.lineSeparator.toString()
 
     /**
      * [Regex] that matches all line separators.
