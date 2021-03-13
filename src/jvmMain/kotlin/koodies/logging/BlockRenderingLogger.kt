@@ -1,7 +1,7 @@
 package koodies.logging
 
 import com.github.ajalt.mordant.AnsiCode
-import koodies.builder.ListBuilder.Companion.buildList
+import koodies.builder.buildList
 import koodies.concurrent.process.IO
 import koodies.logging.RenderingLogger.Companion.formatException
 import koodies.logging.RenderingLogger.Companion.formatReturnValue
@@ -51,7 +51,7 @@ public open class BlockRenderingLogger(
             if (bordered) {
                 +"╭──╴${captionLines.first().bold()}"
                 captionLines.drop(1).forEach {
-                    +"$prefix   ${it.bold()}"
+                    +"$prefix${it.bold()}"
                 }
                 +prefix
             } else {

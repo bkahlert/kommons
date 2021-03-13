@@ -23,9 +23,9 @@ class ListBuilderTest {
     }
 
     @Test
-    fun `should build using companion method`() {
+    fun `should build using top-level function`() {
 
-        val list = ListBuilder.buildList {
+        val list = buildList {
             +"" + TextFile.text
             +"𓌈🥸𓂈"
         }

@@ -4,6 +4,8 @@ package koodies.builder
 
 import koodies.asString
 import koodies.builder.context.ListBuildingContext
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
@@ -36,15 +38,20 @@ public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext
 
     override fun toString(): String = asString()
 
-    @OptIn(ExperimentalTypeInference::class)
     public companion object {
-        /**
-         * Builds an enum set of enum type [E] as specified by [init].
-         */
-        public fun <E : Enum<E>> buildEnumSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = invoke(init)
 
+        @OptIn(ExperimentalTypeInference::class)
         public operator fun <E : Enum<E>> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = EnumSetBuilder<E>().invoke(init)
     }
+}
+
+/**
+ * Builds an enum set of enum type [E] as specified by [init].
+ */
+@OptIn(ExperimentalTypeInference::class)
+public fun <E : Enum<E>> buildEnumSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> {
+    contract { callsInPlace(init, EXACTLY_ONCE) }
+    return EnumSetBuilder(init)
 }
 
 @Suppress("UNUSED_VARIABLE", "unused")
@@ -59,7 +66,6 @@ private object EnumSetBuilderSamples {
         val features = EnumSetBuilder {
             +Features.FeatureA + Features.FeatureC
         }
-
     }
 
     fun indirectUse() {
@@ -70,6 +76,5 @@ private object EnumSetBuilderSamples {
         }
 
         val enumSet = builderAcceptingFunction { +Features.FeatureA + Features.FeatureC }
-
     }
 }

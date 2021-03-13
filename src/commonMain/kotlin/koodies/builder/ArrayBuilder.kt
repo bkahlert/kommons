@@ -3,6 +3,8 @@ package koodies.builder
 import koodies.asString
 import koodies.builder.ArrayBuilder.Companion
 import koodies.builder.context.ListBuildingContext
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
@@ -39,12 +41,7 @@ public open class ArrayBuilder<E> private constructor(public val transform: List
 
     override fun toString(): String = asString()
 
-    @OptIn(ExperimentalTypeInference::class)
     public companion object {
-        /**
-         * Convenience method to build instances of an [E] typed [Array].
-         */
-        public inline fun <reified E> buildArray(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> = invoke(init)
 
         /**
          * Non-reifying method to create new instances of this builder.
@@ -60,7 +57,17 @@ public open class ArrayBuilder<E> private constructor(public val transform: List
         /**
          * Builds a new [E] typed [Array].
          */
+        @OptIn(ExperimentalTypeInference::class)
         public inline operator fun <reified E> invoke(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> =
             createInstance<E> { toTypedArray() }(init)
     }
+}
+
+/**
+ * Convenience method to build instances of an [E] typed [Array].
+ */
+@OptIn(ExperimentalTypeInference::class)
+public inline fun <reified E> buildArray(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> {
+    contract { callsInPlace(init, EXACTLY_ONCE) }
+    return ArrayBuilder(init)
 }

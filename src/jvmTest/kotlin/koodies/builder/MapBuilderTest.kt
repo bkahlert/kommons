@@ -24,9 +24,9 @@ class MapBuilderTest {
     }
 
     @Test
-    fun `should build using companion method`() {
+    fun `should build using top-level function`() {
 
-        val map = MapBuilder.buildMap<String, Int> {
+        val map = buildMap<String, Int> {
             "ten" to 5
             put("some", TextFile.text.length)
             "𓌈🥸𓂈".let { it to it.length }

@@ -1,11 +1,12 @@
 package koodies.builder
 
 import koodies.asString
-import koodies.builder.ListBuilder.Companion.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
@@ -28,16 +29,21 @@ public class NestedListsBuilder<E> : BuilderTemplate<NestedListsBuilder<E>.Neste
 
     override fun toString(): String = asString()
 
-    @OptIn(ExperimentalTypeInference::class)
     public companion object {
-        /**
-         * Builds a list of type [E] as specified by [init].
-         */
-        public fun <E> buildNestedLists(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> = invoke(init)
 
+        @OptIn(ExperimentalTypeInference::class)
         public operator fun <E> invoke(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> =
             NestedListsBuilder<E>().invoke(init)
     }
+}
+
+/**
+ * Builds a list of type [E] as specified by [init].
+ */
+@OptIn(ExperimentalTypeInference::class)
+public fun <E> buildNestedLists(@BuilderInference init: Init<NestedListsBuilder<E>.NestedListsContext>): List<List<E>> {
+    contract { callsInPlace(init, EXACTLY_ONCE) }
+    return NestedListsBuilder(init)
 }
 
 private fun elementsDemo(@Suppress("UNUSED_PARAMETER") init: Init<NestedListsBuilder<String>.NestedListsContext>) {

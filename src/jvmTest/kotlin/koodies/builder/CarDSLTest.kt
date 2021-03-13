@@ -22,7 +22,7 @@ class CarDSLTest {
         val w2 = "⌀ 35.56cm"
         expectThat(output.outLines).contains(
             "Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[$w1, $w1, $w1, $w1])",
-            "Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[$w2, $w2, $w2])",
+            "Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[$w2, $w2, $w2, $w2])",
         )
     }
 }

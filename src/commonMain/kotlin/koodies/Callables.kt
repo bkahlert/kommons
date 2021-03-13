@@ -120,6 +120,7 @@ public operator fun <T : Function<*>, R> Builder<T, R>.provideDelegate(thisRef: 
  * @param R the type of the callable.
  */
 public fun interface CallableProperty<in T, out R> {
+
     /**
      * Returns the functional value of the property for the given object.
      * @param thisRef the object for which the functional value is requested.

@@ -1,12 +1,12 @@
 package koodies.docker
 
-import koodies.builder.ArrayBuilder
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
 import koodies.builder.ListBuilder
-import koodies.builder.ListBuilder.Companion.buildList
+import koodies.builder.buildArray
+import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
@@ -25,7 +25,7 @@ public open class DockerRemoveCommandLine(
     public val containers: List<String>,
 ) : DockerCommandLine(
     dockerCommand = "rm",
-    arguments = ArrayBuilder.buildArray {
+    arguments = buildArray {
         addAll(options)
         addAll(containers)
     },

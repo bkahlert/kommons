@@ -5,8 +5,8 @@ import koodies.builder.BooleanBuilder.OnOff
 import koodies.builder.BooleanBuilder.OnOff.Context
 import koodies.builder.BuilderTemplate
 import koodies.builder.ListBuilder
-import koodies.builder.ListBuilder.Companion.buildList
 import koodies.builder.StatelessBuilder
+import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext

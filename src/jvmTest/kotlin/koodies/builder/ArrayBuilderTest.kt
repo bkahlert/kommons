@@ -23,9 +23,9 @@ class ArrayBuilderTest {
     }
 
     @Test
-    fun `should build using companion method`() {
+    fun `should build using top-level function`() {
 
-        val array = ArrayBuilder.buildArray {
+        val array = buildArray {
             +"" + TextFile.text
             +"𓌈🥸𓂈"
         }
