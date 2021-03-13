@@ -183,12 +183,10 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-api:${Versions.junit.jupiter}")
-                implementation("org.junit.jupiter:junit-jupiter-params:${Versions.junit.jupiter}")
-                implementation("org.junit.jupiter:junit-jupiter-engine:${Versions.junit.jupiter}")
-                implementation("org.junit.platform:junit-platform-commons:${Versions.junit.platform}")
-                implementation("org.junit.platform:junit-platform-launcher:${Versions.junit.platform}")
-                runtimeOnly("org.junit.platform:junit-platform-console:${Versions.junit.platform}") {
+                implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
+                listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
+                listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
+                runtimeOnly("org.junit.platform:junit-platform-console") {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
