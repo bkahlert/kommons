@@ -12,6 +12,7 @@ import koodies.io.path.asPath
 import koodies.logging.asStatus
 import koodies.regex.get
 import koodies.text.LineSeparators
+import koodies.text.Semantics
 import koodies.text.unquoted
 import org.codehaus.plexus.util.StringUtils
 import org.codehaus.plexus.util.cli.CommandLineUtils
@@ -153,7 +154,7 @@ public open class CommandLine(
     /**
      * Contains a formatted list of files contained in this command line.
      */
-    public val formattedIncludesFiles: String get() = includedFiles.joinToString("\n") { "📄 ${it.toUri()}" }
+    public val formattedIncludesFiles: String get() = includedFiles.joinToString("\n") { "${Semantics.Document} ${it.toUri()}" }
 
     override fun toString(): String = multiLineCommandLine
 

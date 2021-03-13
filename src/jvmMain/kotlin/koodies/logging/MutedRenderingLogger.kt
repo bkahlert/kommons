@@ -5,10 +5,10 @@ package koodies.logging
  */
 public open class MutedRenderingLogger : BlockRenderingLogger("", log = {}) {
 
-    override fun logText(block: () -> CharSequence) {}
-    override fun logLine(block: () -> CharSequence) {}
-    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {}
-    override fun logException(block: () -> Throwable) {}
+    override fun logText(block: () -> CharSequence): Unit = Unit
+    override fun logLine(block: () -> CharSequence): Unit = Unit
+    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence): Unit = Unit
+    override fun logException(block: () -> Throwable): Unit = Unit
     override fun <R> logResult(block: () -> Result<R>): R = block().getOrThrow()
     override fun toString(): String = "MutedBlockRenderingLogger"
 }

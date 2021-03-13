@@ -144,77 +144,73 @@ public open class BlockRenderingLogger(
  * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
  */
 @RenderingLoggingDsl
-public inline fun <reified R> Any?.blockLogging(
+public inline fun <reified T : MutedRenderingLogger, reified R> T.blockLogging(
+    caption: CharSequence,
+    ansiCode: AnsiCode? = null,
+    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
+    crossinline block: T.() -> R,
+): R = runLogging(block)
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
+ */
+@RenderingLoggingDsl
+public inline fun <reified T : BorderedRenderingLogger, reified R> T.blockLogging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: BlockRenderingLogger.() -> R,
-): R {
-    val logger: BlockRenderingLogger = createBlockRenderingLogger(caption, bordered, ansiCode)
-    val result: Result<R> = kotlin.runCatching { block(logger) }
-    logger.logResult { result }
-    return result.getOrThrow()
-}
-
-public fun Any?.createBlockRenderingLogger(
-    caption: CharSequence,
-    bordered: Boolean,
-    ansiCode: AnsiCode?,
-): BlockRenderingLogger = when (this) {
-    is MutedRenderingLogger -> this
-    is BorderedRenderingLogger -> BlockRenderingLogger(
-        caption = caption,
-        bordered = bordered,
-        statusInformationColumn = statusInformationColumn - prefix.length,
-        statusInformationPadding = statusInformationPadding,
-        statusInformationColumns = statusInformationColumns - prefix.length,
-    ) { output -> logText { ansiCode.invoke(output) } }
-    is RenderingLogger -> BlockRenderingLogger(
-        caption = caption,
-        bordered = bordered
-    ) { output -> logText { ansiCode.invoke(output) } }
-    else -> BlockRenderingLogger(caption = caption, bordered = bordered)
-}
-
-
-public fun createBlockRenderingLogger2(
-    caption: CharSequence,
-    bordered: Boolean,
-    ansiCode: AnsiCode?,
-): BlockRenderingLogger = BlockRenderingLogger(caption = caption, bordered = bordered)
-
-public fun MutedRenderingLogger.createBlockRenderingLogger2(
-    caption: CharSequence,
-    bordered: Boolean,
-    ansiCode: AnsiCode?,
-): MutedRenderingLogger = this
-
-public fun BorderedRenderingLogger.createBlockRenderingLogger2(
-    caption: CharSequence,
-    bordered: Boolean,
-    ansiCode: AnsiCode?,
-): BlockRenderingLogger = BlockRenderingLogger(
+): R = BlockRenderingLogger(
     caption = caption,
     bordered = bordered,
     statusInformationColumn = statusInformationColumn - prefix.length,
     statusInformationPadding = statusInformationPadding,
     statusInformationColumns = statusInformationColumns - prefix.length,
-) { output -> logText { ansiCode.invoke(output) } }
+) { output -> logText { ansiCode.invoke(output) } }.runLogging(block)
 
-public fun RenderingLogger.createBlockRenderingLogger2(
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
+ */
+@RenderingLoggingDsl
+public inline fun <reified T : RenderingLogger, reified R> T.blockLogging(
     caption: CharSequence,
-    bordered: Boolean,
-    ansiCode: AnsiCode?,
-): BlockRenderingLogger = BlockRenderingLogger(
+    ansiCode: AnsiCode? = null,
+    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
+    crossinline block: BlockRenderingLogger.() -> R,
+): R = BlockRenderingLogger(
     caption = caption,
     bordered = bordered
-) { output -> logText { ansiCode.invoke(output) } }
+) { output -> logText { ansiCode.invoke(output) } }.runLogging(block)
 
-public fun BlockRenderingLogger.createBlockRenderingLogger2(
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
+ */
+@RenderingLoggingDsl
+public inline fun <reified R> blockLogging(
     caption: CharSequence,
-    bordered: Boolean,
-    ansiCode: AnsiCode?,
-): BlockRenderingLogger = BlockRenderingLogger(
-    caption = caption,
-    bordered = bordered
-) { output -> logText { ansiCode.invoke(output) } }
+    ansiCode: AnsiCode? = null,
+    bordered: Boolean = false,
+    crossinline block: BlockRenderingLogger.() -> R,
+): R = BlockRenderingLogger(caption = caption, bordered = bordered).runLogging(block)
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
+ */
+@JvmName("nullableBlockLogging")
+@RenderingLoggingDsl
+public inline fun <reified T : RenderingLogger?, reified R> T.blockLogging(
+    caption: CharSequence,
+    ansiCode: AnsiCode? = null,
+    bordered: Boolean = false,
+    crossinline block: BlockRenderingLogger.() -> R,
+): R =
+    if (this is RenderingLogger) blockLogging(caption, ansiCode, bordered, block)
+    else koodies.logging.blockLogging(caption, ansiCode, bordered, block)

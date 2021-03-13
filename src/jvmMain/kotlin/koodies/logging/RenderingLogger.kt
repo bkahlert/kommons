@@ -3,18 +3,19 @@ package koodies.logging
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Type.OUT
 import koodies.io.path.bufferedWriter
+import koodies.io.path.withExtension
 import koodies.runtime.Program
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.green
 import koodies.terminal.AnsiColors.red
 import koodies.text.Semantics
-import koodies.text.Unicode
+import koodies.text.Semantics.Document
 import koodies.text.Unicode.greekSmallLetterKoppa
-import java.io.BufferedWriter
 import java.nio.file.Path
-import kotlin.contracts.InvocationKind
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
+import kotlin.io.path.extension
 
 /**
  * Logger interface to implement loggers that don't just log
@@ -125,37 +126,72 @@ public annotation class RenderingLoggingDsl
 
 @RenderingLoggingDsl
 public inline fun <reified R, reified L : RenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
-    contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
-    logResult { runCatching { block() } }
-    return this
+    contract { callsInPlace(block, EXACTLY_ONCE) }
+    return apply { runLogging(block) }
 }
 
 @RenderingLoggingDsl
-public inline fun <reified R, reified L : RenderingLogger> L.runLogging(crossinline block: L.() -> R): R {
-    contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
-    return logResult { runCatching { block() } }
+public inline fun <reified T : RenderingLogger, reified R> T.runLogging(crossinline block: T.() -> R): R {
+    contract { callsInPlace(block, EXACTLY_ONCE) }
+    val result: Result<R> = kotlin.runCatching { block() }
+    logResult { result }
+    return result.getOrThrow()
 }
 
 /**
  * Creates a logger which logs to [path].
  */
 @RenderingLoggingDsl
-public inline fun <reified R> RenderingLogger?.fileLogging(
+public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     path: Path,
     caption: CharSequence,
     crossinline block: RenderingLogger.() -> R,
-): R = blockLogging(caption) {
-    logLine { "This process might produce pretty much log messages. Logging to …" }
-    logLine { "${Unicode.Emojis.pageFacingUp} ${path.toUri()}" }
-    val writer: BufferedWriter = path.bufferedWriter()
-    val logger: RenderingLogger = BlockRenderingLogger(
-        caption = caption,
-        bordered = false,
-        log = { output: String ->
-            writer.appendLine(output.removeEscapeSequences())
-        },
-    )
-    kotlin.runCatching { block(logger) }.also { logger.logResult { it }; writer.close() }.getOrThrow()
+): R = compactLogging(caption, block = fileLoggingBlock(path, caption, block))
+
+/**
+ * Creates a logger which logs to [path].
+ */
+@RenderingLoggingDsl
+public inline fun <reified R> fileLogging(
+    path: Path,
+    caption: CharSequence,
+    crossinline block: RenderingLogger.() -> R,
+): R = compactLogging(caption, block = fileLoggingBlock(path, caption, block))
+
+/**
+ * Creates a logger which logs to [path].
+ */
+@JvmName("nullableFileLogging")
+@RenderingLoggingDsl
+public inline fun <reified T : RenderingLogger?, reified R> T.fileLogging(
+    path: Path,
+    caption: CharSequence,
+    crossinline block: RenderingLogger.() -> R,
+): R =
+    if (this is RenderingLogger) fileLogging(path, caption, block)
+    else koodies.logging.fileLogging(path, caption, block)
+
+public inline fun <reified R> fileLoggingBlock(
+    path: Path,
+    caption: CharSequence,
+    crossinline block: RenderingLogger.() -> R,
+): CompactRenderingLogger.() -> R = {
+    logLine { IO.Type.META typed "Logging to" }
+    logLine { "$Document ${path.toUri()}" }
+    path.bufferedWriter().use { ansiLog ->
+        path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->
+            val logger: RenderingLogger = BlockRenderingLogger(
+                caption = caption,
+                bordered = false,
+            ) { output ->
+                ansiLog.appendLine(output)
+                noAnsiLog.appendLine(output.removeEscapeSequences())
+            }
+            runCatching<R> { logger.block() }.fold(
+                { logger.logResult { Result.success(it) } },
+                { logger.logResult { Result.failure(it) } })
+        }
+    }
 }
 
 /**

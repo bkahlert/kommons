@@ -14,6 +14,7 @@ import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.toStringContains
 import koodies.test.withTempDir
+import koodies.text.Semantics.Document
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.styling.wrapWithBorder
@@ -94,7 +95,7 @@ class ManagedProcessTest {
             val process = createCompletingManagedProcess()
             expectThat(process).log.logs {
                 any {
-                    it.contains("📄")
+                    it.contains(Document)
                     it.contains("file:")
                     it.contains(".sh")
                 }

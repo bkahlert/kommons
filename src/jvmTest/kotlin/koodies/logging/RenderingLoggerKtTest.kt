@@ -7,13 +7,15 @@ import koodies.concurrent.process.IO.Type.OUT
 import koodies.io.path.containsAtMost
 import koodies.io.path.containsExactly
 import koodies.io.path.randomFile
+import koodies.io.path.withExtension
 import koodies.terminal.AnsiColors.red
+import koodies.terminal.removeEscapeSequences
 import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.test.withTempDir
-import koodies.text.Unicode
+import koodies.text.Semantics
 import koodies.text.matchesCurlyPattern
 import koodies.text.wrap
 import org.junit.jupiter.api.Test
@@ -30,6 +32,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import java.net.URI
+import kotlin.io.path.extension
 import kotlin.io.path.readLines
 
 @Execution(CONCURRENT)
@@ -220,9 +223,9 @@ class RenderingLoggerKtTest {
         kotlin.runCatching {
             logStatus { OUT typed "outer 1" }
             logStatus { OUT typed "outer 2" }
-            logging<Any>("nested log", null) {
+            logging("nested log", null) {
                 logStatus { OUT typed "nested 1" }
-                throw IllegalStateException("an exception")
+                if ("1".toInt() == 1) throw IllegalStateException("an exception")
             }
             logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
             logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
@@ -312,8 +315,8 @@ class RenderingLoggerKtTest {
     fun @receiver:Columns(200) InMemoryLogger.`should log to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         logLine { "｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ" }
         logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        val file = randomFile("file-log", ".log")
-        fileLogging(file, "Some logging heavy operation") {
+        val ansiLog = randomFile("file-log", ".log")
+        fileLogging(ansiLog, "Some logging heavy operation") {
             logLine { "line" }
             logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
             logException { RuntimeException("just a test") }
@@ -330,19 +333,20 @@ class RenderingLoggerKtTest {
                     │{}
                     │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
                     │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   ╭──╴Some logging heavy operation{}
-                    │   │{}
-                    │   │   This process might produce pretty much log messages. Logging to …
-                    │   │   ${Unicode.Emojis.pageFacingUp} ${file.toUri()}
-                    │   │{}
-                    │   ╰──╴✔︎
+                    │   Some logging heavy operation Logging to ${Semantics.Document} ${ansiLog.toUri()} ✔︎
                     │   Normal logging continues...
                     │{}
                     ╰──╴✔︎{}
                 """.trimIndent()
             )
 
-            that(file.readLines().filter { it.isNotBlank() }) {
+            that(ansiLog.readLines().filter { it.isNotBlank() }) {
+                first().removeEscapeSequences().isEqualTo("▶ Some logging heavy operation")
+                get { last { it.isNotBlank() } }.removeEscapeSequences().endsWith("✔︎")
+            }
+
+            val noAnsiLog = ansiLog.withExtension("no-ansi.${ansiLog.extension}")
+            that(noAnsiLog.readLines().filter { it.isNotBlank() }) {
                 first().isEqualTo("▶ Some logging heavy operation")
                 get { last { it.isNotBlank() } }.endsWith("✔︎")
             }

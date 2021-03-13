@@ -16,6 +16,7 @@ import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.Semantics.Document
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -202,7 +203,7 @@ class ShellScriptTest {
                 that(process.logged.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                     .matchesCurlyPattern("""
                         Executing ${asString()}/koodies.process.{}.sh
-                        📄 file://${asString()}/koodies.process.{}.sh
+                        $Document file://${asString()}/koodies.process.{}.sh
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝
                         finished to run embedded script

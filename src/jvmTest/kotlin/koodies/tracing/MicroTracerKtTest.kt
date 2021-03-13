@@ -10,6 +10,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 
 @Execution(CONCURRENT)
 class MicroTracerKtTest {
+
     @Test
     fun InMemoryLogger.`should micro seq`() {
         subTrace<Any?>("segment") {

@@ -37,38 +37,59 @@ public abstract class CompactRenderingLogger(caption: CharSequence) : RenderingL
 }
 
 /**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
- */
-@RenderingLoggingDsl
-public inline fun <reified R> RenderingLogger?.compactLogging(
-    caption: CharSequence,
-    noinline block: CompactRenderingLogger.() -> R,
-): R {
-    val logger = object : CompactRenderingLogger(caption) {
-        override fun render(block: () -> CharSequence) {
-            this@compactLogging?.apply { logLine(block) } ?: println(block())
-        }
-    }
-    return logger.runLogging(block)
-}
-
-/**
  * Creates a logger which serves for logging a very short sub-process and all of its corresponding events.
  *
  * This logger logs all events using only a couple of characters. If more room is needed [compactLogging] or even [blockLogging] is more suitable.
  */
 @RenderingLoggingDsl
-public inline fun <reified R> CompactRenderingLogger.compactLogging(
+public inline fun <reified T : CompactRenderingLogger, reified R> T.compactLogging(
     noinline block: MicroLogger.() -> R,
-): R = run {
-    val logger: MicroLogger = object : MicroLogger() {
-        override fun render(block: () -> CharSequence) {
-            this@compactLogging.logLine(block)
-        }
+): R = object : MicroLogger() {
+    override fun render(block: () -> CharSequence) {
+        this@compactLogging.logLine(block)
     }
-    val result: Result<R> = kotlin.runCatching { block(logger) }
-    logger.logResult { result }
-    return result.getOrThrow()
-}
+}.runLogging(block)
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
+ */
+@RenderingLoggingDsl
+public inline fun <reified T : RenderingLogger, reified R> T.compactLogging(
+    caption: CharSequence,
+    noinline block: CompactRenderingLogger.() -> R,
+): R = object : CompactRenderingLogger(caption) {
+    override fun render(block: () -> CharSequence) {
+        this@compactLogging.logLine(block)
+    }
+}.runLogging(block)
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
+ */
+@RenderingLoggingDsl
+public inline fun <reified R> compactLogging(
+    caption: CharSequence,
+    noinline block: CompactRenderingLogger.() -> R,
+): R = object : CompactRenderingLogger(caption) {
+    override fun render(block: () -> CharSequence) {
+        println(block())
+    }
+}.runLogging(block)
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ *
+ * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
+ */
+@JvmName("nullableCompactLogging")
+@RenderingLoggingDsl
+public inline fun <reified T : RenderingLogger?, reified R> T.compactLogging(
+    caption: CharSequence,
+    noinline block: CompactRenderingLogger.() -> R,
+): R =
+    if (this is RenderingLogger) compactLogging(caption, block)
+    else koodies.logging.compactLogging(caption, block)

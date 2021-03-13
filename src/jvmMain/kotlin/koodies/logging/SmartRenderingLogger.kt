@@ -9,6 +9,7 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
+import koodies.nullable.invoke
 
 /**
  * Logs like a [BlockRenderingLogger] unless only the result is logged.
@@ -76,85 +77,78 @@ public class SmartRenderingLogger(
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
 @RenderingLoggingDsl
-public inline fun <reified R> Any?.logging(
+public inline fun <reified T : MutedRenderingLogger, reified R> T.logging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    crossinline block: RenderingLogger.() -> R,
-): R {
-    val parent = this as? RenderingLogger
-    val logger: RenderingLogger = when (this) {
-        is MutedRenderingLogger -> this
-        is BorderedRenderingLogger -> SmartRenderingLogger(
-            caption = caption,
-            bordered = bordered,
-            statusInformationColumn = statusInformationColumn - prefix.length,
-            statusInformationPadding = statusInformationPadding,
-            statusInformationColumns = statusInformationColumns - prefix.length,
-            parent = parent,
-        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-        is RenderingLogger -> SmartRenderingLogger(
-            caption = caption,
-            bordered = bordered,
-            parent = parent,
-        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-        else -> SmartRenderingLogger(
-            caption = caption, bordered = bordered, parent = null,
-        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-    }
-    val result: Result<R> = kotlin.runCatching { block(logger) }
-    logger.logResult { result }
-    return result.getOrThrow()
-}
+    crossinline block: T.() -> R,
+): R = runLogging(block)
 
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ */
 @RenderingLoggingDsl
-public inline fun <reified R> RenderingLogger.logging2(
+public inline fun <reified T : BorderedRenderingLogger, reified R> T.logging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    crossinline block: RenderingLogger.() -> R,
-): R {
-    val parent = this as? RenderingLogger
-    val logger: RenderingLogger = when (this) {
-        is MutedRenderingLogger -> this
-        is BorderedRenderingLogger -> SmartRenderingLogger(
-            caption = caption,
-            bordered = bordered,
-            statusInformationColumn = statusInformationColumn - prefix.length,
-            statusInformationPadding = statusInformationPadding,
-            statusInformationColumns = statusInformationColumns - prefix.length,
-            parent = parent,
-        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-        is RenderingLogger -> SmartRenderingLogger(
-            caption = caption,
-            bordered = bordered,
-            parent = parent,
-        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-        else -> SmartRenderingLogger(
-            caption = caption, bordered = bordered, parent = null,
-        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-    }
-    val result: Result<R> = kotlin.runCatching { block(logger) }
-    logger.logResult { result }
-    return result.getOrThrow()
-}
+    crossinline block: SmartRenderingLogger.() -> R,
+): R = SmartRenderingLogger(
+    caption = caption,
+    bordered = bordered,
+    statusInformationColumn = statusInformationColumn - prefix.length,
+    statusInformationPadding = statusInformationPadding,
+    statusInformationColumns = statusInformationColumns - prefix.length,
+    parent = this,
+) {
+    BlockRenderingLogger(
+        caption = caption,
+        bordered = bordered,
+        statusInformationColumn = statusInformationColumn - prefix.length,
+        statusInformationPadding = statusInformationPadding,
+        statusInformationColumns = statusInformationColumns - prefix.length,
+    ) { output -> logText { ansiCode(output) } }
+}.runLogging(block)
 
-
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ */
 @RenderingLoggingDsl
-public inline fun <reified R> logging2(
+public inline fun <reified T : RenderingLogger, reified R> T.logging(
+    caption: CharSequence,
+    ansiCode: AnsiCode? = null,
+    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
+    crossinline block: SmartRenderingLogger.() -> R,
+): R = SmartRenderingLogger(caption = caption, bordered = bordered, parent = this) {
+    BlockRenderingLogger(caption = caption, bordered = bordered) { output -> logText { ansiCode(output) } }
+}.runLogging(block)
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ */
+@RenderingLoggingDsl
+public inline fun <reified R> logging(
     caption: CharSequence,
     ansiCode: AnsiCode? = null,
     bordered: Boolean = false,
-    crossinline block: RenderingLogger.() -> R,
-): R {
-    val logger = SmartRenderingLogger(
-        caption = caption, bordered = bordered, parent = null,
-    ) { createBlockRenderingLogger2(caption, bordered, ansiCode) }
-    val result: Result<R> = runCatching { block(logger) }
-    logger.logResult { result }
-    return result.getOrThrow()
-}
+    crossinline block: SmartRenderingLogger.() -> R,
+): R = SmartRenderingLogger(caption = caption, bordered = bordered, parent = null) {
+    BlockRenderingLogger(caption = caption, bordered = bordered)
+}.runLogging(block)
 
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ */
+@JvmName("nullableLogging")
+@RenderingLoggingDsl
+public inline fun <reified T : RenderingLogger?, reified R> T.logging(
+    caption: CharSequence,
+    ansiCode: AnsiCode? = null,
+    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
+    crossinline block: SmartRenderingLogger.() -> R,
+): R =
+    if (this is RenderingLogger) logging(caption, ansiCode, bordered, block)
+    else koodies.logging.logging(caption, ansiCode, bordered, block)
 
 public data class LoggingOptions(val caption: CharSequence, val ansiCode: AnsiCode? = null, val bordered: Boolean = false) {
     public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptions>() {
@@ -170,36 +164,3 @@ public data class LoggingOptions(val caption: CharSequence, val ansiCode: AnsiCo
         }
     }
 }
-//
-//
-//@RenderingLoggingDsl
-//inline fun <reified R> RenderingLogger.logging2(
-//    caption: CharSequence,
-//    ansiCode: AnsiCode? = null,
-//    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-//    crossinline block: RenderingLogger.() -> R,
-//): R {
-//    val parent = this as? RenderingLogger
-//    val logger: RenderingLogger = when (this) {
-//        is MutedRenderingLogger -> this
-//        is BorderedRenderingLogger -> SmartRenderingLogger(
-//            caption = caption,
-//            bordered = bordered,
-//            statusInformationColumn = statusInformationColumn - prefix.length,
-//            statusInformationPadding = statusInformationPadding,
-//            statusInformationColumns = statusInformationColumns - prefix.length,
-//            parent = parent,
-//        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-//        is RenderingLogger -> SmartRenderingLogger(
-//            caption = caption,
-//            bordered = bordered,
-//            parent = parent,
-//        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-//        else -> SmartRenderingLogger(
-//            caption = caption, bordered = bordered, parent = null,
-//        ) { createBlockRenderingLogger(caption, bordered, ansiCode) }
-//    }
-//    val result: Result<R> = kotlin.runCatching { block(logger) }
-//    logger.logResult { result }
-//    return result.getOrThrow()
-//}

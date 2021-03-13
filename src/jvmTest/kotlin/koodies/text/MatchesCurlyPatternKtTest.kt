@@ -12,6 +12,7 @@ import koodies.test.testEach
 import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.Semantics.Document
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -77,7 +78,7 @@ class MatchesCurlyPatternKtTest {
             ▶ ManagedJavaProcess[delegate=Process[pid=27252, exitValue="not exited"]; result=✅; started=false; commandLine=/var/folders/hh/739sq9w1 … /koodies.process.o50.sh; expectedExitValue=0; processTerminationCallback=␀; destroyOnShutdown=✅]
             · Executing /var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_consol
             · e_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
-            · 📄 file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_console_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
+            · $Document file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_console_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
             · test output 1
             · test output 2
             · test error 1
@@ -112,7 +113,7 @@ class MatchesCurlyPatternKtTest {
             ▶ ManagedJavaProcess[delegate=Process[pid=98199, exitValue="not exited"]; result=✅; started=false; commandLine=/bin/sh -c "echo \"test  …
               est error 2\"; sleep 1"; expectedExitValue=0; processTerminationCallback=␀; destroyOnShutdown=✅]
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
-            · 📄 file:///bin/sh
+            · $Document file:///bin/sh
             · test output 1
             · test output 2
             · test error 1
@@ -126,7 +127,7 @@ class MatchesCurlyPatternKtTest {
             expectThat("""
             ▶ ManagedJavaProcess[delegate=Process[pid=98199, exitValue="not exited"]; result=✅; started=false; commandLine=/bin/sh -c "echo \"test  … 
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
-            · 📄 file:///bin/sh
+            · $Document file:///bin/sh
             · test output 1
             · test output 2
             · test error 1
@@ -140,7 +141,7 @@ class MatchesCurlyPatternKtTest {
             ▶ ManagedJavaProcess[delegate=Process[pid=98199, exitValue="not exited"]; result=✅; started=false; commandLine=/bin/sh -c "echo \"test  … 
               est error 2\"; sleep 1"; expectedExitValue=0; processTerminationCallback=␀; destroyOnShutdown=✅]
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
-            · 📄 file:///bin/sh
+            · $Document file:///bin/sh
             · test output 1
             · test output 2
             · test error 1

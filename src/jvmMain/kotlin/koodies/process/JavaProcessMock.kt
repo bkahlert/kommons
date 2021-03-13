@@ -10,7 +10,6 @@ import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
 import koodies.io.TeeOutputStream
-import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.process.SlowInputStream.Companion.slowInputStream
@@ -21,9 +20,7 @@ import koodies.text.grapheme
 import koodies.time.Now
 import koodies.time.sleep
 import koodies.tracing.MiniTracer
-import koodies.tracing.microTrace
 import koodies.tracing.miniTrace
-import koodies.tracing.trace
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -184,7 +181,7 @@ public class SlowInputStream(
     public val baseDelayPerInput: Duration,
     public val byteArrayOutputStream: ByteArrayOutputStream? = null,
     public val echoInput: Boolean = false,
-    public var logger: BlockRenderingLogger?,
+    public var logger: RenderingLogger,
     vararg inputs: Pair<Duration, String>,
 ) : InputStream() {
     public constructor(
@@ -192,7 +189,7 @@ public class SlowInputStream(
         baseDelayPerInput: Duration,
         byteArrayOutputStream: ByteArrayOutputStream? = null,
         echoInput: Boolean = false,
-        logger: BlockRenderingLogger?,
+        logger: RenderingLogger,
     ) : this(
         baseDelayPerInput = baseDelayPerInput,
         byteArrayOutputStream = byteArrayOutputStream,
@@ -231,7 +228,7 @@ public class SlowInputStream(
     private val Int.padded get() = this.toString().padStart(originalCountLength)
 
     private val inputs = mutableListOf<String>()
-    public fun processInput(logger: MiniTracer?): Boolean = logger.microTrace(Grapheme("✏️")) {
+    public fun processInput(logger: MiniTracer): Boolean = logger.microTrace(Grapheme("✏️")) {
         byteArrayOutputStream?.apply {
             toString(Charsets.UTF_8).takeUnless { it.isEmpty() }?.let { newInput ->
                 inputs.add(newInput)

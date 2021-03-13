@@ -13,6 +13,11 @@ import koodies.text.prefixLinesWith
 import koodies.time.Now
 import java.io.OutputStream
 
+/**
+ * Logger that stores logged messages in [captured] and
+ * prints enriched messages (`threadName: time: message`)
+ * to the specified [outputStream].
+ */
 public open class InMemoryLogger private constructor(
     caption: CharSequence,
     bordered: Boolean = false,

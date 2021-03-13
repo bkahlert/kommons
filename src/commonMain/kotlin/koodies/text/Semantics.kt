@@ -13,6 +13,8 @@ public object Semantics {
     public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
     public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.toString()
 
+    public val Document: String = Unicode.Emojis.pageFacingUp.toString()
+
     /**
      * Semantic formatter which binds to the specified [text].
      */
