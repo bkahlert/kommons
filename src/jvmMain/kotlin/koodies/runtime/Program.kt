@@ -7,6 +7,8 @@ import com.github.ajalt.mordant.TermColors.Level.ANSI256
 import com.github.ajalt.mordant.TermColors.Level.NONE
 import com.github.ajalt.mordant.TermColors.Level.TRUECOLOR
 import com.github.ajalt.mordant.TerminalCapabilities.detectANSISupport
+import koodies.io.ContextClassLoader
+import koodies.io.loadClassOrNull
 import koodies.io.path.Locations.Temp
 import koodies.io.path.age
 import koodies.io.path.appendLine
@@ -14,7 +16,6 @@ import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.text.anyContainsAny
-import java.lang.management.ManagementFactory
 import java.nio.file.Path
 import java.security.AccessControlException
 import java.util.concurrent.locks.ReentrantLock
@@ -26,7 +27,16 @@ import kotlin.time.minutes
 import java.lang.Runtime as JavaRuntime
 
 public actual object Program {
-    private val jvmArgs: List<String> by lazy { ManagementFactory.getRuntimeMXBean().inputArguments }
+
+    private val jvmArgs: List<String> by lazy {
+        ContextClassLoader.loadClassOrNull("java.lang.management.ManagementFactory")?.let {
+            val runtimeMxBean: Any = it.getMethod("getRuntimeMXBean").invoke(null)
+            val runtimeMxBeanClass: Class<*> = ContextClassLoader.loadClass("java.lang.management.RuntimeMXBean")
+            val inputArgs: Any = runtimeMxBeanClass.getMethod("getInputArguments").invoke(runtimeMxBean)
+            (inputArgs as? List<*>)?.map { arg -> arg.toString() }
+        } ?: emptyList()
+    }
+
     private val jvmJavaAgents: List<String> by lazy { jvmArgs.filter { it.startsWith("-javaagent") } }
 
     private val intellijTraits: List<String> by lazy { listOf("jetbrains", "intellij", "idea", "idea_rt.jar") }
@@ -36,7 +46,9 @@ public actual object Program {
     /**
      * Whether this program is running in debug mode.
      */
-    public actual val isDebugging: Boolean by lazy { jvmJavaAgents.any { it.contains("debugger") } }
+    public actual val isDebugging: Boolean by lazy {
+        jvmArgs.any { it.startsWith("-agentlib:jdwp") } || jvmJavaAgents.any { it.contains("debugger") }
+    }
 
     /**
      * Registers [handler] as to be called when this program is about to stop.
@@ -90,7 +102,10 @@ private val onExitHandlers: MutableList<OnExitHandler> = object : MutableList<On
     }
 
     override fun add(element: OnExitHandler): Boolean =
-        lock.withLock { add(size, element); true }
+        lock.withLock {
+            add(size, element)
+            true
+        }
 }
 
 /**
