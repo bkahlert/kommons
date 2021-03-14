@@ -1,16 +1,11 @@
 import org.gradle.api.plugins.JavaBasePlugin.DOCUMENTATION_GROUP
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
-import org.jlleitschuh.gradle.ktlint.KtlintExtension
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     kotlin("multiplatform") version Versions.kotlin
     id("org.jetbrains.dokka") version "1.4.20"
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
-    id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
-    id("io.gitlab.arturbosch.detekt") version "1.16.0-RC1"
 
     id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
@@ -28,31 +23,6 @@ allprojects {
 
 description = "Random Kotlin Goodies"
 group = "com.bkahlert.koodies"
-
-configure<KtlintExtension> {
-    debug.set(true)
-    verbose.set(true)
-    android.set(false)
-    outputToConsole.set(true)
-    outputColorName.set("RED")
-    ignoreFailures.set(true)
-    enableExperimentalRules.set(true)
-//    additionalEditorconfigFile.set(file("/some/additional/.editorconfig"))
-    disabledRules.set(setOf(
-        "no-consecutive-blank-lines"
-    ))
-    reporters {
-        reporter(PLAIN)
-        reporter(CHECKSTYLE)
-    }
-    kotlinScriptAdditionalPaths {
-        include(fileTree("scripts/"))
-    }
-    filter {
-        exclude("**/generated/**")
-        include("**/kotlin/**")
-    }
-}
 
 repositories {
     mavenCentral()
@@ -73,26 +43,12 @@ kotlin {
         println("\n\t\tProperty releasingFinal is set but the active version $version is not final.")
     }
 
-    val features = listOf(
-        "-Xopt-in=kotlin.RequiresOptIn",
-        "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-        "-Xopt-in=kotlin.time.ExperimentalTime",
-        "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-        "-Xopt-in=kotlin.io.path.ExperimentalPathApi"
-    )
-
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions.freeCompilerArgs += features
-    }
-
     jvm {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
                 useIR = true
-                freeCompilerArgs += listOf(
-                    "-Xjvm-default=all"
-                )
+                freeCompilerArgs = listOf("-Xjvm-default=all")
             }
         }
 
@@ -126,7 +82,13 @@ kotlin {
         }
 
         binaries.executable()
-        compilations.all { kotlinOptions { sourceMap = true; moduleKind = "umd"; metaInfo = true } }
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                moduleKind = "umd"
+                metaInfo = true
+            }
+        }
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -138,13 +100,6 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
-                languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
-            }
-            languageSettings.enableLanguageFeature("InlineClasses")
-        }
-
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
@@ -165,15 +120,6 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
                 implementation("org.jline:jline-reader:3.19.0")
-
-                @Suppress("SpellCheckingInspection")
-                implementation("com.tunnelvisionlabs:antlr4-runtime:${Versions.antlr4}") {
-                    because("grapheme parsing")
-                }
-                @Suppress("SpellCheckingInspection")
-                implementation("com.tunnelvisionlabs:antlr4-perf-testsuite:${Versions.antlr4}")
-
-
                 implementation("com.github.ajalt:mordant:1.2.1") {// implementation("com.github.ajalt.mordant:mordant:2.0.0-alpha1")
                     exclude("org.jetbrains.kotlin", "kotlin-stdlib")
                 }
@@ -207,116 +153,111 @@ kotlin {
         val nativeMain by getting
         val nativeTest by getting
 
-
-        all {
-            features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
-                languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
-            }
-        }
-
         all {
             languageSettings.apply {
                 languageVersion = "1.4"
                 apiVersion = "1.4"
                 progressiveMode = true
+
+                enableLanguageFeature("InlineClasses")
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+                useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+                useExperimentalAnnotation("kotlin.time.ExperimentalTime")
+                useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
             }
         }
+    }
 
-        targets.all {
-            compilations.all {
-                kotlinOptions.freeCompilerArgs += features
+    targets {
+        jvm().compilations {
+            all {
+                kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.io.path.ExperimentalPathApi")
             }
         }
+    }
 
-        all {
-            features.filter { it.startsWith("-Xopt-in=") }.forEach { feature ->
-                languageSettings.useExperimentalAnnotation(feature.removePrefix("-Xopt-in="))
+    publishing {
+        publications {
+            withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
+                artifact(tasks.register<Jar>("dokkaHtmlJar") {
+                    group = DOCUMENTATION_GROUP
+                    dependsOn(tasks.dokkaHtml)
+                    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+                    archiveClassifier.set("kdoc")
+                })
             }
-        }
+            withType<MavenPublication>().configureEach {
+                artifact(tasks.register<Jar>("${name}JavaDocJar") {
+                    archiveBaseName.set("${project.name}-${this@configureEach.name}")
+                    archiveClassifier.set("javadoc")
+                })
 
-        publishing {
-            publications {
-                withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
-                    artifact(tasks.register<Jar>("dokkaHtmlJar") {
-                        group = DOCUMENTATION_GROUP
-                        dependsOn(tasks.dokkaHtml)
-                        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-                        archiveClassifier.set("kdoc")
-                    })
-                }
-                withType<MavenPublication>().configureEach {
-                    artifact(tasks.register<Jar>("${name}JavaDocJar") {
-                        archiveBaseName.set("${project.name}-${this@configureEach.name}")
-                        archiveClassifier.set("javadoc")
-                    })
-
-                    pom {
-                        name.set("Koodies")
-                        description.set(project.description)
+                pom {
+                    name.set("Koodies")
+                    description.set(project.description)
+                    url.set(baseUrl)
+                    licenses {
+                        license {
+                            name.set("MIT")
+                            url.set("$baseUrl/blob/master/LICENSE")
+                        }
+                    }
+                    scm {
                         url.set(baseUrl)
-                        licenses {
-                            license {
-                                name.set("MIT")
-                                url.set("$baseUrl/blob/master/LICENSE")
-                            }
-                        }
-                        scm {
-                            url.set(baseUrl)
-                            connection.set("scm:git:$baseUrl.git")
-                            developerConnection.set("scm:git:$baseUrl.git")
-                        }
-                        issueManagement {
-                            url.set("$baseUrl/issues")
-                            system.set("GitHub")
-                        }
-
-                        ciManagement {
-                            url.set("$baseUrl/issues")
-                            system.set("GitHub")
-                        }
-
-                        developers {
-                            developer {
-                                id.set("bkahlert")
-                                name.set("Björn Kahlert")
-                                email.set("mail@bkahlert.com")
-                                url.set("https://bkahlert.com")
-                                timezone.set("Europe/Berlin")
-                            }
-                        }
+                        connection.set("scm:git:$baseUrl.git")
+                        developerConnection.set("scm:git:$baseUrl.git")
                     }
-                }
-            }
-
-            repositories {
-
-                maven {
-                    name = "MavenCentral"
-                    url = if (version.isFinal()) {
-                        uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                    } else {
-                        uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                    issueManagement {
+                        url.set("$baseUrl/issues")
+                        system.set("GitHub")
                     }
-                    credentials {
-                        username = findPropertyEverywhere("sonatypeNexusUsername", "")
-                        password = findPropertyEverywhere("sonatypeNexusPassword", "")
-                    }
-                }
 
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-                    credentials {
-                        username = findPropertyEverywhere("githubUsername", "")
-                        password = findPropertyEverywhere("githubToken", "")
+                    ciManagement {
+                        url.set("$baseUrl/issues")
+                        system.set("GitHub")
+                    }
+
+                    developers {
+                        developer {
+                            id.set("bkahlert")
+                            name.set("Björn Kahlert")
+                            email.set("mail@bkahlert.com")
+                            url.set("https://bkahlert.com")
+                            timezone.set("Europe/Berlin")
+                        }
                     }
                 }
             }
         }
 
-        signing {
-            sign(publishing.publications)
+        repositories {
+
+            maven {
+                name = "MavenCentral"
+                url = if (version.isFinal()) {
+                    uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                } else {
+                    uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                }
+                credentials {
+                    username = findPropertyEverywhere("sonatypeNexusUsername", "")
+                    password = findPropertyEverywhere("sonatypeNexusPassword", "")
+                }
+            }
+
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+                credentials {
+                    username = findPropertyEverywhere("githubUsername", "")
+                    password = findPropertyEverywhere("githubToken", "")
+                }
+            }
         }
+    }
+
+    signing {
+        sign(publishing.publications)
     }
 }
 
