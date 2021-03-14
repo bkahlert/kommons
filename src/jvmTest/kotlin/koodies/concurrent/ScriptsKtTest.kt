@@ -8,7 +8,7 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
-import koodies.concurrent.process.processSynchronously
+import koodies.concurrent.process.process
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
@@ -197,7 +197,7 @@ class ScriptsKtTest {
         fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
             getFactories(processor = {}, logger = InMemoryLogger()).testWithTempDir(uniqueId) { processFactory ->
                 val process = processFactory()
-                process.processSynchronously(Processors.noopProcessor())
+                process.process({ sync }, Processors.noopProcessor())
                 expectThat(output).get { out }.isEmpty()
                 expectThat(output).get { err }.isEmpty()
             }
@@ -207,7 +207,7 @@ class ScriptsKtTest {
         fun `should format merged output`(uniqueId: UniqueId) =
             getFactories(processor = {}, logger = null).testWithTempDir(uniqueId) { processFactory ->
                 val process = processFactory()
-                process.processSynchronously(Processors.noopProcessor())
+                process.process({ sync }, Processors.noopProcessor())
                 expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}

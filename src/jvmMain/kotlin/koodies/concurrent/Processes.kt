@@ -1,20 +1,25 @@
 package koodies.concurrent
 
+import koodies.builder.BuilderTemplate
 import koodies.builder.Init
+import koodies.builder.context.CapturesMap
+import koodies.builder.context.CapturingContext
+import koodies.builder.context.SkippableCapturingBuilderInterface
+import koodies.concurrent.CommandLineExecutionOptions.Companion.CommandLineExecutionOptionsContext
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.processSynchronously
+import koodies.concurrent.process.process
+import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.toProcessor
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
 import koodies.logging.LoggingOptions
+import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
 import koodies.logging.RenderingLogger
 import koodies.logging.logging
-import koodies.terminal.ANSI
 import koodies.text.LineSeparators
 import java.nio.file.Path
 
@@ -77,93 +82,86 @@ public fun Path.process(
 /* ALL EXECUTE METHODS BELOW ALWAYS START THE COMMANDLINE/PROCESS AND AND PROCESS IT SYNCHRONOUSLY */
 
 /**
- * Runs `this` [CommandLine] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of the created [ManagedProcess] will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
+ * Helper to collect an optional [RenderingLogger], build [CommandLineExecutionOptions] and an optional [Processor]
+ * to [execute] the given [CommandLine].
  */
-public fun CommandLine.execute(
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-): ManagedProcess {
-    return process(this, expectedExitValue, processTerminationCallback).processSynchronously(processor)
-}
+public class CommandLineLoggingExecution(
+    private val logger: RenderingLogger?,
+    private val commandLine: CommandLine,
+) {
+    private var processor: Processor<ManagedProcess>? = null
 
-/**
- * Runs the specified [commandLine] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of the created [ManagedProcess] will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-public fun execute(
-    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-    commandLine: Init<CommandLineContext>,
-): ManagedProcess = CommandLine(commandLine).execute(expectedExitValue, processTerminationCallback, processor)
+    public fun executeWithOptionalProcessor(init: (CommandLineExecutionOptionsContext.() -> Processor<ManagedProcess>?)?): ManagedProcess {
+        processor = init?.let { CommandLineExecutionOptionsContext(CapturesMap()).init() }
+        return executeWithOptionallyStoredProcessor { init?.let { it() } }
+    }
 
-/**
- * Runs the specified [commandLine] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of the created [ManagedProcess] will be logged by the specified [logger]
- * which prints all [IO] to the console if `null`.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-public fun execute(
-    logger: RenderingLogger?,
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-    commandLine: Init<CommandLineContext>,
-): ManagedProcess = execute(
-    processor = logger.toProcessor(),
-    expectedExitValue = expectedExitValue,
-    processTerminationCallback = processTerminationCallback,
-    commandLine = commandLine
-)
-
-/**
- * Runs the [CommandLine] like [CommandLine.execute] but takes this [RenderingLogger]
- * as the parent logger, that is, the [IO] gets logged in a sub logger.
- *
- * @see [CommandLine.execute]
- */
-public val CommandLine.execute: RenderingLogger.(
-    expectedExitValue: Int?,
-    processTerminationCallback: (() -> Unit)?,
-    loggingOptions: LoggingOptions,
-) -> ManagedProcess
-    get() = { expectedExitValue, processTerminationCallback, (caption, ansiCode, bordered) ->
-        logging(caption = caption, bordered = bordered, ansiCode = ansiCode ?: ANSI.termColors.brightBlue) {
-            execute(expectedExitValue, processTerminationCallback, toProcessor())
+    public fun executeWithOptionallyStoredProcessor(init: Init<CommandLineExecutionOptionsContext>?): ManagedProcess {
+        val options: CommandLineExecutionOptions = init?.let { CommandLineExecutionOptions(it) }
+            ?: (CommandLineExecutionOptions(loggingOptions = LoggingOptions(commandLine.summary, koodies.text.ANSI.Colors.brightBlue, false)))
+        return logger?.run {
+            logging(
+                caption = options.loggingOptions.caption ?: commandLine.summary,
+                bordered = options.loggingOptions.bordered,
+                formatter = options.loggingOptions.formatter ?: koodies.text.ANSI.Colors.brightBlue) {
+                process(options.expectedExitValue, options.processTerminationCallback, processor ?: toProcessor())
+            }
+        } ?: run {
+            process(options.expectedExitValue, options.processTerminationCallback, processor ?: Processors.consoleLoggingProcessor())
         }
     }
 
+    private fun process(
+        expectedExitValue: Int? = 0,
+        processTerminationCallback: (() -> Unit)? = null,
+        processor: Processor<ManagedProcess>,
+    ): ManagedProcess = process(commandLine, expectedExitValue, processTerminationCallback).process({ sync }, processor)
+}
+
 /**
- * Runs the [CommandLine] like [CommandLine.execute] but takes this [RenderingLogger]
- * as the parent logger, that is, the [IO] gets logged in a sub logger.
- *
- * @see [CommandLine.execute]
+ * Options used to [execute] a [CommandLine].
  */
-public val RenderingLogger.execute: CommandLine.(
-    expectedExitValue: Int?,
-    processTerminationCallback: (() -> Unit)?,
-    loggingOptions: LoggingOptions,
-) -> ManagedProcess
-    get() = { expectedExitValue, processTerminationCallback, loggingOptions ->
-        execute(this@execute, expectedExitValue, processTerminationCallback, loggingOptions)
+public data class CommandLineExecutionOptions(
+    val expectedExitValue: Int? = 0,
+    val processTerminationCallback: (() -> Unit)? = null,
+    val loggingOptions: LoggingOptions = LoggingOptions(),
+) {
+    public companion object : BuilderTemplate<CommandLineExecutionOptionsContext, CommandLineExecutionOptions>() {
+        public class CommandLineExecutionOptionsContext(override val captures: CapturesMap) : CapturingContext() {
+            public val expectedExitValue: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder()
+            public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> () -> Unit, (() -> Unit)?> by builder()
+            public val loggingOptions: SkippableCapturingBuilderInterface<LoggingOptionsContext.() -> Unit, LoggingOptions?> by LoggingOptions
+        }
+
+        override fun BuildContext.build(): CommandLineExecutionOptions = ::CommandLineExecutionOptionsContext{
+            CommandLineExecutionOptions(::expectedExitValue.evalOrDefault(0),
+                ::processTerminationCallback.evalOrNull(),
+                ::loggingOptions.evalOrDefault { LoggingOptions() })
+        }
     }
+}
+
+/**
+ * Runs `this` [CommandLine] using `this` optional [RenderingLogger]
+ * and built [CommandLineExecutionOptions].
+ *
+ * If a [Processor] is returned at the end of the [CommandLineExecutionOptions] build,
+ * it will be used to process the process's [IO]. Otherwise the [IO] will be logged
+ * either to the console or if present, `this` [RenderingLogger].
+ */
+public val CommandLine.execute: RenderingLogger?.((CommandLineExecutionOptionsContext.() -> Processor<ManagedProcess>?)?) -> ManagedProcess
+    get() = { CommandLineLoggingExecution(this, this@execute).executeWithOptionalProcessor(it) }
+
+/**
+ * Runs `this` [CommandLine] using `this` optional [RenderingLogger]
+ * and built [CommandLineExecutionOptions].
+ *
+ * If a [Processor] is returned at the end of the [CommandLineExecutionOptions] build,
+ * it will be used to process the process's [IO]. Otherwise the [IO] will be logged
+ * either to the console or if present, `this` [RenderingLogger].
+ */
+public val RenderingLogger.execute: CommandLine.((CommandLineExecutionOptionsContext.() -> Processor<ManagedProcess>?)?) -> ManagedProcess
+    get() = { CommandLineLoggingExecution(this@execute, this).executeWithOptionalProcessor(it) }
 
 /**
  * Returns (and possibly blocks until finished) the output of `this` [ManagedProcess].
@@ -171,6 +169,6 @@ public val RenderingLogger.execute: CommandLine.(
  * This method is idempotent.
  */
 public fun ManagedProcess.output(): String = run {
-    processSynchronously(Processors.noopProcessor())
+    processSilently()
     ioLog.logged.filter { it.type == IO.Type.OUT }.joinToString(LineSeparators.LF) { it.unformatted }
 }

@@ -1,8 +1,10 @@
 package koodies.process
 
 import koodies.concurrent.daemon
+import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
+import koodies.concurrent.process.toProcessor
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.isEqualToByteWise
 import koodies.logging.InMemoryLogger
@@ -382,7 +384,7 @@ class JavaProcessMockTest {
             process.enter("shutdown")
         }
 
-        val exitValue = process.process(nonBlockingReader = false) { }.waitForTermination()
+        val exitValue = process.process({ async(NonInteractive(null)) }, toProcessor()).waitForTermination()
 
         expectThat(exitValue) {
             isEqualTo(0)

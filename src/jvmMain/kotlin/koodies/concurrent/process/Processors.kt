@@ -1,13 +1,16 @@
 package koodies.concurrent.process
 
-import koodies.builder.BuilderTemplate
-import koodies.builder.Init
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
+import koodies.Exceptions
+import koodies.builder.BooleanBuilder.BooleanValue
+import koodies.builder.StatelessBuilder
 import koodies.concurrent.completableFuture
-import koodies.concurrent.process.ProcessingOptions.Mode.Asynchronous
-import koodies.concurrent.process.ProcessingOptions.Mode.Synchronous
+import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
+import koodies.concurrent.process.ProcessingMode.Interactivity
+import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive
+import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive.Companion.InteractiveContext
+import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
+import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
+import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.Processors.consoleLoggingProcessor
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
@@ -87,19 +90,67 @@ public fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
  * so they get logged.
  */
 public inline fun <reified P : ManagedProcess> P.processSilently(): P =
-    process(false, InputStream.nullInputStream(), noopProcessor())
+    process({ sync }, noopProcessor())
+
+
+public data class ProcessingMode(val synchronicity: Synchronicity, val interactivity: Interactivity) {
+
+    public enum class Synchronicity { Sync, Async }
+
+    public sealed class Interactivity {
+        public class Interactive(public val nonBlocking: Boolean) : Interactivity() {
+            public companion object :
+                StatelessBuilder.PostProcessing<InteractiveContext, BooleanValue, Interactivity>(InteractiveContext, { Interactive(booleanValue()) }) {
+                public object InteractiveContext {
+                    public val nonBlocking: BooleanValue = BooleanValue { true }
+                    public val blocking: BooleanValue = BooleanValue { false }
+                }
+            }
+        }
+
+        public class NonInteractive(public val processInputStream: InputStream?) : Interactivity()
+    }
+
+    public companion object : StatelessBuilder.Returning<ProcessingModeContext, ProcessingMode>(ProcessingModeContext) {
+        public object ProcessingModeContext {
+            public val sync: ProcessingMode = ProcessingMode(Sync, NonInteractive(null))
+            public val async: ProcessingMode = ProcessingMode(Async, NonInteractive(null))
+            public fun async(interactivity: Interactivity): ProcessingMode = ProcessingMode(Async, interactivity)
+        }
+    }
+}
 
 /**
  * Attaches to the [Process.inputStream] and [Process.errorStream]
  * of the specified [Process] and passed all [IO] to the specified [processor].
  *
- * If no [processor] is specified a [Processors.consoleLoggingProcessor] prints
- * all [IO] to the console.
+ * If no [processor] is specified, the output and the error stream will be
+ * printed to the console.
  *
- * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
+ *
  */
-public fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggingProcessor()): P =
-    process(true, InputStream.nullInputStream(), processor)
+public fun <P : ManagedProcess> P.process(
+    mode: ProcessingModeContext.() -> ProcessingMode,
+    processor: Processor<P>,
+): P = process(ProcessingMode(mode), processor)
+
+/**
+ * Attaches to the [Process.inputStream] and [Process.errorStream]
+ * of the specified [Process] and passed all [IO] to the specified [processor].
+ *
+ * If no [processor] is specified, the output and the error stream will be
+ * printed to the console.
+ *
+ *
+ */
+public fun <P : ManagedProcess> P.process(
+    mode: ProcessingMode = ProcessingMode(Sync, NonInteractive(null)),
+    processor: Processor<P> = consoleLoggingProcessor(),
+): P = when (mode.synchronicity) {
+    Sync -> processSynchronously(mode.interactivity, processor)
+    Async -> processAsynchronously(mode.interactivity, processor)
+}
+
 
 /**
  * Attaches to the [Process.inputStream] and [Process.errorStream]
@@ -110,14 +161,18 @@ public fun <P : ManagedProcess> P.process(processor: Processor<P> = consoleLoggi
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-public fun <P : ManagedProcess> P.process(
-    nonBlockingReader: Boolean,
-    processInputStream: InputStream = InputStream.nullInputStream(),
+public fun <P : ManagedProcess> P.processAsynchronously(
+    interactivity: Interactivity,
     processor: Processor<P> = noopProcessor(),
 ): P = apply {
 
     inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
         processor(this, line.type typed line.trim())
+    }
+
+    val (processInputStream, nonBlockingReader) = when (interactivity) {
+        is Interactive -> InputStream.nullInputStream() to interactivity.nonBlocking
+        is NonInteractive -> (interactivity.processInputStream ?: InputStream.nullInputStream()) to false
     }
 
     val inputProvider = ioProcessingThreadPool.completableFuture {
@@ -157,8 +212,19 @@ public fun <P : ManagedProcess> P.process(
  * all [IO] to the console.
  */
 public fun <P : ManagedProcess> P.processSynchronously(
+    interactivity: Interactivity,
     processor: Processor<P> = consoleLoggingProcessor(),
 ): P = apply {
+
+    if (interactivity is Interactive && !interactivity.nonBlocking) {
+        // TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
+        throw Exceptions.ISE("Non-blocking synchronous processing is not yet supported.")
+    }
+
+    if (interactivity is NonInteractive && interactivity.processInputStream != null) {
+        throw Exceptions.ISE("Input stream provided synchronous processing is not yet supported.")
+    }
+
     val metaAndInputIO = mutableListOf<IO>()
     val metaAndInputIOLock = ReentrantLock()
 
@@ -201,48 +267,3 @@ private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
 private fun CompletableFuture<*>.exceptionallyThrow(type: String) = exceptionally {
     throw RuntimeException("An error occurred while processing ［$type］.", it)
 }
-
-
-public data class ProcessingOptions<P : ManagedProcess>(
-    val mode: Mode,
-    val processInputStream: InputStream = InputStream.nullInputStream(),
-    val processor: Processor<P>,
-) {
-
-    public enum class Mode { Synchronous, Asynchronous }
-
-    public companion object {
-        public operator fun <P : ManagedProcess> invoke(init: Init<Builder<P>.ProcessingOptionsContext>): ProcessingOptions<P> =
-            Builder<P>().invoke(init)
-
-        public class Builder<P : ManagedProcess> : BuilderTemplate<Builder<P>.ProcessingOptionsContext, ProcessingOptions<P>>() {
-
-            public inner class ProcessingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val mode: SkippableCapturingBuilderInterface<() -> Mode, Mode> by builder<Mode>() default Asynchronous
-                public val processInputStream: SkippableCapturingBuilderInterface<() -> InputStream, InputStream> by builder<InputStream>() default InputStream.nullInputStream()
-                public val processor: SkippableCapturingBuilderInterface<() -> P.(IO) -> Unit, P.(IO) -> Unit> by builder<Processor<P>>() default noopProcessor()
-            }
-
-            override fun BuildContext.build(): ProcessingOptions<P> = ::ProcessingOptionsContext {
-                ProcessingOptions(::mode.eval(), ::processInputStream.eval(), ::processor.eval())
-            }
-        }
-    }
-}
-
-/**
- * Attaches to the [Process.inputStream] and [Process.errorStream]
- * of the specified [Process] and passed all [IO] to the specified [processor].
- *
- * If no [processor] is specified, the output and the error stream will be
- * printed to the console.
- *
- * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
- */
-public fun <P : ManagedProcess> P.process(options: ProcessingOptions<P>): P =
-    with(options) {
-        when (mode) {
-            Synchronous -> processSynchronously(processor)
-            Asynchronous -> process(nonBlockingReader = true, processInputStream, processor)
-        }
-    }

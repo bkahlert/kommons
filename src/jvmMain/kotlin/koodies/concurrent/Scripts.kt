@@ -5,7 +5,7 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.processSynchronously
+import koodies.concurrent.process.process
 import koodies.concurrent.process.toProcessor
 import koodies.io.path.Locations
 import koodies.io.path.asString
@@ -62,7 +62,7 @@ public fun Path.script(
 ): ManagedProcess {
     val scriptFile = shellScript.sanitize(this).buildTo(scriptPath())
     val commandLine = CommandLine(environment, this, scriptFile.asString())
-    return process(commandLine, expectedExitValue, processTerminationCallback).processSynchronously(processor)
+    return process(commandLine, expectedExitValue, processTerminationCallback).process({ sync }, processor)
 }
 
 /**

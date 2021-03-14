@@ -1,11 +1,9 @@
 package koodies.logging
 
-import com.github.ajalt.mordant.AnsiCode
 import koodies.builder.buildList
 import koodies.concurrent.process.IO
 import koodies.logging.RenderingLogger.Companion.formatException
 import koodies.logging.RenderingLogger.Companion.formatReturnValue
-import koodies.nullable.invoke
 import koodies.regex.RegularExpressions
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiFormats.bold
@@ -146,7 +144,7 @@ public open class BlockRenderingLogger(
 @RenderingLoggingDsl
 public inline fun <reified T : MutedRenderingLogger, reified R> T.blockLogging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: koodies.text.ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: T.() -> R,
 ): R = runLogging(block)
@@ -159,7 +157,7 @@ public inline fun <reified T : MutedRenderingLogger, reified R> T.blockLogging(
 @RenderingLoggingDsl
 public inline fun <reified T : BorderedRenderingLogger, reified R> T.blockLogging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: koodies.text.ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: BlockRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(
@@ -168,7 +166,7 @@ public inline fun <reified T : BorderedRenderingLogger, reified R> T.blockLoggin
     statusInformationColumn = statusInformationColumn - prefix.length,
     statusInformationPadding = statusInformationPadding,
     statusInformationColumns = statusInformationColumns - prefix.length,
-) { output -> logText { ansiCode.invoke(output) } }.runLogging(block)
+) { output -> logText { formatter?.invoke(output) ?: output } }.runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
@@ -178,13 +176,13 @@ public inline fun <reified T : BorderedRenderingLogger, reified R> T.blockLoggin
 @RenderingLoggingDsl
 public inline fun <reified T : RenderingLogger, reified R> T.blockLogging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: koodies.text.ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: BlockRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(
     caption = caption,
     bordered = bordered
-) { output -> logText { ansiCode.invoke(output) } }.runLogging(block)
+) { output -> logText { formatter?.invoke(output) ?: output } }.runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
@@ -194,7 +192,7 @@ public inline fun <reified T : RenderingLogger, reified R> T.blockLogging(
 @RenderingLoggingDsl
 public inline fun <reified R> blockLogging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: koodies.text.ANSI.Formatter? = null,
     bordered: Boolean = false,
     crossinline block: BlockRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(caption = caption, bordered = bordered).runLogging(block)
@@ -208,9 +206,9 @@ public inline fun <reified R> blockLogging(
 @RenderingLoggingDsl
 public inline fun <reified T : RenderingLogger?, reified R> T.blockLogging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: koodies.text.ANSI.Formatter? = null,
     bordered: Boolean = false,
     crossinline block: BlockRenderingLogger.() -> R,
 ): R =
-    if (this is RenderingLogger) blockLogging(caption, ansiCode, bordered, block)
-    else koodies.logging.blockLogging(caption, ansiCode, bordered, block)
+    if (this is RenderingLogger) blockLogging(caption, formatter, bordered, block)
+    else koodies.logging.blockLogging(caption, formatter, bordered, block)

@@ -10,18 +10,16 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
 import koodies.concurrent.process.process
-import koodies.concurrent.process.processSynchronously
 import koodies.logging.InMemoryLogger
-import koodies.logging.LoggingOptions
 import koodies.logging.RenderingLogger
 import koodies.logging.logging
-import koodies.terminal.ANSI
-import koodies.terminal.contains
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
 import koodies.test.UniqueId
 import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
+import koodies.text.ANSI
+import koodies.text.ANSI.Colors
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -168,7 +166,7 @@ class ProcessesKtTest {
             fun `should process log to console by default`(output: CapturedOutput, uniqueId: UniqueId) =
                 getFactories().testWithTempDir(uniqueId) { processFactory ->
                     val process = processFactory()
-                    process.processSynchronously()
+                    process.process()
                     expectThat(output).get { out }.matchesCurlyPattern("""
                 ▶{}commandLine{{}}
                 · Executing {{}}
@@ -186,7 +184,7 @@ class ProcessesKtTest {
             fun `should process without logging to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
                 getFactories().testWithTempDir(uniqueId) { processFactory ->
                     val process = processFactory()
-                    process.processSynchronously(Processors.noopProcessor())
+                    process.process({ sync }, Processors.noopProcessor())
                     expectThat(output).get { out }.isEmpty()
                     expectThat(output).get { err }.isEmpty()
                 }
@@ -196,7 +194,7 @@ class ProcessesKtTest {
             fun `should format merged output`(uniqueId: UniqueId) =
                 getFactories().testWithTempDir(uniqueId) { processFactory ->
                     val process = processFactory()
-                    process.processSynchronously(Processors.noopProcessor())
+                    process.process({ sync }, Processors.noopProcessor())
                     expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
@@ -223,15 +221,8 @@ class ProcessesKtTest {
             logger: RenderingLogger? = InMemoryLogger(),
         ) = listOf<Path.() -> ManagedProcess>(
             {
-                processor?.let { CommandLine { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }.execute(processor = processor) }
-                    ?: CommandLine { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }.execute()
-            },
-            {
-                processor?.let { execute(processor) { command by "/bin/sh"; arguments { +"-c" + commandLineContent } } }
-                    ?: execute { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }
-            },
-            {
-                execute(logger) { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }
+                processor?.let { CommandLine { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }.execute(null) { processor } }
+                    ?: CommandLine { command by "/bin/sh"; arguments { +"-c" + commandLineContent } }.execute(null) { null }
             },
         )
 
@@ -253,19 +244,7 @@ class ProcessesKtTest {
 
             @TestFactory
             fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
-                { CommandLine { command by "/bin/sh"; arguments { +"-c" + echoingCommands } }.execute(processor = it) },
-                { execute(it) { command by "/bin/sh"; arguments { +"-c" + echoingCommands } } },
-                { processor ->
-                    val logger = InMemoryLogger()
-                    val process = execute(logger) { command by "/bin/sh"; arguments { +"-c" + echoingCommands } }
-                    logger.logged.lines().forEach { line ->
-                        if (line.contains("test output env")) process.processor(OUT typed "test output env")
-                        if (line.contains("test output 2")) process.processor(OUT typed "test output 2")
-                        if (line.contains("test error 1")) process.processor(ERR typed "test error 1")
-                        if (line.contains("test error 2")) process.processor(ERR typed "test error 2")
-                    }
-                    process
-                },
+                { CommandLine { command by "/bin/sh"; arguments { +"-c" + echoingCommands } }.execute(null) { it } },
             ).testWithTempDir(uniqueId) { processFactory ->
                 val processed = mutableListOf<IO>()
                 processFactory { io -> processed.add(io) }
@@ -345,7 +324,7 @@ class ProcessesKtTest {
             fun `should process not log to console if specified`(output: CapturedOutput, uniqueId: UniqueId) =
                 getFactories(processor = {}, logger = InMemoryLogger()).testWithTempDir(uniqueId) { processFactory ->
                     val process = processFactory()
-                    process.processSynchronously(Processors.noopProcessor())
+                    process.process({ sync }, Processors.noopProcessor())
                     expectThat(output).get { out }.isEmpty()
                     expectThat(output).get { err }.isEmpty()
                 }
@@ -355,7 +334,7 @@ class ProcessesKtTest {
             fun `should format merged output`(uniqueId: UniqueId) =
                 getFactories(processor = {}, logger = null).testWithTempDir(uniqueId) { processFactory ->
                     val process = processFactory()
-                    process.processSynchronously(Processors.noopProcessor())
+                    process.process({ sync }, Processors.noopProcessor())
                     expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
@@ -374,34 +353,34 @@ class ProcessesKtTest {
 
         val commandLine = CommandLine("echo", "test")
 
-        logging("existing logging context") {
-            with(commandLine) {
-                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.brightBlue, true))
+        with(commandLine) {
+            logging("existing logging context") {
+                execute { loggingOptions { caption by "command line logging context"; formatter by Colors.brightBlue; border by true };null }
             }
         }
 
-        with(commandLine) {
-            logging("existing logging context", bordered = true, ansiCode = ANSI.termColors.brightMagenta) {
+        logging("existing logging context", bordered = true, formatter = ANSI.Colors.brightMagenta) {
+            with(commandLine) {
                 logLine { "abc" }
-                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.magenta, true))
+                execute { loggingOptions { caption by "command line logging context"; formatter by ANSI.Colors.magenta; border by true };null }
             }
         }
-        with(commandLine) {
-            logging("existing logging context", bordered = true, ansiCode = ANSI.termColors.brightBlue) {
+        logging("existing logging context", bordered = true, formatter = ANSI.Colors.brightBlue) {
+            with(commandLine) {
                 logLine { "abc" }
-                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.blue, false))
+                execute { loggingOptions { caption by "command line logging context"; formatter by ANSI.Colors.blue; border by false };null }
             }
         }
-        with(commandLine) {
-            logging("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightMagenta) {
+        logging("existing logging context", bordered = false, formatter = ANSI.Colors.brightMagenta) {
+            with(commandLine) {
                 logLine { "abc" }
-                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.magenta, true))
+                execute { loggingOptions { caption by "command line logging context"; formatter by ANSI.Colors.magenta; border by true };null }
             }
         }
-        with(commandLine) {
-            logging("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightBlue) {
+        logging("existing logging context", bordered = false, formatter = ANSI.Colors.brightBlue) {
+            with(commandLine) {
                 logLine { "abc" }
-                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.blue, false))
+                execute { loggingOptions { caption by "command line logging context"; formatter by ANSI.Colors.blue; border by false };null }
             }
         }
 

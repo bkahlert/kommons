@@ -64,12 +64,15 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
     private fun ExtensionContext.containerName() = UniqueId(uniqueId).simple
 
     private fun ExtensionContext.pullRequiredImages() {
-        withAnnotation<DockerRequiring, List<DockerImage>> {
-            requiredImages.map { DockerImage.parse(it) }
-        }?.subtract(Docker.images)?.forEach {
+        (requiredDockerImages() subtract Docker.images).forEach {
             blockLogging("Downloading required Docker image $it") {
                 script(logger = this) { !"docker pull $it" }.output()
             }
         }
     }
+
+    private fun ExtensionContext.requiredDockerImages(): List<DockerImage> =
+        withAnnotation<DockerRequiring, List<DockerImage>> {
+            requiredImages.map { DockerImage.parse(it) }
+        } ?: emptyList()
 }

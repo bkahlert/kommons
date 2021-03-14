@@ -125,13 +125,13 @@ public fun interface RenderingLogger {
 public annotation class RenderingLoggingDsl
 
 @RenderingLoggingDsl
-public inline fun <reified R, reified L : RenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
+public inline fun <R, L : RenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
     contract { callsInPlace(block, EXACTLY_ONCE) }
     return apply { runLogging(block) }
 }
 
 @RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger, reified R> T.runLogging(crossinline block: T.() -> R): R {
+public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
     contract { callsInPlace(block, EXACTLY_ONCE) }
     val result: Result<R> = kotlin.runCatching { block() }
     logResult { result }

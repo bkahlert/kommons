@@ -1,6 +1,5 @@
 package koodies.logging
 
-import com.github.ajalt.mordant.AnsiCode
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
@@ -9,7 +8,7 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
-import koodies.nullable.invoke
+import koodies.text.ANSI
 
 /**
  * Logs like a [BlockRenderingLogger] unless only the result is logged.
@@ -79,7 +78,7 @@ public class SmartRenderingLogger(
 @RenderingLoggingDsl
 public inline fun <reified T : MutedRenderingLogger, reified R> T.logging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: T.() -> R,
 ): R = runLogging(block)
@@ -90,7 +89,7 @@ public inline fun <reified T : MutedRenderingLogger, reified R> T.logging(
 @RenderingLoggingDsl
 public inline fun <reified T : BorderedRenderingLogger, reified R> T.logging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: SmartRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(
@@ -107,29 +106,29 @@ public inline fun <reified T : BorderedRenderingLogger, reified R> T.logging(
         statusInformationColumn = statusInformationColumn - prefix.length,
         statusInformationPadding = statusInformationPadding,
         statusInformationColumns = statusInformationColumns - prefix.length,
-    ) { output -> logText { ansiCode(output) } }
+    ) { output -> logText { formatter?.invoke(output) ?: output } }
 }.runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
 @RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger, reified R> T.logging(
+public inline fun <T : RenderingLogger, R> T.logging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: SmartRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(caption = caption, bordered = bordered, parent = this) {
-    BlockRenderingLogger(caption = caption, bordered = bordered) { output -> logText { ansiCode(output) } }
+    BlockRenderingLogger(caption = caption, bordered = bordered) { output -> logText { formatter?.invoke(output) ?: output } }
 }.runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
 @RenderingLoggingDsl
-public inline fun <reified R> logging(
+public inline fun <R> logging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: ANSI.Formatter? = null,
     bordered: Boolean = false,
     crossinline block: SmartRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(caption = caption, bordered = bordered, parent = null) {
@@ -141,26 +140,30 @@ public inline fun <reified R> logging(
  */
 @JvmName("nullableLogging")
 @RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger?, reified R> T.logging(
+public inline fun <T : RenderingLogger?, R> T.logging(
     caption: CharSequence,
-    ansiCode: AnsiCode? = null,
+    formatter: ANSI.Formatter? = null,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     crossinline block: SmartRenderingLogger.() -> R,
 ): R =
-    if (this is RenderingLogger) logging(caption, ansiCode, bordered, block)
-    else koodies.logging.logging(caption, ansiCode, bordered, block)
+    if (this is RenderingLogger) logging(caption, formatter, bordered, block)
+    else koodies.logging.logging(caption, formatter, bordered, block)
 
-public data class LoggingOptions(val caption: CharSequence, val ansiCode: AnsiCode? = null, val bordered: Boolean = false) {
+public data class LoggingOptions(
+    val caption: CharSequence? = null,
+    val formatter: ANSI.Formatter? = ANSI.Colors.brightBlue,
+    val bordered: Boolean = false,
+) {
     public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptions>() {
 
         public class LoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-            public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>()
-            public val ansiCode: SkippableCapturingBuilderInterface<() -> AnsiCode, AnsiCode?> by builder<AnsiCode>() default null
+            public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>() default null
+            public val formatter: SkippableCapturingBuilderInterface<() -> ANSI.Formatter, ANSI.Formatter?> by builder<ANSI.Formatter>() default null
             public val border: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
         }
 
         override fun BuildContext.build(): LoggingOptions = ::LoggingOptionsContext {
-            LoggingOptions(::caption.eval(), ::ansiCode.eval(), ::border.eval())
+            LoggingOptions(::caption.eval(), ::formatter.eval(), ::border.eval())
         }
     }
 }

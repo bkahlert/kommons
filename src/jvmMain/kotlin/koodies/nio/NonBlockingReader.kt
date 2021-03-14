@@ -7,7 +7,7 @@ import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.compactLogging
 import koodies.logging.logging
-import koodies.terminal.ANSI
+import koodies.text.ANSI
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
@@ -62,7 +62,7 @@ public class NonBlockingReader(
      * or EOF was encountered.
      */
     override fun readLine(): String? = if (reader == null) null else
-        logger.logging(NonBlockingReader::class.simpleName + "." + ::readLine.name + "()", ansiCode = ANSI.termColors.cyan) {
+        logger.logging(NonBlockingReader::class.simpleName + "." + ::readLine.name + "()", formatter = ANSI.Colors.cyan) {
             var latestReadMoment = calculateLatestReadMoment()
             logStatus { META typed "Starting to read line for at most $timeout" }
             while (true) {
