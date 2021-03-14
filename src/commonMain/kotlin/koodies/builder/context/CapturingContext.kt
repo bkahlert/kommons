@@ -124,10 +124,10 @@ public abstract class CapturingContext {
      *
      * Chain the result with another [then] to an existing builder to create an alias for it.
      */
-    public infix fun <T : Function<*>, R, S : Function<*>, X> CallableProperty<Any?, SkippableBuilder<T, R, S>>.then(
-        builder: Builder<S, X>,
+    public infix fun <T : Function<*>, R, S, X> CallableProperty<Any?, SkippableBuilder<T, R, S>>.then(
+        builder: Builder<() -> S, X>,
     ): CallableProperty<Any?, SkippableBuilder<T, R, X>> =
-        CallableProperty { thisRef, property -> getValue(thisRef, property).mapBuild(builder) }
+        CallableProperty { thisRef, property -> getValue(thisRef, property).mapBuild { builder { it } } }
 
     // @formatter:off
     /** Creates a builder that captures all invocations to `this` builder. */
