@@ -216,6 +216,7 @@ public data class ProcessingOptions<P : ManagedProcess>(
             Builder<P>().invoke(init)
 
         public class Builder<P : ManagedProcess> : BuilderTemplate<Builder<P>.ProcessingOptionsContext, ProcessingOptions<P>>() {
+
             public inner class ProcessingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val mode: SkippableCapturingBuilderInterface<() -> Mode, Mode> by builder<Mode>() default Asynchronous
                 public val processInputStream: SkippableCapturingBuilderInterface<() -> InputStream, InputStream> by builder<InputStream>() default InputStream.nullInputStream()

@@ -95,47 +95,7 @@ public fun CommandLine.execute(
 }
 
 /**
- * Runs the specified [commandLine] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of the created [ManagedProcess] will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-fun execute(
-    commandLine: CommandLine,
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-): ManagedProcess = Locations.Temp.execute(commandLine, environment, expectedExitValue, processTerminationCallback, processor)
-
-
-/**
- * Runs the specified [commandLine] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of the created [ManagedProcess] will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-fun Path.execute(
-    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-    commandLine: Init<CommandLineContext>,
-): ManagedProcess = execute(CommandLine(commandLine), environment, expectedExitValue, processTerminationCallback, processor)
-
-/**
- * Runs the specified [commandLine] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
+ * Runs the specified [commandLine] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of the created [ManagedProcess] will be processed by the specified [processor]
  * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
@@ -149,40 +109,13 @@ public fun execute(
     expectedExitValue: Int? = 0,
     processTerminationCallback: (() -> Unit)? = null,
     commandLine: Init<CommandLineContext>,
-): ManagedProcess = execute(CommandLine(commandLine), environment, expectedExitValue, processTerminationCallback, processor)
-
-
-/**
- * Runs the specified [commandLine] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of the created [ManagedProcess] will be logged by the specified [logger]
- * which prints all [IO] to the console if `null`
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-fun Path.execute(
-    logger: RenderingLogger?,
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
-    commandLine: Init<CommandLineContext>,
-): ManagedProcess = execute(
-    processor = logger.toProcessor(),
-    environment = environment,
-    expectedExitValue = expectedExitValue,
-    processTerminationCallback = processTerminationCallback,
-    commandLine = commandLine
-)
+): ManagedProcess = CommandLine(commandLine).execute(expectedExitValue, processTerminationCallback, processor)
 
 /**
- * Runs the specified [commandLine] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
+ * Runs the specified [commandLine] optionally checking the specified [expectedExitValue] (default: `0`).
  *
  * The output of the created [ManagedProcess] will be logged by the specified [logger]
- * which prints all [IO] to the console if `null`
+ * which prints all [IO] to the console if `null`.
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -195,101 +128,42 @@ public fun execute(
     commandLine: Init<CommandLineContext>,
 ): ManagedProcess = execute(
     processor = logger.toProcessor(),
-    environment = environment,
     expectedExitValue = expectedExitValue,
     processTerminationCallback = processTerminationCallback,
     commandLine = commandLine
 )
 
-// TODO match signatures below
-
 /**
- * Starts a new [ManagedProcess] that runs this command line.
+ * Runs the [CommandLine] like [CommandLine.execute] but takes this [RenderingLogger]
+ * as the parent logger, that is, the [IO] gets logged in a sub logger.
+ *
+ * @see [CommandLine.execute]
  */
-fun CommandLine.execute(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
-    process(this, expectedExitValue, processTerminationCallback)//.apply { start() }
-
-/**
- * Starts a new [ManagedProcess] that runs this command line
- * and has it fully processed using `this` [RenderingLogger].
- */
-fun CommandLine.execute(
-    caption: String,
-    bordered: Boolean = true,
-    ansiCode: AnsiColorCode = ANSI.termColors.brightBlue,
-    nonBlockingReader: Boolean = false,
-    expectedExitValue: Int? = 0,
-): Int = logging(caption = caption, bordered = bordered, ansiCode = ansiCode) {
-    this@execute.execute(expectedExitValue).process(
-        nonBlockingReader = nonBlockingReader,
-        processInputStream = InputStream.nullInputStream(),
-        processor = Processors.loggingProcessor(this)
-    ).waitForTermination()
-}
-
-
-/**
- * Starts a new [ManagedProcess] that runs this command line
- * and has it fully processed using `this` [RenderingLogger].
- */
-val RenderingLogger.execute: CommandLine.(
-    caption: String,
-    bordered: Boolean,
-    ansiCode: AnsiColorCode?,
-    nonBlockingReader: Boolean?,
+public val CommandLine.execute: RenderingLogger.(
     expectedExitValue: Int?,
-) -> Int
-    get() = { caption, bordered, ansiCode, nonBlockingReader, expectedExitValue ->
-        this@execute.logging2(caption = caption, bordered = bordered, ansiCode = ansiCode ?: ANSI.termColors.brightBlue) {
-            execute(expectedExitValue ?: 0).process(
-                nonBlockingReader = nonBlockingReader ?: false,
-                processInputStream = InputStream.nullInputStream(),
-                processor = Processors.loggingProcessor(this)
-            ).waitForTermination()
+    processTerminationCallback: (() -> Unit)?,
+    loggingOptions: LoggingOptions,
+) -> ManagedProcess
+    get() = { expectedExitValue, processTerminationCallback, (caption, ansiCode, bordered) ->
+        logging(caption = caption, bordered = bordered, ansiCode = ansiCode ?: ANSI.termColors.brightBlue) {
+            execute(expectedExitValue, processTerminationCallback, toProcessor())
         }
     }
 
-
-fun main() {
-    // TODO refactor: alles auf logging2?
-    // TODO refactor: process nach execute umbenenen und wie script dann die signatur
-
-    val commandLine = CommandLine("echo", "test")
-
-    commandLine.execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
-    with(commandLine) {
-        execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
+/**
+ * Runs the [CommandLine] like [CommandLine.execute] but takes this [RenderingLogger]
+ * as the parent logger, that is, the [IO] gets logged in a sub logger.
+ *
+ * @see [CommandLine.execute]
+ */
+public val RenderingLogger.execute: CommandLine.(
+    expectedExitValue: Int?,
+    processTerminationCallback: (() -> Unit)?,
+    loggingOptions: LoggingOptions,
+) -> ManagedProcess
+    get() = { expectedExitValue, processTerminationCallback, loggingOptions ->
+        execute(this@execute, expectedExitValue, processTerminationCallback, loggingOptions)
     }
-    logging2("existing logging context") {
-        with(commandLine) {
-            execute("command line logging context", true, ANSI.termColors.brightBlue, true, null)
-        }
-    }
-    with(commandLine) {
-        logging2("existing logging context", bordered = true, ansiCode = ANSI.termColors.brightMagenta) {
-            logLine { "abc" }
-            execute("command line logging context", true, ANSI.termColors.magenta, true, null)
-        }
-    }
-    with(commandLine) {
-        logging2("existing logging context", ansiCode = ANSI.termColors.brightBlue) {
-            logLine { "abc" }
-            execute("command line logging context", false, ANSI.termColors.blue, true, null)
-        }
-    }
-    with(commandLine) {
-        logging2("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightMagenta) {
-            logLine { "abc" }
-            execute("command line logging context", true, ANSI.termColors.magenta, true, null)
-        }
-    }
-    with(commandLine) {
-        logging2("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightBlue) {
-            logLine { "abc" }
-            execute("command line logging context", false, ANSI.termColors.blue, true, null)
-        }
-    }
-}
 
 /**
  * Returns (and possibly blocks until finished) the output of `this` [ManagedProcess].

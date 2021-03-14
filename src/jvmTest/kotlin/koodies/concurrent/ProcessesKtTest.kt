@@ -12,7 +12,10 @@ import koodies.concurrent.process.logged
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSynchronously
 import koodies.logging.InMemoryLogger
+import koodies.logging.LoggingOptions
 import koodies.logging.RenderingLogger
+import koodies.logging.logging
+import koodies.terminal.ANSI
 import koodies.terminal.contains
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
@@ -21,6 +24,7 @@ import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -363,5 +367,93 @@ class ProcessesKtTest {
                     """.trimIndent())
                 }
         }
+    }
+
+    @Test
+    fun InMemoryLogger.`should execute using existing logger`() {
+
+        val commandLine = CommandLine("echo", "test")
+
+        logging("existing logging context") {
+            with(commandLine) {
+                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.brightBlue, true))
+            }
+        }
+
+        with(commandLine) {
+            logging("existing logging context", bordered = true, ansiCode = ANSI.termColors.brightMagenta) {
+                logLine { "abc" }
+                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.magenta, true))
+            }
+        }
+        with(commandLine) {
+            logging("existing logging context", bordered = true, ansiCode = ANSI.termColors.brightBlue) {
+                logLine { "abc" }
+                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.blue, false))
+            }
+        }
+        with(commandLine) {
+            logging("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightMagenta) {
+                logLine { "abc" }
+                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.magenta, true))
+            }
+        }
+        with(commandLine) {
+            logging("existing logging context", bordered = false, ansiCode = ANSI.termColors.brightBlue) {
+                logLine { "abc" }
+                execute(null, null, LoggingOptions("command line logging context", ANSI.termColors.blue, false))
+            }
+        }
+
+        expectThat(logged).matchesCurlyPattern("""
+            ╭──╴ProcessesKtTest ➜ {}
+            │   
+            │   ╭──╴existing logging context
+            │   │   
+            │   │   ╭──╴command line logging context
+            │   │   │   
+            │   │   │   Executing echo test
+            │   │   │   test
+            │   │   │
+            │   │   ╰──╴✔︎
+            │   │
+            │   ╰──╴✔︎
+            │   ╭──╴existing logging context
+            │   │   
+            │   │   abc
+            │   │   ╭──╴command line logging context
+            │   │   │   
+            │   │   │   Executing echo test
+            │   │   │   test
+            │   │   │
+            │   │   ╰──╴✔︎
+            │   │
+            │   ╰──╴✔︎
+            │   ╭──╴existing logging context
+            │   │   
+            │   │   abc
+            │   │   ▶ command line logging context
+            │   │   · Executing echo test
+            │   │   · test
+            │   │   ✔︎
+            │   │
+            │   ╰──╴✔︎
+            │   ▶ existing logging context
+            │   · abc
+            │   · ╭──╴command line logging context
+            │   · │   
+            │   · │   Executing echo test
+            │   · │   test
+            │   · │
+            │   · ╰──╴✔︎
+            │   ✔︎
+            │   ▶ existing logging context
+            │   · abc
+            │   · ▶ command line logging context
+            │   · · Executing echo test
+            │   · · test
+            │   · ✔︎
+            │   ✔︎
+        """.trimIndent())
     }
 }

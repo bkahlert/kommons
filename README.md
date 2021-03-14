@@ -203,16 +203,18 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
 
 ### Processes
 
-#### Running a Process
+#### Run & Interact with a Process
 
 ```kotlin
-val process = process("echo 'Hello World!'") { io ->
+process("echo 'Hello World!'") { io ->
     println("Process did output $io") // process the I/O of any process
 }.start()
+```
 
-println(process.exitValue) // 0
+#### Run a Command Line
 
-println(process.logged(OUT)) // Hello World! 
+```kotlin
+commandLine("echo", "Hello World!").execute()
 ```
 
 #### Running a Shell Script
@@ -220,14 +222,7 @@ println(process.logged(OUT)) // Hello World!
 ```kotlin
 script {
     shebang()
-    line("some command")
-    !"""
-    a \
-    multi-line \
-    command
-    """
-    deleteOnCompletion()
-    comment("leave no trace")
+    !"echo 'Hello World!'"
 }
 ```
 
@@ -239,10 +234,8 @@ println(process.ioLog)
 
 ```shell
 Executing /some/where/koodies.process.bka.sh
-file:///some/where/koodies.process.bka.sh // <- simply click on it in your IDE
-starting to install
-installing…
-completed.
+Hello World!
+Process 1234 terminated successfully at 2021-05-15T14:30:00Z.
 ```
 
 ### Docker Runner
@@ -374,30 +367,6 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
 4.2.hecto.bytes == 42.deca.bytes == 420.bytes
 ```
 
-### Kaomoji
-
-```kotlin
-Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
-```
-
-### Borders, Boxes, …
-
-```shell
- ╭───────────────────────────────────────────────────╮ 
- │                                                   │ 
- │        Done. All tests passed within 1.20s        │ 
- │  All test containers running in CONCURRENT mode.  │ 
- │                                                   │ 
- ╰───────────────────────────────────────────────────╯ 
-```
-
-```shell
-  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-  ████▌▄▌▄▐▐▌█████
-  ████▌▄▌▄▐▐▌▀████
-  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-```
-
 ### More…
 
 * Logging
@@ -456,7 +425,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   if(file.age > 3.minutes) …
   ```
 
-* Unicode, Code Points & Graphemes
+* Unicode, Code Points & Grapheme Clusters
 
   **Named Characters and Dictionary**
   ```kotlin
@@ -477,12 +446,35 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
 
   **Process Each Actual Grapheme** (that is, what users perceive as a character)
   ```kotlin
-  "aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67‍‍".asGraphemeSequence() -> "a", "Ⓑ", "☷", ":family-woman-woman-girl-girl:"
+  "aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67‍‍".asGraphemeClusterSequence() -> "a", "Ⓑ", "☷", ":family-woman-woman-girl-girl:"
   ```
 
 * Colors & Formatting
   ```shell
   "string in".cyan() + "or" + "bold".bold()
+  ```
+
+* Kaomoji
+  ```kotlin
+  Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
+  ```
+
+* Borders, Boxes, …
+
+  ```shell
+   ╭───────────────────────────────────────────────────╮ 
+   │                                                   │ 
+   │        Done. All tests passed within 1.20s        │ 
+   │  All test containers running in CONCURRENT mode.  │ 
+   │                                                   │ 
+   ╰───────────────────────────────────────────────────╯ 
+  ```
+
+  ```shell
+    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+    ████▌▄▌▄▐▐▌█████
+    ████▌▄▌▄▐▐▌▀████
+    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
   ```
 
 * Debugging
@@ -498,7 +490,7 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
   "�" // D800▌﹍ (low surrogate with a missing high surrogate)
   ```
 
-* Line Separators
+* Line Separators as defined in Unicode
 
   Finally constants for common and uncommon line separators
   ```kotlin
@@ -506,9 +498,9 @@ Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
     LineSeparators.CRLF, // carriage return + line feed (\r\n)
     LineSeparators.LF,   // line feed (\n)
     LineSeparators.CR,   // carriage return (\r)
-    LineSeparators.LS,   // line separator
-    LineSeparators.PS,   // paragraph separator 
     LineSeparators.NL,   // next line 
+    LineSeparators.PS,   // paragraph separator 
+    LineSeparators.LS,   // line separator
   )
   ```
 
