@@ -1,9 +1,9 @@
 package koodies.logging
 
+import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoExclusive
-import koodies.test.output.CapturedOutput
 import koodies.test.toStringContainsAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

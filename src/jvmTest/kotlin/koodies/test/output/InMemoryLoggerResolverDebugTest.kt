@@ -1,6 +1,7 @@
 package koodies.test.output
 
 import koodies.concurrent.process.IO.Type.OUT
+import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences

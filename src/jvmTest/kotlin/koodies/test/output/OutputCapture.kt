@@ -1,15 +1,11 @@
 package koodies.test.output
 
-import koodies.collections.withNegativeIndices
 import koodies.concurrent.process.IO
+import koodies.debug.CapturedOutput
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-
 class OutputCapture : CapturedOutput {
-    companion object {
-        fun splitOutput(output: String): List<String> = output.lines().dropLastWhile { it.isBlank() }
-    }
 
     private val lock = ReentrantLock()
     private val systemCaptures: ArrayDeque<SystemCapture> = ArrayDeque()
@@ -19,13 +15,8 @@ class OutputCapture : CapturedOutput {
     val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
 
     override val all: String get() = getFilteredCapture { true }
-    override val allLines: List<String> by withNegativeIndices { splitOutput(all) }
-
     override val out: String get() = getFilteredCapture { other: IO.Type? -> IO.Type.OUT == other }
-    override val outLines: List<String> by withNegativeIndices { splitOutput(out) }
-
     override val err: String get() = getFilteredCapture { other: IO.Type? -> IO.Type.ERR == other }
-    override val errLines: List<String> by withNegativeIndices { splitOutput(err) }
 
     /**
      * Resets the current capture session, clearing its captured output.

@@ -1,5 +1,6 @@
 package koodies.test.output
 
+import koodies.debug.CapturedOutput
 import koodies.runWrapping
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback

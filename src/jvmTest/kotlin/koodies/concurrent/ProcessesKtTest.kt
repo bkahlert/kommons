@@ -10,13 +10,13 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
 import koodies.concurrent.process.process
+import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.logging
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
 import koodies.test.UniqueId
-import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
 import koodies.text.ANSI
 import koodies.text.ANSI.Colors

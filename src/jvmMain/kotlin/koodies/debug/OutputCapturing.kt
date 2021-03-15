@@ -1,16 +1,29 @@
-package koodies.test.output
+package koodies.debug
+
 
 import koodies.collections.withNegativeIndices
 import koodies.io.ByteArrayOutputStream
-import koodies.test.output.OutputCapture.Companion.splitOutput
+import koodies.text.LineSeparators.lines
 import java.io.OutputStream
 import java.io.PrintStream
+
+public interface CapturedOutput : CharSequence {
+    public val all: String
+    public val out: String
+    public val err: String
+
+    public val allLines: List<String> get() = all.splitLines().withNegativeIndices()
+    public val outLines: List<String> get() = out.splitLines().withNegativeIndices()
+    public val errLines: List<String> get() = err.splitLines().withNegativeIndices()
+}
+
+private fun String.splitLines(): List<String> = lines().dropLastWhile { it.isBlank() }
 
 /**
  * Allows to capture a pair of output and error stream like [System.out] and [System.err]
  * without applying any modifications - namely ANSI escaping removal - as does Spring Boot's `OutputCapture`.
  */
-class AdHocOutputCapture : CapturedOutput {
+public class AdHocOutputCapture : CapturedOutput {
     private val allStream = ByteArrayOutputStream()
     private val outStream = ByteArrayOutputStream()
     private val errStream = ByteArrayOutputStream()
@@ -30,7 +43,7 @@ class AdHocOutputCapture : CapturedOutput {
         System.setErr(oldErr)
     }
 
-    fun <T> runCapturing(redirect: Boolean = false, runnable: () -> T): T {
+    public fun <T> runCapturing(redirect: Boolean = false, runnable: () -> T): T {
         startCapturing(redirect, System.out, System.err)
         val result = runnable.runCatching { invoke() }
         stopCapturing()
@@ -38,13 +51,8 @@ class AdHocOutputCapture : CapturedOutput {
     }
 
     override val all: String get() = allStream.toString(Charsets.UTF_8)
-    override val allLines: List<String> by withNegativeIndices { splitOutput(all) }
-
     override val out: String get() = outStream.toString(Charsets.UTF_8)
-    override val outLines: List<String> by withNegativeIndices { splitOutput(out) }
-
     override val err: String get() = errStream.toString(Charsets.UTF_8)
-    override val errLines: List<String> by withNegativeIndices { splitOutput(err) }
 
     /**
      * Print stream that forwards all calls to a [TeeOutputStream] of the given output streams
@@ -64,7 +72,7 @@ class AdHocOutputCapture : CapturedOutput {
         override fun close() = streams.forEach { it.close() }
     }
 
-    companion object {
+    public companion object {
         /**
          * Runs the executable with [System.out] and [System.err] redirected
          * and provides access to the redirected output through [CapturedOutput].
@@ -73,7 +81,7 @@ class AdHocOutputCapture : CapturedOutput {
          *
          * @return the captured output
          */
-        fun <T> capture(redirect: Boolean = false, runnable: () -> T): Pair<T, CapturedOutput> {
+        public fun <T> captureOutput(redirect: Boolean = false, runnable: () -> T): Pair<T, CapturedOutput> {
             val capture = AdHocOutputCapture()
             val returnValue = capture.runCapturing(redirect, runnable)
             return returnValue to capture

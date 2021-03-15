@@ -1,9 +1,9 @@
 package koodies.test.debug
 
 
+import koodies.debug.AdHocOutputCapture.Companion.captureOutput
 import koodies.test.Debug
 import koodies.test.junit.JUnit.runTests
-import koodies.test.output.AdHocOutputCapture.Companion.capture
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
@@ -52,7 +52,7 @@ class DebugSkipTest {
     fun `should skip non-annotated tests on present @Debug`() {
         val selectClass = selectClass(HiddenSkipTests()::class.java)
 
-        val (listener, capturedOutput) = capture(redirect = true) { runTests(selectClass) }.also { skipTestsRun = true }
+        val (listener, capturedOutput) = captureOutput(redirect = true) { runTests(selectClass) }.also { skipTestsRun = true }
 
         expectThat(listener)
             .get { summary }
@@ -110,6 +110,5 @@ class DebugSkipTest {
             expectThat(siblingTestRun).isFalse()
             expectThat(siblingContainerRun).isFalse()
         }
-
     }
 }

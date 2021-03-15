@@ -1,7 +1,7 @@
 package koodies.builder
 
+import koodies.debug.CapturedOutput
 import koodies.test.SystemIoExclusive
-import koodies.test.output.CapturedOutput
 import koodies.test.output.OutputCaptureExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

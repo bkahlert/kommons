@@ -1,11 +1,11 @@
 package koodies.test.debug
 
 import koodies.concurrent.process.IO
+import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoRead
-import koodies.test.output.CapturedOutput
 import koodies.test.toStringContains
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

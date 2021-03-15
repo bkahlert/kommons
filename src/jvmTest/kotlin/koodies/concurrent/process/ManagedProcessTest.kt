@@ -135,7 +135,7 @@ class ManagedProcessTest {
             }, expectedExitValue = null)
 
             kotlin.runCatching {
-                process.process { io ->
+                process.process({ async }) { io ->
                     if (io.type != IO.Type.META && io.type != IO.Type.IN) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
@@ -143,7 +143,7 @@ class ManagedProcessTest {
                 }
 
                 poll { process.ioLog.logged.size >= 7 }.every(100.milliseconds)
-                    .forAtMost(800.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
+                    .forAtMost(15.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
                 process.stop()
                 process.waitForTermination()
                 expectThat(process) {

@@ -9,6 +9,7 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
 import koodies.concurrent.process.process
+import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
@@ -16,7 +17,6 @@ import koodies.terminal.contains
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
 import koodies.test.UniqueId
-import koodies.test.output.CapturedOutput
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.matchesCurlyPattern
