@@ -18,6 +18,7 @@ import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
+import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.util.concurrent.CompletableFuture
@@ -90,7 +91,7 @@ public fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
  * so they get logged.
  */
 public inline fun <reified P : ManagedProcess> P.processSilently(): P =
-    process({ sync }, noopProcessor())
+    process({ async }, noopProcessor())
 
 
 public data class ProcessingMode(val synchronicity: Synchronicity, val interactivity: Interactivity) {
@@ -170,23 +171,27 @@ public fun <P : ManagedProcess> P.processAsynchronously(
         processor(this, line.type typed line.trim())
     }
 
-    val (processInputStream, nonBlockingReader) = when (interactivity) {
+    val (processInputStream: InputStream?, nonBlockingReader) = when (interactivity) {
         is Interactive -> InputStream.nullInputStream() to interactivity.nonBlocking
-        is NonInteractive -> (interactivity.processInputStream ?: InputStream.nullInputStream()) to false
+        is NonInteractive -> interactivity.processInputStream to false
     }
 
-    val inputProvider = ioProcessingThreadPool.completableFuture {
-        processInputStream.use {
-            var bytesCopied: Long = 0
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var bytes = it.read(buffer)
-            while (bytes >= 0) {
-                inputStream.write(buffer, 0, bytes)
-                bytesCopied += bytes
-                bytes = it.read(buffer)
+    val inputProvider = if (processInputStream != null) {
+        ioProcessingThreadPool.completableFuture {
+            processInputStream.use {
+                var bytesCopied: Long = 0
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var bytes = it.read(buffer)
+                while (bytes >= 0) {
+                    inputStream.write(buffer, 0, bytes)
+                    bytesCopied += bytes
+                    bytes = it.read(buffer)
+                }
             }
-        }
-    }.exceptionallyThrow("stdin")
+        }.exceptionallyThrow("stdin")
+    } else {
+        null
+    }
 
     val outputConsumer = ioProcessingThreadPool.completableFuture {
         outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
@@ -200,7 +205,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
         }
     }.exceptionallyThrow("stderr")
 
-    externalSync = CompletableFuture.allOf(inputProvider, outputConsumer, errorConsumer)
+    externalSync = CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).thenApply { this }
 }
 
 /**
@@ -214,7 +219,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
 public fun <P : ManagedProcess> P.processSynchronously(
     interactivity: Interactivity,
     processor: Processor<P> = consoleLoggingProcessor(),
-): P = apply {
+): P {
 
     if (interactivity is Interactive && !interactivity.nonBlocking) {
         // TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
@@ -258,12 +263,15 @@ public fun <P : ManagedProcess> P.processSynchronously(
     }
 
     onExit.join()
+
+    return this
 }
 
 private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
     if (nonBlockingReader) NonBlockingReader(this, blockOnEmptyLine = true)
     else JlineInputStreamReader(this)
 
-private fun CompletableFuture<*>.exceptionallyThrow(type: String) = exceptionally {
-    throw RuntimeException("An error occurred while processing ［$type］.", it)
+private fun CompletableFuture<*>.exceptionallyThrow(type: String): CompletableFuture<out Any?> = handle { value, exception ->
+    if ((exception?.cause is IOException) && exception?.cause?.message?.contains("stream closed", ignoreCase = true) == true) value
+    else throw RuntimeException("An error occurred while processing ［$type］.", exception)
 }

@@ -11,6 +11,7 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.Processors.noopProcessor
@@ -149,7 +150,7 @@ public object Docker {
  */
 private fun DockerCommandLine.fireAndForget(
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ) {
     daemon {
         toManagedProcess(expectedExitValue, processTerminationCallback)
@@ -189,7 +190,7 @@ public fun Path.docker(
     optionsInit: Init<OptionsContext>,
     vararg arguments: String,
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
         .toManagedProcess(expectedExitValue, processTerminationCallback)
@@ -216,7 +217,7 @@ public fun Path.docker(
     optionsInit: Init<OptionsContext>,
     vararg arguments: String,
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
@@ -239,7 +240,7 @@ public fun Path.docker(
 public fun docker(
     init: Init<DockerRunCommandContext>,
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<DockerProcess>,
 ): DockerProcess =
     DockerRunCommandLine(init)
@@ -263,7 +264,7 @@ public fun docker(
 public fun docker(
     processor: Processor<DockerProcess> = Processors.consoleLoggingProcessor(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     init: Init<DockerRunCommandContext>,
 ): DockerProcess =
     DockerRunCommandLine(init)

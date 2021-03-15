@@ -309,7 +309,7 @@ class ManagedProcessTest {
                 @Test
                 fun `should have proper root cause`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
-                        rootCause.isA<ProcessExecutionException>().message.toStringContains("terminated with exit code 0. Expected 123.")
+                        rootCause.isA<RuntimeException>().message.toStringContains("error occurred while processing")
                     }
                 }
             }
@@ -370,7 +370,7 @@ fun createCompletingScript(
 fun Path.process(
     shellScript: ShellScript,
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ) = process(CommandLine(
     redirects = emptyList(),
     environment = emptyMap(),
@@ -381,7 +381,7 @@ fun Path.process(
 
 fun Path.createLoopingManagedProcess(): ManagedProcess = process(shellScript = createLoopingScript())
 fun Path.createThrowingManagedProcess(
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ) = process(
     shellScript = createCompletingScript(),
     expectedExitValue = 123,
@@ -392,7 +392,7 @@ fun Path.createCompletingManagedProcess(
     exitValue: Int = 0,
     sleep: Duration = Duration.ZERO,
     expectedExitValue: Int = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ): ManagedProcess = process(
     expectedExitValue = expectedExitValue,
     processTerminationCallback = processTerminationCallback,

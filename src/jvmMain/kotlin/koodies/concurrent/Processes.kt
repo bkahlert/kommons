@@ -9,10 +9,11 @@ import koodies.concurrent.CommandLineExecutionOptions.Companion.CommandLineExecu
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
+import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.process
-import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.toProcessor
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
@@ -28,13 +29,13 @@ import java.nio.file.Path
 /**
  * Creates a [DockerProcess] that executes this command line.
  */
-public fun DockerRunCommandLine.toManagedProcess(expectedExitValue: Int?, processTerminationCallback: (() -> Unit)?): DockerProcess =
+public fun DockerRunCommandLine.toManagedProcess(expectedExitValue: Int?, processTerminationCallback: ProcessTerminationCallback?): DockerProcess =
     DockerProcess.from(this, expectedExitValue, processTerminationCallback)
 
 /**
  * Creates a [ManagedProcess] that executes this command line.
  */
-public fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: (() -> Unit)? = null): ManagedProcess =
+public fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: ProcessTerminationCallback? = null): ManagedProcess =
     ManagedProcess.from(this, expectedExitValue, processTerminationCallback)
 
 /**
@@ -52,7 +53,7 @@ public fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerm
 public fun process(
     commandLine: CommandLine,
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ): ManagedProcess = commandLine.toManagedProcess(expectedExitValue, processTerminationCallback)
 
 /**
@@ -75,7 +76,7 @@ public fun Path.process(
     redirects: List<String> = emptyList(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
 ): ManagedProcess = process(CommandLine(redirects, environment, this, command, arguments.toList()), expectedExitValue, processTerminationCallback)
 
 
@@ -91,10 +92,8 @@ public class CommandLineLoggingExecution(
 ) {
     private var processor: Processor<ManagedProcess>? = null
 
-    public fun executeWithOptionalProcessor(init: (CommandLineExecutionOptionsContext.() -> Processor<ManagedProcess>?)?): ManagedProcess {
-        processor = init?.let { CommandLineExecutionOptionsContext(CapturesMap()).init() }
-        return executeWithOptionallyStoredProcessor { init?.let { it() } }
-    }
+    public fun executeWithOptionalProcessor(init: (CommandLineExecutionOptionsContext.() -> Processor<ManagedProcess>?)?): ManagedProcess =
+        executeWithOptionallyStoredProcessor { init?.let { processor = it() } }
 
     public fun executeWithOptionallyStoredProcessor(init: Init<CommandLineExecutionOptionsContext>?): ManagedProcess {
         val options: CommandLineExecutionOptions = init?.let { CommandLineExecutionOptions(it) }
@@ -113,7 +112,7 @@ public class CommandLineLoggingExecution(
 
     private fun process(
         expectedExitValue: Int? = 0,
-        processTerminationCallback: (() -> Unit)? = null,
+        processTerminationCallback: ProcessTerminationCallback? = null,
         processor: Processor<ManagedProcess>,
     ): ManagedProcess = process(commandLine, expectedExitValue, processTerminationCallback).process({ sync }, processor)
 }
@@ -123,13 +122,13 @@ public class CommandLineLoggingExecution(
  */
 public data class CommandLineExecutionOptions(
     val expectedExitValue: Int? = 0,
-    val processTerminationCallback: (() -> Unit)? = null,
+    val processTerminationCallback: ProcessTerminationCallback? = null,
     val loggingOptions: LoggingOptions = LoggingOptions(),
 ) {
     public companion object : BuilderTemplate<CommandLineExecutionOptionsContext, CommandLineExecutionOptions>() {
         public class CommandLineExecutionOptionsContext(override val captures: CapturesMap) : CapturingContext() {
             public val expectedExitValue: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder()
-            public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> () -> Unit, (() -> Unit)?> by builder()
+            public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> (Throwable?) -> Unit, ((Throwable?) -> Unit)?> by builder()
             public val loggingOptions: SkippableCapturingBuilderInterface<LoggingOptionsContext.() -> Unit, LoggingOptions?> by LoggingOptions
         }
 
@@ -169,6 +168,6 @@ public val RenderingLogger.execute: CommandLine.((CommandLineExecutionOptionsCon
  * This method is idempotent.
  */
 public fun ManagedProcess.output(): String = run {
-    processSilently()
+    process({ sync }, noopProcessor())
     ioLog.logged.filter { it.type == IO.Type.OUT }.joinToString(LineSeparators.LF) { it.unformatted }
 }

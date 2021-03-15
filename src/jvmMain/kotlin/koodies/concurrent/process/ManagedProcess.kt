@@ -34,7 +34,7 @@ public interface ManagedProcess : Process {
         public fun from(
             commandLine: CommandLine,
             expectedExitValue: Int? = 0,
-            processTerminationCallback: (() -> Unit)? = null,
+            processTerminationCallback: ProcessTerminationCallback? = null,
         ): ManagedProcess = ManagedJavaProcess(
             commandLine = commandLine,
             expectedExitValue = expectedExitValue,
@@ -49,7 +49,7 @@ public interface ManagedProcess : Process {
      * If set, the finalization of the process will be delayed until
      * [externalSync] completes.
      */
-    public var externalSync: CompletableFuture<*>
+    public var externalSync: CompletableFuture<Process>
 
     override fun start(): ManagedProcess
 }
@@ -90,7 +90,7 @@ private fun CommandLine.toJavaProcess(): JavaProcess {
 private open class ManagedJavaProcess(
     protected val commandLine: CommandLine,
     protected val expectedExitValue: Int? = 0,
-    protected val processTerminationCallback: (() -> Unit)? = {},
+    protected val processTerminationCallback: ProcessTerminationCallback? = {},
     protected val destroyOnShutdown: Boolean = true,
 ) : DelegatingProcess({
     kotlin.runCatching {
@@ -106,11 +106,11 @@ private open class ManagedJavaProcess(
             }
 
             processTerminationCallback?.let { callback ->
-                onExit().handle { _, _ -> runCatching { callback.invoke() } }
+                onExit().handle { _, ex -> runCatching { callback.invoke(ex) } }
             }
         }
     }.onFailure {
-        kotlin.runCatching { processTerminationCallback?.invoke() }
+        kotlin.runCatching { processTerminationCallback?.invoke(it) }
     }.getOrThrow()
 }), ManagedProcess {
     companion object;
@@ -152,7 +152,7 @@ private open class ManagedJavaProcess(
 
     override val ioLog: IOLog by lazy { IOLog() }
 
-    override var externalSync: CompletableFuture<*> = CompletableFuture.completedFuture(Unit)
+    override var externalSync: CompletableFuture<Process> = CompletableFuture.completedFuture(this)
     protected val oneTimeOnExit: CompletableFuture<Process> by lazy {
         externalSync.thenCombine(javaProcess.onExit()) { _, process ->
             process
@@ -185,3 +185,5 @@ private open class ManagedJavaProcess(
         append(" destroyOnShutdown=${destroyOnShutdown.asEmoji}")
     }
 }
+
+public typealias ProcessTerminationCallback = (Throwable?) -> Unit

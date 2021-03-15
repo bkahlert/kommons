@@ -3,6 +3,7 @@ package koodies.concurrent
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.process
@@ -57,7 +58,7 @@ public fun Path.script(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): ManagedProcess {
     val scriptFile = shellScript.sanitize(this).buildTo(scriptPath())
@@ -80,7 +81,7 @@ public fun script(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): ManagedProcess = Locations.Temp.script(shellScript, environment, expectedExitValue, processTerminationCallback, processor)
 
@@ -100,7 +101,7 @@ public fun Path.script(
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     shellScript: ShellScript.() -> Unit,
 ): ManagedProcess = script(shellScript.build(), environment, expectedExitValue, processTerminationCallback, processor)
 
@@ -119,7 +120,7 @@ public fun script(
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     shellScript: ShellScript.() -> Unit,
 ): ManagedProcess = script(shellScript.build(), environment, expectedExitValue, processTerminationCallback, processor)
 
@@ -139,7 +140,7 @@ public fun Path.script(
     logger: RenderingLogger?,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     shellScript: ShellScript.() -> Unit,
 ): ManagedProcess = script(
     processor = logger.toProcessor(),
@@ -164,7 +165,7 @@ public fun script(
     logger: RenderingLogger?,
     environment: Map<String, String> = emptyMap(),
     expectedExitValue: Int? = 0,
-    processTerminationCallback: (() -> Unit)? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
     shellScript: ShellScript.() -> Unit,
 ): ManagedProcess = script(
     processor = logger.toProcessor(),

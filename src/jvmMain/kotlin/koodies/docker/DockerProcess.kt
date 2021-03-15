@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
+import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.thread
 import koodies.time.poll
 import java.util.concurrent.TimeoutException
@@ -21,14 +22,14 @@ public open class DockerProcess private constructor(
         public fun from(
             dockerRunCommandLine: DockerRunCommandLine,
             expectedExitValue: Int?,
-            processTerminationCallback: (() -> Unit)? = null,
+            processTerminationCallback: ProcessTerminationCallback? = null,
         ): DockerProcess {
             val name = dockerRunCommandLine.options.name?.sanitized ?: error("Docker container name missing.")
             val managedProcess = ManagedProcess.from(dockerRunCommandLine,
                 expectedExitValue = expectedExitValue,
-                processTerminationCallback = {
+                processTerminationCallback = { ex ->
                     Docker.remove(name, forcibly = true)
-                    processTerminationCallback?.also { it() }
+                    processTerminationCallback?.also { it(ex) }
                 })
             return DockerProcess(name, managedProcess)
         }
