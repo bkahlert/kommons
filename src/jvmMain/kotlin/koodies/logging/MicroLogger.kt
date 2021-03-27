@@ -4,6 +4,7 @@ import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
+import koodies.text.ANSI.Formatter
 import koodies.text.GraphemeCluster
 import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
@@ -13,7 +14,7 @@ import kotlin.concurrent.withLock
 
 public class MicroLogger(
     private val symbol: GraphemeCluster? = null,
-    private val formatter: Formatter = { it },
+    private val formatter: Formatter? = Formatter.PassThrough,
     parent: RenderingLogger? = null,
     log: (String) -> Unit = { output: String -> print(output) },
 ) : RenderingLogger(symbol?.toString() ?: "", parent, log) {
@@ -31,7 +32,7 @@ public class MicroLogger(
             }
             loggingResult -> {
                 val paddingAndMessages =
-                    messages.mapNotNull(formatter).joinToString(prefix = "(" + (symbol?.let { "$it " } ?: ""), separator = " ˃ ", postfix = " ˃ ${block()})")
+                    messages.joinToString(prefix = "(" + (symbol?.let { "$it " } ?: ""), separator = " ˃ ", postfix = " ˃ ${block()})")
                 log { caption.bold() + paddingAndMessages }
             }
             else -> {
@@ -41,18 +42,17 @@ public class MicroLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        formatter(block())?.let { super.logText { it } }
+        block.format(formatter) { super.logText { this } }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        formatter(block())?.let { super.logLine { it } }
+        block.format(formatter) { super.logLine { this } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        formatter(block())?.lines()?.joinToString(", ")?.let { message ->
-            val status: String? = if (items.isNotEmpty()) formatter(items.renderStatus())?.lines()?.size.let { "(${it ?: 0})" } else null
-            status?.let { "$message $status" } ?: message
-        }?.also { render(true) { it } }
+        val message: CharSequence? = block.format(formatter) { lines().joinToString(", ") }
+        val status: CharSequence? = items.format(formatter) { lines().size.let { "($it)" } }
+        (status?.let { "$message $status" } ?: message)?.let { render(true) { it } }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {

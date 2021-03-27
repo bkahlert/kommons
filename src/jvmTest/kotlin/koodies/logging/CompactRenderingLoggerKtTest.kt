@@ -176,7 +176,7 @@ class CompactRenderingLoggerKtTest {
             │   ╭──╴block
             │   │   
             │   │   something
-            │   │   single (ABC ˃  ˃ 123 ˃ ✔︎) 456 (XYZ ˃  ˃ 789 ˃ ✔︎) ✔︎
+            │   │   single (ABC ˃ 123 ˃ ✔︎) 456 (XYZ ˃ 789 ˃ ✔︎) ✔︎
             │   │   something
             │   │
             │   ╰──╴✔︎

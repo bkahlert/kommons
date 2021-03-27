@@ -230,14 +230,14 @@ class ExecutionTest {
 
         @Test
         fun InMemoryLogger.`should process asynchronously if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val timePassed = measureTime { executable.execute { processingMode { async }; null } }
+            val timePassed = measureTime { executable.execute { processing { async }; null } }
             expectThat(timePassed).isLessThan(500.milliseconds)
         }
 
         @SystemIoExclusive
         @Test
         fun `should process by logging to console by default`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-            executable.execute { processingMode { async }; null }
+            executable.execute { processing { async }; null }
             output.poll()
             expectThat(output).get { all }.matchesCurlyPattern("""
                         {}echo {} ⌛️ async computation
@@ -254,7 +254,7 @@ class ExecutionTest {
 
         @Test
         fun InMemoryLogger.`should process by logging using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            executable.execute { processingMode { async }; null }
+            executable.execute { processing { async }; null }
             poll()
             expectThatLogged().matchesCurlyPattern("""
                     {{}}
@@ -274,7 +274,7 @@ class ExecutionTest {
         fun InMemoryLogger.`should process by using specified processor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val output = StringBuilder()
             val lock = ReentrantLock(false)
-            executable.execute { processingMode { async }; { lock.withLock { output.appendLine(it.string) } } }
+            executable.execute { processing { async }; { lock.withLock { output.appendLine(it.string) } } }
             output.poll()
             expectThat(output).matchesCurlyPattern("""
                     Executing {{}}
@@ -291,7 +291,7 @@ class ExecutionTest {
         @Test
         fun `should not print to console if logging with logger`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
             with(InMemoryLogger().withUnclosedWarningDisabled) {
-                executable.execute { processingMode { async }; { logLine { it } } }
+                executable.execute { processing { async }; { logLine { it } } }
                 poll()
             }
             expectThat(output).get { out }.isEmpty()
@@ -300,7 +300,7 @@ class ExecutionTest {
 
         @Test
         fun InMemoryLogger.`should provide recorded output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = executable.execute { processingMode { async }; { logLine { it } } }
+            val process = executable.execute { processing { async }; { logLine { it } } }
             poll()
             expectThat(process.logged).matchesCurlyPattern("""
                     Executing {}

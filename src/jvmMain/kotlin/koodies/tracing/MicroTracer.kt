@@ -6,7 +6,7 @@ public interface MicroTracer {
     public fun trace(input: String)
 }
 
-public fun MicroTracer.trace(input: String): Unit = this?.trace(input)
+public fun MicroTracer.trace(input: String): Unit = trace(input)
 
 public fun trace(input: String): Unit = Unit
 

@@ -19,52 +19,54 @@ public object Semantics {
 
     public val Document: String = Unicode.Emojis.pageFacingUp.toString()
 
-    public val Null: String = "␀".bold()
+    public val Null: String = "␀".bold().toString()
 
     /**
      * Semantic formatter which binds to the specified [text].
      */
     public class SemanticText(private val text: String) {
+
         /**
          * Formats `this` [text] as expressing something successful.
          */
-        public val success: String get() = text.green()
+        public val success: String get() = text { green() }
 
         /**
          * Formats `this` [text] as expressing something ongoing.
          */
-        public val progress: String get() = text.blue()
+        public val progress: String get() = text { blue() }
 
         /**
          * Formats `this` [text] as expressing a warning.
          */
-        public val warning: String get() = text.brightYellow()
+        public val warning: String get() = text { brightYellow() }
 
         /**
          * Formats `this` [text] as expressing something that failed.
          */
-        public val failure: String get() = text.red()
+        public val failure: String get() = text { red() }
 
         /**
          * Formats `this` [text] as expressing something that failed.
          */
-        public val error: String get() = text.red()
+        public val error: String get() = text { red() }
 
         /**
          * Formats `this` [text] to ease temporary debugging.
          */
-        public val debug: String get() = text.brightCyan()
+        public val debug: String get() = text { brightCyan() }
 
         /**
          * Formats `this` [text] as expressing an input.
          */
-        public val input: String get() = text.cyan()
+        public val input: String get() = text { cyan() }
 
         /**
          * Formats `this` [text] as expressing a meta information.
          */
-        public val meta: String get() = text.gray().italic()
+        public val meta: String get() = text { gray().italic() }
     }
 
+    private inline operator fun String.invoke(transform: String.() -> CharSequence): String = transform().toString()
     public val <T> T.formattedAs: SemanticText get() = SemanticText(toString())
 }

@@ -17,8 +17,8 @@ public class Shebang(private val contents: MutableList<String>) {
         updateContents()
     }
 
-    public operator fun invoke(interpreter: String = "/bin/sh", vararg args: String): Shebang = also { it.interpreter = interpreter }.updateContents()
-    public operator fun invoke(interpreter: Path, vararg args: String): Shebang = invoke(interpreter.asString(), *args)
+    public operator fun invoke(interpreter: String = "/bin/sh"): Shebang = also { it.interpreter = interpreter }.updateContents()
+    public operator fun invoke(interpreter: Path): Shebang = invoke(interpreter.asString())
     public operator fun not(): Unit = run { updateContents() }
 }
 

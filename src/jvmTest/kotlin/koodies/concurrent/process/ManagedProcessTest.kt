@@ -537,9 +537,7 @@ val <T : ManagedProcess> Assertion.Builder<T>.log get() = get("log %s") { ioLog 
 private fun Assertion.Builder<ManagedProcess>.completesWithIO() = log.logs(IO.OUT typed "test out", IO.ERR typed "test err")
 
 val <T : ManagedProcess> Assertion.Builder<T>.io
-    get() = get("merged log") {
-        ioLog.logged.joinToString("\n")
-    }
+    get() = get("logged IO") { logged<IO>() }
 
 
 fun Assertion.Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh")) {

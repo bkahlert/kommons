@@ -9,6 +9,8 @@ import koodies.runtime.Program
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.red
+import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.Semantics
@@ -162,6 +164,27 @@ public open class RenderingLogger(
         ::closed to closed
     }
 
+
+    /**
+     * Helper method than can be applied on [CharSequence] returning lambdas
+     * to format them using the provided [f] and passing them to [transform]
+     * only in case the result was not blank.
+     */
+    protected fun <T> (() -> CharSequence).format(f: Formatter?, transform: String.() -> T?): T? {
+        return f(this()).takeUnless { it.isBlank() }?.toString()?.transform()
+    }
+
+    /**
+     * Helper method than can be applied on a list of [HasStatus] returning the
+     * rendered statuses and passing them to [transform]
+     * only in case the result was not blank.
+     */
+    protected fun <T> List<HasStatus>.format(f: Formatter?, transform: String.() -> T?): T? {
+        if (isEmpty()) return null
+        return f(renderStatus()).takeUnless { it.isBlank() }?.toString()?.transform()
+    }
+
+    
     public companion object {
 
         private val unclosedLoggersLock: ReentrantLock = ReentrantLock()

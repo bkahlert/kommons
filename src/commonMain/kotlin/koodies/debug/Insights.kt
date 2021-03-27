@@ -7,6 +7,7 @@ import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
 import koodies.text.Semantics.formattedAs
+import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
 import koodies.text.asCodePointSequence
 
@@ -57,6 +58,16 @@ public class XRay<T>(
             val sb = StringBuilder()
             asString(subject).asCodePointSequence().forEach { sb.append(it.transform()) }
             sb.toString()
+        }
+
+    public val invisibles: XRay<T>
+        get() = xray {
+            val current = string
+            if (current.length == 1) {
+                Unicode.controlCharacters[current[0]]?.toString() ?: current
+            } else {
+                current
+            }
         }
 
     public val breaks: XRay<T>

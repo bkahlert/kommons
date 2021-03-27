@@ -156,7 +156,7 @@ public abstract class DelegatingProcess(private val processProvider: Process.() 
     override val started: Boolean get() = _started
     override val alive: Boolean get() = started && javaProcess.isAlive
     override val exitValue: Int get() = javaProcess.exitValue()
-    abstract override val onExit: CompletableFuture<Process>
+    abstract override val onExit: CompletableFuture<out Process>
     override fun waitFor(): Int = onExit.join().exitValue
     override fun stop(): Process = also { javaProcess.destroy() }
     override fun kill(): Process = also { javaProcess.destroyForcibly() }

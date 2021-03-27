@@ -6,6 +6,8 @@ import koodies.concurrent.process.IO
 import koodies.regex.RegularExpressions
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
@@ -19,8 +21,8 @@ import koodies.text.wrapLines
 public open class BlockRenderingLogger(
     caption: CharSequence,
     parent: RenderingLogger? = null,
-    override val contentFormatter: Formatter = { it },
-    override val decorationFormatter: Formatter = { it },
+    override val contentFormatter: Formatter? = Formatter.PassThrough,
+    override val decorationFormatter: Formatter? = Formatter.PassThrough,
     override val bordered: Boolean = false,
     override val statusInformationColumn: Int = 100,
     override val statusInformationPadding: Int = 5,
@@ -43,15 +45,15 @@ public open class BlockRenderingLogger(
         get() = buildList {
             val captionLines = caption.asAnsiString().lines()
             if (bordered) {
-                +(decorationFormatter("╭──╴").toString() + decorationFormatter(captionLines.first())?.bold())
+                +(decorationFormatter("╭──╴").toString() + decorationFormatter(captionLines.first()).bold())
                 captionLines.drop(1).forEach {
-                    +"$prefix${decorationFormatter(it)?.bold()}"
+                    +"$prefix${decorationFormatter(it).bold()}"
                 }
                 +prefix
             } else {
-                +"$playSymbol ${decorationFormatter(captionLines.first())?.bold()}"
+                +"$playSymbol ${decorationFormatter(captionLines.first()).bold()}"
                 captionLines.drop(1).forEach {
-                    +"$whitePlaySymbol ${decorationFormatter(it)?.bold()}"
+                    +"$whitePlaySymbol ${decorationFormatter(it).bold()}"
                 }
             }
         }.joinToString(LF)
@@ -90,7 +92,7 @@ public open class BlockRenderingLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        contentFormatter(block())?.run {
+        contentFormatter(block()).run {
             render(false) {
                 if (closed) this
                 else asAnsiString().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = true)
@@ -99,7 +101,7 @@ public open class BlockRenderingLogger(
     }
 
     override fun logLine(block: () -> CharSequence) {
-        contentFormatter(block())?.run {
+        contentFormatter(block()).run {
             render(true) {
                 val wrapped = wrapNonUriLines(totalColumns)
                 if (closed) wrapped
@@ -109,7 +111,7 @@ public open class BlockRenderingLogger(
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence): Unit {
-        block().takeUnlessBlank()?.let(contentFormatter)?.run {
+        block().takeUnlessBlank()?.let { contentFormatter(it) }?.run {
             render(true) {
                 val leftColumn = wrapNonUriLines(statusInformationColumn).asAnsiString()
                 val statusColumn =
@@ -165,11 +167,11 @@ public open class BlockRenderingLogger(
 @RenderingLoggingDsl
 public fun <T : MutedRenderingLogger, R> T.blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     block: T.() -> R,
-): R = runLogging(block) // TODO apply formatter
+): R = runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
@@ -179,8 +181,8 @@ public fun <T : MutedRenderingLogger, R> T.blockLogging(
 @RenderingLoggingDsl
 public fun <T : BorderedRenderingLogger, R> T.blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     block: BlockRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(
@@ -198,8 +200,8 @@ public fun <T : BorderedRenderingLogger, R> T.blockLogging(
 @RenderingLoggingDsl
 public fun <T : RenderingLogger, R> T.blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     block: BlockRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(caption, this, contentFormatter, decorationFormatter, bordered) { output -> logText { output } }.runLogging(block)
@@ -212,8 +214,8 @@ public fun <T : RenderingLogger, R> T.blockLogging(
 @RenderingLoggingDsl
 public fun <R> blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = false,
     block: BlockRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, bordered).runLogging(block)
@@ -227,8 +229,8 @@ public fun <R> blockLogging(
 @RenderingLoggingDsl
 public fun <T : RenderingLogger?, R> T.blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = false,
     block: BlockRenderingLogger.() -> R,
 ): R =

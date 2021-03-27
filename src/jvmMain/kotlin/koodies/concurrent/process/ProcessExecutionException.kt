@@ -1,6 +1,6 @@
 package koodies.concurrent.process
 
-import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 
 public class ProcessExecutionException(
     public val pid: Long,
@@ -12,8 +12,8 @@ public class ProcessExecutionException(
 ) : Exception(
     StringBuilder("Process $pid terminated with exit code $exitValue. Expected $expectedExitValue.").apply {
         cause?.let { append(" Reason: $cause") }
-        append(LineSeparators.LF + commandLine.includedFiles.map { IO.META typed it })
-        additionalInformation?.let { append(LineSeparators.LF + additionalInformation) }
+        append(LF + commandLine.includedFiles.joinToString(LF) { IO.META typed it })
+        additionalInformation?.let { append(LF + additionalInformation) }
     }.toString(),
     cause
 ) {

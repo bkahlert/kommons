@@ -2,6 +2,8 @@ package koodies.concurrent.process
 
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
+import koodies.collections.synchronizedSetOf
+import koodies.concurrent.ExecutionDsl
 import koodies.concurrent.completableFuture
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.ProcessingMode.Interactivity
@@ -35,6 +37,7 @@ public typealias Processor<P> = P.(IO) -> Unit
  * All about processing processes.
  */
 public object Processors {
+    
     /**
      * Thread pool used for processing the [IO] of [Process].
      */
@@ -50,6 +53,7 @@ public object Processors {
             is IO.OUT -> logger.logLine { io }
             is IO.ERR -> logger.logLine { io.formatted }
         }
+        if (io is IO.META.TERMINATED && async) logger.logResult { Result.success(io) }
     }
 
     /**
@@ -63,7 +67,6 @@ public object Processors {
             override fun invoke(process: P, io: IO) {
                 this.process = process
                 loggingProcessor.invoke(process, io)
-                if (io is IO.META.TERMINATED) logger.logResult { Result.success(process) }
             }
         }
     }
@@ -92,6 +95,16 @@ public fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
 public inline fun <reified P : ManagedProcess> P.processSilently(): P =
     process({ async }, noopProcessor())
 
+private val asynchronouslyProcessed: MutableSet<Process> = synchronizedSetOf()
+
+/**
+ * Contains if `this` process is or was asynchronously processed.
+ */
+public var Process.async: Boolean
+    get() = this in asynchronouslyProcessed
+    private set(value) {
+        if (value) asynchronouslyProcessed.add(this) else asynchronouslyProcessed.remove(this)
+    }
 
 public data class ProcessingMode(val synchronicity: Synchronicity, val interactivity: Interactivity) {
 
@@ -112,6 +125,7 @@ public data class ProcessingMode(val synchronicity: Synchronicity, val interacti
     }
 
     public companion object : StatelessBuilder.Returning<ProcessingModeContext, ProcessingMode>(ProcessingModeContext) {
+        @ExecutionDsl
         public object ProcessingModeContext {
             public val sync: ProcessingMode = ProcessingMode(Sync, NonInteractive(null))
             public val async: ProcessingMode = ProcessingMode(Async, NonInteractive(null))
@@ -166,6 +180,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
     processor: Processor<P> = noopProcessor(),
 ): P = apply {
 
+    async = true
     metaStream.subscribe { processor(this, it) }
 
     val (processInputStream: InputStream?, nonBlockingReader) = when (interactivity) {

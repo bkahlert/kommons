@@ -49,7 +49,6 @@ public class AnsiCode(
                 AnsiSupport.ANSI4 -> TermColors.Level.ANSI16
                 AnsiSupport.ANSI8 -> TermColors.Level.ANSI256
                 AnsiSupport.ANSI24 -> TermColors.Level.TRUECOLOR
-                else -> error("Missing ANSI support mapping")
             })
         }
 

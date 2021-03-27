@@ -2,6 +2,7 @@ package koodies.text
 
 import koodies.number.mod
 import koodies.number.toHexadecimalString
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.CodePoint.Companion.isDefined
 import koodies.text.CodePoint.Companion.isUsableCodePoint
 import kotlin.Char.Companion.MAX_SURROGATE
@@ -503,3 +504,30 @@ public val CharSequence.codePointCount: Int
 public fun <R> String.mapCodePoints(transform: (CodePoint) -> R): List<R> =
     asCodePointSequence().map(transform).toList()
 
+/**
+ * Returns a sequence containing the [CodePoint] instances this string consists of.
+ */
+public fun CharSequence.mapCharacters(transform: (String) -> CharSequence): String {
+    val bytes = toString().encodeToByteArray()
+    var offset = 0
+    return generateSequence {
+        bytes.readCodePoint(offset)?.let { (length, codePoint) ->
+            offset += length
+            transform(CodePoint(codePoint).string)
+        }
+    }.joinToString("")
+}
+
+/**
+ * Returns a sequence containing the [CodePoint] instances this string consists of.
+ */
+public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence): String {
+    val bytes = toString().encodeToByteArray()
+    var offset = 0
+    return generateSequence {
+        bytes.readCodePoint(offset)?.let { (length, codePoint) ->
+            offset += length
+            CodePoint(codePoint).string.ansi.transform()
+        }
+    }.joinToString("")
+}

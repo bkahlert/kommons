@@ -146,7 +146,7 @@ private open class ManagedJavaProcess(
     public override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess =
         apply { preTerminationCallbacks.add(callback) }
 
-    protected val cachedOnExit: CompletableFuture<Process> by lazy<CompletableFuture<Process>> {
+    protected val cachedOnExit: CompletableFuture<out Process> by lazy<CompletableFuture<out Process>> {
         val process: ManagedProcess = this@ManagedJavaProcess
         val callbackStage: CompletableFuture<Process> = preTerminationCallbacks.mapNotNull {
             runCatching { process.it() }.exceptionOrNull()
@@ -169,7 +169,7 @@ private open class ManagedJavaProcess(
                 throw ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue, dump.removeEscapeSequences())
             }
             metaStream.emit(IO.META.TERMINATED(process))
-            process as Process
+            process
         }.thenAlso { _, ex: Throwable? ->
             val cause = if (ex is CompletionException) ex.cause else ex
             postTerminationCallbacks.forEach { process.it(cause) }
@@ -191,7 +191,7 @@ private open class ManagedJavaProcess(
             })
         }
 
-    override val onExit: CompletableFuture<Process> get() = cachedOnExit
+    override val onExit: CompletableFuture<out Process> get() = cachedOnExit
 
     override fun toString(): String =
         super.toString().substringBeforeLast(")") +

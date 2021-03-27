@@ -25,6 +25,7 @@ import koodies.logging.LoggingOptions.SmartLoggingOptions
 import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
 import koodies.logging.RenderingLogger
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.Formatter
 import koodies.text.Semantics
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
@@ -36,6 +37,9 @@ public interface Executable {
         processTerminationCallback: ProcessTerminationCallback? = null,
     ): ManagedProcess
 }
+
+@DslMarker
+public annotation class ExecutionDsl
 
 /**
  * Helper to collect an optional [RenderingLogger], build [Options] and an optional [Processor]
@@ -68,6 +72,7 @@ public class Execution(
         val processingMode: ProcessingMode = ProcessingMode { sync },
     ) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
+            @ExecutionDsl
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val expectedExitValue: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder()
                 public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> ProcessTerminationCallback, ProcessTerminationCallback?> by builder()
@@ -87,12 +92,14 @@ public class Execution(
                 public fun summary(caption: String, maxMessageLength: Int = 20) {
                     compact {
                         this.caption by caption
-                        contentFormatter by {
-                            it.takeUnless { it is IO.META }?.removeEscapeSequences()?.run {
-                                val step = substringAfter(":").trim().run {
-                                    takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
-                                }
-                                Semantics.PointNext + " $step"
+                        contentFormatter {
+                            Formatter {
+                                it.takeUnless { it is IO.META }?.removeEscapeSequences()?.run {
+                                    val step = substringAfter(":").trim().run {
+                                        takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
+                                    }
+                                    Semantics.PointNext + " $step"
+                                } ?: ""
                             }
                         }
                     }
@@ -106,11 +113,11 @@ public class Execution(
                 public fun noDetails(caption: String) {
                     compact {
                         this.caption by caption
-                        contentFormatter by { null }
+                        contentFormatter by { "" }
                     }
                 }
 
-                public val processingMode: SkippableCapturingBuilderInterface<ProcessingModeContext.() -> ProcessingMode, ProcessingMode?> by ProcessingMode
+                public val processing: SkippableCapturingBuilderInterface<ProcessingModeContext.() -> ProcessingMode, ProcessingMode?> by ProcessingMode
             }
 
             override fun BuildContext.build(): Options = ::OptionsContext{
@@ -121,7 +128,7 @@ public class Execution(
                         ?: ::compact.evalOrNull<CompactLoggingOptions>()
                         ?: ::smart.evalOrNull<SmartLoggingOptions>()
                         ?: SmartLoggingOptions(),
-                    ::processingMode.evalOrNull() ?: ProcessingMode { sync }
+                    ::processing.evalOrNull() ?: ProcessingMode { sync }
                 )
             }
         }
@@ -136,6 +143,7 @@ public class Execution(
  * it will be used to process the process's [IO]. Otherwise the [IO] will be logged
  * either to the console or if present, `this` [RenderingLogger].
  */
+@ExecutionDsl
 public val Executable.execute: ((OptionsContext.() -> Processor<ManagedProcess>?)?) -> ManagedProcess
     get() = { Execution(null, this@execute).executeWithOptionalProcessor(it) }
 
@@ -147,5 +155,6 @@ public val Executable.execute: ((OptionsContext.() -> Processor<ManagedProcess>?
  * it will be used to process the process's [IO]. Otherwise the [IO] will be logged
  * either to the console or if present, `this` [RenderingLogger].
  */
+@ExecutionDsl
 public val RenderingLogger?.execute: Executable.((OptionsContext.() -> Processor<ManagedProcess>?)?) -> ManagedProcess
     get() = { Execution(this@execute, this).executeWithOptionalProcessor(it) }

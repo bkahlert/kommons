@@ -3,6 +3,8 @@ package koodies.text
 import koodies.runtime.AnsiSupport
 import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.Program
+import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.Companion.ansi
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
@@ -12,11 +14,42 @@ import kotlin.text.Regex.Companion.escape
 
 public object ANSI {
 
+    /**
+     * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
+     */
+    public val CharSequence.escapeSequencesRemoved: String get() = AnsiCode.REGEX.replace(toString(), "")
     public val <T : CharSequence> T.containsEscapeSequences: Boolean get() = AnsiCode.REGEX.containsMatchIn(this)
 
-    public interface Formatter {
-        public operator fun invoke(text: CharSequence): String
-        public operator fun plus(other: Formatter): Formatter
+    public fun interface Formatter {
+        public operator fun invoke(text: CharSequence): CharSequence
+        public operator fun plus(other: Formatter): Formatter = Formatter { other(this(it)) }
+
+        public companion object {
+
+            /**
+             * Returns a new formatter that is provided with the initial text freed
+             * from any previous formatting and wrapped in a [ANSI.Text] for convenient
+             * customizations.
+             */
+            public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.escapeSequencesRemoved.ansi.transform() }
+
+            /**
+             * `Null`-safe formatter function that delegates to the actual formatter if
+             * it's not `null` but if it is, the [text] is simply passed-through.
+             */
+            public operator fun Formatter?.invoke(text: CharSequence): CharSequence = (this ?: PassThrough).invoke(text)
+
+            /**
+             * `Null`-safe formatter extension that delegates to the actual formatter if
+             * it's not `null` but if it is, the resulting formatter is just the [other] one.
+             */
+            public operator fun Formatter?.plus(other: Formatter): Formatter = this?.let { it + other } ?: other
+
+            /**
+             * A formatter that leaves the [text] unchanged.
+             */
+            public val PassThrough: Formatter = Formatter { text -> text }
+        }
     }
 
     private class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
@@ -50,23 +83,23 @@ public object ANSI {
 
         public val random: Formatter get() = AnsiCodeFormatter(ansiColors.hsv((kotlin.random.Random.nextDouble() * 360.0).toInt(), 82, 89))
 
-        public fun CharSequence.black(): String = black(this.toString())
-        public fun CharSequence.red(): String = red(this.toString())
-        public fun CharSequence.green(): String = green(this.toString())
-        public fun CharSequence.yellow(): String = yellow(this.toString())
-        public fun CharSequence.blue(): String = blue(this.toString())
-        public fun CharSequence.magenta(): String = magenta(this.toString())
-        public fun CharSequence.cyan(): String = cyan(this.toString())
-        public fun CharSequence.white(): String = white(this.toString())
-        public fun CharSequence.gray(): String = gray(this.toString())
+        public fun CharSequence.black(): CharSequence = black(this)
+        public fun CharSequence.red(): CharSequence = red(this)
+        public fun CharSequence.green(): CharSequence = green(this)
+        public fun CharSequence.yellow(): CharSequence = yellow(this)
+        public fun CharSequence.blue(): CharSequence = blue(this)
+        public fun CharSequence.magenta(): CharSequence = magenta(this)
+        public fun CharSequence.cyan(): CharSequence = cyan(this)
+        public fun CharSequence.white(): CharSequence = white(this)
+        public fun CharSequence.gray(): CharSequence = gray(this)
 
-        public fun CharSequence.brightRed(): String = brightRed(this.toString())
-        public fun CharSequence.brightGreen(): String = brightGreen(this.toString())
-        public fun CharSequence.brightYellow(): String = brightYellow(this.toString())
-        public fun CharSequence.brightBlue(): String = brightBlue(this.toString())
-        public fun CharSequence.brightMagenta(): String = brightMagenta(this.toString())
-        public fun CharSequence.brightCyan(): String = brightCyan(this.toString())
-        public fun CharSequence.brightWhite(): String = brightWhite(this.toString())
+        public fun CharSequence.brightRed(): CharSequence = brightRed(this)
+        public fun CharSequence.brightGreen(): CharSequence = brightGreen(this)
+        public fun CharSequence.brightYellow(): CharSequence = brightYellow(this)
+        public fun CharSequence.brightBlue(): CharSequence = brightBlue(this)
+        public fun CharSequence.brightMagenta(): CharSequence = brightMagenta(this)
+        public fun CharSequence.brightCyan(): CharSequence = brightCyan(this)
+        public fun CharSequence.brightWhite(): CharSequence = brightWhite(this)
     }
 
     public object Style {
@@ -80,13 +113,50 @@ public object ANSI {
         public val hidden: Formatter get() = AnsiCodeFormatter(ansiColors.hidden)
         public val strikethrough: Formatter get() = AnsiCodeFormatter(ansiColors.strikethrough)
 
-        public fun CharSequence.bold(): String = bold("$this")
-        public fun CharSequence.dim(): String = dim("$this")
-        public fun CharSequence.italic(): String = italic("$this")
-        public fun CharSequence.underline(): String = underline("$this")
-        public fun CharSequence.inverse(): String = inverse("$this")
-        public fun CharSequence.hidden(): String = if (Program.isDeveloping) " ".repeat((length * 1.35).toInt()) else hidden("$this")
-        public fun CharSequence.strikethrough(): String = strikethrough("$this")
+        public fun CharSequence.bold(): CharSequence = bold(this)
+        public fun CharSequence.dim(): CharSequence = dim(this)
+        public fun CharSequence.italic(): CharSequence = italic(this)
+        public fun CharSequence.underline(): CharSequence = underline(this)
+        public fun CharSequence.inverse(): CharSequence = inverse(this)
+        public fun CharSequence.hidden(): CharSequence = if (Program.isDeveloping) " ".repeat((length * 1.35).toInt()) else hidden("$this")
+        public fun CharSequence.strikethrough(): CharSequence = strikethrough("$this")
+    }
+
+    public class Text private constructor(private val text: CharSequence) : CharSequence by text {
+        private val string = text.toString()
+        override fun toString(): String = string
+
+        public fun black(): CharSequence = Colors.black(text)
+        public fun red(): CharSequence = Colors.red(text)
+        public fun green(): CharSequence = Colors.green(text)
+        public fun yellow(): CharSequence = Colors.yellow(text)
+        public fun blue(): CharSequence = Colors.blue(text)
+        public fun magenta(): CharSequence = Colors.magenta(text)
+        public fun cyan(): CharSequence = Colors.cyan(text)
+        public fun white(): CharSequence = Colors.white(text)
+        public fun gray(): CharSequence = Colors.gray(text)
+
+        public fun brightRed(): CharSequence = Colors.brightRed(text)
+        public fun brightGreen(): CharSequence = Colors.brightGreen(text)
+        public fun brightYellow(): CharSequence = Colors.brightYellow(text)
+        public fun brightBlue(): CharSequence = Colors.brightBlue(text)
+        public fun brightMagenta(): CharSequence = Colors.brightMagenta(text)
+        public fun brightCyan(): CharSequence = Colors.brightCyan(text)
+        public fun brightWhite(): CharSequence = Colors.brightWhite(text)
+
+        public fun random(): CharSequence = Colors.random(text)
+
+        public fun bold(): CharSequence = Style.bold(text)
+        public fun dim(): CharSequence = Style.dim(text)
+        public fun italic(): CharSequence = Style.italic(text)
+        public fun underline(): CharSequence = Style.underline(text)
+        public fun inverse(): CharSequence = Style.inverse(text)
+        public fun hidden(): CharSequence = if (Program.isDeveloping) " ".repeat((toString().length * 1.35).toInt()) else Style.hidden(string)
+        public fun strikethrough(): CharSequence = Style.strikethrough(text)
+
+        public companion object {
+            public val CharSequence.ansi: Text get() = Text(this)
+        }
     }
 }
 

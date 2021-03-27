@@ -13,6 +13,7 @@ import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLog
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
 import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
 import koodies.text.ANSI
+import koodies.text.ANSI.Formatter
 
 /**
  * Logs like a [BlockRenderingLogger] unless only the result is logged.
@@ -20,8 +21,8 @@ import koodies.text.ANSI
  */
 public class SmartRenderingLogger(
     caption: CharSequence,
-    override val contentFormatter: Formatter = { it },
-    override val decorationFormatter: Formatter = { it },
+    override val contentFormatter: Formatter? = Formatter.PassThrough,
+    override val decorationFormatter: Formatter? = Formatter.PassThrough,
     override val bordered: Boolean,
     override val statusInformationColumn: Int = 100,
     override val statusInformationPadding: Int = 5,
@@ -33,7 +34,7 @@ public class SmartRenderingLogger(
     init {
         closed = true
     }
-    
+
     private var logged: Boolean = false
 
     override val prefix: String
@@ -45,9 +46,7 @@ public class SmartRenderingLogger(
     private val logger: RenderingLogger by lazy {
         if (logged) blockRenderingLogger(this)
         else CompactRenderingLogger(caption, contentFormatter, this) {
-            parent?.apply {
-                logLine { it }
-            } ?: println(it)
+            parent?.apply { logLine { it } } ?: println(it)
         }
     }
 
@@ -99,8 +98,8 @@ public class SmartRenderingLogger(
 @RenderingLoggingDsl
 public fun <T : MutedRenderingLogger, R> T.logging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     block: T.() -> R,
 ): R = runLogging(block)
@@ -111,8 +110,8 @@ public fun <T : MutedRenderingLogger, R> T.logging(
 @RenderingLoggingDsl
 public fun <T : BorderedRenderingLogger, R> T.logging(
     caption: CharSequence,
-    contentFormatter: Formatter = this.contentFormatter,
-    decorationFormatter: Formatter = this.decorationFormatter,
+    contentFormatter: Formatter? = this.contentFormatter,
+    decorationFormatter: Formatter? = this.decorationFormatter,
     bordered: Boolean = this.bordered,
     block: SmartRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(
@@ -137,8 +136,8 @@ public fun <T : BorderedRenderingLogger, R> T.logging(
 @RenderingLoggingDsl
 public fun <T : RenderingLogger, R> T.logging(
     caption: CharSequence,
-    contentFormatter: Formatter = (this as? BorderedRenderingLogger)?.contentFormatter ?: { it },
-    decorationFormatter: Formatter = (this as? BorderedRenderingLogger)?.decorationFormatter ?: { it },
+    contentFormatter: Formatter? = (this as? BorderedRenderingLogger)?.contentFormatter ?: ANSI.Formatter.PassThrough,
+    decorationFormatter: Formatter? = (this as? BorderedRenderingLogger)?.decorationFormatter ?: ANSI.Formatter.PassThrough,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     block: SmartRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(caption, contentFormatter, decorationFormatter, bordered, parent = this) { parent ->
@@ -151,8 +150,8 @@ public fun <T : RenderingLogger, R> T.logging(
 @RenderingLoggingDsl
 public fun <R> logging(
     caption: CharSequence,
-    contentFormatter: Formatter = { it },
-    decorationFormatter: Formatter = { it },
+    contentFormatter: Formatter? = Formatter.PassThrough,
+    decorationFormatter: Formatter? = Formatter.PassThrough,
     bordered: Boolean = false,
     block: SmartRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(caption, contentFormatter, decorationFormatter, bordered, parent = null) { parent ->
@@ -166,8 +165,8 @@ public fun <R> logging(
 @RenderingLoggingDsl
 public fun <T : RenderingLogger?, R> T.logging(
     caption: CharSequence,
-    contentFormatter: Formatter = (this as? BorderedRenderingLogger)?.contentFormatter ?: { it },
-    decorationFormatter: Formatter = (this as? BorderedRenderingLogger)?.decorationFormatter ?: { it },
+    contentFormatter: Formatter? = (this as? BorderedRenderingLogger)?.contentFormatter ?: Formatter.PassThrough,
+    decorationFormatter: Formatter? = (this as? BorderedRenderingLogger)?.decorationFormatter ?: Formatter.PassThrough,
     bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
     block: SmartRenderingLogger.() -> R,
 ): R =
@@ -186,8 +185,8 @@ public sealed class LoggingOptions {
      */
     public class BlockLoggingOptions(
         public val caption: CharSequence? = null,
-        public val contentFormatter: Formatter = DEFAULT_CONTENT_FORMATTER,
-        public val decorationFormatter: Formatter = DEFAULT_DECORATION_FORMATTER,
+        public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
+        public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
         public val bordered: Boolean = false,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
@@ -213,7 +212,7 @@ public sealed class LoggingOptions {
      */
     public class CompactLoggingOptions(
         public val caption: CharSequence? = null,
-        public val contentFormatter: Formatter = DEFAULT_CONTENT_FORMATTER,
+        public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
             logger.compactLogging(caption ?: fallbackCaption, contentFormatter) { block() }
@@ -238,8 +237,8 @@ public sealed class LoggingOptions {
      */
     public class SmartLoggingOptions(
         public val caption: CharSequence? = null,
-        public val contentFormatter: Formatter = DEFAULT_CONTENT_FORMATTER,
-        public val decorationFormatter: Formatter = DEFAULT_DECORATION_FORMATTER,
+        public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
+        public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
         public val bordered: Boolean = false,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
@@ -262,8 +261,8 @@ public sealed class LoggingOptions {
 
     public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptions>() {
 
-        public val DEFAULT_CONTENT_FORMATTER: Formatter = { it }
-        public val DEFAULT_DECORATION_FORMATTER: Formatter = { ANSI.Colors.brightBlue(it) }
+        public val DEFAULT_CONTENT_FORMATTER: Formatter = Formatter.PassThrough
+        public val DEFAULT_DECORATION_FORMATTER: Formatter = ANSI.Colors.brightBlue
 
         public class LoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
             public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
@@ -279,5 +278,3 @@ public sealed class LoggingOptions {
         }
     }
 }
-
-public typealias Formatter = (CharSequence) -> CharSequence?

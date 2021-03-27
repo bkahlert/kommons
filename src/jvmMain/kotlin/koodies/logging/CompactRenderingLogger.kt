@@ -4,6 +4,7 @@ import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
+import koodies.text.ANSI.Formatter
 import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.prefixLinesWith
@@ -12,7 +13,7 @@ import kotlin.concurrent.withLock
 
 public class CompactRenderingLogger(
     caption: CharSequence,
-    private val formatter: Formatter = { it },
+    private val formatter: Formatter? = Formatter.PassThrough,
     parent: RenderingLogger? = null,
     log: (String) -> Unit = { output: String -> print(output) },
 ) : RenderingLogger(caption.toString(), parent, log) {
@@ -33,7 +34,8 @@ public class CompactRenderingLogger(
                 log { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
-                val paddingAndMessages = messages.joinToString(" ") { "$it" }.let { if (it.isNotBlank()) " $it" else "" }
+                val paddingAndMessages =
+                    messages.joinToString(" ") { "$it" }.let { if (it.isNotBlank()) " $it" else "" }
                 log { caption.bold() + paddingAndMessages + " " + block() }
             }
             else -> {
@@ -43,18 +45,17 @@ public class CompactRenderingLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        formatter(block())?.let { super.logText { it } }
+        block.format(formatter) { super.logText { this } }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        formatter(block())?.let { super.logLine { it } }
+        block.format(formatter) { super.logLine { this } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        formatter(block())?.lines()?.joinToString(", ")?.let { message ->
-            val status: String? = if (items.isNotEmpty()) formatter(items.renderStatus())?.lines()?.joinToString(", ", "(", ")") else null
-            status?.let { "$message $status" } ?: message
-        }?.also { render(true) { it } }
+        val message: CharSequence? = block.format(formatter) { lines().joinToString(", ") }
+        val status: CharSequence? = items.format(formatter) { lines().joinToString(", ", "(", ")") }
+        (status?.let { "$message $status" } ?: message)?.let { render(true) { it } }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {
@@ -87,7 +88,7 @@ public class CompactRenderingLogger(
  */
 @RenderingLoggingDsl
 public fun <@Suppress("FINAL_UPPER_BOUND") T : CompactRenderingLogger, R> T.compactLogging(
-    formatter: Formatter = { it },
+    formatter: Formatter? = Formatter.PassThrough,
     block: MicroLogger.() -> R,
 ): R = MicroLogger(formatter = formatter, parent = this) {
     this@compactLogging.logLine { it }
@@ -101,7 +102,7 @@ public fun <@Suppress("FINAL_UPPER_BOUND") T : CompactRenderingLogger, R> T.comp
 @RenderingLoggingDsl
 public fun <T : RenderingLogger, R> T.compactLogging(
     caption: CharSequence,
-    formatter: Formatter = { it },
+    formatter: Formatter? = Formatter.PassThrough,
     block: CompactRenderingLogger.() -> R,
 ): R = CompactRenderingLogger(caption, formatter, this) {
     this@compactLogging.logLine { it }
@@ -115,7 +116,7 @@ public fun <T : RenderingLogger, R> T.compactLogging(
 @RenderingLoggingDsl
 public fun <R> compactLogging(
     caption: CharSequence,
-    formatter: Formatter = { it },
+    formatter: Formatter? = Formatter.PassThrough,
     block: CompactRenderingLogger.() -> R,
 ): R = CompactRenderingLogger(caption, formatter) {
     println(it)
@@ -130,7 +131,7 @@ public fun <R> compactLogging(
 @RenderingLoggingDsl
 public fun <T : RenderingLogger?, R> T.compactLogging(
     caption: CharSequence,
-    formatter: Formatter = { it },
+    formatter: Formatter? = Formatter.PassThrough,
     block: CompactRenderingLogger.() -> R,
 ): R =
     if (this is RenderingLogger) compactLogging(caption, formatter, block)
