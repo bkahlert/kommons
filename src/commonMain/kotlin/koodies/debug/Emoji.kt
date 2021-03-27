@@ -2,6 +2,8 @@
 
 package koodies.debug
 
+import koodies.text.Semantics
+
 /**
  * Emoji representation of this value.
  *
@@ -14,7 +16,7 @@ public val Any?.asEmoji: String
     inline get() = when (this) {
         true -> "✅"
         false -> "❌"
-        null -> "␀"
+        null -> Semantics.Null
         else -> "🔣"
     }
 

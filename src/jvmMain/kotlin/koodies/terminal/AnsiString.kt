@@ -1,6 +1,6 @@
 package koodies.terminal
 
-import koodies.concurrent.synchronized
+import koodies.collections.synchronizedMapOf
 import koodies.terminal.AnsiCode.Companion.closingControlSequence
 import koodies.terminal.AnsiCode.Companion.controlSequence
 import koodies.terminal.AnsiCode.Companion.parseAnsiCodesAsSequence
@@ -27,14 +27,14 @@ public open class AnsiString private constructor(public val string: String) : Ch
     public companion object {
         public val EMPTY: AnsiString = AnsiString("")
 
-        private val ansiStringCache = mutableMapOf<Int, AnsiString>().synchronized()
+        private val ansiStringCache = synchronizedMapOf<Int, AnsiString>()
         public fun <T : CharSequence> T.asAnsiString(): AnsiString = when {
             this is AnsiString -> this
             this.isEmpty() -> EMPTY
             else -> ansiStringCache.computeIfAbsent(hashCode()) { AnsiString(this) }
         }
 
-        private val tokenizationCache = mutableMapOf<Int, Array<Pair<CharSequence, Int>>>().synchronized()
+        private val tokenizationCache = synchronizedMapOf<Int, Array<Pair<CharSequence, Int>>>()
         public fun String.tokenize(): Array<Pair<CharSequence, Int>> = tokenizationCache.computeIfAbsent(hashCode()) {
             val tokens = mutableListOf<Pair<CharSequence, Int>>()
             val codes = mutableListOf<Int>()
@@ -90,7 +90,7 @@ public open class AnsiString private constructor(public val string: String) : Ch
             error("must not happen")
         }
 
-        private val subSequenceCache = mutableMapOf<Pair<Int, Pair<Int, Int>>, String>().synchronized()
+        private val subSequenceCache = synchronizedMapOf<Pair<Int, Pair<Int, Int>>, String>()
         public fun Array<Pair<CharSequence, Int>>.subSequence(startIndex: Int, endIndex: Int): String =
             subSequenceCache.computeIfAbsent(hashCode() to (startIndex to endIndex)) {
                 if (startIndex > 0) {
@@ -165,8 +165,8 @@ public open class AnsiString private constructor(public val string: String) : Ch
      */
     public fun isNotBlank(): Boolean = unformatted.isNotBlank()
 
-    public fun toString(withoutAnsi: Boolean = false): String =
-        if (withoutAnsi) unformatted
+    public fun toString(removeEscapeSequences: Boolean = false): String =
+        if (removeEscapeSequences) unformatted
         else string
 
     override fun toString(): String = toString(false)

@@ -1,9 +1,8 @@
 package koodies.concurrent.process
 
+import koodies.collections.synchronizedSetOf
 import koodies.concurrent.isScriptFile
-import koodies.concurrent.process.IO.Type.IN
-import koodies.concurrent.process.IO.Type.META
-import koodies.concurrent.process.IO.Type.OUT
+import koodies.concurrent.thenAlso
 import koodies.concurrent.toShellScriptFile
 import koodies.debug.asEmoji
 import koodies.exception.dump
@@ -16,11 +15,12 @@ import koodies.io.path.asString
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
-import koodies.time.Now
 import koodies.time.sleep
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
+import java.util.concurrent.CompletableFuture.failedFuture
 import java.util.concurrent.CompletionException
 import kotlin.concurrent.thread
 import kotlin.io.path.exists
@@ -43,15 +43,19 @@ public interface ManagedProcess : Process {
 
     public val ioLog: IOLog
 
-    public var inputCallback: (IO) -> Unit
+    override fun start(): ManagedProcess
 
     /**
-     * If set, the finalization of the process will be delayed until
-     * [externalSync] completes.
+     * Registers the given [callback] in a thread-safe manner
+     * to be called before the process termination is handled.
      */
-    public var externalSync: CompletableFuture<Process>
+    public fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess
 
-    override fun start(): ManagedProcess
+    /**
+     * Registers the given [callback] in a thread-safe manner
+     * to be called after the process termination is handled.
+     */
+    public fun addPostTerminationCallback(callback: ManagedProcess.(Throwable?) -> Unit): ManagedProcess
 }
 
 private fun CommandLine.toJavaProcess(): JavaProcess {
@@ -95,8 +99,8 @@ private open class ManagedJavaProcess(
 ) : DelegatingProcess({
     kotlin.runCatching {
         commandLine.toJavaProcess().apply {
-            metaLog("Executing ${commandLine.commandLine}")
-            commandLine.formattedIncludesFiles.takeIf { it.isNotBlank() }?.let { metaLog(it) }
+            metaStream.emit(IO.META.STARTING(commandLine))
+            commandLine.includedFiles.forEach { metaStream.emit(IO.META.FILE(it)) }
 
             if (destroyOnShutdown) {
                 val shutdownHook = thread(start = false, name = "shutdown hook for $this", contextClassLoader = null) { destroy() }
@@ -117,73 +121,84 @@ private open class ManagedJavaProcess(
 
     override fun start(): ManagedProcess = also { super.start() }
 
-    override var inputCallback: (IO) -> Unit = {}
-
-    private val capturingMetaStream: OutputStream by lazy {
-        TeeOutputStream(
-            RedirectingOutputStream {
-                // ugly hack; META logs are just there and the processor is just notified;
-                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
-                // therefore we delay here
-                1.milliseconds.sleep { ioLog.add(META, it) }
-            },
-            RedirectingOutputStream { inputCallback(META typed it.decodeToString()) },
-        )
-    }
-    private val capturingOutputStream: OutputStream by lazy {
+    private val capturingInputStream: OutputStream by lazy {
         TeeOutputStream(
             RedirectingOutputStream {
                 // ugly hack; IN logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
                 // therefore we delay here
-                1.milliseconds.sleep { ioLog.add(IN, it) }
+                1.milliseconds.sleep { ioLog.input + it }
             },
             javaProcess.outputStream,
-            RedirectingOutputStream { inputCallback(IN typed it.decodeToString()) },
         )
     }
-    private val capturingInputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.add(OUT, it) }) }
-    private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, RedirectingOutputStream { ioLog.add(IO.Type.ERR, it) }) }
+    private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.out + it }) }
+    private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, RedirectingOutputStream { ioLog.err + it }) }
 
-    final override val metaStream: OutputStream get() = capturingMetaStream
-    final override val inputStream: OutputStream get() = capturingOutputStream
-    final override val outputStream: InputStream get() = capturingInputStream
+    final override val metaStream: MetaStream = MetaStream({ ioLog + it })
+    final override val inputStream: OutputStream get() = capturingInputStream
+    final override val outputStream: InputStream get() = capturingOutputStream
     final override val errorStream: InputStream get() = capturingErrorStream
 
     override val ioLog: IOLog by lazy { IOLog() }
 
-    override var externalSync: CompletableFuture<Process> = CompletableFuture.completedFuture(this)
-    protected val oneTimeOnExit: CompletableFuture<Process> by lazy {
-        externalSync.thenCombine(javaProcess.onExit()) { _, process ->
+    private val preTerminationCallbacks = synchronizedSetOf<ManagedProcess.() -> Unit>()
+    public override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess =
+        apply { preTerminationCallbacks.add(callback) }
+
+    protected val cachedOnExit: CompletableFuture<Process> by lazy<CompletableFuture<Process>> {
+        val process: ManagedProcess = this@ManagedJavaProcess
+        val callbackStage: CompletableFuture<Process> = preTerminationCallbacks.mapNotNull {
+            runCatching { process.it() }.exceptionOrNull()
+        }.firstOrNull()?.let { failedFuture(it) }
+            ?: completedFuture(process)
+
+        callbackStage.thenCombine(javaProcess.onExit()) { _, _ ->
             process
         }.exceptionally { throwable ->
             val cause = if (throwable is CompletionException) throwable.cause else throwable
             val dump = commandLine.workingDirectory.dump("""
                 Process ${commandLine.summary} terminated with ${cause.toCompactString()}.
-            """.trimIndent()) { ioLog.dump() }.also { dump -> metaLog(dump) }
+            """.trimIndent()) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
             throw RuntimeException(dump.removeEscapeSequences(), cause)
         }.thenApply { _ ->
             if (expectedExitValue != null && exitValue != expectedExitValue) {
                 val message = ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue).message
-                message?.also { metaLog(it) }
-                val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaLog(dump) }
+                message?.also { metaStream.emit(IO.META typed it) }
+                val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
                 throw ProcessExecutionException(pid, commandLine, exitValue, expectedExitValue, dump.removeEscapeSequences())
             }
-            metaLog("Process $pid terminated successfully at $Now.")
-            this@ManagedJavaProcess
+            metaStream.emit(IO.META.TERMINATED(process))
+            process as Process
+        }.thenAlso { _, ex: Throwable? ->
+            val cause = if (ex is CompletionException) ex.cause else ex
+            postTerminationCallbacks.forEach { process.it(cause) }
         }
     }
-    override var onExit: CompletableFuture<Process>
-        get() = oneTimeOnExit
-        set(value) = value.let { externalSync = it }
 
-    override val preparedToString = super.preparedToString.apply {
-        append(";")
-        append(" commandLine=${commandLine.commandLine.toCompactString().truncate(50, MIDDLE, " … ")};")
-        append(" expectedExitValue=$expectedExitValue;")
-        append(" processTerminationCallback=${processTerminationCallback.asEmoji};")
-        append(" destroyOnShutdown=${destroyOnShutdown.asEmoji}")
-    }
+    private val postTerminationCallbacks = synchronizedSetOf<ManagedProcess.(Throwable?) -> Unit>()
+    public override fun addPostTerminationCallback(callback: ManagedProcess.(Throwable?) -> Unit): ManagedProcess =
+        apply { postTerminationCallbacks.add(callback) }
+
+
+    override val successful: Boolean?
+        get() = if (!started) null
+        else {
+            kotlin.runCatching { exitValue }.fold({ value ->
+                expectedExitValue?.let { value == it } ?: true
+            }, {
+                null
+            })
+        }
+
+    override val onExit: CompletableFuture<Process> get() = cachedOnExit
+
+    override fun toString(): String =
+        super.toString().substringBeforeLast(")") +
+            ", commandLine=${commandLine.commandLine.toCompactString().truncate(50, MIDDLE, " … ")}" +
+            ", expectedExitValue=${expectedExitValue}" +
+            ", processTerminationCallback=${processTerminationCallback.asEmoji}" +
+            ", destroyOnShutdown=${destroyOnShutdown.asEmoji})"
 }
 
 public typealias ProcessTerminationCallback = (Throwable?) -> Unit

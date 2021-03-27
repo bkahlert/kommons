@@ -43,7 +43,7 @@ class CarDSL {
         override fun BuildContext.build(): Car = ::CarContext {
             Car(
                 ::name.eval(),
-                ::color.evalOrDefault("#111111"),
+                ::color.evalOrDefault("hsv(0, 0, 0)"),
                 ::traits.eval(),
                 ::engine.eval(),
                 ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(4) { Wheel() },
@@ -56,7 +56,7 @@ class CarDSL {
     fun printSamples() {
 
         val exclusiveCar = car {
-            name = "Koodies Car"
+            name = "Exclusive Car"
             color(198, 82, 89)
             engine {
                 power { 145.kW }
@@ -71,7 +71,7 @@ class CarDSL {
         }
 
         val defaultCarWithCopiedMotor = car {
-            name = "Default Car"
+            name = "Average Car"
             engine using exclusiveCar.engine
         }
 

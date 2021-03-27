@@ -1,6 +1,7 @@
 package koodies.io.path
 
 import koodies.collections.head
+import koodies.text.takeUnlessBlank
 import koodies.text.withoutSuffix
 import java.nio.file.Path
 import kotlin.io.path.extension
@@ -84,7 +85,7 @@ public val Path.extensionIndex: Int
  * If no extension is present, `null` is returned.
  */
 public val Path.extensionOrNull: String?
-    get() = extension.takeUnless { it.isBlank() }
+    get() = extension.takeUnlessBlank()
 
 public val Path.extensions: Extensions
     get() = Extensions(this)

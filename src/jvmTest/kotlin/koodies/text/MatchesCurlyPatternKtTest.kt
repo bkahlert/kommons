@@ -40,15 +40,15 @@ class MatchesCurlyPatternKtTest {
         val block = listOf(
             """Executing [sh, -c, >&1 echo "test output"""",
             """>&2 echo "test error"] in /Users/bkahlert/Development/com.imgcstmzr.""",
-            """Started Process[pid=72692, exitValue=0]""",
-            """Process[pid=72692, exitValue=0] stopped with exit code 0""",
+            """Started Process(pid=72692, exitValue=0)""",
+            """Process(pid=72692, exitValue=0) stopped with exit code 0""",
         ).joinToString(lineSeparator)
 
         val pattern = """
             Executing [sh, -c, >&1 echo "test output"
             >&2 echo "test error"] in {}
-            Started Process[pid={}, exitValue={}]
-            Process[pid={}, exitValue={}] stopped with exit code {}
+            Started Process(pid={}, exitValue={})
+            Process(pid={}, exitValue={}) stopped with exit code {}
         """.trimIndent()
 
         expect { block.matchesCurlyPattern(pattern) }.that { isTrue() }
@@ -60,14 +60,14 @@ class MatchesCurlyPatternKtTest {
         expectThat("""
             Executing [sh, -c, >&1 echo "test output"
             >&2 echo "test error"] instantly.
-            Started Process[pid=72692, exitValue=0]
-            Process[pid=72692, exitValue=0] stopped with exit code 0
+            Started Process(pid=72692, exitValue=0)
+            Process(pid=72692, exitValue=0) stopped with exit code 0
         """.trimIndent()).not {
             matchesCurlyPattern("""
                     Executing [sh, -c, >&1 echo "test output"
                     >&2 echo "test error"] in {}
-                    Started Process[pid={}, exitValue={}]
-                    Process[pid={}, exitValue={}] stopped with exit code {}
+                    Started Process(pid={}, exitValue={})
+                    Process(pid={}, exitValue={}) stopped with exit code {}
                 """.trimIndent())
         }
     }
@@ -75,7 +75,7 @@ class MatchesCurlyPatternKtTest {
     @Test
     fun `should not match non-matching multi line string2`() {
         expectThat("""
-            ▶ ManagedJavaProcess[delegate=Process[pid=27252, exitValue="not exited"]; result=✅; started=false; commandLine=/var/folders/hh/739sq9w1 … /koodies.process.o50.sh; expectedExitValue=0; processTerminationCallback=␀; destroyOnShutdown=✅]
+            ▶ ManagedJavaProcess(delegate=Process(pid=27252, exitValue="not exited"), noErrors=✅, started=false, commandLine=/var/folders/hh/739sq9w1 … /koodies.process.o50.sh, expectedExitValue=0, processTerminationCallback=${Semantics.Null}, destroyOnShutdown=✅)
             · Executing /var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_consol
             · e_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
             · $Document file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_console_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
@@ -110,8 +110,8 @@ class MatchesCurlyPatternKtTest {
 
         test("matching lines") {
             expectThat("""
-            ▶ ManagedJavaProcess[delegate=Process[pid=98199, exitValue="not exited"]; result=✅; started=false; commandLine=/bin/sh -c "echo \"test  …
-              est error 2\"; sleep 1"; expectedExitValue=0; processTerminationCallback=␀; destroyOnShutdown=✅]
+            ▶ ManagedJavaProcess(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  …
+              est error 2\"; sleep 1"; expectedExitValue=0, processTerminationCallback=${Semantics.Null}, destroyOnShutdown=✅)
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
             · $Document file:///bin/sh
             · test output 1
@@ -125,7 +125,7 @@ class MatchesCurlyPatternKtTest {
 
         test("no second line") {
             expectThat("""
-            ▶ ManagedJavaProcess[delegate=Process[pid=98199, exitValue="not exited"]; result=✅; started=false; commandLine=/bin/sh -c "echo \"test  … 
+            ▶ ManagedJavaProcess(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  … 
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
             · $Document file:///bin/sh
             · test output 1
@@ -138,8 +138,8 @@ class MatchesCurlyPatternKtTest {
 
         test("no additional line at end") {
             expectThat("""
-            ▶ ManagedJavaProcess[delegate=Process[pid=98199, exitValue="not exited"]; result=✅; started=false; commandLine=/bin/sh -c "echo \"test  … 
-              est error 2\"; sleep 1"; expectedExitValue=0; processTerminationCallback=␀; destroyOnShutdown=✅]
+            ▶ ManagedJavaProcess(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  … 
+              est error 2\"; sleep 1", expectedExitValue=0, processTerminationCallback=${Semantics.Null}, destroyOnShutdown=✅)
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
             · $Document file:///bin/sh
             · test output 1
@@ -183,7 +183,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     removeEscapeSequences: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
     ignoreTrailingLines: Boolean = false,
-): Assertion.Builder<T> = assert(if (curlyPattern.isMultiline) "matches\n$curlyPattern" else "matches $curlyPattern") { actual ->
+): Assertion.Builder<T> = assert(if (curlyPattern.isMultiline) "matches curly pattern\n$curlyPattern" else "matches curly pattern $curlyPattern") { actual ->
     val preprocessor = compositionOf(
         true to { s: String -> unify(s) },
         removeTrailingBreak to { s: String -> s.withoutTrailingLineSeparator },
@@ -214,6 +214,14 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
         }
     }
 }
+
+fun <T> Assertion.Builder<T>.toStringMatchesCurlyPattern(
+    expected: String,
+    removeTrailingBreak: Boolean = true,
+    removeEscapeSequences: Boolean = true,
+    trimmed: Boolean = removeTrailingBreak,
+    ignoreTrailingLines: Boolean = false,
+): Assertion.Builder<String> = get { toString() }.matchesCurlyPattern(expected, removeTrailingBreak, removeEscapeSequences, trimmed, ignoreTrailingLines)
 
 private fun String.highlightTooManyLinesTo(other: String): String {
     val lines = lines()

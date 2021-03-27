@@ -1,38 +1,82 @@
 package koodies.logging
 
-import koodies.logging.RenderingLogger.Companion.formatException
+import koodies.asString
+import koodies.collections.synchronizedListOf
+import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
-import kotlin.properties.Delegates.vetoable
-import kotlin.reflect.KProperty
+import koodies.text.Semantics
+import koodies.text.Semantics.formattedAs
+import koodies.text.prefixLinesWith
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
-public abstract class CompactRenderingLogger(caption: CharSequence) : RenderingLogger {
+public class CompactRenderingLogger(
+    caption: CharSequence,
+    private val formatter: Formatter = { it },
+    parent: RenderingLogger? = null,
+    log: (String) -> Unit = { output: String -> print(output) },
+) : RenderingLogger(caption.toString(), parent, log) {
+
     init {
         require(caption.isNotBlank()) { "No blank caption allowed." }
     }
 
-    public var strings: List<String>? by vetoable(listOf(caption.bold()),
-        onChange = { _: KProperty<*>, oldValue: List<String>?, _: List<String>? -> oldValue != null })
+    private val messages: MutableList<CharSequence> = synchronizedListOf()
+    private val lock = ReentrantLock()
 
-    public abstract fun render(block: () -> CharSequence)
+    private var loggingResult: Boolean = false
 
-    override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
-        strings = strings?.plus("${block()}")
+    override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
+        when {
+            closed -> {
+                val prefix = caption.formattedAs.meta + " " + Semantics.Computation + " "
+                log { block().toString().prefixLinesWith(prefix) }
+            }
+            loggingResult -> {
+                val paddingAndMessages = messages.joinToString(" ") { "$it" }.let { if (it.isNotBlank()) " $it" else "" }
+                log { caption.bold() + paddingAndMessages + " " + block() }
+            }
+            else -> {
+                messages.add(block())
+            }
+        }
+    }
+
+    override fun logText(block: () -> CharSequence) {
+        formatter(block())?.let { super.logText { it } }
+    }
+
+    override fun logLine(block: () -> CharSequence) {
+        formatter(block())?.let { super.logLine { it } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        strings = strings?.plus(block().lines().joinToString(", "))
-        if (items.isNotEmpty()) strings =
-            strings?.plus(items.renderStatus().lines().joinToString(", ", "(", ")"))
-    }
-
-    override fun logException(block: () -> Throwable) {
-        strings = strings?.plus(formatException(" ", block().toReturnValue()))
+        formatter(block())?.lines()?.joinToString(", ")?.let { message ->
+            val status: String? = if (items.isNotEmpty()) formatter(items.renderStatus())?.lines()?.joinToString(", ", "(", ")") else null
+            status?.let { "$message $status" } ?: message
+        }?.also { render(true) { it } }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {
-        val returnValue = super.logResult(block)
-        render { strings?.joinToString(" ") ?: "" }
-        return returnValue
+        val result = block()
+        val formattedResult = formatResult(result)
+        loggingResult = true
+        render(true) { formattedResult }
+        loggingResult = false
+        closed = true
+        return result.getOrThrow()
+    }
+
+    override fun logException(block: () -> Throwable) {
+        formatException(" ", block().toReturnValue()).also { render(true) { it } }
+    }
+
+    override fun toString(): String = asString {
+        ::parent to parent?.caption
+        ::caption to caption
+        ::messages to messages.map { it.removeEscapeSequences() }
+        ::loggingResult to loggingResult
+        ::closed to closed
     }
 }
 
@@ -42,12 +86,11 @@ public abstract class CompactRenderingLogger(caption: CharSequence) : RenderingL
  * This logger logs all events using only a couple of characters. If more room is needed [compactLogging] or even [blockLogging] is more suitable.
  */
 @RenderingLoggingDsl
-public inline fun <reified T : CompactRenderingLogger, reified R> T.compactLogging(
-    noinline block: MicroLogger.() -> R,
-): R = object : MicroLogger() {
-    override fun render(block: () -> CharSequence) {
-        this@compactLogging.logLine(block)
-    }
+public fun <@Suppress("FINAL_UPPER_BOUND") T : CompactRenderingLogger, R> T.compactLogging(
+    formatter: Formatter = { it },
+    block: MicroLogger.() -> R,
+): R = MicroLogger(formatter = formatter, parent = this) {
+    this@compactLogging.logLine { it }
 }.runLogging(block)
 
 /**
@@ -56,13 +99,12 @@ public inline fun <reified T : CompactRenderingLogger, reified R> T.compactLoggi
  * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
  */
 @RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger, reified R> T.compactLogging(
+public fun <T : RenderingLogger, R> T.compactLogging(
     caption: CharSequence,
-    noinline block: CompactRenderingLogger.() -> R,
-): R = object : CompactRenderingLogger(caption) {
-    override fun render(block: () -> CharSequence) {
-        this@compactLogging.logLine(block)
-    }
+    formatter: Formatter = { it },
+    block: CompactRenderingLogger.() -> R,
+): R = CompactRenderingLogger(caption, formatter, this) {
+    this@compactLogging.logLine { it }
 }.runLogging(block)
 
 /**
@@ -71,13 +113,12 @@ public inline fun <reified T : RenderingLogger, reified R> T.compactLogging(
  * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
  */
 @RenderingLoggingDsl
-public inline fun <reified R> compactLogging(
+public fun <R> compactLogging(
     caption: CharSequence,
-    noinline block: CompactRenderingLogger.() -> R,
-): R = object : CompactRenderingLogger(caption) {
-    override fun render(block: () -> CharSequence) {
-        println(block())
-    }
+    formatter: Formatter = { it },
+    block: CompactRenderingLogger.() -> R,
+): R = CompactRenderingLogger(caption, formatter) {
+    println(it)
 }.runLogging(block)
 
 /**
@@ -87,9 +128,10 @@ public inline fun <reified R> compactLogging(
  */
 @JvmName("nullableCompactLogging")
 @RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger?, reified R> T.compactLogging(
+public fun <T : RenderingLogger?, R> T.compactLogging(
     caption: CharSequence,
-    noinline block: CompactRenderingLogger.() -> R,
+    formatter: Formatter = { it },
+    block: CompactRenderingLogger.() -> R,
 ): R =
-    if (this is RenderingLogger) compactLogging(caption, block)
-    else koodies.logging.compactLogging(caption, block)
+    if (this is RenderingLogger) compactLogging(caption, formatter, block)
+    else koodies.logging.compactLogging(caption, formatter, block)

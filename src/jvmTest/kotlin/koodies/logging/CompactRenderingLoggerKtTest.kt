@@ -1,29 +1,31 @@
 package koodies.logging
 
 import koodies.concurrent.process.IO
+import koodies.test.output.InMemoryLoggerFactory
+import koodies.test.testEach
 import koodies.text.matchesCurlyPattern
+import koodies.text.toStringMatchesCurlyPattern
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectThat
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class CompactRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log caption`() {
         compactLogging("caption") { }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -31,17 +33,15 @@ class CompactRenderingLoggerKtTest {
         compactLogging("caption") {
             logText { "text" }
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption text ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption text ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -49,17 +49,15 @@ class CompactRenderingLoggerKtTest {
         compactLogging("caption") {
             logLine { "line" }
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption line ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption line ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -67,17 +65,15 @@ class CompactRenderingLoggerKtTest {
         compactLogging("caption") {
             logException { RuntimeException("exception") }
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -85,17 +81,15 @@ class CompactRenderingLoggerKtTest {
         compactLogging("caption") {
             logStatus("status") { "line" }
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption line (◀◀ status) ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption line (◀◀ status) ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -103,17 +97,15 @@ class CompactRenderingLoggerKtTest {
         compactLogging("caption") {
             "result"
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -123,19 +115,17 @@ class CompactRenderingLoggerKtTest {
             logResult { Result.success(2) }
             3
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption ✔︎
-                    │   caption ✔︎ ✔︎
-                    │   caption ✔︎ ✔︎ ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption ✔︎
+                │   caption ⌛️ ✔︎
+                │   caption ⌛️ ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -147,17 +137,15 @@ class CompactRenderingLoggerKtTest {
             logStatus("status") { "line" }
             "result"
         }
-        logResult()
 
-        expectThat(logged).matchesCurlyPattern(
+        expectThatLogged().matchesCurlyPattern(
             """
-                    ╭──╴{}
-                    │{}
-                    │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:146) line (◀◀ status) ✔︎
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+                ╭──╴{}
+                │{}
+                │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) line (◀◀ status) ✔︎
+                │{}
+                ╰──╴✔︎{}
+            """.trimIndent())
     }
 
     @Test
@@ -166,14 +154,14 @@ class CompactRenderingLoggerKtTest {
             logLine { "something" }
             compactLogging("single") {
                 compactLogging {
-                    logStatus { IO.Type.OUT typed "ABC" }
+                    logStatus { IO.OUT typed "ABC" }
                     logLine { "" }
                     logLine { "123" }
                     "abc"
                 }
                 logLine { "456" }
                 compactLogging {
-                    logStatus { IO.Type.OUT typed "XYZ" }
+                    logStatus { IO.OUT typed "XYZ" }
                     logLine { "" }
                     logLine { "789" }
                 }
@@ -192,7 +180,55 @@ class CompactRenderingLoggerKtTest {
             │   │   something
             │   │
             │   ╰──╴✔︎
-        """.trimIndent()
-        )
+            │
+            ╰──╴✔︎
+        """.trimIndent())
+    }
+
+    @Nested
+    inner class LoggingAfterResult {
+
+        @TestFactory
+        fun InMemoryLoggerFactory.`should log after logged result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+            val logger = createLogger(opName)
+            var delegate: CompactRenderingLogger? = null
+            logger.compactLogging("test") {
+                delegate = this
+                logLine { "line" }
+            }
+            delegate?.op()
+            expect { logger }.that {
+                toStringMatchesCurlyPattern(
+                    """
+                     ╭──╴{}
+                     │   
+                     │   test line ✔︎
+                     │   test ⌛️ {}
+                     │
+                     ╰──╴✔︎
+                    """.trimIndent())
+            }
+        }
+
+        @TestFactory
+        fun InMemoryLoggerFactory.`should log after logged message and result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+            val logger = createLogger(opName)
+            var delegate: CompactRenderingLogger? = null
+            logger.compactLogging("test") {
+                delegate = this
+            }
+            delegate?.op()
+            expect { logger }.that {
+                toStringMatchesCurlyPattern(
+                    """
+                     ╭──╴{}
+                     │   
+                     │   test ✔︎
+                     │   test ⌛️ {}
+                     │
+                     ╰──╴✔︎
+                    """.trimIndent())
+            }
+        }
     }
 }

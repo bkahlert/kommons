@@ -182,7 +182,7 @@ public object Unicode {
         '\u0020', // SPACE: Depends on font, typically 1/4 em, often adjusted
         '\u00A0', // NO-BREAK SPACE: As a space, but often not adjusted
         '\u1680', // OGHAM SPACE MARK: Unspecified; usually not really a space but a dash
-        '\u180E', // MONGOLIAN VOWEL SEPARATOR: 0
+//        '\u180E', // MONGOLIAN VOWEL SEPARATOR: 0
         '\u2000', // EN QUAD: 1 en (= 1/2 em)
         '\u2001', // EM QUAD: 1 em (nominally, the height of the font)
         '\u2002', // EN SPACE (nut): 1 en (= 1/2 em)
@@ -194,11 +194,11 @@ public object Unicode {
         '\u2008', // PUNCTUATION SPACE: The width of a period “.”
         '\u2009', // THIN SPACE: 1/5 em (or sometimes 1/6 em)
         '\u200A', // HAIR SPACE: Narrower than THIN SPACE
-        '\u200B', // ZERO WIDTH SPACE: 0
+//        '\u200B', // ZERO WIDTH SPACE: 0
         '\u202F', // NARROW NO-BREAK SPACE	fo: Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space”
         '\u205F', // MEDIUM MATHEMATICAL SPACE: 4/18 em
         '\u3000', // IDEOGRAPHIC SPACE: The width of ideographic (CJK) characters.
-        '\uFEFF', // ZERO WIDTH NO-BREAK SPACE: 0
+//        '\uFEFF', // ZERO WIDTH NO-BREAK SPACE: 0
     )
 
     public val controlCharacters: Map<Char, Char> = mapOf(
@@ -310,6 +310,11 @@ public object Unicode {
         public object HalfHoursDictionary {
             public operator fun get(key: Int): Emoji = halfHourClocks[key.mod(halfHourClocks.size)] ?: error("Missing clock in dictionary")
         }
+
+        /**
+         * [HOURGLASS](https://codepoints.net/U+231B) ⌛️ ⌛︎
+         */
+        public val hourglass: Emoji = Emoji('⌛')
 
         /**
          * [BALLOT BOX](https://codepoints.net/U+2610) ☐️ ☐︎

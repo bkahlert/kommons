@@ -9,6 +9,8 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
+import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
@@ -90,5 +92,7 @@ class ThreadsKtTest {
             }
         }
     }
-
 }
+
+public inline fun <reified T> Assertion.Builder<out CompletableFuture<out T>>.wait(): DescribeableBuilder<Result<T>> =
+    get { runCatching { get() } }

@@ -1,111 +1,135 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.process.IO.Type
-import koodies.concurrent.process.IO.Type.ERR
-import koodies.terminal.AnsiColors.brightBlue
-import koodies.terminal.AnsiColors.gray
-import koodies.terminal.AnsiColors.red
-import koodies.terminal.AnsiColors.yellow
-import koodies.terminal.AnsiFormats.bold
-import koodies.terminal.AnsiFormats.dim
-import koodies.terminal.AnsiFormats.italic
+import koodies.logging.ReturnValue
 import koodies.terminal.AnsiString
+import koodies.text.ANSI.Colors.brightBlue
+import koodies.text.ANSI.Colors.red
+import koodies.text.ANSI.Colors.yellow
+import koodies.text.ANSI.Style.bold
+import koodies.text.ANSI.Style.dim
+import koodies.text.ANSI.Style.italic
+import koodies.text.Semantics
+import koodies.text.Semantics.formattedAs
 import koodies.text.mapLines
+import koodies.time.Now
+import java.nio.file.Path
 
-// TODO make sealed class and refactor types to inherited IOs
 /**
  * Instances are ANSI formatted output with a certain [Type].
  */
-public class IO(
+public sealed class IO(
     /**
      * Contains the originally encountered [IO].
      */
     public val text: AnsiString,
     /**
-     * Contains the [Type] of this [IO].
+     * Formats a strings to like an output of this [Type].
      */
-    public val type: Type,
-) : AnsiString(text.toString(withoutAnsi = false)) {
+    private val formatAnsi: (AnsiString) -> String,
+) : AnsiString(text.toString(removeEscapeSequences = false)) { // TODO check if delegation can be used
 
     /**
      * Contains this [text] with the format of it's [type] applied.
      */
-    public val formatted: String by lazy { type.format(this) }
-
-    private val lines by lazy { text.lines().map { type typed it }.toList() }
-
-    /**
-     * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
-     */
-    public fun lines(): List<IO> = lines
+    public val formatted: String by lazy { formatAnsi(text) }
 
     override fun toString(): String = formatted
 
-    public companion object {
-        /**
-         * Formats a [Throwable] as an [ERR].
-         */
-        public fun Throwable.format(): String = ERR.format(stackTraceToString().asAnsiString())
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
+        other as IO
+
+        if (text != other.text) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + text.hashCode()
+        return result
     }
 
     /**
-     * Classifier for different types of [IO].
+     * An [IO] that represents information about a [Process].
      */
-    public enum class Type(
-        @Suppress("unused") private val symbol: String,
-        /**
-         * Formats a strings to like an output of this [Type].
-         */
-        public val formatAnsi: (AnsiString) -> String,
-    ) {
+    public sealed class META(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
+        public class STARTING(commandLine: CommandLine) : META("Executing ${commandLine.commandLine}")
+        public class FILE(path: Path) : META("${Semantics.Document} ${path.toUri()}")
+        public class TEXT(text: String) : META(text)
+        public class DUMP(dump: String) : META(dump.also { require(it.contains("dump")) { "Please use ${TEXT::class.simpleName} for free-form text." } })
+        public class TERMINATED(process: Process) : META("Process ${process.pid} terminated successfully at $Now."), ReturnValue by process
 
-        /**
-         * An [IO] that represents information about a [Process].
-         */
-        META("𝕄", { value -> value.mapLines { it.gray().italic() } }),
+        public companion object {
+            public infix fun typed(file: Path): FILE = FILE(file)
 
-        /**
-         * An [IO] (of another process) serving as an input.
-         */
-        IN("𝕀", { value -> value.mapLines { it.brightBlue().dim().italic() } }),
+            public infix fun typed(text: CharSequence): TEXT =
+                text.toString().takeIf { it.isNotBlank() }?.let { META.TEXT(it) } ?: error("Non-blank string required.")
+        }
+    }
 
-        /**
-         * An [IO] that is neither [META], [IN] nor [ERR].
-         */
-        OUT("𝕆", { value -> value.mapLines { it.yellow() } }),
+    /**
+     * An [IO] (of another process) serving as an input.
+     */
+    public class IN(text: AnsiString) : IO(text, { text.mapLines { it.brightBlue().dim().italic() } }) {
+        public companion object {
+            private val EMPTY: IN = IN(AnsiString.EMPTY)
 
-        /**
-         * An [IO] that represents a errors.
-         */
-        ERR("𝔼", { value -> value.unformatted.mapLines { it.red().bold() } }) {
             /**
-             * Factory to classify an [ERR] [IO].
+             * Factory to classify different [Type]s of [IO].
              */
-            public infix fun typed(value: Result<*>): IO {
-                require(value.isFailure)
-                val message = value.exceptionOrNull()?.stackTraceToString() ?: throw IllegalStateException("Exception was unexpectedly null")
-                return IO(message.asAnsiString(), ERR)
-            }
-        };
+            public infix fun typed(text: CharSequence): IN = if (text.isEmpty()) EMPTY else IN(text.asAnsiString())
+        }
+
+        private val lines: List<IN> by lazy { text.lines().map { IN typed it }.toList() }
 
         /**
-         * Instance representing an empty [IO].
+         * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
          */
-        private val EMPTY: IO by lazy { IO(AnsiString.EMPTY, this) }
+        public fun lines(): List<IN> = lines
+    }
+
+    /**
+     * An [IO] that is neither [META], [IN] nor [ERR].
+     */
+    public class OUT(text: AnsiString) : IO(text, { text.mapLines { it.yellow() } }) {
+        public companion object {
+            private val EMPTY: OUT = OUT(AnsiString.EMPTY)
+
+            /**
+             * Factory to classify different [Type]s of [IO].
+             */
+            public infix fun typed(text: CharSequence): OUT = if (text.isEmpty()) EMPTY else OUT(text.asAnsiString())
+        }
+
+        private val lines by lazy { text.lines().map { OUT typed it }.toList() }
 
         /**
-         * Factory to classify different [Type]s of [IO].
+         * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
          */
-        public infix fun typed(value: CharSequence?): IO = if (value?.isEmpty() == true) EMPTY else IO(value?.asAnsiString() ?: "❔".asAnsiString(), this)
+        public fun lines(): List<IO> = lines
+    }
+
+    /**
+     * An [IO] that represents an error.
+     */
+    public class ERR(text: AnsiString) : IO(text, { text.mapLines { it.red().bold() } }) {
 
         /**
-         * Factory to classify different [Type]s of [IO]s.
+         * Creates a new error IO from the given [exception].
          */
-        public infix fun <T : CharSequence> typed(value: Iterable<T>): List<IO> = value.map { typed(it) }
+        public constructor(exception: Throwable) : this(exception.stackTraceToString().asAnsiString())
 
-        public infix fun formatted(string: String): String = formatAnsi(string.asAnsiString())
-        public infix fun formatted(string: AnsiString): String = formatAnsi(string)
-        public fun format(string: String): String = formatAnsi(string.asAnsiString())
-        public fun format(string: AnsiString): String = formatAnsi(string)
+        public companion object {
+            private val EMPTY: ERR = ERR(AnsiString.EMPTY)
+
+            /**
+             * Factory to classify different [Type]s of [IO].
+             */
+            public infix fun typed(text: CharSequence): ERR = if (text.isEmpty()) EMPTY else ERR(text.asAnsiString())
+        }
     }
 }

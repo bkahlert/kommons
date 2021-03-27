@@ -2,10 +2,11 @@ package koodies.number
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
+import koodies.text.takeUnlessEmpty
 
 private val hexChars: Array<Char> = arrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 private fun String.format(length: Int, pad: Boolean = false): String =
-    if (pad) padStart(length, '0') else dropWhile { it == '0' }.takeUnless { it.isEmpty() } ?: "0"
+    if (pad) padStart(length, '0') else dropWhile { it == '0' }.takeUnlessEmpty() ?: "0"
 
 public val Byte.Companion.ZERO: Byte get() = 0x0
 public val UByte.Companion.ZEROu: UByte get() = 0x0u

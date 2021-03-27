@@ -2,6 +2,7 @@ package koodies.io.path
 
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 
 
 /**
@@ -21,4 +22,4 @@ public fun Path.isSubPathOf(path: Path): Boolean =
  * Example: If directory `/some/where` existed and this method was called on `/some/where/resides/a/file`,
  * the missing directories `/some/where/resides` and `/some/where/resides/a` would be created.
  */
-public fun Path.withDirectoriesCreated(): Path = also { parent?.createDirectories() }
+public fun Path.withDirectoriesCreated(): Path = also { parent.takeUnless { exists() }?.createDirectories() }

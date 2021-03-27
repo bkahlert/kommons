@@ -12,7 +12,7 @@ open class SystemCapture {
     private val out: PrintStreamCapture
     private val err: PrintStreamCapture
 
-    private val capturedStrings: MutableList<CapturedString> = arrayListOf()
+    private val capturedStrings: MutableList<IO> = arrayListOf()
 
     init {
         out = PrintStreamCapture(System.out) { string: String -> captureOut(string) }
@@ -27,27 +27,20 @@ open class SystemCapture {
     }
 
     private fun captureOut(string: String) {
-        lock.withLock { capturedStrings.add(CapturedString(IO.Type.OUT, string)) }
+        lock.withLock { capturedStrings.add(IO.OUT typed string) }
     }
 
     private fun captureErr(string: String) {
-        lock.withLock { capturedStrings.add(CapturedString(IO.Type.ERR, string)) }
+        lock.withLock { capturedStrings.add(IO.ERR typed string) }
     }
 
-    fun append(builder: StringBuilder, filter: (IO.Type) -> Boolean) {
+    public fun useCapturedStrings(transform: (IO) -> Unit) {
         lock.withLock {
-            capturedStrings
-                .asSequence()
-                .filter { filter(it.type) }
-                .forEach { builder.append(it) }
+            capturedStrings.forEach { transform(it) }
         }
     }
 
     fun reset() {
         lock.withLock { capturedStrings.clear() }
-    }
-
-    private class CapturedString(val type: IO.Type, private val string: String) {
-        override fun toString(): String = string
     }
 }

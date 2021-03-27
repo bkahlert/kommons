@@ -8,16 +8,19 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.round
 import kotlin.math.roundToInt
+import kotlin.text.Regex.Companion.escape
 
 public object ANSI {
 
+    public val <T : CharSequence> T.containsEscapeSequences: Boolean get() = AnsiCode.REGEX.containsMatchIn(this)
+
     public interface Formatter {
-        public operator fun invoke(text: String): String
+        public operator fun invoke(text: CharSequence): String
         public operator fun plus(other: Formatter): Formatter
     }
 
     private class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
-        override fun invoke(text: String): String = ansiCode.format(text)
+        override fun invoke(text: CharSequence): String = ansiCode.format(text)
         override operator fun plus(other: Formatter): Formatter = AnsiCodeFormatter(ansiCode + (other as AnsiCodeFormatter).ansiCode)
     }
 
@@ -64,6 +67,26 @@ public object ANSI {
         public fun CharSequence.brightMagenta(): String = brightMagenta(this.toString())
         public fun CharSequence.brightCyan(): String = brightCyan(this.toString())
         public fun CharSequence.brightWhite(): String = brightWhite(this.toString())
+    }
+
+    public object Style {
+        private val ansiColors: AnsiColors by lazy { AnsiColors(Program.ansiSupport) }
+
+        public val bold: Formatter get() = AnsiCodeFormatter(ansiColors.bold)
+        public val dim: Formatter get() = AnsiCodeFormatter(ansiColors.dim)
+        public val italic: Formatter get() = AnsiCodeFormatter(ansiColors.italic)
+        public val underline: Formatter get() = AnsiCodeFormatter(ansiColors.underline)
+        public val inverse: Formatter get() = AnsiCodeFormatter(ansiColors.inverse)
+        public val hidden: Formatter get() = AnsiCodeFormatter(ansiColors.hidden)
+        public val strikethrough: Formatter get() = AnsiCodeFormatter(ansiColors.strikethrough)
+
+        public fun CharSequence.bold(): String = bold("$this")
+        public fun CharSequence.dim(): String = dim("$this")
+        public fun CharSequence.italic(): String = italic("$this")
+        public fun CharSequence.underline(): String = underline("$this")
+        public fun CharSequence.inverse(): String = inverse("$this")
+        public fun CharSequence.hidden(): String = if (Program.isDeveloping) " ".repeat((length * 1.35).toInt()) else hidden("$this")
+        public fun CharSequence.strikethrough(): String = strikethrough("$this")
     }
 }
 
@@ -261,11 +284,11 @@ private open class AnsiCode(protected val codes: List<Pair<List<Int>, Int>>) {
 
     override fun toString() = open
 
-    fun format(text: String): String = if (text.isEmpty()) "" else open + nest(text) + close
+    fun format(text: CharSequence): String = if (text.isEmpty()) "" else open + nest(text) + close
 
     open operator fun plus(other: AnsiCode) = AnsiCode(codes + other.codes)
 
-    private fun nest(text: String) = ansiCloseRe.replace(text) {
+    private fun nest(text: CharSequence) = ansiCloseRe.replace(text) {
         // Replace instances of our close codes with their corresponding opening codes. If the close
         // code is at the end of the text, omit it instead so that we don't open and immediately
         // close a command.
@@ -291,6 +314,14 @@ private open class AnsiCode(protected val codes: List<Pair<List<Int>, Int>>) {
     }
 
     override fun hashCode() = codes.hashCode()
+
+    companion object {
+
+        /**
+         * [Regex] that matches an [AnsiCode].
+         */
+        public val REGEX: Regex = Regex("(?<CSI>${escape(CSI)}|${ESC}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
+    }
 }
 
 private object DisabledAnsiCode : AnsiCode(emptyList()) {

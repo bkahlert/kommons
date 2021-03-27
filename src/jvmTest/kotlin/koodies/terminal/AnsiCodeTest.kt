@@ -10,6 +10,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -43,11 +44,11 @@ class AnsiCodeTest {
     ).flatMap { (formatted, expected) ->
         listOf(
             dynamicTest("\"$formatted\" should produce \"$expected\"") {
-                expectThat(formatted).removeEscapeSequences().isEqualTo(expected)
+                expectThat(formatted).escapeSequencesRemoved.isEqualTo(expected)
             }
         )
     }
 }
 
-inline fun <reified T : CharSequence> Assertion.Builder<T>.removeEscapeSequences() =
-    get("remove escape sequences") { removeEscapeSequences() }
+inline val <reified T : CharSequence> Assertion.Builder<T>.escapeSequencesRemoved: DescribeableBuilder<String>
+    get() = get("escape sequences removed") { removeEscapeSequences() }

@@ -103,7 +103,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                api("com.ionspin.kotlin:bignum:0.2.3") {
+                api("com.ionspin.kotlin:bignum:0.2.8") {
                     because("bigint for IPv6Address")
                 }
             }

@@ -4,7 +4,6 @@ import koodies.concurrent.output
 import koodies.concurrent.toManagedProcess
 import koodies.io.path.Locations
 import koodies.io.path.asString
-import koodies.io.path.randomPath
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -12,23 +11,18 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
-import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.exists
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
-import kotlin.io.path.exists
 import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class CommandLineTest {
@@ -55,33 +49,6 @@ class CommandLineTest {
         ),
     ) { (commandLine, variants) ->
         variants.forEach { expect { it }.that { isEqualTo(commandLine) } }
-    }
-
-    @Nested
-    inner class LazyStartedProcess {
-
-        @Test
-        fun `should not start on its own`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val (_, file) = createLazyFileCreatingProcess()
-            poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds)
-            expectThat(file).not { exists() }
-        }
-
-        @Test
-        fun `should start if accessed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val (process, file) = createLazyFileCreatingProcess()
-            process.start()
-            poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) { fail("Process $process did not start") }
-            expectThat(file).exists()
-        }
-
-        @Test
-        fun `should start if processed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val (process, file) = createLazyFileCreatingProcess()
-            process.processSilently()
-            poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) { fail("Process $process did not start") }
-            expectThat(file).exists()
-        }
     }
 
     @Test
@@ -290,7 +257,7 @@ class CommandLineTest {
                 "-copy-out", "/boot/cmdline.txt", "/shared/guestfish.shared/boot",
                 "!mkdir", "-p", "/shared/guestfish.shared/non",
                 "-copy-out", "/non/existing.txt", "/shared/guestfish.shared/non",
-            ).summary).matchesCurlyPattern("◀◀ lisa  ◀ mkdir  ◀ …  ◀ mkdir")
+            ).summary).matchesCurlyPattern("!ls -lisa !mkdir -p /shared ! … /shared/guestfish.shared/non")
         }
     }
 }
@@ -310,7 +277,7 @@ val Assertion.Builder<ManagedProcess>.output
     get() = get("output %s") { output() }
 
 val Assertion.Builder<IOLog>.out
-    get() = get("output of type OUT %s") { logged.filter { it.type == IO.Type.OUT }.joinToString(LineSeparators.LF) }
+    get() = get("output of type OUT %s") { logged.filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
 
 val <P : ManagedProcess> Assertion.Builder<P>.exitValue
     get() = get("exit value %s") { exitValue }
@@ -321,10 +288,4 @@ fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String, expectedE
         50.milliseconds.sleep()
         exitValue.isEqualTo(expectedExitValue)
     }
-}
-
-fun Path.createLazyFileCreatingProcess(): Pair<ManagedProcess, Path> {
-    val nonExistingFile = randomPath(extension = ".txt")
-    val fileCreatingCommandLine = CommandLine(emptyMap(), this, "touch", nonExistingFile.asString())
-    return fileCreatingCommandLine.toManagedProcess() to nonExistingFile
 }

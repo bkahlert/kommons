@@ -3,6 +3,7 @@ package koodies.logging
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
+import koodies.text.Semantics
 import koodies.text.Semantics.Error
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -16,7 +17,7 @@ import strikt.assertions.isTrue
 
 @Execution(SAME_THREAD)
 class ReturnValueKtTest {
-    private val returnValue: ReturnValue = object : ReturnValue {
+    private val failedReturnValue: ReturnValue = object : ReturnValue {
         override val successful: Boolean get() = false
         override fun format(): String = "return value"
     }
@@ -25,14 +26,14 @@ class ReturnValueKtTest {
 
 
     private val successfulExpectations = listOf(
-        null to "␀",
+        null to Semantics.Null,
         "string" to "string",
     )
 
     private val failedExpectations = listOf(
-        returnValue to "return value",
+        failedReturnValue to "return value",
         RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        kotlin.runCatching { returnValue } to "return value",
+        kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
     )
 
@@ -157,5 +158,5 @@ class ReturnValueKtTest {
 private fun InMemoryLoggerFactory.render(bordered: Boolean, captionSuffix: String, block: RenderingLogger.() -> Any?): String {
     val logger = createLogger(captionSuffix, bordered = bordered)
     logger.runLogging(block)
-    return logger.logged
+    return logger.toString()
 }

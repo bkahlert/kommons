@@ -1,28 +1,24 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.process.UserInput.enter
+import koodies.collections.synchronizedListOf
 import koodies.debug.asEmoji
-import koodies.io.ByteArrayOutputStream
+import koodies.exception.toCompactString
+import koodies.logging.ReturnValue
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
-import kotlin.time.Duration
+import java.util.concurrent.locks.ReentrantLock
 import java.lang.Process as JavaProcess
-
 
 /**
  * Platform independent representation of a running program.
  */
-public interface Process {
-    /**
-     * Logs information about this process.
-     */
-    public fun metaLog(metaMessage: String): Unit = metaStream.enter(metaMessage, delay = Duration.ZERO)
+public interface Process : ReturnValue {
 
     /**
      * Stream of this program's meta logs.
      */
-    public val metaStream: OutputStream
+    public val metaStream: MetaStream
 
     /**
      * This program's input stream, that is,
@@ -85,6 +81,18 @@ public interface Process {
     public val exitValue: Int
 
     /**
+     * Whether the process terminated successfully or failed.
+     *
+     * `null` is the process has not terminated, yet.
+     */
+    override val successful: Boolean?
+
+    override fun format(): CharSequence {
+        requireNotNull(successful) { "$this has not terminated, yet." }
+        return kotlin.runCatching { waitForTermination() }.exceptionOrNull()?.toCompactString() ?: ""
+    }
+
+    /**
      * A completable future that returns an instances of this process once
      * the program represented by this process terminated.
      */
@@ -113,11 +121,27 @@ public interface Process {
     public fun kill(): Process
 }
 
+public class MetaStream(vararg listeners: (IO.META) -> Unit) {
+    private val lock: ReentrantLock = ReentrantLock()
+    private val history: MutableList<IO.META> = synchronizedListOf()
+    private val listeners: MutableList<(IO.META) -> Unit> = synchronizedListOf(*listeners)
+
+    public fun subscribe(listener: (IO.META) -> Unit): Unit {
+        history.forEach { listener(it) }
+        listeners.add(listener)
+    }
+
+    public fun emit(meta: IO.META): Unit {
+        history.add(meta)
+        listeners.forEach { it(meta) }
+    }
+}
+
 /**
  * A process that delegates to the [JavaProcess] provided by the specified [processProvider].
  */
 public abstract class DelegatingProcess(private val processProvider: Process.() -> JavaProcess) : Process {
-    override val metaStream: OutputStream by lazy { ByteArrayOutputStream() }
+    override val metaStream: MetaStream = MetaStream()
     override val inputStream: OutputStream by lazy { javaProcess.outputStream }
     override val outputStream: InputStream by lazy { javaProcess.inputStream }
     override val errorStream: InputStream by lazy { javaProcess.errorStream }
@@ -126,22 +150,21 @@ public abstract class DelegatingProcess(private val processProvider: Process.() 
     /**
      * The Java process this process delegates to.
      */
-    protected val javaProcess: JavaProcess by lazy { this.processProvider().also { _started = true } }
-    override fun start(): Process = this.also { javaProcess.pid() }
+    protected val javaProcess: JavaProcess by lazy { processProvider().also { _started = true } }
+    override fun start(): Process = also { javaProcess.pid() }
     private var _started: Boolean = false
     override val started: Boolean get() = _started
-    override val alive: Boolean get() = javaProcess.isAlive
+    override val alive: Boolean get() = started && javaProcess.isAlive
     override val exitValue: Int get() = javaProcess.exitValue()
     abstract override val onExit: CompletableFuture<Process>
     override fun waitFor(): Int = onExit.join().exitValue
     override fun stop(): Process = also { javaProcess.destroy() }
     override fun kill(): Process = also { javaProcess.destroyForcibly() }
 
-    protected open val preparedToString: StringBuilder /* = java.lang.StringBuilder */ = StringBuilder().apply { append(" started=${started}") }
     override fun toString(): String {
         val delegateString =
-            if (started) "$javaProcess; result=${onExit.isCompletedExceptionally.not().asEmoji}"
+            if (started) "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful.asEmoji}"
             else "not yet initialized"
-        return "${this::class.simpleName}[delegate=$delegateString;$preparedToString]"
+        return "${this::class.simpleName}(delegate=$delegateString, started=${started.asEmoji})"
     }
 }

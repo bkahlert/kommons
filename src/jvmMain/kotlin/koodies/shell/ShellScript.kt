@@ -1,6 +1,9 @@
 package koodies.shell
 
 import koodies.concurrent.process.CommandLine
+import koodies.concurrent.scriptPath
+import koodies.io.path.Locations
+import koodies.io.path.asString
 import koodies.io.path.executable
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
@@ -8,8 +11,10 @@ import koodies.terminal.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.prefixLinesWith
 import koodies.text.quoted
+import koodies.text.truncate
 import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
 import koodies.toBaseName
@@ -21,7 +26,7 @@ import kotlin.io.path.notExists
 public annotation class ShellScriptMarker
 
 @ShellScriptMarker
-public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String> {
+public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String>, ShellExecutable {
 
     private val lines: MutableList<String> = mutableListOf()
 
@@ -172,7 +177,27 @@ public class ShellScript(public val name: String? = null, content: String? = nul
         executable = true
     }
 
-    override fun toString(): String = "Script(name=$name;content=${build().lines(ignoreTrailingSeparator = true).joinToString(";")}})"
+    public override val summary: String
+        get() = "Script(name=$name;content=${build().lines(ignoreTrailingSeparator = true).joinToString(";").truncate(150, MIDDLE, " … ")}})"
+
+
+    override fun toCommandLine(): CommandLine = toCommandLine(emptyMap())
+
+    /**
+     * Creates a [CommandLine] from `this` [ShellScript] by saving to [Locations.Temp].
+     */
+    public fun toCommandLine(environment: Map<String, String>): CommandLine =
+        toCommandLine(Locations.Temp, environment)
+
+    /**
+     * Creates a [CommandLine] from `this` [ShellScript] by saving to `this` [Path].
+     */
+    public fun toCommandLine(path: Path, environment: Map<String, String> = emptyMap()): CommandLine {
+        val scriptFile = sanitize(path).buildTo(path.scriptPath())
+        return CommandLine(environment, path, scriptFile.asString())
+    }
+
+    override fun toString(): String = summary
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

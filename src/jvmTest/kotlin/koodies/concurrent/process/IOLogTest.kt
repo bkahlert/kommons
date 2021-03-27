@@ -2,11 +2,13 @@ package koodies.concurrent.process
 
 import koodies.concurrent.daemon
 import koodies.io.path.asString
-import koodies.io.path.hasContent
+import koodies.io.path.text
 import koodies.io.path.writeText
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.terminal.escapeSequencesRemoved
 import koodies.test.UniqueId
+import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.containsEscapeSequences
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -25,9 +27,9 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotEmpty
 import strikt.assertions.single
+import strikt.assertions.startsWith
 import java.io.IOException
 import java.nio.file.Path
-import kotlin.io.path.readText
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
@@ -41,7 +43,7 @@ class IOLogTest {
         daemon {
             var i = 0
             while (!stop) {
-                ioLog.add(IO.Type.META, "being busy $i times\n".toByteArray())
+                ioLog + (IO.META typed "being busy $i times")
                 10.milliseconds.sleep()
                 i++
             }
@@ -51,7 +53,7 @@ class IOLogTest {
 
         expectThat(ioLog.logged) {
             isNotEmpty()
-            contains(IO.Type.META typed "being busy 0 times")
+            contains(IO.META typed "being busy 0 times")
         }
         stop = true
     }
@@ -60,7 +62,7 @@ class IOLogTest {
     internal fun `should provide filtered access`() {
         val ioLog = createIOLog()
 
-        expectThat(ioLog.logged(IO.Type.OUT)).isEqualTo(IO.Type.OUT typed """
+        expectThat(ioLog.logged<IO.OUT>()).isEqualTo("""
             processing
             awaiting input: 
         """.trimIndent())
@@ -74,15 +76,9 @@ class IOLogTest {
         @Test
         fun `should dump IO to specified directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps: Map<String, Path> = ioLog.dump(this, 123)
-            expectThat(dumps.values.map { it.readText().removeEscapeSequences() }).hasSize(2).all {
-                isEqualTo("""
-                Starting process...
-                processing
-                awaiting input: 
-                cancel
-                invalid input
-                an abnormal error has occurred (errno 99)
-            """.trimIndent())
+            expectThat(dumps.values) {
+                hasSize(2)
+                all { text.escapeSequencesRemoved.startsWith("Executing command arg") }
             }
         }
 
@@ -97,36 +93,42 @@ class IOLogTest {
         @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
-            expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }.single().hasContent("""
-                ${IO.Type.META.format("Starting process...")}
-                ${IO.Type.OUT.format("processing")}
-                ${IO.Type.OUT.format("awaiting input: ")}
-                ${IO.Type.IN.format("cancel")}
-                ${IO.Type.ERR.format("invalid input")}
-                ${IO.Type.ERR.format("an abnormal error has occurred (errno 99)")}
-            """.trimIndent())
+            expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }
+                .single().text
+                .containsEscapeSequences()
+                .toStringIsEqualTo("""
+                    Executing command arg
+                    processing
+                    awaiting input: 
+                    cancel
+                    invalid input
+                    an abnormal error has occurred (errno 99)
+                """.trimIndent())
         }
 
         @Test
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
-            expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }.single().hasContent("""
-                Starting process...
-                processing
-                awaiting input: 
-                cancel
-                invalid input
-                an abnormal error has occurred (errno 99)
-            """.trimIndent())
+            expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }
+                .single().text
+                .not { containsEscapeSequences() }
+                .toStringIsEqualTo("""
+                    Executing command arg
+                    processing
+                    awaiting input: 
+                    cancel
+                    invalid input
+                    an abnormal error has occurred (errno 99)
+                """.trimIndent())
         }
     }
 }
 
 fun createIOLog(): IOLog = IOLog().apply {
-    add(IO.Type.META, "Starting process...\n".toByteArray())
-    add(IO.Type.OUT, "processing\n".toByteArray())
-    add(IO.Type.OUT, "awaiting input: \n".toByteArray())
-    add(IO.Type.IN, "cancel\n".toByteArray())
-    add(IO.Type.ERR, "invalid input\n".toByteArray())
-    add(IO.Type.ERR, "an abnormal error has occurred (errno 99)\n".toByteArray())
+    this + IO.META.STARTING(CommandLine("command", "arg"))
+    out + "processing\n".toByteArray()
+    out + "awaiting input: \n".toByteArray()
+    input + "cancel\n".toByteArray()
+    err + "invalid input\n".toByteArray()
+    err + "an abnormal error has occurred (errno 99)\n".toByteArray()
 }

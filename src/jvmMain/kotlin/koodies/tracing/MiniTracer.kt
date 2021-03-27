@@ -32,7 +32,7 @@ public fun <R> MiniTracer?.microTrace3(f: KFunction3<*, *, *, R>, block: MicroTr
 
 
 public class RenderingLoggerBasedMiniTracer(private val renderingLogger: RenderingLogger) : MiniTracer {
-    public override fun trace(input: String): Unit = renderingLogger.logStatus { IO.Type.META typed input }
+    public override fun trace(input: String): Unit = renderingLogger.logStatus { IO.META typed input }
     public override fun <R> microTrace(graphemeCluster: GraphemeCluster, block: MicroTracer.() -> R): R {
         val simpleMicroTracer = SimpleMicroTracer(graphemeCluster)
         val returnValue: R = simpleMicroTracer.run(block)

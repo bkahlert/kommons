@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.terminal.escapeSequencesRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -25,7 +26,7 @@ class QuotesKtTest {
 
         @Test
         fun `should wrap null replacement character with double quotes on null`() {
-            expectThat(null.quoted).isEqualTo("\"\u2400\"")
+            expectThat(null.quoted).escapeSequencesRemoved.isEqualTo("\"\u2400\"")
         }
 
         @Test
@@ -40,7 +41,7 @@ class QuotesKtTest {
 
         @Test
         fun `should wrap null replacement character with single quotes on null`() {
-            expectThat(null.singleQuoted).isEqualTo("'\u2400'")
+            expectThat(null.singleQuoted).escapeSequencesRemoved.isEqualTo("'\u2400'")
         }
     }
 
@@ -64,7 +65,7 @@ class QuotesKtTest {
 
         @Test
         fun `should wrap null replacement character with double quotes on null`() {
-            expectThat(null.wrap("⋆")).isEqualTo("⋆\u2400⋆")
+            expectThat(null.wrap("⋆")).escapeSequencesRemoved.isEqualTo("⋆\u2400⋆")
         }
     }
 }

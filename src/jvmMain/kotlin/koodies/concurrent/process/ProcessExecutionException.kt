@@ -12,7 +12,7 @@ public class ProcessExecutionException(
 ) : Exception(
     StringBuilder("Process $pid terminated with exit code $exitValue. Expected $expectedExitValue.").apply {
         cause?.let { append(" Reason: $cause") }
-        append(LineSeparators.LF + commandLine.formattedIncludesFiles)
+        append(LineSeparators.LF + commandLine.includedFiles.map { IO.META typed it })
         additionalInformation?.let { append(LineSeparators.LF + additionalInformation) }
     }.toString(),
     cause

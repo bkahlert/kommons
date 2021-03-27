@@ -1,6 +1,6 @@
 package koodies.nio
 
-import koodies.concurrent.process.IO.Type.META
+import koodies.concurrent.process.IO
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.logging.MutedRenderingLogger
@@ -42,15 +42,15 @@ public class NonBlockingCharReader(
                     -1
                 }.getOrThrow()) {
                 -1 -> {
-                    logStatus { META typed "EOF" }
+                    logStatus { IO.META typed "EOF" }
                     -1
                 }
                 -2 -> {
-                    logStatus { META typed "TIMEOUT" }
+                    logStatus { IO.META typed "TIMEOUT" }
                     0
                 }
                 else -> {
-                    logStatus { META typed "SUCCESSFULLY READ ${read.debug}" }
+                    logStatus { IO.META typed "SUCCESSFULLY READ ${read.debug}" }
                     buffer[off] = read.toChar()
                     1
                 }

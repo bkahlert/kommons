@@ -1,5 +1,6 @@
 package koodies.concurrent
 
+import koodies.concurrent.process.ManagedProcess
 import koodies.logging.ReturnValue
 import koodies.number.toPositiveInt
 
@@ -24,3 +25,10 @@ public inline class Status(public val status: Byte) : ReturnValue {
         public val FAILURE: Status = Status(1)
     }
 }
+
+public val ManagedProcess.status: Status?
+    get() = when (successful) {
+        true -> Status(exitValue)
+        null -> null
+        false -> Status(exitValue)
+    }

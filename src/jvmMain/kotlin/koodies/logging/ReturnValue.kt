@@ -12,7 +12,7 @@ public interface ReturnValue {
     /**
      * Whether this return value represents a successful state.
      */
-    public val successful: Boolean
+    public val successful: Boolean?
 
     /**
      * Returns this instance's representation for the
@@ -26,8 +26,16 @@ public interface ReturnValue {
  * failed [ReturnValue].
  */
 public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableListOf<E>(*elements), ReturnValue {
-    private val unsuccessful: List<ReturnValue> get() = map { it.toReturnValue() }.filterNot { it.successful }
-    override val successful: Boolean get() = unsuccessful.isEmpty()
+    private val unsuccessful: List<ReturnValue> get() = map { it.toReturnValue() }.filter { it.successful == false }
+    override val successful: Boolean?
+        get() = fold(true) { acc: Boolean?, el: E ->
+            when (el.toReturnValue().successful) {
+                true -> acc
+                null -> if (acc == true) null else acc
+                false -> false
+            }
+        }
+
     override fun format(): CharSequence = when (unsuccessful.size) {
         0 -> ""
         1 -> unsuccessful.single().format()
@@ -48,8 +56,19 @@ public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableList
  * Otherwise [value] is considered [successful] and is formatted using [toCompactString].
  */
 public inline class AnyReturnValue(private val value: Any?) : ReturnValue {
-    override val successful: Boolean get() = value?.let { it as? ReturnValue }?.successful ?: true
-    override fun format(): CharSequence = value?.let { it as? ReturnValue }?.format() ?: value?.toCompactString() ?: "␀"
+    override val successful: Boolean?
+        get() = if (value is ReturnValue) {
+            value.successful
+        } else {
+            true
+        }
+
+    override fun format(): CharSequence =
+        if (value is ReturnValue) {
+            value.format()
+        } else {
+            value?.toCompactString()
+        } ?: Semantics.Null
 }
 
 /**

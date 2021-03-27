@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -75,21 +76,19 @@ class StringsKtTest {
     @Nested
     inner class WithRandomSuffixKtTest {
 
-        @Test
-        fun `should add 4 random characters`() {
-            val string = "the-string"
-            expectThat(string.withRandomSuffix()) {
-                startsWith("the-string-")
-                matches(Regex("the-string-[0-9a-zA-Z]{4}"))
+        @TestFactory
+        fun `should add 4 random characters`() = testEach("the-string", "four-char") {
+            expect { it.withRandomSuffix() }.that {
+                startsWith("$it-")
+                matches(Regex("$it--[0-9a-zA-Z]{4}"))
             }
         }
 
-        @Test
-        fun `should not append to already existing random suffix`() {
-            val string = "the-string"
-            expectThat(string.withRandomSuffix().withRandomSuffix()) {
-                startsWith("the-string-")
-                matches(Regex("the-string-[0-9a-zA-Z]{4}"))
+        @TestFactory
+        fun `should not append to already existing random suffix`() = testEach("the-string", "four-char") {
+            expect { it.withRandomSuffix().withRandomSuffix() }.that {
+                startsWith("$it-")
+                matches(Regex("$it--[0-9a-zA-Z]{4}"))
             }
         }
     }
@@ -123,6 +122,26 @@ class StringsKtTest {
             baz 2
         """.trimIndent())
         }
+    }
+
+    @TestFactory
+    fun `take unless empty`() = testEach(
+        "" to null,
+        "abc" to "abc",
+    ) { (string, expected) ->
+        expect { string.takeUnlessEmpty() }.that { isEqualTo(expected) }
+        expect { (string as CharSequence).takeUnlessEmpty() }.that { isEqualTo(expected) }
+    }
+
+    @TestFactory
+    fun `take unless blank`() = testEach(
+        "" to null,
+        " " to null,
+        *Unicode.whitespaces.map { it.toString() to null }.toTypedArray(),
+        "abc" to "abc",
+    ) { (string, expected) ->
+        expect { string.takeUnlessBlank() }.that { isEqualTo(expected) }
+        expect { (string as CharSequence).takeUnlessBlank() }.that { isEqualTo(expected) }
     }
 }
 

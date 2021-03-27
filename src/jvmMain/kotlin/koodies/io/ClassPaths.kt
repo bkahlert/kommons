@@ -4,6 +4,7 @@ import koodies.io.file.WrappedPath
 import koodies.io.file.asReadOnly
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.toMappedPath
+import koodies.runtime.JVM
 import koodies.text.withoutPrefix
 import java.net.URI
 import java.nio.file.FileSystem
@@ -16,14 +17,6 @@ import java.nio.file.WatchService
 import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 import kotlin.properties.ReadOnlyProperty
-
-/**
- * Returns the context ClassLoader for the current [Thread].
- *
- * The context [ClassLoader] is provided by the creator of the [Thread] for use
- * by code running in this thread when loading classes and resources.
- */
-public val ContextClassLoader: ClassLoader get() = Thread.currentThread().contextClassLoader
 
 /**
  * Attempts to load the [Class] with the given [name] using `this` [ClassLoader].
@@ -44,7 +37,7 @@ public fun ClassLoader.loadClassOrNull(name: String): Class<*>? = kotlin.runCatc
  */
 public inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
-    return ContextClassLoader.getResources(normalizedPath).asSequence().map { url ->
+    return JVM.contextClassLoader.getResources(normalizedPath).asSequence().map { url ->
         url.toMappedPath { classPath -> classPath.asReadOnly().transform() }
     }.toList()
 }
@@ -64,7 +57,7 @@ public inline fun <reified T> useClassPaths(path: String, crossinline transform:
  */
 public inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
-    return ContextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
+    return JVM.contextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
 }
 
 /**

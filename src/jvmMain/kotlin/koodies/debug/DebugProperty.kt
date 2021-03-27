@@ -23,6 +23,9 @@ public object Debug {
         text?.wrap(prefix.meta(), suffix.meta()) ?: null.wrap("❬".meta(), "❭".meta())
 }
 
+public val <T> XRay<T>.debug: XRay<T>
+    get() = transform { debug }
+
 public inline val CharSequence?.debug: String
     get() = if (this == null) null.wrap("❬".meta(), "❭".meta())
     else toString().replaceNonPrintableCharacters().wrap("❬".meta(), "⫻".meta() + "${this.length}".gray() + "❭".meta())

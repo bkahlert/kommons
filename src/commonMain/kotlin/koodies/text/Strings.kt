@@ -33,11 +33,11 @@ public fun CharSequence.withPrefix(prefix: String): String =
  */
 public fun CharSequence.withRandomSuffix(): String {
     if (randomSuffixMatcher.matches(this)) return this.toString()
-    return "$this-${randomString(length = randomSuffixLength, allowedCharacters = CharRanges.Alphanumeric)}"
+    return "$this--${randomString(length = randomSuffixLength, allowedCharacters = CharRanges.Alphanumeric)}"
 }
 
 private const val randomSuffixLength = 4
-private val randomSuffixMatcher: Regex = Regex(".*-[0-9a-zA-Z]{$randomSuffixLength}\$")
+private val randomSuffixMatcher: Regex = Regex(".*--[0-9a-zA-Z]{$randomSuffixLength}\$")
 
 
 /**
@@ -100,3 +100,24 @@ public fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = fals
  */
 public fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
     "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"
+
+/**
+ * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
+ */
+public fun CharSequence.takeUnlessEmpty(): CharSequence? = takeUnless { it.isEmpty() }
+
+/**
+ * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
+ */
+public fun String.takeUnlessEmpty(): String? = takeUnless { it.isEmpty() }
+
+
+/**
+ * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
+ */
+public fun CharSequence.takeUnlessBlank(): CharSequence? = takeUnless { it.isBlank() }
+
+/**
+ * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
+ */
+public fun String.takeUnlessBlank(): String? = takeUnless { it.isBlank() }

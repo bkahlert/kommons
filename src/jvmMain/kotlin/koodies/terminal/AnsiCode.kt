@@ -39,8 +39,10 @@ public class AnsiCode(
     public val allCodes: List<Int> by lazy { openCodes + closeCode }
 
     public companion object {
+
         public const val ESC: Char = Unicode.escape // `ESC[` also called 7Bit Control Sequence Introducer
         public const val CSI: Char = Unicode.controlSequenceIntroducer
+
         private val termColors by lazy {
             TermColors(when (Program.ansiSupport) {
                 AnsiSupport.NONE -> TermColors.Level.NONE
@@ -199,11 +201,6 @@ public class AnsiCode(
         /**
          * Returns the [String] with [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
          */
-        public fun CharSequence.removeEscapeSequences(): String = ansiCodeRegex.replace(this, "")
-
-        /**
-         * Returns the [String] with [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
-         */
-        public fun String.removeEscapeSequences(): String = (this as CharSequence).removeEscapeSequences()
+        public fun CharSequence.removeEscapeSequences(): String = ansiCodeRegex.replace(toString(), "")
     }
 }

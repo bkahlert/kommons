@@ -1,6 +1,7 @@
 package koodies.test.output
 
 import koodies.logging.InMemoryLogger
+import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.Verbosity.Companion.isVerbose
 import koodies.test.testName
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -44,15 +45,14 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
             caption = testName + if (suffix != null) "::$suffix" else "",
             bordered = bordered,
             statusInformationColumn = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(-1),
-            outputStreams = if (isVerbose || parameterContext.isVerbose) listOf(System.out) else emptyList(),
+            outputStreams = if (isVerbose || parameterContext.isVerbose) arrayOf(System.out) else emptyArray(),
         ) {
-            override fun <R> logResult(block: () -> Result<R>): R {
-                @Suppress("UNCHECKED_CAST")
-                return if (!resultLogged) {
-                    super.logResult(block).also { resultLogged = true }
-                } else Unit as R
-            }
-        }.also { store().put(element, it) }
+            @Suppress("UNCHECKED_CAST")
+            override fun <R> logResult(block: () -> Result<R>): R =
+                if (!closed) super.logResult(block) else Unit as R
+
+            override fun toString(): String = toString(SUCCESSFUL_RETURN_VALUE, false)
+        }.withUnclosedWarningDisabled.also { store().put(element, it) }
 
     override fun afterEach(extensionContext: ExtensionContext) {
         val logger: InMemoryLogger? = extensionContext.store().get(extensionContext.element, InMemoryLogger::class.java)

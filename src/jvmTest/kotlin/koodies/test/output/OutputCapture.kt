@@ -14,20 +14,20 @@ class OutputCapture : CapturedOutput {
 
     val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
 
-    override val all: String get() = getFilteredCapture { true }
-    override val out: String get() = getFilteredCapture { other: IO.Type? -> IO.Type.OUT == other }
-    override val err: String get() = getFilteredCapture { other: IO.Type? -> IO.Type.ERR == other }
+    override val all: String get() = getFilteredCapture<IO>()
+    override val out: String get() = getFilteredCapture<IO.OUT>()
+    override val err: String get() = getFilteredCapture<IO.ERR>()
 
     /**
      * Resets the current capture session, clearing its captured output.
      */
     fun reset() = systemCaptures.firstOrNull()?.reset()
 
-    private fun getFilteredCapture(filter: (IO.Type) -> Boolean): String = lock.withLock {
-        check(!this.systemCaptures.isEmpty()) { "No system captures found. Please check your output capture registration." }
+    private inline fun <reified T : IO> getFilteredCapture(): String = lock.withLock {
+        check(systemCaptures.isNotEmpty()) { "No system captures found. Please check your output capture registration." }
         val builder = StringBuilder()
-        for (systemCapture in systemCaptures) {
-            systemCapture.append(builder, filter)
+        systemCaptures.forEach {
+            it.useCapturedStrings { io -> if (io is T) builder.append(io) }
         }
         builder.toString()
     }

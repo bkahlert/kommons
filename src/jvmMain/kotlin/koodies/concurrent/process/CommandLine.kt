@@ -9,10 +9,12 @@ import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
-import koodies.logging.asStatus
 import koodies.regex.get
+import koodies.shell.ShellExecutable
 import koodies.text.LineSeparators
-import koodies.text.Semantics
+import koodies.text.LineSeparators.lines
+import koodies.text.TruncationStrategy.MIDDLE
+import koodies.text.truncate
 import koodies.text.unquoted
 import org.codehaus.plexus.util.StringUtils
 import org.codehaus.plexus.util.cli.CommandLineUtils
@@ -51,7 +53,7 @@ public open class CommandLine(
      * The arguments to be passed to [command].
      */
     public val arguments: List<String>,
-) {
+) : ShellExecutable {
 
     public constructor(
         redirects: List<String>,
@@ -126,22 +128,10 @@ public open class CommandLine(
     /**
      * A human-readable representation of this command line.
      */
-    public open val summary: String
-        get() = arguments
-            .map { line ->
-                line.split("\\b".toRegex()).filter { part -> part.trim().run { length > 1 && !startsWith("-") } }
-            }
-            .filter { it.isNotEmpty() }
-            .map { words ->
-                when (words.size) {
-                    0 -> "❓"
-                    1 -> words.first()
-                    2 -> words.joinToString("…")
-                    else -> words.first() + "…" + words.last()
-                }
-            }
-            .map { it.replace("\\s+".toRegex(), " ") }
-            .asStatus()
+    public override val summary: String
+        get() = multiLineCommandLine.lines().joinToString("; ").replace("\\; ", "").truncate(60, strategy = MIDDLE, marker = " … ")
+
+    override fun toCommandLine(): CommandLine = this
 
     /**
      * Contains all accessible files contained in this command line.
@@ -151,10 +141,6 @@ public open class CommandLine(
             .filter { it != it.root }
             .filter { it.exists() }
 
-    /**
-     * Contains a formatted list of files contained in this command line.
-     */
-    public val formattedIncludesFiles: String get() = includedFiles.joinToString("\n") { "${Semantics.Document} ${it.toUri()}" }
 
     override fun toString(): String = multiLineCommandLine
 

@@ -2,6 +2,7 @@ package koodies.concurrent
 
 import koodies.logging.RenderingLogger
 import koodies.runWrapping
+import koodies.runtime.JVM
 import koodies.time.sleep
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
@@ -14,7 +15,7 @@ import kotlin.time.Duration
 import kotlin.time.milliseconds
 
 public fun <T> withThreadName(temporaryName: String, block: () -> T): T =
-    Thread.currentThread().runWrapping({ name.also { name = temporaryName } }, { oldName -> name = oldName }, { block() })
+    JVM.currentThread.runWrapping({ name.also { name = temporaryName } }, { oldName -> name = oldName }, { block() })
 
 public fun thread(
     start: Boolean = true,
@@ -131,7 +132,7 @@ public fun <T> (() -> T).completableFuture(
  * is completely independent of the one added as a side-effect
  * in order to process the specified [fn].
  */
-public fun <V> CompletionStage<V>.thenAlso(fn: (value: V?, exception: Throwable?) -> Unit): CompletionStage<V> =
+public fun <T : CompletableFuture<V>, V> T.thenAlso(fn: (value: V?, exception: Throwable?) -> Unit): T =
     this.also { it.handle(fn) }
 
 /**
@@ -139,5 +140,5 @@ public fun <V> CompletionStage<V>.thenAlso(fn: (value: V?, exception: Throwable?
  * is completely independent of the one added as a side-effect
  * in order to process the specified [fn].
  */
-public fun <V> CompletionStage<V>.thenAlso(fn: (Result<V?>) -> Unit): CompletionStage<V> =
+public fun <T : CompletableFuture<V>, V> T.thenAlso(fn: (Result<V?>) -> Unit): T =
     thenAlso { value: V?, exception: Throwable? -> fn(exception?.let { Result.failure(it) } ?: Result.success(value)) }

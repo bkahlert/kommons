@@ -1,5 +1,8 @@
 package koodies
 
+import koodies.builder.Init
+import koodies.builder.buildMap
+import koodies.builder.context.MapBuildingContext
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
@@ -16,8 +19,8 @@ public fun <T> T.indenting(block: T.(String) -> Unit) {
  * Returns a string representing `this` class and all specified [properties]
  * in the format `ClassName(name1=value1, name2=value2, ...)`.
  */
-public inline fun <reified T : Any> T.asString(vararg properties: KProperty<*>): String =
-    StringBuilder(T::class.simpleName ?: "<object>").apply {
+public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
+    StringBuilder(this::class.simpleName ?: "<object>").apply {
         properties.joinTo(this, prefix = "(", postfix = ")") { property ->
             val value: Any? = when (property) {
                 is KProperty0<*> -> kotlin.runCatching { property.get() }.recover { "<$it>" }.getOrThrow()
@@ -36,13 +39,14 @@ public inline fun <reified T : Any> T.asString(vararg properties: KProperty<*>):
  * Returns a string representing `this` class and all specified [properties]
  * in the format `ClassName(name1=value1, name2=value2, ...)`.
  */
-public inline fun <reified T : Any> T.asString(crossinline transform: T.() -> List<Pair<Any?, Any?>>): String =
-    StringBuilder(T::class.simpleName ?: "<object>").apply {
+public fun Any.asString(init: Init<MapBuildingContext<Any?, Any?>>): String =
+    StringBuilder(this::class.simpleName ?: "<object>").apply {
         append(" {")
         indenting { indent ->
             indenting { propIndent ->
-                transform().forEach { (key, value) ->
-                    append("\n$propIndent$key = $value")
+                buildMap(init).forEach { (key, value) ->
+                    val keyString = key.let { it as? KProperty<*> }?.name ?: key.toString()
+                    append("\n$propIndent$keyString = $value")
                 }
             }
             append("\n$indent}")

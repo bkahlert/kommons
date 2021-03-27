@@ -76,7 +76,7 @@ object CarBuilder : BuilderTemplate<CarContext, Car>() {
 fun car(init: Init<CarContext>): Car = CarBuilder(init)
 
 val exclusiveCar = car {
-    name = "Koodies Car"
+    name = "Exclusive Car"
     color(198, 82, 89)
     engine {
         power { 145.kW }
@@ -87,7 +87,7 @@ val exclusiveCar = car {
 }
 
 val defaultCarWithCopiedMotor = car {
-    name = "Default Car"
+    name = "Average Car"
     engine using exclusiveCar.engine
 }
 
@@ -96,8 +96,8 @@ println(defaultCarWithCopiedMotor)
 ```
 
 ```text
-Car(name=Koodies Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm])
-Car(name=Default Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
+Car(name=Exclusive Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm])
+Car(name=Average Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
 ```
 
 ##### CarBuilder Parts *uses [DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
@@ -465,7 +465,6 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
    ╭───────────────────────────────────────────────────╮ 
    │                                                   │ 
    │        Done. All tests passed within 1.20s        │ 
-   │  All test containers running in CONCURRENT mode.  │ 
    │                                                   │ 
    ╰───────────────────────────────────────────────────╯ 
   ```

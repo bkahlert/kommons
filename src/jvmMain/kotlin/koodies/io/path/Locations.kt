@@ -18,7 +18,9 @@ public object Locations {
      * Resolves [glob] using the system's `ls` command line tool.
      */
     public fun Path.ls(glob: String): List<Path> =
-        kotlin.runCatching { script(noopProcessor()) { !"ls $glob" }.output().lines().map { resolve(it) } }.getOrDefault(emptyList())
+        kotlin.runCatching {
+            script(noopProcessor()) { !"ls $glob" }.output().lines().map { resolve(it) }
+        }.getOrDefault(emptyList())
 
     /**
      * Working directory, that is, the directory in which this binary can be found.

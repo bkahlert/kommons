@@ -1,29 +1,79 @@
 package koodies.logging
 
+import koodies.asString
+import koodies.collections.synchronizedListOf
+import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.terminal.AnsiFormats.bold
 import koodies.text.GraphemeCluster
-import kotlin.properties.Delegates.vetoable
-import kotlin.reflect.KProperty
+import koodies.text.Semantics
+import koodies.text.Semantics.formattedAs
+import koodies.text.prefixLinesWith
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
-public abstract class MicroLogger(private val symbol: GraphemeCluster? = null) : RenderingLogger {
+public class MicroLogger(
+    private val symbol: GraphemeCluster? = null,
+    private val formatter: Formatter = { it },
+    parent: RenderingLogger? = null,
+    log: (String) -> Unit = { output: String -> print(output) },
+) : RenderingLogger(symbol?.toString() ?: "", parent, log) {
 
-    public var strings: List<String>? by vetoable(listOf(),
-        onChange = { _: KProperty<*>, oldValue: List<String>?, _: List<String>? -> oldValue != null })
+    private val messages: MutableList<CharSequence> = synchronizedListOf()
+    private val lock = ReentrantLock()
 
-    public abstract fun render(block: () -> CharSequence)
+    private var loggingResult: Boolean = false
 
-    override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
-        strings = strings?.plus("${block()}")
+    override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
+        when {
+            closed -> {
+                val prefix = caption.formattedAs.meta + " " + Semantics.Computation + " "
+                log { block().toString().prefixLinesWith(prefix) }
+            }
+            loggingResult -> {
+                val paddingAndMessages =
+                    messages.mapNotNull(formatter).joinToString(prefix = "(" + (symbol?.let { "$it " } ?: ""), separator = " ˃ ", postfix = " ˃ ${block()})")
+                log { caption.bold() + paddingAndMessages }
+            }
+            else -> {
+                messages.add(block())
+            }
+        }
+    }
+
+    override fun logText(block: () -> CharSequence) {
+        formatter(block())?.let { super.logText { it } }
+    }
+
+    override fun logLine(block: () -> CharSequence) {
+        formatter(block())?.let { super.logLine { it } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        strings = strings?.plus(block().lines().joinToString(", "))
-        if (items.isNotEmpty()) strings =
-            strings?.plus(items.renderStatus().lines().size.let { "($it)" })
+        formatter(block())?.lines()?.joinToString(", ")?.let { message ->
+            val status: String? = if (items.isNotEmpty()) formatter(items.renderStatus())?.lines()?.size.let { "(${it ?: 0})" } else null
+            status?.let { "$message $status" } ?: message
+        }?.also { render(true) { it } }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {
-        val returnValue = super.logResult(block)
-        render { strings?.joinToString(prefix = "(" + (symbol?.let { "$it " } ?: ""), separator = " ˃ ", postfix = ")") ?: "" }
-        return returnValue
+        val result = block()
+        val formattedResult = formatResult(result)
+        loggingResult = true
+        render(true) { formattedResult }
+        loggingResult = false
+        closed = true
+        return result.getOrThrow()
+    }
+
+    override fun logException(block: () -> Throwable) {
+        formatException(" ", block().toReturnValue()).also { render(true) { it } }
+    }
+
+    override fun toString(): String = asString {
+        ::parent to parent?.caption
+        ::caption to caption
+        ::messages to messages.map { it.removeEscapeSequences() }
+        ::loggingResult to loggingResult
+        ::closed to closed
     }
 }

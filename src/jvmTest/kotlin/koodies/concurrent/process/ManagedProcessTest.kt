@@ -1,5 +1,6 @@
 package koodies.concurrent.process
 
+import koodies.concurrent.output
 import koodies.concurrent.process
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.scriptPath
@@ -8,9 +9,11 @@ import koodies.exception.rootCause
 import koodies.exception.rootCauseMessage
 import koodies.io.path.Locations
 import koodies.io.path.asString
+import koodies.io.path.randomPath
 import koodies.shell.ShellScript
 import koodies.test.Slow
 import koodies.test.UniqueId
+import koodies.test.testEach
 import koodies.test.testWithTempDir
 import koodies.test.toStringContains
 import koodies.test.withTempDir
@@ -18,6 +21,7 @@ import koodies.text.Semantics.Document
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.styling.wrapWithBorder
+import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -37,15 +41,19 @@ import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.message
+import wait
 import java.nio.file.Path
 import java.util.concurrent.CompletionException
 import java.util.concurrent.ExecutionException
+import kotlin.io.path.exists
 import kotlin.time.Duration
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
@@ -55,44 +63,76 @@ import kotlin.time.seconds
 class ManagedProcessTest {
 
     @Nested
-    inner class Creation {
-        @Test
-        fun `should not start on its own`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectCatching {
-                createThrowingManagedProcess()
-                200.milliseconds.sleep()
-            }.isSuccess()
-        }
-    }
-
-
-    @Nested
     inner class Startup {
 
-        @Test
-        fun `should start if accessed directly`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = createCompletingManagedProcess()
-            expectThat(process).completed.exitValue.isEqualTo(0)
+        @Execution(CONCURRENT) @TestFactory
+        fun `should not start on its own`(uniqueId: UniqueId) = testEach<Pair<ManagedProcess.() -> Any?, Assertion.Builder<Any?>.() -> Unit>>(
+            Pair({}, { }),
+            Pair({ metaStream }, { isNotNull() }),
+            Pair({ started }, { isEqualTo(false) }),
+            Pair({ alive }, { isEqualTo(false) }),
+            Pair({ successful }, { isNull() }),
+            Pair({ addPreTerminationCallback { } }, { isNotNull() }),
+            Pair({ addPostTerminationCallback { } }, { isNotNull() }),
+            Pair({ toString() }, { isNotNull().toStringMatchesCurlyPattern("{}Process({})") }),
+        ) { (operation, assertion) ->
+            withTempDir(uniqueId) {
+                val (process, file) = createLazyFileCreatingProcess()
+                test { expectThat(process.operation()).assertion() }
+                test { expect { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) }.isFalse() }
+            }
         }
 
-        @Test
-        fun `should provide string on direct toString`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = createCompletingManagedProcess()
-            @Suppress("LongLine")
-            expectThat("$process")
-                .matchesCurlyPattern("ManagedJavaProcess[delegate=Process[pid={}, exitValue={}]; result={}; started=false; commandLine={}; expectedExitValue=0; processTerminationCallback={}; destroyOnShutdown={}]")
+        @TestFactory
+        fun `should start implicitly`(uniqueId: UniqueId) = testEach<Pair<ManagedProcess.() -> Any?, Assertion.Builder<Any?>.() -> Unit>>(
+            Pair({ pid }, { isA<Long>().isGreaterThan(0) }),
+            Pair({ inputStream }, { isNotNull() }),
+            Pair({ outputStream }, { isNotNull() }),
+            Pair({ errorStream }, { isNotNull() }),
+            Pair({ apply { runCatching { exitValue } } }, { isA<ManagedProcess>().completed.exitValue.isEqualTo(0) }),
+            Pair({ onExit.get() }, { isA<ManagedProcess>().completed.exitValue.isEqualTo(0) }),
+            Pair({ waitFor() }, { isEqualTo(0) }),
+            Pair({ waitForTermination() }, { isEqualTo(0) }),
+        ) { (operation, assertion) ->
+            withTempDir(uniqueId) {
+                val (process, file) = createLazyFileCreatingProcess()
+                test { expectThat(process.operation()).assertion() }
+                test { expectThat(poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds)).isTrue() }
+            }
+        }
+
+        @TestFactory
+        fun `should start explicitly`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val (process, file) = createLazyFileCreatingProcess()
+            expectCatching { process.start() }.isSuccess()
+            expectThat(poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds)).isTrue()
+        }
+
+        @TestFactory
+        fun `should start implicitly and process`(uniqueId: UniqueId) = testEach<ManagedProcess.() -> ManagedProcess>(
+            { also { output() } },
+            { processSilently().apply { 1.seconds.sleep() } },
+            { processSynchronously() },
+            { processAsynchronously().apply { 1.seconds.sleep() } },
+        ) { operation ->
+            withTempDir(uniqueId) {
+                val process = createCompletingManagedProcess()
+                test { expectThat(process.operation()).get { started }.isTrue() }
+                test { expectThat(process).completesWithIO() }
+                test { expectThat(poll { process.successful == true }.every(100.milliseconds).forAtMost(8.seconds)).isTrue() }
+            }
         }
 
         @Test
         fun `should be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = createCompletingManagedProcess(sleep = 5.seconds)
+            val process = createCompletingManagedProcess(sleep = 5.seconds).start()
             expectThat(process).alive
             process.kill()
         }
 
         @Test
         fun `should meta log documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = createCompletingManagedProcess()
+            val process = createCompletingManagedProcess().start()
             expectThat(process).log.logs {
                 any {
                     it.contains(Document)
@@ -111,8 +151,26 @@ class ManagedProcessTest {
         @Test
         fun `should provide IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createLoopingManagedProcess().processSilently()
-            expectThat(process).log.logs(IO.Type.OUT typed "test out", IO.Type.ERR typed "test err")
+            expectThat(process).log.logs(IO.OUT typed "test out", IO.ERR typed "test err")
             process.kill()
+        }
+    }
+
+    @Nested
+    inner class ToString {
+
+        private val shared = "commandLine={}, expectedExitValue=0, processTerminationCallback={}, destroyOnShutdown={}"
+
+        @Test
+        fun `should format initial process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val process = createCompletingManagedProcess()
+            expectThat("$process").matchesCurlyPattern("ManagedJavaProcess(delegate=not yet initialized, started=❌, $shared)")
+        }
+
+        @Test
+        fun `should format running process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val process = createCompletingManagedProcess().start()
+            expectThat("$process").matchesCurlyPattern("ManagedJavaProcess(delegate=Process(pid={}, exitValue={}), successful={}, started=✅, $shared)")
         }
     }
 
@@ -136,7 +194,7 @@ class ManagedProcessTest {
 
             kotlin.runCatching {
                 process.process({ async }) { io ->
-                    if (io.type != IO.Type.META && io.type != IO.Type.IN) {
+                    if (io !is IO.META && io !is IO.IN) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
                     }
@@ -148,10 +206,10 @@ class ManagedProcessTest {
                 process.waitForTermination()
                 expectThat(process) {
                     killed.log.get("logged %s") { logged }.contains(
-                        IO.Type.OUT typed "test out",
-                        IO.Type.ERR typed "test err",
-                        IO.Type.IN typed "just read ${IO.Type.OUT.format("test out")}",
-                        IO.Type.IN typed "just read ${IO.Type.ERR.format("test err")}",
+                        IO.OUT typed "test out",
+                        IO.ERR typed "test err",
+                        IO.IN typed "just read ${IO.OUT typed "test out"}",
+                        IO.IN typed "just read ${IO.ERR typed "test err"}",
                     )
                 }
             }.onFailure {
@@ -210,6 +268,33 @@ class ManagedProcessTest {
         }
 
         @Nested
+        inner class PreTerminationCallback {
+
+            @Test
+            fun `should be called`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                var callbackProcess: ManagedProcess? = null
+                expect {
+                    that(createCompletingManagedProcess().addPreTerminationCallback {
+                        callbackProcess = this
+                    }).completesSuccessfully()
+                    100.milliseconds.sleep()
+                    expectThat(callbackProcess).isNotNull()
+                }
+            }
+
+            @Test
+            fun `should be propagate exceptions`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                expectThat(createCompletingManagedProcess().addPreTerminationCallback {
+                    throw RuntimeException("test")
+                }.onExit).wait().isFailure()
+                    .isA<ExecutionException>()
+                    .rootCauseMessage
+                    .isNotNull()
+                    .isEqualTo("test")
+            }
+        }
+
+        @Nested
         inner class OfSuccessfulProcess {
 
             @Test
@@ -228,6 +313,18 @@ class ManagedProcessTest {
                     })).completesSuccessfully()
                     100.milliseconds.sleep()
                     expectThat(callbackCalled).isTrue()
+                }
+            }
+
+            @Test
+            fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                var callbackProcess: ManagedProcess? = null
+                expect {
+                    that(createCompletingManagedProcess(exitValue = 0).addPostTerminationCallback { _ ->
+                        callbackProcess = this
+                    }).completesSuccessfully()
+                    100.milliseconds.sleep()
+                    expectThat(callbackProcess).isNotNull()
                 }
             }
         }
@@ -267,7 +364,7 @@ class ManagedProcessTest {
             @Test
             fun `should throw on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
-                expectCatching { process.onExit.get() }.isFailure()
+                expectThat(process.onExit).wait().isFailure()
                     .isA<ExecutionException>()
                     .rootCauseMessage
                     .isNotNull()
@@ -280,8 +377,23 @@ class ManagedProcessTest {
                 var callbackCalled = false
                 val process = createCompletingManagedProcess(42, processTerminationCallback = { callbackCalled = true })
                 expect {
-                    catching { process.onExit.get() }.isFailure()
+                    expectThat(process.onExit).wait().isFailure()
                     expectThat(callbackCalled).isTrue()
+                }
+            }
+
+            @Test
+            fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                var callbackEx: Any? = null
+                val process = createCompletingManagedProcess(42).addPostTerminationCallback { ex -> callbackEx = ex }
+                expect {
+                    expectThat(process.onExit).wait().isFailure()
+                    that(callbackEx).isNotNull()
+                        .isA<ProcessExecutionException>()
+                        .rootCauseMessage
+                        .isNotNull()
+                        .get { lines() }
+                        .first().matchesCurlyPattern("Process {} terminated with exit code 42. Expected 0.")
                 }
             }
         }
@@ -294,22 +406,22 @@ class ManagedProcessTest {
 
                 @Test
                 fun `should occur on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
+                    expectThat(createThrowingManagedProcess().processSilently().onExit).wait().isFailure().and {
                         message.isNotNull()
                     }
                 }
 
                 @Test
                 fun `should contain dump in message`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
+                    expectThat(createThrowingManagedProcess().processSilently().onExit).wait().isFailure().and {
                         get { toString() }.containsDump()
                     }
                 }
 
                 @Test
                 fun `should have proper root cause`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                    expectCatching { createThrowingManagedProcess().processSilently().onExit.get() }.isFailure().and {
-                        rootCause.isA<RuntimeException>().message.toStringContains("error occurred while processing")
+                    expectThat(createThrowingManagedProcess().processSilently().onExit).wait().isFailure().and {
+                        rootCause.isA<ProcessExecutionException>().message.toStringContains("terminated with exit code 0. Expected 123.")
                     }
                 }
             }
@@ -318,7 +430,7 @@ class ManagedProcessTest {
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createThrowingManagedProcess().processSilently()
                 expect {
-                    catching { process.onExit.get() }.isFailure()
+                    that(process.onExit).wait().isFailure()
                     that(process).io.containsDump()
                 }
             }
@@ -328,8 +440,20 @@ class ManagedProcessTest {
                 var callbackCalled = false
                 val process = createThrowingManagedProcess(processTerminationCallback = { callbackCalled = true }).processSilently()
                 expect {
-                    catching { process.onExit.get() }.isFailure()
+                    that(process.onExit).wait().isFailure()
                     that(callbackCalled).isTrue()
+                }
+            }
+
+            @Test
+            fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                var callbackEx: Any? = null
+                val process = createThrowingManagedProcess().addPostTerminationCallback { ex -> callbackEx = ex }.processSilently()
+                expect {
+                    that(process.onExit).wait().isFailure()
+                    that(callbackEx).isNotNull()
+                        .isA<ProcessExecutionException>()
+                        .rootCause.isA<ProcessExecutionException>().message.toStringContains("terminated with exit code 0. Expected 123.")
                 }
             }
         }
@@ -396,8 +520,12 @@ fun Path.createCompletingManagedProcess(
 ): ManagedProcess = process(
     expectedExitValue = expectedExitValue,
     processTerminationCallback = processTerminationCallback,
-    shellScript = createCompletingScript(exitValue, sleep)).also {
-    it.alive // call something to trigger execution
+    shellScript = createCompletingScript(exitValue, sleep))
+
+fun Path.createLazyFileCreatingProcess(): Pair<ManagedProcess, Path> {
+    val nonExistingFile = randomPath(extension = ".txt")
+    val fileCreatingCommandLine = CommandLine(emptyMap(), this, "touch", nonExistingFile.asString())
+    return fileCreatingCommandLine.toManagedProcess() to nonExistingFile
 }
 
 
@@ -405,6 +533,8 @@ val <T : ManagedProcess> Assertion.Builder<T>.alive: Assertion.Builder<T>
     get() = assert("is alive") { if (it.alive) pass() else fail("is not alive: ${it.ioLog.dump()}") }
 
 val <T : ManagedProcess> Assertion.Builder<T>.log get() = get("log %s") { ioLog }
+
+private fun Assertion.Builder<ManagedProcess>.completesWithIO() = log.logs(IO.OUT typed "test out", IO.ERR typed "test err")
 
 val <T : ManagedProcess> Assertion.Builder<T>.io
     get() = get("merged log") {

@@ -48,9 +48,18 @@ public enum class TruncationStrategy(private val implementation: (CharSequence).
         "${subSequence(0, maxLength - marker.length)}$marker"
     });
 
+    public fun truncate(text: String, maxLength: Int, marker: String = "…"): String =
+        if (text.length > maxLength) implementation(text, maxLength, marker).toString() else text
+
     public fun truncate(text: CharSequence, maxLength: Int, marker: String = "…"): CharSequence =
         if (text.length > maxLength) implementation(text, maxLength, marker) else text
 }
+
+/**
+ * Returns the [String] truncated to [maxLength] characters including the [marker].
+ */
+public fun String.truncate(maxLength: Int = 15, strategy: TruncationStrategy = TruncationStrategy.END, marker: String = "…"): String =
+    strategy.truncate(this, maxLength, marker)
 
 /**
  * Returns the [String] truncated to [maxLength] characters including the [marker].

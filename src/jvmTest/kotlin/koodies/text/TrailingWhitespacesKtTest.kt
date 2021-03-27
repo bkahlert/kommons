@@ -17,7 +17,7 @@ class TrailingWhitespacesKtTest {
 
     @Test
     fun `should find untypical whitespaces`() {
-        expectThat(Unicode.whitespaces.joinToString("").trailingWhitespaces).hasLength(20)
+        expectThat(Unicode.whitespaces.joinToString("").trailingWhitespaces).hasLength(17)
     }
 
     @Test

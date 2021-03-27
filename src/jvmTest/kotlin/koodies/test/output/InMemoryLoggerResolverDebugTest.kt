@@ -1,6 +1,6 @@
 package koodies.test.output
 
-import koodies.concurrent.process.IO.Type.OUT
+import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
@@ -27,7 +27,7 @@ class InMemoryLoggerResolverDebugTest {
         @Debug(includeInReport = false)
         @Test
         fun InMemoryLogger.`should log to console automatically with @Debug`(output: CapturedOutput) {
-            logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+            logStatus { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
 
             expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
             expectThat(output.removeEscapeSequences()).contains("☎Σ⊂⊂(☉ω☉∩)")
@@ -41,7 +41,7 @@ class InMemoryLoggerResolverDebugTest {
         @Debug(includeInReport = false)
         @Test
         fun InMemoryLogger.`should log to console automatically with @Debug`(output: CapturedOutput) {
-            logStatus { OUT typed "(*｀へ´*)" }
+            logStatus { IO.OUT typed "(*｀へ´*)" }
 
             expectCatching { logResult { Result.failure<Any>(IllegalStateException("test")) } }
                 .isFailure().isA<IllegalStateException>()

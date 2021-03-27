@@ -9,7 +9,6 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.process
 import koodies.concurrent.process.toProcessor
 import koodies.io.path.Locations
-import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
@@ -61,8 +60,7 @@ public fun Path.script(
     processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
 ): ManagedProcess {
-    val scriptFile = shellScript.sanitize(this).buildTo(scriptPath())
-    val commandLine = CommandLine(environment, this, scriptFile.asString())
+    val commandLine = shellScript.toCommandLine(this, environment)
     return process(commandLine, expectedExitValue, processTerminationCallback).process({ sync }, processor)
 }
 

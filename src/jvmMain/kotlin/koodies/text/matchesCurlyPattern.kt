@@ -25,14 +25,14 @@ private object Samples {
         """
         Executing [sh, -c, >&1 echo "test output"
         >&2 echo "test error"] in /Users/bkahlert/Development/com.imgcstmzr.
-        Started Process[pid=72692, exitValue=0]
-        Process[pid=72692, exitValue=0] stopped with exit code 0
+        Started Process(pid=72692, exitValue=0)
+        Process(pid=72692, exitValue=0) stopped with exit code 0
         """.trimIndent()
             .matchesCurlyPattern(
                 """
                 Executing [sh, -c, >&1 echo "test output"
                 >&2 echo "test error"] in {}
-                Started Process[pid={}, exitValue={}]
-                Process[pid={}, exitValue={}] stopped with exit code {}
+                Started Process(pid={}, exitValue={})
+                Process(pid={}, exitValue={}) stopped with exit code {}
                 """.trimIndent())
 }

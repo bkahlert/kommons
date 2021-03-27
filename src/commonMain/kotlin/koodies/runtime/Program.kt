@@ -6,29 +6,6 @@ package koodies.runtime
 public typealias OnExitHandler = () -> Unit
 
 /**
- * Useful information and functions concerning this program.
- */
-public expect object Program {
-
-    /**
-     * Whether this program is running in debug mode.
-     */
-    public val isDebugging: Boolean
-
-    /**
-     * Registers [handler] as to be called when this program is about to stop.
-     */
-    public fun <T : OnExitHandler> onExit(handler: T): T
-
-    /**
-     * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
-     */
-    public val ansiSupport: AnsiSupport
-}
-
-public val x: String = "dsds"
-
-/**
  * Support level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
  */
 public enum class AnsiSupport {
@@ -51,4 +28,30 @@ public enum class AnsiSupport {
      * Denotes support for [24-Bit ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit).
      */
     ANSI24
+}
+
+/**
+ * Useful information and functions concerning this program.
+ */
+public expect object Program {
+
+    /**
+     * Whether this program is running an integrated development environment.
+     */
+    public val isDeveloping: Boolean
+
+    /**
+     * Whether this program is running in debug mode.
+     */
+    public val isDebugging: Boolean
+
+    /**
+     * Registers [handler] as to be called when this program is about to stop.
+     */
+    public fun <T : OnExitHandler> onExit(handler: T): T
+
+    /**
+     * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
+     */
+    public val ansiSupport: AnsiSupport
 }

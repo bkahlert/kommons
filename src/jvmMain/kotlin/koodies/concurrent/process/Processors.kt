@@ -1,6 +1,5 @@
 package koodies.concurrent.process
 
-import koodies.Exceptions
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.completableFuture
@@ -18,14 +17,13 @@ import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
+import koodies.runtime.Program
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
@@ -46,11 +44,11 @@ public object Processors {
      * A [Processor] that prints the encountered [IO] using the specified [logger].
      */
     public fun <P : Process> loggingProcessor(logger: RenderingLogger): Processor<P> = { io ->
-        when (io.type) {
-            IO.Type.META -> logger.logLine { io }
-            IO.Type.IN -> logger.logLine { io }
-            IO.Type.OUT -> logger.logLine { io }
-            IO.Type.ERR -> logger.logLine { io.formatted }
+        when (io) {
+            is IO.META -> logger.logLine { io }
+            is IO.IN -> logger.logLine { io }
+            is IO.OUT -> logger.logLine { io }
+            is IO.ERR -> logger.logLine { io.formatted }
         }
     }
 
@@ -65,6 +63,7 @@ public object Processors {
             override fun invoke(process: P, io: IO) {
                 this.process = process
                 loggingProcessor.invoke(process, io)
+                if (io is IO.META.TERMINATED) logger.logResult { Result.success(process) }
             }
         }
     }
@@ -163,13 +162,11 @@ public fun <P : ManagedProcess> P.process(
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <P : ManagedProcess> P.processAsynchronously(
-    interactivity: Interactivity,
+    interactivity: Interactivity = NonInteractive(null),
     processor: Processor<P> = noopProcessor(),
 ): P = apply {
 
-    inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
-        processor(this, line.type typed line.trim())
-    }
+    metaStream.subscribe { processor(this, it) }
 
     val (processInputStream: InputStream?, nonBlockingReader) = when (interactivity) {
         is Interactive -> InputStream.nullInputStream() to interactivity.nonBlocking
@@ -188,6 +185,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
                     bytes = it.read(buffer)
                 }
             }
+            inputStream.close()
         }.exceptionallyThrow("stdin")
     } else {
         null
@@ -195,17 +193,24 @@ public fun <P : ManagedProcess> P.processAsynchronously(
 
     val outputConsumer = ioProcessingThreadPool.completableFuture {
         outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
-            processor(this, IO.Type.OUT typed line)
+            processor(this, IO.OUT typed line)
         }
     }.exceptionallyThrow("stdout")
 
     val errorConsumer = ioProcessingThreadPool.completableFuture {
         errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
-            processor(this, IO.Type.ERR typed line)
+            processor(this, IO.ERR typed line)
         }
     }.exceptionallyThrow("stderr")
 
-    externalSync = CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).thenApply { this }
+    addPreTerminationCallback {
+        CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).join()
+    }
+
+    ioProcessingThreadPool.completableFuture {
+        kotlin.runCatching { onExit.join() }
+            .onFailure { if (Program.isDebugging) throw it }
+    }
 }
 
 /**
@@ -217,48 +222,27 @@ public fun <P : ManagedProcess> P.processAsynchronously(
  * all [IO] to the console.
  */
 public fun <P : ManagedProcess> P.processSynchronously(
-    interactivity: Interactivity,
+    interactivity: Interactivity = NonInteractive(null),
     processor: Processor<P> = consoleLoggingProcessor(),
 ): P {
 
-    if (interactivity is Interactive && !interactivity.nonBlocking) {
-        // TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
-        throw Exceptions.ISE("Non-blocking synchronous processing is not yet supported.")
-    }
+    val nonBlocking = interactivity is Interactive && interactivity.nonBlocking
+//    if (nonBlocking) throw Exceptions.ISE("Non-blocking synchronous processing is not yet supported.")
 
-    if (interactivity is NonInteractive && interactivity.processInputStream != null) {
-        throw Exceptions.ISE("Input stream provided synchronous processing is not yet supported.")
-    }
-
-    val metaAndInputIO = mutableListOf<IO>()
-    val metaAndInputIOLock = ReentrantLock()
-
-    inputCallback = { line -> // not guaranteed to be a line -> TODO buffer until it is one
-        metaAndInputIOLock.withLock { metaAndInputIO.add(line) }
-    }
+    metaStream.subscribe { processor(this, it) }
 
     val readers = listOf(
-        NonBlockingLineReader(outputStream) { line -> processor(this, IO.Type.OUT typed line) },
-        NonBlockingLineReader(errorStream) { line -> processor(this, IO.Type.ERR typed line) },
+        NonBlockingLineReader(outputStream) { line -> processor(this, IO.OUT typed line) },
+        NonBlockingLineReader(errorStream) { line -> processor(this, IO.ERR typed line) },
     )
 
-    // hacky since that code assumes there is meta logging, IO and finally some meta
-    // (which is true at the time of writing); otherwise the termination confirmation might slip in between
-    metaAndInputIOLock.withLock {
-        while (metaAndInputIO.isNotEmpty()) { // coming from 👆
-            val line = metaAndInputIO.removeFirst()
-            processor(this, line.type typed line.trim())
-        }
+    if (interactivity is NonInteractive && interactivity.processInputStream != null) {
+        interactivity.processInputStream.copyTo(inputStream)
+        inputStream.close()
     }
     while (readers.any { !it.done }) {
         readers.filter { !it.done }.forEach { ioReader ->
             ioReader.read()
-        }
-    }
-    metaAndInputIOLock.withLock {
-        while (metaAndInputIO.isNotEmpty()) {  // coming from 👆
-            val line = metaAndInputIO.removeFirst()
-            processor(this, line.type typed line.trim())
         }
     }
 
@@ -272,6 +256,10 @@ private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
     else JlineInputStreamReader(this)
 
 private fun CompletableFuture<*>.exceptionallyThrow(type: String): CompletableFuture<out Any?> = handle { value, exception ->
-    if ((exception?.cause is IOException) && exception?.cause?.message?.contains("stream closed", ignoreCase = true) == true) value
-    else throw RuntimeException("An error occurred while processing ［$type］.", exception)
+    if (exception != null) {
+        if ((exception.cause is IOException) && exception.cause?.message?.contains("stream closed", ignoreCase = true) == true) value
+        else throw RuntimeException("An error occurred while processing ［$type］.", exception)
+    } else {
+        value
+    }
 }

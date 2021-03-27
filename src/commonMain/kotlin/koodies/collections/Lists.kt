@@ -4,10 +4,13 @@ import koodies.number.mod
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-public val <T> List<T>.head: T
+public val <T> Iterable<T>.head: T
     get() = first()
 
-public val <T> List<T>.tail: List<T>
+public val <T> Iterable<T>.headOrNull: T?
+    get() = firstOrNull()
+
+public val <T> Iterable<T>.tail: List<T>
     get() = drop(1)
 
 

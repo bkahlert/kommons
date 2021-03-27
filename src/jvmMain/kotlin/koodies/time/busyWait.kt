@@ -1,5 +1,6 @@
 package koodies.time
 
+import koodies.runtime.JVM
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 
@@ -11,7 +12,7 @@ public fun Duration.busyWait(sleepIntervals: Duration = 50.milliseconds) {
             sleepIntervals.sleep()
         } catch (e: InterruptedException) {
             if (passedSince(start)) {
-                Thread.currentThread().interrupt()
+                JVM.currentThread.interrupt()
                 break
             }
         }

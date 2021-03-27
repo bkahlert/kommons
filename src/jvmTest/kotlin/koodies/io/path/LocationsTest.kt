@@ -27,6 +27,7 @@ class LocationsTest {
 
     @Nested
     inner class Ls {
+
         @Test
         fun `should list matching files`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             listOf(resolve("a.html"), resolve("b/c.html"), resolve("b/d.html")).map { HtmlFile.copyTo(it) }

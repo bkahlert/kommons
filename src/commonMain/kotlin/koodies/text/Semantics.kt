@@ -1,19 +1,25 @@
 package koodies.text
 
+import koodies.text.ANSI.Colors.blue
 import koodies.text.ANSI.Colors.brightCyan
 import koodies.text.ANSI.Colors.brightYellow
 import koodies.text.ANSI.Colors.cyan
 import koodies.text.ANSI.Colors.gray
 import koodies.text.ANSI.Colors.green
 import koodies.text.ANSI.Colors.red
+import koodies.text.ANSI.Style.bold
+import koodies.text.ANSI.Style.italic
 
 public object Semantics {
 
     public val OK: String = Unicode.Emojis.heavyCheckMark.textVariant.formattedAs.success
+    public val Computation: String = Unicode.Emojis.hourglass.emojiVariant.formattedAs.progress
     public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
-    public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.toString()
+    public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
 
     public val Document: String = Unicode.Emojis.pageFacingUp.toString()
+
+    public val Null: String = "␀".bold()
 
     /**
      * Semantic formatter which binds to the specified [text].
@@ -23,6 +29,11 @@ public object Semantics {
          * Formats `this` [text] as expressing something successful.
          */
         public val success: String get() = text.green()
+
+        /**
+         * Formats `this` [text] as expressing something ongoing.
+         */
+        public val progress: String get() = text.blue()
 
         /**
          * Formats `this` [text] as expressing a warning.
@@ -52,8 +63,8 @@ public object Semantics {
         /**
          * Formats `this` [text] as expressing a meta information.
          */
-        public val meta: String get() = text.gray()
+        public val meta: String get() = text.gray().italic()
     }
 
-    public val CharSequence.formattedAs: SemanticText get() = SemanticText(toString())
+    public val <T> T.formattedAs: SemanticText get() = SemanticText(toString())
 }

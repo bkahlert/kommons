@@ -7,6 +7,7 @@ import koodies.io.path.asPath
 import koodies.io.path.readLine
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
+import koodies.runtime.JVM
 import koodies.runtime.deleteOnExit
 import koodies.terminal.AnsiColors.red
 import koodies.test.DynamicTestsBuilder.ExpectationBuilder
@@ -15,6 +16,7 @@ import koodies.test.TestLabeler.property
 import koodies.test.TestLabeler.subject
 import koodies.text.TruncationStrategy
 import koodies.text.truncate
+import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
@@ -135,7 +137,7 @@ object TestLabeler {
      * Finds the calling class and method name of any member
      * function of this [TestLabeler].
      */
-    private fun findCaller() = Thread.currentThread().stackTrace
+    private fun findCaller() = JVM.currentThread.stackTrace
         .dropWhile { it.className != enclosingClassName }
         .dropWhile { it.className == enclosingClassName }
         .first().let { it.className to it.methodName }
@@ -225,6 +227,18 @@ inline fun <reified T> Array<T>.testEach(
     noinline init: DynamicTestsBuilder<T>.(T) -> Unit,
 ): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
 
+/**
+ * Creates one [DynamicContainer] for each instance of the specified [subjects]
+ * using the specified [DynamicTestsBuilder] based [init].
+ *
+ * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
+ * which supports curly placeholders `{}` like [SLF4J] does.
+ */
+@DynamicTestsDsl
+inline fun <reified K, reified V> Map<K, V>.testEach(
+    containerNamePattern: String? = null,
+    noinline init: DynamicTestsBuilder<Pair<K, V>>.(Pair<K, V>) -> Unit,
+): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
 
 @DynamicTestsDsl
 fun <T> DynamicTestsBuilder.PropertyTestBuilder<T?>.notNull(block: DynamicTestsBuilder<T>.(T) -> Unit) =
@@ -403,7 +417,7 @@ interface DynamicTestsBuilder<T> {
  * @throws IllegalStateException if called from outside of a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir = root.resolve(uniqueId.simple).createDirectories()
+    val tempDir = root.resolve(uniqueId.simple.withRandomSuffix()).createDirectories()
     tempDir.block()
     check(root.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".red())

@@ -1,10 +1,9 @@
 package koodies.process
 
 import koodies.concurrent.process.DelegatingProcess
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.Type.META
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.MetaStream
 import koodies.concurrent.process.Process
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
@@ -16,6 +15,7 @@ import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiColors.yellow
 import koodies.text.GraphemeCluster
+import koodies.text.takeUnlessEmpty
 import koodies.time.Now
 import koodies.time.sleep
 import koodies.tracing.MiniTracer
@@ -25,17 +25,21 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
+import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 import java.lang.Process as JavaProcess
 
 public open class JavaProcessMock(
+    public var logger: RenderingLogger,
     private var outputStream: OutputStream = ByteArrayOutputStream(),
     private val inputStream: InputStream = InputStream.nullInputStream(),
     private val processExit: JavaProcessMock.() -> ProcessExitMock,
-    public var logger: RenderingLogger,
 ) : JavaProcess() {
+
+    private val pid: Long = Random.nextLong()
+    override fun pid(): Long = pid
 
     private val completeOutputSequence = ByteArrayOutputStream()
     private val unprocessedOutputSequence = outputStream
@@ -51,7 +55,7 @@ public open class JavaProcessMock(
             outputStream: OutputStream = ByteArrayOutputStream(),
             inputStream: InputStream = InputStream.nullInputStream(),
             processExit: JavaProcessMock.() -> ProcessExitMock,
-        ): JavaProcessMock = JavaProcessMock(outputStream, inputStream, processExit, this)
+        ): JavaProcessMock = JavaProcessMock(this, outputStream, inputStream, processExit)
 
         public fun InMemoryLogger.withSlowInput(
             vararg inputs: String,
@@ -128,7 +132,7 @@ public open class JavaProcessMock(
     public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
 }
 
-public class ManagedProcessMock(public val processMock: JavaProcessMock, public val name: String?) : DelegatingProcess({ processMock }), ManagedProcess {
+public class ManagedProcessMock(public val processMock: JavaProcessMock, public val name: String? = null) : DelegatingProcess({ processMock }), ManagedProcess {
 
     public var logger: RenderingLogger = processMock.logger
 
@@ -138,41 +142,33 @@ public class ManagedProcessMock(public val processMock: JavaProcessMock, public 
     }
 
     override val ioLog: IOLog by lazy { IOLog() }
-    override val metaStream: OutputStream by lazy {
-        TeeOutputStream(
-            RedirectingOutputStream {
-                // ugly hack; META logs are just there and the processor is just notified;
-                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
-                // therefore we delay here
-                1.milliseconds.sleep { ioLog.add(META, it) }
-            },
-            RedirectingOutputStream { inputCallback(META typed it.decodeToString()) },
-        )
-    }
+    override val metaStream: MetaStream = MetaStream()
     override val inputStream: OutputStream by lazy {
         TeeOutputStream(
             RedirectingOutputStream {
                 // ugly hack; IN logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
                 // therefore we delay here
-                1.milliseconds.sleep { ioLog.add(IO.Type.IN, it) }
+                1.milliseconds.sleep { ioLog.input + it }
             },
             javaProcess.outputStream,
-            RedirectingOutputStream { inputCallback(IO.Type.IN typed it.decodeToString()) },
         )
     }
-    override var inputCallback: (IO) -> Unit = {}
-    override var externalSync: CompletableFuture<Process> = CompletableFuture.completedFuture(this)
-    override var onExit: CompletableFuture<Process>
-        get() = externalSync.thenCombine(javaProcess.onExit()) { _, _ -> this }
-        set(value) {
-            externalSync = value
-        }
 
-    override val preparedToString: StringBuilder
-        get() = super.preparedToString.apply {
-            name?.also { append("; name=$it") }
-        }
+    public override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess {
+        TODO("Not yet implemented")
+    }
+
+    public override fun addPostTerminationCallback(callback: ManagedProcess.(Throwable?) -> Unit): ManagedProcess {
+        TODO("Not yet implemented")
+    }
+
+    override val successful: Boolean? get() = kotlin.runCatching { exitValue }.fold({ true }, { null })
+    override val onExit: CompletableFuture<Process> get() = javaProcess.onExit().thenApply { this }
+
+    override fun toString(): String =
+        if (name != null) super.toString().substringBeforeLast(")") + ", name=$name)"
+        else super.toString()
 }
 
 
@@ -229,7 +225,7 @@ public class SlowInputStream(
     private val inputs = mutableListOf<String>()
     public fun processInput(logger: MiniTracer): Boolean = logger.microTrace(GraphemeCluster("✏️")) {
         byteArrayOutputStream?.apply {
-            toString(Charsets.UTF_8).takeUnless { it.isEmpty() }?.let { newInput ->
+            toString(Charsets.UTF_8).takeUnlessEmpty()?.let { newInput ->
                 inputs.add(newInput)
                 trace("new input added; buffer is $inputs")
                 reset()

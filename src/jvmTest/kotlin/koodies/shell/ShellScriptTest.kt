@@ -14,7 +14,7 @@ import koodies.shell.HereDocBuilder.hereDoc
 import koodies.terminal.AnsiCode.Companion.ESC
 import koodies.test.Smoke
 import koodies.test.UniqueId
-import koodies.test.toStringIsEqualTo
+import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.Semantics.Document
 import koodies.text.joinLinesToString
@@ -322,7 +322,7 @@ class ShellScriptTest {
         @Test
         fun `should have an optional name`() {
             val sh = ShellScript("test") { !"exit 0" }
-            expectThat(sh).toStringIsEqualTo("Script(name=test;content=echo \"$testBanner\";exit 0})")
+            expectThat(sh).toStringContains("Script(name=test")
         }
 
         @Test

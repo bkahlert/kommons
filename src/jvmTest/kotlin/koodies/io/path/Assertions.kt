@@ -103,6 +103,11 @@ fun <T : Path> Assertion.Builder<T>.hasContent(expectedContent: String) =
         }
     }
 
+val <T : Path> Assertion.Builder<T>.text: Assertion.Builder<String>
+    get() = get("get text") { readText() }
+
+val <T : Path> Assertion.Builder<T>.bytes: Assertion.Builder<ByteArray>
+    get() = get("get bytes") { readBytes() }
 
 fun <T : Path> Assertion.Builder<T>.hasEqualContent(other: Path) =
     assert("has equal content as \"$other\"") {

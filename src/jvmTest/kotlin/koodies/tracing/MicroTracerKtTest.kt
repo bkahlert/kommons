@@ -27,6 +27,8 @@ class MicroTracerKtTest {
             ╭──╴{}
             │   
             │   segment @ (🤠 a ˃  ˃ b c) @ {}
+            │
+            ╰──╴✔︎
         """.trimIndent())
     }
 }

@@ -50,6 +50,11 @@ public open class BuilderFixture<T : Function<*>, R>(public val builder: Builder
         }.encodeToByteArray()
     }
 
+    init {
+        val actual = builder(init)
+        require(actual == result) { "Building $init with $this did return\n$actual\nbut the following was expected:\n$result" }
+    }
+
     public companion object {
         public inline infix fun <reified T : Function<*>, reified R> Builder<T, R>.fixture(initToResult: Pair<T, R>): BuilderFixture<T, R> {
             val init = initToResult.first

@@ -1,9 +1,9 @@
 package koodies.test.junit
 
-import koodies.concurrent.synchronized
-import koodies.time.poll
 import koodies.collections.maxOrThrow
 import koodies.collections.minOrThrow
+import koodies.collections.synchronizedMapOf
+import koodies.time.poll
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -21,8 +21,8 @@ class ConcurrentTest {
 
     private enum class Tests { TEST1, TEST2, TEST3 }
 
-    private val starts = mutableMapOf<Tests, Long>().synchronized()
-    private val ends = mutableMapOf<Tests, Long>().synchronized()
+    private val starts = synchronizedMapOf<Tests, Long>()
+    private val ends = synchronizedMapOf<Tests, Long>()
 
     @TestFactory
     fun `should run concurrent tests`() = Tests.values().map { test ->

@@ -1,27 +1,32 @@
 package koodies.logging
 
 import koodies.concurrent.Status
-import koodies.concurrent.process.IO.Type.ERR
-import koodies.concurrent.process.IO.Type.META
-import koodies.concurrent.process.IO.Type.OUT
-import koodies.io.path.containsAtMost
+import koodies.concurrent.process.IO.ERR
+import koodies.concurrent.process.IO.META
+import koodies.concurrent.process.IO.OUT
+import koodies.io.ByteArrayOutputStream
 import koodies.io.path.containsExactly
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
+import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
+import koodies.runtime.Program
+import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.red
-import koodies.terminal.removeEscapeSequences
+import koodies.terminal.escapeSequencesRemoved
 import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.test.withTempDir
+import koodies.text.LineSeparators
 import koodies.text.Semantics
 import koodies.text.matchesCurlyPattern
+import koodies.text.toStringMatchesCurlyPattern
 import koodies.text.wrap
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expect
 import strikt.api.expectThat
@@ -35,7 +40,7 @@ import java.net.URI
 import kotlin.io.path.extension
 import kotlin.io.path.readLines
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class RenderingLoggerKtTest {
 
     @Test
@@ -44,23 +49,21 @@ class RenderingLoggerKtTest {
         logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
         logResult { Result.success(Unit) }
 
-        expectThat(logged).matchesCurlyPattern(
-            """
-                    ╭──╴{}
-                    │{}
-                    │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │{}
+            │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
+            │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
+            │{}
+            ╰──╴✔︎{}
+        """.trimIndent())
     }
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log nested`() {
         logStatus { OUT typed "outer 1" }
         logStatus { OUT typed "outer 2" }
-        logging("nested log", null) {
+        logging("nested log") {
             logStatus { OUT typed "nested 1" }
             logStatus { OUT typed "nested 2" }
             logStatus { OUT typed "nested 3" }
@@ -69,28 +72,25 @@ class RenderingLoggerKtTest {
         logStatus { OUT typed "outer 4" }
         logResult { Result.success("end") }
 
-        expectThat(logged).matchesCurlyPattern(
-            """
-                    ╭──╴{}
-                    │{}
-                    │   outer 1                                               {}                                      ▮▮
-                    │   outer 2                                               {}                                      ▮▮
-                    │   ╭──╴nested log
-                    │   │{}
-                    │   │   nested 1                                          {}                                      ▮▮
-                    │   │   nested 2                                          {}                                      ▮▮
-                    │   │   nested 3                                          {}                                      ▮▮
-                    │   │{}
-                    │   ╰──╴✔︎{}
-                    │   outer 3                                               {}                                      ▮▮
-                    │   outer 4                                               {}                                      ▮▮
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │{}
+            │   outer 1                                               {}                                      ▮▮
+            │   outer 2                                               {}                                      ▮▮
+            │   ╭──╴nested log
+            │   │{}
+            │   │   nested 1                                          {}                                      ▮▮
+            │   │   nested 2                                          {}                                      ▮▮
+            │   │   nested 3                                          {}                                      ▮▮
+            │   │{}
+            │   ╰──╴✔︎{}
+            │   outer 3                                               {}                                      ▮▮
+            │   outer 4                                               {}                                      ▮▮
+            │{}
+            ╰──╴✔︎{}
+        """.trimIndent())
     }
 
-    @Execution(SAME_THREAD)
     @TestFactory
     fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = listOf(
         true to """
@@ -166,55 +166,51 @@ class RenderingLoggerKtTest {
             logStatus { OUT typed "outer 4" }
             logResult { Result.success(Unit) }
 
-            expect { logged }.that { matchesCurlyPattern(expectation) }
+            expect { second }.that { matchesCurlyPattern(expectation) }
         }
     }
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log status`() {
         logStatus(listOf(StringStatus("getting phone call"))) { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logResult { Result.success(Unit) }
 
-        expectThat(logged).matchesCurlyPattern(
-            """
-                    ╭──╴{}
-                    │{}
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ◀◀ getting phone call
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-        )
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │{}
+            │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ◀◀ getting phone call
+            │{}
+            ╰──╴✔︎{}
+        """.trimIndent())
     }
 
     @Suppress("LongLine")
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log status in same column`() {
         logStatus(listOf(StringStatus("getting phone call"))) { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logging("nested", null) {
+        logging("nested") {
             logStatus(listOf(StringStatus("getting phone call"))) { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
         }
-        logResult { Result.success(Unit) }
 
-        expectThat(logged)
-            .contains("│   ☎Σ⊂⊂(☉ω☉∩)                                                                                                    ◀◀ getting phone call")
-            .contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                                ◀◀ getting phone call")
-            .not { contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                                     ◀◀ getting phone call") } // too much indent
-            .not { contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                           ◀◀ getting phone call") } // too few indent
+        expectThatLogged {
+            contains("│   ☎Σ⊂⊂(☉ω☉∩)                                                                                                    ◀◀ getting phone call")
+            contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                                ◀◀ getting phone call")
+            not { contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                                     ◀◀ getting phone call") } // too much indent
+            not { contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                           ◀◀ getting phone call") } // too few indent
+        }
     }
 
     @Suppress("LongLine")
     @Test
     fun @receiver:Columns(10) InMemoryLogger.`should not break status line`() {
         logStatus(listOf(StringStatus("1234567890"))) { OUT typed "abc....xyz" }
-        logging("nested", null) {
+        logging("nested") {
             logStatus(listOf(StringStatus("123456789 01234567890"))) { OUT typed "abc....xyz" }
-            logging("nested", null) {
+            logging("nested") {
                 logStatus(listOf(StringStatus("1234567890 1234567890 1234567890 1234567890"))) { OUT typed "abc....xyz" }
             }
         }
-        logResult { Result.success(Unit) }
 
-        expectThat(logged)
+        expectThatLogged()
             .contains("│   │   │   ab          ◀◀ 1234567890 1234…567890 1234567890")
     }
 
@@ -223,7 +219,7 @@ class RenderingLoggerKtTest {
         kotlin.runCatching {
             logStatus { OUT typed "outer 1" }
             logStatus { OUT typed "outer 2" }
-            logging("nested log", null) {
+            logging("nested log") {
                 logStatus { OUT typed "nested 1" }
                 if ("1".toInt() == 1) throw IllegalStateException("an exception")
             }
@@ -232,28 +228,17 @@ class RenderingLoggerKtTest {
             logResult { Result.success("success") }
         }
 
-        expectThat(logged).matchesCurlyPattern(
-            """
-                    ╭──╴{}
-                    │{}
-                    │   outer 1                                               {}                                      ▮▮
-                    │   outer 2                                               {}                                      ▮▮
-                    │   ╭──╴nested log
-                    │   │{}
-                    │   │   nested 1                                          {}                                      ▮▮
-                    │   ϟ{}
-                    │   ╰──╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
-                """.trimIndent(), ignoreTrailingLines = true
-        )
-    }
-
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should simple log when closed twice`() {
-        logResult { Result.success(Unit) }
-        logResult { Result.success(Unit) }
-        expectThat(logged)
-            .containsAtMost("╰──╴", 1)
-            .contains("✔︎")
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │{}
+            │   outer 1                                               {}                                      ▮▮
+            │   outer 2                                               {}                                      ▮▮
+            │   ╭──╴nested log
+            │   │{}
+            │   │   nested 1                                          {}                                      ▮▮
+            │   ϟ{}
+            │   ╰──╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
+        """.trimIndent(), ignoreTrailingLines = true)
     }
 
     @Test
@@ -271,10 +256,8 @@ class RenderingLoggerKtTest {
         logStatus(listOf(status(shortLine))) { OUT typed longLine }
         logStatus(listOf(status(longLine))) { OUT typed shortLine }
         logStatus(listOf(status(longLine))) { OUT typed longLine }
-        logResult { Result.success(longLine) }
 
-        expectThat(logged).matchesCurlyPattern(
-            """
+        expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
                 │   
                 │   ┬┴┬┴┤(･_├┬┴┬┴
@@ -292,20 +275,14 @@ class RenderingLoggerKtTest {
                 │   、ヽ｀、ヽ                                                                 
                 │
                 ╰──╴✔︎
-                """.trimIndent()
-        )
+                """.trimIndent())
     }
 
     @Test
     fun InMemoryLogger.`should not wrap URIs`() {
-        val status: (String) -> HasStatus = {
-            object : HasStatus {
-                override fun renderStatus(): String = it
-            }
-        }
         val uriLine = URI.create("file:///some/where/on/this/computers/drive/in/some/directory/is/where/this/uri/points/to").toString().wrap("┬┴┬┴┤(･_├┬┴┬┴")
         logLine { uriLine }
-        logStatus(listOf(status(uriLine))) { OUT typed uriLine }
+        logStatus(uriLine.asStatus()) { OUT typed uriLine }
         logResult { Result.success(uriLine) }
 
         expectThat(logged).containsExactly(uriLine, 2)
@@ -324,25 +301,21 @@ class RenderingLoggerKtTest {
             "👍"
         }
         logLine { "Normal logging continues..." }
-        logResult { Result.success(Unit) }
 
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │{}
+            │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
+            │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
+            │   Some logging heavy operation Logging to ${Semantics.Document} ${ansiLog.toUri()} ✔︎
+            │   Normal logging continues...
+            │{}
+            ╰──╴✔︎{}
+        """.trimIndent())
         expect {
-            that(logged).matchesCurlyPattern(
-                """
-                    ╭──╴{}
-                    │{}
-                    │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
-                    │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-                    │   Some logging heavy operation Logging to ${Semantics.Document} ${ansiLog.toUri()} ✔︎
-                    │   Normal logging continues...
-                    │{}
-                    ╰──╴✔︎{}
-                """.trimIndent()
-            )
-
             that(ansiLog.readLines().filter { it.isNotBlank() }) {
-                first().removeEscapeSequences().isEqualTo("▶ Some logging heavy operation")
-                get { last { it.isNotBlank() } }.removeEscapeSequences().endsWith("✔︎")
+                first().escapeSequencesRemoved.isEqualTo("▶ Some logging heavy operation")
+                get { last { it.isNotBlank() } }.escapeSequencesRemoved.endsWith("✔︎")
             }
 
             val noAnsiLog = ansiLog.withExtension("no-ansi.${ansiLog.extension}")
@@ -356,7 +329,7 @@ class RenderingLoggerKtTest {
     @Suppress("UNREACHABLE_CODE")
     @Test
     fun `should show full exception only on outermost logger`() {
-        val logger = InMemoryLogger("root", false, -1, emptyList())
+        val logger = InMemoryLogger("root", false).withUnclosedWarningDisabled
         expect {
             catching {
                 logger.logging("level 0") {
@@ -375,8 +348,7 @@ class RenderingLoggerKtTest {
                 }
             }.isFailure().isA<RuntimeException>()
 
-            logger.logged.matchesCurlyPattern(
-                """
+            logger.expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                 ▶ root
                 · ▶ level 0
                 · · doing stuff
@@ -384,11 +356,10 @@ class RenderingLoggerKtTest {
                 · · · doing stuff
                 · · · ▶ level 2
                 · · · · doing stuff
-                · · · ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-                · · ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-                · ϟ RuntimeException: something happened at.(RenderingLoggerTest.kt:{})
-            """.trimIndent()
-            )
+                · · · ϟ RuntimeException: something happened at.({}.kt:{})
+                · · ϟ RuntimeException: something happened at.({}.kt:{})
+                · ϟ RuntimeException: something happened at.({}.kt:{})
+            """.trimIndent())
         }
     }
 
@@ -418,13 +389,13 @@ class RenderingLoggerKtTest {
             ╰──╴✔︎{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
-        val logger: InMemoryLogger = InMemoryLogger().applyLogging {
+        val logger: InMemoryLogger = InMemoryLogger().withUnclosedWarningDisabled.applyLogging {
             logging(caption = "line #1\nline #2".red(), bordered = bordered) {
                 logLine { "logged line" }
             }
         }
 
-        expect { logger.logged }.that { matchesCurlyPattern(expectation) }
+        expect { logger }.that { toStringMatchesCurlyPattern(expectation) }
     }
 
     @Execution(SAME_THREAD)
@@ -452,13 +423,95 @@ class RenderingLoggerKtTest {
             ╰──╴𝟷↩{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
-        val logger: InMemoryLogger = InMemoryLogger().applyLogging {
+        val logger: InMemoryLogger = InMemoryLogger().withUnclosedWarningDisabled.applyLogging {
             logging(caption = "caption", bordered = bordered) {
                 logLine { "logged line" }
                 Status.FAILURE
             }
         }
 
-        expect { logger.logged }.that { matchesCurlyPattern(expectation) }
+        expect { logger }.that { toStringMatchesCurlyPattern(expectation) }
+    }
+
+    @Nested
+    inner class LoggingAfterResult {
+
+        private fun createLogger(caption: String, init: RenderingLogger.() -> Unit): Pair<ByteArrayOutputStream, RenderingLogger> {
+            val baos = ByteArrayOutputStream()
+            return baos to RenderingLogger(caption) {
+                if (Program.isDebugging) print(it)
+                baos.write(it.removeEscapeSequences().toByteArray())
+            }.apply(init)
+        }
+
+        @TestFactory
+        fun `should log after logged result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+            val (out, logger) = createLogger(opName) {
+                logLine { "line" }
+                logResult()
+            }
+
+            logger.op()
+
+            expect { out }.that {
+                toStringMatchesCurlyPattern("""
+                    line
+                    ✔︎
+                    $opName ⌛️ {}
+                """.trimIndent())
+            }
+        }
+
+        @TestFactory
+        fun `should log after logged message and result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+            val (out, logger) = createLogger(opName) {
+                logResult()
+            }
+
+            logger.op()
+
+            expect { out }.that {
+                toStringMatchesCurlyPattern("""
+                    ✔︎
+                    $opName ⌛️ {}
+                """.trimIndent())
+            }
+        }
+
+        @Test
+        fun `should log multi-line after logged result`() {
+            val (out, logger) = createLogger("multi-line") {
+                logResult()
+            }
+
+            logger.logLine { "line 1\nline 2" }
+            logger.logText { "text 1\ntext 2" }
+
+            expectThat(out.toString())
+                .endsWith(LineSeparators.LF)
+                .matchesCurlyPattern("""
+                    ✔︎
+                    multi-line ⌛️ line 1
+                    multi-line ⌛️ line 2
+                    multi-line ⌛️ text 1
+                    multi-line ⌛️ text 2
+                """.trimIndent())
+        }
+    }
+
+    @Nested
+    inner class ToString {
+
+        @Test
+        fun `should contain closed state`() {
+            val logger = RenderingLogger("test").withUnclosedWarningDisabled
+            expectThat(logger).toStringMatchesCurlyPattern("""
+                RenderingLogger {
+                {}    parent = null
+                {}    caption = test
+                {}    closed = false
+                {}}
+            """.trimIndent())
+        }
     }
 }
