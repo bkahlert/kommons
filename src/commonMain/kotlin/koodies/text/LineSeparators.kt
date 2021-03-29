@@ -141,6 +141,17 @@ public object LineSeparators : Collection<String> {
         get() = (this as CharSequence).trailingLineSeparator?.let { lineBreak -> removeSuffix(lineBreak) } ?: this
 
     /**
+     * If this [String] does not end with one of the [LineSeparators] this string appended
+     * with the given [lineSeparator] (default `\n`) is returned.
+     *
+     * Returns this [String] if either this string already ends with a line separator
+     * or if [append] is set to `false`. This inconvenience toggle is handy
+     * if the needed behaviour is dynamic.
+     */
+    public fun String.withTrailingLineSeparator(append: Boolean = true, lineSeparator: String = LF): String =
+        if (append && !hasTrailingLineSeparator) this + lineSeparator else this
+
+    /**
      * If this [CharSequence] [isMultiline] this property contains the first line's line separator.
      */
     public val CharSequence.firstLineSeparator: String?

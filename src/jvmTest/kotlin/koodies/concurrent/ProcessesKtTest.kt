@@ -1,13 +1,16 @@
 package koodies.concurrent
 
+import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.process
+import koodies.shell.ShellScript
 import koodies.test.UniqueId
-import koodies.test.testWithTempDir
-import org.junit.jupiter.api.Nested
+import koodies.test.test
+import koodies.test.withTempDir
+import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -19,10 +22,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
-import java.nio.file.Path
 import java.util.concurrent.CompletionException
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 @Execution(CONCURRENT)
 class ProcessesKtTest {
@@ -30,66 +30,67 @@ class ProcessesKtTest {
     private val echoingCommands =
         "echo \"test output ${'$'}TEST\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
 
-    private fun getFactories(command: String = echoingCommands) = listOf<Path.() -> ManagedProcess>(
-        {
-            process(CommandLine(
-                environment = mapOf("TEST" to "env"),
-                workingDirectory = this,
-                command = "/bin/sh", "-c", command))
-        },
-        {
-            process("/bin/sh", "-c", command, environment = mapOf("TEST" to "env"))
-        },
-    )
 
-    @Nested
-    inner class ProcessFn {
-
-        @TestFactory
-        fun `should not start`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
-            val process = processFactory()
-            expectThat(process.started).isFalse()
-        }
-
-        @TestFactory
-        fun `should start`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
-            val process = processFactory()
-            process.start()
-            expectThat(process.started).isTrue()
-        }
-
-        @TestFactory
-        fun `should process`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
-            val process = processFactory()
-            val lock = ReentrantLock()
-            val processed = mutableListOf<IO>()
-            process.process { io -> lock.withLock { processed.add(io) } }.waitForTermination()
-
-            lock.withLock {
-                expectThat(processed).contains(
-                    IO.OUT typed "test output env",
-                    IO.ERR typed "test error 1",
-                    IO.OUT typed "test output 2",
-                    IO.ERR typed "test error 2",
-                )
+    private fun testProcesses(uniqueId: UniqueId, command: String = echoingCommands, block: (ManagedProcess) -> Unit): List<DynamicNode> =
+        test {
+            test {
+                withTempDir(uniqueId) {
+                    val commandLine = CommandLine(
+                        environment = mapOf("TEST" to "env"),
+                        workingDirectory = this,
+                        "/bin/sh", "-c", command,
+                    )
+                    process(commandLine).let(block)
+                }
+            }
+            test {
+                withTempDir(uniqueId) {
+                    val shellScript = ShellScript {
+                        !command
+                    }
+                    process(shellScript,
+                        environment = mapOf("TEST" to "env"),
+                        workingDirectory = this).let(block)
+                }
             }
         }
 
-        @TestFactory
-        fun `should not throw on unexpected exit value`(uniqueId: UniqueId) = getFactories("exit 42").testWithTempDir(uniqueId) { processFactory ->
-            val process = processFactory()
-            process.start()
-            expectThat(process.started).isTrue()
-        }
+    @TestFactory
+    fun `should not start`(uniqueId: UniqueId) = testProcesses(uniqueId) { process ->
+        expectThat(process.started).isFalse()
+    }
 
-        @TestFactory
-        fun `should throw on unexpected exit value if using joining function`(uniqueId: UniqueId) =
-            getFactories("exit 42").testWithTempDir(uniqueId) { processFactory ->
-                val process = processFactory().start()
-                expectCatching { process.waitForTermination() }
-                    .isFailure()
-                    .isA<CompletionException>()
-                    .with({ message }) { isNotNull() and { containsDump() } }
-            }
+    @TestFactory
+    fun `should start`(uniqueId: UniqueId) = testProcesses(uniqueId) { process ->
+        process.start()
+        expectThat(process.started).isTrue()
+    }
+
+    @TestFactory
+    fun `should process`(uniqueId: UniqueId) = testProcesses(uniqueId) { process ->
+        val processed = synchronizedListOf<IO>()
+        process.process { io -> processed.add(io) }.waitForTermination()
+
+        expectThat(processed).contains(
+            IO.OUT typed "test output env",
+            IO.ERR typed "test error 1",
+            IO.OUT typed "test output 2",
+            IO.ERR typed "test error 2",
+        )
+    }
+
+    @TestFactory
+    fun `should not throw on unexpected exit value`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
+        process.start()
+        expectThat(process.started).isTrue()
+    }
+
+    @TestFactory
+    fun `should throw on unexpected exit value if using joining function`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
+        process.start()
+        expectCatching { process.waitForTermination() }
+            .isFailure()
+            .isA<CompletionException>()
+            .with({ message }) { isNotNull() and { containsDump() } }
     }
 }

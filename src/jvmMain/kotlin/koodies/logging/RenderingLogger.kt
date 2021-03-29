@@ -1,6 +1,9 @@
 package koodies.logging
 
 import koodies.asString
+import koodies.collections.synchronizedListOf
+import koodies.collections.synchronizedMapOf
+import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
 import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
@@ -31,10 +34,9 @@ import kotlin.io.path.extension
  * but render log messages to provide easier understandable feedback.
  */
 public open class RenderingLogger(
-    // TODO use new parent to pass arguments to children
     public val caption: String,
     public val parent: RenderingLogger? = null,
-    log: (String) -> Unit = { output: String -> print(output) },
+    protected open val missingParentFallback: (String) -> Unit = { print(it) },
 ) {
     init {
         require(this !== parent) { "A logger cannot be its own parent." }
@@ -46,23 +48,40 @@ public open class RenderingLogger(
     public val ancestors: List<RenderingLogger>
         get() = generateSequence(this) { it.parent }.toList()
 
+    protected open var initialized: Boolean = false
+
+    /**
+     * Contains whether this logger is open, that is,
+     * at least one logging call was received but no result, yet.
+     */
+    public open var open: Boolean
+        get() = isOpen(this)
+        protected set(value) = setOpen(this, value)
+
     /**
      * Contains whether this logger is closed, that is,
-     * the logging span was finished with logged result.
+     * the logging span was finished with a logged result.
      */
-    public var closed: Boolean
-        get() = !isUnclosed(this)
-        protected set(value) {
-            setUnclosed(this, !value)
-        }
+    public val closed: Boolean
+        get() = initialized && !open
 
-    init {
-        closed = false
+    /**
+     * Lock used to
+     * - render logger thread-safe
+     * - recognise first logging call
+     */
+    private val logLock by lazy {
+        ReentrantLock().also { open = true }.also { initialized = true }
     }
 
-    private val logLock = ReentrantLock()
-    private val lockedLog = log
-    public fun log(message: () -> String): Unit = logLock.withLock { lockedLog(message()) }
+    protected fun log(message: () -> String): Unit = logLock.withLock {
+        val text = message()
+        if (parent != null) {
+            parent.logText { text }
+        } else {
+            missingParentFallback(text)
+        }
+    }
 
     /**
      * Method that is responsible to render the return value of
@@ -78,10 +97,10 @@ public open class RenderingLogger(
             if (closed) {
                 val prefix = caption.formattedAs.meta + " " + Semantics.Computation + " "
                 val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
-                message + if (trailingNewline || !message.hasTrailingLineSeparator) LF else ""
+                if (trailingNewline || !message.hasTrailingLineSeparator) message + LF else message
             } else {
                 val message = block().toString()
-                message + if (trailingNewline) LF else ""
+                if (trailingNewline) message + LF else message
             }
         }
     }
@@ -131,7 +150,7 @@ public open class RenderingLogger(
         val result = block()
         val formattedResult = formatResult(result)
         render(true) { formattedResult }
-        closed = true
+        open = false
         return result.getOrThrow()
     }
 
@@ -155,13 +174,13 @@ public open class RenderingLogger(
         recoveredLoggers.add(this)
         val formattedResult = formatResult(Result.failure<R>(ex))
         render(true) { formattedResult }
-        closed = true
+        open = false
     }
 
     override fun toString(): String = asString {
         ::parent to parent?.caption
         ::caption to caption
-        ::closed to closed
+        ::open to open
     }
 
 
@@ -184,58 +203,45 @@ public open class RenderingLogger(
         return f(renderStatus()).takeUnless { it.isBlank() }?.toString()?.transform()
     }
 
-    
     public companion object {
 
-        private val unclosedLoggersLock: ReentrantLock = ReentrantLock()
-        private val unclosedLoggers: MutableMap<RenderingLogger, Array<StackTraceElement>> = mutableMapOf()
+        private fun Array<StackTraceElement>?.asString() = (this ?: emptyArray()).joinToString("") { LF + "\t\tat " + it.toString() }
+
+        private val openLoggers: MutableMap<RenderingLogger, Array<StackTraceElement>> = synchronizedMapOf()
 
         /**
-         * Sets the [unclosed] state the given [logger].
+         * Sets the [open] state of the given [logger].
          *
          * Loggers that are not closed the moment this program shuts down
          * are considered broken and will inflict a warning.
          *
          * This behaviour can be disabled using [disabledUnclosedWarningLoggers].
          */
-        private fun setUnclosed(logger: RenderingLogger, unclosed: Boolean): Unit =
-            unclosedLoggersLock.withLock {
-                if (unclosed) {
-                    unclosedLoggers[logger] = JVM.currentStackTrace
-                } else {
-                    unclosedLoggers.remove(logger)
-                }
+        private fun setOpen(logger: RenderingLogger, open: Boolean) {
+            if (open) {
+                openLoggers.putIfAbsent(logger, JVM.currentStackTrace)
+            } else {
+                openLoggers.remove(logger)
             }
+        }
 
         /**
          * Returns whether this [logger] is unclosed.
          */
-        private fun isUnclosed(logger: RenderingLogger): Boolean =
-            unclosedLoggersLock.withLock { unclosedLoggers.contains(logger) }
+        private fun isOpen(logger: RenderingLogger): Boolean = logger in openLoggers
 
-        private val disabledUnclosedWarningLoggersLock: ReentrantLock = ReentrantLock()
-        private val disabledUnclosedWarningLoggers: MutableSet<RenderingLogger> = mutableSetOf()
+        private val disabledUnclosedWarningLoggers: MutableSet<RenderingLogger> = synchronizedSetOf()
 
         /**
          * Disables the warning during program exit
          * that shows up if this logger's span was not closed.
          */
         public val <T : RenderingLogger> T.withUnclosedWarningDisabled: T
-            get() = also {
-                disabledUnclosedWarningLoggersLock.withLock {
-                    disabledUnclosedWarningLoggers.add(it)
-                }
-            }
+            get() = also { disabledUnclosedWarningLoggers.add(it) }
 
         init {
             Program.onExit {
-                val unclosed = unclosedLoggersLock.withLock {
-                    disabledUnclosedWarningLoggersLock.withLock {
-                        unclosedLoggers.filterKeys { logger ->
-                            logger.ancestors.none { it in disabledUnclosedWarningLoggers }
-                        }
-                    }
-                }
+                val unclosed = openLoggers.filterKeys { logger -> logger.ancestors.none { it in disabledUnclosedWarningLoggers } }
 
                 if (unclosed.isNotEmpty()) {
                     println("${unclosed.size} started but unfinished renderer(s) found:".formattedAs.warning)
@@ -243,13 +249,13 @@ public open class RenderingLogger(
                         println()
                         println(unclosedLogger.toString().mapLines { line -> "\t$line" })
                         println("\tcreated:")
-                        println(stackTrace.joinToString("") { LF + "\t\t" + it.toString() })
+                        println(stackTrace.asString())
                     }
                 }
             }
         }
 
-        public val recoveredLoggers: MutableList<RenderingLogger> = mutableListOf()
+        public val recoveredLoggers: MutableList<RenderingLogger> = synchronizedListOf()
 
         public fun RenderingLogger.formatResult(result: Result<*>): CharSequence {
             val returnValue = result.toReturnValue()
@@ -287,7 +293,7 @@ public inline fun <R, L : RenderingLogger> L.applyLogging(crossinline block: L.(
 @RenderingLoggingDsl
 public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
     contract { callsInPlace(block, EXACTLY_ONCE) }
-    val result: Result<R> = kotlin.runCatching { block() }
+    val result: Result<R> = kotlin.runCatching<R> { block() }
     logResult { result }
     return result.getOrThrow()
 }
@@ -300,50 +306,17 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     path: Path,
     caption: CharSequence,
     crossinline block: RenderingLogger.() -> R,
-): R = compactLogging(caption, block = fileLoggingBlock(path, caption, block))
-
-/**
- * Creates a logger which logs to [path].
- */
-@RenderingLoggingDsl
-public inline fun <reified R> fileLogging(
-    path: Path,
-    caption: CharSequence,
-    crossinline block: RenderingLogger.() -> R,
-): R = compactLogging(caption, block = fileLoggingBlock(path, caption, block))
-
-/**
- * Creates a logger which logs to [path].
- */
-@JvmName("nullableFileLogging")
-@RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger?, reified R> T.fileLogging(
-    path: Path,
-    caption: CharSequence,
-    crossinline block: RenderingLogger.() -> R,
-): R =
-    if (this is RenderingLogger) fileLogging(path, caption, block)
-    else koodies.logging.fileLogging(path, caption, block)
-
-public inline fun <reified R> fileLoggingBlock(
-    path: Path,
-    caption: CharSequence,
-    crossinline block: RenderingLogger.() -> R,
-): CompactRenderingLogger.() -> R = {
+): R = CompactRenderingLogger(caption, null, this).runLogging {
     logLine { IO.META typed "Logging to" }
     logLine { "$Document ${path.toUri()}" }
     path.bufferedWriter().use { ansiLog ->
         path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->
-            val logger: RenderingLogger = BlockRenderingLogger(
-                caption = caption,
-                bordered = false,
-            ) { output ->
-                ansiLog.appendLine(output)
-                noAnsiLog.appendLine(output.removeEscapeSequences())
-            }
-            runCatching<R> { logger.block() }.fold(
-                { logger.logResult { Result.success(it) } },
-                { logger.logResult { Result.failure(it) } })
+            object : BlockRenderingLogger(caption.toString(), null) {
+                override val missingParentFallback: (String) -> Unit = {
+                    ansiLog.appendLine(it)
+                    noAnsiLog.appendLine(it.removeEscapeSequences())
+                }
+            }.runLogging(block)
         }
     }
 }

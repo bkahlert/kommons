@@ -12,7 +12,6 @@ import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive.Compa
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
-import koodies.concurrent.process.Processors.consoleLoggingProcessor
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.logging.BlockRenderingLogger
@@ -37,7 +36,7 @@ public typealias Processor<P> = P.(IO) -> Unit
  * All about processing processes.
  */
 public object Processors {
-    
+
     /**
      * Thread pool used for processing the [IO] of [Process].
      */
@@ -53,23 +52,23 @@ public object Processors {
             is IO.OUT -> logger.logLine { io }
             is IO.ERR -> logger.logLine { io.formatted }
         }
-        if (io is IO.META.TERMINATED && async) logger.logResult { Result.success(io) }
+//        if (io is IO.META.TERMINATED && async) logger.logResult { Result.success(io) }
     }
-
-    /**
-     * A [Processor] that prints all [IO] to the console.
-     */
-    public fun <P : Process> consoleLoggingProcessor(): Processor<P> {
-        return object : (P, IO) -> Unit {
-            private lateinit var process: P
-            private val logger by lazy { BlockRenderingLogger(process.toString()) }
-            private val loggingProcessor by lazy { loggingProcessor<P>(logger) }
-            override fun invoke(process: P, io: IO) {
-                this.process = process
-                loggingProcessor.invoke(process, io)
-            }
-        }
-    }
+//
+//    /**
+//     * A [Processor] that prints all [IO] to the console.
+//     */
+//    public fun <P : Process> consoleLoggingProcessor(): Processor<P> {
+//        return object : (P, IO) -> Unit {
+//            private lateinit var process: P
+//            private val logger by lazy { BlockRenderingLogger(process.toString()) }
+//            private val loggingProcessor by lazy { loggingProcessor<P>(logger) }
+//            override fun invoke(process: P, io: IO) {
+//                this.process = process
+//                loggingProcessor.invoke(process, io)
+//            }
+//        }
+//    }
 
     /**
      * A [Processor] that does nothing with the [IO].
@@ -85,8 +84,15 @@ public object Processors {
  *
  * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
  */
-public fun <P : Process> RenderingLogger?.toProcessor(): Processor<P> =
-    this?.let { Processors.loggingProcessor(it) } ?: consoleLoggingProcessor()
+public fun <P : Process> P.attach(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
+    (this as? ManagedProcess)?.addPostTerminationCallback { ex ->
+        if (logger.open) {
+            if (ex != null) logger.logResult { Result.failure(ex) }
+            else logger.logResult()
+        }
+    }
+    return Processors.loggingProcessor(logger)
+}
 
 /**
  * Just consumes the [IO] / depletes the input and output streams
@@ -159,7 +165,7 @@ public fun <P : ManagedProcess> P.process(
  */
 public fun <P : ManagedProcess> P.process(
     mode: ProcessingMode = ProcessingMode(Sync, NonInteractive(null)),
-    processor: Processor<P> = consoleLoggingProcessor(),
+    processor: Processor<P>,
 ): P = when (mode.synchronicity) {
     Sync -> processSynchronously(mode.interactivity, processor)
     Async -> processAsynchronously(mode.interactivity, processor)
@@ -238,7 +244,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
  */
 public fun <P : ManagedProcess> P.processSynchronously(
     interactivity: Interactivity = NonInteractive(null),
-    processor: Processor<P> = consoleLoggingProcessor(),
+    processor: Processor<P> = attach(),
 ): P {
 
     val nonBlocking = interactivity is Interactive && interactivity.nonBlocking

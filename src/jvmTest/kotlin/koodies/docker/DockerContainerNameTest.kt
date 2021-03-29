@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.docker.DockerContainerName.Companion.toUniqueContainerName
+import koodies.docker.DockerContainer.Companion.toUniqueContainerName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -24,6 +24,5 @@ class DockerContainerNameTest {
     }
 }
 
-val Assertion.Builder<DockerContainerName>.sanitizedName
-    get() =
-        get("sanitized name %s") { sanitized }
+val Assertion.Builder<DockerContainer>.sanitizedName
+    get() = get("sanitized name %s") { sanitized }

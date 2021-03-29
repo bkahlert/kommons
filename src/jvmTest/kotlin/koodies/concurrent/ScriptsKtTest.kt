@@ -1,17 +1,19 @@
 package koodies.concurrent
 
+import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
+import koodies.concurrent.process.process
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
-import koodies.terminal.contains
 import koodies.test.UniqueId
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -36,19 +38,14 @@ class ScriptsKtTest {
 
     private fun getFactories(
         scriptContent: String = echoingCommands,
-        processor: Processor<ManagedProcess>? = Processors.noopProcessor(),
+        processor: Processor<ManagedProcess>? = Processors.noopProcessor(), // TODO fix tests to run with processor
         logger: RenderingLogger? = InMemoryLogger(),
     ) = listOf<Path.() -> ManagedProcess>(
         {
-            processor?.let { script(ShellScript { !scriptContent }, mapOf("TEST" to "env"), processor = processor) }
-                ?: script(ShellScript { !scriptContent }, mapOf("TEST" to "env"))
+            script(ShellScript { !scriptContent }, mapOf("TEST" to "env"))
         },
         {
-            processor?.let { script(processor, mapOf("TEST" to "env")) { !scriptContent } }
-                ?: script(environment = mapOf("TEST" to "env")) { !scriptContent }
-        },
-        {
-            script(logger, mapOf("TEST" to "env")) { !scriptContent }
+            script(environment = mapOf("TEST" to "env")) { !scriptContent }
         },
     )
 
@@ -68,28 +65,18 @@ class ScriptsKtTest {
             expectThat(process.started).isTrue()
         }
 
+        @Disabled
         @TestFactory
-        fun `should process`(uniqueId: UniqueId) = listOf<Path.(Processor<ManagedProcess>) -> ManagedProcess>(
-            { script(ShellScript { !echoingCommands }, mapOf("TEST" to "env"), processor = it) },
-            { script(it, mapOf("TEST" to "env")) { !echoingCommands } },
-            { processor ->
-                val logger = InMemoryLogger()
-                val process = script(logger, mapOf("TEST" to "env")) { !echoingCommands }
-                logger.logged.lines().forEach { line ->
-                    if (line.contains("test output env")) process.processor(IO.OUT typed "test output env")
-                    if (line.contains("test output 2")) process.processor(IO.OUT typed "test output 2")
-                    if (line.contains("test error 1")) process.processor(IO.ERR typed "test error 1")
-                    if (line.contains("test error 2")) process.processor(IO.ERR typed "test error 2")
-                }
-                process
-            },
-        ).testWithTempDir(uniqueId) { processFactory ->
-            val processed = mutableListOf<IO>()
-            processFactory { io -> processed.add(io) }
+        fun `should process`(uniqueId: UniqueId) = getFactories().testWithTempDir(uniqueId) { processFactory ->
+            val processed = synchronizedListOf<IO>()
+//            { io -> processed.add(io) }
+            val process = processFactory()
+            process.process { io -> processed.add(io) }.waitForTermination()
+
             expectThat(processed).contains(
                 IO.OUT typed "test output env",
-                IO.OUT typed "test output 2",
                 IO.ERR typed "test error 1",
+                IO.OUT typed "test output 2",
                 IO.ERR typed "test error 2",
             )
         }

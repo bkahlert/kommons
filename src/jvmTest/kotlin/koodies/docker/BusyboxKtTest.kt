@@ -12,7 +12,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 
 @Execution(CONCURRENT)
-class BusyboxKtTest {
+class BusyboxKtTest { // TODO generalize to docker run command
 
     @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should start busybox`(uniqueId: UniqueId) {
@@ -24,7 +24,7 @@ class BusyboxKtTest {
         expect {
             that(dockerProcess.waitFor()).isEqualTo(0)
             that(dockerProcess.alive).isFalse()
-            that(processed.filter { it.type == IO.Type.OUT }).containsExactly(IO.Type.OUT typed "busybox")
+            that(processed.filterIsInstance<IO.OUT>()).containsExactly(IO.OUT typed "busybox")
         }
     }
 }

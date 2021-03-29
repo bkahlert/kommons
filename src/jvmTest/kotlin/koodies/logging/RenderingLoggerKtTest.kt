@@ -4,8 +4,8 @@ import koodies.concurrent.Status
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
+import koodies.debug.trace
 import koodies.io.ByteArrayOutputStream
-import koodies.io.path.containsExactly
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
@@ -22,7 +22,7 @@ import koodies.text.LineSeparators
 import koodies.text.Semantics
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
-import koodies.text.wrap
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -36,9 +36,9 @@ import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import java.net.URI
 import kotlin.io.path.extension
 import kotlin.io.path.readLines
+import kotlin.io.path.readText
 
 @Execution(SAME_THREAD)
 class RenderingLoggerKtTest {
@@ -170,35 +170,6 @@ class RenderingLoggerKtTest {
         }
     }
 
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should log status`() {
-        logStatus(listOf(StringStatus("getting phone call"))) { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-
-        expectThatLogged().matchesCurlyPattern("""
-            ╭──╴{}
-            │{}
-            │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ◀◀ getting phone call
-            │{}
-            ╰──╴✔︎{}
-        """.trimIndent())
-    }
-
-    @Suppress("LongLine")
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should log status in same column`() {
-        logStatus(listOf(StringStatus("getting phone call"))) { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logging("nested") {
-            logStatus(listOf(StringStatus("getting phone call"))) { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-        }
-
-        expectThatLogged {
-            contains("│   ☎Σ⊂⊂(☉ω☉∩)                                                                                                    ◀◀ getting phone call")
-            contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                                ◀◀ getting phone call")
-            not { contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                                     ◀◀ getting phone call") } // too much indent
-            not { contains("│   │   ☎Σ⊂⊂(☉ω☉∩)                                                                                           ◀◀ getting phone call") } // too few indent
-        }
-    }
-
     @Suppress("LongLine")
     @Test
     fun @receiver:Columns(10) InMemoryLogger.`should not break status line`() {
@@ -241,86 +212,37 @@ class RenderingLoggerKtTest {
         """.trimIndent(), ignoreTrailingLines = true)
     }
 
-    @Test
-    fun InMemoryLogger.`should wrap long lines`() {
-        val status: (String) -> HasStatus = {
-            object : HasStatus {
-                override fun renderStatus(): String = it
-            }
-        }
-        val shortLine = "┬┴┬┴┤(･_├┬┴┬┴"
-        val longLine = "｀、ヽ｀ヽ｀、ヽ".repeat(10) + "ノ＞＜)ノ" + " ｀、ヽ｀、ヽ｀、ヽ".repeat(10)
-        logLine { shortLine }
-        logLine { longLine }
-        logStatus(listOf(status(shortLine))) { OUT typed shortLine }
-        logStatus(listOf(status(shortLine))) { OUT typed longLine }
-        logStatus(listOf(status(longLine))) { OUT typed shortLine }
-        logStatus(listOf(status(longLine))) { OUT typed longLine }
-
-        expectThatLogged().matchesCurlyPattern("""
-                ╭──╴{}
-                │   
-                │   ┬┴┬┴┤(･_├┬┴┬┴
-                │   ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀
-                │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
-                │   ┬┴┬┴┤(･_├┬┴┬┴                                                         ◀◀ ┬┴┬┴┤(･_├┬┴┬┴
-                │   ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀          ◀◀ ┬┴┬┴┤(･_├┬┴┬┴
-                │   ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
-                │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
-                │   、ヽ｀、ヽ                                                                 
-                │   ┬┴┬┴┤(･_├┬┴┬┴                                                         ◀◀ ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ…ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
-                │   ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀          ◀◀ ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ…ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ
-                │   ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽ｀、ヽ｀ヽ｀、ヽノ＞＜)ノ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
-                │   、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀、ヽ｀、ヽ ｀、ヽ｀          
-                │   、ヽ｀、ヽ                                                                 
-                │
-                ╰──╴✔︎
-                """.trimIndent())
-    }
-
-    @Test
-    fun InMemoryLogger.`should not wrap URIs`() {
-        val uriLine = URI.create("file:///some/where/on/this/computers/drive/in/some/directory/is/where/this/uri/points/to").toString().wrap("┬┴┬┴┤(･_├┬┴┬┴")
-        logLine { uriLine }
-        logStatus(uriLine.asStatus()) { OUT typed uriLine }
-        logResult { Result.success(uriLine) }
-
-        expectThat(logged).containsExactly(uriLine, 2)
-    }
-
+    @Disabled
     @Test
     fun @receiver:Columns(200) InMemoryLogger.`should log to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        logLine { "｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ" }
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        logLine { "before" }
         val ansiLog = randomFile("file-log", ".log")
-        fileLogging(ansiLog, "Some logging heavy operation") {
+        fileLogging(ansiLog, "caption") {
             logLine { "line" }
-            logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-            logException { RuntimeException("just a test") }
-            logCaughtException { RuntimeException("covered") }
+            logStatus { "status" }
+            logCaughtException { RuntimeException("caught") }
             "👍"
         }
-        logLine { "Normal logging continues..." }
+        logLine { "after" }
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
             │{}
-            │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
-            │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-            │   Some logging heavy operation Logging to ${Semantics.Document} ${ansiLog.toUri()} ✔︎
-            │   Normal logging continues...
+            │   before
+            │   caption Logging to ${Semantics.Document} ${ansiLog.toUri()} ✔︎
+            │   after
             │{}
             ╰──╴✔︎{}
         """.trimIndent())
         expect {
-            that(ansiLog.readLines().filter { it.isNotBlank() }) {
-                first().escapeSequencesRemoved.isEqualTo("▶ Some logging heavy operation")
+            that(ansiLog.also { it.readText().trace }.readLines().filter { it.isNotBlank() }) {
+                first().escapeSequencesRemoved.isEqualTo("▶ caption")
                 get { last { it.isNotBlank() } }.escapeSequencesRemoved.endsWith("✔︎")
             }
 
             val noAnsiLog = ansiLog.withExtension("no-ansi.${ansiLog.extension}")
             that(noAnsiLog.readLines().filter { it.isNotBlank() }) {
-                first().isEqualTo("▶ Some logging heavy operation")
+                first().isEqualTo("▶ caption")
                 get { last { it.isNotBlank() } }.endsWith("✔︎")
             }
         }
@@ -389,7 +311,7 @@ class RenderingLoggerKtTest {
             ╰──╴✔︎{}
         """.trimIndent(),
     ).testEach("bordered={}") { (bordered, expectation) ->
-        val logger: InMemoryLogger = InMemoryLogger().withUnclosedWarningDisabled.applyLogging {
+        val logger: InMemoryLogger = InMemoryLogger().applyLogging {
             logging(caption = "line #1\nline #2".red(), bordered = bordered) {
                 logLine { "logged line" }
             }
@@ -504,12 +426,12 @@ class RenderingLoggerKtTest {
 
         @Test
         fun `should contain closed state`() {
-            val logger = RenderingLogger("test").withUnclosedWarningDisabled
+            val logger = RenderingLogger("test")
             expectThat(logger).toStringMatchesCurlyPattern("""
                 RenderingLogger {
                 {}    parent = null
                 {}    caption = test
-                {}    closed = false
+                {}    open = false
                 {}}
             """.trimIndent())
         }

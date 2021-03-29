@@ -1,7 +1,6 @@
 package koodies.io.path
 
 import koodies.concurrent.output
-import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.script
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -19,7 +18,7 @@ public object Locations {
      */
     public fun Path.ls(glob: String): List<Path> =
         kotlin.runCatching {
-            script(noopProcessor()) { !"ls $glob" }.output().lines().map { resolve(it) }
+            script(null) { !"ls $glob" }.output().lines().map { resolve(it) }
         }.getOrDefault(emptyList())
 
     /**

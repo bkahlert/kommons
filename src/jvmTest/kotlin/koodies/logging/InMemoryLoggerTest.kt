@@ -8,6 +8,7 @@ import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.SystemIoExclusive
 import koodies.test.toStringContainsAll
 import koodies.text.containsEscapeSequences
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -17,6 +18,7 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
 import strikt.assertions.startsWith
 
 @Execution(CONCURRENT)
@@ -30,7 +32,7 @@ class InMemoryLoggerTest {
     fun `should log using OutputStream`(capturedOutput: CapturedOutput) {
         val outputStream = ByteArrayOutputStream()
 
-        logger(outputStream).apply { logLine { "abc" } }
+        logger(outputStream) { logLine { "abc" } }
 
         expectThat(capturedOutput).isEmpty()
         expectThat(outputStream).toStringContainsAll("caption", "abc")
@@ -38,9 +40,7 @@ class InMemoryLoggerTest {
 
     @Test
     fun `should provide access to logs`() {
-        val logger = logger()
-
-        logger.logLine { "abc" }
+        val logger = logger { logLine { "abc" } }
 
         logger.expectThatLogged()
             .contains("caption")
@@ -49,9 +49,19 @@ class InMemoryLoggerTest {
 
     @Test
     fun `should use BlockRenderingLogger to log`() {
-        val logger = logger()
+        val logger = logger { logLine { "line" } }
 
         logger.expectThatLogged().startsWith("╭──╴caption")
+    }
+
+    @Test
+    fun `should not log bordered if specified`() {
+        val logger = InMemoryLogger("test", false).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
+        logger.expectThatLogged().matchesCurlyPattern("""
+            ▶ test
+            · line
+            ✔︎
+        """.trimIndent())
     }
 
     @Nested
@@ -59,16 +69,38 @@ class InMemoryLoggerTest {
 
         @Test
         fun `should not contain escape sequences by default`() {
-            val logger = logger()
+            val logger = logger { logLine { "line" } }
 
-            expectThat(logger.toString()).not { containsEscapeSequences() }
+            expectThat(logger.toString())
+                .isNotEmpty()
+                .not { containsEscapeSequences() }
         }
 
         @Test
         fun `should keep escape sequences if specified`() {
-            val logger = logger()
+            val logger = logger { logLine { "line" } }
 
-            expectThat(logger.toString(keepEscapeSequences = true)).containsEscapeSequences()
+            expectThat(logger.toString(keepEscapeSequences = true))
+                .isNotEmpty()
+                .containsEscapeSequences()
+        }
+
+        @Nested
+        inner class Initial {
+
+            @Test
+            fun `should be empty`() {
+                val logger = logger()
+
+                expectThat(logger.toString()).isEmpty()
+            }
+
+            @Test
+            fun `should ignore fallback return value`() {
+                val logger = logger()
+
+                expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE)).isEmpty()
+            }
         }
 
         @Nested
@@ -76,11 +108,12 @@ class InMemoryLoggerTest {
 
             @Test
             fun `should render open`() {
-                val openLogger = logger()
+                val logger = logger { logLine { "line" } }
 
-                expectThat(openLogger.toString()).isEqualTo("""
+                expectThat(logger.toString()).isEqualTo("""
                     ╭──╴caption
                     │   
+                    │   line
                     ╵
                     ╵
                     ⌛️ async computation
@@ -89,11 +122,12 @@ class InMemoryLoggerTest {
 
             @Test
             fun `should use fallback return value if specified`() {
-                val openLogger = logger()
+                val logger = logger { logLine { "line" } }
 
-                expectThat(openLogger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE)).isEqualTo("""
+                expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE)).isEqualTo("""
                     ╭──╴caption
                     │   
+                    │   line
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -105,9 +139,9 @@ class InMemoryLoggerTest {
 
             @Test
             fun `should render closed`() {
-                val closedLogger = logger { logResult() }
+                val logger = logger { logResult() }
 
-                expectThat(closedLogger.toString()).isEqualTo("""
+                expectThat(logger.toString()).isEqualTo("""
                     ╭──╴caption
                     │   
                     │
@@ -117,9 +151,9 @@ class InMemoryLoggerTest {
 
             @Test
             fun `should ignore fallback return value if specified`() {
-                val closedLogger = logger { logResult() }
+                val logger = logger { logResult() }
 
-                expectThat(closedLogger.toString(fallbackReturnValue = NO_RETURN_VALUE)).isEqualTo("""
+                expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE)).isEqualTo("""
                     ╭──╴caption
                     │   
                     │
@@ -140,15 +174,34 @@ class InMemoryLoggerTest {
         }
 
         @Nested
+        inner class Initial {
+
+            @Test
+            fun `should assert as if nothing logged`() {
+                val openLogger = logger()
+
+                openLogger.expectThatLogged().isEmpty()
+            }
+
+            @Test
+            fun `should assert unchanged open if specified`() {
+                val openLogger = logger()
+
+                openLogger.expectThatLogged(closeIfOpen = false).isEmpty()
+            }
+        }
+
+        @Nested
         inner class Open {
 
             @Test
             fun `should assert as if closed by default`() {
-                val openLogger = logger()
+                val openLogger = logger { logLine { "line" } }
 
                 openLogger.expectThatLogged().isEqualTo("""
                     ╭──╴caption
                     │   
+                    │   line
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -156,11 +209,12 @@ class InMemoryLoggerTest {
 
             @Test
             fun `should assert unchanged open if specified`() {
-                val openLogger = logger()
+                val openLogger = logger { logLine { "line" } }
 
                 openLogger.expectThatLogged(closeIfOpen = false).isEqualTo("""
                     ╭──╴caption
                     │   
+                    │   line
                 """.trimIndent())
             }
         }

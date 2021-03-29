@@ -1,10 +1,13 @@
 package koodies.docker
 
+import koodies.builder.BooleanBuilder.OnOff.Context.on
+import koodies.concurrent.daemon
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
 import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.thread
 import koodies.time.poll
+import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 import kotlin.time.milliseconds
@@ -14,7 +17,7 @@ import kotlin.time.seconds
  * A [Process] responsible to run a [Docker] container.
  */
 public open class DockerProcess private constructor(
-    public val name: String,
+    public val container: DockerContainer,
     private val managedProcess: ManagedProcess,
 ) : ManagedProcess by managedProcess {
 
@@ -24,18 +27,18 @@ public open class DockerProcess private constructor(
             expectedExitValue: Int?,
             processTerminationCallback: ProcessTerminationCallback? = null,
         ): DockerProcess {
-            val name = dockerRunCommandLine.options.name?.sanitized ?: error("Docker container name missing.")
+            val container = dockerRunCommandLine.options.name ?: error("Docker container name missing.")
             val managedProcess = ManagedProcess.from(dockerRunCommandLine,
                 expectedExitValue = expectedExitValue,
                 processTerminationCallback = { ex ->
-                    Docker.remove(name, forcibly = true)
+                    //TODO       container.remove { force { on } }.apply { onExit.orTimeout(8, SECONDS).get() }
                     processTerminationCallback?.also { it(ex) }
                 })
-            return DockerProcess(name, managedProcess)
+            return DockerProcess(container, managedProcess)
         }
     }
 
-    override val alive: Boolean get() = Docker.isContainerRunning(name)
+    override val alive: Boolean get() = container.isRunning()
 
     override fun stop(): Process = stop(false)
     override fun kill(): Process = kill(false)
@@ -49,12 +52,13 @@ public open class DockerProcess private constructor(
      * container in a separate thread.
      */
     public fun stop(async: Boolean = false, escalationTimeout: Duration = 10.seconds): Process = also {
-        val block = {
-            Docker.stop(name).also {
+        val block: () -> Unit = {
+            daemon { container.stop { time { 5 } } }.also {
                 runCatching { pollTermination(escalationTimeout) }
                 managedProcess.stop()
             }
         }
+
         if (async) thread(block = block)
         else block()
     }
@@ -69,13 +73,14 @@ public open class DockerProcess private constructor(
      * container in a separate thread.
      */
     public fun kill(async: Boolean = false, gracefulStopTimeout: Duration = 2.seconds): Process = also {
-        val block = {
-            Docker.stop(name).also {
+        val block: () -> Unit = {
+            daemon { container.stop { time { 5 } } }.also {
                 runCatching { pollTermination(gracefulStopTimeout) }
-                Docker.remove(name, forcibly = true)
-                managedProcess.kill()
+                container.remove { force { on } }
+                onExit.orTimeout(8, SECONDS).get()
             }
         }
+
         if (async) thread(block = block)
         else block()
     }
@@ -86,5 +91,5 @@ public open class DockerProcess private constructor(
             .forAtMost(timeout) { throw TimeoutException("Could not clean up $this within $it.") }
     }
 
-    override fun toString(): String = managedProcess.toString().replaceBefore("Process[", "DockerProcess[name=$name, ")
+    override fun toString(): String = managedProcess.toString().replaceBefore("Process(", "DockerProcess(name=${container.name}, ")
 }

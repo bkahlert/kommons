@@ -1,91 +1,117 @@
 package koodies.docker
 
+import koodies.builder.BooleanBuilder
 import koodies.builder.BooleanBuilder.BooleanValue
-import koodies.builder.BooleanBuilder.YesNo
-import koodies.builder.BooleanBuilder.YesNo.Context
+import koodies.builder.BooleanBuilder.OnOff.Context
 import koodies.builder.BuilderTemplate
-import koodies.builder.ListBuilder
+import koodies.builder.PairBuilder
+import koodies.builder.SkippableBuilder
 import koodies.builder.buildArray
 import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
-import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerStartCommandLine.Companion.StartContext
-import koodies.docker.DockerStartCommandLine.Options.Companion.StartOptionsContext
+import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
+import koodies.docker.DockerSearchCommandLine.Options.Companion.OptionsContext
 
 /**
- * Start one or more stopped containers.
+ * Search one or more stopped containers.
  */
-public open class DockerStartCommandLine(
+public open class DockerSearchCommandLine(
     /**
      * Options that specify how this command line is run.
      */
     public val options: Options,
-    public val containers: List<String>,
+    public val term: String,
 ) : DockerCommandLine(
-    dockerCommand = "start",
+    dockerCommand = "search",
     arguments = buildArray {
         addAll(options)
-        addAll(containers)
+        add(term)
     },
 ) {
 
-    public companion object : BuilderTemplate<StartContext, DockerStartCommandLine>() {
-        /**
-         * Context for building a [DockerStartCommandLine].
-         */
-        @DockerCommandLineDsl
-        public class StartContext(override val captures: CapturesMap) : CapturingContext() {
-
-            public val options: SkippableCapturingBuilderInterface<StartOptionsContext.() -> Unit, Options?> by Options
-            public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder<String>()
-        }
-
-        override fun BuildContext.build(): DockerStartCommandLine = ::StartContext {
-            DockerStartCommandLine(
-                ::options.evalOrDefault { Options() },
-                ::containers.eval(),
-            )
-        }
-    }
-
     public open class Options(
         /**
-         * Attach STDOUT/STDERR and forward signals
+         * Filter output based on conditions provided
          */
-        public val attach: Boolean = true,
+        public val filters: List<Pair<String, String>> = emptyList(),
         /**
-         * Attach container's STDIN
+         * 	Pretty-print search using a Go template
          */
-        public val interactive: Boolean = false,
+        public val format: String?,
+        /**
+         * Max number of search results
+         */
+        public val limit: Int? = 25,
     ) : List<String> by (buildList {
-        attach.also { +"--attach" + "$attach" }
-        interactive.also { +"--interactive" + "$interactive" }
+        filters.forEach { (key, value) -> +"--filter" + "$key=$value" }
+        format?.also { +"--format" + it }
+        limit.also { +"--limit" + "$limit" }
     }) {
 
-        public companion object : BuilderTemplate<StartOptionsContext, Options>() {
+        public companion object : BuilderTemplate<OptionsContext, Options>() {
             /**
              * Context for building [Options].
              */
             @DockerCommandLineDsl
-            public class StartOptionsContext(override val captures: CapturesMap) : CapturingContext() {
+            public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
-                 * Attach STDOUT/STDERR and forward signals
+                 * Filter output based on conditions provided
                  */
-                public val attach: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default true
+                public val filter: SkippableCapturingBuilderInterface<() -> Pair<String, String>, Pair<String, String>?> by PairBuilder()
 
                 /**
-                 * Attach container's STDIN
+                 * Filter output based on stars
                  */
-                public val interactive: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
+                public val stars: SkippableBuilder<() -> Int, Int, Unit>
+                    by builder<Int>() then { "stars" to it.toString() } then filter
+
+                /**
+                 * Filter output based on whether image is automated
+                 */
+                public val isAutomated: SkippableBuilder<Context.() -> BooleanValue, Boolean, Unit>
+                    by BooleanBuilder.OnOff then { "is-automated" to it.toString() } then filter
+
+                /**
+                 * Filter output based on whether image is official
+                 */
+                public val isOfficial: SkippableBuilder<Context.() -> BooleanValue, Boolean, Unit>
+                    by (BooleanBuilder.OnOff then { "is-official" to it.toString() }) then filter
+
+                /**
+                 * 	Pretty-print search using a Go template
+                 */
+                public val format: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>()
+
+                /**
+                 * Max number of search results
+                 */
+                public val limit: SkippableCapturingBuilderInterface<() -> Int, Int> by builder<Int>() default 25
             }
 
-            override fun BuildContext.build(): Options = ::StartOptionsContext {
-                Options(::attach.evalOrDefault(true), ::interactive.evalOrDefault(false))
+            override fun BuildContext.build(): Options = ::OptionsContext {
+                Options(::filter.evalAll(), ::format.eval(), ::limit.eval())
             }
+        }
+    }
+
+    public companion object : BuilderTemplate<CommandContext, DockerSearchCommandLine>() {
+        /**
+         * Context for building a [DockerSearchCommandLine].
+         */
+        @DockerCommandLineDsl
+        public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
+
+            public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
+            public val term: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
+        }
+
+        override fun BuildContext.build(): DockerSearchCommandLine = ::CommandContext {
+            DockerSearchCommandLine(::options.eval(), ::term.eval())
         }
     }
 }
 
+// TODO extensions

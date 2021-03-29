@@ -3,8 +3,6 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.builder.mapBuild
 import koodies.callable
-import koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext
-import koodies.docker.DockerStopCommandLine.Companion.StopContext
 import koodies.shell.ShellScript
 
 /**
@@ -18,8 +16,8 @@ public val ShellScript.docker: ShellScriptAttachingBuilder
  * Builder that adds the built commands directly to the [shellScript].
  */
 public class ShellScriptAttachingBuilder(private val shellScript: ShellScript) {
-    public val run: (Init<DockerRunCommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */) -> Unit by callable(
+    public val run: (Init<DockerRunCommandLine.Companion.CommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */) -> Unit by callable(
         DockerRunCommandLine.mapBuild { shellScript.command(it) })
-    public val stop: (Init<StopContext> /* = koodies.docker.DockerStopCommandLine.Companion.StopContext.() -> kotlin.Unit */) -> Unit by callable(
+    public val stop: (Init<DockerStopCommandLine.Companion.CommandContext> /* = koodies.docker.DockerStopCommandLine.Companion.StopContext.() -> kotlin.Unit */) -> Unit by callable(
         DockerStopCommandLine.mapBuild { shellScript.command(it) })
 }

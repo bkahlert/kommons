@@ -19,6 +19,27 @@ public interface ReturnValue {
      * purpose of being displayed by a [RenderingLogger].
      */
     public fun format(): CharSequence
+
+    public companion object {
+
+        /**
+         * Converts any value to a [ReturnValue] used to compute its representation
+         * based on whether it implements [ReturnValue] or not.
+         *
+         * If [ReturnValue] is implemented this implementation is used. Otherwise
+         * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
+         * for any other value.
+         *
+         * This extension function is only valid in the context of an existing [RenderingLogger].
+         */
+        public fun of(value: Any?): ReturnValue =
+            when (value) {
+                is ReturnValue -> value
+                is Result<*> -> value.fold({ of(it) }, { of(it) })
+                is Throwable -> ExceptionReturnValue(value)
+                else -> AnyReturnValue(value)
+            }
+    }
 }
 
 /**
@@ -26,10 +47,10 @@ public interface ReturnValue {
  * failed [ReturnValue].
  */
 public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableListOf<E>(*elements), ReturnValue {
-    private val unsuccessful: List<ReturnValue> get() = map { it.toReturnValue() }.filter { it.successful == false }
+    private val unsuccessful: List<ReturnValue> get() = map { ReturnValue.of(it) }.filter { it.successful == false }
     override val successful: Boolean?
         get() = fold(true) { acc: Boolean?, el: E ->
-            when (el.toReturnValue().successful) {
+            when (ReturnValue.of(el).successful) {
                 true -> acc
                 null -> if (acc == true) null else acc
                 false -> false
@@ -91,25 +112,7 @@ public inline class ExceptionReturnValue(private val exception: Throwable) : Ret
  *
  * This extension function is only valid in the context of an existing [RenderingLogger].
  */
-private fun Any?.toReturnValue(): ReturnValue =
-    when (this) {
-        is ReturnValue -> this
-        is Result<*> -> fold({ it.toReturnValue() }, { it.toReturnValue() })
-        is Throwable -> ExceptionReturnValue(this)
-        else -> AnyReturnValue(this)
-    }
-
-/**
- * Converts any value to a [ReturnValue] used to compute its representation
- * based on whether it implements [ReturnValue] or not.
- *
- * If [ReturnValue] is implemented this implementation is used. Otherwise
- * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
- * for any other value.
- *
- * This extension function is only valid in the context of an existing [RenderingLogger].
- */
 @Suppress("unused")
 public val RenderingLogger.toReturnValue: Any?.() -> ReturnValue
-    get() = { toReturnValue() }
+    get() = { ReturnValue.of(this) }
 

@@ -20,7 +20,7 @@ import kotlin.time.seconds
 @Isolated
 @DockerRequiring(requiredImages = ["busybox"])
 @Execution(SAME_THREAD)
-class DockerPsTest {
+class DockerPsTest { // TODO merge with command line test
 
     private val containers = mutableListOf<DockerProcess>()
 

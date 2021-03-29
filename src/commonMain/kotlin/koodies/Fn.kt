@@ -1,5 +1,21 @@
 package koodies
 
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
+
+/**
+ * Runs the specified [block] if `this` is `null` and provide
+ * and expected instance of [T].
+ *
+ * @see takeIf
+ */
+public inline infix fun <T> T?.otherwise(block: () -> T): T {
+    contract {
+        callsInPlace(block, EXACTLY_ONCE)
+    }
+    return this ?: block()
+}
+
 /**
  * Wraps the specified function [block] by calling the specified functions [before] and [after]
  * the actual invocation.

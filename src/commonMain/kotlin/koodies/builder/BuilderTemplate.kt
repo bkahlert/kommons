@@ -113,7 +113,7 @@ public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
         runCatching {
             BuildContext(init).build()
         }.getOrElse {
-            throw IllegalStateException("An error occurred while building: $this", it)
+            throw IllegalStateException("An error occurred while building: ${this::class.simpleName}", it)
         }
 
     /**

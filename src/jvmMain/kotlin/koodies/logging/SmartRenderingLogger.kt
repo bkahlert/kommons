@@ -1,18 +1,7 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.builder.BooleanBuilder.BooleanValue
-import koodies.builder.BooleanBuilder.YesNo
-import koodies.builder.BooleanBuilder.YesNo.Context
-import koodies.builder.BuilderTemplate
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
-import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLoggingOptionsContext
-import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
-import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
-import koodies.text.ANSI
+import koodies.logging.BlockRenderingLogger.Companion.BORDERED_BY_DEFAULT
 import koodies.text.ANSI.Formatter
 
 /**
@@ -20,34 +9,22 @@ import koodies.text.ANSI.Formatter
  * In that case the result will be logged on the same line as the caption instead of a new one.
  */
 public class SmartRenderingLogger(
+    // TODO extract proper logger interface and solely delegate; no inheritance
     caption: CharSequence,
-    override val contentFormatter: Formatter? = Formatter.PassThrough,
-    override val decorationFormatter: Formatter? = Formatter.PassThrough,
-    override val bordered: Boolean,
-    override val statusInformationColumn: Int = 100,
-    override val statusInformationPadding: Int = 5,
-    override val statusInformationColumns: Int = 45,
-    parent: RenderingLogger? = null,
-    public val blockRenderingLogger: (SmartRenderingLogger) -> BlockRenderingLogger,
-) : BorderedRenderingLogger(caption.toString(), parent, { throw IllegalStateException("All log calls must be delegated to the encapsulated logger.") }) {
+    parent: BorderedRenderingLogger? = null,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    bordered: Boolean = BORDERED_BY_DEFAULT,
+    override val missingParentFallback: (String) -> Unit = {
+        error("Implementation misses to delegate log messages; consider refactoring")
+    },
+) : BorderedRenderingLogger(caption.toString(), parent, contentFormatter, decorationFormatter, bordered, prefix = parent?.prefix ?: "") {
 
-    init {
-        closed = true
-    }
-
-    private var logged: Boolean = false
-
-    override val prefix: String
-        get() {
-            logged = true
-            return (logger as? BlockRenderingLogger)?.prefix ?: ""
-        }
+    private var loggingResult: Boolean = false
 
     private val logger: RenderingLogger by lazy {
-        if (logged) blockRenderingLogger(this)
-        else CompactRenderingLogger(caption, contentFormatter, this) {
-            parent?.apply { logLine { it } } ?: println(it)
-        }
+        if (!loggingResult) BlockRenderingLogger(caption, parent, contentFormatter, decorationFormatter, bordered)
+        else CompactRenderingLogger(caption, contentFormatter, parent)
     }
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
@@ -55,27 +32,25 @@ public class SmartRenderingLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        logged = true
         logger.logText(block)
     }
 
     override fun logLine(block: () -> CharSequence) {
-        logged = true
         logger.logLine(block)
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        logged = true
         logger.logStatus(items, block)
     }
 
-    override fun logException(block: () -> Throwable) {
-        logged = true
-        logger.logException(block)
+    override fun <R> logResult(block: () -> Result<R>): R {
+        loggingResult = ReturnValue.of(block()).successful != null
+        return logger.logResult(block)
     }
 
-    override fun <R> logResult(block: () -> Result<R>): R =
-        logger.logResult(block)
+    override fun logException(block: () -> Throwable) {
+        logger.logException(block)
+    }
 
     override fun toString(): String = asString {
         ::parent to parent?.caption
@@ -83,198 +58,37 @@ public class SmartRenderingLogger(
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
         ::bordered to bordered
-        ::statusInformationColumn to statusInformationColumn
-        ::statusInformationPadding to statusInformationPadding
-        ::statusInformationColumns to statusInformationColumns
-        ::blockRenderingLogger to blockRenderingLogger
-        ::logged to logged
-        ::logger to if (logged) logger else "not initialized yet"
+        ::initialized to initialized
+        ::logger to if (initialized) logger else "not initialized yet"
     }
 }
 
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
-@RenderingLoggingDsl
-public fun <T : MutedRenderingLogger, R> T.logging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    block: T.() -> R,
-): R = runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
-@RenderingLoggingDsl
-public fun <T : BorderedRenderingLogger, R> T.logging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = this.contentFormatter,
-    decorationFormatter: Formatter? = this.decorationFormatter,
-    bordered: Boolean = this.bordered,
-    block: SmartRenderingLogger.() -> R,
-): R = SmartRenderingLogger(
-    caption, contentFormatter, decorationFormatter, bordered,
-    statusInformationColumn = statusInformationColumn - prefix.length,
-    statusInformationPadding = statusInformationPadding,
-    statusInformationColumns = statusInformationColumns - prefix.length,
-    parent = this,
-) { parent ->
-    BlockRenderingLogger(
-        // TODO simplify
-        caption, parent, contentFormatter, decorationFormatter, bordered,
-        statusInformationColumn = statusInformationColumn - prefix.length,
-        statusInformationPadding = statusInformationPadding,
-        statusInformationColumns = statusInformationColumns - prefix.length,
-    ) { output -> logText { output } }
-}.runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
-@RenderingLoggingDsl
-public fun <T : RenderingLogger, R> T.logging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = (this as? BorderedRenderingLogger)?.contentFormatter ?: ANSI.Formatter.PassThrough,
-    decorationFormatter: Formatter? = (this as? BorderedRenderingLogger)?.decorationFormatter ?: ANSI.Formatter.PassThrough,
-    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    block: SmartRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, contentFormatter, decorationFormatter, bordered, parent = this) { parent ->
-    BlockRenderingLogger(caption, parent, contentFormatter, decorationFormatter, bordered) { output -> logText { output } }
-}.runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
+@Deprecated("only use member function")
 @RenderingLoggingDsl
 public fun <R> logging(
     caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = false,
-    block: SmartRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, contentFormatter, decorationFormatter, bordered, parent = null) { parent ->
-    BlockRenderingLogger(caption, parent, contentFormatter, decorationFormatter, bordered)
-}.runLogging(block) // TODO apply formatter
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    bordered: Boolean = BORDERED_BY_DEFAULT,
+    block: BorderedRenderingLogger.() -> R,
+): R = SmartRenderingLogger(caption, null, contentFormatter, decorationFormatter, bordered).runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
-@JvmName("nullableLogging")
+@Deprecated("only use member function")
 @RenderingLoggingDsl
 public fun <T : RenderingLogger?, R> T.logging(
     caption: CharSequence,
-    contentFormatter: Formatter? = (this as? BorderedRenderingLogger)?.contentFormatter ?: Formatter.PassThrough,
-    decorationFormatter: Formatter? = (this as? BorderedRenderingLogger)?.decorationFormatter ?: Formatter.PassThrough,
-    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    block: SmartRenderingLogger.() -> R,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    bordered: Boolean = BORDERED_BY_DEFAULT,
+    block: BorderedRenderingLogger.() -> R,
 ): R =
-    if (this is RenderingLogger) logging(caption, contentFormatter, decorationFormatter, bordered, block)
+    if (this is BorderedRenderingLogger) logging(caption, contentFormatter, decorationFormatter, bordered, block)
     else koodies.logging.logging(caption, contentFormatter, decorationFormatter, bordered, block)
 
-/**
- * Options that define how a [RenderingLogger] renders log messages.
- */
-public sealed class LoggingOptions {
-
-    public abstract fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R
-
-    /**
-     * Renders log messages line-by-line.
-     */
-    public class BlockLoggingOptions(
-        public val caption: CharSequence? = null,
-        public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
-        public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val bordered: Boolean = false,
-    ) : LoggingOptions() {
-        override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            logger.blockLogging(caption ?: fallbackCaption, contentFormatter, decorationFormatter, bordered) { block() }
-
-        public companion object : BuilderTemplate<BlockLoggingOptionsContext, BlockLoggingOptions>() {
-
-            public class BlockLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
-                public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
-                public val decorationFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_DECORATION_FORMATTER
-                public val border: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
-            }
-
-            override fun BuildContext.build(): BlockLoggingOptions = ::BlockLoggingOptionsContext {
-                BlockLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::border.eval())
-            }
-        }
-    }
-
-    /**
-     * Renders log messages in a single line.
-     */
-    public class CompactLoggingOptions(
-        public val caption: CharSequence? = null,
-        public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
-    ) : LoggingOptions() {
-        override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            logger.compactLogging(caption ?: fallbackCaption, contentFormatter) { block() }
-
-        public companion object : BuilderTemplate<CompactLoggingOptionsContext, CompactLoggingOptions>() {
-
-            public class CompactLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
-                public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
-            }
-
-            override fun BuildContext.build(): CompactLoggingOptions = ::CompactLoggingOptionsContext {
-                CompactLoggingOptions(::caption.eval(), ::contentFormatter.eval())
-            }
-        }
-    }
-
-    /**
-     * Renders log messages depending on how many messages are logged.
-     *
-     * Renders like [Block] unless nothing but a result is logged. In the latter case renders like [Compact].
-     */
-    public class SmartLoggingOptions(
-        public val caption: CharSequence? = null,
-        public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
-        public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val bordered: Boolean = false,
-    ) : LoggingOptions() {
-        override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            logger.logging(caption ?: fallbackCaption, contentFormatter, decorationFormatter, bordered) { block() }
-
-        public companion object : BuilderTemplate<SmartLoggingOptionsContext, SmartLoggingOptions>() {
-
-            public class SmartLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
-                public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
-                public val decorationFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_DECORATION_FORMATTER
-                public val border: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
-            }
-
-            override fun BuildContext.build(): SmartLoggingOptions = ::SmartLoggingOptionsContext {
-                SmartLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::border.eval())
-            }
-        }
-    }
-
-    public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptions>() {
-
-        public val DEFAULT_CONTENT_FORMATTER: Formatter = Formatter.PassThrough
-        public val DEFAULT_DECORATION_FORMATTER: Formatter = ANSI.Colors.brightBlue
-
-        public class LoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-            public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
-            public val compact: SkippableCapturingBuilderInterface<CompactLoggingOptionsContext.() -> Unit, CompactLoggingOptions?> by CompactLoggingOptions
-            public val smart: SkippableCapturingBuilderInterface<SmartLoggingOptionsContext.() -> Unit, SmartLoggingOptions?> by SmartLoggingOptions
-        }
-
-        override fun BuildContext.build(): LoggingOptions = ::LoggingOptionsContext {
-            ::block.evalOrNull<BlockLoggingOptions>()
-                ?: ::compact.evalOrNull<CompactLoggingOptions>()
-                ?: ::smart.evalOrNull<SmartLoggingOptions>()
-                ?: SmartLoggingOptions()
-        }
-    }
-}

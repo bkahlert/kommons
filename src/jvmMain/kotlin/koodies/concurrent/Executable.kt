@@ -14,8 +14,8 @@ import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.ProcessingMode
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.Processor
+import koodies.concurrent.process.attach
 import koodies.concurrent.process.process
-import koodies.concurrent.process.toProcessor
 import koodies.logging.LoggingOptions
 import koodies.logging.LoggingOptions.BlockLoggingOptions
 import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
@@ -57,8 +57,9 @@ public class Execution(
     private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): ManagedProcess =
         with(Options(init)) {
             loggingOptions.render(logger, executable.summary) {
-                executable.toProcess(expectedExitValue, processTerminationCallback)
-                    .process(processingMode, processor = processor ?: toProcessor<ManagedProcess>())
+                executable.toProcess(expectedExitValue, processTerminationCallback).let {
+                    it.process(processingMode, processor = processor ?: it.attach(this))
+                }
             }
         }
 

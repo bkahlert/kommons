@@ -44,7 +44,7 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
         object : InMemoryLogger(
             caption = testName + if (suffix != null) "::$suffix" else "",
             bordered = bordered,
-            statusInformationColumn = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(-1),
+            width = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(null),
             outputStreams = if (isVerbose || parameterContext.isVerbose) arrayOf(System.out) else emptyArray(),
         ) {
             @Suppress("UNCHECKED_CAST")

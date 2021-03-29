@@ -47,6 +47,35 @@ class DockerImageTest {
         expectThrowing { DockerImage { "repo" / "path" tag specifier } }.that { isFailure().isA<IllegalArgumentException>() }
         expectThrowing { DockerImage { "repo" / "path" digest specifier } }.that { isFailure().isA<IllegalArgumentException>() }
     }
+
+    @TestFactory
+    fun `should equal`() = test {
+        with { DockerImage.parse("repo/path") }.then {
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
+
+            expect { this }.that { not { isEqualTo(DockerImage("repo", listOf("other-path"), null, null)) } }
+            expect { this }.that { not { isEqualTo(DockerImage("other-repo", listOf("path"), null, null)) } }
+        }
+        with { DockerImage.parse("repo/path:tag") }.then {
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
+
+            expect { this }.that { not { isEqualTo(DockerImage("repo", listOf("path"), "other-tag", null)) } }
+        }
+        with { DockerImage.parse("repo/path@digest") }.then {
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
+            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
+
+            expect { this }.that { not { isEqualTo(DockerImage("repo", listOf("path"), null, "other-digest")) } }
+        }
+    }
 }
 
 typealias DockerImageInit = ImageContext.() -> DockerImage

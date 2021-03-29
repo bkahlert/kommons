@@ -1,6 +1,7 @@
 package koodies.logging
 
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
+import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.matchesCurlyPattern
@@ -14,6 +15,114 @@ import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 @Execution(SAME_THREAD)
 class SmartRenderingLoggerKtTest {
 
+    @Test
+    fun InMemoryLogger.`should log using compact logger if only result logged`() {
+        logging("caption") { }
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │   
+            │   caption ✔︎
+            │
+            ╰──╴✔︎
+        """.trimIndent())
+    }
+
+    @Test
+    fun InMemoryLogger.`should log using block logger if not only result logged`() {
+        logging("caption") { logText { "text" } }
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │   
+            │   ╭──╴caption
+            │   │   
+            │   │   text
+            │   │
+            │   ╰──╴✔︎
+            │
+            ╰──╴✔︎
+        """.trimIndent())
+    }
+
+    @Nested
+    inner class RenderingAsBlock {
+        @Test
+        fun InMemoryLogger.`should log`() {
+            logging("caption") {
+                logLine { "line" }
+                logStatus { "text" }
+            }
+
+            expectThatLogged().matchesCurlyPattern("""
+                ╭──╴{}
+                │   
+                │   ╭──╴caption
+                │   │   
+                │   │   line
+                │   │   text {} ▮▮
+                │   │
+                │   ╰──╴✔︎
+                │
+                ╰──╴✔︎
+            """.trimIndent())
+        }
+
+        @Test
+        fun InMemoryLogger.`should log nested`() {
+            logging("caption") {
+                logLine { "outer 1" }
+                logLine { "outer 2" }
+                logging("nested") {
+                    logLine { "nested 1" }
+                    logLine { "nested 2" }
+                    logLine { "nested 3" }
+                }
+                logLine { "outer 3" }
+                logLine { "outer 4" }
+            }
+
+            expectThatLogged().matchesCurlyPattern("""
+                ╭──╴{}
+                │   
+                │   ╭──╴caption
+                │   │   
+                │   │   outer 1
+                │   │   outer 2
+                │   │   ╭──╴nested
+                │   │   │   
+                │   │   │   nested 1
+                │   │   │   nested 2
+                │   │   │   nested 3
+                │   │   │
+                │   │   ╰──╴✔︎
+                │   │   outer 3
+                │   │   outer 4
+                │   │
+                │   ╰──╴✔︎
+                │
+                ╰──╴✔︎
+            """.trimIndent())
+        }
+
+        @Test
+        fun @receiver:Columns(60) InMemoryLogger.`should log status in same column`() {
+            logging("caption") {
+                logStatus("status") { "text" }
+                logging("nested") {
+                    logStatus("status") { "text" }
+                }
+            }
+
+            expectThatLogged().matchesCurlyPattern("""
+                {{}}
+                │   │   text                                                              ◀◀ status
+                {{}}
+                │   │   │   text                                                          ◀◀ status
+                {{}}
+            """.trimIndent())
+        }
+    }
+
+
     private fun borderedTest(borderedPattern: String, nonBorderedPattern: String, block: RenderingLogger.() -> Any) = listOf(
         true to borderedPattern,
         false to nonBorderedPattern,
@@ -25,7 +134,7 @@ class SmartRenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should log caption`() = borderedTest(
+    fun `should log captionX`() = borderedTest(
         """
             ╭──╴InMemoryLogger
             │   
@@ -37,7 +146,7 @@ class SmartRenderingLoggerKtTest {
         """.trimIndent()) { }
 
     @TestFactory
-    fun `should log text`() = borderedTest(
+    fun `should log textX`() = borderedTest(
         """
             ╭──╴InMemoryLogger
             │   
@@ -57,7 +166,7 @@ class SmartRenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should log line`() = borderedTest(
+    fun `should log lineX`() = borderedTest(
         """
             ╭──╴InMemoryLogger
             │   
@@ -214,90 +323,6 @@ class SmartRenderingLoggerKtTest {
                 """.trimIndent())
             }
         }
-    }
-
-    @TestFactory
-    fun `should log status`() = borderedTest(
-        """
-            ╭──╴InMemoryLogger
-            │   
-            │   ╭──╴bordered caption
-            │   │   
-            │   │   line                                                              ◀◀ status
-            │   │
-            │   ╰──╴✔︎
-        """.trimIndent(), """
-            ╭──╴InMemoryLogger
-            │   
-            │   ▶ not-bordered caption
-            │   · line                                                              ◀◀ status
-            │   ✔︎
-        """.trimIndent()) {
-        logStatus("status") { "line" }
-    }
-
-    @TestFactory
-    fun `should log result`() = borderedTest(
-        """
-            ╭──╴InMemoryLogger
-            │   
-            │   bordered caption ✔︎
-            │   bordered caption ⌛️ ✔︎
-        """.trimIndent(), """
-            ╭──╴InMemoryLogger
-            │   
-            │   not-bordered caption ✔︎
-            │   not-bordered caption ⌛️ ✔︎
-        """.trimIndent()) {
-        logResult { Result.success("result") }
-    }
-
-    @TestFactory
-    fun `should log multiple results`() = borderedTest(
-        """
-            ╭──╴InMemoryLogger
-            │   
-            │   bordered caption ✔︎
-            │   bordered caption ⌛️ ✔︎
-            │   bordered caption ⌛️ ✔︎
-            │   bordered caption ⌛️ ✔︎
-        """.trimIndent(), """
-            ╭──╴InMemoryLogger
-            │   
-            │   not-bordered caption ✔︎
-            │   not-bordered caption ⌛️ ✔︎
-            │   not-bordered caption ⌛️ ✔︎
-            │   not-bordered caption ⌛️ ✔︎
-        """.trimIndent()) {
-        logResult { Result.success(1) }
-        logResult { Result.success(2) }
-        logResult { Result.success(3) }
-    }
-
-    @TestFactory
-    fun `should log multiple entries`() = borderedTest(
-        """
-            ╭──╴InMemoryLogger
-            │   
-            │   ╭──╴bordered caption
-            │   │   
-            │   │   text
-            │   │   line
-            │   │   line                                                              ◀◀ status
-            │   │
-            │   ╰──╴✔︎
-        """.trimIndent(), """
-            ╭──╴InMemoryLogger
-            │   
-            │   ▶ not-bordered caption
-            │   · text
-            │   · line
-            │   · line                                                              ◀◀ status
-            │   ✔︎
-        """.trimIndent()) {
-        logText { "text" }
-        logLine { "line" }
-        logStatus("status") { "line" }
     }
 
     @Nested

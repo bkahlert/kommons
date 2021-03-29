@@ -172,5 +172,5 @@ public val ManagedProcess.logged: String get() = ioLog.logged<IO>()
  */
 public fun ManagedProcess.output(): String = run {
     process({ sync }, Processors.noopProcessor())
-    ioLog.logged.filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) { it.unformatted }
+    ioLog.logged.filterIsInstance<IO.OUT>().joinToString(LF) { it.unformatted }
 }

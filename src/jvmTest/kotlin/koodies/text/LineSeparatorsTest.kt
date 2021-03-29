@@ -20,6 +20,7 @@ import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.trailingLineSeparator
 import koodies.text.LineSeparators.unify
+import koodies.text.LineSeparators.withTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -305,6 +306,24 @@ class LineSeparatorsTest {
                 },
             )),
         ))
+    }
+
+    @Nested
+    inner class WithTrailingLineSeparator {
+        @Test
+        fun `should append if missing`() {
+            expectThat("line".withTrailingLineSeparator()).isEqualTo("line\n")
+        }
+
+        @Test
+        fun `should not append if missing but toggle set`() {
+            expectThat("line".withTrailingLineSeparator(append = false)).isEqualTo("line")
+        }
+
+        @Test
+        fun `should not append if already present`() {
+            expectThat("line\r".withTrailingLineSeparator()).isEqualTo("line\r")
+        }
     }
 
     @TestFactory

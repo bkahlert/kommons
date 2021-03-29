@@ -3,9 +3,11 @@ package koodies.logging
 import koodies.asString
 import koodies.builder.buildList
 import koodies.concurrent.process.IO
+import koodies.logging.BlockRenderingLogger.Companion.BORDERED_BY_DEFAULT
 import koodies.regex.RegularExpressions
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.LineSeparators.LF
@@ -17,26 +19,16 @@ import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.wrapLines
+import kotlin.properties.Delegates
 
 public open class BlockRenderingLogger(
     caption: CharSequence,
-    parent: RenderingLogger? = null,
-    override val contentFormatter: Formatter? = Formatter.PassThrough,
-    override val decorationFormatter: Formatter? = Formatter.PassThrough,
-    override val bordered: Boolean = false,
-    override val statusInformationColumn: Int = 100,
-    override val statusInformationPadding: Int = 5,
-    override val statusInformationColumns: Int = 45,
-    log: (String) -> Unit = { output: String -> print(output) },
-) : BorderedRenderingLogger(caption.toString(), parent, log) {
-
-    public val totalColumns: Int
-        get() {
-            check(statusInformationColumn > 0)
-            check(statusInformationPadding > 0)
-            check(statusInformationColumns > 0)
-            return statusInformationColumn + statusInformationPadding + statusInformationColumns
-        }
+    parent: BorderedRenderingLogger? = null,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    bordered: Boolean = BORDERED_BY_DEFAULT,
+    width: Int? = null,
+) : BorderedRenderingLogger(caption.toString(), parent, contentFormatter, decorationFormatter, bordered, width, prefixFor(bordered, decorationFormatter)) {
 
     private val playSymbol: String get() = decorationFormatter("▶").toString()
     private val whitePlaySymbol: String get() = decorationFormatter("▷").toString()
@@ -58,9 +50,11 @@ public open class BlockRenderingLogger(
             }
         }.joinToString(LF)
 
-    override val prefix: String
-        get() = if (bordered) decorationFormatter("│").toString() + "   "
-        else decorationFormatter("·").toString() + " "
+    override var initialized: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
+        if (!oldValue && newValue) {
+            render(true) { blockStart }
+        }
+    }
 
     protected fun getBlockEnd(returnValue: ReturnValue): CharSequence {
         val message: String =
@@ -85,10 +79,6 @@ public open class BlockRenderingLogger(
                 }
             }
         return message.asAnsiString().mapLines { it.bold() }
-    }
-
-    init {
-        render(true) { blockStart }
     }
 
     override fun logText(block: () -> CharSequence) {
@@ -129,7 +119,7 @@ public open class BlockRenderingLogger(
             if (closed) formatReturnValue(result.toReturnValue()).asAnsiString().wrapNonUriLines(totalColumns)
             else getBlockEnd(result.toReturnValue()).wrapNonUriLines(totalColumns)
         }
-        closed = true
+        open = false
         return result.getOrThrow()
     }
 
@@ -139,7 +129,7 @@ public open class BlockRenderingLogger(
             if (closed) message
             else message.prefixLinesWith(prefix, ignoreTrailingSeparator = false)
         }
-        closed = true
+        open = false
     }
 
     private fun CharSequence.wrapNonUriLines(length: Int): CharSequence {
@@ -152,9 +142,18 @@ public open class BlockRenderingLogger(
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
         ::bordered to bordered
+        ::prefix to prefix
         ::statusInformationColumn to statusInformationColumn
         ::statusInformationPadding to statusInformationPadding
         ::statusInformationColumns to statusInformationColumns
+    }
+
+    public companion object {
+        public const val BORDERED_BY_DEFAULT: Boolean = true
+        public fun prefixFor(bordered: Boolean?, decorationFormatter: Formatter?): String {
+            return if (bordered ?: BORDERED_BY_DEFAULT) decorationFormatter("│").toString() + "   "
+            else decorationFormatter("·").toString() + " "
+        }
     }
 }
 
@@ -164,75 +163,29 @@ public open class BlockRenderingLogger(
  *
  * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
  */
-@RenderingLoggingDsl
-public fun <T : MutedRenderingLogger, R> T.blockLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    block: T.() -> R,
-): R = runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
- */
-@RenderingLoggingDsl
-public fun <T : BorderedRenderingLogger, R> T.blockLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    block: BlockRenderingLogger.() -> R,
-): R = BlockRenderingLogger(
-    caption, this, contentFormatter, decorationFormatter, bordered,
-    statusInformationColumn = statusInformationColumn - prefix.length,
-    statusInformationPadding = statusInformationPadding,
-    statusInformationColumns = statusInformationColumns - prefix.length,
-) { output -> logText { output } }.runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
- */
-@RenderingLoggingDsl
-public fun <T : RenderingLogger, R> T.blockLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = (this as? BorderedRenderingLogger)?.bordered ?: false,
-    block: BlockRenderingLogger.() -> R,
-): R = BlockRenderingLogger(caption, this, contentFormatter, decorationFormatter, bordered) { output -> logText { output } }.runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
- */
+@Deprecated("only use member function")
 @RenderingLoggingDsl
 public fun <R> blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = false,
-    block: BlockRenderingLogger.() -> R,
-): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, bordered).runLogging(block)
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    bordered: Boolean? = null,
+    block: BorderedRenderingLogger.() -> R,
+): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, bordered ?: BORDERED_BY_DEFAULT).runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  *
  * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
  */
-@JvmName("nullableBlockLogging")
+@Deprecated("only use member function")
 @RenderingLoggingDsl
 public fun <T : RenderingLogger?, R> T.blockLogging(
     caption: CharSequence,
-    contentFormatter: Formatter? = Formatter.PassThrough,
-    decorationFormatter: Formatter? = Formatter.PassThrough,
-    bordered: Boolean = false,
-    block: BlockRenderingLogger.() -> R,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = Formatter { it.red() },
+    bordered: Boolean? = null,
+    block: BorderedRenderingLogger.() -> R,
 ): R =
-    if (this is RenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, bordered, block)
+    if (this is BorderedRenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, bordered, block)
     else koodies.logging.blockLogging(caption, contentFormatter, decorationFormatter, bordered, block)

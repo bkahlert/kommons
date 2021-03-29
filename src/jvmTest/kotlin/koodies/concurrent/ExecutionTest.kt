@@ -11,7 +11,6 @@ import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.logging.expectThatLogged
-import koodies.logging.logging
 import koodies.shell.ShellScript
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoExclusive
@@ -240,7 +239,8 @@ class ExecutionTest {
             executable.execute { processing { async }; null }
             output.poll()
             expectThat(output).get { all }.matchesCurlyPattern("""
-                        {}echo {} ⌛️ async computation
+                        {}▶ Script{}
+                        {}⌛️ async computation
                         {}echo {} ⌛️ Executing {{}}
                         {}echo {} ⌛️ {} file:{}
                         {}echo {} ⌛️ test output env
@@ -258,7 +258,8 @@ class ExecutionTest {
             poll()
             expectThatLogged().matchesCurlyPattern("""
                     {{}}
-                    {}echo {} ⌛️ async computation
+                    {}▶ Script{}
+                    {}⌛️ async computation
                     {}echo {} ⌛️ Executing {{}}
                     {}echo {} ⌛️ {} file:{}
                     {}echo {} ⌛️ test output env

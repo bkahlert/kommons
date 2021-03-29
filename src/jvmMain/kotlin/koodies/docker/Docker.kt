@@ -4,6 +4,8 @@ import koodies.CallableProperty
 import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.mapBuild
+import koodies.collections.head
+import koodies.collections.tail
 import koodies.concurrent.daemon
 import koodies.concurrent.execute
 import koodies.concurrent.output
@@ -15,21 +17,17 @@ import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.Processors.noopProcessor
+import koodies.concurrent.process.attach
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
-import koodies.concurrent.process.toProcessor
 import koodies.concurrent.script
 import koodies.concurrent.scriptOutputContains
 import koodies.concurrent.toManagedProcess
 import koodies.docker.DockerImage.ImageContext
-import koodies.docker.DockerRemoveCommandLine.Companion.RemoveContext
-import koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext
-import koodies.docker.DockerRunCommandLineOptions.Companion.OptionsContext
-import koodies.docker.DockerStartCommandLine.Companion.StartContext
-import koodies.docker.DockerStopCommandLine.Companion.StopContext
+import koodies.docker.DockerRunCommandLine.Companion
 import koodies.logging.RenderingLogger
 import koodies.provideDelegate
-import koodies.text.LineSeparators.lines
+import koodies.text.takeUnlessBlank
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
@@ -39,13 +37,18 @@ import java.util.concurrent.TimeUnit
  */
 public object Docker {
 
+    public val image: DockerImage.Companion = DockerImage.Companion
+
     /**
      * Contains the locally existing docker images.
      */
     public val images: List<DockerImage>
-        get() = script(noopProcessor()) { !"""docker image ls  --no-trunc --format "{{.Repository}}"""" }.output().lines().map {
-            DockerImage.parse(it)
-        }
+        get() = script(null) { !"""docker image ls  --no-trunc --format "{{.Repository}}\t{{.Tag}}\t{{.Digest}}"""" }.output().lines()
+            .map { line ->
+                val (repoAndPath, tag, digest) = line.split("\t")
+                val (repository, path) = repoAndPath.split("/").let { it.head to it.tail }
+                DockerImage(repository, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())
+            }
 
     /**
      * Whether the Docker engine itself is running.
@@ -66,41 +69,55 @@ public object Docker {
         scriptOutputContains("""docker ps --no-trunc --format "{{.Names}}" --filter "name=^$sanitizedName${'$'}" --all""", sanitizedName)
     }
 
+//    /**
+//     * Builds a [DockerSearchCommandLine] and executes it.
+//     */
+//    public val search: (Init<SearchContext> /* = koodies.docker.DockerSearchCommandLine.Companion.SearchContext.() -> kotlin.Unit */)
+//    -> ManagedProcess by DockerSearchCommandLine.mapBuild { it.execute().output() }
+//
+//    /**
+//     * Builds a [DockerSearchCommandLine] and executes it using `this` [RenderingLogger].
+//     */
+//    public val RenderingLogger?.search: Builder<Init<SearchContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+//        DockerSearchCommandLine.mapBuild { it.execute(processor = thisRef.toProcessor()) }
+//    }
+
+
     /**
      * Builds a [DockerStartCommandLine] and executes it.
      */
-    public val start: (Init<StartContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */)
-    -> ManagedProcess by DockerStartCommandLine.mapBuild { it.execute(null) { null } }
+    public val start: (Init<DockerStartCommandLine.Companion.CommandContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */)
+    -> ManagedProcess by DockerStartCommandLine.mapBuild { it.execute { null } }
 
     /**
      * Builds a [DockerStartCommandLine] and executes it using `this` [RenderingLogger].
      */
-    public val RenderingLogger?.start: Builder<Init<StartContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
-        DockerStartCommandLine.mapBuild { it.execute(thisRef) { null } }
+    public val RenderingLogger?.start: Builder<Init<DockerStartCommandLine.Companion.CommandContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+        DockerStartCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
     }
 
     /**
      * Builds a [DockerRunCommandLine] and executes it.
      */
-    public val run: (Init<DockerRunCommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
-    -> ManagedProcess by DockerRunCommandLine.mapBuild { it.execute(null) { null } }
+    public val run: (Init<Companion.CommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
+    -> ManagedProcess by DockerRunCommandLine.mapBuild { it.execute { null } }
 
     /**
      * Builds a [DockerRunCommandLine] and executes it using `this` [RenderingLogger].
      */
-    public val RenderingLogger?.run: Builder<Init<DockerRunCommandContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
-        DockerRunCommandLine.mapBuild { it.execute(thisRef) { null } }
+    public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+        DockerRunCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
     }
 
     /**
      * Builds a [DockerStopCommandLine].
      */
-    public val stop: (Init<StopContext> /* = koodies.docker.DockerStopCommandLine.Companion.StopContext.() -> kotlin.Unit */) -> DockerStopCommandLine by DockerStopCommandLine
+    public val stop: (Init<DockerStopCommandLine.Companion.CommandContext> /* = koodies.docker.DockerStopCommandLine.Companion.StopContext.() -> kotlin.Unit */) -> DockerStopCommandLine by DockerStopCommandLine
 
     /**
      * Builds a [DockerRemoveCommandLine].
      */
-    public val remove: (Init<RemoveContext> /* = koodies.docker.DockerRemoveCommandLine.Companion.RemoveContext.() -> kotlin.Unit */) -> DockerRemoveCommandLine by DockerRemoveCommandLine
+    public val remove: (Init<DockerRemoveCommandLine.Companion.CommandContext> /* = koodies.docker.DockerRemoveCommandLine.Companion.RemoveContext.() -> kotlin.Unit */) -> DockerRemoveCommandLine by DockerRemoveCommandLine
 
     /**
      * Micro DSL to build a [DockerImage] in the style of:
@@ -114,15 +131,15 @@ public object Docker {
     public fun image(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun options(init: Init<OptionsContext>): DockerRunCommandLineOptions =
-        DockerRunCommandLineOptions(init)
+    public fun options(init: Init<DockerRunCommandLine.Options.Companion.OptionsContext>): DockerRunCommandLine.Options =
+        DockerRunCommandLine.Options(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
     public fun commandLine(init: Init<CommandLineContext>): CommandLine =
         CommandLine(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun commandLine(image: DockerImage, options: DockerRunCommandLineOptions, commandLine: CommandLine): DockerRunCommandLine =
+    public fun commandLine(image: DockerImage, options: DockerRunCommandLine.Options, commandLine: CommandLine): DockerRunCommandLine =
         DockerRunCommandLine(image, options, commandLine)
 
     /**
@@ -138,7 +155,7 @@ public object Docker {
     public fun remove(name: String, forcibly: Boolean = false): String = remove {
         options { force using forcibly }
         containers { +name }
-    }.execute(null) { expectedExitValue by null; noopProcessor() }
+    }.execute { expectedExitValue by null; noopProcessor() }
         .apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }
         .output()
 }
@@ -160,7 +177,7 @@ private fun DockerCommandLine.fireAndForget(
 
 private fun Path.dockerRunCommandLine(
     imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<OptionsContext>,
+    optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     arguments: Array<out String>,
 ) = DockerRunCommandLine {
     image(imageInit)
@@ -187,7 +204,7 @@ private fun Path.dockerRunCommandLine(
  */
 public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<OptionsContext>,
+    optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
     expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
@@ -214,15 +231,15 @@ public fun Path.docker(
  */
 public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<OptionsContext>,
+    optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
     expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
-    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
+    processor: Processor<ManagedProcess>?,
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
         .toManagedProcess(expectedExitValue, processTerminationCallback)
-        .process({ sync }, processor)
+        .let { it.process({ sync }, processor ?: it.attach()) }
 
 /**
  * Runs a Docker process using the [DockerRunCommandLine] built by the
@@ -238,14 +255,14 @@ public fun Path.docker(
  * get called.
  */
 public fun docker(
-    init: Init<DockerRunCommandContext>,
+    init: Init<Companion.CommandContext>,
     expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
-    processor: Processor<DockerProcess>,
+    processor: Processor<DockerProcess>?,
 ): DockerProcess =
     DockerRunCommandLine(init)
         .toManagedProcess(expectedExitValue, processTerminationCallback)
-        .process({ sync }, processor)
+        .let { it.process({ sync }, processor ?: it.attach()) }
 
 
 /**
@@ -262,11 +279,11 @@ public fun docker(
  * get called.
  */
 public fun docker(
-    processor: Processor<DockerProcess> = Processors.consoleLoggingProcessor(),
+    processor: Processor<DockerProcess>?,
     expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
-    init: Init<DockerRunCommandContext>,
+    init: Init<Companion.CommandContext>,
 ): DockerProcess =
     DockerRunCommandLine(init)
         .toManagedProcess(expectedExitValue, processTerminationCallback)
-        .process({ sync }, processor)
+        .let { it.process({ sync }, processor ?: it.attach()) }

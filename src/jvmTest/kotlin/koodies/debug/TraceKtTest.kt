@@ -12,6 +12,7 @@ public inline val <T : Assertion.Builder<V>, V> T.trace: T
     get() = also {
         get {
             val subject: V = this
+            @Suppress("DEPRECATION")
             subject.trace
         }
     }
@@ -27,6 +28,7 @@ public fun <T : Assertion.Builder<V>, V> T.trace(transform: (V.() -> Any?)): T =
     also {
         get {
             val subject: V = this
+            @Suppress("DEPRECATION")
             subject.trace(transform)
         }
     }

@@ -1,6 +1,7 @@
 package koodies.docker
 
 import koodies.builder.StatelessBuilder
+import koodies.text.Semantics.formattedAs
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -22,25 +23,39 @@ public open class DockerImage(
      * Non-empty list of path elements
      */
     public val path: List<String>,
+
     /**
-     * Optional tag or digest.
+     * Optional tag.
      */
-    public val specifier: String?,
+    public val tag: String? = null,
+
+    /**
+     * Optional digest.
+     */
+    public val digest: String? = null,
 ) {
 
     private val repoAndPath = listOf(repository, *path.toTypedArray())
 
     init {
         repoAndPath.forEach {
-            require(PATH_REGEX.matches(it)) { "$it is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)" }
+            require(PATH_REGEX.matches(it)) {
+                "${it.formattedAs.input} is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)"
+            }
         }
-        specifier?.also {
-            require(specifier.startsWith(":") || specifier.startsWith("@")) { "The specifier must either describe a tag `:tagname` or be a digest `@hash`." }
-            require(specifier.length > 1) { "The specifier is too short." }
-        }
+        tag?.also { require(it.isNotBlank()) { "Specified tag must not be blank." } }
+        digest?.also { require(it.isNotBlank()) { "Specified digest must not be blank." } }
     }
 
-    override fun toString(): String = repoAndPath.joinToString("/") + (specifier ?: "")
+    /**
+     * Synthetic property which defaults to the formatted [digest] and only returns
+     * the formatted [tag] if no [digest] is specified.
+     *
+     * If neither [digest] nor [tag] are specified, this string is empty.
+     */
+    public val specifier: String get() = digest?.let { "@$it" } ?: tag?.let { ":$it" } ?: ""
+
+    override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -49,18 +64,17 @@ public open class DockerImage(
 
         if (repository != other.repository) return false
         if (path != other.path) return false
-        if (specifier != other.specifier) return false
-
+        if (digest != null && other.digest != null) return digest == other.digest
+        if (tag != null && other.tag != null) return tag == other.tag
         return true
     }
 
     override fun hashCode(): Int {
         var result = repository.hashCode()
         result = 31 * result + path.hashCode()
-        result = 31 * result + (specifier?.hashCode() ?: 0)
+        result = 31 * result + specifier.hashCode()
         return result
     }
-
 
     /**
      * Builder to provide DSL elements to create instances of [DockerImage].
@@ -86,18 +100,19 @@ public open class DockerImage(
         /**
          * Specifies the [tag] for this [DockerImage].
          */
-        public infix fun RepositoryWithPath.tag(tag: String): DockerImage = DockerImage(repository, path, ":$tag")
+        public infix fun RepositoryWithPath.tag(tag: String): DockerImage = DockerImage(repository, path, tag = tag)
 
         /**
          * Specifies the [digest] for this [DockerImage].
          */
-        public infix fun RepositoryWithPath.digest(digest: String): DockerImage = DockerImage(repository, path, "@$digest")
+        public infix fun RepositoryWithPath.digest(digest: String): DockerImage = DockerImage(repository, path, digest = digest)
     }
 
     /**
      * Helper class to enforce consecutive [RepositoryWithPath.path] calls.
      */
-    public class RepositoryWithPath(repository: String, path: List<String>) : DockerImage(repository, path, null) {
+    public class RepositoryWithPath(repository: String, path: List<String>) : DockerImage(repository, path) {
+
         public constructor(repository: String, path: String) : this(repository, listOf(path))
     }
 
@@ -109,7 +124,8 @@ public open class DockerImage(
      */
     @Suppress("SpellCheckingInspection")
     public companion object :
-        StatelessBuilder.PostProcessing<ImageContext, DockerImage, DockerImage>(ImageContext, { DockerImage(repository, path, specifier) }) {
+        StatelessBuilder.PostProcessing<ImageContext, DockerImage, DockerImage>(ImageContext, { DockerImage(repository, path, tag, digest) }) {
+
         /**
          * Pattern that the [repository] and all [path] elements match.
          */
@@ -124,9 +140,12 @@ public open class DockerImage(
             val imageWithTag = image.substringBeforeLast("@").split(":").also { require(it.size <= 2) { "Invalid format. More than one tag found: $it" } }
             val imageWithDigest = image.split("@").also { require(it.size <= 2) { "Invalid format. More than one digest found: $it" } }
             require(!(imageWithTag.size > 1 && imageWithDigest.size > 1)) { "Invalid format. Both tag ${imageWithTag[1]} and digest ${imageWithDigest[1]} found." }
-            val specifier: String? = imageWithTag.takeIf { it.size == 2 }?.let { ":${it[1]}" } ?: imageWithDigest.takeIf { it.size == 2 }?.let { "@${it[1]}" }
+            val (tag: String?, digest: String?) =
+                imageWithTag.takeIf { it.size == 2 }?.let { it[1] to null }
+                    ?: imageWithDigest.takeIf { it.size == 2 }?.let { null to it[1] }
+                    ?: null to null
             val (repository, path) = imageWithTag[0].split("/").map { it.trim() }.let { it[0] to it.drop(1) }
-            return DockerImage(repository, path, specifier)
+            return DockerImage(repository, path, tag, digest)
         }
     }
 }

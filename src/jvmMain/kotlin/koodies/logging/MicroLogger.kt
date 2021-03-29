@@ -5,7 +5,7 @@ import koodies.collections.synchronizedListOf
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
-import koodies.text.GraphemeCluster
+import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.prefixLinesWith
@@ -13,11 +13,10 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 public class MicroLogger(
-    private val symbol: GraphemeCluster? = null,
+    private val symbol: String,
     private val formatter: Formatter? = Formatter.PassThrough,
     parent: RenderingLogger? = null,
-    log: (String) -> Unit = { output: String -> print(output) },
-) : RenderingLogger(symbol?.toString() ?: "", parent, log) {
+) : RenderingLogger("", parent) {
 
     private val messages: MutableList<CharSequence> = synchronizedListOf()
     private val lock = ReentrantLock()
@@ -31,8 +30,9 @@ public class MicroLogger(
                 log { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
+                val prefix = "(" + (symbol.trim().takeUnless { it.isEmpty() }?.let { "$it " } ?: "")
                 val paddingAndMessages =
-                    messages.joinToString(prefix = "(" + (symbol?.let { "$it " } ?: ""), separator = " ˃ ", postfix = " ˃ ${block()})")
+                    messages.joinToString(prefix = prefix, separator = " ˃ ", postfix = " ˃ ${block()})") { "$it".withoutTrailingLineSeparator }
                 log { caption.bold() + paddingAndMessages }
             }
             else -> {
@@ -42,11 +42,11 @@ public class MicroLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        block.format(formatter) { super.logText { this } }
+        block.format(formatter) { render(false) { this } }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        block.format(formatter) { super.logLine { this } }
+        block.format(formatter) { render(false) { this } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
@@ -61,7 +61,7 @@ public class MicroLogger(
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
-        closed = true
+        open = false
         return result.getOrThrow()
     }
 
@@ -74,6 +74,6 @@ public class MicroLogger(
         ::caption to caption
         ::messages to messages.map { it.removeEscapeSequences() }
         ::loggingResult to loggingResult
-        ::closed to closed
+        ::open to open
     }
 }

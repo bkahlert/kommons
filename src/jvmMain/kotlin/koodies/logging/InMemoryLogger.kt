@@ -2,11 +2,11 @@ package koodies.logging
 
 import koodies.collections.synchronizedListOf
 import koodies.collections.withNegativeIndices
-import koodies.concurrent.output
-import koodies.concurrent.script
 import koodies.io.TeeOutputStream
+import koodies.otherwise
 import koodies.runtime.JVM
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.escapeSequencesRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.TruncationStrategy.MIDDLE
@@ -22,50 +22,48 @@ import java.io.OutputStream
  */
 public open class InMemoryLogger private constructor(
     caption: CharSequence,
-    parent: RenderingLogger?,
-    bordered: Boolean = false,
-    statusInformationColumn: Int = -1,
-    private val outputStream: OutputStream,
-    private val captured: MutableList<String>,
-    private val start: Long,
-) : BlockRenderingLogger(
-    caption = caption,
-    parent = parent,
-    bordered = bordered,
-    statusInformationColumn = if (statusInformationColumn > 0) statusInformationColumn else 60,
-    log = { message: String ->
+    parent: BorderedRenderingLogger? = null,
+    bordered: Boolean? = null,
+    width: Int?,
+    private val captured: MutableList<String> = synchronizedListOf(),
+    outputStream: OutputStream?,
+    private val start: Long = System.currentTimeMillis(),
+    override val missingParentFallback: (String) -> Unit = {
         val thread = JVM.currentThread.name.padStartFixedLength(30, strategy = MIDDLE)
         val time = Now.passedSince(start).toString().padStartFixedLength(7)
         val prefix = "$thread: $time: "
-        outputStream.write(message.prefixLinesWith(prefix = prefix).toByteArray())
-        captured.add(message.withoutTrailingLineSeparator)
+        outputStream?.apply { write(it.prefixLinesWith(prefix = prefix).toByteArray()) }
+        captured.add(it.withoutTrailingLineSeparator)
     },
+) : BlockRenderingLogger(
+    caption = caption,
+    parent = parent,
+    bordered = bordered ?: BORDERED_BY_DEFAULT,
+    width = width,
 ) {
     public constructor(
         caption: String,
         bordered: Boolean = true,
-        statusInformationColumn: Int = -1,
+        width: Int? = null,
         vararg outputStreams: OutputStream,
     ) : this(
         caption = caption,
-        parent = null,
         bordered = bordered,
-        statusInformationColumn = statusInformationColumn,
-        outputStream = if (outputStreams.isEmpty()) OutputStream.nullOutputStream() else TeeOutputStream(outputStreams.toList()),
-        captured = synchronizedListOf<String>(),
-        start = System.currentTimeMillis(),
+        width = width,
+        outputStream = outputStreams.takeIf { it.isNotEmpty() }?.let { TeeOutputStream(outputStreams.toList()) },
     )
 
-    public constructor() : this("Test", true, -1)
+    public constructor() : this("Test", true, null)
 
-    /**
-     * Runs this strings as a shell script,
-     * logs the output and returns it.
-     */
-    public fun String.not(): String =
-        logging("$ ${this@not}", bordered = false) {
-            script { !this@not }.output().also { it.prefixLinesWith("> ") }
-        }
+//
+//    /**
+//     * Runs this strings as a shell script,
+//     * logs the output and returns it.
+//     */
+//    public fun String.not(): String =
+//        logging("$ ${this@not}", bordered = false) {
+//            script { !this@not }.output().also { it.prefixLinesWith("> ") }
+//        }
 
     private val messages: List<CharSequence> by withNegativeIndices { captured }
     private val raw: String get() = messages.joinToString("\n")
@@ -74,10 +72,13 @@ public open class InMemoryLogger private constructor(
     public val logged: String
         get() = messages.joinToString("\n").removeEscapeSequences().withoutTrailingLineSeparator.trim()
 
+
     override fun toString(): String = toString(NO_RETURN_VALUE, false)
     public fun toString(fallbackReturnValue: ReturnValue? = null, keepEscapeSequences: Boolean = false): String {
-        val ansiString = raw + if (closed || fallbackReturnValue == null) "" else LF + getBlockEnd(fallbackReturnValue)
-        return if (keepEscapeSequences) ansiString else ansiString.removeEscapeSequences()
+        val closedOutput = raw.takeIf { !open } otherwise {
+            fallbackReturnValue?.let { raw + LF + getBlockEnd(it) } ?: raw
+        }
+        return if (keepEscapeSequences) closedOutput else closedOutput.escapeSequencesRemoved
     }
 
     public companion object {
@@ -92,8 +93,8 @@ public open class InMemoryLogger private constructor(
             override fun format(): CharSequence = ""
         }
 
-        public val LOG_MESSAGE: String = "log message"
-        public fun LOG_STATUS(suffix: Int): HasStatus {
+        private val LOG_MESSAGE: String = "log message"
+        private fun LOG_STATUS(suffix: Int): HasStatus {
             val renderedStatus = "status $suffix"
             return renderedStatus.asStatus()
         }

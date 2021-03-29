@@ -6,8 +6,8 @@ import koodies.text.randomString
 import koodies.text.withRandomSuffix
 import java.nio.file.Path
 
-
-public inline class DockerContainerName(public val name: String) {
+// TODO make proper container
+public inline class DockerContainer(public val name: String) {
     public val sanitized: String get() = name.sanitize()
 
     override fun toString(): String = sanitized
@@ -21,7 +21,7 @@ public inline class DockerContainerName(public val name: String) {
         private fun isValid(name: String) = name.matches(regex)
 
         /**
-         * Checks if this [String] is a valid [DockerContainerName]
+         * Checks if this [String] is a valid [DockerContainer]
          * and if not transforms it.
          */
         private fun String.sanitize(): String {
@@ -46,14 +46,14 @@ public inline class DockerContainerName(public val name: String) {
         }
 
         /**
-         * Transforms this [String] to a valid [DockerContainerName].
+         * Transforms this [String] to a valid [DockerContainer].
          */
-        public fun String.toContainerName(): DockerContainerName = DockerContainerName(sanitize())
+        public fun String.toContainerName(): DockerContainer = DockerContainer(sanitize())
 
         /**
-         * Transforms this [Path] to a unique [DockerContainerName].
+         * Transforms this [Path] to a unique [DockerContainer].
          */
-        public fun Path.toUniqueContainerName(): DockerContainerName =
-            DockerContainerName(fileName.asString().take(18).withRandomSuffix())
+        public fun Path.toUniqueContainerName(): DockerContainer =
+            DockerContainer(fileName.asString().take(18).withRandomSuffix())
     }
 }

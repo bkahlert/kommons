@@ -40,7 +40,7 @@ class ReturnValueKtTest {
     private val expectations = successfulExpectations + failedExpectations
 
     @TestFactory
-    fun `should convert to ReturnValue`(loggerFactory: InMemoryLoggerFactory) =
+    fun `should convert to ReturnValue`() =
         expectations.testEach { (subject, expected) ->
             expect {
                 with(MutedRenderingLogger()) {

@@ -1,6 +1,5 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.output
 import koodies.concurrent.process
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.scriptPath
@@ -491,7 +490,7 @@ fun createCompletingScript(
     """.trimIndent()
 }
 
-fun Path.process(
+private fun Path.process(
     shellScript: ShellScript,
     expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,

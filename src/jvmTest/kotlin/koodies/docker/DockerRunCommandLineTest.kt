@@ -1,13 +1,14 @@
 package koodies.docker
 
+import koodies.builder.Init
 import koodies.concurrent.process.CommandLine
-import koodies.docker.DockerContainerName.Companion.toContainerName
-import koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext
+import koodies.docker.DockerContainer.Companion.toContainerName
+import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.MountOptionContext.Type.bind
 import koodies.io.path.asPath
 import koodies.shell.HereDocBuilder
 import koodies.shell.toHereDoc
-import koodies.test.BuilderFixture.Companion.fixture
+import koodies.test.BuilderFixture
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -21,6 +22,34 @@ import java.nio.file.Path
 
 @Execution(CONCURRENT)
 class DockerRunCommandLineTest {
+
+    @Test
+    fun `should build command line`() {
+        val dockerRunCommand = DockerRunCommandLine(init)
+        expectThat(dockerRunCommand).isEqualTo(result)
+    }
+
+    @Test
+    fun `should build same format for no sub builders and empty sub builders`() {
+        val commandBuiltWithNoBuilders = DockerRunCommandLine { image by dockerImage }
+        val commandBuiltWithEmptyBuilders = DockerRunCommandLine {
+            image by dockerImage
+            options { }
+            commandLine { }
+        }
+
+        expectThat(commandBuiltWithNoBuilders).isEqualTo(commandBuiltWithEmptyBuilders)
+    }
+
+    @Test
+    fun `should set auto cleanup as default`() {
+        expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("--rm")
+    }
+
+    @Test
+    fun `should set interactive as default`() {
+        expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("-i")
+    }
 
     @Test
     fun `should build valid docker run`() {
@@ -170,8 +199,8 @@ class DockerRunCommandLineTest {
             guestCommandLine(guestWorkingDir)
         )
 
-        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): DockerRunCommandLineOptions {
-            return DockerRunCommandLineOptions(
+        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): DockerRunCommandLine.Options =
+            DockerRunCommandLine.Options(
                 name = "container-name".toContainerName(),
                 workingDirectory = optionsWorkingDir?.asContainerPath(),
                 mounts = MountOptions(
@@ -180,7 +209,6 @@ class DockerRunCommandLineTest {
                     }.toTypedArray()
                 ),
             )
-        }
 
         private fun guestCommandLine(guestWorkingDir: String) = CommandLine(
             redirects = emptyList(),
@@ -191,126 +219,91 @@ class DockerRunCommandLineTest {
         )
     }
 
-
-    @Nested
-    inner class Builder {
-
+    companion object : BuilderFixture<Init<CommandContext>, DockerRunCommandLine>(
+        DockerRunCommandLine,
+        {
+            image { "repo" / "name" tag "tag" }
+            options {
+                detached { on }
+                publish {
+                    +"8080:6060"
+                    +"1234-1236:1234-1236/tcp"
+                }
+                name { "container-name" }
+                privileged { on }
+                autoCleanup { on }
+                workingDirectory { "/c".asContainerPath() }
+                interactive { on }
+                pseudoTerminal { on }
+                mounts {
+                    "/a/b" mountAt "/c/d"
+                    "/e/f/../g" mountAs bind at "//h"
+                }
+                custom {
+                    +"custom1"
+                    +"custom2"
+                }
+            }
+            commandLine {
+                redirects {}
+                environment {
+                    "key1" to "value1"
+                    "KEY2" to "VALUE 2"
+                }
+                workingDirectory { "/a".asHostPath() }
+                command { "work" }
+                arguments {
+                    +"/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/"
+                    +"-arg1"
+                    +"--argument" + "2"
+                    +HereDocBuilder.hereDoc(label = "HEREDOC") {
+                        +"heredoc 1"
+                        +"-heredoc-line-2"
+                    }
+                    +"/a/b/c" + "/c/d/e" + "/e/f/../g/h" + "/e/g/h" + "/h/i"
+                    +"arg=/a/b/c" + "arg=/c/d/e" + "arg=/e/f/../g/h" + "arg=/e/g/h" + "arg=/h/i"
+                    +"a/b/c" + "c/d/e" + "e/f/../g/h" + "e/g/h" + "h/i"
+                    +"arg=a/b/c" + "arg=c/d/e" + "arg=e/f/../g/h" + "arg=e/g/h" + "arg=h/i"
+                    +"b/c" + "d/e" + "f/../g/h" + "g/h" + "i"
+                    +"arg=b/c" + "arg=d/e" + "arg=f/../g/h" + "arg=g/h" + "arg=i"
+                }
+            }
+        },
+        DockerRunCommandLine(
+            DockerImage { "repo" / "name" tag "tag" },
+            DockerRunCommandLine.Options(
+                detached = true,
+                name = "container-name".toContainerName(),
+                publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
+                privileged = true,
+                autoCleanup = true,
+                workingDirectory = "/c".asContainerPath(),
+                interactive = true,
+                pseudoTerminal = true,
+                mounts = MountOptions(
+                    MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
+                    MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath()),
+                ),
+                custom = listOf("custom1", "custom2")
+            ),
+            CommandLine(
+                redirects = emptyList(),
+                environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
+                workingDirectory = Path.of("/a"),
+                command = "work",
+                arguments = listOf(
+                    "/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/",
+                    "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
+                    "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
+                    "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
+                    "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
+                    "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
+                    "b/c", "d/e", "f/../g/h", "g/h", "i",
+                    "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
+                ),
+            ),
+        ),
+    ) {
         private val dockerImage = Docker.image { "repo" / "name" tag "tag" }
-
-        @Test
-        fun `should build valid docker run`() {
-            val dockerRunCommand = DockerRunCommandLine(init)
-            expectThat(dockerRunCommand).isEqualTo(result)
-        }
-
-        @Test
-        fun `should build same format for no sub builders and empty sub builders`() {
-            val commandBuiltWithNoBuilders = DockerRunCommandLine { image by dockerImage }
-            val commandBuiltWithEmptyBuilders = DockerRunCommandLine {
-                image by dockerImage
-                options { }
-                commandLine { }
-            }
-
-            expectThat(commandBuiltWithNoBuilders).isEqualTo(commandBuiltWithEmptyBuilders)
-        }
-
-        @Test
-        fun `should set auto cleanup as default`() {
-            expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("--rm")
-        }
-
-        @Test
-        fun `should set interactive as default`() {
-            expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("-i")
-        }
-    }
-
-}
-
-
-private val init: DockerRunCommandContext.() -> Unit = {
-    image { "repo" / "name" tag "tag" }
-    options {
-        detached { on }
-        publish {
-            +"8080:6060"
-            +"1234-1236:1234-1236/tcp"
-        }
-        name { "container-name" }
-        privileged { on }
-        autoCleanup { on }
-        workingDirectory { "/c".asContainerPath() }
-        interactive { on }
-        pseudoTerminal { on }
-        mounts {
-            "/a/b" mountAt "/c/d"
-            "/e/f/../g" mountAs bind at "//h"
-        }
-        custom {
-            +"custom1"
-            +"custom2"
-        }
-    }
-    commandLine {
-        redirects {}
-        environment {
-            "key1" to "value1"
-            "KEY2" to "VALUE 2"
-        }
-        workingDirectory { "/a".asHostPath() }
-        command { "work" }
-        arguments {
-            +"/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/"
-            +"-arg1"
-            +"--argument" + "2"
-            +HereDocBuilder.hereDoc(label = "HEREDOC") {
-                +"heredoc 1"
-                +"-heredoc-line-2"
-            }
-            +"/a/b/c" + "/c/d/e" + "/e/f/../g/h" + "/e/g/h" + "/h/i"
-            +"arg=/a/b/c" + "arg=/c/d/e" + "arg=/e/f/../g/h" + "arg=/e/g/h" + "arg=/h/i"
-            +"a/b/c" + "c/d/e" + "e/f/../g/h" + "e/g/h" + "h/i"
-            +"arg=a/b/c" + "arg=c/d/e" + "arg=e/f/../g/h" + "arg=e/g/h" + "arg=h/i"
-            +"b/c" + "d/e" + "f/../g/h" + "g/h" + "i"
-            +"arg=b/c" + "arg=d/e" + "arg=f/../g/h" + "arg=g/h" + "arg=i"
-        }
     }
 }
-
-private val result: DockerRunCommandLine = DockerRunCommandLine(
-    DockerImage { "repo" / "name" tag "tag" },
-    DockerRunCommandLineOptions(
-        detached = true,
-        name = "container-name".toContainerName(),
-        publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
-        privileged = true,
-        autoCleanup = true,
-        workingDirectory = "/c".asContainerPath(),
-        interactive = true,
-        pseudoTerminal = true,
-        mounts = MountOptions(
-            MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
-            MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath()),
-        ),
-        custom = listOf("custom1", "custom2")
-    ),
-    CommandLine(
-        redirects = emptyList(),
-        environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
-        workingDirectory = Path.of("/a"),
-        command = "work",
-        arguments = listOf(
-            "/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/",
-            "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
-            "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
-            "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
-            "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
-            "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
-            "b/c", "d/e", "f/../g/h", "g/h", "i",
-            "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
-        ),
-    ),
-)
-
-val Docker.DockerRunCommandLineBuilderExpectation get() = DockerRunCommandLine fixture (init to result)

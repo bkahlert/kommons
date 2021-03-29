@@ -1,6 +1,7 @@
 package koodies.docker
 
 import koodies.builder.BuilderTemplate
+import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.buildArray
 import koodies.builder.buildList
@@ -8,8 +9,12 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerStopCommandLine.Companion.StopContext
-import koodies.docker.DockerStopCommandLine.Options.Companion.StopOptionsContext
+import koodies.concurrent.execute
+import koodies.concurrent.process.ManagedProcess
+import koodies.docker.DockerStopCommandLine.Companion.CommandContext
+import koodies.docker.DockerStopCommandLine.Options.Companion.OptionsContext
+import koodies.logging.RenderingLogger
+import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerCommandLine] that stops the specified [containers] using the specified [options].
@@ -35,35 +40,32 @@ public open class DockerStopCommandLine(
     ) : List<String> by (buildList {
         time?.also { +"--time" + "$time" }
     }) {
-        public companion object : BuilderTemplate<StopOptionsContext, Options>() {
-            /**
-             * Context for building [Options].
-             */
+        public companion object : BuilderTemplate<OptionsContext, Options>() {
             @DockerCommandLineDsl
-            public class StopOptionsContext(override val captures: CapturesMap) : CapturingContext() {
+            public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * 	Seconds to wait for stop before killing it
                  */
                 public val time: SkippableCapturingBuilderInterface<() -> Int, Int?> by builder<Int>()
             }
 
-            override fun BuildContext.build(): Options = ::StopOptionsContext {
+            override fun BuildContext.build(): Options = ::OptionsContext {
                 Options(::time.eval())
             }
         }
     }
 
-    public companion object : BuilderTemplate<StopContext, DockerStopCommandLine>() {
+    public companion object : BuilderTemplate<CommandContext, DockerStopCommandLine>() {
         /**
          * Context for building a [DockerStopCommandLine].
          */
         @DockerCommandLineDsl
-        public class StopContext(override val captures: CapturesMap) : CapturingContext() {
-            public val options: SkippableCapturingBuilderInterface<StopOptionsContext.() -> Unit, Options?> by Options
-            public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder()
+        public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
+            public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
+            public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder<String>()
         }
 
-        override fun BuildContext.build(): DockerStopCommandLine = ::StopContext {
+        override fun BuildContext.build(): DockerStopCommandLine = ::CommandContext {
             DockerStopCommandLine(
                 ::options.evalOrDefault { Options() },
                 ::containers.eval(),
@@ -72,3 +74,35 @@ public open class DockerStopCommandLine(
     }
 }
 
+/**
+ * Stops `this` [DockerContainer] from the locally stored containers using the
+ * [DockerStopCommandLine.Options] built with the given [OptionsContext] [Init].
+ * and prints the [DockerCommandLine]'s execution to [System.out].
+ */
+public val DockerContainer.stop: (Init<OptionsContext>) -> ManagedProcess
+    get() = {
+        DockerStopCommandLine {
+            options(it)
+            containers by listOf(this@stop.name)
+        }.execute {
+            summary("Stopping ${this@stop.formattedAs.input}")
+            null
+        }
+    }
+
+/**
+ * Stops `this` [DockerContainer] from the locally stored containers using the
+ * [DockerStopCommandLine.Options] built with the given [OptionsContext] [Init].
+ * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
+ */
+public val RenderingLogger?.stop: DockerContainer.(Init<OptionsContext>) -> ManagedProcess
+    get() = {
+        val thisContainer: DockerContainer = this
+        DockerStopCommandLine {
+            options(it)
+            containers by listOf(thisContainer.name)
+        }.execute {
+            summary("Stopping ${thisContainer.formattedAs.input}")
+            null
+        }
+    }

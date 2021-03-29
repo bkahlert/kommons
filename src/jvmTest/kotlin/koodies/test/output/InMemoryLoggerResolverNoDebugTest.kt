@@ -17,7 +17,9 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isFailure
+import strikt.assertions.isNotEmpty
 
 @Execution(SAME_THREAD)
 class InMemoryLoggerResolverNoDebugTest {
@@ -45,12 +47,32 @@ class InMemoryLoggerResolverNoDebugTest {
 
         @Test
         fun InMemoryLogger.`should not contain escape sequences by default`() {
-            expectThat(toString()).not { containsEscapeSequences() }
+            logLine { "line" }
+            expectThat(toString())
+                .isNotEmpty()
+                .not { containsEscapeSequences() }
         }
 
         @Test
         fun InMemoryLogger.`should keep escape sequences if specified`() {
-            expectThat(toString(keepEscapeSequences = true)).containsEscapeSequences()
+            logLine { "line" }
+            expectThat(toString(keepEscapeSequences = true))
+                .isNotEmpty()
+                .containsEscapeSequences()
+        }
+
+        @Nested
+        inner class Initial {
+
+            @Test
+            fun InMemoryLogger.`should render empty`() {
+                expectThat(toString()).isEmpty()
+            }
+
+            @Test
+            fun InMemoryLogger.`should ignore fallback`() {
+                expectThat(toString(fallbackReturnValue = InMemoryLogger.NO_RETURN_VALUE)).isEmpty()
+            }
         }
 
         @Nested
@@ -58,9 +80,11 @@ class InMemoryLoggerResolverNoDebugTest {
 
             @Test
             fun InMemoryLogger.`should render successful`() {
+                logLine { "line" }
                 expectThat(toString()).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
+                    │   line
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -68,9 +92,11 @@ class InMemoryLoggerResolverNoDebugTest {
 
             @Test
             fun InMemoryLogger.`should use fallback return value if specified`() {
+                logLine { "line" }
                 expectThat(toString(fallbackReturnValue = InMemoryLogger.NO_RETURN_VALUE)).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
+                    │   line
                     ╵
                     ╵
                     ⌛️ async computation
