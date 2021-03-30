@@ -155,16 +155,23 @@ public class ManagedProcessMock(public val processMock: JavaProcessMock, public 
         )
     }
 
-    public override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess {
-        TODO("Not yet implemented")
-    }
+    private val preTerminationCallbacks = mutableListOf<ManagedProcess.() -> Unit>()
+    override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess = also { preTerminationCallbacks.add(callback) }
 
-    public override fun addPostTerminationCallback(callback: ManagedProcess.(Throwable?) -> Unit): ManagedProcess {
-        TODO("Not yet implemented")
+    private val postTerminationCallbacks = mutableListOf<ManagedProcess.(Throwable?) -> Unit>()
+    override fun addPostTerminationCallback(callback: ManagedProcess.(Throwable?) -> Unit): ManagedProcess = also { postTerminationCallbacks.add(callback) }
+
+    private val cachedOnExit: CompletableFuture<out Process> by lazy<CompletableFuture<out Process>> {
+        val p = this
+        preTerminationCallbacks.runCatching { p }.exceptionOrNull()
+        processMock.onExit().thenApply {
+            postTerminationCallbacks.forEach { p.it(null) }
+            p
+        }
     }
 
     override val successful: Boolean? get() = kotlin.runCatching { exitValue }.fold({ true }, { null })
-    override val onExit: CompletableFuture<Process> get() = javaProcess.onExit().thenApply { this }
+    override val onExit: CompletableFuture<out Process> get() = cachedOnExit
 
     override fun toString(): String =
         if (name != null) super.toString().substringBeforeLast(")") + ", name=$name)"

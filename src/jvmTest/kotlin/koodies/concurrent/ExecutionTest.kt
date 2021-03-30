@@ -7,6 +7,7 @@ import koodies.concurrent.process.IO.OUT
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
+import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
@@ -23,6 +24,8 @@ import koodies.time.IntervalPolling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -42,6 +45,7 @@ import kotlin.time.measureTime
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
+@Execution(CONCURRENT)
 class ExecutionTest {
 
     private val echoingCommands =
@@ -239,15 +243,16 @@ class ExecutionTest {
             executable.execute { processing { async }; null }
             output.poll()
             expectThat(output).get { all }.matchesCurlyPattern("""
-                        {}▶ Script{}
-                        {}⌛️ async computation
-                        {}echo {} ⌛️ Executing {{}}
-                        {}echo {} ⌛️ {} file:{}
-                        {}echo {} ⌛️ test output env
-                        {}echo {} ⌛️ test error 1
-                        {}echo {} ⌛️ test output 2
-                        {}echo {} ⌛️ test error 2
-                        {}echo {} ⌛️ Process {} terminated successfully at {}.
+                        ▶ Script{}
+                        ⌛️ async computation
+                        ⌛️ Executing {{}}
+                        ⌛️ {} file:{}
+                        ⌛️ test output env
+                        ⌛️ test error 1
+                        ⌛️ test output 2
+                        ⌛️ test error 2
+                        ⌛️ Process {} terminated successfully at {}
+                        ⌛️ ✔︎
                      """.trimIndent())
             expectThat(output).get { err }.isEmpty()
         }
@@ -257,17 +262,20 @@ class ExecutionTest {
             executable.execute { processing { async }; null }
             poll()
             expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    {}▶ Script{}
-                    {}⌛️ async computation
-                    {}echo {} ⌛️ Executing {{}}
-                    {}echo {} ⌛️ {} file:{}
-                    {}echo {} ⌛️ test output env
-                    {}echo {} ⌛️ test error 1
-                    {}echo {} ⌛️ test output 2
-                    {}echo {} ⌛️ test error 2
-                    {}echo {} ⌛️ Process {} terminated successfully at {}.
-                    {{}}
+                    ╭──╴{}
+                    │   
+                    │   ▶ Script{}
+                    │   ⌛️ async computation
+                    │   ⌛️ Executing {}
+                    │   ⌛️ 📄 file://{}
+                    │   ⌛️ test output env
+                    │   ⌛️ test error 1
+                    │   ⌛️ test output 2
+                    │   ⌛️ test error 2
+                    │   ⌛️ Process {} terminated successfully at {}
+                    │   ⌛️ ✔︎
+                    │
+                    ╰──╴✔︎
                     """.trimIndent())
         }
 

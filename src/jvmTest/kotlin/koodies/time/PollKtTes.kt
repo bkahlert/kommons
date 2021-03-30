@@ -131,4 +131,18 @@ class PollKtTes {
             expectThat(callbackCalled).isTrue()
         }
     }
+
+    @Nested
+    inner class PollCatching {
+
+        @Test
+        fun `should succeed if test does not throw`() {
+            expectThat(pollCatching { }.every(100.milliseconds).indefinitely()).isTrue()
+        }
+
+        @Test
+        fun `should fail if test always throws`() {
+            expectThat(pollCatching { throw RuntimeException("test") }.every(100.milliseconds).forAtMost(1.seconds)).isFalse()
+        }
+    }
 }

@@ -25,6 +25,15 @@ public fun Duration.poll(targetState: () -> Boolean): Polling {
  */
 public fun poll(targetState: () -> Boolean): IntervalPolling = IntervalPolling(targetState)
 
+
+/**
+ * Checks in once per [interval][IntervalPolling.every] if the [test] does not throw
+ * [Polling.indefinitely] or [Polling.forAtMost] the specified [Duration].
+ *
+ * @sample PollSample.pollTargetState
+ */
+public fun pollCatching(test: () -> Unit): IntervalPolling = IntervalPolling { runCatching(test).isSuccess }
+
 /**
  * Specifies the interval by which [targetState] should be polled.
  *

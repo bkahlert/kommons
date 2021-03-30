@@ -1,6 +1,7 @@
 package koodies.exception
 
-import koodies.concurrent.script
+import koodies.concurrent.process
+import koodies.concurrent.process.CommandLine
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.UniqueId
 import koodies.test.withTempDir
@@ -93,7 +94,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format run processes as exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(script(expectedExitValue = 42) { !"exit 42" }).toCompactString()) {
+                expectThat(Result.success(process(CommandLine("exit", "42"), expectedExitValue = 42)).toCompactString()) {
                     get { removeEscapeSequences() }.isEqualTo("42")
                     isSingleLine()
                 }

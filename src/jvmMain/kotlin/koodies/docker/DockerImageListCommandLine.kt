@@ -13,8 +13,8 @@ import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.collections.head
 import koodies.collections.tail
 import koodies.concurrent.execute
-import koodies.concurrent.output
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.output
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerImageListCommandLine.Options.Companion.OptionsContext
 import koodies.logging.RenderingLogger

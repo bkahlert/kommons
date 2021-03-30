@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.concurrent.output
+import koodies.concurrent.process.output
 import koodies.docker.Docker.run
 import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
 import koodies.logging.InMemoryLogger

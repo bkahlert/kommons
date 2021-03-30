@@ -24,7 +24,9 @@ public open class MutedRenderingLogger() : BlockRenderingLogger("", null) {
     }
 
     override fun toString(): String = asString {
+        ::open to open
         ::parent to parent?.caption
+        ::caption to caption
     }
 
     /**

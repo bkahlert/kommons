@@ -8,7 +8,6 @@ import koodies.collections.head
 import koodies.collections.tail
 import koodies.concurrent.daemon
 import koodies.concurrent.execute
-import koodies.concurrent.output
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.IO
@@ -18,11 +17,13 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.attach
+import koodies.concurrent.process.output
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.script
 import koodies.concurrent.scriptOutputContains
 import koodies.concurrent.toManagedProcess
+import koodies.debug.trace
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
 import koodies.logging.RenderingLogger
@@ -43,12 +44,15 @@ public object Docker {
      * Contains the locally existing docker images.
      */
     public val images: List<DockerImage>
-        get() = script(null) { !"""docker image ls  --no-trunc --format "{{.Repository}}\t{{.Tag}}\t{{.Digest}}"""" }.output().lines()
-            .map { line ->
-                val (repoAndPath, tag, digest) = line.split("\t")
-                val (repository, path) = repoAndPath.split("/").let { it.head to it.tail }
-                DockerImage(repository, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())
+        get() = script(null) { !"""docker image ls  --no-trunc --format "{{.Repository}}\t{{.Tag}}\t{{.Digest}}"""" }.output {
+            val line = this
+            if (line.contains("<none>")) {
+                line.trace { "XXX: <none> spotted" }
             }
+            val (repoAndPath, tag, digest) = line.split("\t")
+            val (repository, path) = repoAndPath.split("/").let { it.head to it.tail }
+            DockerImage(repository, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())
+        }
 
     /**
      * Whether the Docker engine itself is running.
@@ -222,7 +226,7 @@ public fun Path.docker(
  *
  * The output of the [DockerProcess] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
- * - `docker(..., [Processors.consoleLoggingProcessor])` to prints all [IO] to the console (default)
+ * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
  *
  * If provided, the [processTerminationCallback] will be called on process
@@ -247,7 +251,7 @@ public fun Path.docker(
  *
  * The output of the [DockerProcess] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
- * - `docker(..., [Processors.consoleLoggingProcessor])` to prints all [IO] to the console
+ * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
  *
  * If provided, the [processTerminationCallback] will be called on process
@@ -271,7 +275,7 @@ public fun docker(
  *
  * The output of the [DockerProcess] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
- * - `docker(..., [Processors.consoleLoggingProcessor])` to prints all [IO] to the console (default)
+ * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
  *
  * If provided, the [processTerminationCallback] will be called on process

@@ -22,6 +22,7 @@ public open class NonBlockingLineReader(
     override fun readChannelRead() {
         val fullyRead: StringBuilder = StringBuilder()
         val read = lineBuffer.toString(Charsets.UTF_8)
+
         read.lines(keepDelimiters = true, ignoreTrailingSeparator = true)
             .filter { line -> line.hasTrailingLineSeparator }
             .forEach { line ->

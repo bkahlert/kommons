@@ -95,7 +95,7 @@ public open class RenderingLogger(
     public open fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
         log {
             if (closed) {
-                val prefix = caption.formattedAs.meta + " " + Semantics.Computation + " "
+                val prefix = Semantics.Computation + " "
                 val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
                 if (trailingNewline || !message.hasTrailingLineSeparator) message + LF else message
             } else {
@@ -178,9 +178,9 @@ public open class RenderingLogger(
     }
 
     override fun toString(): String = asString {
+        ::open to open
         ::parent to parent?.caption
         ::caption to caption
-        ::open to open
     }
 
 
@@ -205,7 +205,7 @@ public open class RenderingLogger(
 
     public companion object {
 
-        private fun Array<StackTraceElement>?.asString() = (this ?: emptyArray()).joinToString("") { LF + "\t\tat " + it.toString() }
+        private fun Array<StackTraceElement>?.asString() = (this ?: emptyArray()).joinToString("") { "$LF\t\tat $it" }
 
         private val openLoggers: MutableMap<RenderingLogger, Array<StackTraceElement>> = synchronizedMapOf()
 
@@ -257,20 +257,16 @@ public open class RenderingLogger(
 
         public val recoveredLoggers: MutableList<RenderingLogger> = synchronizedListOf()
 
-        public fun RenderingLogger.formatResult(result: Result<*>): CharSequence {
-            val returnValue = result.toReturnValue()
+        public fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
+            formatReturnValue(result.toReturnValue())
+
+        public fun RenderingLogger.formatReturnValue(returnValue: ReturnValue): CharSequence {
             return when (returnValue.successful) {
-                true -> formatReturnValue(returnValue)
-                null -> formatUnreadyReturnValue(returnValue)
+                true -> Semantics.OK
+                null -> "${Semantics.Computation} async computation"
                 false -> formatException(" ", returnValue)
             }
         }
-
-        @Suppress("LocalVariableName", "NonAsciiCharacters")
-        public fun formatReturnValue(@Suppress("UNUSED_PARAMETER") returnValue: ReturnValue): CharSequence = Semantics.OK
-
-        @Suppress("LocalVariableName", "NonAsciiCharacters")
-        public fun formatUnreadyReturnValue(@Suppress("UNUSED_PARAMETER") returnValue: ReturnValue): CharSequence = "${Semantics.Computation} async computation"
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
         public fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
@@ -293,7 +289,7 @@ public inline fun <R, L : RenderingLogger> L.applyLogging(crossinline block: L.(
 @RenderingLoggingDsl
 public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
     contract { callsInPlace(block, EXACTLY_ONCE) }
-    val result: Result<R> = kotlin.runCatching<R> { block() }
+    val result: Result<R> = kotlin.runCatching { block() }
     logResult { result }
     return result.getOrThrow()
 }

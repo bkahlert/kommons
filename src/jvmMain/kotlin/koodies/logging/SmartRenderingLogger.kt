@@ -53,6 +53,7 @@ public class SmartRenderingLogger(
     }
 
     override fun toString(): String = asString {
+        ::open to open
         ::parent to parent?.caption
         ::caption to caption
         ::contentFormatter to contentFormatter

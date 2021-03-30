@@ -3,9 +3,8 @@ package koodies.nio
 import koodies.concurrent.process.IO
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
+import koodies.logging.BorderedRenderingLogger
 import koodies.logging.MutedRenderingLogger
-import koodies.logging.RenderingLogger
-import koodies.logging.compactLogging
 import koodies.text.withRandomSuffix
 import org.jline.utils.NonBlocking
 import java.io.IOException
@@ -34,7 +33,7 @@ public class NonBlockingCharReader(
 
     public var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)
 
-    public fun read(buffer: CharArray, off: Int, logger: RenderingLogger): Int = if (reader == null) -1 else
+    public fun read(buffer: CharArray, off: Int, logger: BorderedRenderingLogger): Int = if (reader == null) -1 else
         logger.compactLogging(NonBlockingCharReader::class.simpleName + ".read(CharArray, Int, Int, Logger)") {
             when (val read = kotlin.runCatching { reader?.read(inlineTimeoutMillis) ?: throw IOException("No reader. Likely already closed.") }
                 .recover {

@@ -234,6 +234,6 @@ public class ShellScript(public val name: String? = null, content: String? = nul
          *
          * If [name] is `null` an empty string is returned.
          */
-        public fun bannerEchoingCommand(name: String?): String = name?.let { "echo ${banner(name).quoted}$LF" } ?: ""
+        public fun bannerEchoingCommand(name: String?): String = name?.takeIf { it.isNotBlank() }?.let { "echo ${banner(name).quoted}$LF" } ?: ""
     }
 }

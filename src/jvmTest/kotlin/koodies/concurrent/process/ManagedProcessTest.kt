@@ -111,7 +111,7 @@ class ManagedProcessTest {
         fun `should start implicitly and process`(uniqueId: UniqueId) = testEach<ManagedProcess.() -> ManagedProcess>(
             { also { output() } },
             { processSilently().apply { 1.seconds.sleep() } },
-            { processSynchronously() },
+            { processSynchronously {} },
             { processAsynchronously().apply { 1.seconds.sleep() } },
         ) { operation ->
             withTempDir(uniqueId) {

@@ -7,7 +7,6 @@ import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics
-import koodies.text.Semantics.formattedAs
 import koodies.text.prefixLinesWith
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -26,7 +25,7 @@ public class MicroLogger(
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
         when {
             closed -> {
-                val prefix = caption.formattedAs.meta + " " + Semantics.Computation + " "
+                val prefix = Semantics.Computation + " "
                 log { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
@@ -70,6 +69,7 @@ public class MicroLogger(
     }
 
     override fun toString(): String = asString {
+        ::open to open
         ::parent to parent?.caption
         ::caption to caption
         ::messages to messages.map { it.removeEscapeSequences() }

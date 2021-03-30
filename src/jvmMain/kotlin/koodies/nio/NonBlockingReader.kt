@@ -3,11 +3,9 @@ package koodies.nio
 import koodies.concurrent.process.IO
 import koodies.debug.asEmoji
 import koodies.debug.debug
+import koodies.logging.BorderedRenderingLogger
 import koodies.logging.MutedRenderingLogger
-import koodies.logging.RenderingLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.logging.compactLogging
-import koodies.logging.logging
 import koodies.text.ANSI
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
@@ -35,7 +33,7 @@ import kotlin.time.seconds
 public class NonBlockingReader(
     inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
-    private val logger: RenderingLogger = MutedRenderingLogger(),
+    private val logger: BorderedRenderingLogger = MutedRenderingLogger(),
     private val blockOnEmptyLine: Boolean = false,
 ) : BufferedReader(Reader.nullReader()) {
     init {

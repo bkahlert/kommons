@@ -9,15 +9,12 @@ import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.Semantics.OK
-import koodies.text.joinLinesToString
 import koodies.text.truncate
-import koodies.time.busyWait
 import koodies.unit.Size
 import koodies.unit.bytes
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.time.seconds
 
 /**
  * An I/O log can be used to log what a [ManagedProcess] received and produces as data.
@@ -88,12 +85,19 @@ public class IOLog {
     }
 
     /**
+     * For each type of [IO] all so far saved incomplete strings are treated
+     * as if they were complete, that is, appended to the list of completed strings.
+     */
+    public fun flush(): Unit {
+        input.flush()
+        out.flush()
+        err.flush()
+    }
+
+    /**
      * Returns a dump of the logged I/O log.
      */
-    public fun dump(): String {
-        2.seconds.busyWait()
-        return logged.joinLinesToString { it.formatted }
-    }
+    public fun dump(): String = logged<IO>(removeEscapeSequences = false)
 
     /**
      * Dumps the logged I/O log in the specified [directory] using the name scheme `koodies.process.{PID}.{RANDOM}.log".
@@ -101,7 +105,7 @@ public class IOLog {
     public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
 
     override fun toString(): String = asString {
-        OK to logged.map { it.truncate() }.joinToString()
+        OK to logged.joinToString { it.truncate() }
         "OUT" to out.incompleteBytes
         "ERR" to err.incompleteBytes
     }
@@ -146,6 +150,14 @@ public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Uni
         return readCompleteLines
     }
 
+    public fun flush(): Unit {
+        lock.withLock {
+            val remainder = incomplete.toString(Charsets.UTF_8)
+            incomplete.reset()
+            if (remainder.isNotEmpty()) lineCompletedCallback(remainder.lines())
+        }
+    }
+
     override fun toString(): String = asString(::lock, ::incomplete)
 }
 
@@ -166,11 +178,29 @@ public inline fun <reified T : IO> ManagedProcess.logged(): String = ioLog.logge
 public val ManagedProcess.logged: String get() = ioLog.logged<IO>()
 
 /**
- * Returns (and possibly blocks until finished) the output of `this` [ManagedProcess].
+ * Convenience method to get the output of a process.
  *
- * This method is idempotent.
+ * - If the process was not started, it will be started.
+ * - If the process is running, this method blocks until the process terminated.
+ * - If the process already terminated, the recorded IO is returned.
+ *
+ * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
  */
 public fun ManagedProcess.output(): String = run {
     process({ sync }, Processors.noopProcessor())
-    ioLog.logged.filterIsInstance<IO.OUT>().joinToString(LF) { it.unformatted }
+    ioLog.logged<IO.OUT>()
 }
+
+/**
+ * Convenience method to get the output of a process, split the lines
+ * and apply [transform] to each line. The lines [transform] maps to `null`
+ * are filtered out.
+ *
+ * - If the process was not started, it will be started.
+ * - If the process is running, this method blocks until the process terminated.
+ * - If the process already terminated, the recorded IO is returned.
+ *
+ * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
+ */
+public fun <T> ManagedProcess.output(transform: String.() -> T?): List<T> =
+    output().lines().mapNotNull { it.transform() }

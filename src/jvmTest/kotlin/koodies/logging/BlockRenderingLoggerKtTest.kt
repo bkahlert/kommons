@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class BlockRenderingLoggerKtTest {
 
     @Test
@@ -343,13 +343,13 @@ class BlockRenderingLoggerKtTest {
             │{}
             │{}
             ╰──╴✔︎
-            bordered caption ⌛️ ✔︎
-            bordered caption ⌛️ ✔︎
+            ⌛️ ✔︎
+            ⌛️ ✔︎
         """.trimIndent(), """
             ▶ not-bordered caption
             ✔︎
-            not-bordered caption ⌛️ ✔︎
-            not-bordered caption ⌛️ ✔︎
+            ⌛️ ✔︎
+            ⌛️ ✔︎
         """.trimIndent()) {
         logResult()
         logResult()
@@ -400,7 +400,7 @@ class BlockRenderingLoggerKtTest {
                         │   │   line
                         │   │
                         │   ╰──╴✔︎
-                        │   test ⌛️ {}
+                        │   ⌛️ {}
                         {{}}
                     """.trimIndent()
                 )
@@ -424,7 +424,7 @@ class BlockRenderingLoggerKtTest {
                         │   │   
                         │   │
                         │   ╰──╴✔︎
-                        │   test ⌛️ {}
+                        │   ⌛️ {}
                         {{}}
                     """.trimIndent()
                 )

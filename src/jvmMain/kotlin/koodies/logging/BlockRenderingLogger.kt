@@ -65,7 +65,7 @@ public open class BlockRenderingLogger(
                     else "$renderedSuccess"
                 }
                 null -> {
-                    val renderedUnready = formatUnreadyReturnValue(returnValue)
+                    val renderedUnready = formatReturnValue(returnValue)
                     val halfLine = decorationFormatter("╵").toString()
                     if (bordered) halfLine + LF + halfLine + LF + renderedUnready
                     else "$renderedUnready"
@@ -115,9 +115,10 @@ public open class BlockRenderingLogger(
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
+        val returnValue = ReturnValue.of(result)
         render(true) {
-            if (closed) formatReturnValue(result.toReturnValue()).asAnsiString().wrapNonUriLines(totalColumns)
-            else getBlockEnd(result.toReturnValue()).wrapNonUriLines(totalColumns)
+            if (closed) formatReturnValue(returnValue).asAnsiString().wrapNonUriLines(totalColumns)
+            else getBlockEnd(returnValue).wrapNonUriLines(totalColumns)
         }
         open = false
         return result.getOrThrow()
@@ -137,6 +138,7 @@ public open class BlockRenderingLogger(
     }
 
     override fun toString(): String = asString {
+        ::open to open
         ::parent to parent?.caption
         ::caption to caption
         ::contentFormatter to contentFormatter

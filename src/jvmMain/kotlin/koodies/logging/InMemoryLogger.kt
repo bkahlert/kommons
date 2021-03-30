@@ -55,16 +55,6 @@ public open class InMemoryLogger private constructor(
 
     public constructor() : this("Test", true, null)
 
-//
-//    /**
-//     * Runs this strings as a shell script,
-//     * logs the output and returns it.
-//     */
-//    public fun String.not(): String =
-//        logging("$ ${this@not}", bordered = false) {
-//            script { !this@not }.output().also { it.prefixLinesWith("> ") }
-//        }
-
     private val messages: List<CharSequence> by withNegativeIndices { captured }
     private val raw: String get() = messages.joinToString("\n")
 

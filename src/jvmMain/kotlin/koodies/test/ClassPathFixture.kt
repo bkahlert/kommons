@@ -55,6 +55,7 @@ public open class ClassPathFileFixture(path: String) : ClassPathFixture(path) {
     }
 }
 
+
 public fun Fixture.copyTo(target: Path): Path = when (this) {
     is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyTo(target))
     else -> target.writeBytes(data)

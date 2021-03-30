@@ -50,6 +50,7 @@ class JavaProcessMockTest {
 
     @Nested
     inner class WithSlowInputStream {
+        
         @Test
         fun InMemoryLogger.`should provide input correctly`() {
             val slowInputStream = slowInputStream(1.seconds, "Hello\n", "World!\n")

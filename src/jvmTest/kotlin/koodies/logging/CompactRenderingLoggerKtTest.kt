@@ -121,8 +121,8 @@ class CompactRenderingLoggerKtTest {
                 ╭──╴{}
                 │{}
                 │   caption ✔︎
-                │   caption ⌛️ ✔︎
-                │   caption ⌛️ ✔︎
+                │   ⌛️ ✔︎
+                │   ⌛️ ✔︎
                 │{}
                 ╰──╴✔︎{}
             """.trimIndent())
@@ -203,7 +203,7 @@ class CompactRenderingLoggerKtTest {
                      ╭──╴{}
                      │   
                      │   test line ✔︎
-                     │   test ⌛️ {}
+                     │   ⌛️ {}
                      │
                      ╰──╴✔︎
                     """.trimIndent())
@@ -224,7 +224,7 @@ class CompactRenderingLoggerKtTest {
                      ╭──╴{}
                      │   
                      │   test ✔︎
-                     │   test ⌛️ {}
+                     │   ⌛️ {}
                      │
                      ╰──╴✔︎
                     """.trimIndent())

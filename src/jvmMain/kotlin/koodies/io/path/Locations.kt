@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.concurrent.output
+import koodies.concurrent.process.output
 import koodies.concurrent.script
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -10,15 +10,15 @@ public object Locations {
     /**
      * Resolves [glob] using the system's `ls` command line tool.
      */
-    public fun ls(glob: String): List<Path> =
+    public fun ls(glob: String = ""): List<Path> =
         Temp.ls(glob)
 
     /**
      * Resolves [glob] using the system's `ls` command line tool.
      */
-    public fun Path.ls(glob: String): List<Path> =
+    public fun Path.ls(glob: String = ""): List<Path> =
         kotlin.runCatching {
-            script(null) { !"ls $glob" }.output().lines().map { resolve(it) }
+            script { !"ls $glob" }.output { resolve(this) }
         }.getOrDefault(emptyList())
 
     /**

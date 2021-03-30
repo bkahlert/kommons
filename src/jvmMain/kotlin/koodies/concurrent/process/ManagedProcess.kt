@@ -15,7 +15,6 @@ import koodies.io.path.asString
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
-import koodies.time.sleep
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
@@ -25,7 +24,6 @@ import java.util.concurrent.CompletionException
 import kotlin.concurrent.thread
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
-import kotlin.time.milliseconds
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 import java.lang.Process as JavaProcess
 
@@ -121,17 +119,7 @@ private open class ManagedJavaProcess(
 
     override fun start(): ManagedProcess = also { super.start() }
 
-    private val capturingInputStream: OutputStream by lazy {
-        TeeOutputStream(
-            RedirectingOutputStream {
-                // ugly hack; IN logs are just there and the processor is just notified;
-                // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
-                // therefore we delay here
-                1.milliseconds.sleep { ioLog.input + it }
-            },
-            javaProcess.outputStream,
-        )
-    }
+    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, RedirectingOutputStream { ioLog.input + it }) }
     private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.out + it }) }
     private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, RedirectingOutputStream { ioLog.err + it }) }
 
@@ -154,6 +142,7 @@ private open class ManagedJavaProcess(
             ?: completedFuture(process)
 
         callbackStage.thenCombine(javaProcess.onExit()) { _, _ ->
+            ioLog.flush()
             process
         }.exceptionally { throwable ->
             val cause = if (throwable is CompletionException) throwable.cause else throwable

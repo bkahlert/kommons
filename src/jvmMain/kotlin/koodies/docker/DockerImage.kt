@@ -40,7 +40,7 @@ public open class DockerImage(
     init {
         repoAndPath.forEach {
             require(PATH_REGEX.matches(it)) {
-                "${it.formattedAs.input} is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)"
+                "Specified path ${it.formattedAs.input} is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)"
             }
         }
         tag?.also { require(it.isNotBlank()) { "Specified tag must not be blank." } }

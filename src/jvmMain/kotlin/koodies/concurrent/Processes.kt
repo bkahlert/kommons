@@ -1,16 +1,12 @@
 package koodies.concurrent
 
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.ProcessTerminationCallback
-import koodies.concurrent.process.Processors.noopProcessor
-import koodies.concurrent.process.process
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
 import koodies.io.path.Locations
 import koodies.shell.ShellScript
-import koodies.text.LineSeparators
 import java.nio.file.Path
 
 /**
@@ -58,14 +54,4 @@ public fun process(
 ): ManagedProcess {
     val commandLine = shellScript.toCommandLine(workingDirectory, environment)
     return process(commandLine, expectedExitValue, processTerminationCallback)
-}
-
-/**
- * Returns (and possibly blocks until finished) the output of `this` [ManagedProcess].
- *
- * This method is idempotent.
- */
-public fun ManagedProcess.output(): String = run {
-    process({ sync }, noopProcessor())
-    ioLog.logged.filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) { it.unformatted }
 }

@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.concurrent.output
+import koodies.concurrent.process.output
 import koodies.concurrent.script
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp

@@ -285,6 +285,43 @@ class RenderingLoggerKtTest {
         }
     }
 
+    @Suppress("UNREACHABLE_CODE")
+    @Test
+    fun `should show full exception logger already closed`() {
+        val logger = InMemoryLogger("root", false).withUnclosedWarningDisabled
+        expect {
+            catching {
+                logger.logging("level 0") {
+                    logLine { "doing stuff" }
+                    logging("level 1") {
+                        logLine { "doing stuff" }
+                        logging("level 2") {
+                            logLine { "doing stuff" }
+                            throw RuntimeException("something happened\nsomething happened #2\nsomething happened #3")
+                            logStatus { OUT typed "doing stuff" }
+                            2
+                        }
+                        logLine { "doing stuff" }
+                    }
+                    logLine { "doing stuff" }
+                }
+            }.isFailure().isA<RuntimeException>()
+
+            logger.expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
+                ▶ root
+                · ▶ level 0
+                · · doing stuff
+                · · ▶ level 1
+                · · · doing stuff
+                · · · ▶ level 2
+                · · · · doing stuff
+                · · · ϟ RuntimeException: something happened at.({}.kt:{})
+                · · ϟ RuntimeException: something happened at.({}.kt:{})
+                · ϟ RuntimeException: something happened at.({}.kt:{})
+            """.trimIndent())
+        }
+    }
+
     @Execution(SAME_THREAD)
     @TestFactory
     fun `should render multi-line caption`() = listOf(
@@ -379,7 +416,7 @@ class RenderingLoggerKtTest {
                 toStringMatchesCurlyPattern("""
                     line
                     ✔︎
-                    $opName ⌛️ {}
+                    ⌛️ {}
                 """.trimIndent())
             }
         }
@@ -395,7 +432,7 @@ class RenderingLoggerKtTest {
             expect { out }.that {
                 toStringMatchesCurlyPattern("""
                     ✔︎
-                    $opName ⌛️ {}
+                    ⌛️ {}
                 """.trimIndent())
             }
         }
@@ -413,10 +450,10 @@ class RenderingLoggerKtTest {
                 .endsWith(LineSeparators.LF)
                 .matchesCurlyPattern("""
                     ✔︎
-                    multi-line ⌛️ line 1
-                    multi-line ⌛️ line 2
-                    multi-line ⌛️ text 1
-                    multi-line ⌛️ text 2
+                    ⌛️ line 1
+                    ⌛️ line 2
+                    ⌛️ text 1
+                    ⌛️ text 2
                 """.trimIndent())
         }
     }
@@ -429,9 +466,9 @@ class RenderingLoggerKtTest {
             val logger = RenderingLogger("test")
             expectThat(logger).toStringMatchesCurlyPattern("""
                 RenderingLogger {
+                {}    open = false
                 {}    parent = null
                 {}    caption = test
-                {}    open = false
                 {}}
             """.trimIndent())
         }

@@ -1,6 +1,5 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.output
 import koodies.concurrent.toManagedProcess
 import koodies.io.path.Locations
 import koodies.io.path.asString

@@ -1,8 +1,9 @@
 package koodies.tracing
 
 import koodies.concurrent.process.IO
+import koodies.logging.CompactRenderingLogger
 import koodies.logging.RenderingLogger
-import koodies.logging.compactLogging
+import koodies.logging.runLogging
 import koodies.text.GraphemeCluster
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction0
@@ -49,7 +50,7 @@ public class RenderingLoggerBasedMiniTracer(private val renderingLogger: Renderi
 }
 
 public inline fun <reified R> RenderingLogger.subTrace(f: String, crossinline block: MiniTracer.() -> R): R =
-    compactLogging(f.format()) { RenderingLoggerBasedMiniTracer(this).run(block) }
+    CompactRenderingLogger(f.format(), parent = this).runLogging { RenderingLoggerBasedMiniTracer(this).run(block) }
 
 public inline fun <reified R> RenderingLogger.miniTrace(f: String, crossinline block: MiniTracer.() -> R): R = subTrace(f.format(), block)
 public inline fun <reified R> RenderingLogger.miniTrace(f: KCallable<R>, crossinline block: MiniTracer.() -> R): R = subTrace(f.format(), block)

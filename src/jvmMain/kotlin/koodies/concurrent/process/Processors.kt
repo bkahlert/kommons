@@ -52,23 +52,7 @@ public object Processors {
             is IO.OUT -> logger.logLine { io }
             is IO.ERR -> logger.logLine { io.formatted }
         }
-//        if (io is IO.META.TERMINATED && async) logger.logResult { Result.success(io) }
     }
-//
-//    /**
-//     * A [Processor] that prints all [IO] to the console.
-//     */
-//    public fun <P : Process> consoleLoggingProcessor(): Processor<P> {
-//        return object : (P, IO) -> Unit {
-//            private lateinit var process: P
-//            private val logger by lazy { BlockRenderingLogger(process.toString()) }
-//            private val loggingProcessor by lazy { loggingProcessor<P>(logger) }
-//            override fun invoke(process: P, io: IO) {
-//                this.process = process
-//                loggingProcessor.invoke(process, io)
-//            }
-//        }
-//    }
 
     /**
      * A [Processor] that does nothing with the [IO].
@@ -82,11 +66,11 @@ public object Processors {
 /**
  * Creates a [Processor] that processes [IO] by logging it using the `this` [RenderingLogger].
  *
- * Returns a [Processors.consoleLoggingProcessor] if `this` is `null`.
+ * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
 public fun <P : Process> P.attach(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
     (this as? ManagedProcess)?.addPostTerminationCallback { ex ->
-        if (logger.open) {
+        if (async) {
             if (ex != null) logger.logResult { Result.failure(ex) }
             else logger.logResult()
         }
@@ -239,16 +223,13 @@ public fun <P : ManagedProcess> P.processAsynchronously(
  * of the specified [Process] and passed all [IO] to the specified [processor]
  * **synchronously**.
  *
- * If no [processor] is specified a [Processors.consoleLoggingProcessor] prints
+ * If no [processor] is specified a [Processors.loggingProcessor] prints
  * all [IO] to the console.
  */
 public fun <P : ManagedProcess> P.processSynchronously(
     interactivity: Interactivity = NonInteractive(null),
     processor: Processor<P> = attach(),
 ): P {
-
-    val nonBlocking = interactivity is Interactive && interactivity.nonBlocking
-//    if (nonBlocking) throw Exceptions.ISE("Non-blocking synchronous processing is not yet supported.")
 
     metaStream.subscribe { processor(this, it) }
 

@@ -109,23 +109,23 @@ class LoggingOptionsTest {
                     │   ╵
                     │   ╵
                     │   ⌛️ async computation
-                    │   caption ⌛️ Executing {}
-                    │   caption ⌛️ {} file:{}
-                    │   caption ⌛️ Countdown!
-                    │   caption ⌛️ 10
-                    │   caption ⌛️ 9
-                    │   caption ⌛️ 8
-                    │   caption ⌛️ 7
-                    │   caption ⌛️ 6
-                    │   caption ⌛️ 5
-                    │   caption ⌛️ 4
-                    │   caption ⌛️ 3
-                    │   caption ⌛️ 2
-                    │   caption ⌛️ 1
-                    │   caption ⌛️ 0
-                    │   caption ⌛️ Take Off
-                    │   caption ⌛️ Process {} terminated successfully at {}
-                    │   caption ⌛️ ✔︎
+                    │   ⌛️ Executing {}
+                    │   ⌛️ {} file:{}
+                    │   ⌛️ Countdown!
+                    │   ⌛️ 10
+                    │   ⌛️ 9
+                    │   ⌛️ 8
+                    │   ⌛️ 7
+                    │   ⌛️ 6
+                    │   ⌛️ 5
+                    │   ⌛️ 4
+                    │   ⌛️ 3
+                    │   ⌛️ 2
+                    │   ⌛️ 1
+                    │   ⌛️ 0
+                    │   ⌛️ Take Off
+                    │   ⌛️ Process {} terminated successfully at {}
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -151,11 +151,11 @@ class LoggingOptionsTest {
                     │   ╵
                     │   ╵
                     │   ⌛️ async computation
-                    │   caption ⌛️ Executing {}
-                    │   caption ⌛️ {} file:{}
-                    │   caption ⌛️ Take Off
-                    │   caption ⌛️ Process {} terminated successfully at {}
-                    │   caption ⌛️ ✔︎
+                    │   ⌛️ Executing {}
+                    │   ⌛️ {} file:{}
+                    │   ⌛️ Take Off
+                    │   ⌛️ Process {} terminated successfully at {}
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -223,23 +223,23 @@ class LoggingOptionsTest {
                         ╭──╴{}
                         │   
                         │   caption ⌛️ async computation
-                        │   caption ⌛️ Executing {}
-                        │   caption ⌛️ {} file:{}
-                        │   caption ⌛️ Countdown!
-                        │   caption ⌛️ 10
-                        │   caption ⌛️ 9
-                        │   caption ⌛️ 8
-                        │   caption ⌛️ 7
-                        │   caption ⌛️ 6
-                        │   caption ⌛️ 5
-                        │   caption ⌛️ 4
-                        │   caption ⌛️ 3
-                        │   caption ⌛️ 2
-                        │   caption ⌛️ 1
-                        │   caption ⌛️ 0
-                        │   caption ⌛️ Take Off
-                        │   caption ⌛️ Process {} terminated successfully at {}
-                        │   caption ⌛️ ✔︎
+                        │   ⌛️ Executing {}
+                        │   ⌛️ {} file:{}
+                        │   ⌛️ Countdown!
+                        │   ⌛️ 10
+                        │   ⌛️ 9
+                        │   ⌛️ 8
+                        │   ⌛️ 7
+                        │   ⌛️ 6
+                        │   ⌛️ 5
+                        │   ⌛️ 4
+                        │   ⌛️ 3
+                        │   ⌛️ 2
+                        │   ⌛️ 1
+                        │   ⌛️ 0
+                        │   ⌛️ Take Off
+                        │   ⌛️ Process {} terminated successfully at {}
+                        │   ⌛️ ✔︎
                         │
                         ╰──╴✔︎
                     """.trimIndent())
@@ -259,11 +259,11 @@ class LoggingOptionsTest {
                         ╭──╴{}
                         │   
                         │   caption ⌛️ async computation
-                        │   caption ⌛️ Executing {}
-                        │   caption ⌛️ {} file:{}
-                        │   caption ⌛️ Take Off
-                        │   caption ⌛️ Process {} terminated successfully at {}
-                        │   caption ⌛️ ✔︎
+                        │   ⌛️ Executing {}
+                        │   ⌛️ {} file:{}
+                        │   ⌛️ Take Off
+                        │   ⌛️ Process {} terminated successfully at {}
+                        │   ⌛️ ✔︎
                         │
                         ╰──╴✔︎
                     """.trimIndent())
@@ -364,24 +364,28 @@ class LoggingOptionsTest {
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   caption ⌛️ async computation
-                    │   caption ⌛️ Executing {}
-                    │   caption ⌛️ {} file:{}
-                    │   caption ⌛️ Countdown!
-                    │   caption ⌛️ 10
-                    │   caption ⌛️ 9
-                    │   caption ⌛️ 8
-                    │   caption ⌛️ 7
-                    │   caption ⌛️ 6
-                    │   caption ⌛️ 5
-                    │   caption ⌛️ 4
-                    │   caption ⌛️ 3
-                    │   caption ⌛️ 2
-                    │   caption ⌛️ 1
-                    │   caption ⌛️ 0
-                    │   caption ⌛️ Take Off
-                    │   caption ⌛️ Process {} terminated successfully at {}
-                    │   caption ⌛️ ✔︎
+                    │   ╭──╴caption
+                    │   │   
+                    │   ╵
+                    │   ╵
+                    │   ⌛️ async computation
+                    │   ⌛️ Executing {}
+                    │   ⌛️ 📄 file://{}
+                    │   ⌛️ Countdown!
+                    │   ⌛️ 10
+                    │   ⌛️ 9
+                    │   ⌛️ 8
+                    │   ⌛️ 7
+                    │   ⌛️ 6
+                    │   ⌛️ 5
+                    │   ⌛️ 4
+                    │   ⌛️ 3
+                    │   ⌛️ 2
+                    │   ⌛️ 1
+                    │   ⌛️ 0
+                    │   ⌛️ Take Off
+                    │   ⌛️ Process {} terminated successfully at {}
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -402,12 +406,16 @@ class LoggingOptionsTest {
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   caption ⌛️ async computation
-                    │   caption ⌛️ Executing {}
-                    │   caption ⌛️ {} file:{}
-                    │   caption ⌛️ Take Off
-                    │   caption ⌛️ Process {} terminated successfully at {}
-                    │   caption ⌛️ ✔︎
+                    │   ╭──╴caption
+                    │   │   
+                    │   ╵
+                    │   ╵
+                    │   ⌛️ async computation
+                    │   ⌛️ Executing {}
+                    │   ⌛️ 📄 file://{}
+                    │   ⌛️ Take Off
+                    │   ⌛️ Process {} terminated successfully at {}
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -466,20 +474,20 @@ class LoggingOptionsTest {
                     ╭──╴{}
                     │   
                     │   caption ⌛️ async computation
-                    │   caption ⌛️ ➜ Countdown!
-                    │   caption ⌛️ ➜ 10
-                    │   caption ⌛️ ➜ 9
-                    │   caption ⌛️ ➜ 8
-                    │   caption ⌛️ ➜ 7
-                    │   caption ⌛️ ➜ 6
-                    │   caption ⌛️ ➜ 5
-                    │   caption ⌛️ ➜ 4
-                    │   caption ⌛️ ➜ 3
-                    │   caption ⌛️ ➜ 2
-                    │   caption ⌛️ ➜ 1
-                    │   caption ⌛️ ➜ 0
-                    │   caption ⌛️ ➜ Take Off
-                    │   caption ⌛️ ✔︎
+                    │   ⌛️ ➜ Countdown!
+                    │   ⌛️ ➜ 10
+                    │   ⌛️ ➜ 9
+                    │   ⌛️ ➜ 8
+                    │   ⌛️ ➜ 7
+                    │   ⌛️ ➜ 6
+                    │   ⌛️ ➜ 5
+                    │   ⌛️ ➜ 4
+                    │   ⌛️ ➜ 3
+                    │   ⌛️ ➜ 2
+                    │   ⌛️ ➜ 1
+                    │   ⌛️ ➜ 0
+                    │   ⌛️ ➜ Take Off
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -496,8 +504,8 @@ class LoggingOptionsTest {
                     ╭──╴{}
                     │   
                     │   caption ⌛️ async computation
-                    │   caption ⌛️ ➜ Take Off
-                    │   caption ⌛️ ✔︎
+                    │   ⌛️ ➜ Take Off
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -556,7 +564,7 @@ class LoggingOptionsTest {
                     ╭──╴{}
                     │   
                     │   caption ⌛️ async computation
-                    │   caption ⌛️ ✔︎
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -573,7 +581,7 @@ class LoggingOptionsTest {
                     ╭──╴{}
                     │   
                     │   caption ⌛️ async computation
-                    │   caption ⌛️ ✔︎
+                    │   ⌛️ ✔︎
                     │
                     ╰──╴✔︎
                 """.trimIndent())

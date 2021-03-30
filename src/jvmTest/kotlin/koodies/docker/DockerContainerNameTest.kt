@@ -18,7 +18,7 @@ class DockerContainerNameTest {
     fun `should create name from path`() {
         val path = Path.of("~/.imgcstmzr.test/test/RaspberryPiLite/2020-11-29T21-46-47--9N3k/2020-08-20-raspios-buster-armhf-lite.img")
         expectThat(path.toUniqueContainerName()).sanitizedName
-            .startsWith("2020-08-20-raspios")
+            .startsWith("2020-08-20--raspios")
             .hasLength(23)
             .get { takeLast(5) }.matches(Regex("-\\w{4}"))
     }

@@ -4,7 +4,7 @@ import koodies.builder.Init
 import koodies.collections.head
 import koodies.collections.tail
 import koodies.concurrent.execute
-import koodies.concurrent.output
+import koodies.concurrent.process.output
 import koodies.debug.trace
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options

@@ -3,10 +3,10 @@ package koodies.concurrent
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.ProcessTerminationCallback
-import koodies.concurrent.process.Processors
+import koodies.concurrent.process.output
 import koodies.io.path.Locations
 import koodies.io.path.randomPath
+import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.Companion.build
@@ -36,130 +36,31 @@ public fun CommandLine.toShellScript(): ShellScript =
 public fun CommandLine.toShellScriptFile(): Path =
     toShellScript().buildTo(workingDirectory.scriptPath())
 
-
 /**
- * Runs the specified [shellScript] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-public fun Path.script(
-    shellScript: ShellScript,
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-): ManagedProcess {
-    val commandLine = shellScript.toCommandLine(this, environment)
-    return process(commandLine, expectedExitValue, processTerminationCallback)
-}
-
-/**
- * Runs the specified [shellScript] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-public fun script(
-    shellScript: ShellScript,
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-//    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-): ManagedProcess = Locations.Temp.script(shellScript, environment, expectedExitValue, processTerminationCallback)//, processor)
-
-
-/**
- * Runs the specified [shellScript] with the specified [environment]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-public fun Path.script(
-//    processor: Processor<ManagedProcess> = Processors.consoleLoggingProcessor(),
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-    shellScript: ShellScript.() -> Unit,
-): ManagedProcess = script(shellScript.build(), environment, expectedExitValue, processTerminationCallback)//, processor)
-
-/**
- * Runs the specified [shellScript] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
- *
- * The output of this script will be processed by the specified [processor]
- * which defaults to [Processors.consoleLoggingProcessor] which prints all [IO] to the console.
- *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
- */
-public fun script(
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-    shellScript: ShellScript.() -> Unit,
-): ManagedProcess = script(shellScript.build(), environment, expectedExitValue, processTerminationCallback)
-
-//
-///**
-// * Runs the specified [shellScript] with the specified [environment]
-// * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
-// *
-// * The output of this script will be logged by the specified [logger]
-// * which prints all [IO] to the console if `null`.
-// *
-// * If provided, the [processTerminationCallback] will be called on process
-// * termination and before other [ManagedProcess.onExit] registered listeners
-// * get called.
-// */
-//public fun Path.script(
-//    logger: RenderingLogger?,
-//    environment: Map<String, String> = emptyMap(),
-//    expectedExitValue: Int? = 0,
-//    processTerminationCallback: ProcessTerminationCallback? = null,
-//    shellScript: ShellScript.() -> Unit,
-//): ManagedProcess = script(
-//    processor = TODO(),//logger.toProcessor(),
-//    environment = environment,
-//    expectedExitValue = expectedExitValue,
-//    processTerminationCallback = processTerminationCallback,
-//    shellScript = shellScript
-//)
-//
-/**
- * Runs the specified [shellScript] with the specified [environment]
- * in [Locations.Temp] optionally checking the specified [expectedExitValue] (default: `0`).
+ * Runs the specified [shellScript] in [Locations.Temp].
  *
  * The output of this script will be logged by the specified [logger]
  * which prints all [IO] to the console if `null`.
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
- * get called.
+ * Though [execute] is recommended, for simple IO processing, [output] can be used.
  */
 public fun script(
-    logger: RenderingLogger?,
-    environment: Map<String, String> = emptyMap(),
-    expectedExitValue: Int? = 0,
-    processTerminationCallback: ProcessTerminationCallback? = null,
+    logger: RenderingLogger? = MutedRenderingLogger(),
     shellScript: ShellScript.() -> Unit,
-): ManagedProcess = with(logger) { shellScript.build().execute { null } }
+): ManagedProcess = Locations.Temp.script(logger, shellScript)
 
+/**
+ * Runs the specified [shellScript] in `this` [Path].
+ *
+ * The output of this script will be logged by the specified [logger]
+ * which prints all [IO] to the console if `null`.
+ *
+ * Though [execute] is recommended, for simple IO processing, [output] can be used.
+ */
+public fun Path.script(
+    logger: RenderingLogger? = MutedRenderingLogger(),
+    shellScript: ShellScript.() -> Unit,
+): ManagedProcess = with(logger) { shellScript.build().toCommandLine(this@script).execute { null } }
 
 /**
  * Convenience function to tests if the output of the specified [command]
