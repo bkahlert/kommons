@@ -538,6 +538,9 @@ private fun Assertion.Builder<ManagedProcess>.completesWithIO() = log.logs(IO.OU
 val <T : ManagedProcess> Assertion.Builder<T>.io
     get() = get("logged IO") { logged<IO>() }
 
+@JvmName("throwableContainsDump")
+fun <T : Throwable> Assertion.Builder<T>.containsDump(vararg containedStrings: String) =
+    message.isNotNull().containsDump(*containedStrings)
 
 fun Assertion.Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh")) {
     compose("contains dump") {

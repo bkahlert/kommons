@@ -74,7 +74,7 @@ public fun <P : Process> P.attach(logger: RenderingLogger = BlockRenderingLogger
             if (ex != null) logger.logResult { Result.failure(ex) }
             else logger.logResult()
         }
-    }
+    } ?: error("process can't be attached to")
     return Processors.loggingProcessor(logger)
 }
 

@@ -1,12 +1,15 @@
 package koodies
 
+import koodies.test.test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.message
@@ -90,5 +93,37 @@ class FnKtTest {
                 expectThat(events).containsExactly("receiver" to "before", "receiver" to "after")
             }
         }
+    }
+
+    @TestFactory
+    fun `should require not empty`() = test {
+        test { expectThat("abc".requireNotEmpty()).isEqualTo("abc") }
+        test { expectThat("abc".requireNotEmpty { "error" }).isEqualTo("abc") }
+        test { expectCatching { "".requireNotEmpty() }.isFailure().isA<IllegalArgumentException>() }
+        test { expectCatching { "".requireNotEmpty { "error" } }.isFailure().isA<IllegalArgumentException>().message.isEqualTo("error") }
+    }
+
+    @TestFactory
+    fun `should require not blank`() = test {
+        test { expectThat("abc".requireNotBlank()).isEqualTo("abc") }
+        test { expectThat("abc".requireNotBlank { "error" }).isEqualTo("abc") }
+        test { expectCatching { "   ".requireNotBlank() }.isFailure().isA<IllegalArgumentException>() }
+        test { expectCatching { "   ".requireNotBlank { "error" } }.isFailure().isA<IllegalArgumentException>().message.isEqualTo("error") }
+    }
+
+    @TestFactory
+    fun `should check not empty`() = test {
+        test { expectThat("abc".checkNotEmpty()).isEqualTo("abc") }
+        test { expectThat("abc".checkNotEmpty { "error" }).isEqualTo("abc") }
+        test { expectCatching { "".checkNotEmpty() }.isFailure().isA<IllegalStateException>() }
+        test { expectCatching { "".checkNotEmpty { "error" } }.isFailure().isA<IllegalStateException>().message.isEqualTo("error") }
+    }
+
+    @TestFactory
+    fun `should check not blank`() = test {
+        test { expectThat("abc".checkNotBlank()).isEqualTo("abc") }
+        test { expectThat("abc".checkNotBlank { "error" }).isEqualTo("abc") }
+        test { expectCatching { "   ".checkNotBlank() }.isFailure().isA<IllegalStateException>() }
+        test { expectCatching { "   ".checkNotBlank { "error" } }.isFailure().isA<IllegalStateException>().message.isEqualTo("error") }
     }
 }

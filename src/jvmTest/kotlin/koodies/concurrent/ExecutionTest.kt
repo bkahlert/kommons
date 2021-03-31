@@ -30,15 +30,12 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
-import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
-import java.util.concurrent.CompletionException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.measureTime
@@ -83,15 +80,7 @@ class ExecutionTest {
 
         @Test
         fun InMemoryLogger.`should throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectCatching { CommandLine("exit", "42").execute { Processors.noopProcessor() } }
-                .isFailure()
-                .isA<CompletionException>()
-                .with({ message }) {
-                    isNotNull() and {
-                        @Suppress("RemoveRedundantSpreadOperator")
-                        containsDump(*emptyArray())
-                    }
-                }
+            expectCatching { CommandLine("exit", "42").execute { Processors.noopProcessor() } }.isFailure().containsDump()
         }
     }
 
