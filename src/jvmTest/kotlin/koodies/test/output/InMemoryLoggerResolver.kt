@@ -1,26 +1,42 @@
 package koodies.test.output
 
-import koodies.logging.BlockRenderingLogger
+import koodies.collections.synchronizedMapOf
+import koodies.io.ByteArrayOutputStream
+import koodies.io.TeeOutputStream
 import koodies.logging.BorderedRenderingLogger
+import koodies.logging.BorderedRenderingLogger.Border
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLoggingDsl
+import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
+import koodies.runtime.Program
 import koodies.test.Verbosity.Companion.isVerbose
 import koodies.test.testName
 import koodies.text.ANSI.Formatter
+import koodies.text.styling.wrapWithBorder
+import koodies.unit.bytes
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace.create
 import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
+import java.io.OutputStream
+
+/**
+ * Annotated instances of [InMemoryLogger] are rendered border
+ * depending on [value].
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
+annotation class Bordered(val value: Border)
 
 class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
 
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean =
         parameterContext.parameter.type.let {
             when {
+                TestLogger::class.java.isAssignableFrom(it) -> true
                 InMemoryLogger::class.java.isAssignableFrom(it) -> true
                 InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> true
                 else -> false
@@ -31,8 +47,9 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any? =
         parameterContext.parameter.type.let {
             when {
-                InMemoryLogger::class.java.isAssignableFrom(it) -> TestLogger.single(extensionContext, parameterContext)
-                InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> TestLogger.factory(extensionContext, parameterContext)
+                TestLogger::class.java.isAssignableFrom(it) -> TestLogging.testLoggerFor(extensionContext, parameterContext)
+                InMemoryLogger::class.java.isAssignableFrom(it) -> TestLogging.loggerFor(extensionContext, parameterContext)
+                InMemoryLoggerFactory::class.java.isAssignableFrom(it) -> TestLogging.factoryFor(extensionContext, parameterContext)
                 else -> error("Unsupported $parameterContext")
             }
         }
@@ -42,17 +59,66 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
     }
 }
 
+object TestLogging {
+    fun testLoggerFor(extensionContext: ExtensionContext, parameterContext: ParameterContext): TestLogger =
+        newLogger(extensionContext, parameterContext, extensionContext.testName, Border.NONE)
+
+    fun loggerFor(extensionContext: ExtensionContext, parameterContext: ParameterContext): TestLogger =
+        newLogger(extensionContext, parameterContext, extensionContext.testName, null)
+
+    fun factoryFor(extensionContext: ExtensionContext, parameterContext: ParameterContext): InMemoryLoggerFactory =
+        TestLoggerFactory(extensionContext, parameterContext)
+
+
+    private val streams = synchronizedMapOf<String, ByteArrayOutputStream>()
+
+    init {
+        Program.onExit {
+            val count = streams.size
+            val size = streams.values.sumBy { it.size() }.bytes
+            println("$count tests logged a total of $size".wrapWithBorder())
+        }
+    }
+
+    private fun newLogger(
+        extensionContext: ExtensionContext,
+        parameterContext: ParameterContext,
+        caption: String,
+        border: Border?,
+    ): TestLogger {
+        val isVerbose = extensionContext.isVerbose || parameterContext.isVerbose
+        val stored = ByteArrayOutputStream()
+        streams[extensionContext.uniqueId] = stored
+        val outputStream = if (isVerbose) TeeOutputStream(stored, System.out) else stored
+        return TestLogger(
+            extensionContext,
+            parameterContext,
+            caption,
+            border ?: parameterContext.findAnnotation(Bordered::class.java).map { it.value }.orElse(Border.DEFAULT),
+            outputStream,
+        )
+    }
+
+    class TestLoggerFactory(
+        private val extensionContext: ExtensionContext,
+        private val parameterContext: ParameterContext,
+    ) : InMemoryLoggerFactory {
+        override fun createLogger(customSuffix: String, border: Border?): InMemoryLogger =
+            newLogger(extensionContext, parameterContext, "${extensionContext.testName}::$customSuffix", border)
+    }
+}
 
 class TestLogger(
     private val extensionContext: ExtensionContext,
     parameterContext: ParameterContext,
-    suffix: String? = null,
-    bordered: Boolean = parameterContext.findAnnotation(Bordered::class.java).map { it.value }.orElse(true),
+    suffix: String?,
+    border: Border,
+    outputStream: OutputStream?,
 ) : InMemoryLogger(
     caption = extensionContext.testName + if (suffix != null) "::$suffix" else "",
-    bordered = bordered,
+    border = border,
     width = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(null),
-    outputStreams = if (extensionContext.isVerbose || parameterContext.isVerbose) arrayOf(System.out) else emptyArray(),
+    outputStream = outputStream,
 ) {
     init {
         withUnclosedWarningDisabled
@@ -62,19 +128,8 @@ class TestLogger(
     /**
      * Stores a reference to `this` logger in the given [extensionContext].
      */
-    private fun TestLogger.saveTo(extensionContext: ExtensionContext): TestLogger =
+    private fun saveTo(extensionContext: ExtensionContext): TestLogger =
         also { extensionContext.store().put(extensionContext.element, this) }
-
-    companion object {
-        fun single(extensionContext: ExtensionContext, parameterContext: ParameterContext): TestLogger =
-            TestLogger(extensionContext, parameterContext)
-
-        fun factory(extensionContext: ExtensionContext, parameterContext: ParameterContext): InMemoryLoggerFactory =
-            object : InMemoryLoggerFactory {
-                override fun createLogger(customSuffix: String, bordered: Boolean): InMemoryLogger =
-                    TestLogger(extensionContext, parameterContext, customSuffix, bordered)
-            }
-    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <R> logResult(block: () -> Result<R>): R =
@@ -113,6 +168,7 @@ public fun <R> ExtensionContext.logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    bordered: Boolean = BlockRenderingLogger.BORDERED_BY_DEFAULT,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = Border.DEFAULT,
     block: BorderedRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, logger, contentFormatter, decorationFormatter, bordered).runLogging(block)
+): R = SmartRenderingLogger(caption, logger, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)

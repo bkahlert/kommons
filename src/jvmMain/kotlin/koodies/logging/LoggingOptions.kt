@@ -1,12 +1,10 @@
 package koodies.logging
 
-import koodies.builder.BooleanBuilder.BooleanValue
-import koodies.builder.BooleanBuilder.YesNo
-import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
+import koodies.logging.BorderedRenderingLogger.Border
 import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
 import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLoggingOptionsContext
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
@@ -28,7 +26,8 @@ public sealed class LoggingOptions {
         public val caption: CharSequence? = null,
         public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val bordered: Boolean = false,
+        public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
+        public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
             BlockRenderingLogger(
@@ -36,7 +35,8 @@ public sealed class LoggingOptions {
                 logger as? BorderedRenderingLogger,
                 contentFormatter,
                 decorationFormatter,
-                bordered
+                returnValueFormatter,
+                border
             ).runLogging(block)
 
         public companion object : BuilderTemplate<BlockLoggingOptionsContext, BlockLoggingOptions>() {
@@ -45,11 +45,12 @@ public sealed class LoggingOptions {
                 public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
                 public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
                 public val decorationFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_DECORATION_FORMATTER
-                public val border: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
+                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> String)?, ((ReturnValue) -> String)?> by builder<((ReturnValue) -> String)?>() default DEFAULT_RESULT_FORMATTER
+                public var border: Border by setter(Border.DOTTED)
             }
 
             override fun BuildContext.build(): BlockLoggingOptions = ::BlockLoggingOptionsContext {
-                BlockLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::border.eval())
+                BlockLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval(), ::border.eval())
             }
         }
     }
@@ -60,19 +61,22 @@ public sealed class LoggingOptions {
     public class CompactLoggingOptions(
         public val caption: CharSequence? = null,
         public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
+        public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
+        public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            CompactRenderingLogger(caption ?: fallbackCaption, contentFormatter, logger).runLogging(block)
+            CompactRenderingLogger(caption ?: fallbackCaption, contentFormatter, decorationFormatter, returnValueFormatter, logger).runLogging(block)
 
         public companion object : BuilderTemplate<CompactLoggingOptionsContext, CompactLoggingOptions>() {
 
             public class CompactLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
                 public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
+                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> String)?, ((ReturnValue) -> String)?> by builder<((ReturnValue) -> String)?>() default DEFAULT_RESULT_FORMATTER
             }
 
             override fun BuildContext.build(): CompactLoggingOptions = ::CompactLoggingOptionsContext {
-                CompactLoggingOptions(::caption.eval(), ::contentFormatter.eval())
+                CompactLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::returnValueFormatter.eval())
             }
         }
     }
@@ -86,7 +90,8 @@ public sealed class LoggingOptions {
         public val caption: CharSequence? = null,
         public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val bordered: Boolean = false,
+        public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
+        public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
             SmartRenderingLogger(
@@ -94,7 +99,8 @@ public sealed class LoggingOptions {
                 logger as? BorderedRenderingLogger,
                 contentFormatter,
                 decorationFormatter,
-                bordered
+                returnValueFormatter,
+                border
             ).runLogging(block)
 
         public companion object : BuilderTemplate<SmartLoggingOptionsContext, SmartLoggingOptions>() {
@@ -103,11 +109,12 @@ public sealed class LoggingOptions {
                 public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
                 public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
                 public val decorationFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_DECORATION_FORMATTER
-                public val border: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
+                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> String)?, ((ReturnValue) -> String)?> by builder<((ReturnValue) -> String)?>() default DEFAULT_RESULT_FORMATTER
+                public var border: Border by setter(Border.DOTTED)
             }
 
             override fun BuildContext.build(): SmartLoggingOptions = ::SmartLoggingOptionsContext {
-                SmartLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::border.eval())
+                SmartLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval(), ::border.eval())
             }
         }
     }
@@ -116,6 +123,7 @@ public sealed class LoggingOptions {
 
         public val DEFAULT_CONTENT_FORMATTER: Formatter = Formatter.PassThrough
         public val DEFAULT_DECORATION_FORMATTER: Formatter = Colors.brightBlue
+        public val DEFAULT_RESULT_FORMATTER: (ReturnValue) -> String = RenderingLogger.RETURN_VALUE_FORMATTER
 
         public class LoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
             public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions

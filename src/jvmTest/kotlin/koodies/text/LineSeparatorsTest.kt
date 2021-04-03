@@ -30,6 +30,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
@@ -347,4 +348,4 @@ fun <T : CharSequence> Assertion.Builder<T>.isSingleLine() =
 fun <T : CharSequence> Assertion.Builder<T>.lines(
     ignoreTrailingSeparator: Boolean = false,
     keepDelimiters: Boolean = false,
-) = get("lines %s") { lines(ignoreTrailingSeparator = ignoreTrailingSeparator, keepDelimiters = keepDelimiters) }
+): DescribeableBuilder<List<String>> = get("lines %s") { lines(ignoreTrailingSeparator = ignoreTrailingSeparator, keepDelimiters = keepDelimiters) }

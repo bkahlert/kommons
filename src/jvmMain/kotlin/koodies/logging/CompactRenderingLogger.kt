@@ -14,11 +14,15 @@ import kotlin.concurrent.withLock
 
 public class CompactRenderingLogger(
     caption: CharSequence,
-    formatter: Formatter? = null,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
     parent: RenderingLogger? = null,
 ) : RenderingLogger(caption.toString(), parent) {
 
-    private val formatter: Formatter = formatter ?: Formatter.PassThrough
+    private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
+    private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
+    private val returnValueFormatter: (ReturnValue) -> String = returnValueFormatter ?: RETURN_VALUE_FORMATTER
 
     init {
         require(caption.isNotBlank()) { "No blank caption allowed." }
@@ -32,7 +36,7 @@ public class CompactRenderingLogger(
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
         when {
             closed -> {
-                val prefix = Semantics.Computation + " "
+                val prefix = decorationFormatter(Semantics.Computation).toString() + " "
                 log { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
@@ -47,22 +51,22 @@ public class CompactRenderingLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        block.format(formatter) { render(false) { this } }
+        block.format(contentFormatter) { render(false) { this } }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        block.format(formatter) { render(false) { this } }
+        block.format(contentFormatter) { render(false) { this } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        val message: CharSequence? = block.format(formatter) { lines().joinToString(", ") }
-        val status: CharSequence? = items.format(formatter) { lines().joinToString(", ", "(", ")") }
+        val message: CharSequence? = block.format(contentFormatter) { lines().joinToString(", ") }
+        val status: CharSequence? = items.format(contentFormatter) { lines().joinToString(", ", "(", ")") }
         (status?.let { "$message $status" } ?: message)?.let { render(false) { it } }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
-        val formattedResult = formatResult(result)
+        val formattedResult = returnValueFormatter(ReturnValue.of(result))
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
@@ -71,7 +75,7 @@ public class CompactRenderingLogger(
     }
 
     override fun logException(block: () -> Throwable) {
-        formatException(" ", block().toReturnValue()).also { render(true) { it } }
+        returnValueFormatter(ReturnValue.of(block())).also { render(true) { it } }
     }
 
     override fun toString(): String = asString {
@@ -91,9 +95,11 @@ public class CompactRenderingLogger(
     @RenderingLoggingDsl
     public fun <R> compactLogging(
         caption: CharSequence? = null,
-        formatter: Formatter? = this.formatter,
+        contentFormatter: Formatter? = this.contentFormatter,
+        decorationFormatter: Formatter? = this.decorationFormatter,
+        returnValueFormatter: ((ReturnValue) -> String)? = this.returnValueFormatter,
         block: MicroLogger.() -> R,
-    ): R = MicroLogger(caption?.toString() ?: "", formatter, this).runLogging(block)
+    ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter, this).runLogging(block)
 }
 
 
@@ -106,9 +112,11 @@ public class CompactRenderingLogger(
 @RenderingLoggingDsl
 public fun <R> compactLogging(
     caption: CharSequence,
-    formatter: Formatter? = null,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
     block: CompactRenderingLogger.() -> R,
-): R = CompactRenderingLogger(caption, formatter, null).runLogging(block)
+): R = CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, null).runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
@@ -119,8 +127,10 @@ public fun <R> compactLogging(
 @RenderingLoggingDsl
 public fun <T : RenderingLogger?, R> T.compactLogging(
     caption: CharSequence,
-    formatter: Formatter? = null,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
     block: CompactRenderingLogger.() -> R,
 ): R =
-    if (this is CompactRenderingLogger) compactLogging(caption, formatter, block)
-    else koodies.logging.compactLogging(caption, formatter, block)
+    if (this is CompactRenderingLogger) compactLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, block)
+    else koodies.logging.compactLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, block)

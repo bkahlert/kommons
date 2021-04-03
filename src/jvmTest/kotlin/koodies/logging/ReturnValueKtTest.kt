@@ -1,5 +1,9 @@
 package koodies.logging
 
+import koodies.logging.BorderedRenderingLogger.Border
+import koodies.logging.BorderedRenderingLogger.Border.DOTTED
+import koodies.logging.BorderedRenderingLogger.Border.NONE
+import koodies.logging.BorderedRenderingLogger.Border.SOLID
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
@@ -53,7 +57,7 @@ class ReturnValueKtTest {
     fun `should render success ReturnValue`(loggerFactory: InMemoryLoggerFactory) =
         successfulExpectations.testEach { (subject, expected) ->
             expect {
-                loggerFactory.render(true, "$subject ➜ $expected") { subject }
+                loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }
             }.that {
                 matchesCurlyPattern("""
             ╭──╴{}
@@ -62,11 +66,21 @@ class ReturnValueKtTest {
             ╰──╴✔︎
         """.trimIndent())
             }
+
             expect {
-                loggerFactory.render(false, "$subject ➜ $expected") { subject }
+                loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }
             }.that {
                 matchesCurlyPattern("""
             ▶ {}
+            ✔︎
+        """.trimIndent())
+            }
+
+            expect {
+                loggerFactory.render(NONE, "$subject ➜ $expected") { subject }
+            }.that {
+                matchesCurlyPattern("""
+            {}
             ✔︎
         """.trimIndent())
             }
@@ -76,7 +90,7 @@ class ReturnValueKtTest {
     fun `should render failed ReturnValue`(loggerFactory: InMemoryLoggerFactory) =
         failedExpectations.testEach { (subject, expected) ->
             expect {
-                loggerFactory.render(true, "$subject ➜ $expected") { subject }
+                loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }
             }.that {
                 matchesCurlyPattern("""
             ╭──╴{}
@@ -86,10 +100,19 @@ class ReturnValueKtTest {
         """.trimIndent())
             }
             expect {
-                loggerFactory.render(false, "$subject ➜ $expected") { subject }
+                loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }
             }.that {
                 matchesCurlyPattern("""
             ▶ {}
+            ϟ $expected
+        """.trimIndent())
+            }
+
+            expect {
+                loggerFactory.render(NONE, "$subject ➜ $expected") { subject }
+            }.that {
+                matchesCurlyPattern("""
+            {}
             ϟ $expected
         """.trimIndent())
             }
@@ -155,8 +178,8 @@ class ReturnValueKtTest {
     }
 }
 
-private fun InMemoryLoggerFactory.render(bordered: Boolean, captionSuffix: String, block: RenderingLogger.() -> Any?): String {
-    val logger = createLogger(captionSuffix, bordered = bordered)
+private fun InMemoryLoggerFactory.render(border: Border, captionSuffix: String, block: RenderingLogger.() -> Any?): String {
+    val logger = createLogger(captionSuffix, border)
     logger.runLogging(block)
     return logger.toString()
 }

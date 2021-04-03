@@ -1,5 +1,8 @@
 package koodies.logging
 
+import koodies.logging.BorderedRenderingLogger.Border.DOTTED
+import koodies.logging.BorderedRenderingLogger.Border.NONE
+import koodies.logging.BorderedRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.output.Bordered
 import koodies.test.output.Columns
@@ -196,61 +199,74 @@ class BlockRenderingLoggerKtTest {
         }
     }
 
-    private fun borderedTest(borderedPattern: String, nonBorderedPattern: String, block: RenderingLogger.() -> Any) = listOf(
-        true to borderedPattern,
-        false to nonBorderedPattern,
-    ).testEach("bordered={}") { (bordered, expectation) ->
-        val label = if (bordered) "bordered" else "not-bordered"
-        val logger = InMemoryLogger(caption = "$label caption", bordered = bordered).withUnclosedWarningDisabled.apply { block() }
+    private fun borderTest(solidPattern: String, dottedPattern: String, nonePattern: String, block: RenderingLogger.() -> Any) = listOf(
+        SOLID to solidPattern,
+        DOTTED to dottedPattern,
+        NONE to nonePattern,
+    ).testEach("border={}") { (border, expectation) ->
+        val label = border.name
+        val logger = InMemoryLogger(caption = "$label caption", border = border).withUnclosedWarningDisabled.apply { block() }
         test { logger.expectThatLogged().toStringMatchesCurlyPattern(expectation) }
     }
 
     @TestFactory
-    fun `should not log without any log event`() = borderedTest("", "") {}
+    fun `should not log without any log event`() = borderTest("", "", "") {}
 
     @TestFactory
-    fun `should log caption on first log`() = borderedTest(
+    fun `should log caption on first log`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │   line
             │{}
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
             · line
+            ✔︎
+        """.trimIndent(), """
+            NONE caption
+            line
             ✔︎
         """.trimIndent()) {
         logLine { "line" }
     }
 
     @TestFactory
-    fun `should log text`() = borderedTest(
+    fun `should log text`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │   text
             │{}
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
             · text
+            ✔︎
+        """.trimIndent(), """
+            NONE caption
+            text
             ✔︎
         """.trimIndent()) {
         logText { "text" }
     }
 
     @TestFactory
-    fun `should log line`() = borderedTest(
+    fun `should log line`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │   line
             │{}
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
             · line
+            ✔︎
+        """.trimIndent(), """
+            NONE caption
+            line
             ✔︎
         """.trimIndent()) {
         logLine { "line" }
@@ -260,7 +276,7 @@ class BlockRenderingLoggerKtTest {
     inner class LogException {
 
         @Test
-        fun @receiver:Bordered(true) InMemoryLogger.`should log exception bordered`() {
+        fun @receiver:Bordered(SOLID) InMemoryLogger.`should log exception SOLID`() {
             logException { RuntimeException("exception") }
 
             expectThatLogged().matchesCurlyPattern(
@@ -275,7 +291,7 @@ class BlockRenderingLoggerKtTest {
         }
 
         @Test
-        fun @receiver:Bordered(false) InMemoryLogger.`should log exception not bordered`() {
+        fun @receiver:Bordered(DOTTED) InMemoryLogger.`should log exception DOTTED`() {
             logException { RuntimeException("exception") }
 
             expectThatLogged().matchesCurlyPattern(
@@ -290,45 +306,55 @@ class BlockRenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should log status`() = borderedTest(
+    fun `should log status`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │   line {} ◀◀ status
             │{}
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
             · line {} ◀◀ status
+            ✔︎
+        """.trimIndent(), """
+            NONE caption
+            line {} ◀◀ status
             ✔︎
         """.trimIndent()) {
         logStatus("status") { "line" }
     }
 
     @TestFactory
-    fun `should log result`() = borderedTest(
+    fun `should log result`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │{}
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
+            ✔︎
+        """.trimIndent(), """
+            NONE caption
             ✔︎
         """.trimIndent()) {
         logResult { Result.success("result") }
     }
 
     @TestFactory
-    fun `should log incomplete result`() = borderedTest(
+    fun `should log incomplete result`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             ╵
             ╵
             ⌛️ async computation
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
+            ⌛️ async computation
+        """.trimIndent(), """
+            NONE caption
             ⌛️ async computation
         """.trimIndent()) {
         logResult {
@@ -337,16 +363,21 @@ class BlockRenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should log multiple results`() = borderedTest(
+    fun `should log multiple results`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │{}
             ╰──╴✔︎
             ⌛️ ✔︎
             ⌛️ ✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
+            ✔︎
+            ⌛️ ✔︎
+            ⌛️ ✔︎
+        """.trimIndent(), """
+            NONE caption
             ✔︎
             ⌛️ ✔︎
             ⌛️ ✔︎
@@ -357,9 +388,9 @@ class BlockRenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should log multiple entries`() = borderedTest(
+    fun `should log multiple entries`() = borderTest(
         """
-            ╭──╴bordered caption
+            ╭──╴SOLID caption
             │{}
             │   text
             │   line
@@ -367,10 +398,16 @@ class BlockRenderingLoggerKtTest {
             │{}
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ not-bordered caption
+            ▶ DOTTED caption
             · text
             · line
             · line {} ◀◀ status
+            ✔︎
+        """.trimIndent(), """
+            NONE caption
+            text
+            line
+            line {} ◀◀ status
             ✔︎
         """.trimIndent()) {
         logText { "text" }

@@ -1,30 +1,32 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.logging.BlockRenderingLogger.Companion.BORDERED_BY_DEFAULT
+import koodies.logging.BlockRenderingLogger.Companion.DEFAULT_BORDER
+import koodies.logging.BorderedRenderingLogger.Border
 import koodies.text.ANSI.Formatter
 
 /**
  * Logs like a [BlockRenderingLogger] unless only the result is logged.
  * In that case the result will be logged on the same line as the caption instead of a new one.
  */
-public class SmartRenderingLogger(
+public open class SmartRenderingLogger(
     // TODO extract proper logger interface and solely delegate; no inheritance
     caption: CharSequence,
     parent: BorderedRenderingLogger? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    bordered: Boolean = BORDERED_BY_DEFAULT,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = Border.DEFAULT,
     override val missingParentFallback: (String) -> Unit = {
         error("Implementation misses to delegate log messages; consider refactoring")
     },
-) : BorderedRenderingLogger(caption.toString(), parent, contentFormatter, decorationFormatter, bordered, prefix = parent?.prefix ?: "") {
+) : BorderedRenderingLogger(caption.toString(), parent, contentFormatter, decorationFormatter, returnValueFormatter, border, prefix = parent?.prefix ?: "") {
 
     private var loggingResult: Boolean = false
 
     private val logger: RenderingLogger by lazy {
-        if (!loggingResult) BlockRenderingLogger(caption, parent, contentFormatter, decorationFormatter, bordered)
-        else CompactRenderingLogger(caption, contentFormatter, parent)
+        if (!loggingResult) BlockRenderingLogger(caption, parent, contentFormatter, decorationFormatter, returnValueFormatter, border)
+        else CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, parent)
     }
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
@@ -58,7 +60,8 @@ public class SmartRenderingLogger(
         ::caption to caption
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
-        ::bordered to bordered
+        ::returnValueFormatter to returnValueFormatter
+        ::border to border
         ::initialized to initialized
         ::logger to if (initialized) logger else "not initialized yet"
     }
@@ -74,9 +77,10 @@ public fun <R> logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    bordered: Boolean = BORDERED_BY_DEFAULT,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = DEFAULT_BORDER,
     block: BorderedRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, null, contentFormatter, decorationFormatter, bordered).runLogging(block)
+): R = SmartRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
@@ -87,9 +91,10 @@ public fun <T : RenderingLogger?, R> T.logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    bordered: Boolean = BORDERED_BY_DEFAULT,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = DEFAULT_BORDER,
     block: BorderedRenderingLogger.() -> R,
 ): R =
-    if (this is BorderedRenderingLogger) logging(caption, contentFormatter, decorationFormatter, bordered, block)
-    else koodies.logging.logging(caption, contentFormatter, decorationFormatter, bordered, block)
+    if (this is BorderedRenderingLogger) logging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
+    else koodies.logging.logging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
 

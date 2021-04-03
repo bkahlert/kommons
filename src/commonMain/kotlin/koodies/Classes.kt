@@ -3,6 +3,10 @@ package koodies
 import koodies.builder.Init
 import koodies.builder.buildMap
 import koodies.builder.context.MapBuildingContext
+import koodies.text.LineSeparators.isMultiline
+import koodies.text.Semantics
+import koodies.text.Semantics.formattedAs
+import koodies.text.spaced
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
@@ -41,14 +45,27 @@ public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
  */
 public fun Any.asString(init: Init<MapBuildingContext<Any?, Any?>>): String =
     StringBuilder(this::class.simpleName ?: "<object>").apply {
-        append(" {")
+        append(" ")
+        append(Semantics.Fragments.block.first.formattedAs.meta)
+        val content = StringBuilder()
+        val flatContent = mutableListOf<String>()
         indenting { indent ->
             indenting { propIndent ->
                 buildMap(init).forEach { (key, value) ->
                     val keyString = key.let { it as? KProperty<*> }?.name ?: key.toString()
-                    append("\n$propIndent$keyString = $value")
+                    val valueString = (value as? Iterable<*>)?.joinToString(Semantics.Delimiter) ?: value.toString()
+                    content.append("\n$propIndent$keyString = $valueString")
+                    flatContent.add("$keyString = $valueString")
                 }
             }
-            append("\n$indent}")
+            if (flatContent.none { it.isMultiline }) {
+                append(" ")
+                append(flatContent.joinToString(Semantics.Delimiter.spaced))
+                append(" ")
+            } else {
+                append(content)
+                append("\n$indent")
+            }
+            append(Semantics.Fragments.block.second.formattedAs.meta)
         }
     }.toString()

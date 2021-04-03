@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.math.mod
 import koodies.runtime.AnsiSupport
 import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.Program
@@ -10,9 +11,12 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.round
 import kotlin.math.roundToInt
+import kotlin.random.Random.Default.nextDouble
 import kotlin.text.Regex.Companion.escape
 
 public object ANSI {
+
+    private val level by lazy { Program.ansiSupport }
 
     /**
      * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
@@ -60,28 +64,36 @@ public object ANSI {
     private class Colorizer(vararg val colors: AnsiColorCode?) :
         Formatter by AnsiCodeFormatter(colors.filterNotNull().fold(EmptyAnsiColorCode as AnsiCode) { acc, code -> acc.plus(code) })
 
+    private val reset: AnsiCode by lazy { if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0) }
+
     public object Colors {
-        private val ansiColors: AnsiColors by lazy { AnsiColors(Program.ansiSupport) }
 
-        public val black: Formatter get() = AnsiCodeFormatter(ansiColors.black)
-        public val red: Formatter get() = AnsiCodeFormatter(ansiColors.red)
-        public val green: Formatter get() = AnsiCodeFormatter(ansiColors.green)
-        public val yellow: Formatter get() = AnsiCodeFormatter(ansiColors.yellow)
-        public val blue: Formatter get() = AnsiCodeFormatter(ansiColors.blue)
-        public val magenta: Formatter get() = AnsiCodeFormatter(ansiColors.magenta)
-        public val cyan: Formatter get() = AnsiCodeFormatter(ansiColors.cyan)
-        public val white: Formatter get() = AnsiCodeFormatter(ansiColors.white)
-        public val gray: Formatter get() = AnsiCodeFormatter(ansiColors.gray)
+        public val black: Formatter get() = AnsiCodeFormatter(ansi16(30))
+        public val red: Formatter get() = AnsiCodeFormatter(ansi16(31))
+        public val green: Formatter get() = AnsiCodeFormatter(ansi16(32))
+        public val yellow: Formatter get() = AnsiCodeFormatter(ansi16(33))
+        public val blue: Formatter get() = AnsiCodeFormatter(ansi16(34))
+        public val magenta: Formatter get() = AnsiCodeFormatter(ansi16(35))
+        public val cyan: Formatter get() = AnsiCodeFormatter(ansi16(36))
+        public val white: Formatter get() = AnsiCodeFormatter(ansi16(37))
+        public val gray: Formatter get() = AnsiCodeFormatter(ansi16(90))
 
-        public val brightRed: Formatter get() = AnsiCodeFormatter(ansiColors.brightRed)
-        public val brightGreen: Formatter get() = AnsiCodeFormatter(ansiColors.brightGreen)
-        public val brightYellow: Formatter get() = AnsiCodeFormatter(ansiColors.brightYellow)
-        public val brightBlue: Formatter get() = AnsiCodeFormatter(ansiColors.brightBlue)
-        public val brightMagenta: Formatter get() = AnsiCodeFormatter(ansiColors.brightMagenta)
-        public val brightCyan: Formatter get() = AnsiCodeFormatter(ansiColors.brightCyan)
-        public val brightWhite: Formatter get() = AnsiCodeFormatter(ansiColors.brightWhite)
+        public val brightRed: Formatter get() = AnsiCodeFormatter(ansi16(91))
+        public val brightGreen: Formatter get() = AnsiCodeFormatter(ansi16(92))
+        public val brightYellow: Formatter get() = AnsiCodeFormatter(ansi16(93))
+        public val brightBlue: Formatter get() = AnsiCodeFormatter(ansi16(94))
+        public val brightMagenta: Formatter get() = AnsiCodeFormatter(ansi16(95))
+        public val brightCyan: Formatter get() = AnsiCodeFormatter(ansi16(96))
+        public val brightWhite: Formatter get() = AnsiCodeFormatter(ansi16(97))
 
-        public val random: Formatter get() = AnsiCodeFormatter(ansiColors.hsv((kotlin.random.Random.nextDouble() * 360.0).toInt(), 82, 89))
+        public fun random(hue: Int, variance: Double = 60.0): Formatter =
+            random(hue.toDouble(), variance)
+
+        public fun random(hue: Double, variance: Double = 60.0): Formatter =
+            random((hue - variance)..(hue + variance))
+
+        public fun random(range: ClosedRange<Double> = 0.0..360.0): Formatter =
+            AnsiCodeFormatter(hsv((nextDouble(range.start, range.endInclusive).mod(360.0)).toInt(), 82, 89))
 
         public fun CharSequence.black(): CharSequence = black(this)
         public fun CharSequence.red(): CharSequence = red(this)
@@ -100,18 +112,69 @@ public object ANSI {
         public fun CharSequence.brightMagenta(): CharSequence = brightMagenta(this)
         public fun CharSequence.brightCyan(): CharSequence = brightCyan(this)
         public fun CharSequence.brightWhite(): CharSequence = brightWhite(this)
+
+        /** @param hex An rgb hex string in the form "#ffffff" or "ffffff" */
+        private fun rgb(hex: String): AnsiColorCode = color(RGB(hex))
+
+        /**
+         * Create a color code from an RGB color.
+         *
+         * @param r The red amount, in the range \[0, 255]
+         * @param g The green amount, in the range \[0, 255]
+         * @param b The blue amount, in the range \[0, 255]
+         */
+        private fun rgb(r: Int, g: Int, b: Int): AnsiColorCode = color(RGB(r, g, b))
+
+        /**
+         * Create a color code from an HSV color.
+         *
+         * @param h The hue, in the range \[0, 360]
+         * @param s The saturation, in the range \[0,100]
+         * @param v The value, in the range \[0,100]
+         */
+        private fun hsv(h: Int, s: Int, v: Int): AnsiColorCode = color(HSV(h, s, v))
+
+        /**
+         * Create a grayscale color code from a fraction in the range \[0, 1].
+         *
+         * @param fraction The fraction of white in the color. 0 is pure black, 1 is pure white.
+         */
+        private fun gray(fraction: Double): AnsiColorCode {
+            require(fraction in 0.0..1.0) { "fraction must be in the range [0, 1]" }
+            return round(255 * fraction).toInt().let { rgb(it, it, it) }
+        }
+
+        private fun ansi16(code: Int) =
+            if (level == NONE) DisabledAnsiColorCode else Ansi16ColorCode(code)
+
+        /**
+         * Create a color from an existing [Color].
+         *
+         * It's usually easier to use a function like [rgb] or [hsv] instead.
+         */
+        private fun color(color: Color): AnsiColorCode = when (level) {
+            NONE -> DisabledAnsiColorCode
+            AnsiSupport.ANSI4 -> Ansi16ColorCode(color.toAnsi16().code)
+            AnsiSupport.ANSI8 ->
+                if (color is Ansi16) Ansi16ColorCode(color.code)
+                else Ansi256ColorCode(color.toAnsi256().code)
+            AnsiSupport.ANSI24 -> when (color) {
+                is Ansi16 -> Ansi16ColorCode(color.code)
+                is Ansi256 -> Ansi256ColorCode(color.code)
+                else -> color.toRGB().run { AnsiRGBColorCode(r, g, b) }
+            }
+        }
     }
 
     public object Style {
-        private val ansiColors: AnsiColors by lazy { AnsiColors(Program.ansiSupport) }
 
-        public val bold: Formatter get() = AnsiCodeFormatter(ansiColors.bold)
-        public val dim: Formatter get() = AnsiCodeFormatter(ansiColors.dim)
-        public val italic: Formatter get() = AnsiCodeFormatter(ansiColors.italic)
-        public val underline: Formatter get() = AnsiCodeFormatter(ansiColors.underline)
-        public val inverse: Formatter get() = AnsiCodeFormatter(ansiColors.inverse)
-        public val hidden: Formatter get() = AnsiCodeFormatter(ansiColors.hidden)
-        public val strikethrough: Formatter get() = AnsiCodeFormatter(ansiColors.strikethrough)
+        public val bold: Formatter get() = AnsiCodeFormatter(ansi(1, 22))
+        public val dim: Formatter get() = AnsiCodeFormatter(ansi(2, 22))
+        public val italic: Formatter get() = AnsiCodeFormatter(ansi(3, 23))
+        public val underline: Formatter get() = AnsiCodeFormatter(ansi(4, 24))
+        public val inverse: Formatter get() = AnsiCodeFormatter(ansi(7, 27))
+        public val hidden: Formatter get() = AnsiCodeFormatter(ansi(8, 28))
+        public val strikethrough: Formatter get() = AnsiCodeFormatter(ansi(9, 29))
 
         public fun CharSequence.bold(): CharSequence = bold(this)
         public fun CharSequence.dim(): CharSequence = dim(this)
@@ -120,9 +183,13 @@ public object ANSI {
         public fun CharSequence.inverse(): CharSequence = inverse(this)
         public fun CharSequence.hidden(): CharSequence = if (Program.isDeveloping) " ".repeat((length * 1.35).toInt()) else hidden("$this")
         public fun CharSequence.strikethrough(): CharSequence = strikethrough("$this")
+
+        private fun ansi(open: Int, close: Int) =
+            if (level == NONE) DisabledAnsiCode else AnsiCode(open, close)
     }
 
     public class Text private constructor(private val text: CharSequence) : CharSequence by text {
+
         private val string = text.toString()
         override fun toString(): String = string
 
@@ -144,7 +211,7 @@ public object ANSI {
         public fun brightCyan(): CharSequence = Colors.brightCyan(text)
         public fun brightWhite(): CharSequence = Colors.brightWhite(text)
 
-        public fun random(): CharSequence = Colors.random(text)
+        public fun random(range: ClosedRange<Double> = 0.0..360.0): CharSequence = Colors.random(range)(text)
 
         public fun bold(): CharSequence = Style.bold(text)
         public fun dim(): CharSequence = Style.dim(text)
@@ -158,183 +225,61 @@ public object ANSI {
             public val CharSequence.ansi: Text get() = Text(this)
         }
     }
-}
 
-private class AnsiColors(val support: AnsiSupport = Program.ansiSupport) {
+    private class Controls {
 
-    val black: AnsiColorCode get() = ansi16(30)
-    val red: AnsiColorCode get() = ansi16(31)
-    val green: AnsiColorCode get() = ansi16(32)
-    val yellow: AnsiColorCode get() = ansi16(33)
-    val blue: AnsiColorCode get() = ansi16(34)
-    val magenta: AnsiColorCode get() = ansi16(35)
-    val cyan: AnsiColorCode get() = ansi16(36)
-    val white: AnsiColorCode get() = ansi16(37)
-    val gray: AnsiColorCode get() = ansi16(90)
+        /**
+         * Create an ANSI code to move the cursor up [count] cells.
+         *
+         * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
+         * If [count] is negative, the cursor will be moved down instead.
+         */
+        fun cursorUp(count: Int): String = moveCursor(if (count < 0) "B" else "A", abs(count))
 
-    val brightRed: AnsiColorCode get() = ansi16(91)
-    val brightGreen: AnsiColorCode get() = ansi16(92)
-    val brightYellow: AnsiColorCode get() = ansi16(93)
-    val brightBlue: AnsiColorCode get() = ansi16(94)
-    val brightMagenta: AnsiColorCode get() = ansi16(95)
-    val brightCyan: AnsiColorCode get() = ansi16(96)
-    val brightWhite: AnsiColorCode get() = ansi16(97)
+        /**
+         * Create an ANSI code to move the cursor down [count] cells.
+         *
+         * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
+         * If [count] is negative, the cursor will be moved up instead.
+         */
+        fun cursorDown(count: Int): String = moveCursor(if (count < 0) "A" else "B", abs(count))
 
-    /** Clear all active styles */
-    val reset get() = if (support == NONE) DisabledAnsiCode else AnsiCode(0, 0)
+        /**
+         * Create an ANSI code to move the cursor left [count] cells.
+         *
+         * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
+         * If [count] is negative, the cursor will be moved right instead.
+         */
+        fun cursorLeft(count: Int): String = moveCursor(if (count < 0) "C" else "D", abs(count))
 
-    /**
-     * Render text as bold or increased intensity.
-     *
-     * Might be rendered as a different color instead of a different font weight.
-     */
-    val bold get() = ansi(1, 22)
+        /**
+         * Create an ANSI code to move the cursor right [count] cells.
+         *
+         * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
+         * If [count] is negative, the cursor will be moved left instead.
+         */
+        fun cursorRight(count: Int): String = moveCursor(if (count < 0) "D" else "C", abs(count))
 
-    /**
-     * Render text as faint or decreased intensity.
-     *
-     * Not widely supported.
-     */
-    val dim get() = ansi(2, 22)
+        /**
+         * Create an ANSI code to hide the cursor.
+         *
+         * If ANSI codes are not supported, an empty string is returned.
+         */
+        val hideCursor: String get() = if (level == NONE) "" else "$CSI?25l"
 
-    /**
-     * Render text as italic.
-     *
-     * Not widely supported, might be rendered as inverse instead of italic.
-     */
-    val italic get() = ansi(3, 23)
+        /**
+         * Create an ANSI code to show the cursor.
+         *
+         * If ANSI codes are not supported, an empty string is returned.
+         */
+        val showCursor: String get() = if (level == NONE) "" else "$CSI?25h"
 
-    /**
-     * Underline text.
-     *
-     * Might be rendered with different colors instead of underline.
-     */
-    val underline get() = ansi(4, 24)
-
-    /** Render text with background and foreground colors switched. */
-    val inverse get() = ansi(7, 27)
-
-    /**
-     * Conceal text.
-     *
-     * Not widely supported.
-     */
-    val hidden get() = ansi(8, 28)
-
-    /**
-     * Render text with a strikethrough.
-     *
-     * Not widely supported.
-     */
-    val strikethrough get() = ansi(9, 29)
-
-    /** @param hex An rgb hex string in the form "#ffffff" or "ffffff" */
-    fun rgb(hex: String): AnsiColorCode = color(RGB(hex))
-
-    /**
-     * Create a color code from an RGB color.
-     *
-     * @param r The red amount, in the range \[0, 255]
-     * @param g The green amount, in the range \[0, 255]
-     * @param b The blue amount, in the range \[0, 255]
-     */
-    fun rgb(r: Int, g: Int, b: Int): AnsiColorCode = color(RGB(r, g, b))
-
-    /**
-     * Create a color code from an HSV color.
-     *
-     * @param h The hue, in the range \[0, 360]
-     * @param s The saturation, in the range \[0,100]
-     * @param v The value, in the range \[0,100]
-     */
-    fun hsv(h: Int, s: Int, v: Int): AnsiColorCode = color(HSV(h, s, v))
-
-    /**
-     * Create a grayscale color code from a fraction in the range \[0, 1].
-     *
-     * @param fraction The fraction of white in the color. 0 is pure black, 1 is pure white.
-     */
-    fun gray(fraction: Double): AnsiColorCode {
-        require(fraction in 0.0..1.0) { "fraction must be in the range [0, 1]" }
-        return round(255 * fraction).toInt().let { rgb(it, it, it) }
-    }
-
-    /**
-     * Create an ANSI code to move the cursor up [count] cells.
-     *
-     * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
-     * If [count] is negative, the cursor will be moved down instead.
-     */
-    fun cursorUp(count: Int): String = moveCursor(if (count < 0) "B" else "A", abs(count))
-
-    /**
-     * Create an ANSI code to move the cursor down [count] cells.
-     *
-     * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
-     * If [count] is negative, the cursor will be moved up instead.
-     */
-    fun cursorDown(count: Int): String = moveCursor(if (count < 0) "A" else "B", abs(count))
-
-    /**
-     * Create an ANSI code to move the cursor left [count] cells.
-     *
-     * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
-     * If [count] is negative, the cursor will be moved right instead.
-     */
-    fun cursorLeft(count: Int): String = moveCursor(if (count < 0) "C" else "D", abs(count))
-
-    /**
-     * Create an ANSI code to move the cursor right [count] cells.
-     *
-     * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
-     * If [count] is negative, the cursor will be moved left instead.
-     */
-    fun cursorRight(count: Int): String = moveCursor(if (count < 0) "D" else "C", abs(count))
-
-    /**
-     * Create an ANSI code to hide the cursor.
-     *
-     * If ANSI codes are not supported, an empty string is returned.
-     */
-    val hideCursor: String get() = if (support == NONE) "" else "$CSI?25l"
-
-    /**
-     * Create an ANSI code to show the cursor.
-     *
-     * If ANSI codes are not supported, an empty string is returned.
-     */
-    val showCursor: String get() = if (support == NONE) "" else "$CSI?25h"
-
-    private fun moveCursor(dir: String, count: Int): String {
-        return if (count == 0 || support == NONE) ""
-        else "$CSI$count$dir"
-    }
-
-    private fun ansi16(code: Int) =
-        if (support == NONE) DisabledAnsiColorCode else Ansi16ColorCode(code)
-
-    private fun ansi(open: Int, close: Int) =
-        if (support == NONE) DisabledAnsiCode else AnsiCode(open, close)
-
-    /**
-     * Create a color from an existing [Color].
-     *
-     * It's usually easier to use a function like [rgb] or [hsv] instead.
-     */
-    fun color(color: Color): AnsiColorCode = when (support) {
-        NONE -> DisabledAnsiColorCode
-        AnsiSupport.ANSI4 -> Ansi16ColorCode(color.toAnsi16().code)
-        AnsiSupport.ANSI8 ->
-            if (color is Ansi16) Ansi16ColorCode(color.code)
-            else Ansi256ColorCode(color.toAnsi256().code)
-        AnsiSupport.ANSI24 -> when (color) {
-            is Ansi16 -> Ansi16ColorCode(color.code)
-            is Ansi256 -> Ansi256ColorCode(color.code)
-            else -> color.toRGB().run { AnsiRGBColorCode(r, g, b) }
+        private fun moveCursor(dir: String, count: Int): String {
+            return if (count == 0 || level == NONE) ""
+            else "$CSI$count$dir"
         }
     }
 }
-
 
 private const val ESC = Unicode.escape
 private const val CSI = "$ESC["

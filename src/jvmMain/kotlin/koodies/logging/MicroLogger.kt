@@ -13,9 +13,15 @@ import kotlin.concurrent.withLock
 
 public class MicroLogger(
     private val symbol: String,
-    private val formatter: Formatter? = Formatter.PassThrough,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
     parent: RenderingLogger? = null,
 ) : RenderingLogger("", parent) {
+
+    private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
+    private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
+    private val returnValueFormatter: (ReturnValue) -> String = returnValueFormatter ?: RETURN_VALUE_FORMATTER
 
     private val messages: MutableList<CharSequence> = synchronizedListOf()
     private val lock = ReentrantLock()
@@ -25,7 +31,7 @@ public class MicroLogger(
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
         when {
             closed -> {
-                val prefix = Semantics.Computation + " "
+                val prefix = decorationFormatter(Semantics.Computation).toString() + " "
                 log { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
@@ -41,22 +47,22 @@ public class MicroLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        block.format(formatter) { render(false) { this } }
+        block.format(contentFormatter) { render(false) { this } }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        block.format(formatter) { render(false) { this } }
+        block.format(contentFormatter) { render(false) { this } }
     }
 
     override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        val message: CharSequence? = block.format(formatter) { lines().joinToString(", ") }
-        val status: CharSequence? = items.format(formatter) { lines().size.let { "($it)" } }
+        val message: CharSequence? = block.format(contentFormatter) { lines().joinToString(", ") }
+        val status: CharSequence? = items.format(contentFormatter) { lines().size.let { "($it)" } }
         (status?.let { "$message $status" } ?: message)?.let { render(true) { it } }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
-        val formattedResult = formatResult(result)
+        val formattedResult = returnValueFormatter(ReturnValue.of(result))
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
@@ -65,7 +71,7 @@ public class MicroLogger(
     }
 
     override fun logException(block: () -> Throwable) {
-        formatException(" ", block().toReturnValue()).also { render(true) { it } }
+        returnValueFormatter(ReturnValue.of(block())).also { render(true) { it } }
     }
 
     override fun toString(): String = asString {

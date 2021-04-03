@@ -5,13 +5,15 @@ import koodies.collections.synchronizedListOf
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
+import koodies.debug.asEmoji
+import koodies.debug.trace
 import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
 import koodies.runtime.JVM
 import koodies.runtime.Program
-import koodies.terminal.ANSI
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
-import koodies.terminal.AnsiColors.red
+import koodies.text.ANSI
+import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.LineSeparators.LF
@@ -29,6 +31,7 @@ import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 import kotlin.io.path.extension
 
+
 /**
  * Logger interface to implement loggers that don't just log
  * but render log messages to provide easier understandable feedback.
@@ -45,8 +48,12 @@ public open class RenderingLogger(
     /**
      * Contains a list containing `this` and and all of its parent loggers.
      */
-    public val ancestors: List<RenderingLogger>
-        get() = generateSequence(this) { it.parent }.toList()
+    public val ancestors: Ancestors = Ancestors(this)
+    public fun isDescendantOf(logger: RenderingLogger): Boolean {
+        val isDescendant = logger in ancestors
+        "${this.caption.formattedAs.input} (${hashCode().formattedAs.input} descendant of ${logger.caption.formattedAs.input} (${logger.hashCode().formattedAs.input})? -> ${logger.caption.formattedAs.input} in ancestors of ${caption.formattedAs.input} (${ancestors}}) -> ${isDescendant.asEmoji}".trace
+        return isDescendant
+    }
 
     protected open var initialized: Boolean = false
 
@@ -257,10 +264,18 @@ public open class RenderingLogger(
 
         public val recoveredLoggers: MutableList<RenderingLogger> = synchronizedListOf()
 
-        public fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
-            formatReturnValue(result.toReturnValue())
+        public val RETURN_VALUE_FORMATTER: (ReturnValue) -> String = {
+            when (it.successful) {
+                true -> Semantics.OK
+                null -> "${Semantics.Computation} async computation"
+                false -> Semantics.Error + " ${it.format()}"
+            }
+        }
 
-        public fun RenderingLogger.formatReturnValue(returnValue: ReturnValue): CharSequence {
+        private fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
+            RETURN_VALUE_FORMATTER(result.toReturnValue())
+
+        private fun RenderingLogger.formatReturnValue(returnValue: ReturnValue): CharSequence {
             return when (returnValue.successful) {
                 true -> Semantics.OK
                 null -> "${Semantics.Computation} async computation"
@@ -269,9 +284,9 @@ public open class RenderingLogger(
         }
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
-        public fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
-            val format = if (recoveredLoggers.contains(this)) ANSI.termColors.green else ANSI.termColors.red
-            val ϟ = format("$greekSmallLetterKoppa")
+        private fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
+            val format = if (recoveredLoggers.contains(this)) ANSI.Colors.green else ANSI.Colors.red
+            val ϟ = format("$greekSmallLetterKoppa").toString()
             return ϟ + prefix + returnValue.format().red()
         }
     }
@@ -302,7 +317,7 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     path: Path,
     caption: CharSequence,
     crossinline block: RenderingLogger.() -> R,
-): R = CompactRenderingLogger(caption, null, this).runLogging {
+): R = CompactRenderingLogger(caption, null, null, null, this).runLogging {
     logLine { IO.META typed "Logging to" }
     logLine { "$Document ${path.toUri()}" }
     path.bufferedWriter().use { ansiLog ->
@@ -317,8 +332,13 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     }
 }
 
-/**
- * Returns `this` [RenderingLogger] if [Program.isDebugging]—otherwise a [MutedRenderingLogger]
- * is returned.
- */
-public fun RenderingLogger?.onlyIfDebugging(): RenderingLogger? = if (Program.isDebugging) this else MutedRenderingLogger()
+
+public inline class Ancestors(public val logger: RenderingLogger) : Iterable<RenderingLogger> {
+
+    override fun iterator(): Iterator<RenderingLogger> {
+        return generateSequence(logger) { it.parent }.iterator()
+    }
+
+    override fun toString(): String =
+        joinToString(" ${Semantics.PointNext} ") { "${it.caption.formattedAs.input} (${it.hashCode()})" }
+}

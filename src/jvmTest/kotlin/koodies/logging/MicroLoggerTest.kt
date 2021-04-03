@@ -11,7 +11,7 @@ class MicroLoggerTest {
 
     @Test
     fun InMemoryLogger.`should micro log`() {
-        MicroLogger("🤠", null, this).runLogging {
+        MicroLogger("🤠", null, null, null, this).runLogging {
             logStatus { IO.OUT typed "ABC" }
             logLine { "" }
             logLine { "123" }

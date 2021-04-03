@@ -1,6 +1,6 @@
 package koodies.terminal
 
-import koodies.number.mod
+import koodies.math.mod
 import koodies.terminal.AnsiCode.Companion.colors.cyan
 import koodies.terminal.AnsiColors.brightCyan
 import koodies.terminal.AnsiColors.brightMagenta

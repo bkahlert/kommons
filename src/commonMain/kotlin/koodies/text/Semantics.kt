@@ -16,6 +16,7 @@ public object Semantics {
     public val Computation: String = Unicode.Emojis.hourglass.emojiVariant.formattedAs.progress
     public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
     public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
+    public val Delimiter: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
 
     public val Document: String = Unicode.Emojis.pageFacingUp.toString()
 
@@ -65,6 +66,21 @@ public object Semantics {
          * Formats `this` [text] as expressing a meta information.
          */
         public val meta: String get() = text { gray().italic() }
+
+        /**
+         * Formats `this` [text] as expressing a unit.
+         */
+        public val unit: String get() = text { wrap(Fragments.unit.first.formattedAs.meta, Fragments.unit.second.formattedAs.meta) }
+
+        /**
+         * Formats `this` [text] as expressing a block.
+         */
+        public val block: String get() = text { wrap(Fragments.block.second.formattedAs.meta, Fragments.block.second.formattedAs.meta) }
+    }
+
+    public object Fragments {
+        public val unit: Pair<String, String> = "⟨" to "⟩"
+        public val block: Pair<String, String> = "{" to "}"
     }
 
     private inline operator fun String.invoke(transform: String.() -> CharSequence): String = transform().toString()

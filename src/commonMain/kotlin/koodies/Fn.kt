@@ -1,7 +1,17 @@
 package koodies
 
+import koodies.runtime.Program
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
+
+
+/**
+ * Returns a lambda that—in contrast to `this` lambda—also takes a receiver of type [T].
+ *
+ * Depending on the situation, writting this type of parameter ignoring wrapper can pose
+ * syntatic problems.
+ */
+public inline fun <T, R, S> ((R) -> S).asLambdaWithReceiver(): T.(R) -> S = { this@asLambdaWithReceiver(it) }
 
 /**
  * Runs the specified [block] if `this` is `null` and provide
@@ -26,9 +36,9 @@ public inline infix fun <T> T?.otherwise(block: () -> T): T {
  * Returns the invocations result on success and throws the encountered exception on failure.
  * In both cases [after] will be called.
  */
-public fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: () -> R): R {
+public fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: (U) -> R): R {
     val u = before()
-    val r = runCatching(block)
+    val r = runCatching { block(u) }
     after(u)
     return r.getOrThrow()
 }
@@ -43,9 +53,9 @@ public fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: () -> 
  * Returns the invocations result on success and throws the encountered exception on failure.
  * In both cases [after] will be called.
  */
-public fun <T, U, R> T.runWrapping(before: T.() -> U, after: T.(U) -> Unit, block: T.() -> R): R {
+public fun <T, U, R> T.runWrapping(before: T.() -> U, after: T.(U) -> Unit, block: T.(U) -> R): R {
     val u = before()
-    val r = runCatching(block)
+    val r = runCatching { block(u) }
     after(u)
     return r.getOrThrow()
 }
@@ -69,3 +79,13 @@ public fun String.checkNotBlank(): String = also{check(it.isNotBlank())}
 /** Throws an [IllegalStateException] with the result of calling [lazyMessage] if `this` string [isBlank]. */
 public fun String.checkNotBlank(lazyMessage: () -> Any): String = also{check(it.isNotBlank(),lazyMessage)}
 // @formatter:on
+
+/**
+ * Returns `this` object if this [Program] runs in debug mode or `null`, if it's not.
+ */
+public fun <T> T.takeIfDebugging(): T? = takeIf { Program.isDebugging }
+
+/**
+ * Returns `this` object if this [Program] does not run in debug mode or `null`, if it is.
+ */
+public fun <T> T.takeUnlessDebugging(): T? = takeIf { Program.isDebugging }

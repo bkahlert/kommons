@@ -2,11 +2,15 @@ package koodies.logging
 
 import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
+import koodies.logging.BorderedRenderingLogger.Border.DOTTED
+import koodies.logging.BorderedRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger.Companion.NO_RETURN_VALUE
 import koodies.logging.InMemoryLogger.Companion.SUCCESSFUL_RETURN_VALUE
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.SystemIoExclusive
+import koodies.test.output.TestLogger
 import koodies.test.toStringContainsAll
+import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.containsEscapeSequences
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -24,8 +28,8 @@ import strikt.assertions.startsWith
 @Execution(CONCURRENT)
 class InMemoryLoggerTest {
 
-    private fun logger(vararg outputStreams: ByteArrayOutputStream, init: InMemoryLogger.() -> Unit = {}): InMemoryLogger =
-        InMemoryLogger("caption", true, outputStreams = outputStreams).withUnclosedWarningDisabled.apply(init)
+    private fun logger(outputStream: ByteArrayOutputStream? = null, init: InMemoryLogger.() -> Unit = {}): InMemoryLogger =
+        InMemoryLogger("caption", SOLID, outputStream = outputStream).withUnclosedWarningDisabled.apply(init)
 
     @SystemIoExclusive
     @Test
@@ -55,8 +59,8 @@ class InMemoryLoggerTest {
     }
 
     @Test
-    fun `should not log bordered if specified`() {
-        val logger = InMemoryLogger("test", false).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
+    fun `should not log border if specified`() {
+        val logger = InMemoryLogger("test", DOTTED).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
         logger.expectThatLogged().matchesCurlyPattern("""
             ▶ test
             · line
@@ -164,7 +168,7 @@ class InMemoryLoggerTest {
     }
 
     @Nested
-    inner class ExpectThatLogged {
+    inner class ExpectThatLoggedFn {
 
         @Test
         fun `should not contain escape sequences`() {
@@ -247,7 +251,49 @@ class InMemoryLoggerTest {
             }
         }
     }
+
+
+    @Nested
+    inner class TestLoggerAssertion {
+
+        @Nested
+        inner class WithExpectLogged {
+
+
+            @Test
+            fun TestLogger.`should be initially empty`() {
+                expectLogged.isEmpty()
+            }
+
+            @Test
+            fun TestLogger.`should not contain escape sequences`() {
+                logLine { "line" }
+                expectLogged.not { containsEscapeSequences() }
+            }
+
+            @Test
+            fun TestLogger.`should not contain header or footer`() {
+                logLine { "line" }
+                expectLogged.isEqualTo("line")
+            }
+
+            @Test
+            fun TestLogger.`should assert exactly what was logged`() {
+                blockLogging("test") { logLine { "line" }; 42 }
+                expectLogged.isEqualTo("""
+                    test
+                    line
+                    ✔︎
+                """.trimIndent())
+            }
+        }
+    }
 }
+
+val <T : InMemoryLogger> T.expectLogged
+    get() = expectThat(toString(fallbackReturnValue = null,
+        keepEscapeSequences = false,
+        lineSkip = 1).withoutTrailingLineSeparator)
 
 fun <T : InMemoryLogger> T.expectThatLogged(closeIfOpen: Boolean = true) =
     expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }))

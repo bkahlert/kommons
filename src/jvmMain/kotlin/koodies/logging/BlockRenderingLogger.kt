@@ -1,20 +1,14 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.builder.buildList
 import koodies.concurrent.process.IO
-import koodies.logging.BlockRenderingLogger.Companion.BORDERED_BY_DEFAULT
+import koodies.logging.BorderedRenderingLogger.Border
 import koodies.regex.RegularExpressions
-import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiString.Companion.asAnsiString
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.Formatter.Companion.invoke
-import koodies.text.LineSeparators.LF
-import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.addColumn
-import koodies.text.mapLines
 import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
@@ -26,63 +20,31 @@ public open class BlockRenderingLogger(
     parent: BorderedRenderingLogger? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    bordered: Boolean = BORDERED_BY_DEFAULT,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = DEFAULT_BORDER,
     width: Int? = null,
-) : BorderedRenderingLogger(caption.toString(), parent, contentFormatter, decorationFormatter, bordered, width, prefixFor(bordered, decorationFormatter)) {
+) : BorderedRenderingLogger(caption.toString(),
+    parent,
+    contentFormatter,
+    decorationFormatter,
+    returnValueFormatter,
+    border,
+    width,
+    border.prefix(decorationFormatter)) {
 
-    private val playSymbol: String get() = decorationFormatter("▶").toString()
-    private val whitePlaySymbol: String get() = decorationFormatter("▷").toString()
 
-    private val blockStart: String
-        get() = buildList {
-            val captionLines = caption.asAnsiString().lines()
-            if (bordered) {
-                +(decorationFormatter("╭──╴").toString() + decorationFormatter(captionLines.first()).bold())
-                captionLines.drop(1).forEach {
-                    +"$prefix${decorationFormatter(it).bold()}"
-                }
-                +prefix
-            } else {
-                +"$playSymbol ${decorationFormatter(captionLines.first()).bold()}"
-                captionLines.drop(1).forEach {
-                    +"$whitePlaySymbol ${decorationFormatter(it).bold()}"
-                }
-            }
-        }.joinToString(LF)
+    private fun getBlockStart(): String = border.header(caption, decorationFormatter)
 
     override var initialized: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
         if (!oldValue && newValue) {
-            render(true) { blockStart }
+            render(true) { getBlockStart() }
         }
     }
 
-    protected fun getBlockEnd(returnValue: ReturnValue): CharSequence {
-        val message: String =
-            when (returnValue.successful) {
-                true -> {
-                    val renderedSuccess = formatReturnValue(returnValue)
-                    if (bordered) decorationFormatter("│").toString() + LF + decorationFormatter("╰──╴").toString() + renderedSuccess
-                    else "$renderedSuccess"
-                }
-                null -> {
-                    val renderedUnready = formatReturnValue(returnValue)
-                    val halfLine = decorationFormatter("╵").toString()
-                    if (bordered) halfLine + LF + halfLine + LF + renderedUnready
-                    else "$renderedUnready"
-                }
-                false -> {
-                    if (bordered) {
-                        formatException(LF + decorationFormatter("╰──╴").toString(), returnValue) + LF
-                    } else {
-                        formatException(" ", returnValue)
-                    }
-                }
-            }
-        return message.asAnsiString().mapLines { it.bold() }
-    }
+    protected fun getBlockEnd(returnValue: ReturnValue): CharSequence = border.footer(returnValue, returnValueFormatter, decorationFormatter)
 
     override fun logText(block: () -> CharSequence) {
-        contentFormatter(block()).run {
+        contentFormatter(block()).takeIf { it.isNotBlank() }?.run {
             render(false) {
                 if (closed) this
                 else asAnsiString().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = true)
@@ -91,7 +53,7 @@ public open class BlockRenderingLogger(
     }
 
     override fun logLine(block: () -> CharSequence) {
-        contentFormatter(block()).run {
+        contentFormatter(block()).takeIf { it.isNotBlank() }?.run {
             render(true) {
                 val wrapped = wrapNonUriLines(totalColumns)
                 if (closed) wrapped
@@ -116,10 +78,8 @@ public open class BlockRenderingLogger(
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
         val returnValue = ReturnValue.of(result)
-        render(true) {
-            if (closed) formatReturnValue(returnValue).asAnsiString().wrapNonUriLines(totalColumns)
-            else getBlockEnd(returnValue).wrapNonUriLines(totalColumns)
-        }
+        val formatted = if (closed) returnValueFormatter(returnValue) else getBlockEnd(returnValue)
+        formatted.takeUnlessBlank()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
         open = false
         return result.getOrThrow()
     }
@@ -143,7 +103,7 @@ public open class BlockRenderingLogger(
         ::caption to caption
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
-        ::bordered to bordered
+        ::border to border
         ::prefix to prefix
         ::statusInformationColumn to statusInformationColumn
         ::statusInformationPadding to statusInformationPadding
@@ -151,11 +111,8 @@ public open class BlockRenderingLogger(
     }
 
     public companion object {
-        public const val BORDERED_BY_DEFAULT: Boolean = true
-        public fun prefixFor(bordered: Boolean?, decorationFormatter: Formatter?): String {
-            return if (bordered ?: BORDERED_BY_DEFAULT) decorationFormatter("│").toString() + "   "
-            else decorationFormatter("·").toString() + " "
-        }
+        public val DEFAULT_BORDER: Border = Border.DEFAULT
+        public fun prefixFor(border: Boolean?, decorationFormatter: Formatter?): String = Border.from(border).prefix(decorationFormatter)
     }
 }
 
@@ -171,9 +128,10 @@ public fun <R> blockLogging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    bordered: Boolean? = null,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = Border.DEFAULT,
     block: BorderedRenderingLogger.() -> R,
-): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, bordered ?: BORDERED_BY_DEFAULT).runLogging(block)
+): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
@@ -186,8 +144,9 @@ public fun <T : RenderingLogger?, R> T.blockLogging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = Formatter { it.red() },
-    bordered: Boolean? = null,
+    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    border: Border = Border.DEFAULT,
     block: BorderedRenderingLogger.() -> R,
 ): R =
-    if (this is BorderedRenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, bordered, block)
-    else koodies.logging.blockLogging(caption, contentFormatter, decorationFormatter, bordered, block)
+    if (this is BorderedRenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
+    else koodies.logging.blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)

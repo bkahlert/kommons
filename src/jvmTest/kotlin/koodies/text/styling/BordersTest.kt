@@ -1,60 +1,128 @@
 package koodies.text.styling
 
-import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.DynamicTest.dynamicTest
-import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class BordersTest {
 
-    @TestFactory
-    fun `should border centered text`(): List<DynamicTest> {
-        val string = """
-                   foo
-              bar baz
-        """.trimIndent()
+    private val border = "╭─╮\n│*│\n╰─╯"
 
-        return listOf(
-            string.wrapWithBorder("╭─╮\n│*│\n╰─╯", 0, 0),
-            string.lines().wrapWithBorder("╭─╮\n│*│\n╰─╯", 0, 0)).map {
-            dynamicTest(it) {
-                expectThat(it).isEqualTo("""
-                    ╭───────╮
-                    │**foo**│
-                    │bar baz│
-                    ╰───────╯
-                """.trimIndent())
-            }
+    @Nested
+    inner class SingleLine {
+        private val singleLine = "test"
+
+        @Test
+        fun `should draw border with no padding and no margin`() {
+
+            expectThat(singleLine.wrapWithBorder(border, padding = 0, margin = 0)).isEqualTo("""
+                ╭────╮
+                │test│
+                ╰────╯
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should draw border with no padding but margin`() {
+            expectThat(singleLine.wrapWithBorder(border, padding = 2, margin = 0)).isEqualTo("""
+                ╭────────╮
+                │********│
+                │**test**│
+                │********│
+                ╰────────╯
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should draw border with padding but no margin`() {
+            expectThat(singleLine.wrapWithBorder(border, padding = 0, margin = 2)).isEqualTo("""
+                **********
+                **╭────╮**
+                **│test│**
+                **╰────╯**
+                **********
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should draw border with padding and margin`() {
+            expectThat(singleLine.wrapWithBorder(border, padding = 2, margin = 2)).isEqualTo("""
+                **************
+                **╭────────╮**
+                **│********│**
+                **│**test**│**
+                **│********│**
+                **╰────────╯**
+                **************
+            """.trimIndent())
         }
     }
 
-    @TestFactory
-    fun `should border centered text with padding and margin`(): List<DynamicTest> {
-        val string = """
+    @Nested
+    inner class MultiLine {
+        private val multiLine = """
                    foo
               bar baz
-        """.trimIndent()
-        return listOf(
-            string.wrapWithBorder("╭─╮\n│*│\n╰─╯", padding = 2, margin = 4),
-            string.lines().wrapWithBorder("╭─╮\n│*│\n╰─╯", padding = 2, margin = 4)).map {
-            dynamicTest(it) {
-                expectThat(it).isEqualTo("""
-                    *********************
-                    *********************
-                    ****╭───────────╮****
-                    ****│***********│****
-                    ****│****foo****│****
-                    ****│**bar baz**│****
-                    ****│***********│****
-                    ****╰───────────╯****
-                    *********************
-                    *********************
-                """.trimIndent())
-            }
+        """
+
+        @Test
+        fun `should center text and draw border with no padding and no margin`() {
+            expectThat(multiLine.wrapWithBorder(border, padding = 0, margin = 0)).isEqualTo("""
+                ╭───────╮
+                │*******│
+                │**foo**│
+                │bar baz│
+                │*******│
+                ╰───────╯
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should center text and draw border with no padding but margin`() {
+            expectThat(multiLine.wrapWithBorder(border, padding = 2, margin = 0)).isEqualTo("""
+                ╭───────────╮
+                │***********│
+                │***********│
+                │****foo****│
+                │**bar baz**│
+                │***********│
+                │***********│
+                ╰───────────╯
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should center text and draw border with padding but no margin`() {
+            expectThat(multiLine.wrapWithBorder(border, padding = 0, margin = 2)).isEqualTo("""
+                *************
+                **╭───────╮**
+                **│*******│**
+                **│**foo**│**
+                **│bar baz│**
+                **│*******│**
+                **╰───────╯**
+                *************
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should center text and draw border with padding and margin`() {
+            expectThat(multiLine.wrapWithBorder(border, padding = 2, margin = 2)).isEqualTo("""
+                *****************
+                **╭───────────╮**
+                **│***********│**
+                **│***********│**
+                **│****foo****│**
+                **│**bar baz**│**
+                **│***********│**
+                **│***********│**
+                **╰───────────╯**
+                *****************
+            """.trimIndent())
         }
     }
 }

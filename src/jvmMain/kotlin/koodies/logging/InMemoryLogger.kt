@@ -2,10 +2,7 @@ package koodies.logging
 
 import koodies.collections.synchronizedListOf
 import koodies.collections.withNegativeIndices
-import koodies.io.TeeOutputStream
-import koodies.otherwise
 import koodies.runtime.JVM
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.escapeSequencesRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -20,13 +17,13 @@ import java.io.OutputStream
  * prints enriched messages (`threadName: time: message`)
  * to the specified [outputStream].
  */
-public open class InMemoryLogger private constructor(
-    caption: CharSequence,
-    parent: BorderedRenderingLogger? = null,
-    bordered: Boolean? = null,
-    width: Int?,
+public open class InMemoryLogger(
+    caption: CharSequence = "💾",
+    border: Border = Border.DEFAULT,
+    width: Int? = null,
     private val captured: MutableList<String> = synchronizedListOf(),
-    outputStream: OutputStream?,
+    outputStream: OutputStream? = null,
+    parent: BorderedRenderingLogger? = null,
     private val start: Long = System.currentTimeMillis(),
     override val missingParentFallback: (String) -> Unit = {
         val thread = JVM.currentThread.name.padStartFixedLength(30, strategy = MIDDLE)
@@ -38,37 +35,28 @@ public open class InMemoryLogger private constructor(
 ) : BlockRenderingLogger(
     caption = caption,
     parent = parent,
-    bordered = bordered ?: BORDERED_BY_DEFAULT,
+    border = border,
     width = width,
 ) {
-    public constructor(
-        caption: String,
-        bordered: Boolean = true,
-        width: Int? = null,
-        vararg outputStreams: OutputStream,
-    ) : this(
-        caption = caption,
-        bordered = bordered,
-        width = width,
-        outputStream = outputStreams.takeIf { it.isNotEmpty() }?.let { TeeOutputStream(outputStreams.toList()) },
-    )
 
-    public constructor() : this("Test", true, null)
-
+    @Deprecated("no more used")
     private val messages: List<CharSequence> by withNegativeIndices { captured }
-    private val raw: String get() = messages.joinToString("\n")
 
-    @Deprecated("use toString() / expectThatLogged")
-    public val logged: String
-        get() = messages.joinToString("\n").removeEscapeSequences().withoutTrailingLineSeparator.trim()
-
+    private fun assemble(lineSkip: Int, vararg additionalLines: String): String =
+        sequenceOf(captured.asSequence().drop(lineSkip), additionalLines.asSequence()).flatten().joinToString(LF)
 
     override fun toString(): String = toString(NO_RETURN_VALUE, false)
-    public fun toString(fallbackReturnValue: ReturnValue? = null, keepEscapeSequences: Boolean = false): String {
-        val closedOutput = raw.takeIf { !open } otherwise {
-            fallbackReturnValue?.let { raw + LF + getBlockEnd(it) } ?: raw
+    public fun toString(
+        fallbackReturnValue: ReturnValue? = null,
+        keepEscapeSequences: Boolean = false,
+        lineSkip: Int = 0,
+    ): String {
+        val assembled = if (!open || fallbackReturnValue == null) {
+            assemble(lineSkip)
+        } else {
+            assemble(lineSkip, getBlockEnd(fallbackReturnValue).toString())
         }
-        return if (keepEscapeSequences) closedOutput else closedOutput.escapeSequencesRemoved
+        return if (keepEscapeSequences) assembled else assembled.escapeSequencesRemoved
     }
 
     public companion object {

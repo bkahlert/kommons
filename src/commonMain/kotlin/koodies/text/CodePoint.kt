@@ -1,6 +1,6 @@
 package koodies.text
 
-import koodies.number.mod
+import koodies.math.mod
 import koodies.number.toHexadecimalString
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.CodePoint.Companion.isDefined

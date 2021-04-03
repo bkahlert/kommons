@@ -1,5 +1,9 @@
 package koodies.logging
 
+import koodies.logging.BorderedRenderingLogger.Border
+import koodies.logging.BorderedRenderingLogger.Border.DOTTED
+import koodies.logging.BorderedRenderingLogger.Border.NONE
+import koodies.logging.BorderedRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
@@ -123,34 +127,34 @@ class SmartRenderingLoggerKtTest {
     }
 
 
-    private fun borderedTest(borderedPattern: String, nonBorderedPattern: String, block: RenderingLogger.() -> Any) = listOf(
-        true to borderedPattern,
-        false to nonBorderedPattern,
-    ).testEach("bordered={}") { (bordered, expectation) ->
-        val label = if (bordered) "bordered" else "not-bordered"
-        val logger = InMemoryLogger(caption = "InMemoryLogger", bordered = true).withUnclosedWarningDisabled
-            .apply { logging(caption = "$label caption", bordered = bordered) { block() } }
+    private fun borderTest(borderPattern: String, nonborderPattern: String, block: RenderingLogger.() -> Any) = listOf(
+        SOLID to borderPattern,
+        DOTTED to nonborderPattern,
+    ).testEach("border={}") { (border, expectation) ->
+        val label = border.name
+        val logger = InMemoryLogger(caption = "InMemoryLogger", border = SOLID).withUnclosedWarningDisabled
+            .apply { logging(caption = "$label caption", border = border) { block() } }
         expect { logger.toString(fallbackReturnValue = null) }.that { toStringMatchesCurlyPattern(expectation) }
     }
 
     @TestFactory
-    fun `should log captionX`() = borderedTest(
+    fun `should log captionX`() = borderTest(
         """
             ╭──╴InMemoryLogger
             │   
-            │   bordered caption ✔︎
+            │   SOLID caption ✔︎
         """.trimIndent(), """
             ╭──╴InMemoryLogger
             │   
-            │   not-bordered caption ✔︎
+            │   DOTTED caption ✔︎
         """.trimIndent()) { }
 
     @TestFactory
-    fun `should log textX`() = borderedTest(
+    fun `should log textX`() = borderTest(
         """
             ╭──╴InMemoryLogger
             │   
-            │   ╭──╴bordered caption
+            │   ╭──╴SOLID caption
             │   │   
             │   │   text
             │   │
@@ -158,7 +162,7 @@ class SmartRenderingLoggerKtTest {
         """.trimIndent(), """
             ╭──╴InMemoryLogger
             │   
-            │   ▶ not-bordered caption
+            │   ▶ DOTTED caption
             │   · text
             │   ✔︎
         """.trimIndent()) {
@@ -166,11 +170,11 @@ class SmartRenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should log lineX`() = borderedTest(
+    fun `should log lineX`() = borderTest(
         """
             ╭──╴InMemoryLogger
             │   
-            │   ╭──╴bordered caption
+            │   ╭──╴SOLID caption
             │   │   
             │   │   line
             │   │
@@ -178,7 +182,7 @@ class SmartRenderingLoggerKtTest {
         """.trimIndent(), """
             ╭──╴InMemoryLogger
             │   
-            │   ▶ not-bordered caption
+            │   ▶ DOTTED caption
             │   · line
             │   ✔︎
         """.trimIndent()) {
@@ -188,8 +192,8 @@ class SmartRenderingLoggerKtTest {
     @Nested
     inner class ReturnException {
 
-        private fun InMemoryLogger.testLog(bordered: Boolean, init: RenderingLogger.() -> Any) {
-            logging(caption = if (bordered) "bordered" else "not-bordered", bordered = bordered) {
+        private fun InMemoryLogger.testLog(border: Border, init: RenderingLogger.() -> Any) {
+            logging(caption = border.name, border = border) {
                 init()
             }
         }
@@ -198,24 +202,35 @@ class SmartRenderingLoggerKtTest {
         inner class AsFirstLog {
 
             @Test
-            fun InMemoryLogger.`should log exception bordered`() {
-                testLog(true) { RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception SOLID`() {
+                testLog(SOLID) { RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   bordered ϟ RuntimeException: exception{}
+                    │   SOLID ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
 
             @Test
-            fun InMemoryLogger.`should log exception not bordered`() {
-                testLog(false) { RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception DOTTED`() {
+                testLog(DOTTED) { RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   not-bordered ϟ RuntimeException: exception{}
+                    │   DOTTED ϟ RuntimeException: exception{}
+                """.trimIndent())
+            }
+
+            @Test
+            fun InMemoryLogger.`should log exception NONE`() {
+                testLog(NONE) { RuntimeException("exception") }
+
+                expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
+                    ╭──╴{}
+                    │   
+                    │   NONE ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
         }
@@ -224,30 +239,42 @@ class SmartRenderingLoggerKtTest {
         inner class AsSecondLog {
 
             @Test
-            fun InMemoryLogger.`should log exception bordered`() {
-                testLog(true) { logLine { "line" };RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception SOLID`() {
+                testLog(SOLID) { logLine { "line" };RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   ╭──╴bordered
+                    │   ╭──╴SOLID
                     │   │   
                     │   │   line
                     │   ϟ
                     │   ╰──╴RuntimeException: exception{}
-                    {{}}
                 """.trimIndent())
             }
 
             @Test
-            fun InMemoryLogger.`should log exception not bordered`() {
-                testLog(false) { logLine { "line" };RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception DOTTED`() {
+                testLog(DOTTED) { logLine { "line" };RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   ▶ not-bordered
+                    │   ▶ DOTTED
                     │   · line
+                    │   ϟ RuntimeException: exception{}
+                """.trimIndent())
+            }
+
+            @Test
+            fun InMemoryLogger.`should log exception NONE`() {
+                testLog(NONE) { logLine { "line" };RuntimeException("exception") }
+
+                expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
+                    ╭──╴{}
+                    │   
+                    │   NONE
+                    │   line
                     │   ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -257,9 +284,9 @@ class SmartRenderingLoggerKtTest {
     @Nested
     inner class ThrowingException {
 
-        private fun InMemoryLogger.testLog(bordered: Boolean, init: RenderingLogger.() -> Any) {
+        private fun InMemoryLogger.testLog(border: Border, init: RenderingLogger.() -> Any) {
             kotlin.runCatching {
-                logging(caption = if (bordered) "bordered" else "not-bordered", bordered = bordered) {
+                logging(caption = border.name, border = border) {
                     init()
                 }
             }
@@ -269,24 +296,35 @@ class SmartRenderingLoggerKtTest {
         inner class AsFirstLog {
 
             @Test
-            fun InMemoryLogger.`should log exception bordered`() {
-                testLog(true) { throw RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception SOLID`() {
+                testLog(SOLID) { throw RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   bordered ϟ RuntimeException: exception{}
+                    │   SOLID ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
 
             @Test
-            fun InMemoryLogger.`should log exception not bordered`() {
-                testLog(false) { throw RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception DOTTED`() {
+                testLog(DOTTED) { throw RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   not-bordered ϟ RuntimeException: exception{}
+                    │   DOTTED ϟ RuntimeException: exception{}
+                """.trimIndent())
+            }
+
+            @Test
+            fun InMemoryLogger.`should log exception NONE`() {
+                testLog(NONE) { throw RuntimeException("exception") }
+
+                expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
+                    ╭──╴{}
+                    │   
+                    │   NONE ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
         }
@@ -295,30 +333,42 @@ class SmartRenderingLoggerKtTest {
         inner class AsSecondLog {
 
             @Test
-            fun InMemoryLogger.`should log exception bordered`() {
-                testLog(true) { logLine { "line" };throw RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception SOLID`() {
+                testLog(SOLID) { logLine { "line" };throw RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   ╭──╴bordered
+                    │   ╭──╴SOLID
                     │   │   
                     │   │   line
                     │   ϟ
                     │   ╰──╴RuntimeException: exception{}
-                    {{}}
                 """.trimIndent())
             }
 
             @Test
-            fun InMemoryLogger.`should log exception not bordered`() {
-                testLog(false) { logLine { "line" };throw RuntimeException("exception") }
+            fun InMemoryLogger.`should log exception DOTTED`() {
+                testLog(DOTTED) { logLine { "line" };throw RuntimeException("exception") }
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
                     │   
-                    │   ▶ not-bordered
+                    │   ▶ DOTTED
                     │   · line
+                    │   ϟ RuntimeException: exception{}
+                """.trimIndent())
+            }
+
+            @Test
+            fun InMemoryLogger.`should log exception NONE`() {
+                testLog(NONE) { logLine { "line" };throw RuntimeException("exception") }
+
+                expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
+                    ╭──╴{}
+                    │   
+                    │   NONE
+                    │   line
                     │   ϟ RuntimeException: exception{}
                 """.trimIndent())
             }

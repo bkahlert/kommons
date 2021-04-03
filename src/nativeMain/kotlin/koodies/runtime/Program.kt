@@ -13,6 +13,11 @@ public actual object Program {
      */
     public actual val isDebugging: Boolean
         get() = TODO("Not yet implemented")
+    
+    /**
+     * Whether this program is running in test mode.
+     */
+    public actual val isTesting: Boolean by lazy { isDebugging }
 
     /**
      * Registers [handler] as to be called when this program is about to stop.

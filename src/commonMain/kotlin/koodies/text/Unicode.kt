@@ -1,6 +1,6 @@
 package koodies.text
 
-import koodies.number.mod
+import koodies.math.mod
 import koodies.text.CodePoint.CodePointRange
 import koodies.text.Unicode.UnicodeBlockMeta.Companion.metaFor
 
@@ -269,6 +269,10 @@ public object Unicode {
      */
     public const val greekSmallLetterKoppa: Char = 'ϟ'
 
+    /**
+     * [TRIPLE VERTICAL BAR DELIMITER](https://codepoints.net/U+2980) ⦀
+     */
+    public const val tripleVerticalBarDelimiter: Char = '⦀'
 
     /**
      * Unicode emojis as specified by the [Unicode® Technical Standard #51](https://unicode.org/reports/tr51/) 🤓

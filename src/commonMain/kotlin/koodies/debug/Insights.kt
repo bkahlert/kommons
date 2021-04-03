@@ -6,6 +6,7 @@ import koodies.text.CodePoint
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
+import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
@@ -85,8 +86,8 @@ public class XRay<T>(
         private fun lineBreakSymbol(lineBreak: String) = "⏎$lineBreak"
 
         private fun highlight(subject: Any?) = subject.toString().formattedAs.debug
-        private val selfBrackets = highlight("⟨") to highlight("⟩")
-        private val transformedBrackets = highlight("{") to highlight("}")
+        private val selfBrackets = highlight(Semantics.Fragments.unit.first) to highlight(Semantics.Fragments.unit.second)
+        private val transformedBrackets = highlight(Semantics.Fragments.block.first) to highlight(Semantics.Fragments.block.second)
     }
 }
 

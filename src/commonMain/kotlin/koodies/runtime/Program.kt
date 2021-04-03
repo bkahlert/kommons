@@ -44,6 +44,11 @@ public expect object Program {
      * Whether this program is running in debug mode.
      */
     public val isDebugging: Boolean
+    
+    /**
+     * Whether this program is running in test mode.
+     */
+    public val isTesting: Boolean
 
     /**
      * Registers [handler] as to be called when this program is about to stop.

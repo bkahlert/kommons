@@ -182,6 +182,11 @@ public actual object Program {
     }
 
     /**
+     * Whether this program is running in test mode.
+     */
+    public actual val isTesting: Boolean by lazy { isIntelliJ || isDebugging }
+
+    /**
      * Registers [handler] as to be called when this program is about to stop.
      */
     public actual fun <T : OnExitHandler> onExit(handler: T): T = addShutDownHook(handler)

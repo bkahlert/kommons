@@ -1,6 +1,6 @@
 package koodies.collections
 
-import koodies.number.mod
+import koodies.math.mod
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

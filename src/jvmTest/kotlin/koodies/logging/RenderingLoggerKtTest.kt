@@ -4,10 +4,12 @@ import koodies.concurrent.Status
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
-import koodies.debug.trace
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
+import koodies.logging.BorderedRenderingLogger.Border.DOTTED
+import koodies.logging.BorderedRenderingLogger.Border.NONE
+import koodies.logging.BorderedRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.runtime.Program
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
@@ -16,6 +18,7 @@ import koodies.terminal.escapeSequencesRemoved
 import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
+import koodies.test.test
 import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -31,17 +34,62 @@ import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.containsExactly
 import strikt.assertions.endsWith
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isFalse
+import strikt.assertions.isNotEqualTo
+import strikt.assertions.isNotSameInstanceAs
+import strikt.assertions.isNull
+import strikt.assertions.isSameInstanceAs
+import strikt.assertions.isTrue
 import kotlin.io.path.extension
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
 
 @Execution(SAME_THREAD)
 class RenderingLoggerKtTest {
+
+    @Nested
+    inner class Relations {
+
+        @TestFactory
+        fun `should equal only be identity`() = test(RenderingLogger("caption")) { logger ->
+            expect { this }.that { isEqualTo(logger) }
+            expect { this }.that { isSameInstanceAs(logger) }
+
+            expect { this }.that { isNotEqualTo(RenderingLogger("caption")) }
+            expect { this }.that { isNotSameInstanceAs(RenderingLogger("caption")) }
+
+            expect { listOf(this) }.that { contains(logger) }
+            expect { listOf(RenderingLogger("caption")) }.that { not { contains(logger) } }
+        }
+
+        @TestFactory
+        fun `should have parent`() = test {
+            val parent = RenderingLogger("parent")
+            val child = RenderingLogger("child", parent)
+            expect { parent.parent }.that { isNull() }
+            expect { child.parent }.that { isEqualTo(parent) }
+        }
+
+        @TestFactory
+        fun `should have ancestors`() = test {
+            val parent = RenderingLogger("parent")
+            val child = RenderingLogger("child", parent)
+            expect { parent.ancestors }.that { containsExactly(parent) }
+            expect { child.ancestors }.that { containsExactly(child, parent) }
+            expect { child.ancestors }.that { not { contains(RenderingLogger("stranger")) } }
+
+            expect { parent.isDescendantOf(child) }.that { isFalse() }
+            expect { parent.isDescendantOf(parent) }.that { isTrue() }
+            expect { child.isDescendantOf(parent) }.that { isTrue() }
+            expect { child.isDescendantOf(child) }.that { isTrue() }
+        }
+    }
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log`() {
@@ -93,7 +141,7 @@ class RenderingLoggerKtTest {
 
     @TestFactory
     fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = listOf(
-        true to """
+        SOLID to """
             ╭──╴{}
             │{}
             │   outer 1                                               {}                                      ▮▮
@@ -119,54 +167,74 @@ class RenderingLoggerKtTest {
             │{}
             ╰──╴✔︎{}
         """.trimIndent(),
-        false to """
+        DOTTED to """
             ▶ {}
-            · outer 1                                                  {}                                      ▮▮
+            · outer 1                                                 {}                                      ▮▮
             · outer 2
             · ▶ nested log{}
-            · · nested 1                                                {}                                      ▮▮
+            · · nested 1                                              {}                                      ▮▮
             · · mini segment 12345 sample ✔︎{}
             · · ▶ nested log{}
-            · · · nested 1                                               {}                                      ▮▮
+            · · · nested 1                                            {}                                      ▮▮
             · · · mini segment 12345 sample ✔︎{}
-            · · · nested 2                                               {}                                      ▮▮
-            · · · nested 3                                               {}                                      ▮▮
+            · · · nested 2                                            {}                                      ▮▮
+            · · · nested 3                                            {}                                      ▮▮
             · · ✔︎{}
-            · · nested 2                                                {}                                      ▮▮
-            · · nested 3                                                {}                                      ▮▮
+            · · nested 2                                              {}                                      ▮▮
+            · · nested 3                                              {}                                      ▮▮
             · ✔︎{}
-            · outer 3                                                  {}                                      ▮▮
-            · outer 4                                                  {}                                      ▮▮
+            · outer 3                                                 {}                                      ▮▮
+            · outer 4                                                 {}                                      ▮▮
             ✔︎{}
         """.trimIndent(),
-    ).testEach("bordered={}") { (bordered, expectation) ->
-        val label = if (bordered) "bordered" else "not-bordered"
-        with(createLogger(label, bordered = bordered)) {
-            logStatus { OUT typed "outer 1" }
-            logLine { "outer 2" }
-            logging("nested log") {
-                logStatus { OUT typed "nested 1" }
-                compactLogging("mini segment") {
-                    logStatus { ERR typed "12345" }
-                    logStatus { META typed "sample" }
-                }
-                logging("nested log") {
-                    logStatus { OUT typed "nested 1" }
-                    compactLogging("mini segment") {
-                        logStatus { ERR typed "12345" }
-                        logStatus { META typed "sample" }
+        NONE to """
+            outer 1                                                                                                       ▮▮
+            outer 2
+            nested log
+            nested 1                                                                                                      ▮▮
+            mini segment 12345 sample ✔︎
+            nested log
+            nested 1                                                                                                      ▮▮
+            mini segment 12345 sample ✔︎
+            nested 2                                                                                                      ▮▮
+            nested 3                                                                                                      ▮▮
+            ✔︎
+            nested 2                                                                                                      ▮▮
+            nested 3                                                                                                      ▮▮
+            ✔︎
+            outer 3                                                                                                       ▮▮
+            outer 4                                                                                                       ▮▮
+            ✔︎
+        """.trimIndent(),
+    ).testEach("border={}") { (border, expectation) ->
+        test {
+            expect {
+                createLogger(border.name, border).runLogging {
+                    logStatus { OUT typed "outer 1" }
+                    logLine { "outer 2" }
+                    logging("nested log") {
+                        logStatus { OUT typed "nested 1" }
+                        compactLogging("mini segment") {
+                            logStatus { ERR typed "12345" }
+                            logStatus { META typed "sample" }
+                        }
+                        logging("nested log") {
+                            logStatus { OUT typed "nested 1" }
+                            compactLogging("mini segment") {
+                                logStatus { ERR typed "12345" }
+                                logStatus { META typed "sample" }
+                            }
+                            logStatus { OUT typed "nested 2" }
+                            logStatus { OUT typed "nested 3" }
+                        }
+                        logStatus { OUT typed "nested 2" }
+                        logStatus { OUT typed "nested 3" }
                     }
-                    logStatus { OUT typed "nested 2" }
-                    logStatus { OUT typed "nested 3" }
+                    logStatus { OUT typed "outer 3" }
+                    logStatus { OUT typed "outer 4" }
+                    "Done"
                 }
-                logStatus { OUT typed "nested 2" }
-                logStatus { OUT typed "nested 3" }
-            }
-            logStatus { OUT typed "outer 3" }
-            logStatus { OUT typed "outer 4" }
-            logResult { Result.success(Unit) }
-
-            expect { second }.that { matchesCurlyPattern(expectation) }
+            }.that { toStringMatchesCurlyPattern(expectation) }
         }
     }
 
@@ -214,6 +282,19 @@ class RenderingLoggerKtTest {
 
     @Disabled
     @Test
+    fun @receiver:Columns(100) InMemoryLogger.`should log caught exception`() {
+        expectThat(logging("exception") {
+            logLine { "line" }
+            logCaughtException { RuntimeException("caught") }
+            logLine { "line" }
+            this
+        }).toStringMatchesCurlyPattern("""
+            
+        """.trimIndent())
+    }
+
+    @Disabled
+    @Test
     fun @receiver:Columns(200) InMemoryLogger.`should log to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         logLine { "before" }
         val ansiLog = randomFile("file-log", ".log")
@@ -235,7 +316,7 @@ class RenderingLoggerKtTest {
             ╰──╴✔︎{}
         """.trimIndent())
         expect {
-            that(ansiLog.also { it.readText().trace }.readLines().filter { it.isNotBlank() }) {
+            that(ansiLog.also { it.readText() }.readLines().filter { it.isNotBlank() }) {
                 first().escapeSequencesRemoved.isEqualTo("▶ caption")
                 get { last { it.isNotBlank() } }.escapeSequencesRemoved.endsWith("✔︎")
             }
@@ -251,7 +332,7 @@ class RenderingLoggerKtTest {
     @Suppress("UNREACHABLE_CODE")
     @Test
     fun `should show full exception only on outermost logger`() {
-        val logger = InMemoryLogger("root", false).withUnclosedWarningDisabled
+        val logger = InMemoryLogger("root", DOTTED).withUnclosedWarningDisabled
         expect {
             catching {
                 logger.logging("level 0") {
@@ -288,7 +369,7 @@ class RenderingLoggerKtTest {
     @Suppress("UNREACHABLE_CODE")
     @Test
     fun `should show full exception logger already closed`() {
-        val logger = InMemoryLogger("root", false).withUnclosedWarningDisabled
+        val logger = InMemoryLogger("root", DOTTED).withUnclosedWarningDisabled
         expect {
             catching {
                 logger.logging("level 0") {
@@ -325,7 +406,7 @@ class RenderingLoggerKtTest {
     @Execution(SAME_THREAD)
     @TestFactory
     fun `should render multi-line caption`() = listOf(
-        true to """
+        SOLID to """
             ╭──╴{}
             │   
             │   ╭──╴line #1
@@ -337,7 +418,7 @@ class RenderingLoggerKtTest {
             │
             ╰──╴✔︎{}
         """.trimIndent(),
-        false to """
+        DOTTED to """
             ╭──╴{}
             │   
             │   ▶ line #1
@@ -347,9 +428,9 @@ class RenderingLoggerKtTest {
             │
             ╰──╴✔︎{}
         """.trimIndent(),
-    ).testEach("bordered={}") { (bordered, expectation) ->
+    ).testEach("border={}") { (border, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
-            logging(caption = "line #1\nline #2".red(), bordered = bordered) {
+            logging(caption = "line #1\nline #2".red(), border = border) {
                 logLine { "logged line" }
             }
         }
@@ -360,7 +441,7 @@ class RenderingLoggerKtTest {
     @Execution(SAME_THREAD)
     @TestFactory
     fun `should show unsuccessful return statuses`() = listOf(
-        true to """
+        SOLID to """
             ╭──╴{}
             │   
             │   ╭──╴{}
@@ -368,11 +449,10 @@ class RenderingLoggerKtTest {
             │   │   logged line
             │   ϟ
             │   ╰──╴𝟷↩
-            │   
             ϟ
             ╰──╴𝟷↩{}
         """.trimIndent(),
-        false to """
+        DOTTED to """
             ╭──╴{}
             │   
             │   ▶ caption
@@ -381,15 +461,15 @@ class RenderingLoggerKtTest {
             ϟ
             ╰──╴𝟷↩{}
         """.trimIndent(),
-    ).testEach("bordered={}") { (bordered, expectation) ->
+    ).testEach("border={}") { (border, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().withUnclosedWarningDisabled.applyLogging {
-            logging(caption = "caption", bordered = bordered) {
+            logging(caption = "caption", border = border) {
                 logLine { "logged line" }
                 Status.FAILURE
             }
         }
 
-        expect { logger }.that { toStringMatchesCurlyPattern(expectation) }
+        test { logger.expectThatLogged().matchesCurlyPattern(expectation) }
     }
 
     @Nested
@@ -465,11 +545,7 @@ class RenderingLoggerKtTest {
         fun `should contain closed state`() {
             val logger = RenderingLogger("test")
             expectThat(logger).toStringMatchesCurlyPattern("""
-                RenderingLogger {
-                {}    open = false
-                {}    parent = null
-                {}    caption = test
-                {}}
+                RenderingLogger { open = false{}parent = null{}ancestors = test{}caption = test }
             """.trimIndent())
         }
     }

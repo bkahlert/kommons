@@ -113,7 +113,7 @@ class ExecutionIntegrationTest {
                 caption { "countdown" }
                 contentFormatter { Formatter { "$arrow $it" } }
                 decorationFormatter { ANSI.Colors.brightRed }
-                border { yes }
+                border = SOLID
             }
             null
         }

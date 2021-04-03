@@ -125,6 +125,26 @@ class StringsKtTest {
     }
 
     @TestFactory
+    fun `take if empty`() = testEach(
+        "" to "",
+        "abc" to null,
+    ) { (string, expected) ->
+        expect { string.takeIfEmpty() }.that { isEqualTo(expected) }
+        expect { (string as CharSequence).takeIfEmpty() }.that { isEqualTo(expected) }
+    }
+
+    @TestFactory
+    fun `take if blank`() = testEach(
+        "" to "",
+        " " to " ",
+        *Unicode.whitespaces.map { it.toString() to it.toString() }.toTypedArray(),
+        "abc" to null,
+    ) { (string, expected) ->
+        expect { string.takeIfBlank() }.that { isEqualTo(expected) }
+        expect { (string as CharSequence).takeIfBlank() }.that { isEqualTo(expected) }
+    }
+
+    @TestFactory
     fun `take unless empty`() = testEach(
         "" to null,
         "abc" to "abc",
