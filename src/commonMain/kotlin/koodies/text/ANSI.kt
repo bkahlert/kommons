@@ -56,62 +56,72 @@ public object ANSI {
         }
     }
 
-    private class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
-        override fun invoke(text: CharSequence): String = ansiCode.format(text)
-        override operator fun plus(other: Formatter): Formatter = AnsiCodeFormatter(ansiCode + (other as AnsiCodeFormatter).ansiCode)
+    public interface Colorizer : Formatter {
+        public val bg: Formatter
+        public fun on(backgroundColorizer: Colorizer): Formatter
     }
 
-    private class Colorizer(vararg val colors: AnsiColorCode?) :
-        Formatter by AnsiCodeFormatter(colors.filterNotNull().fold(EmptyAnsiColorCode as AnsiCode) { acc, code -> acc.plus(code) })
+    private open class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
+        override fun invoke(text: CharSequence): String = ansiCode.format(text)
+        override operator fun plus(other: Formatter): Formatter =
+            (other as? AnsiCodeFormatter)?.ansiCode?.plus(ansiCode)?.let { AnsiCodeFormatter(it) } ?: super.plus(other)
+    }
+
+    private class AnsiColorCodeFormatter(ansiCode: AnsiColorCode) : Colorizer, AnsiCodeFormatter(ansiCode) {
+        public override val bg: Formatter = AnsiCodeFormatter(ansiCode.bg)
+        public override fun on(backgroundColorizer: Colorizer): Formatter = this + (backgroundColorizer.bg)
+    }
 
     private val reset: AnsiCode by lazy { if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0) }
 
     public object Colors {
 
-        public val black: Formatter get() = AnsiCodeFormatter(ansi16(30))
-        public val red: Formatter get() = AnsiCodeFormatter(ansi16(31))
-        public val green: Formatter get() = AnsiCodeFormatter(ansi16(32))
-        public val yellow: Formatter get() = AnsiCodeFormatter(ansi16(33))
-        public val blue: Formatter get() = AnsiCodeFormatter(ansi16(34))
-        public val magenta: Formatter get() = AnsiCodeFormatter(ansi16(35))
-        public val cyan: Formatter get() = AnsiCodeFormatter(ansi16(36))
-        public val white: Formatter get() = AnsiCodeFormatter(ansi16(37))
-        public val gray: Formatter get() = AnsiCodeFormatter(ansi16(90))
+        public val black: Colorizer get() = AnsiColorCodeFormatter(ansi16(30))
+        public val red: Colorizer get() = AnsiColorCodeFormatter(ansi16(31))
+        public val green: Colorizer get() = AnsiColorCodeFormatter(ansi16(32))
+        public val yellow: Colorizer get() = AnsiColorCodeFormatter(ansi16(33))
+        public val blue: Colorizer get() = AnsiColorCodeFormatter(ansi16(34))
+        public val magenta: Colorizer get() = AnsiColorCodeFormatter(ansi16(35))
+        public val cyan: Colorizer get() = AnsiColorCodeFormatter(ansi16(36))
+        public val white: Colorizer get() = AnsiColorCodeFormatter(ansi16(37))
+        public val gray: Colorizer get() = AnsiColorCodeFormatter(ansi16(90))
 
-        public val brightRed: Formatter get() = AnsiCodeFormatter(ansi16(91))
-        public val brightGreen: Formatter get() = AnsiCodeFormatter(ansi16(92))
-        public val brightYellow: Formatter get() = AnsiCodeFormatter(ansi16(93))
-        public val brightBlue: Formatter get() = AnsiCodeFormatter(ansi16(94))
-        public val brightMagenta: Formatter get() = AnsiCodeFormatter(ansi16(95))
-        public val brightCyan: Formatter get() = AnsiCodeFormatter(ansi16(96))
-        public val brightWhite: Formatter get() = AnsiCodeFormatter(ansi16(97))
+        public val brightRed: Colorizer get() = AnsiColorCodeFormatter(ansi16(91))
+        public val brightGreen: Colorizer get() = AnsiColorCodeFormatter(ansi16(92))
+        public val brightYellow: Colorizer get() = AnsiColorCodeFormatter(ansi16(93))
+        public val brightBlue: Colorizer get() = AnsiColorCodeFormatter(ansi16(94))
+        public val brightMagenta: Colorizer get() = AnsiColorCodeFormatter(ansi16(95))
+        public val brightCyan: Colorizer get() = AnsiColorCodeFormatter(ansi16(96))
+        public val brightWhite: Colorizer get() = AnsiColorCodeFormatter(ansi16(97))
 
-        public fun random(hue: Int, variance: Double = 60.0): Formatter =
+        public fun random(hue: Int, variance: Double = 60.0): Colorizer =
             random(hue.toDouble(), variance)
 
-        public fun random(hue: Double, variance: Double = 60.0): Formatter =
+        public fun random(hue: Double, variance: Double = 60.0): Colorizer =
             random((hue - variance)..(hue + variance))
 
-        public fun random(range: ClosedRange<Double> = 0.0..360.0): Formatter =
-            AnsiCodeFormatter(hsv((nextDouble(range.start, range.endInclusive).mod(360.0)).toInt(), 82, 89))
+        public fun random(range: ClosedRange<Double> = 0.0..360.0): Colorizer =
+            AnsiColorCodeFormatter(hsv((nextDouble(range.start, range.endInclusive).mod(360.0)).toInt(), 82, 89))
 
-        public fun CharSequence.black(): CharSequence = black(this)
-        public fun CharSequence.red(): CharSequence = red(this)
-        public fun CharSequence.green(): CharSequence = green(this)
-        public fun CharSequence.yellow(): CharSequence = yellow(this)
-        public fun CharSequence.blue(): CharSequence = blue(this)
-        public fun CharSequence.magenta(): CharSequence = magenta(this)
-        public fun CharSequence.cyan(): CharSequence = cyan(this)
-        public fun CharSequence.white(): CharSequence = white(this)
-        public fun CharSequence.gray(): CharSequence = gray(this)
 
-        public fun CharSequence.brightRed(): CharSequence = brightRed(this)
-        public fun CharSequence.brightGreen(): CharSequence = brightGreen(this)
-        public fun CharSequence.brightYellow(): CharSequence = brightYellow(this)
-        public fun CharSequence.brightBlue(): CharSequence = brightBlue(this)
-        public fun CharSequence.brightMagenta(): CharSequence = brightMagenta(this)
-        public fun CharSequence.brightCyan(): CharSequence = brightCyan(this)
-        public fun CharSequence.brightWhite(): CharSequence = brightWhite(this)
+        private fun Colorizer.format(bg: Colorizer?, text: CharSequence): CharSequence = if (bg == null) this(text) else this.on(bg)(text)
+        public fun CharSequence.black(backgroundColor: Colorizer? = null): CharSequence = black.format(backgroundColor, this)
+        public fun CharSequence.red(backgroundColor: Colorizer? = null): CharSequence = red.format(backgroundColor, this)
+        public fun CharSequence.green(backgroundColor: Colorizer? = null): CharSequence = green.format(backgroundColor, this)
+        public fun CharSequence.yellow(backgroundColor: Colorizer? = null): CharSequence = yellow.format(backgroundColor, this)
+        public fun CharSequence.blue(backgroundColor: Colorizer? = null): CharSequence = blue.format(backgroundColor, this)
+        public fun CharSequence.magenta(backgroundColor: Colorizer? = null): CharSequence = magenta.format(backgroundColor, this)
+        public fun CharSequence.cyan(backgroundColor: Colorizer? = null): CharSequence = cyan.format(backgroundColor, this)
+        public fun CharSequence.white(backgroundColor: Colorizer? = null): CharSequence = white.format(backgroundColor, this)
+        public fun CharSequence.gray(backgroundColor: Colorizer? = null): CharSequence = gray.format(backgroundColor, this)
+
+        public fun CharSequence.brightRed(backgroundColor: Colorizer? = null): CharSequence = brightRed.format(backgroundColor, this)
+        public fun CharSequence.brightGreen(backgroundColor: Colorizer? = null): CharSequence = brightGreen.format(backgroundColor, this)
+        public fun CharSequence.brightYellow(backgroundColor: Colorizer? = null): CharSequence = brightYellow.format(backgroundColor, this)
+        public fun CharSequence.brightBlue(backgroundColor: Colorizer? = null): CharSequence = brightBlue.format(backgroundColor, this)
+        public fun CharSequence.brightMagenta(backgroundColor: Colorizer? = null): CharSequence = brightMagenta.format(backgroundColor, this)
+        public fun CharSequence.brightCyan(backgroundColor: Colorizer? = null): CharSequence = brightCyan.format(backgroundColor, this)
+        public fun CharSequence.brightWhite(backgroundColor: Colorizer? = null): CharSequence = brightWhite.format(backgroundColor, this)
 
         /** @param hex An rgb hex string in the form "#ffffff" or "ffffff" */
         private fun rgb(hex: String): AnsiColorCode = color(RGB(hex))
@@ -188,40 +198,78 @@ public object ANSI {
             if (level == NONE) DisabledAnsiCode else AnsiCode(open, close)
     }
 
-    public class Text private constructor(private val text: CharSequence) : CharSequence by text {
+    public open class Preview(
+        protected val text: CharSequence,
+        private val formatted: String = "$text",
+    ) : CharSequence by formatted {
+        protected constructor(text: CharSequence, formatter: Formatter) : this(text, formatter(text).toString())
 
-        private val string = text.toString()
-        override fun toString(): String = string
+        override fun toString(): String = formatted
+    }
 
-        public fun black(): CharSequence = Colors.black(text)
-        public fun red(): CharSequence = Colors.red(text)
-        public fun green(): CharSequence = Colors.green(text)
-        public fun yellow(): CharSequence = Colors.yellow(text)
-        public fun blue(): CharSequence = Colors.blue(text)
-        public fun magenta(): CharSequence = Colors.magenta(text)
-        public fun cyan(): CharSequence = Colors.cyan(text)
-        public fun white(): CharSequence = Colors.white(text)
-        public fun gray(): CharSequence = Colors.gray(text)
+    public open class Text private constructor(text: CharSequence) : Preview(text) {
+        private fun color(colorizer: Colorizer) = ColoredText(text, colorizer)
 
-        public fun brightRed(): CharSequence = Colors.brightRed(text)
-        public fun brightGreen(): CharSequence = Colors.brightGreen(text)
-        public fun brightYellow(): CharSequence = Colors.brightYellow(text)
-        public fun brightBlue(): CharSequence = Colors.brightBlue(text)
-        public fun brightMagenta(): CharSequence = Colors.brightMagenta(text)
-        public fun brightCyan(): CharSequence = Colors.brightCyan(text)
-        public fun brightWhite(): CharSequence = Colors.brightWhite(text)
+        public val black: ColoredText get() = color(Colors.black)
+        public val red: ColoredText get() = color(Colors.red)
+        public val green: ColoredText get() = color(Colors.green)
+        public val yellow: ColoredText get() = color(Colors.yellow)
+        public val blue: ColoredText get() = color(Colors.blue)
+        public val magenta: ColoredText get() = color(Colors.magenta)
+        public val cyan: ColoredText get() = color(Colors.cyan)
+        public val white: ColoredText get() = color(Colors.white)
+        public val gray: ColoredText get() = color(Colors.gray)
 
-        public fun random(range: ClosedRange<Double> = 0.0..360.0): CharSequence = Colors.random(range)(text)
+        public val brightRed: ColoredText get() = color(Colors.brightRed)
+        public val brightGreen: ColoredText get() = color(Colors.brightGreen)
+        public val brightYellow: ColoredText get() = color(Colors.brightYellow)
+        public val brightBlue: ColoredText get() = color(Colors.brightBlue)
+        public val brightMagenta: ColoredText get() = color(Colors.brightMagenta)
+        public val brightCyan: ColoredText get() = color(Colors.brightCyan)
+        public val brightWhite: ColoredText get() = color(Colors.brightWhite)
 
-        public fun bold(): CharSequence = Style.bold(text)
-        public fun dim(): CharSequence = Style.dim(text)
-        public fun italic(): CharSequence = Style.italic(text)
-        public fun underline(): CharSequence = Style.underline(text)
-        public fun inverse(): CharSequence = Style.inverse(text)
-        public fun hidden(): CharSequence = if (Program.isDeveloping) " ".repeat((toString().length * 1.35).toInt()) else Style.hidden(string)
-        public fun strikethrough(): CharSequence = Style.strikethrough(text)
+        public val random: ColoredText get() = random()
+        public fun random(hue: Int, variance: Double = 60.0): ColoredText = color(Colors.random(hue, variance))
+        public fun random(hue: Double, variance: Double = 60.0): ColoredText = color(Colors.random(hue, variance))
+        public fun random(range: ClosedRange<Double> = 0.0..360.0): ColoredText = color(Colors.random(range))
+
+        public val bold: String get() = Style.bold(text).toString()
+        public val dim: String get() = Style.dim(text).toString()
+        public val italic: String get() = Style.italic(text).toString()
+        public val underline: String get() = Style.underline(text).toString()
+        public val inverse: String get() = Style.inverse(text).toString()
+        public val hidden: String get() = if (Program.isDeveloping) " ".repeat((toString().length * 1.35).toInt()) else Style.hidden(text).toString()
+        public val strikethrough: String get() = Style.strikethrough(text).toString()
+
+        public class ColoredText(text: CharSequence, private val formatter: Colorizer) : Preview(text, formatter) {
+            public val bg: String get() = formatter.bg(text).toString()
+            public val on: ForegroundColoredText get() = ForegroundColoredText(text, formatter)
+        }
+
+        public class ForegroundColoredText(text: CharSequence, private val formatter: Colorizer) : Preview(text, formatter) {
+            private fun render(bg: Colorizer) = formatter.on(bg).invoke(text).toString()
+            public val black: String get() = render(Colors.black)
+            public val red: String get() = render(Colors.red)
+            public val green: String get() = render(Colors.green)
+            public val yellow: String get() = render(Colors.yellow)
+            public val blue: String get() = render(Colors.blue)
+            public val magenta: String get() = render(Colors.magenta)
+            public val cyan: String get() = render(Colors.cyan)
+            public val white: String get() = render(Colors.white)
+            public val gray: String get() = render(Colors.gray)
+
+            public val brightRed: String get() = render(Colors.brightRed)
+            public val brightGreen: String get() = render(Colors.brightGreen)
+            public val brightYellow: String get() = render(Colors.brightYellow)
+            public val brightBlue: String get() = render(Colors.brightBlue)
+            public val brightMagenta: String get() = render(Colors.brightMagenta)
+            public val brightCyan: String get() = render(Colors.brightCyan)
+            public val brightWhite: String get() = render(Colors.brightWhite)
+        }
 
         public companion object {
+
+
             public val CharSequence.ansi: Text get() = Text(this)
         }
     }
