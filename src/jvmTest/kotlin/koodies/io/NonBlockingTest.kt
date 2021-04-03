@@ -1,7 +1,7 @@
 package koodies.io
 
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.text.randomString
 import org.jline.utils.InputStreamReader
 import org.jline.utils.NonBlocking

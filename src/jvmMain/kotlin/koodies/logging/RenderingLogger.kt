@@ -5,8 +5,6 @@ import koodies.collections.synchronizedListOf
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
-import koodies.debug.asEmoji
-import koodies.debug.trace
 import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
 import koodies.runtime.JVM
@@ -31,6 +29,7 @@ import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 import kotlin.io.path.extension
 
+private val defaultLog: (String) -> Unit = { println(it) }
 
 /**
  * Logger interface to implement loggers that don't just log
@@ -38,22 +37,8 @@ import kotlin.io.path.extension
  */
 public open class RenderingLogger(
     public val caption: String,
-    public val parent: RenderingLogger? = null,
-    protected open val missingParentFallback: (String) -> Unit = { print(it) },
+    log: ((String) -> Unit)? = null,
 ) {
-    init {
-        require(this !== parent) { "A logger cannot be its own parent." }
-    }
-
-    /**
-     * Contains a list containing `this` and and all of its parent loggers.
-     */
-    public val ancestors: Ancestors = Ancestors(this)
-    public fun isDescendantOf(logger: RenderingLogger): Boolean {
-        val isDescendant = logger in ancestors
-        "${this.caption.formattedAs.input} (${hashCode().formattedAs.input} descendant of ${logger.caption.formattedAs.input} (${logger.hashCode().formattedAs.input})? -> ${logger.caption.formattedAs.input} in ancestors of ${caption.formattedAs.input} (${ancestors}}) -> ${isDescendant.asEmoji}".trace
-        return isDescendant
-    }
 
     protected open var initialized: Boolean = false
 
@@ -81,14 +66,8 @@ public open class RenderingLogger(
         ReentrantLock().also { open = true }.also { initialized = true }
     }
 
-    protected fun log(message: () -> String): Unit = logLock.withLock {
-        val text = message()
-        if (parent != null) {
-            parent.logText { text }
-        } else {
-            missingParentFallback(text)
-        }
-    }
+    protected val log: (String) -> Unit by lazy { log ?: defaultLog }
+    protected fun logWithLock(message: () -> String): Unit = logLock.withLock { log(message()) }
 
     /**
      * Method that is responsible to render the return value of
@@ -100,7 +79,7 @@ public open class RenderingLogger(
      * All default implemented methods use this method.
      */
     public open fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
-        log {
+        logWithLock {
             if (closed) {
                 val prefix = Semantics.Computation + " "
                 val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
@@ -129,26 +108,6 @@ public open class RenderingLogger(
         block().let { output ->
             render(true) { output }
         }
-
-    /**
-     * Logs some programs [IO] and the status of processed [items].
-     */
-    public open fun logStatus(items: List<HasStatus> = emptyList(), block: () -> CharSequence = { IO.OUT typed "" }): Unit =
-        block().let { output ->
-            render(true) { "$output (${items.size})" }
-        }
-
-    /**
-     * Logs some programs [IO] and the status of processed [items].
-     */
-    public fun logStatus(vararg items: HasStatus, block: () -> CharSequence = { IO.OUT typed "" }): Unit =
-        logStatus(items.toList(), block)
-
-    /**
-     * Logs some programs [IO] and the processed items [statuses].
-     */
-    public fun logStatus(vararg statuses: String, block: () -> CharSequence = { IO.OUT typed "" }): Unit =
-        logStatus(statuses.map { it.asStatus() }, block)
 
     /**
      * Logs the result of the process this logger is used for.
@@ -186,7 +145,6 @@ public open class RenderingLogger(
 
     override fun toString(): String = asString {
         ::open to open
-        ::parent to parent?.caption
         ::caption to caption
     }
 
@@ -200,17 +158,18 @@ public open class RenderingLogger(
         return f(this()).takeUnless { it.isBlank() }?.toString()?.transform()
     }
 
-    /**
-     * Helper method than can be applied on a list of [HasStatus] returning the
-     * rendered statuses and passing them to [transform]
-     * only in case the result was not blank.
-     */
-    protected fun <T> List<HasStatus>.format(f: Formatter?, transform: String.() -> T?): T? {
-        if (isEmpty()) return null
-        return f(renderStatus()).takeUnless { it.isBlank() }?.toString()?.transform()
-    }
-
     public companion object {
+
+        /**
+         * Helper method than can be applied on a list of [HasStatus] returning the
+         * rendered statuses and passing them to [transform]
+         * only in case the result was not blank.
+         */
+        @JvmStatic
+        protected fun <T : CharSequence, R> List<T>.format(f: Formatter?, transform: String.() -> R?): R? {
+            if (isEmpty()) return null
+            return f(asStatus()).takeUnless { it.isBlank() }?.toString()?.transform()
+        }
 
         private fun Array<StackTraceElement>?.asString() = (this ?: emptyArray()).joinToString("") { "$LF\t\tat $it" }
 
@@ -248,7 +207,7 @@ public open class RenderingLogger(
 
         init {
             Program.onExit {
-                val unclosed = openLoggers.filterKeys { logger -> logger.ancestors.none { it in disabledUnclosedWarningLoggers } }
+                val unclosed = openLoggers.filterKeys { logger -> logger !in disabledUnclosedWarningLoggers }
 
                 if (unclosed.isNotEmpty()) {
                     println("${unclosed.size} started but unfinished renderer(s) found:".formattedAs.warning)
@@ -317,28 +276,15 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     path: Path,
     caption: CharSequence,
     crossinline block: RenderingLogger.() -> R,
-): R = CompactRenderingLogger(caption, null, null, null, this).runLogging {
+): R = CompactRenderingLogger(caption, null, null, null, log = { logText { it } }).runLogging {
     logLine { IO.META typed "Logging to" }
     logLine { "$Document ${path.toUri()}" }
     path.bufferedWriter().use { ansiLog ->
         path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->
-            object : BlockRenderingLogger(caption.toString(), null) {
-                override val missingParentFallback: (String) -> Unit = {
-                    ansiLog.appendLine(it)
-                    noAnsiLog.appendLine(it.removeEscapeSequences())
-                }
-            }.runLogging(block)
-        }
+            BlockRenderingLogger(caption.toString(), log = {
+                ansiLog.appendLine(it)
+                noAnsiLog.appendLine(it.removeEscapeSequences())
+            })
+        }.runLogging(block)
     }
-}
-
-
-public inline class Ancestors(public val logger: RenderingLogger) : Iterable<RenderingLogger> {
-
-    override fun iterator(): Iterator<RenderingLogger> {
-        return generateSequence(logger) { it.parent }.iterator()
-    }
-
-    override fun toString(): String =
-        joinToString(" ${Semantics.PointNext} ") { "${it.caption.formattedAs.input} (${it.hashCode()})" }
 }

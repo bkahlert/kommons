@@ -1,7 +1,7 @@
 package koodies.logging
 
 import koodies.concurrent.execute
-import koodies.logging.BorderedRenderingLogger.Border.SOLID
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
 import koodies.text.ANSI
 import koodies.text.ANSI.Formatter.Companion.fromScratch
@@ -28,8 +28,8 @@ class LoggingOptionsTest {
                 countDownAndStart().execute {
                     block {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -67,8 +67,8 @@ class LoggingOptionsTest {
                 justStart().execute {
                     block {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -99,8 +99,8 @@ class LoggingOptionsTest {
                     processing { async }
                     block {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -141,8 +141,8 @@ class LoggingOptionsTest {
                     processing { async }
                     block {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -287,8 +287,8 @@ class LoggingOptionsTest {
                 countDownAndStart().execute {
                     smart {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -326,8 +326,8 @@ class LoggingOptionsTest {
                 justStart().execute {
                     smart {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -359,8 +359,8 @@ class LoggingOptionsTest {
                     processing { async }
                     smart {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null
@@ -401,8 +401,8 @@ class LoggingOptionsTest {
                     processing { async }
                     smart {
                         caption { "caption" }
-                        contentFormatter { fromScratch { random() } }
-                        decorationFormatter { fromScratch { brightYellow() } }
+                        contentFormatter { fromScratch { random } }
+                        decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
                     null

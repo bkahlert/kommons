@@ -6,14 +6,6 @@ import kotlin.contracts.contract
 
 
 /**
- * Returns a lambda that—in contrast to `this` lambda—also takes a receiver of type [T].
- *
- * Depending on the situation, writting this type of parameter ignoring wrapper can pose
- * syntatic problems.
- */
-public inline fun <T, R, S> ((R) -> S).asLambdaWithReceiver(): T.(R) -> S = { this@asLambdaWithReceiver(it) }
-
-/**
  * Runs the specified [block] if `this` is `null` and provide
  * and expected instance of [T].
  *

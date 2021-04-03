@@ -1,9 +1,9 @@
 package koodies.io
 
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingCharReader
 import koodies.number.times
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.terminal.ANSI
 import koodies.terminal.AnsiColors.magenta
 import koodies.test.Slow

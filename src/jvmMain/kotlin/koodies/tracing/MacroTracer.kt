@@ -19,7 +19,7 @@ public interface MacroTracer {
 }
 
 public class RenderingLoggerBasedMacroTracer(private val logger: RenderingLogger) : MacroTracer {
-    public override fun trace(input: String): Unit = logger.logStatus { IO.META typed input }
+    public override fun trace(input: String): Unit = logger.logLine { IO.META typed input }
     public override fun <R> miniTrace(f: String, block: MiniTracer.() -> R): R = miniTrace(f, block)
     public override fun <R> miniTrace(f: KCallable<R>, block: MiniTracer.() -> R): R = miniTrace(f.format(), block)
     public override fun <R> miniTrace(f: KFunction0<R>, block: MiniTracer.() -> R): R = miniTrace(f.format(), block)

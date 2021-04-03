@@ -2,14 +2,17 @@ package koodies.logging
 
 import koodies.asString
 import koodies.collections.synchronizedListOf
-import koodies.logging.BorderedRenderingLogger.Border.SOLID
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.runtime.Program
 import koodies.takeIfDebugging
-import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.fromScratch
-import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.LineSeparators
+import koodies.text.LineSeparators.hasTrailingLineSeparator
+import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
-import koodies.text.styling.draw
+import koodies.text.prefixLinesWith
 import koodies.text.styling.wrapWithBorder
 import koodies.time.Now
 import koodies.unit.Size
@@ -19,76 +22,58 @@ import kotlin.reflect.KProperty
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
-public val global: LoggingContext = LoggingContext("global") { print(it.draw.border.block()) }
+public val global: LoggingContext = LoggingContext("global") { print(it) }
 
-private typealias LogMessage = Pair<BorderedRenderingLogger, String>
+private typealias LogMessage = Pair<FixedWidthRenderingLogger, String>
 
-public class LoggingContext(name: String, processor: (String) -> Unit) : BorderedRenderingLogger(name, null) {
+// TODO only works because null lets BorderedRenderingLogger delegate to logText
+public class LoggingContext(name: String, processor: (String) -> Unit) : FixedWidthRenderingLogger(name, null) {
 
     private val startup = System.currentTimeMillis()
 
-    private val messages = Recorder<LogMessage> {
-        groupBy({ it.first }) { it.second.length }.mapValues { (logger, counts) -> "${logger.caption} to ${counts.sum()}" }.toString()
+    private val messages = object : Recorder<LogMessage>() {
+        override fun toString(): String {
+            return use {
+                groupBy({ it.first }) { it.second }.map { (logger, messages) ->
+                    logger.caption to messages.joinToString("").withoutTrailingLineSeparator
+                }
+                    .joinToString(Semantics.Delimiter)
+            }
+        }
     }
 
-    private var muted: Boolean = false
-    private var exclusiveLogger: BorderedRenderingLogger? = null
-    private val logMessageStream = Merger<BorderedRenderingLogger, String, LogMessage> { logger, message ->
-        messages(Pair(logger, message)).also { mostRecent = logger }
-    }
-
-    private val defaultStream = logMessageStream.map { (_, message) ->
-        if (!muted) processor(message)
-    }
-
-    override val missingParentFallback: (String) -> Unit by defaultStream
     public val RenderingLogger.logged: String
         get() = messages.joinMessages {
             val logger = this@logged
-            if (logger in first.ancestors) second.escapeSequencesRemoved else ""
-        }
+            if (logger == first) second else ""
+        }.withoutTrailingLineSeparator
 
-    override fun <R> logging(
-        caption: CharSequence,
-        contentFormatter: Formatter?,
-        decorationFormatter: Formatter?,
-        returnValueFormatter: ((ReturnValue) -> String)?,
-        border: Border,
-        block: BorderedRenderingLogger.() -> R,
-    ): R = childLogger(
-        caption,
-        contentFormatter ?: Formatter.PassThrough,
-        decorationFormatter ?: Formatter.PassThrough,
-        returnValueFormatter ?: RETURN_VALUE_FORMATTER,
-        border
-    ).runLogging(block)
-
-    private fun childLogger(
-        caption: CharSequence,
-        contentFormatter: Formatter?,
-        decorationFormatter: Formatter?,
-        returnValueFormatter: ((ReturnValue) -> String)?,
-        border: Border,
-    ) = object : BlockRenderingLogger(caption.toString(), this@LoggingContext, contentFormatter, decorationFormatter, returnValueFormatter, border) {
-        override val missingParentFallback: (String) -> Unit by defaultStream
-    }
-
-    public var mostRecent: BorderedRenderingLogger = this
+    public var mostRecent: FixedWidthRenderingLogger = this
         private set
 
-    private val exclusiveLogging = logMessageStream.map { (logger, message) ->
-        messages(Pair(logger, message))
-        processor(message)
+    private var muted: Boolean = false
+    private val baseMessageStream = Merger<FixedWidthRenderingLogger, String, LogMessage> { logger, message ->
+        messages(Pair(logger, message)).also { mostRecent = logger }
     }
 
-    private fun <R> runExclusiveLogging(block: BorderedRenderingLogger.() -> R): R =
-        koodies.runWrapping({ muted = true }, { muted = false }) {
-            object : BlockRenderingLogger(caption, null, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID) {
-                override val missingParentFallback: (String) -> Unit by exclusiveLogging
-            }.runLogging(block)
+    private val defaultOut by baseMessageStream.map<Unit> { (_, message) -> if (!muted) processor(message.ansi.random(320).bg.ansi.inverse) }
+    override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
+        val message = if (closed) {
+            val prefix = Semantics.Computation + " "
+            val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
+            if (trailingNewline || !message.hasTrailingLineSeparator) message + LineSeparators.LF else message
+        } else {
+            val message = block().toString()
+            if (trailingNewline) message + LineSeparators.LF else message
         }
+        defaultOut(message)
+    }
 
-    public fun <R> runExclusive(block: BorderedRenderingLogger.() -> R): R = runExclusiveLogging(block)
+    private val exclusiveOut by baseMessageStream.map { (logger, message) -> messages(Pair(logger, message)); processor(message) }
+    public fun <R> runExclusive(block: FixedWidthRenderingLogger.() -> R): R =
+        koodies.runWrapping({ muted = true }, { muted = false }) {
+            BlockRenderingLogger(caption, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(block)
+        }
 
     init {
         Program.onExit {
@@ -98,17 +83,23 @@ public class LoggingContext(name: String, processor: (String) -> Unit) : Bordere
         }
     }
 
+    override fun toString(): String = asString {
+        ::startup to startup
+        ::messages to messages
+        ::mostRecent to mostRecent.caption
+        ::muted to muted
+    }
+
     private var bytes = Size.ZERO
     public fun reset() {
-        bytes = messages.sumBy { it.second.length }.bytes
+        bytes = messages.use { sumBy { it.second.length }.bytes }
         messages.clear()
     }
 }
 
-public open class Recorder<T>(private val messagesFormatter: List<T>.() -> String) : AbstractList<T>() {
+public abstract class Recorder<T> {
     private val messages = synchronizedListOf<T>()
-    override val size: Int get() = messages.size
-    override fun get(index: Int): T = messages[index]
+    public fun <R> use(transform: List<T>.() -> R): R = messages.toList().transform()
 
     public operator fun invoke(message: T): T = message.also(messages::add)
 
@@ -117,9 +108,7 @@ public open class Recorder<T>(private val messagesFormatter: List<T>.() -> Strin
 
     public fun clear(): Unit = messages.clear()
 
-    override fun toString(): String = asString {
-        ::messages.name to messages.messagesFormatter()
-    }
+    abstract override fun toString(): String
 }
 
 /**

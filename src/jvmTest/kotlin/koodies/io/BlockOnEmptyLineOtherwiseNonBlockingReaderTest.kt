@@ -1,8 +1,8 @@
 package koodies.io
 
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.test.Slow
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested

@@ -1,17 +1,12 @@
-package koodies.process
+package koodies.concurrent.process
 
-import koodies.concurrent.process.DelegatingProcess
-import koodies.concurrent.process.IOLog
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.MetaStream
-import koodies.concurrent.process.Process
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
 import koodies.io.TeeOutputStream
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiColors.yellow
 import koodies.text.GraphemeCluster

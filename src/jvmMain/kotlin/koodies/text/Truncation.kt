@@ -7,7 +7,7 @@ package koodies.text
  * If the collection could be huge, you can specify a non-negative value of [startLimit], in which case at most the first [startLimit]
  * elements and the [endLimit] last elements will be appended, leaving out the elements in between using the [truncated] string (which defaults to "...").
  */
-public fun <T> List<T>.joinToTruncatedString(
+public fun <T> Collection<T>.joinToTruncatedString(
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
     postfix: CharSequence = "",

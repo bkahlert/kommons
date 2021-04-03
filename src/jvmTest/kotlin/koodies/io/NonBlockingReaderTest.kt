@@ -1,8 +1,8 @@
 package koodies.io
 
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively

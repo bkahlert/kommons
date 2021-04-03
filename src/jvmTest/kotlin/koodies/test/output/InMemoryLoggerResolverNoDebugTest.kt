@@ -27,7 +27,7 @@ class InMemoryLoggerResolverNoDebugTest {
     @SystemIoRead
     @Test
     fun InMemoryLogger.`should not automatically log to console without @Debug`(output: CapturedOutput) {
-        logStatus { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        logLine { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
 
         expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
         expectThat(output.removeEscapeSequences()).not { toStringContains("☎Σ⊂⊂(☉ω☉∩)") }
@@ -35,7 +35,7 @@ class InMemoryLoggerResolverNoDebugTest {
 
     @Test
     fun InMemoryLogger.`should not catch exceptions`() {
-        logStatus { IO.OUT typed "(*｀へ´*)" }
+        logLine { IO.OUT typed "(*｀へ´*)" }
 
         expectCatching { logResult<Any> { Result.failure(IllegalStateException("test")) } }
             .isFailure().isA<IllegalStateException>()

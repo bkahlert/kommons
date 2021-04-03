@@ -3,7 +3,7 @@ package koodies.nio
 import koodies.concurrent.process.IO
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
-import koodies.logging.BorderedRenderingLogger
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.text.withRandomSuffix
 import org.jline.utils.NonBlocking
@@ -33,7 +33,7 @@ public class NonBlockingCharReader(
 
     public var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)
 
-    public fun read(buffer: CharArray, off: Int, logger: BorderedRenderingLogger): Int = if (reader == null) -1 else
+    public fun read(buffer: CharArray, off: Int, logger: FixedWidthRenderingLogger): Int = if (reader == null) -1 else
         logger.compactLogging(NonBlockingCharReader::class.simpleName + ".read(CharArray, Int, Int, Logger)") {
             when (val read = kotlin.runCatching { reader?.read(inlineTimeoutMillis) ?: throw IOException("No reader. Likely already closed.") }
                 .recover {
@@ -41,15 +41,15 @@ public class NonBlockingCharReader(
                     -1
                 }.getOrThrow()) {
                 -1 -> {
-                    logStatus { IO.META typed "EOF" }
+                    logLine { IO.META typed "EOF" }
                     -1
                 }
                 -2 -> {
-                    logStatus { IO.META typed "TIMEOUT" }
+                    logLine { IO.META typed "TIMEOUT" }
                     0
                 }
                 else -> {
-                    logStatus { IO.META typed "SUCCESSFULLY READ ${read.debug}" }
+                    logLine { IO.META typed "SUCCESSFULLY READ ${read.debug}" }
                     buffer[off] = read.toChar()
                     1
                 }

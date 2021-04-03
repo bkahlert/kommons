@@ -1,9 +1,9 @@
 package koodies.logging
 
-import koodies.logging.BorderedRenderingLogger.Border
-import koodies.logging.BorderedRenderingLogger.Border.DOTTED
-import koodies.logging.BorderedRenderingLogger.Border.NONE
-import koodies.logging.BorderedRenderingLogger.Border.SOLID
+import koodies.logging.FixedWidthRenderingLogger.Border
+import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
+import koodies.logging.FixedWidthRenderingLogger.Border.NONE
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF

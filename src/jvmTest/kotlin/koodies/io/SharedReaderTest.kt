@@ -1,12 +1,12 @@
 package koodies.io
 
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.exception.dump
 import koodies.io.path.notContainsLineSeparator
 import koodies.io.path.prefixes
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.test.HtmlFile
 import koodies.test.Slow
 import koodies.test.UniqueId

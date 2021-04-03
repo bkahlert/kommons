@@ -1,8 +1,9 @@
 package koodies.logging
 
 import koodies.asString
+import koodies.exception.toCompactString
 import koodies.logging.BlockRenderingLogger.Companion.DEFAULT_BORDER
-import koodies.logging.BorderedRenderingLogger.Border
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.text.ANSI.Formatter
 
 /**
@@ -12,21 +13,42 @@ import koodies.text.ANSI.Formatter
 public open class SmartRenderingLogger(
     // TODO extract proper logger interface and solely delegate; no inheritance
     caption: CharSequence,
-    parent: BorderedRenderingLogger? = null,
+    log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = Border.DEFAULT,
-    override val missingParentFallback: (String) -> Unit = {
-        error("Implementation misses to delegate log messages; consider refactoring")
-    },
-) : BorderedRenderingLogger(caption.toString(), parent, contentFormatter, decorationFormatter, returnValueFormatter, border, prefix = parent?.prefix ?: "") {
+    statusInformationColumn: Int? = null,
+    statusInformationPadding: Int? = null,
+    statusInformationColumns: Int? = null,
+    prefix: String,
+) : FixedWidthRenderingLogger(
+    caption.toString(),
+    { error("Implementation misses to delegate log messages; consider refactoring") },
+    contentFormatter,
+    decorationFormatter,
+    returnValueFormatter,
+    border,
+    statusInformationColumn,
+    statusInformationPadding,
+    statusInformationColumns,
+    prefix = prefix,
+) {
 
     private var loggingResult: Boolean = false
 
     private val logger: RenderingLogger by lazy {
-        if (!loggingResult) BlockRenderingLogger(caption, parent, contentFormatter, decorationFormatter, returnValueFormatter, border)
-        else CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, parent)
+        if (!loggingResult) BlockRenderingLogger(
+            caption,
+            log,
+            contentFormatter,
+            decorationFormatter,
+            returnValueFormatter,
+            border,
+            statusInformationColumn,
+            statusInformationPadding,
+            statusInformationColumns)
+        else CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, log)
     }
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence) {
@@ -41,8 +63,13 @@ public open class SmartRenderingLogger(
         logger.logLine(block)
     }
 
-    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
-        logger.logStatus(items, block)
+    override fun logStatus(items: List<CharSequence>, block: () -> CharSequence) {
+        when (val logger = logger) {
+            is FixedWidthRenderingLogger -> logger.logStatus(items, block)
+            is CompactRenderingLogger -> logger.logStatus(items, block)
+            is MicroLogger -> logger.logStatus(items, block)
+            else -> logger.logText { block().toString() + items.format(Formatter.fromScratch { red }) { toCompactString() } }
+        }
     }
 
     override fun <R> logResult(block: () -> Result<R>): R {
@@ -56,7 +83,6 @@ public open class SmartRenderingLogger(
 
     override fun toString(): String = asString {
         ::open to open
-        ::parent to parent?.caption
         ::caption to caption
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
@@ -79,22 +105,5 @@ public fun <R> logging(
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = DEFAULT_BORDER,
-    block: BorderedRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
-@Deprecated("only use member function")
-@RenderingLoggingDsl
-public fun <T : RenderingLogger?, R> T.logging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
-    border: Border = DEFAULT_BORDER,
-    block: BorderedRenderingLogger.() -> R,
-): R =
-    if (this is BorderedRenderingLogger) logging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
-    else koodies.logging.logging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
-
+    block: FixedWidthRenderingLogger.() -> R,
+): R = SmartRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border, prefix = "").runLogging(block)

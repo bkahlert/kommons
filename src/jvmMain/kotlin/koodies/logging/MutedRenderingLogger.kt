@@ -5,7 +5,7 @@ import koodies.asString
 /**
  * A logger that can be used if no logging is needed.
  */
-public open class MutedRenderingLogger() : BlockRenderingLogger("", null) {
+public open class MutedRenderingLogger : BlockRenderingLogger("", null) {
 
     init {
         withUnclosedWarningDisabled
@@ -13,7 +13,7 @@ public open class MutedRenderingLogger() : BlockRenderingLogger("", null) {
 
     override fun logText(block: () -> CharSequence): Unit = Unit
     override fun logLine(block: () -> CharSequence): Unit = Unit
-    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence): Unit = Unit
+    override fun logStatus(items: List<CharSequence>, block: () -> CharSequence): Unit = Unit
     override fun <R> logResult(block: () -> Result<R>): R {
         open = false
         return block().getOrThrow()
@@ -25,7 +25,6 @@ public open class MutedRenderingLogger() : BlockRenderingLogger("", null) {
 
     override fun toString(): String = asString {
         ::open to open
-        ::parent to parent?.caption
         ::caption to caption
     }
 

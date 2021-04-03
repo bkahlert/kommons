@@ -329,70 +329,123 @@ class ManagedProcessTest {
         }
 
         @Nested
-        inner class OnExitCodeMismatch {
+        inner class ExitCodeValidation {
 
-            @Test
-            fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = createCompletingManagedProcess(42)
-                expect {
-                    catching { process.waitFor() }.isFailure()
-                    expectThat(process).io.contains("terminated with exit code 42.")
+            @Nested
+            inner class Configuration {
+
+                @Test
+                fun `should throw on non-0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42)
+                    expect {
+                        catching { process.waitFor() }.isFailure()
+                        expectThat(process).io.contains("terminated with exit code 42.")
+                    }
+                }
+
+                @Test
+                fun `should not throw on 0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(0)
+                    expect {
+                        catching { process.waitFor() }.isSuccess()
+                        expectThat(process).io.contains("terminated successfully")
+                    }
+                }
+
+                @Test
+                fun `should throw on explicitly set exit code mismatch`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(0, expectedExitValue = 42)
+                    expect {
+                        catching { process.waitFor() }.isFailure()
+                        expectThat(process).io.contains("terminated with exit code 0.")
+                    }
+                }
+
+                @Test
+                fun `should no throw on explicitly set exit code match`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42, expectedExitValue = 42)
+                    expect {
+                        catching { process.waitFor() }.isSuccess()
+                        expectThat(process).io.contains("terminated successfully")
+                    }
+                }
+
+                @Test
+                fun `should ignore null exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42, expectedExitValue = null)
+                    expect {
+                        catching { process.waitFor() }.isSuccess()
+                        expectThat(process).io.contains("terminated successfully")
+                    }
                 }
             }
 
-            @Test
-            fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = createCompletingManagedProcess(42)
-                expect {
-                    catching { process.waitFor() }.isFailure()
-                    that(process).io.containsDump()
+            @Nested
+            inner class OnExitCodeMismatch {
+
+                @Test
+                fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42)
+                    expect {
+                        catching { process.waitFor() }.isFailure()
+                        expectThat(process).io.contains("terminated with exit code 42.")
+                    }
                 }
-            }
 
-            @Test
-            fun `should throw on waitFor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = createCompletingManagedProcess(42)
-                expectCatching { process.waitFor() }.isFailure()
-                    .isA<CompletionException>()
-                    .cause.isA<ProcessExecutionException>()
-                    .message.isNotNull()
-                    .lines().first().matchesCurlyPattern("Process {} terminated with exit code 42. Expected 0.")
-            }
+                @Test
+                fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42)
+                    expect {
+                        catching { process.waitFor() }.isFailure()
+                        that(process).io.containsDump()
+                    }
+                }
+
+                @Test
+                fun `should throw on waitFor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42)
+                    expectCatching { process.waitFor() }.isFailure()
+                        .isA<CompletionException>()
+                        .cause.isA<ProcessExecutionException>()
+                        .message.isNotNull()
+                        .lines().first().matchesCurlyPattern("Process {} terminated with exit code 42. Expected 0.")
+                }
 
 
-            @Test
-            fun `should throw on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = createCompletingManagedProcess(42)
-                expectThat(process.onExit).wait().isFailure()
-                    .isA<ExecutionException>()
-                    .rootCauseMessage
-                    .isNotNull()
-                    .get { lines() }
-                    .first().matchesCurlyPattern("Process {} terminated with exit code 42. Expected 0.")
-            }
-
-            @Test
-            fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                var callbackCalled = false
-                val process = createCompletingManagedProcess(42, processTerminationCallback = { callbackCalled = true })
-                expect {
+                @Test
+                fun `should throw on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    val process = createCompletingManagedProcess(42)
                     expectThat(process.onExit).wait().isFailure()
-                    expectThat(callbackCalled).isTrue()
-                }
-            }
-
-            @Test
-            fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                var callbackEx: Any? = null
-                val process = createCompletingManagedProcess(42).addPostTerminationCallback { ex -> callbackEx = ex }
-                expect {
-                    expectThat(process.onExit).wait().isFailure()
-                    that(callbackEx).isNotNull()
-                        .isA<ProcessExecutionException>()
+                        .isA<ExecutionException>()
                         .rootCauseMessage
                         .isNotNull()
                         .get { lines() }
                         .first().matchesCurlyPattern("Process {} terminated with exit code 42. Expected 0.")
+                }
+
+                @Test
+                fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    var callbackCalled = false
+                    val process = createCompletingManagedProcess(42, processTerminationCallback = { callbackCalled = true })
+                    expect {
+                        expectThat(process.onExit).wait().isFailure()
+                        expectThat(callbackCalled).isTrue()
+                    }
+                }
+
+                @Test
+                fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                    var callbackEx: Any? = null
+                    val process = createCompletingManagedProcess(42).addPostTerminationCallback { ex -> callbackEx = ex }
+                    expect {
+                        expectThat(process.onExit).wait().isFailure()
+                        that(callbackEx).isNotNull()
+                            .isA<ProcessExecutionException>()
+                            .rootCauseMessage
+                            .isNotNull()
+                            .get { lines() }
+                            .first().matchesCurlyPattern("Process {} terminated with exit code 42. Expected 0.")
+                    }
                 }
             }
         }
@@ -514,7 +567,7 @@ fun Path.createThrowingManagedProcess(
 fun Path.createCompletingManagedProcess(
     exitValue: Int = 0,
     sleep: Duration = Duration.ZERO,
-    expectedExitValue: Int = 0,
+    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
 ): ManagedProcess = process(
     expectedExitValue = expectedExitValue,

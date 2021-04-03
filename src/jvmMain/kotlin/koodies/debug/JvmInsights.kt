@@ -2,9 +2,12 @@
 
 package koodies.debug
 
+import koodies.asString
 import koodies.debug.Debug.meta
 import koodies.regex.groupValue
 import koodies.text.LineSeparators.LF
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
  * Helper property that supports
@@ -40,6 +43,7 @@ private fun Thread.highlightThreadName() =
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
  * by printing `this` stacktrace and highlighting the method names.
  */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Array<StackTraceElement>.trace: Array<StackTraceElement>
     get() = also { println(joinToString("$LF\t${"at".meta()} ", postfix = LF) { highlightMethod(it) }) }
 
@@ -50,4 +54,38 @@ private fun highlightMethod(element: StackTraceElement) =
         val suffix = it.groupValue("suffix")
         val methodName = it.groupValue("method")?.meta()
         prefix + methodName + suffix
+    }
+
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` lock properly with details.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public val ReentrantLock.trace: ReentrantLock
+    get() = also {
+        println(asString {
+            "isFair" to isFair
+            "isLocked" to isLocked
+            "isHeldByCurrentThread" to isHeldByCurrentThread
+        })
+    }
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` lock properly with details.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public val ReentrantReadWriteLock.trace: ReentrantReadWriteLock
+    get() = also {
+        println(asString {
+            "isFair" to isFair
+            "readLockCount" to readLockCount
+            "readHoldCount" to readHoldCount
+            "writeHoldCount" to writeHoldCount
+            "isWriteLocked" to isWriteLocked
+            "isWriteLockedByCurrentThread" to isWriteLockedByCurrentThread
+        })
     }

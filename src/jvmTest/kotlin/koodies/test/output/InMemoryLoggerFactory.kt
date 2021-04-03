@@ -1,6 +1,6 @@
 package koodies.test.output
 
-import koodies.logging.BorderedRenderingLogger.Border
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.InMemoryLogger
 
 interface InMemoryLoggerFactory {

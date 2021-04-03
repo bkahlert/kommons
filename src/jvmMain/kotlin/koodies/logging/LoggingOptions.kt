@@ -4,7 +4,7 @@ import koodies.builder.BuilderTemplate
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.logging.BorderedRenderingLogger.Border
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
 import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLoggingOptionsContext
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
@@ -32,11 +32,14 @@ public sealed class LoggingOptions {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
             BlockRenderingLogger(
                 caption ?: fallbackCaption,
-                logger as? BorderedRenderingLogger,
+                { (logger ?: global).logText { it } },
                 contentFormatter,
                 decorationFormatter,
                 returnValueFormatter,
-                border
+                border,
+                statusInformationColumn = (logger as? FixedWidthRenderingLogger)?.statusInformationColumn,
+                statusInformationPadding = (logger as? FixedWidthRenderingLogger)?.statusInformationPadding,
+                statusInformationColumns = (logger as? FixedWidthRenderingLogger)?.statusInformationColumns,
             ).runLogging(block)
 
         public companion object : BuilderTemplate<BlockLoggingOptionsContext, BlockLoggingOptions>() {
@@ -65,7 +68,11 @@ public sealed class LoggingOptions {
         public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            CompactRenderingLogger(caption ?: fallbackCaption, contentFormatter, decorationFormatter, returnValueFormatter, logger).runLogging(block)
+            CompactRenderingLogger(caption ?: fallbackCaption,
+                contentFormatter,
+                decorationFormatter,
+                returnValueFormatter,
+                { (logger ?: global).logText { it } }).runLogging(block)
 
         public companion object : BuilderTemplate<CompactLoggingOptionsContext, CompactLoggingOptions>() {
 
@@ -94,13 +101,17 @@ public sealed class LoggingOptions {
         public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
         override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            SmartRenderingLogger(
+            BlockRenderingLogger(
                 caption ?: fallbackCaption,
-                logger as? BorderedRenderingLogger,
+                { (logger ?: global).logText { it } },
                 contentFormatter,
                 decorationFormatter,
                 returnValueFormatter,
-                border
+                border,
+                statusInformationColumn = (logger as? FixedWidthRenderingLogger)?.statusInformationColumn,
+                statusInformationPadding = (logger as? FixedWidthRenderingLogger)?.statusInformationPadding,
+                statusInformationColumns = (logger as? FixedWidthRenderingLogger)?.statusInformationColumns,
+//                prefix = (logger as? BorderedRenderingLogger)?.prefix ?: "",
             ).runLogging(block)
 
         public companion object : BuilderTemplate<SmartLoggingOptionsContext, SmartLoggingOptions>() {

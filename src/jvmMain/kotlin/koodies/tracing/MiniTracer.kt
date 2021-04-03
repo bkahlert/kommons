@@ -33,7 +33,7 @@ public fun <R> MiniTracer?.microTrace3(f: KFunction3<*, *, *, R>, block: MicroTr
 
 
 public class RenderingLoggerBasedMiniTracer(private val renderingLogger: RenderingLogger) : MiniTracer {
-    public override fun trace(input: String): Unit = renderingLogger.logStatus { IO.META typed input }
+    public override fun trace(input: String): Unit = renderingLogger.logLine { IO.META typed input }
     public override fun <R> microTrace(graphemeCluster: GraphemeCluster, block: MicroTracer.() -> R): R {
         val simpleMicroTracer = SimpleMicroTracer(graphemeCluster)
         val returnValue: R = simpleMicroTracer.run(block)
@@ -50,7 +50,7 @@ public class RenderingLoggerBasedMiniTracer(private val renderingLogger: Renderi
 }
 
 public inline fun <reified R> RenderingLogger.subTrace(f: String, crossinline block: MiniTracer.() -> R): R =
-    CompactRenderingLogger(f.format(), parent = this).runLogging { RenderingLoggerBasedMiniTracer(this).run(block) }
+    CompactRenderingLogger(f.format(), log = { logText { it } }).runLogging { RenderingLoggerBasedMiniTracer(this).run(block) }
 
 public inline fun <reified R> RenderingLogger.miniTrace(f: String, crossinline block: MiniTracer.() -> R): R = subTrace(f.format(), block)
 public inline fun <reified R> RenderingLogger.miniTrace(f: KCallable<R>, crossinline block: MiniTracer.() -> R): R = subTrace(f.format(), block)

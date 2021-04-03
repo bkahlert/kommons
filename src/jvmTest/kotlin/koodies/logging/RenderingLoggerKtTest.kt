@@ -3,13 +3,12 @@ package koodies.logging
 import koodies.concurrent.Status
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.META
-import koodies.concurrent.process.IO.OUT
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
-import koodies.logging.BorderedRenderingLogger.Border.DOTTED
-import koodies.logging.BorderedRenderingLogger.Border.NONE
-import koodies.logging.BorderedRenderingLogger.Border.SOLID
+import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
+import koodies.logging.FixedWidthRenderingLogger.Border.NONE
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.runtime.Program
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
@@ -18,7 +17,6 @@ import koodies.terminal.escapeSequencesRemoved
 import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
-import koodies.test.test
 import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -34,18 +32,11 @@ import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.containsExactly
 import strikt.assertions.endsWith
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import strikt.assertions.isFalse
-import strikt.assertions.isNotEqualTo
-import strikt.assertions.isNotSameInstanceAs
-import strikt.assertions.isNull
-import strikt.assertions.isSameInstanceAs
-import strikt.assertions.isTrue
 import kotlin.io.path.extension
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
@@ -53,48 +44,10 @@ import kotlin.io.path.readText
 @Execution(SAME_THREAD)
 class RenderingLoggerKtTest {
 
-    @Nested
-    inner class Relations {
-
-        @TestFactory
-        fun `should equal only be identity`() = test(RenderingLogger("caption")) { logger ->
-            expect { this }.that { isEqualTo(logger) }
-            expect { this }.that { isSameInstanceAs(logger) }
-
-            expect { this }.that { isNotEqualTo(RenderingLogger("caption")) }
-            expect { this }.that { isNotSameInstanceAs(RenderingLogger("caption")) }
-
-            expect { listOf(this) }.that { contains(logger) }
-            expect { listOf(RenderingLogger("caption")) }.that { not { contains(logger) } }
-        }
-
-        @TestFactory
-        fun `should have parent`() = test {
-            val parent = RenderingLogger("parent")
-            val child = RenderingLogger("child", parent)
-            expect { parent.parent }.that { isNull() }
-            expect { child.parent }.that { isEqualTo(parent) }
-        }
-
-        @TestFactory
-        fun `should have ancestors`() = test {
-            val parent = RenderingLogger("parent")
-            val child = RenderingLogger("child", parent)
-            expect { parent.ancestors }.that { containsExactly(parent) }
-            expect { child.ancestors }.that { containsExactly(child, parent) }
-            expect { child.ancestors }.that { not { contains(RenderingLogger("stranger")) } }
-
-            expect { parent.isDescendantOf(child) }.that { isFalse() }
-            expect { parent.isDescendantOf(parent) }.that { isTrue() }
-            expect { child.isDescendantOf(parent) }.that { isTrue() }
-            expect { child.isDescendantOf(child) }.that { isTrue() }
-        }
-    }
-
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log`() {
         logLine { "｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ" }
-        logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        logStatus { "☎Σ⊂⊂(☉ω☉∩)" }
         logResult { Result.success(Unit) }
 
         expectThatLogged().matchesCurlyPattern("""
@@ -109,15 +62,15 @@ class RenderingLoggerKtTest {
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log nested`() {
-        logStatus { OUT typed "outer 1" }
-        logStatus { OUT typed "outer 2" }
+        logStatus { "outer 1" }
+        logStatus { "outer 2" }
         logging("nested log") {
-            logStatus { OUT typed "nested 1" }
-            logStatus { OUT typed "nested 2" }
-            logStatus { OUT typed "nested 3" }
+            logStatus { "nested 1" }
+            logStatus { "nested 2" }
+            logStatus { "nested 3" }
         }
-        logStatus { OUT typed "outer 3" }
-        logStatus { OUT typed "outer 4" }
+        logStatus { "outer 3" }
+        logStatus { "outer 4" }
         logResult { Result.success("end") }
 
         expectThatLogged().matchesCurlyPattern("""
@@ -210,28 +163,28 @@ class RenderingLoggerKtTest {
         test {
             expect {
                 createLogger(border.name, border).runLogging {
-                    logStatus { OUT typed "outer 1" }
+                    logStatus { "outer 1" }
                     logLine { "outer 2" }
                     logging("nested log") {
-                        logStatus { OUT typed "nested 1" }
+                        logStatus { "nested 1" }
                         compactLogging("mini segment") {
                             logStatus { ERR typed "12345" }
                             logStatus { META typed "sample" }
                         }
                         logging("nested log") {
-                            logStatus { OUT typed "nested 1" }
+                            logStatus { "nested 1" }
                             compactLogging("mini segment") {
                                 logStatus { ERR typed "12345" }
                                 logStatus { META typed "sample" }
                             }
-                            logStatus { OUT typed "nested 2" }
-                            logStatus { OUT typed "nested 3" }
+                            logStatus { "nested 2" }
+                            logStatus { "nested 3" }
                         }
-                        logStatus { OUT typed "nested 2" }
-                        logStatus { OUT typed "nested 3" }
+                        logStatus { "nested 2" }
+                        logStatus { "nested 3" }
                     }
-                    logStatus { OUT typed "outer 3" }
-                    logStatus { OUT typed "outer 4" }
+                    logStatus { "outer 3" }
+                    logStatus { "outer 4" }
                     "Done"
                 }
             }.that { toStringMatchesCurlyPattern(expectation) }
@@ -241,11 +194,11 @@ class RenderingLoggerKtTest {
     @Suppress("LongLine")
     @Test
     fun @receiver:Columns(10) InMemoryLogger.`should not break status line`() {
-        logStatus(listOf(StringStatus("1234567890"))) { OUT typed "abc....xyz" }
+        logStatus("1234567890") { "abc....xyz" }
         logging("nested") {
-            logStatus(listOf(StringStatus("123456789 01234567890"))) { OUT typed "abc....xyz" }
+            logStatus("123456789 01234567890") { "abc....xyz" }
             logging("nested") {
-                logStatus(listOf(StringStatus("1234567890 1234567890 1234567890 1234567890"))) { OUT typed "abc....xyz" }
+                logStatus(listOf("1234567890 1234567890 1234567890 1234567890")) { "abc....xyz" }
             }
         }
 
@@ -256,14 +209,14 @@ class RenderingLoggerKtTest {
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log exception`() {
         kotlin.runCatching {
-            logStatus { OUT typed "outer 1" }
-            logStatus { OUT typed "outer 2" }
+            logStatus { "outer 1" }
+            logStatus { "outer 2" }
             logging("nested log") {
-                logStatus { OUT typed "nested 1" }
+                logStatus { "nested 1" }
                 if ("1".toInt() == 1) throw IllegalStateException("an exception")
             }
-            logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
-            logStatus { OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+            logStatus { "☎Σ⊂⊂(☉ω☉∩)" }
+            logStatus { "☎Σ⊂⊂(☉ω☉∩)" }
             logResult { Result.success("success") }
         }
 
@@ -342,7 +295,7 @@ class RenderingLoggerKtTest {
                         logging("level 2") {
                             logLine { "doing stuff" }
                             throw RuntimeException("something happened\nsomething happened #2\nsomething happened #3")
-                            logStatus { OUT typed "doing stuff" }
+                            logStatus { "doing stuff" }
                             2
                         }
                         logLine { "doing stuff" }
@@ -379,7 +332,7 @@ class RenderingLoggerKtTest {
                         logging("level 2") {
                             logLine { "doing stuff" }
                             throw RuntimeException("something happened\nsomething happened #2\nsomething happened #3")
-                            logStatus { OUT typed "doing stuff" }
+                            logStatus { "doing stuff" }
                             2
                         }
                         logLine { "doing stuff" }
@@ -545,7 +498,7 @@ class RenderingLoggerKtTest {
         fun `should contain closed state`() {
             val logger = RenderingLogger("test")
             expectThat(logger).toStringMatchesCurlyPattern("""
-                RenderingLogger { open = false{}parent = null{}ancestors = test{}caption = test }
+                RenderingLogger { open = false{}caption = test }
             """.trimIndent())
         }
     }

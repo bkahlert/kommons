@@ -1,4 +1,4 @@
-package koodies.process
+package koodies.concurrent.process
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

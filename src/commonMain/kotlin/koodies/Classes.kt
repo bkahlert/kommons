@@ -59,10 +59,12 @@ public fun Any.asString(init: Init<MapBuildingContext<Any?, Any?>>): String =
                 }
             }
             if (flatContent.none { it.isMultiline }) {
+                content.clear()
                 append(" ")
                 append(flatContent.joinToString(Semantics.Delimiter.spaced))
                 append(" ")
             } else {
+                flatContent.clear()
                 append(content)
                 append("\n$indent")
             }

@@ -2,6 +2,7 @@ package koodies.logging
 
 import koodies.asString
 import koodies.collections.synchronizedListOf
+import koodies.concurrent.process.IO
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
@@ -17,8 +18,8 @@ public class CompactRenderingLogger(
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> String)? = null,
-    parent: RenderingLogger? = null,
-) : RenderingLogger(caption.toString(), parent) {
+    log: ((String) -> Unit)? = null,
+) : RenderingLogger(caption.toString(), log) {
 
     private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
@@ -37,12 +38,12 @@ public class CompactRenderingLogger(
         when {
             closed -> {
                 val prefix = decorationFormatter(Semantics.Computation).toString() + " "
-                log { block().toString().prefixLinesWith(prefix) }
+                logWithLock { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
                 val paddingAndMessages =
                     messages.joinToString(" ") { "$it".withoutTrailingLineSeparator }.let { if (it.isNotBlank()) " $it" else "" }
-                log { caption.bold() + paddingAndMessages + " " + block().toString().withTrailingLineSeparator() }
+                logWithLock { caption.bold() + paddingAndMessages + " " + block().toString().withTrailingLineSeparator() }
             }
             else -> {
                 messages.add(block())
@@ -58,11 +59,14 @@ public class CompactRenderingLogger(
         block.format(contentFormatter) { render(false) { this } }
     }
 
-    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence) {
+    public fun logStatus(items: List<CharSequence>, block: () -> CharSequence) {
         val message: CharSequence? = block.format(contentFormatter) { lines().joinToString(", ") }
         val status: CharSequence? = items.format(contentFormatter) { lines().joinToString(", ", "(", ")") }
         (status?.let { "$message $status" } ?: message)?.let { render(false) { it } }
     }
+
+    public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.OUT typed "" }): Unit =
+        logStatus(statuses.toList(), block)
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
@@ -80,7 +84,6 @@ public class CompactRenderingLogger(
 
     override fun toString(): String = asString {
         ::open to open
-        ::parent to parent?.caption
         ::caption to caption
         ::messages to messages.map { it.removeEscapeSequences() }
         ::loggingResult to loggingResult
@@ -99,7 +102,7 @@ public class CompactRenderingLogger(
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> String)? = this.returnValueFormatter,
         block: MicroLogger.() -> R,
-    ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter, this).runLogging(block)
+    ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter, { logText { it } }).runLogging(block)
 }
 
 

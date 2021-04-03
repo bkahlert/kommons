@@ -3,12 +3,13 @@ package koodies.test.output
 import koodies.collections.synchronizedMapOf
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream
-import koodies.logging.BorderedRenderingLogger
-import koodies.logging.BorderedRenderingLogger.Border
+import koodies.logging.FixedWidthRenderingLogger
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLoggingDsl
 import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
+import koodies.logging.global
 import koodies.logging.runLogging
 import koodies.runtime.Program
 import koodies.test.Verbosity.Companion.isVerbose
@@ -170,5 +171,12 @@ public fun <R> ExtensionContext.logging(
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = Border.DEFAULT,
-    block: BorderedRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, logger, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
+    block: FixedWidthRenderingLogger.() -> R,
+): R =
+    SmartRenderingLogger(caption,
+        { (logger ?: global).logText { it } },
+        contentFormatter,
+        decorationFormatter,
+        returnValueFormatter,
+        border,
+        prefix = logger?.prefix ?: "").runLogging(block)

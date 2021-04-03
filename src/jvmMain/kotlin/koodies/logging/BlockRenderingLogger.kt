@@ -2,33 +2,34 @@ package koodies.logging
 
 import koodies.asString
 import koodies.concurrent.process.IO
-import koodies.logging.BorderedRenderingLogger.Border
-import koodies.regex.RegularExpressions
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.terminal.AnsiString.Companion.asAnsiString
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
-import koodies.text.TruncationStrategy.MIDDLE
-import koodies.text.addColumn
 import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
-import koodies.text.truncate
-import koodies.text.wrapLines
 import kotlin.properties.Delegates
 
 public open class BlockRenderingLogger(
     caption: CharSequence,
-    parent: BorderedRenderingLogger? = null,
+    log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = DEFAULT_BORDER,
+    statusInformationColumn: Int? = null,
+    statusInformationPadding: Int? = null,
+    statusInformationColumns: Int? = null,
     width: Int? = null,
-) : BorderedRenderingLogger(caption.toString(),
-    parent,
+) : FixedWidthRenderingLogger(caption.toString(),
+    log,
     contentFormatter,
     decorationFormatter,
     returnValueFormatter,
     border,
+    statusInformationColumn,
+    statusInformationPadding,
+    statusInformationColumns,
     width,
     border.prefix(decorationFormatter)) {
 
@@ -62,19 +63,6 @@ public open class BlockRenderingLogger(
         }
     }
 
-    override fun logStatus(items: List<HasStatus>, block: () -> CharSequence): Unit {
-        block().takeUnlessBlank()?.let { contentFormatter(it) }?.run {
-            render(true) {
-                val leftColumn = wrapNonUriLines(statusInformationColumn).asAnsiString()
-                val statusColumn =
-                    items.renderStatus().asAnsiString().truncate(maxLength = statusInformationColumns - 1, MIDDLE)
-                val twoColumns = leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding)
-                if (closed) twoColumns
-                else twoColumns.prefixLinesWith(prefix = prefix)
-            }
-        }
-    }
-
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
         val returnValue = ReturnValue.of(result)
@@ -93,13 +81,8 @@ public open class BlockRenderingLogger(
         open = false
     }
 
-    private fun CharSequence.wrapNonUriLines(length: Int): CharSequence {
-        return if (RegularExpressions.uriRegex.containsMatchIn(this)) this else asAnsiString().wrapLines(length)
-    }
-
     override fun toString(): String = asString {
         ::open to open
-        ::parent to parent?.caption
         ::caption to caption
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
@@ -130,7 +113,7 @@ public fun <R> blockLogging(
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = Border.DEFAULT,
-    block: BorderedRenderingLogger.() -> R,
+    block: FixedWidthRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
 
 /**
@@ -146,7 +129,7 @@ public fun <T : RenderingLogger?, R> T.blockLogging(
     decorationFormatter: Formatter? = Formatter { it.red() },
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = Border.DEFAULT,
-    block: BorderedRenderingLogger.() -> R,
+    block: FixedWidthRenderingLogger.() -> R,
 ): R =
-    if (this is BorderedRenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
+    if (this is FixedWidthRenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
     else koodies.logging.blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)

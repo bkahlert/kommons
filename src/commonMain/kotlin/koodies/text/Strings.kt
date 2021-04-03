@@ -29,7 +29,7 @@ public fun CharSequence.withPrefix(prefix: String): String =
     if (startsWith(prefix)) toString() else prefix + toString()
 
 /**
- * Returns this [CharSequence] with a random suffix of one dash and four alpha-numeric characters.
+ * Returns this [CharSequence] with a random suffix of two dashes dash and four alpha-numeric characters.
  */
 public fun CharSequence.withRandomSuffix(): String {
     if (randomSuffixMatcher.matches(this)) return this.toString()

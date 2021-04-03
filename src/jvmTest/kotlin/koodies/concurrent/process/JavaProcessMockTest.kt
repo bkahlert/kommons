@@ -1,21 +1,19 @@
-package koodies.process
+package koodies.concurrent.process
 
 import koodies.concurrent.daemon
+import koodies.concurrent.process.JavaProcessMock.Companion.processMock
+import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
+import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
+import koodies.concurrent.process.ProcessExitMock.Companion.immediateExit
+import koodies.concurrent.process.ProcessExitMock.Companion.immediateSuccess
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
+import koodies.concurrent.process.SlowInputStream.Companion.prompt
+import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.attach
-import koodies.concurrent.process.process
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.isEqualToByteWise
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
-import koodies.process.JavaProcessMock.Companion.processMock
-import koodies.process.JavaProcessMock.Companion.withIndividuallySlowInput
-import koodies.process.JavaProcessMock.Companion.withSlowInput
-import koodies.process.ProcessExitMock.Companion.immediateExit
-import koodies.process.ProcessExitMock.Companion.immediateSuccess
-import koodies.process.SlowInputStream.Companion.prompt
-import koodies.process.SlowInputStream.Companion.slowInputStream
 import koodies.test.Slow
 import koodies.test.assertTimeoutPreemptively
 import koodies.test.testEach
@@ -50,7 +48,7 @@ class JavaProcessMockTest {
 
     @Nested
     inner class WithSlowInputStream {
-        
+
         @Test
         fun InMemoryLogger.`should provide input correctly`() {
             val slowInputStream = slowInputStream(1.seconds, "Hello\n", "World!\n")

@@ -6,6 +6,7 @@ import koodies.runtime.JVM
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI
+import koodies.text.ANSI.escapeSequencesRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
@@ -28,12 +29,16 @@ class LoggingContextTest {
     private val out: ByteArrayOutputStream = ByteArrayOutputStream()
     private lateinit var root: LoggingContext
 
-    public val <T : BorderedRenderingLogger> Assertion.Builder<T>.logged: Assertion.Builder<String>
+    public val <T : FixedWidthRenderingLogger> Assertion.Builder<T>.logged: Assertion.Builder<String>
         get() = get("recorded log %s") { with(root) { logged } }
 
     @BeforeEach
     fun setup() {
-        root = LoggingContext("test") { out.write(it.toByteArray()) }
+        root = LoggingContext("test") {
+            out.write(it.toByteArray())
+            // TODO write tiny verbosity extension to get information to control if to log to console as well or not
+//            print(it)
+        }
     }
 
     @AfterEach
@@ -180,3 +185,15 @@ class LoggingContextTest {
 
 private val Assertion.Builder<ByteArrayOutputStream>.printed: Assertion.Builder<String>
     get() = get("printed to simulated system out") { toString() }
+
+/**
+ * Returns an [Assertion.Builder] for all log messages recorded in this [LoggingContext].
+ */
+public val LoggingContext.expectLogged
+    get() = expectThat(this).logged
+
+/**
+ * Returns an [Assertion.Builder] for all log messages recorded in the asserted [LoggingContext].
+ */
+public val Assertion.Builder<LoggingContext>.logged: Assertion.Builder<String>
+    get() = get("record log messages in %s") { logged.escapeSequencesRemoved }

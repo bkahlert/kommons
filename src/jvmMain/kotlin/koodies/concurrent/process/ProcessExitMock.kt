@@ -1,4 +1,4 @@
-package koodies.process
+package koodies.concurrent.process
 
 import koodies.time.busyWait
 import kotlin.time.Duration

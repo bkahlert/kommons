@@ -1,8 +1,8 @@
 package koodies.logging
 
-import koodies.logging.BorderedRenderingLogger.Border.DOTTED
-import koodies.logging.BorderedRenderingLogger.Border.NONE
-import koodies.logging.BorderedRenderingLogger.Border.SOLID
+import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
+import koodies.logging.FixedWidthRenderingLogger.Border.NONE
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.output.Bordered
 import koodies.test.output.Columns
@@ -199,7 +199,7 @@ class BlockRenderingLoggerKtTest {
         }
     }
 
-    private fun borderTest(solidPattern: String, dottedPattern: String, nonePattern: String, block: RenderingLogger.() -> Any) = listOf(
+    private fun borderTest(solidPattern: String, dottedPattern: String, nonePattern: String, block: FixedWidthRenderingLogger.() -> Any) = listOf(
         SOLID to solidPattern,
         DOTTED to dottedPattern,
         NONE to nonePattern,
@@ -322,7 +322,7 @@ class BlockRenderingLoggerKtTest {
             line {} ◀◀ status
             ✔︎
         """.trimIndent()) {
-        logStatus("status") { "line" }
+        logStatus(listOf("status")) { "line" }
     }
 
     @TestFactory
@@ -421,7 +421,7 @@ class BlockRenderingLoggerKtTest {
         @TestFactory
         fun InMemoryLoggerFactory.`should log after logged result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
             val logger = createLogger(opName)
-            var delegate: BorderedRenderingLogger? = null
+            var delegate: FixedWidthRenderingLogger? = null
             logger.blockLogging("test") {
                 delegate = this
                 logLine { "line" }
@@ -447,7 +447,7 @@ class BlockRenderingLoggerKtTest {
         @TestFactory
         fun InMemoryLoggerFactory.`should log after logged message and result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
             val logger = createLogger(opName)
-            var delegate: BorderedRenderingLogger? = null
+            var delegate: FixedWidthRenderingLogger? = null
             logger.blockLogging("test") {
                 delegate = this
             }

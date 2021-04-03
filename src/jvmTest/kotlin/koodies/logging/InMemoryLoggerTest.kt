@@ -2,8 +2,8 @@ package koodies.logging
 
 import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
-import koodies.logging.BorderedRenderingLogger.Border.DOTTED
-import koodies.logging.BorderedRenderingLogger.Border.SOLID
+import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger.Companion.NO_RETURN_VALUE
 import koodies.logging.InMemoryLogger.Companion.SUCCESSFUL_RETURN_VALUE
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled

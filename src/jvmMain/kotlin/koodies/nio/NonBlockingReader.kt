@@ -3,7 +3,7 @@ package koodies.nio
 import koodies.concurrent.process.IO
 import koodies.debug.asEmoji
 import koodies.debug.debug
-import koodies.logging.BorderedRenderingLogger
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.text.ANSI
@@ -33,7 +33,7 @@ import kotlin.time.seconds
 public class NonBlockingReader(
     inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
-    private val logger: BorderedRenderingLogger = MutedRenderingLogger(),
+    private val logger: FixedWidthRenderingLogger = MutedRenderingLogger(),
     private val blockOnEmptyLine: Boolean = false,
 ) : BufferedReader(Reader.nullReader()) {
     init {
@@ -68,12 +68,12 @@ public class NonBlockingReader(
         ) {
 
             var latestReadMoment = calculateLatestReadMoment()
-            logStatus { IO.META typed "Starting to read line for at most $timeout" }
+            logLine { IO.META typed "Starting to read line for at most $timeout" }
             while (true) {
                 val read: Int = reader?.read(charArray, 0, this@logging)!!
 
                 if (read == -1) {
-                    logStatus { IO.META typed "InputStream Depleted. Closing. Unfinished Line: ${unfinishedLine.quoted}" }
+                    logLine { IO.META typed "InputStream Depleted. Closing. Unfinished Line: ${unfinishedLine.quoted}" }
                     close()
                     return@logging if (unfinishedLine.isEmpty()) {
                         lastReadLineDueTimeout = false
@@ -86,7 +86,7 @@ public class NonBlockingReader(
                         lastReadLine!!.withoutTrailingLineSeparator
                     }
                 }
-                logStatus { IO.META typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milliseconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
+                logLine { IO.META typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milliseconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
                 if (read == 1) {
 
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF
@@ -96,7 +96,7 @@ public class NonBlockingReader(
                         lastReadLine = "$unfinishedLine"
                         unfinishedLine.clear()
                         unfinishedLine.append(charArray)
-                        logStatus { IO.META typed "Line Completed: ${lastReadLine.quoted}" }
+                        logLine { IO.META typed "Line Completed: ${lastReadLine.quoted}" }
                         if (!lineAlreadyRead) {
                             return@logging lastReadLine!!.withoutTrailingLineSeparator
                         }
@@ -108,7 +108,7 @@ public class NonBlockingReader(
                 }
 
                 if (currentTimeMillis() >= latestReadMoment && !(blockOnEmptyLine && unfinishedLine.isEmpty())) {
-                    logStatus { IO.META typed "${Now.emoji} Timed out. Returning ${unfinishedLine.quoted}" }
+                    logLine { IO.META typed "${Now.emoji} Timed out. Returning ${unfinishedLine.quoted}" }
                     // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                     lastReadLineDueTimeout = true
                     lastReadLine = "$unfinishedLine"
