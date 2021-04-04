@@ -17,7 +17,8 @@ import koodies.text.ANSI.Formatter
  */
 public sealed class LoggingOptions {
 
-    public abstract fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R
+    public abstract fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger
+    public fun logTextCallOrNull(logger: RenderingLogger?): ((String) -> Unit)? = logger?.run { { logText { it } } }
 
     /**
      * Renders log messages line-by-line.
@@ -29,18 +30,18 @@ public sealed class LoggingOptions {
         public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
         public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
-        override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
+        override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
             BlockRenderingLogger(
                 caption ?: fallbackCaption,
-                { (logger ?: global).logText { it } },
+                logTextCallOrNull(parent),
                 contentFormatter,
                 decorationFormatter,
                 returnValueFormatter,
                 border,
-                statusInformationColumn = (logger as? FixedWidthRenderingLogger)?.statusInformationColumn,
-                statusInformationPadding = (logger as? FixedWidthRenderingLogger)?.statusInformationPadding,
-                statusInformationColumns = (logger as? FixedWidthRenderingLogger)?.statusInformationColumns,
-            ).runLogging(block)
+                statusInformationColumn = (parent as? FixedWidthRenderingLogger)?.statusInformationColumn,
+                statusInformationPadding = (parent as? FixedWidthRenderingLogger)?.statusInformationPadding,
+                statusInformationColumns = (parent as? FixedWidthRenderingLogger)?.statusInformationColumns,
+            )
 
         public companion object : BuilderTemplate<BlockLoggingOptionsContext, BlockLoggingOptions>() {
 
@@ -67,12 +68,14 @@ public sealed class LoggingOptions {
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
         public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
     ) : LoggingOptions() {
-        override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            CompactRenderingLogger(caption ?: fallbackCaption,
+        override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
+            CompactRenderingLogger(
+                caption ?: fallbackCaption,
                 contentFormatter,
                 decorationFormatter,
                 returnValueFormatter,
-                { (logger ?: global).logText { it } }).runLogging(block)
+                logTextCallOrNull(parent),
+            )
 
         public companion object : BuilderTemplate<CompactLoggingOptionsContext, CompactLoggingOptions>() {
 
@@ -100,19 +103,19 @@ public sealed class LoggingOptions {
         public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
         public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
-        override fun <R> render(logger: RenderingLogger?, fallbackCaption: String, block: RenderingLogger.() -> R): R =
-            BlockRenderingLogger(
+        override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
+            SmartRenderingLogger(
                 caption ?: fallbackCaption,
-                { (logger ?: global).logText { it } },
+                logTextCallOrNull(parent),
                 contentFormatter,
                 decorationFormatter,
                 returnValueFormatter,
                 border,
-                statusInformationColumn = (logger as? FixedWidthRenderingLogger)?.statusInformationColumn,
-                statusInformationPadding = (logger as? FixedWidthRenderingLogger)?.statusInformationPadding,
-                statusInformationColumns = (logger as? FixedWidthRenderingLogger)?.statusInformationColumns,
-//                prefix = (logger as? BorderedRenderingLogger)?.prefix ?: "",
-            ).runLogging(block)
+                statusInformationColumn = (parent as? FixedWidthRenderingLogger)?.statusInformationColumn,
+                statusInformationPadding = (parent as? FixedWidthRenderingLogger)?.statusInformationPadding,
+                statusInformationColumns = (parent as? FixedWidthRenderingLogger)?.statusInformationColumns,
+                prefix = (parent as? FixedWidthRenderingLogger)?.prefix ?: "",
+            )
 
         public companion object : BuilderTemplate<SmartLoggingOptionsContext, SmartLoggingOptions>() {
 

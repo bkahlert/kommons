@@ -89,6 +89,7 @@ class StringsKtTest {
             expect { it.withRandomSuffix().withRandomSuffix() }.that {
                 startsWith("$it-")
                 matches(Regex("$it--[0-9a-zA-Z]{4}"))
+                endsWithRandomSuffix()
             }
         }
     }
@@ -165,7 +166,7 @@ class StringsKtTest {
     }
 }
 
-fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharArray) =
+public fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharArray) =
     assert("contains only the characters " + chars.joinToString(", ")) {
         val unexpectedCharacters: CharSequence = it.filter { char: Char -> !chars.contains(char) }
         when (unexpectedCharacters.isEmpty()) {
@@ -173,3 +174,9 @@ fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharAr
             else -> fail("contained unexpected characters: " + unexpectedCharacters.toList().joinToString(", "))
         }
     }
+
+public fun <T : CharSequence> Assertion.Builder<T>.endsWithRandomSuffix(): Assertion.Builder<T> {
+    return assert("ends with random suffix") {
+        matches(Regex(".*--[0-9a-zA-Z]{4}"))
+    }
+}

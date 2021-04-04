@@ -4,6 +4,7 @@ import koodies.asString
 import koodies.exception.toCompactString
 import koodies.logging.BlockRenderingLogger.Companion.DEFAULT_BORDER
 import koodies.logging.FixedWidthRenderingLogger.Border
+import koodies.logging.LoggingContext.Companion.GLOBAL
 import koodies.text.ANSI.Formatter
 
 /**
@@ -93,7 +94,6 @@ public open class SmartRenderingLogger(
     }
 }
 
-
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.
  */
@@ -106,4 +106,12 @@ public fun <R> logging(
     returnValueFormatter: ((ReturnValue) -> String)? = null,
     border: Border = DEFAULT_BORDER,
     block: FixedWidthRenderingLogger.() -> R,
-): R = SmartRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border, prefix = "").runLogging(block)
+): R = SmartRenderingLogger(
+    caption,
+    { GLOBAL.logText { it } },
+    contentFormatter,
+    decorationFormatter,
+    returnValueFormatter,
+    border,
+    prefix = GLOBAL.prefix,
+).runLogging(block)

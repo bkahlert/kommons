@@ -7,7 +7,7 @@ import koodies.docker.DockerImagePullCommandLine.Companion.CommandContext
 import koodies.docker.DockerImagePullCommandLine.Options
 import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
 import koodies.logging.InMemoryLogger
-import koodies.terminal.escapeSequencesRemoved
+import koodies.logging.expectThatLogged
 import koodies.test.BuilderFixture
 import koodies.test.SystemIoExclusive
 import org.junit.jupiter.api.BeforeEach
@@ -42,7 +42,7 @@ class DockerImagePullCommandLineTest {
         @Test
         fun InMemoryLogger.`should pull image and log`() {
             expectThat(DOCKER_TEST_IMAGE.image.pull {}).isA<ManagedProcess>()
-            expectThat(logged).escapeSequencesRemoved.contains("Pulling $DOCKER_TEST_IMAGE")
+            expectThatLogged().contains("Pulling $DOCKER_TEST_IMAGE")
             expectThat(DOCKER_TEST_IMAGE.isPulled).isTrue()
         }
 
@@ -50,7 +50,7 @@ class DockerImagePullCommandLineTest {
         @Test
         fun `should pull image and print`(capturedOutput: CapturedOutput) {
             expectThat(DOCKER_TEST_IMAGE.image.pull {}).isA<ManagedProcess>()
-            expectThat(capturedOutput).escapeSequencesRemoved.contains("Pulling $DOCKER_TEST_IMAGE")
+            expectThat(capturedOutput).contains("Pulling $DOCKER_TEST_IMAGE")
             expectThat(DOCKER_TEST_IMAGE.isPulled).isTrue()
         }
     }

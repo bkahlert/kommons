@@ -38,7 +38,7 @@ public open class DockerProcess private constructor(
         }
     }
 
-    override val alive: Boolean get() = container.isRunning()
+    override val alive: Boolean get() = container.isRunning
 
     override fun stop(): Process = stop(false)
     override fun kill(): Process = kill(false)

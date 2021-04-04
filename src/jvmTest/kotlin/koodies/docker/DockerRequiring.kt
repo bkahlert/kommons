@@ -1,21 +1,18 @@
 package koodies.docker
 
-import koodies.concurrent.process.output
-import koodies.concurrent.script
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
-import koodies.logging.blockLogging
+import koodies.logging.LoggingContext.Companion.GLOBAL
 import koodies.terminal.AnsiColors.cyan
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.withAnnotation
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.parallel.ResourceAccessMode.READ
-import org.junit.jupiter.api.parallel.ResourceLock
 
 /**
  * Declares a requirement on Docker.
@@ -23,8 +20,7 @@ import org.junit.jupiter.api.parallel.ResourceLock
  *
  * The [Timeout] is automatically increased to 2 minutes.
  */
-@Slow
-@ResourceLock(DockerResources.SERIAL, mode = READ)
+@Slow @Tag("docker")
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @ExtendWith(DockerContainerLifeCycleCheck::class)
@@ -39,37 +35,37 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
     override fun beforeEach(context: ExtensionContext) {
         context.pullRequiredImages()
 
-        val name = context.containerName()
-        check(!Docker.isContainerRunning(name)) { "Container $name is already running." }
+        val container = context.dockerContainer()
+        check(!with(GLOBAL) { container.isRunning }) { "Container $container is already running." }
     }
 
     override fun afterEach(context: ExtensionContext) {
-        val name = context.containerName()
-        when (context.withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
-            ThanksForCleaningUp -> {
-                if (Docker.isContainerRunning(name)) Docker.remove(name, forcibly = true)
-            }
-            FailAndKill -> {
-                check(!Docker.isContainerRunning(name)) {
-                    Docker.remove(name, forcibly = true)
-                    "Container $name was still running and had to be killed forcibly."
+        with(GLOBAL) {
+            val container = context.dockerContainer()
+            when (context.withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
+                ThanksForCleaningUp -> {
+                    if (container.isRunning) container.remove { force { yes } }
+                }
+                FailAndKill -> {
+                    check(!container.isRunning) {
+                        container.remove { force { yes } }
+                        "Container $container was still running and had to be killed forcibly."
+                    }
+                }
+                else -> {
+                    if (container.isRunning) println("Container $container is still running... just saying".cyan())
                 }
             }
-            else -> {
-                if (Docker.isContainerRunning(name)) println("Container $name is still running... just saying".cyan())
-            }
         }
     }
 
-    private fun ExtensionContext.containerName() = UniqueId(uniqueId).simple
+    private fun ExtensionContext.dockerContainer() = DockerContainer(UniqueId(uniqueId).simple)
 
-    private fun ExtensionContext.pullRequiredImages() {
-        (requiredDockerImages() subtract Docker.images).forEach {
-            blockLogging("Downloading required Docker image $it") {
-                script(logger = this) { !"docker pull $it" }.output()
-            }
+    private fun ExtensionContext.pullRequiredImages() =
+        GLOBAL.logging("Pulling required images") {
+            val missing = requiredDockerImages() subtract Docker.images.list {}
+            missing.forEach { it.pull {} }
         }
-    }
 
     private fun ExtensionContext.requiredDockerImages(): List<DockerImage> =
         withAnnotation<DockerRequiring, List<DockerImage>> {

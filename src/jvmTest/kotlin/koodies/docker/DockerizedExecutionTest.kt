@@ -2,322 +2,149 @@ package koodies.docker
 
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
+import koodies.concurrent.process.IO
+import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.Processors
+import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
+import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.logging.expectThatLogged
+import koodies.requireNotBlank
 import koodies.shell.ShellExecutable
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoExclusive
-import koodies.test.SystemIoRead
 import koodies.test.UniqueId
 import koodies.test.withTempDir
-import koodies.text.ANSI
-import koodies.text.ANSI.Colors.magenta
 import koodies.text.matchesCurlyPattern
-import koodies.text.withRandomSuffix
-import koodies.time.IntervalPolling
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
+import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
-import strikt.assertions.isLessThan
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
-import kotlin.time.measureTime
-import kotlin.time.milliseconds
-import kotlin.time.seconds
+import strikt.assertions.isNotEqualTo
+import strikt.assertions.isNotNull
+import strikt.assertions.isTrue
+import strikt.assertions.size
+import java.util.concurrent.CompletionException
 
-@DockerTestImageExclusive
-@Nested
+@Execution(CONCURRENT)
 class DockerizedExecutionTest {
 
-    private val shellExecutable: ShellExecutable = CommandLine("echo", "Hello World!")
+    private val shellExecutable: ShellExecutable = CommandLine("printenv")
 
-    @BeforeEach
-    fun setUp() {
-//            DOCKER_TEST_CONTAINER.start()
-    }
+    private val testImage = DockerImage { official("busybox") }
 
+    @SystemIoExclusive
     @Test
-    fun InMemoryLogger.`should run container without options and log`() {
-        expectThat(shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image, null)).isA<DockerProcess>()
-        expectThat(logged).matchesCurlyPattern("""
-                {{}}
-                {}▶ Executing dockerized with ubuntu: echo "Hello World!"
-                {}· Executing docker run --name echo-_Hello-World__ --rm -i ubuntu echo "Hello World!"
-                {}· Hello World!
-                {}✔︎
-                """.trimIndent())
+    fun InMemoryLogger.`should run container without options and log`(capturedOutput: CapturedOutput) {
+        shellExecutable.executeDockerized(testImage, null)
+        expectThatLogged().contains("Executing dockerized")
+        expectThat(capturedOutput).isEmpty()
     }
 
     @SystemIoExclusive
     @Test
     fun `should run command line without options and print`(capturedOutput: CapturedOutput) {
-        expectThat(shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image, null)).isA<DockerProcess>()
-        expectThat(capturedOutput).matchesCurlyPattern("""
-                ▶ Executing dockerized with ubuntu: echo "Hello World!"
-                · Executing docker run --name echo-_Hello-World__ --rm -i ubuntu echo "Hello World!"
-                · Hello World!
-                ✔︎
-                """.trimIndent())
+        shellExecutable.executeDockerized(testImage, null)
+        expectThat(capturedOutput).contains("Executing dockerized")
     }
 
     @Test
-    fun InMemoryLogger.`should run command line and log`() {
-        expectThat(shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image) {
-            dockerOptions { name { "container-name".withRandomSuffix() } }
-            executionOptions {
-                block {
-                    caption { "test" }
-                    contentFormatter { ANSI.Formatter { (it as? OUT)?.reversed()?.magenta() ?: "" } }
-                }
-            }
-            null
-        }).isA<DockerProcess>()
-        expectThat(logged).matchesCurlyPattern("""
+    fun InMemoryLogger.`should record IO`() {
+        val process = shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image, null)
+        expectThat(process.logged<IO>()).matchesCurlyPattern("""
+                Executing docker run --name {} --rm -i ubuntu printenv
                 {{}}
-                {}▶ test
-                {}· !dlroW olleH
-                {}✔︎
-                """.trimIndent())
+                Process {} terminated successfully at {}
+            """.trimIndent())
     }
 
-    @SystemIoExclusive
     @Test
-    fun `should run command line and print`(capturedOutput: CapturedOutput) {
-        expectThat(shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image) {
-            dockerOptions { name { "container-name".withRandomSuffix() } }
-            executionOptions {
-                block {
-                    caption { "test" }
-                    contentFormatter { ANSI.Formatter { (it as? OUT)?.reversed()?.magenta() ?: "" } }
-                }
-            }
-            null
-        }).isA<DockerProcess>()
-        expectThat(capturedOutput).matchesCurlyPattern("""
-                ▶ test
-                · !dlroW olleH
-                ✔︎
-                """.trimIndent())
+    fun InMemoryLogger.`should return Docker process`() {
+        val process = shellExecutable.executeDockerized(testImage, null)
+        expectThat(process).isA<DockerProcess>()
     }
 
+    @Test
+    fun InMemoryLogger.`should run in actual docker container`() {
+        val dockerOutput = shellExecutable.executeDockerized(testImage, null).output().requireNotBlank()
+        val hostOutput = shellExecutable.execute { null }.output().requireNotBlank()
+        expectThat(dockerOutput).isNotEqualTo(hostOutput)
+    }
 
-// TODO copied from Processes ; adapt to Docker
+    @Test
+    fun InMemoryLogger.`should start implicitly`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        val process = shellExecutable.executeDockerized(testImage, null)
+        expectThat(process.started).isTrue()
+    }
 
+    @Test
+    fun InMemoryLogger.`should start`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        val process = shellExecutable.executeDockerized(testImage, null)
+        process.start()
+        expectThat(process.started).isTrue()
+    }
 
-    @Nested
-    inner class SynchronousExecution {
-
-        @Test
-        fun InMemoryLogger.`should process synchronously by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val timePassed = measureTime { shellExecutable.execute { null } }
-            expectThat(timePassed).isGreaterThan(2.seconds)
+    @Test
+    fun InMemoryLogger.`should apply docker options`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        shellExecutable.executeDockerized(testImage) {
+            dockerOptions { workingDirectory by "/tmp".asContainerPath() }; null
         }
+        expectThatLogged().contains("-w /tmp")
+    }
 
-        @SystemIoExclusive
-        @Test
-        fun `should process by logging to console by default`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-            shellExecutable.execute { null }
-            expectThat(output).get { out }.matchesCurlyPattern("""
-                    ▶ {{}}
-                    · Executing {{}}
-                    · {} file:{}
-                    · test output env
-                    · test output 2
-                    · test error 1
-                    · test error 2
-                    · Process {} terminated successfully at {}.
-                    ✔︎
-                    """.trimIndent())
-            expectThat(output).get { err }.isEmpty()
+    @Test
+    fun InMemoryLogger.`should apply execution options`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        shellExecutable.executeDockerized(testImage) {
+            executionOptions { summary("docker") }; null
         }
+        expectThatLogged().matchesCurlyPattern("""
+                ╭──╴{}
+                │   
+                │   docker ➜ {} ➜ {} ✔︎
+                │
+                ╰──╴✔︎
+            """.trimIndent())
+    }
 
-        @Test
-        fun InMemoryLogger.`should process by logging using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            shellExecutable.execute { null }
-            expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    {}▶ {{}}
-                    {}· Executing {{}}
-                    {}· {} file:{}
-                    {}· test output env
-                    {}· test output 2
-                    {}· test error 1
-                    {}· test error 2
-                    {}· Process {} terminated successfully at {}.
-                    {}✔︎
-                    {{}}
-                    """.trimIndent())
+    @Test
+    fun InMemoryLogger.`should throw on exit code mismatch`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        expectCatching {
+            shellExecutable.executeDockerized(testImage) {
+                executionOptions { expectedExitValue { -1 } }; null
+            }
+        }.isFailure().containsDump()
+    }
+
+    @Test
+    fun InMemoryLogger.`should process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        val processed = mutableListOf<IO>()
+        CommandLine("/bin/sh", "-c", "echo OUT; >&2 echo ERR; printenv").executeDockerized(testImage) {
+            { io -> processed.add(io) }
         }
-
-        @Test
-        fun InMemoryLogger.`should process by using specified processor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val output = StringBuilder()
-            val lock = ReentrantLock()
-            shellExecutable.execute { { lock.withLock { output.appendLine(it.string) } } }
-            expectThat(output).matchesCurlyPattern("""
-                    Executing {{}}
-                    {} file:{}
-                    test output env
-                    test output 2
-                    test error 1
-                    test error 2
-                    Process {} terminated successfully at {}.
-                    """.trimIndent())
-        }
-
-        @SystemIoRead
-        @Test
-        fun `should not print to console if logging with logger`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-            with(InMemoryLogger().withUnclosedWarningDisabled) { shellExecutable.execute { { } } }
-            expectThat(output).get { out }.isEmpty()
-            expectThat(output).get { err }.isEmpty()
-        }
-
-        @Test
-        fun `should provide recorded output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = shellExecutable.execute { {} }
-            expectThat(process.logged).matchesCurlyPattern("""
-                    Executing {}
-                    {} file:{}
-                    test output env
-                    test output 2
-                    test error 1
-                    test error 2
-                    Process {} terminated successfully at {}.
-                    """.trimIndent())
+        expectThat(processed) {
+            contains(OUT typed "OUT", ERR typed "ERR")
+            size.isGreaterThan(3)
         }
     }
 
-    @Nested
-    inner class AsynchronousExecution {
-
-        private fun IntervalPolling.withDefaults() =
-            every(1000.milliseconds).forAtMost(5.seconds) { fail("Did not finish logging within 5 seconds.") }
-
-        private val defaultPredicate: String.() -> Boolean = { contains("Process") and contains("terminated") }
-
-        private fun InMemoryLogger.poll(predicate: String.() -> Boolean = defaultPredicate) =
-            koodies.time.poll { toString().predicate() }.withDefaults()
-
-        private fun CapturedOutput.poll(predicate: String.() -> Boolean = defaultPredicate) =
-            koodies.time.poll { all.removeEscapeSequences().predicate() }.withDefaults()
-
-        private fun StringBuilder.poll(predicate: String.() -> Boolean = defaultPredicate) =
-            koodies.time.poll { toString().removeEscapeSequences().predicate() }.withDefaults()
-
-        @Test
-        fun InMemoryLogger.`should process asynchronously if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val timePassed = measureTime { shellExecutable.execute { processing { async }; null } }
-            expectThat(timePassed).isLessThan(500.milliseconds)
-        }
-
-        @SystemIoExclusive
-        @Test
-        fun `should process by logging to console by default`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-            shellExecutable.execute { processing { async }; null }
-            output.poll()
-            expectThat(output).get { all }.matchesCurlyPattern("""
-                        {}echo {} Executing {} ⌛️
-                        {}echo {} ⌛️ test output env
-                        {}echo {} ⌛️ test error 1
-                        {}echo {} ⌛️ test output 2
-                        {}echo {} ⌛️ test error 2
-                        {}echo {} ⌛️ Process {} terminated successfully at {}.
-                     """.trimIndent())
-            expectThat(output).get { err }.isEmpty()
-        }
-
-        @Test
-        fun InMemoryLogger.`should process by logging using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            shellExecutable.execute { processing { async }; null }
-            poll()
-            expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    {}echo {} Executing {} ⌛️
-                    {}echo {} ⌛️ test output env
-                    {}echo {} ⌛️ test error 1
-                    {}echo {} ⌛️ test output 2
-                    {}echo {} ⌛️ test error 2
-                    {}echo {} ⌛️ Process {} terminated successfully at {}.
-                    {{}}
-                    """.trimIndent())
-        }
-
-        @Test
-        fun InMemoryLogger.`should process by using specified processor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val output = StringBuilder()
-            val lock = ReentrantLock(false)
-            shellExecutable.execute { processing { async }; { lock.withLock { output.appendLine(it.string) } } }
-            output.poll()
-            expectThat(output).matchesCurlyPattern("""
-                    Executing {{}}
-                    {} file:{}
-                    test output env
-                    test error 1
-                    test output 2
-                    test error 2
-                    Process {} terminated successfully at {}.
-                    """.trimIndent())
-        }
-
-        @SystemIoRead
-        @Test
-        fun `should not print to console if logging with logger`(output: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-            with(InMemoryLogger().withUnclosedWarningDisabled) {
-                shellExecutable.execute { processing { async }; { logLine { it } } }
-                poll()
-            }
-            expectThat(output).get { out }.isEmpty()
-            expectThat(output).get { err }.isEmpty()
-        }
-
-        @Test
-        fun InMemoryLogger.`should provide recorded output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = shellExecutable.execute { processing { async }; { logLine { it } } }
-            poll()
-            expectThat(process.logged).matchesCurlyPattern("""
-                    Executing {}
-                    {} file:{}
-                    test output env
-                    test error 1
-                    test output 2
-                    test error 2
-                    Process {} terminated successfully at {}.
-                    """.trimIndent())
-        }
-
-        // TODO DELETE BELOW
-        @Test
-        fun `should process with non-blocking reader`() {
-
-            val timePassed = measureTime {
-                CommandLine("sleep", "10").execute {
-                    processing { async }
-                    null
+    @Test
+    fun InMemoryLogger.`should throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        expectCatching { CommandLine("echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
+            .isFailure()
+            .isA<CompletionException>()
+            .with({ message }) {
+                isNotNull() and {
+                    @Suppress("RemoveRedundantSpreadOperator")
+                    containsDump(*emptyArray())
                 }
             }
-            expectThat(timePassed).isLessThan(250.milliseconds)
-        }
-
-        @Test
-        fun `should process with non-blocking reader2`() {
-            val timePassed = measureTime {
-                CommandLine("sleep", "10").executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image) {
-                    dockerOptions { name { "test" } }
-                    executionOptions { processing { async } }
-                    null
-                }
-            }
-            expectThat(timePassed).isLessThan(250.milliseconds)
-        }
     }
 }

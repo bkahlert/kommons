@@ -6,12 +6,13 @@ import koodies.debug.CapturedOutput
 import koodies.docker.DockerStartCommandLine.Companion.CommandContext
 import koodies.docker.DockerStartCommandLine.Options
 import koodies.logging.InMemoryLogger
-import koodies.terminal.escapeSequencesRemoved
+import koodies.logging.expectThatLogged
 import koodies.test.BuilderFixture
 import koodies.test.SystemIoExclusive
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -31,6 +32,7 @@ class DockerStartCommandLineTest {
         expectThat(dockerStartCommandLine).isEqualTo(result)
     }
 
+    @Tag("docker")
     @DockerTestImageExclusive
     @Nested
     inner class Extension {
@@ -43,7 +45,7 @@ class DockerStartCommandLineTest {
         @Test
         fun InMemoryLogger.`should start container and log`() {
             expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.container.start {}).isA<ManagedProcess>()
-            expectThat(logged).escapeSequencesRemoved.contains("Removing ${DockerTestImageExclusive.DOCKER_TEST_CONTAINER}")
+            expectThatLogged().contains("Removing ${DockerTestImageExclusive.DOCKER_TEST_CONTAINER}")
             expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.isRunning).isTrue()
         }
 
@@ -51,7 +53,7 @@ class DockerStartCommandLineTest {
         @Test
         fun `should start image and print`(capturedOutput: CapturedOutput) {
             expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.container.start {}).isA<ManagedProcess>()
-            expectThat(capturedOutput).escapeSequencesRemoved.contains("Removing ${DockerTestImageExclusive.DOCKER_TEST_CONTAINER}")
+            expectThat(capturedOutput).contains("Removing ${DockerTestImageExclusive.DOCKER_TEST_CONTAINER}")
             expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.isRunning).isTrue()
         }
 
@@ -72,7 +74,7 @@ class DockerStartCommandLineTest {
         },
         DockerStartCommandLine(
             options = Options(attach = false, interactive = true),
-            containers = listOf("container-1", "container-2"),
+            containers = listOf("container-x", "container-y"),
         ),
     )
 }

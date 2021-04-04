@@ -12,7 +12,7 @@ class OutputCapture : CapturedOutput {
     fun push() = lock.withLock { systemCaptures.addLast(SystemCapture()) }
     fun pop() = lock.withLock { systemCaptures.removeLast().release() }
 
-    val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
+    public val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
 
     override val all: String get() = getFilteredCapture<IO>()
     override val out: String get() = getFilteredCapture<IO.OUT>()
@@ -26,8 +26,8 @@ class OutputCapture : CapturedOutput {
     private inline fun <reified T : IO> getFilteredCapture(): String = lock.withLock {
         check(systemCaptures.isNotEmpty()) { "No system captures found. Please check your output capture registration." }
         val builder = StringBuilder()
-        systemCaptures.forEach {
-            it.useCapturedStrings { io -> if (io is T) builder.append(io) }
+        systemCaptures.forEach { systemCapture ->
+            systemCapture.useCapturedStrings { io -> if (io is T) builder.append(io) }
         }
         builder.toString()
     }

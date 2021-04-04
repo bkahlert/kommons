@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LineSeparatorsTest" type="JUnit" factoryName="JUnit">
+    <module name="koodies.jvmTest" />
+    <option name="PACKAGE_NAME" value="koodies.text" />
+    <option name="MAIN_CLASS_NAME" value="koodies.text.LineSeparatorsTest" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

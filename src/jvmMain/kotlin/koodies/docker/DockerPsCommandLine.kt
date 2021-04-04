@@ -17,7 +17,6 @@ import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.output
 import koodies.docker.DockerPsCommandLine.Options.Companion.OptionsContext
 import koodies.logging.RenderingLogger
-import koodies.text.Semantics.formattedAs
 import koodies.text.quoted
 
 /**
@@ -34,7 +33,7 @@ public open class DockerPsCommandLine(
         addAll(options)
         add("--no-trunc")
         add("--format")
-        add("{{.Names}}".quoted)
+        add("{{.Names}}\t{{.State}}\t{{.Status}}".quoted)
     },
 ) {
     public open class Options(
@@ -91,8 +90,12 @@ public open class DockerPsCommandLine(
     }
 }
 
-private fun ManagedProcess.parseContainers(): List<DockerContainer> = output().lines().filter { it.isNotBlank() }
-    .map { DockerContainer(it) }
+private fun ManagedProcess.parseContainers(): List<DockerContainer> =
+    output {
+        split("\t").takeIf { it.size == 3 }?.let {
+            DockerContainer.from(it[0])
+        }
+    }
 
 /**
  * Lists locally available instances of [DockerContainer] using the
@@ -123,35 +126,4 @@ public val RenderingLogger?.ps: Docker.(Init<OptionsContext>) -> List<DockerCont
             noDetails("Listing containers")
             null
         }.parseContainers()
-    }
-
-/**
- * Checks if `this` [DockerContainer] is running using the
- * [DockerPsCommandLine.Options] built with the given [OptionsContext] [Init].
- * and prints the [DockerCommandLine]'s execution to [System.out].
- */
-public val DockerContainer.isRunning: () -> Boolean
-    get() = {
-        DockerPsCommandLine {
-            options { exactName by this@isRunning.name }
-        }.execute {
-            noDetails("Checking if ${this@isRunning.formattedAs.input} is running")
-            null
-        }.parseContainers().isNotEmpty()
-    }
-
-/**
- * Lists locally available instances `this` [DockerImage] using the
- * [DockerPsCommandLine.Options] built with the given [OptionsContext] [Init]
- * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
- */
-public val RenderingLogger?.isRunning: DockerContainer.() -> Boolean
-    get() = {
-        val thisContainer = this
-        DockerPsCommandLine {
-            options { exactName by thisContainer.name }
-        }.execute {
-            noDetails("Checking if ${thisContainer.formattedAs.input} is running")
-            null
-        }.parseContainers().isNotEmpty()
     }

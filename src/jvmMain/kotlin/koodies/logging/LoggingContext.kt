@@ -2,11 +2,11 @@ package koodies.logging
 
 import koodies.asString
 import koodies.collections.synchronizedListOf
+import koodies.concurrent.process.IO
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.runtime.Program
 import koodies.takeIfDebugging
 import koodies.text.ANSI.Formatter.Companion.fromScratch
-import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -19,15 +19,11 @@ import koodies.unit.Size
 import koodies.unit.bytes
 import kotlin.reflect.KProperty
 
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
-public val global: LoggingContext = LoggingContext("global") { print(it) }
 
 private typealias LogMessage = Pair<FixedWidthRenderingLogger, String>
 
 // TODO only works because null lets BorderedRenderingLogger delegate to logText
-public class LoggingContext(name: String, processor: (String) -> Unit) : FixedWidthRenderingLogger(name, null) {
+public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthRenderingLogger(name, null) {
 
     private val startup = System.currentTimeMillis()
 
@@ -53,10 +49,13 @@ public class LoggingContext(name: String, processor: (String) -> Unit) : FixedWi
 
     private var muted: Boolean = false
     private val baseMessageStream = Merger<FixedWidthRenderingLogger, String, LogMessage> { logger, message ->
-        messages(Pair(logger, message)).also { mostRecent = logger }
+        messages.record(Pair(logger, message)).also { mostRecent = logger }
     }
 
-    private val defaultOut by baseMessageStream.map<Unit> { (_, message) -> if (!muted) processor(message.ansi.random(320).bg.ansi.inverse) }
+    private val defaultOut by baseMessageStream.map<Unit> { (_, message) ->
+        if (!muted) print(message)
+    }
+
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
         val message = if (closed) {
             val prefix = Semantics.Computation + " "
@@ -69,7 +68,7 @@ public class LoggingContext(name: String, processor: (String) -> Unit) : FixedWi
         defaultOut(message)
     }
 
-    private val exclusiveOut by baseMessageStream.map { (logger, message) -> messages(Pair(logger, message)); processor(message) }
+    private val exclusiveOut by baseMessageStream.map { (logger, message) -> messages.record(Pair(logger, message)); print(message) }
     public fun <R> runExclusive(block: FixedWidthRenderingLogger.() -> R): R =
         koodies.runWrapping({ muted = true }, { muted = false }) {
             BlockRenderingLogger(caption, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(block)
@@ -95,13 +94,20 @@ public class LoggingContext(name: String, processor: (String) -> Unit) : FixedWi
         bytes = messages.use { sumBy { it.second.length }.bytes }
         messages.clear()
     }
+
+    public companion object {
+        public val GLOBAL: LoggingContext = LoggingContext("global") {
+            val message = it.prefixLinesWith(IO.ERASE_MARKER)
+            print(message)
+        }
+    }
 }
 
 public abstract class Recorder<T> {
     private val messages = synchronizedListOf<T>()
     public fun <R> use(transform: List<T>.() -> R): R = messages.toList().transform()
 
-    public operator fun invoke(message: T): T = message.also(messages::add)
+    public fun record(message: T): T = message.also(messages::add)
 
     public fun joinMessages(): String = messages.joinToString(separator = "")
     public fun joinMessages(transform: T.() -> CharSequence): String = messages.joinToString(separator = "") { it.transform() }

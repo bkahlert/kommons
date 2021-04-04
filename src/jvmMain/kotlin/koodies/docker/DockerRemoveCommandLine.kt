@@ -14,6 +14,7 @@ import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.execute
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.errors
 import koodies.docker.DockerRemoveCommandLine.Companion.CommandContext
 import koodies.docker.DockerRemoveCommandLine.Options.Companion.OptionsContext
 import koodies.logging.RenderingLogger
@@ -54,6 +55,7 @@ public open class DockerRemoveCommandLine(
         volumes.forEach { add("--volumes", it) }
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
+
             @DockerCommandLineDsl
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
@@ -97,12 +99,20 @@ public open class DockerRemoveCommandLine(
     }
 }
 
+
+private fun ManagedProcess.parseResponse(): Boolean = errors().let {
+    it.isBlank()
+        || it.contains("no such container", ignoreCase = true)
+        && !it.contains("cannot remove a running container", ignoreCase = true)
+}
+
+
 /**
  * Removes `this` [DockerContainer] from the locally stored containers using the
  * [DockerRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
  * and prints the [DockerCommandLine]'s execution to [System.out].
  */
-public val DockerContainer.remove: (Init<OptionsContext>) -> ManagedProcess
+public val DockerContainer.remove: (Init<OptionsContext>) -> Boolean
     get() = {
         val dockerRemoveCommandLine = DockerRemoveCommandLine {
             options(it)
@@ -111,8 +121,9 @@ public val DockerContainer.remove: (Init<OptionsContext>) -> ManagedProcess
         val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
         dockerRemoveCommandLine.execute {
             summary("Removing$forcefully ${this@remove.formattedAs.input}")
+            ignoreExitValue()
             null
-        }
+        }.parseResponse()
     }
 
 /**
@@ -120,7 +131,7 @@ public val DockerContainer.remove: (Init<OptionsContext>) -> ManagedProcess
  * [DockerRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
  * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
  */
-public val RenderingLogger?.remove: DockerContainer.(Init<OptionsContext>) -> ManagedProcess
+public val RenderingLogger?.remove: DockerContainer.(Init<OptionsContext>) -> Boolean
     get() = {
         val thisContainer: DockerContainer = this
         val dockerRemoveCommandLine = DockerRemoveCommandLine {
@@ -130,6 +141,7 @@ public val RenderingLogger?.remove: DockerContainer.(Init<OptionsContext>) -> Ma
         val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
         dockerRemoveCommandLine.execute {
             summary("Removing$forcefully ${thisContainer.formattedAs.input}")
+            ignoreExitValue()
             null
-        }
+        }.parseResponse()
     }

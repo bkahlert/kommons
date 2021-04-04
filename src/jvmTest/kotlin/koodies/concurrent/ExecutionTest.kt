@@ -9,6 +9,8 @@ import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.logged
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
+import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.logging.expectThatLogged
@@ -35,6 +37,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -81,6 +84,16 @@ class ExecutionTest {
         @Test
         fun InMemoryLogger.`should throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectCatching { CommandLine("exit", "42").execute { Processors.noopProcessor() } }.isFailure().containsDump()
+        }
+
+        @Test
+        fun InMemoryLogger.`should not throw on null exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectCatching { CommandLine("exit", "42").execute { expectedExitValue { null };Processors.noopProcessor() } }.isSuccess()
+        }
+
+        @Test
+        fun InMemoryLogger.`should not throw on ignored exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectCatching { CommandLine("exit", "42").execute { ignoreExitValue();Processors.noopProcessor() } }.isSuccess()
         }
     }
 
@@ -319,25 +332,25 @@ class ExecutionTest {
 
         with(executable) {
             logging("existing logging context") {
-                execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.brightBlue(it) }; border by true };null }
+                execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.brightBlue(it) }; border = SOLID };null }
             }
         }
 
-        logging("existing logging context", bordered = true, decorationFormatter = { Colors.brightMagenta(it) }) {
+        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightMagenta(it) }) {
             logLine { "abc" }
-            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border by true };null }
+            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID };null }
         }
-        logging("existing logging context", bordered = true, decorationFormatter = { Colors.brightBlue(it) }) {
+        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightBlue(it) }) {
             logLine { "abc" }
-            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border by false };null }
+            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED };null }
         }
-        logging("existing logging context", bordered = false, decorationFormatter = { Colors.brightMagenta(it) }) {
+        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightMagenta(it) }) {
             logLine { "abc" }
-            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border by true };null }
+            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID };null }
         }
-        logging("existing logging context", bordered = false, decorationFormatter = { Colors.brightBlue(it) }) {
+        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightBlue(it) }) {
             logLine { "abc" }
-            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border by false };null }
+            executable.execute { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED };null }
         }
 
         expectThatLogged().matchesCurlyPattern("""

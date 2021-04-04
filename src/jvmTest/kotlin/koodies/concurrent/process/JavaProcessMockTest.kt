@@ -383,7 +383,7 @@ class JavaProcessMockTest {
             process.enter("shutdown")
         }
 
-        val exitValue = process.process({ async(NonInteractive(null)) }, process.attach(this)).waitForTermination()
+        val exitValue = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
 
         expectThat(exitValue) {
             isEqualTo(0)

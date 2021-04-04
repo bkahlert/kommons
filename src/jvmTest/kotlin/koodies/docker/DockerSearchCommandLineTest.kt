@@ -10,13 +10,14 @@ import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options
 import koodies.logging.InMemoryLogger
 import koodies.test.BuilderFixture
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
+@Tag("docker")
 @Execution(CONCURRENT)
 class DockerSearchCommandLineTest {
 

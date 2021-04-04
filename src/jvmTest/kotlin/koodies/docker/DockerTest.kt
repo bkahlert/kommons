@@ -26,12 +26,26 @@ class DockerTest {
 
         @Test
         fun `should build instances`() {
-            expectThat(Docker.image { official("hello-world") }).isEqualTo(DOCKER_TEST_IMAGE.image)
+            expectThat(Docker.images { official("hello-world") }).isEqualTo(DOCKER_TEST_IMAGE.image)
         }
 
         @Test
         fun `should provide commands`() {
-            expectCatching { Docker.image.list {} }.isSuccess()
+            expectCatching { Docker.images.list {} }.isSuccess()
+        }
+    }
+
+    @Nested
+    inner class ContainerProperty {
+
+        @Test
+        fun `should build instances`() {
+            expectThat(Docker.containers { "docker-container".sanitized }).isEqualTo(DockerContainer("docker-container"))
+        }
+
+        @Test
+        fun `should provide commands`() {
+            expectCatching { Docker.containers.toList() }.isSuccess()
         }
     }
 

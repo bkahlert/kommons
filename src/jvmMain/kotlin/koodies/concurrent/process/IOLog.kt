@@ -203,4 +203,18 @@ public fun ManagedProcess.output(): String = run {
  * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
  */
 public fun <T> ManagedProcess.output(transform: String.() -> T?): List<T> =
-    output().lines().mapNotNull { it.transform() }
+    output().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }
+
+/**
+ * Convenience method to get the errors of a process.
+ */
+public fun ManagedProcess.errors(): String = run {
+    process({ sync }, Processors.noopProcessor())
+    ioLog.logged<IO.ERR>()
+}
+
+/**
+ * Convenience method to get the errors of a process.
+ */
+public fun <T> ManagedProcess.errors(transform: String.() -> T?): List<T> =
+    errors().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }

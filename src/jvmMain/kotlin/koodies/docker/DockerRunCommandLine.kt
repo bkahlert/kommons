@@ -97,7 +97,7 @@ public open class DockerRunCommandLine private constructor(
     ) : List<String> by (buildList {
         detached.takeIf { it }?.also { add("-d") }
         entryPoint?.also { add("--entrypoint", entryPoint) }
-        name?.also { add("--name", name.sanitized) }
+        name?.also { add("--name", name.name) }
         publish.forEach { p -> add("-p", p) }
         privileged.takeIf { it }?.also { add("--privileged") }
         workingDirectory?.also { add("-w", it.asString()) }
@@ -190,7 +190,7 @@ public open class DockerRunCommandLine private constructor(
                 Options(
                     ::detached.evalOrDefault(false),
                     ::entrypoint.evalOrNull(),
-                    ::name.evalOrNull<String>()?.let { DockerContainer(it) } ?: ::container.evalOrNull<DockerContainer>(),
+                    ::name.evalOrNull<String>()?.let { DockerContainer.from(it) } ?: ::container.evalOrNull<DockerContainer>(),
                     ::publish.evalOrDefault(emptyList()),
                     ::privileged.evalOrDefault(false),
                     ::workingDirectory.evalOrNull(),

@@ -46,12 +46,7 @@ public object Processors {
      * A [Processor] that prints the encountered [IO] using the specified [logger].
      */
     public fun <P : Process> loggingProcessor(logger: RenderingLogger): Processor<P> = { io ->
-        when (io) {
-            is IO.META -> logger.logLine { io }
-            is IO.IN -> logger.logLine { io }
-            is IO.OUT -> logger.logLine { io }
-            is IO.ERR -> logger.logLine { io.formatted }
-        }
+        logger.logLine { io }
     }
 
     /**
@@ -68,7 +63,7 @@ public object Processors {
  *
  * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
-public fun <P : Process> P.attach(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
+public fun <P : Process> P.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
     (this as? ManagedProcess)?.addPostTerminationCallback { ex ->
         if (async) {
             if (ex != null) logger.logResult { Result.failure(ex) }
@@ -97,6 +92,8 @@ public var Process.async: Boolean
     }
 
 public data class ProcessingMode(val synchronicity: Synchronicity, val interactivity: Interactivity) {
+
+    public val isSync: Boolean get() = synchronicity == Sync
 
     public enum class Synchronicity { Sync, Async }
 
@@ -228,7 +225,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
  */
 public fun <P : ManagedProcess> P.processSynchronously(
     interactivity: Interactivity = NonInteractive(null),
-    processor: Processor<P> = attach(),
+    processor: Processor<P> = terminationLoggingProcessor(),
 ): P {
 
     metaStream.subscribe { processor(this, it) }

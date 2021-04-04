@@ -1,11 +1,15 @@
 package koodies.logging
 
 import koodies.concurrent.completableFuture
+import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
+import koodies.logging.LoggingContext.Companion.GLOBAL
 import koodies.runtime.JVM
+import koodies.test.SystemIoExclusive
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.escapeSequencesRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.randomString
@@ -18,6 +22,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
@@ -37,7 +42,7 @@ class LoggingContextTest {
         root = LoggingContext("test") {
             out.write(it.toByteArray())
             // TODO write tiny verbosity extension to get information to control if to log to console as well or not
-//            print(it)
+            print(it)
         }
     }
 
@@ -64,7 +69,7 @@ class LoggingContextTest {
         @Test
         fun `should log with no extras`() {
             root.logLine { "line" }
-            expectThat(root).logged.toStringIsEqualTo("line\n")
+            expectThat(root).logged.toStringIsEqualTo("line")
         }
     }
 
@@ -180,6 +185,26 @@ class LoggingContextTest {
             ╰──╴✔︎
             {{}}
         """.trimIndent())
+    }
+
+    @Nested
+    inner class Global {
+
+        @SystemIoExclusive
+        @Test
+        fun `should prefix log messages with IO erase marker`(capturedOutput: CapturedOutput) {
+            with(GLOBAL) {
+                logLine { "This does not appear in the captured output." }
+                logLine { "But it shows on the actual console.".ansi.italic }
+            }
+            print("This line is captured.\n")
+
+            GLOBAL.expectLogged
+                .contains("This does not appear in the captured output.")
+                .contains("But it shows on the actual console.")
+
+            expectThat(capturedOutput.toString()).isEqualTo("This line is captured.\n")
+        }
     }
 }
 

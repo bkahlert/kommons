@@ -1,13 +1,17 @@
 package koodies.concurrent.process
 
+import koodies.concurrent.process.IO.Companion.ERASE_MARKER
 import koodies.logging.ReturnValue
 import koodies.terminal.AnsiString
 import koodies.text.ANSI.Colors.brightBlue
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Colors.yellow
+import koodies.text.ANSI.Style
 import koodies.text.ANSI.Style.bold
 import koodies.text.ANSI.Style.dim
 import koodies.text.ANSI.Style.italic
+import koodies.text.LineSeparators
+import koodies.text.LineSeparators.lines
 import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.mapLines
@@ -67,7 +71,7 @@ public sealed class IO(
             public infix fun typed(file: Path): FILE = FILE(file)
 
             public infix fun typed(text: CharSequence): TEXT =
-                text.toString().takeIf { it.isNotBlank() }?.let { META.TEXT(it) } ?: error("Non-blank string required.")
+                filter(text).toString().takeIf { it.isNotBlank() }?.let { TEXT(it) } ?: error("Non-blank string required.")
         }
     }
 
@@ -81,7 +85,7 @@ public sealed class IO(
             /**
              * Factory to classify different [Type]s of [IO].
              */
-            public infix fun typed(text: CharSequence): IN = if (text.isEmpty()) EMPTY else IN(text.asAnsiString())
+            public infix fun typed(text: CharSequence): IN = if (text.isEmpty()) EMPTY else IN(filter(text).asAnsiString())
         }
 
         private val lines: List<IN> by lazy { text.lines().map { IN typed it }.toList() }
@@ -102,7 +106,7 @@ public sealed class IO(
             /**
              * Factory to classify different [Type]s of [IO].
              */
-            public infix fun typed(text: CharSequence): OUT = if (text.isEmpty()) EMPTY else OUT(text.asAnsiString())
+            public infix fun typed(text: CharSequence): OUT = if (text.isEmpty()) EMPTY else OUT(filter(text).asAnsiString())
         }
 
         private val lines by lazy { text.lines().map { OUT typed it }.toList() }
@@ -129,7 +133,25 @@ public sealed class IO(
             /**
              * Factory to classify different [Type]s of [IO].
              */
-            public infix fun typed(text: CharSequence): ERR = if (text.isEmpty()) EMPTY else ERR(text.asAnsiString())
+            public infix fun typed(text: CharSequence): ERR = if (text.isEmpty()) EMPTY else ERR(filter(text).asAnsiString())
+        }
+    }
+
+    public companion object {
+        /**
+         * Marker that when appears at the beginning of a text
+         * will be filtered out.
+         */
+        public val ERASE_MARKER: String = Style.hidden("﹗").toString()
+
+        /**
+         * Filters text that starts with [ERASE_MARKER].
+         */
+        private fun filter(text: CharSequence): CharSequence {
+            fun filterText(text: CharSequence) = text.lines().mapNotNull { line ->
+                line.takeUnless<CharSequence> { it.startsWith(ERASE_MARKER) }
+            }.joinToString(LineSeparators.LF)
+            return filterText(text)
         }
     }
 }

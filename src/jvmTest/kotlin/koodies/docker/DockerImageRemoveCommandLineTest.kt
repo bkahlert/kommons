@@ -7,7 +7,7 @@ import koodies.docker.DockerImageRemoveCommandLine.Companion.CommandContext
 import koodies.docker.DockerImageRemoveCommandLine.Options
 import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
 import koodies.logging.InMemoryLogger
-import koodies.terminal.escapeSequencesRemoved
+import koodies.logging.expectThatLogged
 import koodies.test.BuilderFixture
 import koodies.test.SystemIoExclusive
 import org.junit.jupiter.api.BeforeEach
@@ -43,7 +43,7 @@ class DockerImageRemoveCommandLineTest {
         @Test
         fun InMemoryLogger.`should remove image and log`() {
             expectThat(DOCKER_TEST_IMAGE.image.removeImage {}).isA<ManagedProcess>()
-            expectThat(logged).escapeSequencesRemoved.contains("Removing $DOCKER_TEST_IMAGE")
+            expectThatLogged().contains("Removing $DOCKER_TEST_IMAGE")
             expectThat(DOCKER_TEST_IMAGE.isPulled).isFalse()
         }
 
@@ -51,7 +51,7 @@ class DockerImageRemoveCommandLineTest {
         @Test
         fun `should remove image and print`(capturedOutput: CapturedOutput) {
             expectThat(DOCKER_TEST_IMAGE.image.removeImage {}).isA<ManagedProcess>()
-            expectThat(capturedOutput).escapeSequencesRemoved.contains("Removing $DOCKER_TEST_IMAGE")
+            expectThat(capturedOutput).contains("Removing $DOCKER_TEST_IMAGE")
             expectThat(DOCKER_TEST_IMAGE.isPulled).isFalse()
         }
     }

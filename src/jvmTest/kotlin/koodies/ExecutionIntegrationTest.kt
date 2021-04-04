@@ -7,18 +7,24 @@ import koodies.concurrent.process.logged
 import koodies.concurrent.process.output
 import koodies.concurrent.script
 import koodies.debug.CapturedOutput
+import koodies.docker.DockerImage
+import koodies.docker.executeDockerized
 import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.tempDir
+import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
 import koodies.test.SystemIoExclusive
+import koodies.test.UniqueId
 import koodies.test.copyTo
+import koodies.test.withTempDir
 import koodies.text.ANSI
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.pollCatching
@@ -31,8 +37,10 @@ import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
+import strikt.assertions.count
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isGreaterThan
 import strikt.assertions.isTrue
 import kotlin.io.path.exists
 import kotlin.time.milliseconds
@@ -203,6 +211,40 @@ class ExecutionIntegrationTest {
         } check {
             (exists()) { isFalse() }
         }
+    }
+
+    @Test
+    fun `should process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+
+        // boring ...
+        CommandLine("printenv").execute { null } check { logged { lines().count().isGreaterThan(10) } }
+
+        // how about that ...
+        CommandLine("printenv").executeDockerized(DockerImage { official("ubuntu") }, null) check {
+            logged { lines().count().isGreaterThan(2) }
+        }
+
+//        DockerContainer.listContainers
+//        "non-existent-container".toContainerName().isRunning
+//        DockerContainer.
+//        Docker.remove { containers { +"non-existent-container" } }
+        // DOcker remove example
+        /**
+         * koodies.concurrent.process.ProcessExecutionException: Process 32473 terminated with exit code 1. Expected 0.
+
+        ➜ A dump has been written to:
+        - file:///Users/bkahlert/Development/com.bkahlert/koodies/koodies.dump.LQG.log (unchanged)
+        - file:///Users/bkahlert/Development/com.bkahlert/koodies/koodies.dump.LQG.no-ansi.log (ANSI escape/control sequences removed)
+        ➜ The last 4 lines are:
+        Executing docker rm koodies.docker.test-container
+        Error: No such container: koodies.docker.test-container
+        Process 32473 terminated with exit code 1. Expected 0.
+
+         */
+    }
+
+    @Test
+    fun docker() {
     }
 }
 

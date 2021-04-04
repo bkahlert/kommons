@@ -6,7 +6,7 @@ import koodies.docker.DockerImageListCommandLine.Companion.CommandContext
 import koodies.docker.DockerImageListCommandLine.Options
 import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
 import koodies.logging.InMemoryLogger
-import koodies.terminal.escapeSequencesRemoved
+import koodies.logging.expectThatLogged
 import koodies.test.BuilderFixture
 import koodies.test.SystemIoExclusive
 import org.junit.jupiter.api.BeforeEach
@@ -39,54 +39,66 @@ class DockerImageListCommandLineTest {
             DOCKER_TEST_IMAGE.pull()
         }
 
-        @Test
-        fun InMemoryLogger.`should list images and log`() {
-            expectThat(Docker.image.list {}).contains(DOCKER_TEST_IMAGE.image)
-            expectThat(logged).escapeSequencesRemoved.contains("Listing images")
-        }
+        @Nested
+        inner class ListImages {
 
-        @SystemIoExclusive
-        @Test
-        fun `should list images and print`(capturedOutput: CapturedOutput) {
-            expectThat(Docker.image.list {}).contains(DOCKER_TEST_IMAGE.image)
-            expectThat(capturedOutput).escapeSequencesRemoved.contains("Listing images")
-        }
+            @Test
+            fun InMemoryLogger.`should list images and log`() {
+                expectThat(Docker.images.list {}).contains(DOCKER_TEST_IMAGE.image)
+                expectThatLogged().contains("Listing images")
+            }
 
-
-        @Test
-        fun InMemoryLogger.`should list image and log`() {
-            expectThat(DOCKER_TEST_IMAGE.image.listImages {}).contains(DOCKER_TEST_IMAGE.image)
-            expectThat(logged).escapeSequencesRemoved.contains("Listing $DOCKER_TEST_IMAGE images")
-
-            DOCKER_TEST_IMAGE.remove()
-            expectThat(logged).escapeSequencesRemoved.contains("Listing $DOCKER_TEST_IMAGE images")
-        }
-
-        @SystemIoExclusive
-        @Test
-        fun `should list image and print`(capturedOutput: CapturedOutput) {
-            expectThat(DOCKER_TEST_IMAGE.image.listImages {}).contains(DOCKER_TEST_IMAGE.image)
-            expectThat(capturedOutput).escapeSequencesRemoved.contains("Listing $DOCKER_TEST_IMAGE images")
+            @SystemIoExclusive
+            @Test
+            fun `should list images and print`(capturedOutput: CapturedOutput) {
+                expectThat(Docker.images.list {}).contains(DOCKER_TEST_IMAGE.image)
+                expectThat(capturedOutput).contains("Listing images")
+            }
         }
 
 
-        @Test
-        fun InMemoryLogger.`should check if is pulled and log`() {
-            expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isTrue()
-            expectThat(logged).escapeSequencesRemoved.contains("Checking if $DOCKER_TEST_IMAGE is pulled")
+        @Nested
+        inner class ListImage {
 
-            DOCKER_TEST_IMAGE.remove()
-            expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isFalse()
+            @Test
+            fun InMemoryLogger.`should list image and log`() {
+                expectThat(DOCKER_TEST_IMAGE.image.listImages {}).contains(DOCKER_TEST_IMAGE.image)
+                expectThatLogged().contains("Listing $DOCKER_TEST_IMAGE images")
+
+                DOCKER_TEST_IMAGE.remove()
+                expectThatLogged().contains("Listing $DOCKER_TEST_IMAGE images")
+            }
+
+            @SystemIoExclusive
+            @Test
+            fun `should list image and print`(capturedOutput: CapturedOutput) {
+                expectThat(DOCKER_TEST_IMAGE.image.listImages {}).contains(DOCKER_TEST_IMAGE.image)
+                expectThat(capturedOutput).contains("Listing $DOCKER_TEST_IMAGE images")
+            }
         }
 
-        @SystemIoExclusive
-        @Test
-        fun `should check if is pulled and print`(capturedOutput: CapturedOutput) {
-            expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isTrue()
-            expectThat(capturedOutput).escapeSequencesRemoved.contains("Checking if $DOCKER_TEST_IMAGE is pulled")
 
-            DOCKER_TEST_IMAGE.remove()
-            expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isFalse()
+        @Nested
+        inner class IsPulled {
+
+            @Test
+            fun InMemoryLogger.`should check if is pulled and log`() {
+                expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isTrue()
+                expectThatLogged().contains("Checking if $DOCKER_TEST_IMAGE is pulled")
+
+                DOCKER_TEST_IMAGE.remove()
+                expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isFalse()
+            }
+
+            @SystemIoExclusive
+            @Test
+            fun `should check if is pulled and print`(capturedOutput: CapturedOutput) {
+                expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isTrue()
+                expectThat(capturedOutput).contains("Checking if $DOCKER_TEST_IMAGE is pulled")
+
+                DOCKER_TEST_IMAGE.remove()
+                expectThat(DOCKER_TEST_IMAGE.image.isPulled()).isFalse()
+            }
         }
     }
 

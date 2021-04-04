@@ -1,5 +1,3 @@
-@file:Suppress("FINAL_UPPER_BOUND")
-
 package koodies.docker
 
 import koodies.docker.DockerImage.ImageContext

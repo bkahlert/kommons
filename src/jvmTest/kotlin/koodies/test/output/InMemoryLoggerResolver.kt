@@ -6,10 +6,10 @@ import koodies.io.TeeOutputStream
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.InMemoryLogger
+import koodies.logging.LoggingContext.Companion.GLOBAL
 import koodies.logging.RenderingLoggingDsl
 import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
-import koodies.logging.global
 import koodies.logging.runLogging
 import koodies.runtime.Program
 import koodies.test.Verbosity.Companion.isVerbose
@@ -173,10 +173,12 @@ public fun <R> ExtensionContext.logging(
     border: Border = Border.DEFAULT,
     block: FixedWidthRenderingLogger.() -> R,
 ): R =
-    SmartRenderingLogger(caption,
-        { (logger ?: global).logText { it } },
+    SmartRenderingLogger(
+        caption,
+        { (logger ?: GLOBAL).logText { it } },
         contentFormatter,
         decorationFormatter,
         returnValueFormatter,
         border,
-        prefix = logger?.prefix ?: "").runLogging(block)
+        prefix = logger?.prefix ?: GLOBAL.prefix,
+    ).runLogging(block)

@@ -14,8 +14,10 @@ import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.ProcessingMode
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.Processor
-import koodies.concurrent.process.attach
+import koodies.concurrent.process.Processors.loggingProcessor
 import koodies.concurrent.process.process
+import koodies.concurrent.process.terminationLoggingProcessor
+import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.LoggingOptions
 import koodies.logging.LoggingOptions.BlockLoggingOptions
 import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
@@ -24,6 +26,7 @@ import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLog
 import koodies.logging.LoggingOptions.SmartLoggingOptions
 import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
 import koodies.logging.RenderingLogger
+import koodies.logging.runLogging
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
 import koodies.text.Semantics
@@ -46,7 +49,7 @@ public annotation class ExecutionDsl
  * to [execute] the given [CommandLine].
  */
 public class Execution(
-    private val logger: RenderingLogger?,
+    private val parentLogger: RenderingLogger?,
     private val executable: Executable,
 ) {
     private var processor: Processor<ManagedProcess>? = null
@@ -56,10 +59,15 @@ public class Execution(
 
     private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): ManagedProcess =
         with(Options(init)) {
-            loggingOptions.render(logger, executable.summary) {
-                executable.toProcess(expectedExitValue, processTerminationCallback).let {
-                    it.process(processingMode, processor = processor ?: it.attach(this))
+            val processLogger = loggingOptions.newLogger(parentLogger, executable.summary)
+            val managedProcess = executable.toProcess(expectedExitValue, processTerminationCallback)
+            if (processingMode.isSync) {
+                processLogger.runLogging {
+                    managedProcess.process(processingMode, processor = processor ?: loggingProcessor(processLogger))
                 }
+            } else {
+                processLogger.logResult { Result.success(managedProcess) }
+                managedProcess.process(processingMode, processor = processor ?: managedProcess.terminationLoggingProcessor(processLogger))
             }
         }
 
@@ -75,7 +83,8 @@ public class Execution(
         public companion object : BuilderTemplate<OptionsContext, Options>() {
             @ExecutionDsl
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val expectedExitValue: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder()
+                public val expectedExitValue: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder<Int?>() default 0
+                public fun ignoreExitValue(): Unit = expectedExitValue { null }
                 public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> ProcessTerminationCallback, ProcessTerminationCallback?> by builder()
 
                 public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
@@ -118,12 +127,29 @@ public class Execution(
                     }
                 }
 
+                /**
+                 * Filters all IO but errors.
+                 *
+                 * Example output: `ϟ Process 64207 terminated with exit code 255. Expected 0.`
+                 */
+                public fun errorsOnly(caption: String) {
+                    block {
+                        this.caption { "" }
+                        border = NONE
+                        contentFormatter by Formatter {
+                            (it as? IO.ERR)?.let { err -> "$caption: $err" } ?: ""
+                        }
+                        decorationFormatter by Formatter { "" }
+                        returnValueFormatter { { if (it.successful == false) "${Semantics.Error} ${it.format()}" else "" } }
+                    }
+                }
+
                 public val processing: SkippableCapturingBuilderInterface<ProcessingModeContext.() -> ProcessingMode, ProcessingMode?> by ProcessingMode
             }
 
             override fun BuildContext.build(): Options = ::OptionsContext{
                 Options(
-                    ::expectedExitValue.evalOrDefault(0),
+                    ::expectedExitValue.eval(),
                     ::processTerminationCallback.evalOrNull(),
                     ::block.evalOrNull<BlockLoggingOptions>()
                         ?: ::compact.evalOrNull<CompactLoggingOptions>()

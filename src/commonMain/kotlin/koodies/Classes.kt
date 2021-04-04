@@ -39,21 +39,34 @@ public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
         }
     }.toString()
 
+private fun Any?.isOtherThanOrErrorMessage(alreadySeen: Any?): Any? =
+    this?.let {
+        if (this === alreadySeen) listOf(Semantics.Error, "LOOP DETECTED FOR".formattedAs.error, this::class.simpleName.formattedAs.input, "(", hashCode(), ")")
+            .joinToString(" ")
+        else this.also { println("this is not null") }
+    } ?: this
+
+private val brackets = Semantics.Enclosements.block.formatAs { meta }
+private fun StringBuilder.open() = append(brackets.first)
+private fun StringBuilder.close() = append(brackets.second)
+
 /**
  * Returns a string representing `this` class and all specified [properties]
  * in the format `ClassName(name1=value1, name2=value2, ...)`.
  */
-public fun Any.asString(init: Init<MapBuildingContext<Any?, Any?>>): String =
+public fun Any.asString(
+    init: Init<MapBuildingContext<Any?, Any?>>,
+): String =
     StringBuilder(this::class.simpleName ?: "<object>").apply {
         append(" ")
-        append(Semantics.Fragments.block.first.formattedAs.meta)
+        open()
         val content = StringBuilder()
         val flatContent = mutableListOf<String>()
         indenting { indent ->
             indenting { propIndent ->
                 buildMap(init).forEach { (key, value) ->
                     val keyString = key.let { it as? KProperty<*> }?.name ?: key.toString()
-                    val valueString = (value as? Iterable<*>)?.joinToString(Semantics.Delimiter) ?: value.toString()
+                    val valueString = value.toString()
                     content.append("\n$propIndent$keyString = $valueString")
                     flatContent.add("$keyString = $valueString")
                 }
@@ -68,6 +81,6 @@ public fun Any.asString(init: Init<MapBuildingContext<Any?, Any?>>): String =
                 append(content)
                 append("\n$indent")
             }
-            append(Semantics.Fragments.block.second.formattedAs.meta)
+            close()
         }
     }.toString()

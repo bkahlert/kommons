@@ -29,8 +29,6 @@ import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 import kotlin.io.path.extension
 
-private val defaultLog: (String) -> Unit = { println(it) }
-
 /**
  * Logger interface to implement loggers that don't just log
  * but render log messages to provide easier understandable feedback.
@@ -66,7 +64,7 @@ public open class RenderingLogger(
         ReentrantLock().also { open = true }.also { initialized = true }
     }
 
-    protected val log: (String) -> Unit by lazy { log ?: defaultLog }
+    protected val log: (String) -> Unit by lazy { log ?: { print(it) } }
     protected fun logWithLock(message: () -> String): Unit = logLock.withLock { log(message()) }
 
     /**
@@ -233,14 +231,6 @@ public open class RenderingLogger(
 
         private fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
             RETURN_VALUE_FORMATTER(result.toReturnValue())
-
-        private fun RenderingLogger.formatReturnValue(returnValue: ReturnValue): CharSequence {
-            return when (returnValue.successful) {
-                true -> Semantics.OK
-                null -> "${Semantics.Computation} async computation"
-                false -> formatException(" ", returnValue)
-            }
-        }
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
         private fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
