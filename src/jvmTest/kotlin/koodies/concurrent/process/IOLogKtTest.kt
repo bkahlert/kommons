@@ -4,6 +4,7 @@ import koodies.concurrent.process
 import koodies.concurrent.script
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
+import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.copyToDirectory
 import koodies.test.testEach
@@ -35,6 +36,7 @@ class IOLogKtTest {
         private val terminatedProcess
             get() = startedProcess.processSynchronously(processor = {}).also { require(it.successful != null) { "Process not terminated" } }
 
+        @Slow
         @TestFactory
         fun `should get OUT`() = testEach(
             { notStartedProcess },

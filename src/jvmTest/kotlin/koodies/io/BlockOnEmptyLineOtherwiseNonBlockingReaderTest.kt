@@ -4,6 +4,7 @@ import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.Slow
+import koodies.text.LineSeparators.LF
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -49,7 +50,7 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         fun InMemoryLogger.`should read full line if delayed`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                1.5.seconds to "Foo\n",
+                1.5.seconds to "Foo$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo")
@@ -60,7 +61,7 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
                 1.5.seconds to "F",
-                0.5.seconds to "oo\n",
+                0.5.seconds to "oo$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo")
@@ -71,7 +72,7 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
                 1.5.seconds to "Foo\nB",
-                0.5.seconds to "ar\n",
+                0.5.seconds to "ar$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo", "Bar")
@@ -82,7 +83,7 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
                 1.5.seconds to "Foo\nB",
-                1.5.seconds to "ar\n",
+                1.5.seconds to "ar$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo", "B", "Bar")

@@ -4,6 +4,7 @@ import koodies.collections.Dictionary
 import koodies.collections.dictOf
 import koodies.number.ApproximationMode
 import koodies.runtime.asSystemResourceUrl
+import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.Emojis.Emoji
 import koodies.text.Unicode.Emojis.FullHoursDictionary
 import koodies.text.Unicode.Emojis.HalfHoursDictionary
@@ -39,7 +40,7 @@ public fun <T> UnicodeBlockMeta<T>.asTable(): String where T : Unicode.UnicodeBl
     check(isValid) { "Unicode block must have the same number of values ($valueCount) as code points ($codePointCount)." }
     val table = StringBuilder()
     for (codePoint in range) {
-        table.append("$codePoint\t${codePoint.unicodeName}\n")
+        table.append("$codePoint\t${codePoint.unicodeName}$LF")
     }
     "$table"
 }

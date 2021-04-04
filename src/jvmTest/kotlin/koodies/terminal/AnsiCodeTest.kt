@@ -5,6 +5,7 @@ import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiFormats.strikethrough
 import koodies.terminal.AnsiFormats.underline
+import koodies.text.LineSeparators.CRLF
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -19,7 +20,7 @@ class AnsiCodeTest {
 
     val italicCyan = with(ANSI.termColors) { italic + cyan }
     val ansiFormattedString =
-        italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean.")
+        italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean.")
     val expectedLines = listOf(
         "Important: This line has no ANSI escapes.",
         "This one's bold!",
@@ -36,7 +37,7 @@ class AnsiCodeTest {
     @Suppress("SpellCheckingInspection", "LongLine")
     @TestFactory
     fun `stripping ANSI off of`() = listOf(
-        ansiFormattedString to "Important: This line has no ANSI escapes.\nThis one's bold!\r\nLast one is clean.",
+        ansiFormattedString to "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.",
         "[$ESC[0;32m  OK  $ESC[0m] Listening on $ESC[0;1;39mudev Control Socket$ESC[0m." to
             "[  OK  ] Listening on udev Control Socket.",
         "Text" to "Text",

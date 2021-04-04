@@ -2,7 +2,7 @@ package koodies.docker
 
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
-import koodies.logging.LoggingContext.Companion.GLOBAL
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.terminal.AnsiColors.cyan
 import koodies.test.Slow
 import koodies.test.UniqueId
@@ -36,11 +36,11 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
         context.pullRequiredImages()
 
         val container = context.dockerContainer()
-        check(!with(GLOBAL) { container.isRunning }) { "Container $container is already running." }
+        check(!with(BACKGROUND) { container.isRunning }) { "Container $container is already running." }
     }
 
     override fun afterEach(context: ExtensionContext) {
-        with(GLOBAL) {
+        with(BACKGROUND) {
             val container = context.dockerContainer()
             when (context.withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
                 ThanksForCleaningUp -> {
@@ -62,7 +62,7 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
     private fun ExtensionContext.dockerContainer() = DockerContainer(UniqueId(uniqueId).simple)
 
     private fun ExtensionContext.pullRequiredImages() =
-        GLOBAL.logging("Pulling required images") {
+        BACKGROUND.logging("Pulling required images") {
             val missing = requiredDockerImages() subtract Docker.images.list {}
             missing.forEach { it.pull {} }
         }

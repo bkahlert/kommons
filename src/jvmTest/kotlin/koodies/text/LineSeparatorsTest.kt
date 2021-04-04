@@ -47,10 +47,10 @@ class LineSeparatorsTest {
 
         @TestFactory
         fun `should detect multi-lines`() = testEach(
-            "\n",
-            "a\r\nb",
-            "b\ra\nc",
-            "sss\r",
+            LF,
+            "a${CRLF}b",
+            "b${CR}a${LF}c",
+            "sss$CR",
         ) { multiLine ->
             expect { multiLine }.that { isMultiLine() }
             expect { multiLine }.that { not { isSingleLine() } }

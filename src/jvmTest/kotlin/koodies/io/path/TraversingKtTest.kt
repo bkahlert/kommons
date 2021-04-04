@@ -3,6 +3,7 @@ package koodies.io.path
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
 import koodies.unit.Size
 import koodies.unit.bytes
@@ -35,7 +36,7 @@ class TraversingKtTest {
         directoryWithTwoFiles()
 
         val listing = traverse("", { asString() }) { lines, file ->
-            lines + file + "\n"
+            lines + file + LF
         }
 
         expectThat(listing).matchesCurlyPattern("""

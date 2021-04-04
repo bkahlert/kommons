@@ -6,7 +6,7 @@ import koodies.io.TeeOutputStream
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.InMemoryLogger
-import koodies.logging.LoggingContext.Companion.GLOBAL
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLoggingDsl
 import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
@@ -175,10 +175,10 @@ public fun <R> ExtensionContext.logging(
 ): R =
     SmartRenderingLogger(
         caption,
-        { (logger ?: GLOBAL).logText { it } },
+        { (logger ?: BACKGROUND).logText { it } },
         contentFormatter,
         decorationFormatter,
         returnValueFormatter,
         border,
-        prefix = logger?.prefix ?: GLOBAL.prefix,
+        prefix = logger?.prefix ?: BACKGROUND.prefix,
     ).runLogging(block)

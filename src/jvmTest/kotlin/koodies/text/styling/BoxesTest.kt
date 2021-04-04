@@ -3,6 +3,7 @@ package koodies.text.styling
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.output.Columns
+import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.NBSP
 import koodies.text.matchesCurlyPattern
 import koodies.text.repeat
@@ -46,7 +47,7 @@ class BoxesTest {
     @Test
     fun @receiver:Columns(150) InMemoryLogger.`should render single line sphere box`() {
         logLine {
-            Boxes.SINGLE_LINE_SPHERICAL("SINGLE LINE SPHERICAL\n" +
+            Boxes.SINGLE_LINE_SPHERICAL("SINGLE LINE SPHERICAL$LF" +
                 "long ... l ... i ... n ... e")
         }
         val pad = NBSP.repeat(3)
@@ -63,7 +64,7 @@ class BoxesTest {
     @Test
     fun @receiver:Columns(150) InMemoryLogger.`should render wide pillars`() {
         logLine {
-            Boxes.WIDE_PILLARS("WIDE PILLARS\n" +
+            Boxes.WIDE_PILLARS("WIDE PILLARS$LF" +
                 "long ... l ... i ... n ... e")
         }
         val pad = NBSP.repeat(8)
@@ -80,7 +81,7 @@ class BoxesTest {
     @Test
     fun @receiver:Columns(150) InMemoryLogger.`should render pillars`() {
         logLine {
-            Boxes.PILLARS("PILLARS\n" +
+            Boxes.PILLARS("PILLARS$LF" +
                 "long ... l ... i ... n ... e")
         }
         val pad = NBSP.repeat(10)

@@ -1,6 +1,7 @@
 package koodies.text.styling
 
 import koodies.number.isEven
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.Unicode.NBSP
 import koodies.text.mapLines
@@ -76,9 +77,9 @@ public enum class Boxes(private var render: (String) -> String) {
         val fill = ' '.repeat((paddedText.maxLength() - fillCount).coerceAtLeast(0))
 
         StringBuilder().apply {
-            append("${sphericalLeft}$fill${sphericalRight}\n")
+            append("${sphericalLeft}$fill${sphericalRight}$LF")
             paddedText.lineSequence().joinToString(separator = "") {
-                append("${sphericalMiddleLeft}$it${sphericalMiddleRight}\n")
+                append("${sphericalMiddleLeft}$it${sphericalMiddleRight}$LF")
             }
             append("${sphericalLeft}$fill${sphericalRight}")
         }.toString()

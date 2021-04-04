@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -24,7 +25,7 @@ class MapLinesKtTest {
 
     @Test
     fun `should keep trailing line`() {
-        expectThat("AB\nBA\n".mapLines { "X" }).isEqualTo("X\nX\n")
+        expectThat("AB\nBA$LF".mapLines { "X" }).isEqualTo("X\nX$LF")
     }
 
     @Test
@@ -34,12 +35,11 @@ class MapLinesKtTest {
 
     @Test
     fun `should map empty string and keep trailing line`() {
-        expectThat("\n".mapLines { "X" }).isEqualTo("X\n")
+        expectThat(LF.mapLines { "X" }).isEqualTo("X$LF")
     }
 
     @Test
     fun `should map trailing empty line if not ignored`() {
-        expectThat("\n".mapLines(ignoreTrailingSeparator = false) { "X" }).isEqualTo("X\nX")
-
+        expectThat(LF.mapLines(ignoreTrailingSeparator = false) { "X" }).isEqualTo("X\nX")
     }
 }

@@ -11,6 +11,8 @@ import koodies.test.HtmlFile
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.text.LineSeparators.CR
+import koodies.text.LineSeparators.LF
 import koodies.text.fuzzyLevenshteinDistance
 import koodies.text.joinLinesToString
 import koodies.text.repeat
@@ -36,7 +38,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Slow
     @RepeatedTest(3)
     fun InMemoryLogger.`should not block`() {
-        val slowInputStream = slowInputStream(1.seconds, "Hel", "lo\n", "World!\n")
+        val slowInputStream = slowInputStream(1.seconds, "Hel", "lo$LF", "World!$LF")
         val reader = readerFactory(slowInputStream, 5.seconds)
 
         val read: MutableList<String> = mutableListOf()
@@ -67,7 +69,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Slow
     @RepeatedTest(3)
     fun InMemoryLogger.`should read characters that are represented by two chars`() {
-        val slowInputStream = slowInputStream(1.seconds, "𝌪𝌫𝌬𝌭𝌮", "𝌯𝌰\n", "𝌱𝌲𝌳𝌴𝌵\n")
+        val slowInputStream = slowInputStream(1.seconds, "𝌪𝌫𝌬𝌭𝌮", "𝌯𝌰$LF", "𝌱𝌲𝌳𝌴𝌵$LF")
         val reader = readerFactory(slowInputStream, .5.seconds)
 
         val read: MutableList<String> = mutableListOf()
@@ -98,7 +100,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
 
     @Test
     fun InMemoryLogger.`should never have trailing line separators`() {
-        val slowInputStream = slowInputStream(1.seconds, "Hel", "lo\n\n\n\n\n", "World!\n")
+        val slowInputStream = slowInputStream(1.seconds, "Hel", "lo$LF$LF$LF$LF$LF", "World!$LF")
         val reader = readerFactory(slowInputStream, 5.seconds)
 
         val read: MutableList<String> = mutableListOf()
@@ -111,7 +113,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
 
     @Test
     fun InMemoryLogger.`should not repeat line on split CRLF`() {
-        val slowInputStream = slowInputStream(1.seconds, "Hello\r", "\nWorld")
+        val slowInputStream = slowInputStream(1.seconds, "Hello$CR", "${LF}World")
         val reader = readerFactory(slowInputStream, 5.seconds)
 
         val read: MutableList<String> = mutableListOf()

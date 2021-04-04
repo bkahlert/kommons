@@ -4,6 +4,7 @@ import koodies.terminal.AnsiCode
 import koodies.terminal.AnsiString.Companion.asAnsiString
 import koodies.terminal.AnsiStringTest.Companion.ansiString
 import koodies.terminal.AnsiStringTest.Companion.nonAnsiString
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -20,8 +21,8 @@ class LinesOfLengthKtTest {
     inner class NonAnsiString {
         @TestFactory
         fun `should be split with maximum line length`(): List<DynamicNode> = listOf(
-            "sequence" to "$nonAnsiString\n".linesOfLengthSequence(26).toList(),
-            "list" to "$nonAnsiString\n".linesOfLength(26),
+            "sequence" to "$nonAnsiString$LF".linesOfLengthSequence(26).toList(),
+            "list" to "$nonAnsiString$LF".linesOfLength(26),
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
@@ -36,8 +37,8 @@ class LinesOfLengthKtTest {
 
         @TestFactory
         fun `should be split with maximum line length with trailing line removed`(): List<DynamicNode> = listOf(
-            "sequence" to "$nonAnsiString\n".linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
-            "list" to "$nonAnsiString\n".linesOfLength(26, ignoreTrailingSeparator = true),
+            "sequence" to "$nonAnsiString$LF".linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
+            "list" to "$nonAnsiString$LF".linesOfLength(26, ignoreTrailingSeparator = true),
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
@@ -55,8 +56,8 @@ class LinesOfLengthKtTest {
     inner class AnsiString {
         @TestFactory
         fun `should be split with maximum line length`(): List<DynamicNode> = listOf(
-            "sequence" to (ansiString + "\n").linesOfLengthSequence(26).toList(),
-            "list" to (ansiString + "\n").linesOfLength(26),
+            "sequence" to (ansiString + LF).linesOfLengthSequence(26).toList(),
+            "list" to (ansiString + LF).linesOfLength(26),
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
@@ -71,8 +72,8 @@ class LinesOfLengthKtTest {
 
         @TestFactory
         fun `should be split with maximum line length with trailing line removed`(): List<DynamicNode> = listOf(
-            "sequence" to (ansiString + "\n").linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
-            "list" to (ansiString + "\n").linesOfLength(26, ignoreTrailingSeparator = true),
+            "sequence" to (ansiString + LF).linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
+            "list" to (ansiString + LF).linesOfLength(26, ignoreTrailingSeparator = true),
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(

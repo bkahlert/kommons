@@ -16,6 +16,7 @@ import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.toStringContains
 import koodies.test.withTempDir
+import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Document
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
@@ -211,7 +212,7 @@ class ShellScriptTest {
                     """.trimIndent())
                 that(resolve("dir/file.txt")) {
                     exists()
-                    hasContent("test\n")
+                    hasContent("test$LF")
                 }
             }
         }

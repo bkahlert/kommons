@@ -10,6 +10,7 @@ import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -67,7 +68,7 @@ class FileOperationsTest {
             val logger = this@`should append single-line`
             val fixture = file()
             script(logger) { file(fixture).appendLine("line 3") }
-            expectThat(fixture).hasContent("line 1\nline 2\nline 3\n")
+            expectThat(fixture).hasContent("line 1\nline 2\nline 3$LF")
         }
 
         @Test
@@ -75,7 +76,7 @@ class FileOperationsTest {
             val logger = this@`should append multi-line`
             val fixture = file()
             script(logger) { file(fixture).appendLine("line 3\nline 4") }
-            expectThat(fixture).hasContent("line 1\nline 2\nline 3\nline 4\n")
+            expectThat(fixture).hasContent("line 1\nline 2\nline 3\nline 4$LF")
         }
 
         @Test
@@ -83,7 +84,7 @@ class FileOperationsTest {
             val logger = this@`should not append on already existing line separator`
             val fixture = file()
             script(logger) { file(fixture).appendLine("line 3\r") }
-            expectThat(fixture).hasContent("line 1\nline 2\nline 3\n")
+            expectThat(fixture).hasContent("line 1\nline 2\nline 3$LF")
         }
     }
 }

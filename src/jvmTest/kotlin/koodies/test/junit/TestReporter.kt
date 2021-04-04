@@ -28,9 +28,9 @@ private enum class TagDistributionReportRenderer(val render: (TestPlan) -> Strin
     }),
     FULL({ testPlan ->
         with(testPlan.tagDistribution) {
-            "Report: TAG DISTRIBUTION\n\n" + joinToString("\n") { (tags, tests) ->
+            "Report: TAG DISTRIBUTION\n$LF" + joinToString(LF) { (tags, tests) ->
                 (if (tags.isEmpty()) "Tags: NONE" else tags.joinToString(" + ", prefix = "Tags: ", postfix = "") { it.name }) +
-                    tests.joinToString("\n- ", prefix = "\n- ", postfix = "\n") { it.displayName }
+                    tests.joinToString("\n- ", prefix = "\n- ", postfix = LF) { it.displayName }
             }
         }
     });

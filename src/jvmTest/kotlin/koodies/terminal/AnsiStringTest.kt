@@ -12,6 +12,8 @@ import koodies.terminal.AnsiString.Companion.getChar
 import koodies.terminal.AnsiString.Companion.render
 import koodies.terminal.AnsiString.Companion.subSequence
 import koodies.terminal.AnsiString.Companion.tokenize
+import koodies.text.LineSeparators.CRLF
+import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
 import koodies.text.mapLines
 import koodies.text.quoted
@@ -39,9 +41,9 @@ class AnsiStringTest {
 
     companion object {
         val italicCyan = with(ANSI.termColors) { italic + cyan }
-        val nonAnsiString = "Important: This line has no ANSI escapes.\nThis one's bold!\r\nLast one is clean."
+        val nonAnsiString = "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean."
         val ansiString =
-            AnsiString(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean."))
+            AnsiString(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
         val blankAnsiString = AnsiString("$ESC[3;36m$ESC[4m$ESC[24m$ESC[9m$ESC[29m$ESC[23;39m")
     }
 
@@ -60,7 +62,7 @@ class AnsiStringTest {
     @Nested
     inner class Tokenization {
         val string: String =
-            italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean.")
+            italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean.")
 
         @Test
         fun `should tokenize string`() {
@@ -78,7 +80,7 @@ class AnsiStringTest {
                 "$ESC[1m" to 0,
                 "bold!" to 5,
                 "$ESC[22m" to 0,
-                "\r\nLast one is clean." to 20,
+                "${CRLF}Last one is clean." to 20,
                 "$ESC[23;39m" to 0)
             expectThat(tokens.sumBy { it.second }).isEqualTo(78)
             expectThat(string.length).isEqualTo(120)
@@ -114,8 +116,8 @@ class AnsiStringTest {
             val tokens = string.tokenize()
             val subject: String = tokens.render(ansi = false)
             val expected: String =
-                "Important: This line has no ANSI escapes.\n" +
-                    "This one's bold!\r\n" +
+                "Important: This line has no ANSI escapes.$LF" +
+                    "This one's bold!$CRLF" +
                     "Last one is clean."
             expectThat(subject).isEqualTo(expected)
         }
@@ -284,22 +286,22 @@ class AnsiStringTest {
     inner class ToString {
         @Test
         fun `should be string-wise comparable`() {
-            expectThat(ansiString).toStringIsEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean."))
+            expectThat(ansiString).toStringIsEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
         }
 
         @Test
         fun `should create string with escape sequences`() {
-            expectThat(ansiString.toString(removeEscapeSequences = false)).isEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean."))
+            expectThat(ansiString.toString(removeEscapeSequences = false)).isEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
         }
 
         @Test
         fun `should create string without escape sequences`() {
-            expectThat(ansiString.toString(removeEscapeSequences = true)).isEqualTo("Important: This line has no ANSI escapes.\nThis one's bold!\r\nLast one is clean.")
+            expectThat(ansiString.toString(removeEscapeSequences = true)).isEqualTo("Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.")
         }
 
         @Test
         fun `should create string with escape sequences by default`() {
-            expectThat(ansiString.toString()).isEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean."))
+            expectThat(ansiString.toString()).isEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
         }
     }
 
@@ -415,7 +417,7 @@ class AnsiStringTest {
             expectThat(nonAnsiString.chunkedSequence(26).toList()).containsExactly(
                 "Important: This line has n",
                 "o ANSI escapes.\nThis one's",
-                " bold!\r\nLast one is clean.",
+                " bold!${CRLF}Last one is clean.",
             )
         }
 
@@ -424,7 +426,7 @@ class AnsiStringTest {
             expectThat(ansiString.chunkedSequence(26).toList()).containsExactly(
                 "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mn$ESC[23;39;29m".asAnsiString(),
                 "$ESC[3;36;9mo$ESC[29m ANSI escapes.\nThis one's$ESC[23;39m".asAnsiString(),
-                "$ESC[3;36m $ESC[1mbold!$ESC[22m\r\nLast one is clean.$ESC[23;39m".asAnsiString(),
+                "$ESC[3;36m $ESC[1mbold!$ESC[22m${CRLF}Last one is clean.$ESC[23;39m".asAnsiString(),
             )
         }
     }
@@ -434,14 +436,14 @@ class AnsiStringTest {
         @Test
         fun `should create string from existing plus added string`() {
             expectThat(nonAnsiString + "plus").isEqualTo(
-                "Important: This line has no ANSI escapes.\nThis one's bold!\r\nLast one is clean.plus",
+                "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.plus",
             )
         }
 
         @Test
         fun `should create ANSI string from existing plus added string`() {
             expectThat(ansiString + "plus").isEqualTo(
-                "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.\nThis one's $ESC[1mbold!$ESC[22m\r\nLast one is clean.$ESC[23;39mplus".asAnsiString(),
+                "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.\nThis one's $ESC[1mbold!$ESC[22m${CRLF}Last one is clean.$ESC[23;39mplus".asAnsiString(),
             )
         }
     }

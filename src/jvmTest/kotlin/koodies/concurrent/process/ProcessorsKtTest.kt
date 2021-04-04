@@ -8,6 +8,7 @@ import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.UserInput.enter
 import koodies.test.toStringIsEqualTo
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -42,7 +43,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("cat"), null, null).process(ProcessingMode(Sync, NonInteractive("Hello Cat!\n".byteInputStream()))) { io -> log.add(io) }
+                process(CommandLine("cat"), null, null).process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                 expectThat(log)
                     .with({ size }) { isEqualTo(3) }
                     .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -118,7 +119,7 @@ class ProcessorsKtTest {
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
                     process(CommandLine("cat"), null, null)
-                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!\n".byteInputStream()))) { io -> log.add(io) }
+                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                         .waitForTermination()
                     expectThat(log)
                         .with({ size }) { isEqualTo(3) }
@@ -142,7 +143,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        process(CommandLine("cat"), null, null).process(ProcessingMode(Async, NonInteractive("Hello Cat!\n".byteInputStream()))) { }
+                        process(CommandLine("cat"), null, null).process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
                     expectThat(timePassed).isLessThan(250.milliseconds)
                 }

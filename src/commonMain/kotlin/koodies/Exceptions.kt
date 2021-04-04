@@ -1,7 +1,9 @@
 package koodies
 
+import koodies.text.LineSeparators.LF
+
 private fun <T : Throwable> Array<out String>.letMessage(init: (String) -> T): T? =
-    if (isNotEmpty()) init(joinToString("\n")) else null
+    if (isNotEmpty()) init(joinToString(LF)) else null
 
 /**
  * Collection of [Throwable] factories.

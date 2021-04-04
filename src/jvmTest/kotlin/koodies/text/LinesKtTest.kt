@@ -3,6 +3,7 @@ package koodies.text
 import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiFormats.italic
 import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -33,7 +34,7 @@ class LinesKtTest {
 
         @Test
         fun `should return max length on trailing line`() {
-            expectThat("\n".maxLength()).isEqualTo(0)
+            expectThat(LF.maxLength()).isEqualTo(0)
         }
 
         @Test

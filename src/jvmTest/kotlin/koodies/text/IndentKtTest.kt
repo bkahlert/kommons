@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -32,6 +33,6 @@ class IndentKtTest {
 
     @Test
     fun `should return indentation of first line`() {
-        expectThat("   3\n  2\n    4\n".indent).isEqualTo("   ")
+        expectThat("   3\n  2\n    4$LF".indent).isEqualTo("   ")
     }
 }

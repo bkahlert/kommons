@@ -8,6 +8,7 @@ import koodies.terminal.escapeSequencesRemoved
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.LineSeparators.LF
 import koodies.text.containsEscapeSequences
 import koodies.time.poll
 import koodies.time.sleep
@@ -126,9 +127,9 @@ class IOLogTest {
 
 fun createIOLog(): IOLog = IOLog().apply {
     this + IO.META.STARTING(CommandLine("command", "arg"))
-    out + "processing\n".toByteArray()
-    out + "awaiting input: \n".toByteArray()
-    input + "cancel\n".toByteArray()
-    err + "invalid input\n".toByteArray()
-    err + "an abnormal error has occurred (errno 99)\n".toByteArray()
+    out + "processing$LF".toByteArray()
+    out + "awaiting input: $LF".toByteArray()
+    input + "cancel$LF".toByteArray()
+    err + "invalid input$LF".toByteArray()
+    err + "an abnormal error has occurred (errno 99)$LF".toByteArray()
 }

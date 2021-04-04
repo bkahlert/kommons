@@ -17,6 +17,7 @@ import koodies.nio.NonBlockingReader
 import koodies.test.Slow
 import koodies.test.assertTimeoutPreemptively
 import koodies.test.testEach
+import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
 import koodies.time.sleep
 import koodies.tracing.subTrace
@@ -51,19 +52,19 @@ class JavaProcessMockTest {
 
         @Test
         fun InMemoryLogger.`should provide input correctly`() {
-            val slowInputStream = slowInputStream(1.seconds, "Hello\n", "World!\n")
+            val slowInputStream = slowInputStream(1.seconds, "Hello$LF", "World!$LF")
 
             assertTimeoutPreemptively(10.seconds) {
                 val read = String(slowInputStream.readBytes())
 
-                expectThat(read).isEqualTo("Hello\nWorld!\n")
+                expectThat(read).isEqualTo("Hello\nWorld!$LF")
             }
         }
 
         @Test
         fun InMemoryLogger.`should provide input slowly`() {
             val delay = 1.seconds
-            val slowInputStream = slowInputStream(delay, "Hello\n", "World!\n")
+            val slowInputStream = slowInputStream(delay, "Hello$LF", "World!$LF")
 
             assertTimeoutPreemptively(delay * 5) {
                 val duration = measureTime {
@@ -84,7 +85,7 @@ class JavaProcessMockTest {
                 0.seconds to "Password? ",
                 prompt(),
                 0.seconds to "\r",
-                0.seconds to "Correct!\n",
+                0.seconds to "Correct!$LF",
                 byteArrayOutputStream = byteArrayOutputStream,
                 echoInput = echoOption,
             )
@@ -106,8 +107,8 @@ class JavaProcessMockTest {
                 }
                 Thread.sleep(10)
             }
-            if (echoOption) expect { output }.that { isEqualToByteWise("Password? $input\r\rCorrect!\n") }
-            else expect { output }.that { isEqualToByteWise("Password? \rCorrect!\n") }
+            if (echoOption) expect { output }.that { isEqualToByteWise("Password? $input\r\rCorrect!$LF") }
+            else expect { output }.that { isEqualToByteWise("Password? \rCorrect!$LF") }
         }
 
 
@@ -280,11 +281,11 @@ class JavaProcessMockTest {
     @Test
     fun InMemoryLogger.`should terminate if all output is manually read`() {
         val p = withIndividuallySlowInput(
-            500.milliseconds to "Welcome!\n",
+            500.milliseconds to "Welcome!$LF",
             500.milliseconds to "Password? ",
             prompt(),
             500.milliseconds to "\r",
-            500.milliseconds to "Correct!\n",
+            500.milliseconds to "Correct!$LF",
             baseDelayPerInput = 1.seconds,
             echoInput = true,
             processExit = { immediateSuccess() },
@@ -309,11 +310,11 @@ class JavaProcessMockTest {
     @Test
     fun InMemoryLogger.`should terminate if all output is consumed`() {
         val p = withIndividuallySlowInput(
-            500.milliseconds to "Welcome!\n",
+            500.milliseconds to "Welcome!$LF",
             500.milliseconds to "Password? ",
             prompt(),
             500.milliseconds to "\r",
-            500.milliseconds to "Correct!\n",
+            500.milliseconds to "Correct!$LF",
             baseDelayPerInput = 1.seconds,
             echoInput = true,
             processExit = { immediateSuccess() },
@@ -345,17 +346,17 @@ class JavaProcessMockTest {
         )
 
         p.outputStream.write("Test1234\r".toByteArray())
-        p.outputStream.write("Just in case\n".toByteArray())
+        p.outputStream.write("Just in case$LF".toByteArray())
         p.outputStream.flush()
 
         (p.inputStream as SlowInputStream).available()
-        expectThat(p.received).isEqualTo("Test1234\rJust in case\n")
+        expectThat(p.received).isEqualTo("Test1234\rJust in case$LF")
     }
 
     @Test
     fun InMemoryLogger.`should read zero bytes without exception and delay onexit`() {
         val process = withIndividuallySlowInput(
-            0.milliseconds to "[  OK  ] Started Update UTMP about System Runlevel Changes.\n",
+            0.milliseconds to "[  OK  ] Started Update UTMP about System Runlevel Changes.$LF",
             prompt(),
             100.milliseconds to "Shutting down",
             baseDelayPerInput = 100.milliseconds,

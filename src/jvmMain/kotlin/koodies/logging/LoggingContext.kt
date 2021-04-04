@@ -96,7 +96,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
     }
 
     public companion object {
-        public val GLOBAL: LoggingContext = LoggingContext("global") {
+        public val BACKGROUND: LoggingContext = LoggingContext("background") {
             val message = it.prefixLinesWith(IO.ERASE_MARKER)
             print(message)
         }

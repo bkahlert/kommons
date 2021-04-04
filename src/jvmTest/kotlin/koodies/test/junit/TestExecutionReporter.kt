@@ -1,11 +1,14 @@
 package koodies.test.junit
 
-import koodies.terminal.ANSI
 import koodies.test.Debug
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
 import koodies.test.withAnnotation
 import koodies.test.withoutAnnotation
+import koodies.text.ANSI.Formatter.Companion.fromScratch
+import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.formattedAs
 import koodies.text.styling.draw
 import koodies.text.styling.wrapWithBorder
 import org.junit.jupiter.api.extension.TestWatcher
@@ -45,30 +48,30 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
                 val quantity =
                     if (nonConcurrentTestClasses.isEmpty()) "All" else "${allTestClasses.size - nonConcurrentTestClasses.size}/${allTestClasses.size}"
                 listOf(
-                    ANSI.termColors.bold("Done. All tests passed within $timeNeeded"),
-                    "$quantity test containers running in $CONCURRENT mode."
+                    "Done. All tests passed within ${timeNeeded.formattedAs.debug}.".ansi.bold,
+                    "$quantity test containers run concurrently."
                 )
-                    .joinToString("\n")
-                    .wrapWithBorder(padding = 2, margin = 1, ansiCode = ANSI.termColors.green)
+                    .joinToString(LF)
+                    .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { green })
                     .also { println(it) }
             } else {
                 listOf(
-                    ANSI.termColors.bold("Done. All tests passed within $timeNeeded"),
+                    "Done. All tests passed within ${timeNeeded.formattedAs.warning}".ansi.bold,
                     "",
-                    ANSI.termColors.bold("Non-concurrent test classes: ") + format(nonConcurrentTestClasses),
+                    "Non-concurrent test classes: ".ansi.bold + format(nonConcurrentTestClasses),
                     "",
-                    ANSI.termColors.bold("Missing @Execution annotation: ") + format(notAnnotatedTestClasses),
+                    "Missing @Execution annotation: ".ansi.bold + format(notAnnotatedTestClasses),
                 )
-                    .joinToString("\n")
-                    .draw.border.double(padding = 2, margin = 1, ansiCode = ANSI.termColors.yellow)
+                    .joinToString(LF)
+                    .draw.border.double(padding = 2, margin = 1, fromScratch { yellow })
                     .also { println(it) }
             }
         } else {
             listOf(
-                ANSI.termColors.bold("Done. BUT $failedTestsCount tests failed!"),
+                "Done. BUT $failedTestsCount tests failed!".ansi.bold,
             )
-                .joinToString("\n")
-                .draw.border.spikedOutward(padding = 2, margin = 1, ansiCode = ANSI.termColors.red)
+                .joinToString(LF)
+                .draw.border.spikedOutward(padding = 2, margin = 1, fromScratch { red })
                 .also { println(it) }
         }
     }
@@ -77,19 +80,19 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
         val debugAnnotatedMethods = testPlan.allTestJavaMethods.withAnnotation<Debug> { debug -> debug.includeInReport }
         if (debugAnnotatedMethods.isNotEmpty()) {
             listOf(
-                ANSI.termColors.bold("Attention!"),
+                "Attention!".formattedAs.warning,
                 "You only see the results of the",
                 "${debugAnnotatedMethods.size} @${Debug::class.simpleName} annotated tests.",
-                ANSI.termColors.bold("Don't forget to remove them."),
+                "Don't forget to remove them.".ansi.bold,
             )
-                .joinToString("\n")
-                .wrapWithBorder(padding = 2, margin = 1, ansiCode = ANSI.termColors.yellow)
+                .joinToString(LF)
+                .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { yellow })
                 .also { println(it) }
         }
     }
 
     private fun format(nonConcurrentTestClasses: Collection<AnnotatedElement>): String =
-        if (nonConcurrentTestClasses.isEmpty()) "—" else nonConcurrentTestClasses.joinToString("\n",
-            prefix = "\n",
+        if (nonConcurrentTestClasses.isEmpty()) "—" else nonConcurrentTestClasses.joinToString(LF,
+            prefix = LF,
             limit = 10) { "$it" }
 }

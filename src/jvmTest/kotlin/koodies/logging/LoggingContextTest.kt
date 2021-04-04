@@ -1,9 +1,10 @@
 package koodies.logging
 
 import koodies.concurrent.completableFuture
+import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
-import koodies.logging.LoggingContext.Companion.GLOBAL
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.runtime.JVM
 import koodies.test.SystemIoExclusive
 import koodies.test.toStringContains
@@ -11,7 +12,9 @@ import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
+import koodies.text.prefixLinesWith
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.AfterEach
@@ -42,7 +45,7 @@ class LoggingContextTest {
         root = LoggingContext("test") {
             out.write(it.toByteArray())
             // TODO write tiny verbosity extension to get information to control if to log to console as well or not
-            print(it)
+            print(it.prefixLinesWith(IO.ERASE_MARKER))
         }
     }
 
@@ -193,17 +196,17 @@ class LoggingContextTest {
         @SystemIoExclusive
         @Test
         fun `should prefix log messages with IO erase marker`(capturedOutput: CapturedOutput) {
-            with(GLOBAL) {
+            with(BACKGROUND) {
                 logLine { "This does not appear in the captured output." }
                 logLine { "But it shows on the actual console.".ansi.italic }
             }
-            print("This line is captured.\n")
+            print("This line is captured.$LF")
 
-            GLOBAL.expectLogged
+            BACKGROUND.expectLogged
                 .contains("This does not appear in the captured output.")
                 .contains("But it shows on the actual console.")
 
-            expectThat(capturedOutput.toString()).isEqualTo("This line is captured.\n")
+            expectThat(capturedOutput.toString()).isEqualTo("This line is captured.$LF")
         }
     }
 }

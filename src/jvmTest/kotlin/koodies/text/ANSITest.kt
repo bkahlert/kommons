@@ -6,6 +6,7 @@ import koodies.text.ANSI.Style.strikethrough
 import koodies.text.ANSI.Style.underline
 import koodies.text.ANSI.containsEscapeSequences
 import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -36,15 +37,15 @@ class ANSITest {
 
         @TestFactory
         fun `should remove escape sequences`() = testEach(
-            italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}\r\nLast one is clean.") to
-                "Important: This line has no ANSI escapes.\nThis one's bold!\r\nLast one is clean.",
+            italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean.") to
+                "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.",
 
             "[$ESC[0;32m  OK  $ESC[0m] Listening on $ESC[0;1;39mudev Control Socket$ESC[0m." to
                 "[  OK  ] Listening on udev Control Socket.",
 
             "Text" to "Text",
             "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___" to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___",
-            
+
             ) { (ansi, plain) ->
             with { ansi.escapeSequencesRemoved }.then {
                 expect { this }.that { isEqualTo(plain) }

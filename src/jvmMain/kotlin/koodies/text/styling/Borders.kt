@@ -1,7 +1,8 @@
 package koodies.text.styling
 
-import com.github.ajalt.mordant.AnsiCode
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.Formatter
+import koodies.text.LineSeparators.LF
 import koodies.text.asCodePointSequence
 import koodies.text.graphemeClusterCount
 import koodies.text.joinLinesToString
@@ -217,45 +218,45 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
 
 
 /**
- * Centers this [CharSequence] and the specified [padding] and puts a [ansiCode] styled [border] (see [Borders] for predefined one) around it.
+ * Centers this [CharSequence] and the specified [padding] and puts a [formatter] styled [border] (see [Borders] for predefined one) around it.
  * Furthermore a [margin] can be set to distance the bordered text.
  */
 public fun <T : CharSequence> T.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
-    ansiCode: AnsiCode = AnsiCode(emptyList()),
+    formatter: Formatter = Formatter.PassThrough,
 ): String {
     val block = this.lines().center(border[5])
     if (block.isEmpty()) return this.toString()
     val width = block[0].removeEscapeSequences().length
     val height = block.size
     val bordered = "" +
-        ansiCode("${border[0]}${border[1].repeat(width + padding * 2)}${border[2]}") + "\n" +
+        formatter("${border[0]}${border[1].repeat(width + padding * 2)}${border[2]}") + LF +
         (0 until padding / 2).joinToString("") {
-            ansiCode("${border[4]}${border[5].repeat(width + padding * 2)}${border[6]}") + "\n"
+            formatter("${border[4]}${border[5].repeat(width + padding * 2)}${border[6]}").toString() + LF
         } +
         (0 until height).joinToString("") { y ->
-            ansiCode("${border[4]}${border[5].repeat(padding)}") + block[y] + ansiCode("${border[5].repeat(padding)}${border[6]}") + "\n"
+            formatter("${border[4]}${border[5].repeat(padding)}").toString() + block[y] + formatter("${border[5].repeat(padding)}${border[6]}") + LF
         } +
         (0 until padding / 2).joinToString("") {
-            ansiCode("${border[4]}${border[5].repeat(width + padding * 2)}${border[6]}") + "\n"
+            formatter("${border[4]}${border[5].repeat(width + padding * 2)}${border[6]}").toString() + LF
         } +
-        ansiCode("${border[8]}${border[9].repeat(width + padding * 2)}${border[10]}")
+        formatter("${border[8]}${border[9].repeat(width + padding * 2)}${border[10]}")
     return if (margin == 0) bordered
-    else bordered.wrapWithBorder(border[5].repeat(11), padding = margin - 1, margin = 0, ansiCode = ansiCode)
+    else bordered.wrapWithBorder(border[5].repeat(11), padding = margin - 1, margin = 0, formatter = formatter)
 }
 
 /**
- * Centers this list of [CharSequence] and the specified [padding] and puts a [ansiCode] styled [border] (see [Borders] for predefined one) around it.
+ * Centers this list of [CharSequence] and the specified [padding] and puts a [formatter] styled [border] (see [Borders] for predefined one) around it.
  * Furthermore a [margin] can be set to distance the bordered text.
  */
 public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
-    ansiCode: AnsiCode = AnsiCode(emptyList()),
-): String = joinLinesToString().wrapWithBorder(border, padding, margin, ansiCode)
+    formatter: Formatter = Formatter.PassThrough,
+): String = joinLinesToString().wrapWithBorder(border, padding, margin, formatter)
 
 public class Draw(public val text: CharSequence) {
     public val border: Border get() = Border()
@@ -268,8 +269,8 @@ public class Draw(public val text: CharSequence) {
          *  └────────┘
          * ```
          */
-        public fun light(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(Light, padding, margin, ansiCode)
+        public fun light(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(Light, padding, margin, formatter)
 
         /**
          * ```
@@ -278,8 +279,8 @@ public class Draw(public val text: CharSequence) {
          *  ┗━━━━━━━━┛
          * ```
          */
-        public fun heavy(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(Heavy, padding, margin, ansiCode)
+        public fun heavy(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(Heavy, padding, margin, formatter)
 
         /**
          * ```
@@ -288,8 +289,8 @@ public class Draw(public val text: CharSequence) {
          *  ██████████
          * ```
          */
-        public fun block(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(Block, padding, margin, ansiCode)
+        public fun block(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(Block, padding, margin, formatter)
 
         /**
          * ```
@@ -298,8 +299,8 @@ public class Draw(public val text: CharSequence) {
          *  ╚════════╝
          * ```
          */
-        public fun double(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(Double, padding, margin, ansiCode)
+        public fun double(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(Double, padding, margin, formatter)
 
         /**
          * ```
@@ -308,8 +309,8 @@ public class Draw(public val text: CharSequence) {
          *  ╰────────╯
          * ```
          */
-        public fun rounded(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(Rounded, padding, margin, ansiCode)
+        public fun rounded(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(Rounded, padding, margin, formatter)
 
         /**
          * ```
@@ -318,8 +319,8 @@ public class Draw(public val text: CharSequence) {
          *  └┈┄┄┄┄┄┄┄┘
          * ```
          */
-        public fun lightDotted(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(LightDotted, padding, margin, ansiCode)
+        public fun lightDotted(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(LightDotted, padding, margin, formatter)
 
         /**
          * ```
@@ -328,8 +329,8 @@ public class Draw(public val text: CharSequence) {
          *  ┗╍╍╍╍╍╍╍╍┛
          * ```
          */
-        public fun heavyDotted(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(HeavyDotted, padding, margin, ansiCode)
+        public fun heavyDotted(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(HeavyDotted, padding, margin, formatter)
 
         /**
          * ```
@@ -338,8 +339,8 @@ public class Draw(public val text: CharSequence) {
          *   ▽▽▽▽▽▽▽▽
          * ```
          */
-        public fun spikedOutward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(SpikedOutward, padding, margin, ansiCode)
+        public fun spikedOutward(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(SpikedOutward, padding, margin, formatter)
 
 
         /**
@@ -349,8 +350,8 @@ public class Draw(public val text: CharSequence) {
          *  ◺△△△△△△△△◿
          * ```
          */
-        public fun spikedInward(padding: Int = 0, margin: Int = 0, ansiCode: AnsiCode = AnsiCode(emptyList())): String =
-            text.wrapWithBorder(SpikedInward, padding, margin, ansiCode)
+        public fun spikedInward(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+            text.wrapWithBorder(SpikedInward, padding, margin, formatter)
     }
 }
 

@@ -9,6 +9,7 @@ import koodies.io.file.quoted
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.regex.countMatches
 import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 import koodies.text.quoted
 import koodies.text.truncate
 import koodies.time.Now
@@ -116,9 +117,9 @@ fun <T : Path> Assertion.Builder<T>.hasEqualContent(other: Path) =
         when (actualContent.contentEquals(expectedContent)) {
             true -> pass()
             else -> fail(
-                "was ${actualContent.size} instead of ${expectedContent.size} bytes.\n" +
-                    "Actual content:\n" + String(actualContent).replaceNonPrintableCharacters() + "\n" +
-                    "Expected content:\n" + String(expectedContent).replaceNonPrintableCharacters() + "\n")
+                "was ${actualContent.size} instead of ${expectedContent.size} bytes.$LF" +
+                    "Actual content:$LF" + String(actualContent).replaceNonPrintableCharacters() + LF +
+                    "Expected content:$LF" + String(expectedContent).replaceNonPrintableCharacters() + LF)
         }
     }
 
@@ -129,9 +130,9 @@ fun <T : Path> Assertion.Builder<Pair<T, Path>>.haveEqualContent() =
         when (firstContent.contentEquals(lastContent)) {
             true -> pass()
             else -> fail(
-                "was ${firstContent.size} instead of ${lastContent.size} bytes.\n" +
-                    "Content #1:\n" + String(firstContent).replaceNonPrintableCharacters() + "\n" +
-                    "Content #2:\n" + String(lastContent).replaceNonPrintableCharacters() + "\n")
+                "was ${firstContent.size} instead of ${lastContent.size} bytes.$LF" +
+                    "Content #1:$LF" + String(firstContent).replaceNonPrintableCharacters() + LF +
+                    "Content #2:$LF" + String(lastContent).replaceNonPrintableCharacters() + LF)
         }
     }
 

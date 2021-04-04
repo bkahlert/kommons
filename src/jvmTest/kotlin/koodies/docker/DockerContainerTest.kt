@@ -4,7 +4,7 @@ import koodies.docker.DockerContainer.Status
 import koodies.docker.DockerContainer.Status.Existent.Running
 import koodies.docker.DockerContainer.Status.NotExistent
 import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_CONTAINER
-import koodies.logging.LoggingContext.Companion.GLOBAL
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
 import koodies.test.string
 import koodies.test.testEach
@@ -156,14 +156,14 @@ class DockerContainerTest {
         fun `should get status of non-existent`() {
             val container = DockerContainer(randomString())
             expectThat(container).hasStatus<NotExistent>()
-            GLOBAL.expectLogged.contains("Checking status of $container")
+            BACKGROUND.expectLogged.contains("Checking status of $container")
         }
 
         @Test
         fun `should get status`() {
             use(DOCKER_TEST_CONTAINER) {
                 expectThat(it.container).hasStatus<Running> { get { details }.isNotEmpty() }
-                GLOBAL.expectLogged.contains("Checking status of ${it.container}")
+                BACKGROUND.expectLogged.contains("Checking status of ${it.container}")
             }
         }
     }
@@ -175,7 +175,7 @@ class DockerContainerTest {
         fun `should list containers and log`() {
             val containers = (1..3).map { DOCKER_TEST_CONTAINER.start(true).container }
             expectThat(DockerContainer.toList()).contains(containers)
-            GLOBAL.expectLogged.contains("Listing all containers")
+            BACKGROUND.expectLogged.contains("Listing all containers")
         }
     }
 

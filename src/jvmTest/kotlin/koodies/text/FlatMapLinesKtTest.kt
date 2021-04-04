@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -24,7 +25,7 @@ internal class FlatMapLinesKtTest {
 
     @Test
     fun `should keep trailing line`() {
-        expectThat("AB\nBA\n".flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY\n")
+        expectThat("AB\nBA$LF".flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY$LF")
     }
 
     @Test
@@ -34,13 +35,12 @@ internal class FlatMapLinesKtTest {
 
     @Test
     fun `should map empty string and keep trailing line`() {
-        expectThat("\n".flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY\n")
+        expectThat(LF.flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY$LF")
     }
 
     @Test
     fun `should map trailing empty line if not ignored`() {
-        expectThat("\n".flatMapLines(ignoreTrailingSeparator = false) { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY")
-
+        expectThat(LF.flatMapLines(ignoreTrailingSeparator = false) { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY")
     }
 }
 

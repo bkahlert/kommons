@@ -3,16 +3,17 @@ package koodies.terminal
 import com.github.ajalt.mordant.Ansi16ColorCode
 import com.github.ajalt.mordant.Ansi256ColorCode
 import com.github.ajalt.mordant.TermColors
+import koodies.text.LineSeparators.LF
 
 fun demo() = TermColors(TermColors.Level.TRUECOLOR).run {
     val title = (bold + underline)
 
-    println(title("text styles\n"))
+    println(title("text styles$LF"))
     println("${bold("bold")} ${dim("dim")} ${italic("italic")} ${underline("underline")} " +
         "${inverse("inverse")} ${strikethrough("strikethrough")}")
 
 
-    println(title("\n\n16 color mode\n"))
+    println(title("\n\n16 color mode$LF"))
     val colors16 = ((30..37) + (90..97)).map { Ansi16ColorCode(it) }
     for (fg in colors16) {
         for (bg in colors16) {
@@ -22,7 +23,7 @@ fun demo() = TermColors(TermColors.Level.TRUECOLOR).run {
     }
 
 
-    println(title("\n\n256 color mode\n"))
+    println(title("\n\n256 color mode$LF"))
     for (row in (16..46 step 6) + (124..154 step 6)) {
         for (space in arrayOf(true, false, true)) {
             for (block in (row..(row + 72) step 36)) {
@@ -39,14 +40,14 @@ fun demo() = TermColors(TermColors.Level.TRUECOLOR).run {
     println()
 
 
-    println(title("\n\n256 color mode grayscale\n"))
+    println(title("\n\n256 color mode grayscale$LF"))
     for (i in 232..255) {
         print(Ansi256ColorCode(i).bg("   "))
     }
     println()
 
 
-    println(title("\n\n${red("R")}${green("G")}${blue("B")} true color 24-bit mode\n"))
+    println(title("\n\n${red("R")}${green("G")}${blue("B")} true color 24-bit mode$LF"))
     for (v in 0..100 step 3) {
         for (h in 0..360 step 3) {
             print(hsv(h, 100, 100 - v).bg(" "))
@@ -55,7 +56,7 @@ fun demo() = TermColors(TermColors.Level.TRUECOLOR).run {
     }
 
 
-    println(title("\n\ntrue color 24-bit mode grayscale\n"))
+    println(title("\n\ntrue color 24-bit mode grayscale$LF"))
     for (i in 1..120) {
         print(gray(i / 120.0).bg(" "))
     }

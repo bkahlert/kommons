@@ -6,6 +6,7 @@ import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 import koodies.text.isSingleLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -21,13 +22,13 @@ class FormattingKtTest {
 
     private val emptyException = RuntimeException()
 
-    private val runtimeException = RuntimeException("Something happened\n" +
-        " ➜ A dump has been written to:\n" +
-        "   - file:///var/folders/.../file.log (unchanged)\n" +
-        "   - file:///var/folders/.../file.no-ansi.log (ANSI escape/control sequences removed)\n" +
-        " ➜ The last lines are:\n" +
-        "    raspberry\n" +
-        "    Login incorrect\n" +
+    private val runtimeException = RuntimeException("Something happened$LF" +
+        " ➜ A dump has been written to:$LF" +
+        "   - file:///var/folders/.../file.log (unchanged)$LF" +
+        "   - file:///var/folders/.../file.no-ansi.log (ANSI escape/control sequences removed)$LF" +
+        " ➜ The last lines are:$LF" +
+        "    raspberry$LF" +
+        "    Login incorrect$LF" +
         "    raspberrypi login:")
 
     @Nested
@@ -36,7 +37,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(runtimeException.toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:24)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:25)")
                 isSingleLine()
             }
         }
@@ -44,7 +45,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(emptyException.toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:22)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:23)")
                 isSingleLine()
             }
         }
@@ -56,7 +57,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(Result.failure<String>(runtimeException).toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:24)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:25)")
                 isSingleLine()
             }
         }
@@ -64,7 +65,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(Result.failure<String>(emptyException).toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:22)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:23)")
                 isSingleLine()
             }
         }

@@ -1,5 +1,6 @@
 package koodies.test
 
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
@@ -15,10 +16,10 @@ import java.io.IOException
 class FixtureKtTest {
 
     @TestFactory
-    fun textFixture() = TextFixture("text-fixture", "line 1\nline 2\n").test {
+    fun textFixture() = TextFixture("text-fixture", "line 1\nline 2$LF").test {
         expect { name }.that { isEqualTo("text-fixture") }
-        expect { text }.that { isEqualTo("line 1\nline 2\n") }
-        expect { data }.that { isEqualTo("line 1\nline 2\n".toByteArray()) }
+        expect { text }.that { isEqualTo("line 1\nline 2$LF") }
+        expect { data }.that { isEqualTo("line 1\nline 2$LF".toByteArray()) }
     }
 
     @TestFactory

@@ -11,6 +11,7 @@ import koodies.io.path.writeText
 import koodies.runtime.deleteOnExit
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -67,13 +68,13 @@ class AsReadyOnlyKtTest {
             "copy", uniqueId,
             { copyTo(sameFile("$fileName").deleteOnExit()) },
             { sameFile("$fileName").deleteOnExit().also { Files.copy(this, it) } },
-        ) { get { sameFile("$fileName") }.hasContent("line #1\nline #2\n") },
+        ) { get { sameFile("$fileName") }.hasContent("line #1\nline #2$LF") },
 
         allowedFileOperation(
             "buffered reading", uniqueId,
             { bufferedInputStream().bufferedReader().readText() },
             { Files.newBufferedReader(this).readText() },
-        ) { isEqualTo("line #1\nline #2\n") },
+        ) { isEqualTo("line #1\nline #2$LF") },
     )
 
     @TestFactory
@@ -108,7 +109,7 @@ internal inline fun <reified T> allowedFileOperation(
     return dynamicContainer("call to $name", variants.map { variant ->
         dynamicTest("$variant") {
             withTempDir(uniqueId) {
-                val tempFile = randomFile().writeText("line #1\nline #2\n").asReadOnly()
+                val tempFile = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
                 expectThat(variant(tempFile)).validator()
             }
         }
@@ -124,7 +125,7 @@ internal inline fun disallowedFileOperation(
     return dynamicContainer("call to $name", variants.map { variant ->
         dynamicTest("$variant") {
             withTempDir(uniqueId) {
-                val tempFile = randomFile().writeText("line #1\nline #2\n").asReadOnly()
+                val tempFile = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
                 expectCatching { variant(tempFile) }.isFailure().validator()
             }
         }

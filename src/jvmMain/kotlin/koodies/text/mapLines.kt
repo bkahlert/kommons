@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.lines
 
@@ -14,8 +15,8 @@ public fun CharSequence.mapLines(ignoreTrailingSeparator: Boolean = true, transf
     (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
         lines().map(transform)
             .let { if (trailingLineSeparator) it.dropLast(1) else it }
-            .joinToString("\n")
-            .let { if (trailingLineSeparator) it + "\n" else it }
+            .joinToString(LF)
+            .let { if (trailingLineSeparator) it + LF else it }
     }
 
 /**

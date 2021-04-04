@@ -4,7 +4,7 @@ import koodies.asString
 import koodies.exception.toCompactString
 import koodies.logging.BlockRenderingLogger.Companion.DEFAULT_BORDER
 import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.logging.LoggingContext.Companion.GLOBAL
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.text.ANSI.Formatter
 
 /**
@@ -108,10 +108,10 @@ public fun <R> logging(
     block: FixedWidthRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(
     caption,
-    { GLOBAL.logText { it } },
+    { BACKGROUND.logText { it } },
     contentFormatter,
     decorationFormatter,
     returnValueFormatter,
     border,
-    prefix = GLOBAL.prefix,
+    prefix = BACKGROUND.prefix,
 ).runLogging(block)

@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 
 /**
@@ -11,8 +12,8 @@ import koodies.text.LineSeparators.hasTrailingLineSeparator
  */
 public fun <T : CharSequence> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
     (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
-        lines().map { line -> transform(line).joinToString("\n") }
+        lines().map { line -> transform(line).joinToString(LF) }
             .let { if (trailingLineSeparator) it.dropLast(1) else it }
-            .joinToString("\n")
-            .let { if (trailingLineSeparator) it + "\n" else it }
+            .joinToString(LF)
+            .let { if (trailingLineSeparator) it + LF else it }
     }

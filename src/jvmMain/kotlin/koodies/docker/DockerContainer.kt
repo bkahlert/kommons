@@ -13,7 +13,7 @@ import koodies.docker.DockerContainer.Status.Existent.Restarting
 import koodies.docker.DockerContainer.Status.Existent.Running
 import koodies.docker.DockerContainer.Status.NotExistent
 import koodies.io.path.asString
-import koodies.logging.LoggingContext.Companion.GLOBAL
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.text.CharRanges.Alphanumeric
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
@@ -60,7 +60,7 @@ public inline class DockerContainer(public val name: String) {
 
         override fun iterator(): Iterator<DockerContainer> = query().iterator()
 
-        private fun queryStatus(container: DockerContainer): Status = with(GLOBAL) {
+        private fun queryStatus(container: DockerContainer): Status = with(BACKGROUND) {
             DockerPsCommandLine {
                 options { all by true; container.run { exactName by name } }
             }.execute {
@@ -84,7 +84,7 @@ public inline class DockerContainer(public val name: String) {
             }.singleOrNull() ?: NotExistent
         }
 
-        private fun query(): List<DockerContainer> = with(GLOBAL) {
+        private fun query(): List<DockerContainer> = with(BACKGROUND) {
             DockerPsCommandLine {
                 options { all by true }
             }.execute {

@@ -9,6 +9,7 @@ import koodies.terminal.AnsiColors.gray
 import koodies.terminal.AnsiColors.magenta
 import koodies.test.test
 import koodies.test.testEach
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -153,12 +154,12 @@ class MatchesCurlyPatternKtTest {
 
     @Test
     fun `should remove trailing line break by default`() {
-        expectThat("abc\n").matchesCurlyPattern("abc")
+        expectThat("abc$LF").matchesCurlyPattern("abc")
     }
 
     @Test
     fun `should allow to deactivate trailing line removal`() {
-        expectThat("abc\n").not { matchesCurlyPattern("abc", removeTrailingBreak = false) }
+        expectThat("abc$LF").not { matchesCurlyPattern("abc", removeTrailingBreak = false) }
     }
 
     @Test
@@ -194,13 +195,13 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     var processedPattern = preprocessor(curlyPattern)
     if (ignoreTrailingLines) {
         val lines = processedActual.lines().size.coerceAtMost(processedPattern.lines().size)
-        processedActual = processedActual.lines().take(lines).joinToString("\n")
-        processedPattern = processedPattern.lines().take(lines).joinToString("\n")
+        processedActual = processedActual.lines().take(lines).joinToString(LF)
+        processedPattern = processedPattern.lines().take(lines).joinToString(LF)
     }
     if (processedActual.matchesCurlyPattern(preprocessor.invoke(curlyPattern))) pass()
     else {
         if (processedActual.lines().size == processedPattern.lines().size) {
-            val analysis = processedActual.lines().zip(processedPattern.lines()).joinToString("\n\n") { (actualLine, patternLine) ->
+            val analysis = processedActual.lines().zip(processedPattern.lines()).joinToString("\n$LF") { (actualLine, patternLine) ->
                 val lineMatches = actualLine.matchesCurlyPattern(patternLine)
                 lineMatches.asEmoji + "   <-\t${actualLine.debug}\nmatch?\t${patternLine.debug}"
             }
@@ -227,8 +228,8 @@ private fun String.highlightTooManyLinesTo(other: String): String {
     val lines = lines()
     val tooManyStart = other.lines().size
     val sb = StringBuilder()
-    lines.take(tooManyStart).forEach { sb.append(it.gray() + "\n") }
-    lines.drop(tooManyStart).forEach { sb.append(it.magenta() + "\n") }
+    lines.take(tooManyStart).forEach { sb.append(it.gray() + LF) }
+    lines.drop(tooManyStart).forEach { sb.append(it.magenta() + LF) }
     @Suppress("ReplaceToStringWithStringTemplate")
     return sb.toString()
 }

@@ -183,7 +183,7 @@ public open class RenderingLogger(
          */
         private fun setOpen(logger: RenderingLogger, open: Boolean) {
             if (open) {
-                openLoggers.putIfAbsent(logger, JVM.currentStackTrace)
+                openLoggers.getOrPut(logger) { JVM.currentStackTrace }
             } else {
                 openLoggers.remove(logger)
             }

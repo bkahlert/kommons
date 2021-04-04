@@ -1,6 +1,7 @@
 package koodies.text.styling
 
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.NBSP
 import koodies.text.maxLength
 import koodies.text.repeat
@@ -49,4 +50,4 @@ public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLen
  * ```
  */
 public fun <T : CharSequence> T.center(whitespace: Char = NBSP, minLength: Int = 0): String =
-    lines().center(whitespace, minLength).joinToString("\n")
+    lines().center(whitespace, minLength).joinToString(LF)
