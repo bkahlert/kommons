@@ -188,7 +188,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
                 }
             }
             inputStream.close()
-        }.exceptionallyThrow("stdin")
+        }.FatallyThrow("stdin")
     } else {
         null
     }
@@ -197,13 +197,13 @@ public fun <P : ManagedProcess> P.processAsynchronously(
         outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
             processor(this, IO.OUT typed line)
         }
-    }.exceptionallyThrow("stdout")
+    }.FatallyThrow("stdout")
 
     val errorConsumer = ioProcessingThreadPool.completableFuture {
         errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
             processor(this, IO.ERR typed line)
         }
-    }.exceptionallyThrow("stderr")
+    }.FatallyThrow("stderr")
 
     addPreTerminationCallback {
         CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).join()
@@ -254,7 +254,7 @@ private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
     if (nonBlockingReader) NonBlockingReader(this, blockOnEmptyLine = true)
     else JlineInputStreamReader(this)
 
-private fun CompletableFuture<*>.exceptionallyThrow(type: String): CompletableFuture<out Any?> = handle { value, exception ->
+private fun CompletableFuture<*>.FatallyThrow(type: String): CompletableFuture<out Any?> = handle { value, exception ->
     if (exception != null) {
         if ((exception.cause is IOException) && exception.cause?.message?.contains("stream closed", ignoreCase = true) == true) value
         else throw RuntimeException("An error occurred while processing ［$type］.", exception)

@@ -1,6 +1,7 @@
 package koodies.logging
 
 import koodies.exception.toCompactString
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics
 
@@ -57,10 +58,17 @@ public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableList
             }
         }
 
-    override fun format(): CharSequence = when (unsuccessful.size) {
-        0 -> ""
-        1 -> unsuccessful.single().format()
-        else -> "Multiple problems encountered: " + unsuccessful.joinToString("") { "$LF    ${Semantics.Error} ${it.format()}" }
+    override fun format(): CharSequence {
+        val prefix = "$LF    ${Semantics.Error} "
+        val prefixMoreLines = prefix.ansiRemoved.length
+        return when (unsuccessful.size) {
+            0 -> ""
+            1 -> unsuccessful.single().format()
+            else -> "Multiple problems encountered: " + unsuccessful.joinToString("") {
+                it.format().lines().mapNotNull { line -> line.takeIf { line.isNotBlank() } }
+                    .joinToString(prefix = prefix, separator = " ${Semantics.Delimiter} ")
+            }
+        }
     }
 
     /**

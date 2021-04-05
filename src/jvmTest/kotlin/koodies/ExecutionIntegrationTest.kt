@@ -223,7 +223,7 @@ class ExecutionIntegrationTest {
 //        Docker.remove { containers { +"non-existent-container" } }
         // DOcker remove example
         /**
-         * koodies.concurrent.process.ProcessExecutionException: Process 32473 terminated with exit code 1. Expected 0.
+         * koodies.concurrent.process.ProcessExecutionException: Process 32473 terminated with exit code 1.
 
         ➜ A dump has been written to:
         - file:///Users/bkahlert/Development/com.bkahlert/koodies/koodies.dump.LQG.log (unchanged)
@@ -231,7 +231,7 @@ class ExecutionIntegrationTest {
         ➜ The last 4 lines are:
         Executing docker rm koodies.docker.test-container
         Error: No such container: koodies.docker.test-container
-        Process 32473 terminated with exit code 1. Expected 0.
+        Process 32473 terminated with exit code 1.
 
          */
     }

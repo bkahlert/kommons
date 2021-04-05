@@ -1,7 +1,7 @@
 package koodies.concurrent
 
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
+import koodies.concurrent.process.Process.ExitState.Failure
 import koodies.concurrent.process.completesSuccessfully
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.hasState
@@ -75,7 +75,7 @@ class ScriptsKtTest {
 
         @Test
         fun `should have failed state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(script { !"exit -1" }).hasState<Failed> { io<IO>().containsDump() }
+            expectThat(script { !"exit -1" }).hasState<Failure> { io<IO>().containsDump() }
         }
     }
 

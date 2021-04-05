@@ -4,7 +4,7 @@ import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
+import koodies.concurrent.process.Process.ExitState.Failure
 import koodies.concurrent.process.process
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
@@ -84,6 +84,6 @@ class ProcessesKtTest {
     @TestFactory
     fun `should return failed state on unexpected exit value`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
         process.start()
-        expectThat(process.waitForTermination()).isA<Failed>()
+        expectThat(process.waitForTermination()).isA<Failure>()
     }
 }

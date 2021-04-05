@@ -1,11 +1,17 @@
 package koodies.concurrent.process
 
 import koodies.collections.synchronizedListOf
+import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.debug.asEmoji
+import koodies.exception.toCompactString
 import koodies.logging.ReturnValue
+import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.formattedAs
+import koodies.time.Now
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.URI
 import java.util.concurrent.CompletableFuture
 import java.lang.Process as JavaProcess
 
@@ -56,32 +62,72 @@ public interface Process : ReturnValue {
      */
     public fun start(): Process
 
-    public sealed class ProcessState(public val status: String) {
+    public sealed class ProcessState(
+        public val status: String,
+        public override val successful: Boolean?,
+    ) : ReturnValue {
+        override fun toString(): String = status
+        override fun format(): CharSequence = status
+
         public class Prepared(
             status: String = "Process has not yet started.",
-        ) : ProcessState(status)
+        ) : ProcessState(status, null)
 
         public class Running(
             public val pid: Long,
             status: String = "Process $pid is running.",
-        ) : ProcessState(status)
+        ) : ProcessState(status, null)
 
         public open class Terminated(
             public val pid: Long,
             public val exitCode: Int,
             public val io: List<IO>,
             status: String = "Process $pid terminated with exit code $exitCode.",
-        ) : ProcessState(status)
+        ) : ProcessState(status, exitCode == 0)
     }
 
     public val state: ProcessState
+
+    public val exitState: ExitState?
+
+    public sealed class ExitState(exitCode: Int, pid: Long, io: List<IO>, status: String) :
+        Terminated(pid, exitCode, io, status), ReturnValue {
+
+        public class Success(
+            pid: Long,
+            io: List<IO>,
+        ) : ExitState(0, pid, io, "Process ${pid.formattedAs.input} terminated successfully at $Now.")
+
+        public class Failure(
+            exitCode: Int,
+            pid: Long,
+            private val relevantFiles: List<URI>,
+            public val dump: String,
+            io: List<IO>,
+        ) : ExitState(exitCode, pid, io, "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.") {
+            override fun format(): CharSequence = toString()
+            override fun toString(): String =
+                StringBuilder(status).apply {
+                    append(LF + relevantFiles.joinToString(LF))
+                    append(LF).append(dump)
+                }.toString()
+        }
+
+        public class Fatal(
+            public val exception: Throwable,
+            exitCode: Int,
+            pid: Long,
+            public val dump: String,
+            io: List<IO>,
+        ) : ExitState(exitCode, pid, io, "Process ${pid.formattedAs.input} fatally failed with ${exception.toCompactString()}")
+    }
 
     /**
      * Returns whether [start] was called.
      *
      * Contrary to [alive] this property will never return `false` once [start] was called.
      */
-    public val started: Boolean
+    @Deprecated("use state") public val started: Boolean
 
     /**
      * Returns whether the program represented by this process
@@ -90,14 +136,14 @@ public interface Process : ReturnValue {
      * Contrary to [started] this property reflects the actual running state of
      * the program represented by this process.
      */
-    public val alive: Boolean
+    @Deprecated("use state") public val alive: Boolean
 
     /**
      * Returns the exit code of the program represented by process process once
      * it terminates. If the program has not terminated yet, it throws an
      * [IllegalStateException].
      */
-    public val exitValue: Int
+    @Deprecated("use exit state") public val exitValue: Int
 
     /**
      * Whether the process terminated successfully or failed.
@@ -115,19 +161,19 @@ public interface Process : ReturnValue {
      * A completable future that returns an instances of this process once
      * the program represented by this process terminated.
      */
-    public val onExit: CompletableFuture<out Terminated>
+    public val onExit: CompletableFuture<out ExitState>
 
     /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    public fun waitFor(): Int = onExit.join().exitCode
+    public fun waitFor(): ExitState = onExit.join()
 
     /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    public fun waitForTermination(): Terminated = onExit.join()
+    @Deprecated("use waitFor") public fun waitForTermination(): Terminated = onExit.join()
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.
@@ -174,8 +220,8 @@ public abstract class DelegatingProcess(private val processProvider: Process.() 
     override val started: Boolean get() = _started
     override val alive: Boolean get() = started && javaProcess.isAlive
     override val exitValue: Int get() = javaProcess.exitValue()
-    abstract override val onExit: CompletableFuture<out ManagedProcess.Evaluated>
-    override fun waitFor(): Int = onExit.join().exitCode
+    abstract override val onExit: CompletableFuture<out ExitState>
+    override fun waitFor(): ExitState = exitState ?: onExit.join()
     override fun stop(): Process = also { javaProcess.destroy() }
     override fun kill(): Process = also { javaProcess.destroyForcibly() }
 

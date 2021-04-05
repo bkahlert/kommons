@@ -1,8 +1,8 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.process
-import koodies.concurrent.process.ManagedProcess.Evaluated
-import koodies.concurrent.process.ManagedProcess.Evaluated.*
+import koodies.concurrent.process.Process.ExitState
+import koodies.concurrent.process.Process.ExitState.*
 import koodies.concurrent.process.Process.ProcessState.Prepared
 import koodies.concurrent.process.Process.ProcessState.Running
 import koodies.concurrent.process.UserInput.enter
@@ -16,7 +16,6 @@ import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.testWithTempDir
-import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Document
@@ -92,9 +91,9 @@ class ManagedProcessTest {
             Pair({ outputStream }, { isNotNull() }),
             Pair({ errorStream }, { isNotNull() }),
             Pair({ apply { runCatching { exitValue } } }, { isA<ManagedProcess>().evaluated.exitCode.isEqualTo(0) }),
-            Pair({ onExit.get() }, { isA<Successful>().exitCode.isEqualTo(0) }),
-            Pair({ waitFor() }, { isEqualTo(0) }),
-            Pair({ waitForTermination() }, { isA<Successful>().exitCode.isEqualTo(0) }),
+            Pair({ onExit.get() }, { isA<Success>().exitCode.isEqualTo(0) }),
+            Pair({ waitFor() }, { not { isA<Prepared>() } }),
+            Pair({ waitForTermination() }, { isA<Success>().exitCode.isEqualTo(0) }),
         ) { (operation, assertion) ->
             withTempDir(uniqueId) {
                 val (process, file) = createLazyFileCreatingProcess()
@@ -241,14 +240,14 @@ class ManagedProcessTest {
         @Test
         fun `by waiting for`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(0)
-            expectThat(process.waitFor()).isEqualTo(0)
+            expectThat(process.waitFor()).isA<ExitState.Success>()
         }
 
         @Test
         fun `by waiting for termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(0)
             expectThat(process.waitForTermination()) {
-                isA<Evaluated>().and {
+                isA<ExitState>().and {
                     status.matchesCurlyPattern("Process ${process.pid} terminated {}")
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
@@ -260,8 +259,8 @@ class ManagedProcessTest {
         @Test
         fun `should return same termination on multiple calls`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingManagedProcess(0)
-            expectThat(process.waitForTermination()) {
-                isSameInstanceAs(process.waitForTermination())
+            expectThat(process.waitFor()) {
+                isSameInstanceAs(process.exitState)
                 isSameInstanceAs(process.state)
             }
         }
@@ -275,7 +274,7 @@ class ManagedProcessTest {
                 measureTime {
                     val process = createLoopingManagedProcess()
                     that(process) {
-                        destroyOperation.invoke(this).waitedFor.hasState<Failed> {
+                        destroyOperation.invoke(this).waitedFor.hasState<Failure> {
                             exitCode.isGreaterThan(0)
                         }
                         not { alive }.get { this.alive }.isFalse()
@@ -317,10 +316,7 @@ class ManagedProcessTest {
                 expectThat(createCompletingManagedProcess().addPreTerminationCallback {
                     throw RuntimeException("test")
                 }.onExit).wait().isSuccess()
-                    .isA<Exceptional>()
-                    .exception
-                    .isA<RuntimeException>()
-                    .message.isEqualTo("test")
+                    .isA<Fatal>().get { exception.message }.isEqualTo("test")
             }
         }
 
@@ -379,7 +375,7 @@ class ManagedProcessTest {
                 @Test
                 fun `should fail on non-0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(42)
-                    expectThat(process.waitForTermination()).isA<Failed>().io.any {
+                    expectThat(process.waitForTermination()).isA<Failure>().io.any {
                         contains("terminated with exit code 42.")
                     }
                 }
@@ -387,7 +383,7 @@ class ManagedProcessTest {
                 @Test
                 fun `should succeed on 0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(0)
-                    expectThat(process.waitForTermination()).isA<Successful>().io.any { contains("terminated successfully") }
+                    expectThat(process.waitForTermination()).isA<Success>().io.any { contains("terminated successfully") }
                 }
             }
 
@@ -397,7 +393,7 @@ class ManagedProcessTest {
                 @Test
                 fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(42)
-                    expectThat(process.waitForTermination()).isA<Failed>().io.any {
+                    expectThat(process.waitForTermination()).isA<Failure>().io.any {
                         contains("terminated with exit code 42.")
                     }
                 }
@@ -405,20 +401,20 @@ class ManagedProcessTest {
                 @Test
                 fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(42)
-                    expectThat(process.waitForTermination()).isA<Failed>()
+                    expectThat(process.waitForTermination()).isA<Failure>()
                         .io<IO>().containsDump()
                 }
 
                 @Test
-                fun `should return exit value on waitFor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                fun `should return exit state on waitFor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(42)
-                    expectCatching { process.waitFor() }.isSuccess().isEqualTo(42)
+                    expectThat(process.waitFor()).isA<ExitState>()
                 }
 
                 @Test
                 fun `should fail on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(42)
-                    expectThat(process.waitForTermination()).isA<Failed>()
+                    expectThat(process.waitForTermination()).isA<Failure>()
                 }
 
                 @Test
@@ -426,7 +422,7 @@ class ManagedProcessTest {
                     var callbackCalled = false
                     val process = createCompletingManagedProcess(42, processTerminationCallback = { callbackCalled = true })
                     expect {
-                        expectThat(process.waitForTermination()).isA<Failed>()
+                        expectThat(process.waitForTermination()).isA<Failure>()
                         expectThat(callbackCalled).isTrue()
                     }
                 }
@@ -444,10 +440,9 @@ class ManagedProcessTest {
                 fun `should exit with failed exit state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val process = createCompletingManagedProcess(42)
                     expectThat(process.onExit).wait().isSuccess()
-                        .isA<Failed>() and {
-                        status.lines().first().matchesCurlyPattern("Process ${process.pid} terminated with exit code ${process.exitValue}. Expected 0.")
-                        status.containsDump()
-                        commandLine.toStringContains("should_exit_with_failed_exit_state")
+                        .isA<Failure>() and {
+                        status.lines().first().matchesCurlyPattern("Process ${process.pid} terminated with exit code ${process.exitValue}.")
+                        containsDump()
                         pid.isGreaterThan(0)
                         exitCode.isEqualTo(42)
                         io.isNotEmpty()
@@ -542,6 +537,16 @@ val <T : ManagedProcess> Builder<T>.io
 fun <T : Throwable> Builder<T>.containsDump(vararg containedStrings: String) =
     message.isNotNull().containsDump(*containedStrings)
 
+fun Builder<Failure>.containsDump(vararg containedStrings: String = emptyArray()) =
+    compose("contains dump") {
+        with({ dump }) {
+            contains("dump has been written")
+            containedStrings.forEach { contains(it) }
+            contains(".log")
+            contains(".no-ansi.log")
+        }
+    }.then { if (allPassed) pass() else fail() }
+
 fun Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh")) {
     compose("contains dump") {
         contains("dump has been written")
@@ -587,14 +592,14 @@ inline val <reified T : Process> Builder<T>.stopped: Builder<T>
 inline val <reified T : Process> Builder<T>.killed: Builder<T>
     get() = get("with kill() called") { kill() }.isA()
 
-inline val <reified T : ManagedProcess> Builder<T>.evaluated: Builder<Evaluated>
+inline val <reified T : ManagedProcess> Builder<T>.evaluated: Builder<ExitState>
     get() = get("terminated") { onExit.get() }.isA()
 
-inline fun <reified T : ManagedProcess> Builder<T>.completesSuccessfully(): Builder<Successful> =
-    evaluated.isA<Successful>()
+inline fun <reified T : ManagedProcess> Builder<T>.completesSuccessfully(): Builder<Success> =
+    evaluated.isA<Success>()
 
-inline fun <reified T : ManagedProcess> Builder<T>.fails(): Builder<Failed> =
-    evaluated.isA<Failed>().assert("unsuccessfully with non-zero exit code") {
+inline fun <reified T : ManagedProcess> Builder<T>.fails(): Builder<Failure> =
+    evaluated.isA<Failure>().assert("unsuccessfully with non-zero exit code") {
         val actual = it.exitCode
         when (actual != 0) {
             true -> pass()
@@ -602,8 +607,8 @@ inline fun <reified T : ManagedProcess> Builder<T>.fails(): Builder<Failed> =
         }
     }
 
-inline fun <reified T : ManagedProcess> Builder<T>.fails(expected: Int): Builder<Failed> =
-    evaluated.isA<Failed>().assert("unsuccessfully with exit code $expected") {
+inline fun <reified T : ManagedProcess> Builder<T>.fails(expected: Int): Builder<Failure> =
+    evaluated.isA<Failure>().assert("unsuccessfully with exit code $expected") {
         when (val actual = it.exitCode) {
             expected -> pass()
             0 -> fail("completed successfully")
@@ -628,16 +633,32 @@ inline fun <reified T : ManagedProcess> Builder<T>.notStarted(): Builder<T> =
         }
     }
 
-public inline fun <reified T : Process.ProcessState> Builder<out ManagedProcess>.hasState(
+public inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
-): Builder<out ManagedProcess> =
+): Builder<out Process> =
     compose("state") {
         get { state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
-public inline fun <reified T : Process.ProcessState> Builder<out ManagedProcess>.hasState(
-): Builder<out ManagedProcess> =
+public inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
+): Builder<out Process> =
     compose("state") {
+        get { state }.isA<T>()
+    }.then { if (allPassed) pass() else fail() }
+
+public inline val Builder<out Process>.exitState
+    get() = get("exit state") { exitState }
+
+public inline fun <reified T : Process.ExitState> Builder<out Process>.exitedWith(
+    crossinline statusAssertion: Builder<T>.() -> Unit,
+): Builder<out Process> =
+    compose("exit state") {
+        get { state }.isA<T>().statusAssertion()
+    }.then { if (allPassed) pass() else fail() }
+
+public inline fun <reified T : Process.ExitState> Builder<out Process>.exitedWith(
+): Builder<out Process> =
+    compose("exit state") {
         get { state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
@@ -659,13 +680,9 @@ public inline val <T : Process.ProcessState.Terminated> Builder<T>.io
     get(): Builder<List<IO>> =
         get("io") { io }
 
+
+public inline val Builder<out Process.ExitState.Failure>.dump
+    get(): Builder<String> = get("dump") { dump }
+
 public inline fun <reified T : IO> Builder<out Process.ProcessState.Terminated>.io() =
     get("IO of specified type") { io.merge<T>() }
-
-public inline val Builder<Failed>.commandLine
-    get(): Builder<CommandLine> =
-        get("command line") { commandLine }
-
-public inline val Builder<Exceptional>.exception
-    get(): Builder<Throwable> =
-        get("exception") { exception }

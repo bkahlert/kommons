@@ -41,7 +41,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        ManagedProcessMock.FAILED_MANAGED_PROCESS to "failed"
+//        ManagedProcessMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42. ${Semantics.Delimiter} dump"
     )
 
     private val expectations = successfulExpectations + failedExpectations
@@ -170,7 +170,11 @@ class ReturnValueKtTest {
 
             @Test
             fun `should render only unsuccessful`() {
-                val expected = "Multiple problems encountered: " + failedExpectations.joinToString("") { (_, expectation) -> "$LF    $Error $expectation" }
+                val prefix = "$LF    $Error "
+                val expected = "Multiple problems encountered: " + failedExpectations.joinToString("") { (_, expectation) ->
+                    expectation.lines().mapNotNull { line -> line.takeIf { line.isNotBlank() } }
+                        .joinToString(prefix = prefix, separator = " ${Semantics.Delimiter} ")
+                }
                 expectThat(partlyUnsuccessfulReturnValues.format()).matchesCurlyPattern(expected)
             }
         }

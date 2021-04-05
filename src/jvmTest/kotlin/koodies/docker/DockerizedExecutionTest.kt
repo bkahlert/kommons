@@ -5,7 +5,7 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
+import koodies.concurrent.process.Process.ExitState.Failure
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
 import koodies.concurrent.process.hasState
@@ -132,6 +132,6 @@ class DockerizedExecutionTest {
     @Test
     fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectCatching { CommandLine("echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
-            .isSuccess().hasState<Failed> { io<IO>().containsDump(containedStrings = emptyArray()) }
+            .isSuccess().hasState<Failure> { io<IO>().containsDump(containedStrings = emptyArray()) }
     }
 }

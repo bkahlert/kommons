@@ -126,7 +126,7 @@ public class Execution(
                 /**
                  * Filters all IO but errors.
                  *
-                 * Example output: `ϟ Process 64207 terminated with exit code 255. Expected 0.`
+                 * Example output: `ϟ Process 64207 terminated with exit code 255.`
                  */
                 public fun errorsOnly(caption: String) {
                     block {

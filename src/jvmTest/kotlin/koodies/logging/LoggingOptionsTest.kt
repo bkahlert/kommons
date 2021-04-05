@@ -1,7 +1,7 @@
 package koodies.logging
 
 import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
+import koodies.concurrent.process.Process.ExitState.Failure
 import koodies.concurrent.process.hasState
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
@@ -637,7 +637,7 @@ class LoggingOptionsTest {
                         errorsOnly("caption")
                         null
                     })
-                    .hasState<Failed>()
+                    .hasState<Failure>()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
                     │   caption: 4
@@ -703,7 +703,7 @@ class LoggingOptionsTest {
                         errorsOnly("caption")
                         null
                     }.waitForTermination())
-                    .isA<Failed>()
+                    .isA<Failure>()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
                     │   caption: 4

@@ -7,11 +7,12 @@ import koodies.concurrent.process.JavaProcessMock.Companion.SUCCEEDED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.processMock
 import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
 import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
-import koodies.concurrent.process.ManagedProcess.Evaluated.Successful
 import koodies.concurrent.process.ManagedProcessMock.Companion.FAILED_MANAGED_PROCESS
 import koodies.concurrent.process.ManagedProcessMock.Companion.PREPARED_MANAGED_PROCESS
 import koodies.concurrent.process.ManagedProcessMock.Companion.RUNNING_MANAGED_PROCESS
 import koodies.concurrent.process.ManagedProcessMock.Companion.SUCCEEDED_MANAGED_PROCESS
+import koodies.concurrent.process.Process.ExitState
+import koodies.concurrent.process.Process.ExitState.Success
 import koodies.concurrent.process.Process.ProcessState
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateExit
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateSuccess
@@ -115,14 +116,14 @@ class JavaProcessMockTest {
             @TestFactory
             fun `should succeed`() = test({ SUCCEEDED_MANAGED_PROCESS }) {
                 expect { it() }.that { completesSuccessfully() }
-                expect { it() }.that { hasState<Successful> { status.contains("terminated successfully") } }
+                expect { it() }.that { hasState<Success> { status.contains("terminated successfully") } }
             }
 
             @Execution(CONCURRENT)
             @TestFactory
             fun `should fail`() = test({ FAILED_MANAGED_PROCESS }) {
                 expect { it() }.that { fails() }
-                expect { it() }.that { hasState<ManagedProcess.Evaluated.Failed> { status.contains("failed") } }
+                expect { it() }.that { hasState<ExitState.Failure> { status.contains("terminated with exit code") } }
             }
         }
     }
@@ -466,7 +467,7 @@ class JavaProcessMockTest {
         val status = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
 
         expectThat(status) {
-            isA<Successful>().exitCode.isEqualTo(0)
+            isA<Success>().exitCode.isEqualTo(0)
         }
     }
 }
