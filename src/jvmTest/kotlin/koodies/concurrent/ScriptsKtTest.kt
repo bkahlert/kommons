@@ -1,7 +1,11 @@
 package koodies.concurrent
 
+import koodies.concurrent.process.IO
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
 import koodies.concurrent.process.completesSuccessfully
 import koodies.concurrent.process.containsDump
+import koodies.concurrent.process.hasState
+import koodies.concurrent.process.io
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.io.path.Locations
@@ -15,16 +19,12 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
-import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
-import strikt.assertions.message
 import kotlin.time.measureTime
 import kotlin.time.seconds
 
@@ -60,7 +60,7 @@ class ScriptsKtTest {
         }
 
         @Test
-        fun `should provide multi-line IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide multi-line OUT`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val name = HtmlFile.copyToDirectory(this)
             val script = script { !"cat $name" }
             expectThat(script.output()).isEqualTo(HtmlFile.text)
@@ -68,14 +68,16 @@ class ScriptsKtTest {
 
         @SystemIoRead
         @Test
-        fun `should provide not print to console`(uniqueId: UniqueId, capturedOutput: CapturedOutput) = withTempDir(uniqueId) {
+        fun `should not print to console`(uniqueId: UniqueId, capturedOutput: CapturedOutput) = withTempDir(uniqueId) {
             script { !"echo 'test'" }
             expectThat(capturedOutput).isEmpty()
         }
 
         @Test
-        fun `should throw`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectCatching { script { !"exit -1" } }.isFailure().message.isNotNull().containsDump()
+        fun `should have failed state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(script { !"exit -1" }).hasState<Failed.UnexpectedExitCode> {
+                io<IO>().containsDump()
+            }
         }
     }
 

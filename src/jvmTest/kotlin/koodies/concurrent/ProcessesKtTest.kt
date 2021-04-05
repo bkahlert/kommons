@@ -5,6 +5,7 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.containsDump
+import koodies.concurrent.process.io
 import koodies.concurrent.process.process
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
@@ -14,15 +15,11 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
-import strikt.assertions.isFailure
 import strikt.assertions.isFalse
-import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
-import java.util.concurrent.CompletionException
 
 @Execution(CONCURRENT)
 class ProcessesKtTest {
@@ -86,11 +83,8 @@ class ProcessesKtTest {
     }
 
     @TestFactory
-    fun `should throw on unexpected exit value if using joining function`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
+    fun `should return failed state on unexpected exit value`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
         process.start()
-        expectCatching { process.waitForTermination() }
-            .isFailure()
-            .isA<CompletionException>()
-            .with({ message }) { isNotNull() and { containsDump() } }
+        expectThat(process.waitForTermination()).isA<ManagedProcess.Evaluated.Failed.UnexpectedExitCode>().io<IO>().containsDump()
     }
 }

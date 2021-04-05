@@ -94,9 +94,9 @@ class FormattingKtTest {
             }
 
             @Test
-            fun `should format run processes as exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(Result.success(process(CommandLine("exit", "42"), expectedExitValue = 42)).toCompactString()) {
-                    get { removeEscapeSequences() }.isEqualTo("42")
+                    get { removeEscapeSequences() }.isEqualTo("Process has not yet started.")
                     isSingleLine()
                 }
             }

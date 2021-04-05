@@ -32,7 +32,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
     fun `should start docker`(uniqueId: UniqueId) {
         val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
-        poll { dockerProcess.ioLog.logged.any { it is IO.OUT && it.unformatted == "test" } }
+        poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT && it.unformatted == "test" } }
             .every(100.milliseconds).forAtMost(8.seconds) {
                 if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
                 fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
@@ -56,7 +56,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
         fun `should start docker and pass arguments`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
-            poll { dockerProcess.ioLog.logged.any { it is IO.OUT && it.unformatted == "test" } }
+            poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT && it.unformatted == "test" } }
                 .every(100.milliseconds).forAtMost(8.seconds) {
                     if (dockerProcess.alive) fail("Did not log \"test\" output within 8 seconds.")
                     fail("Process terminated without logging: ${dockerProcess.ioLog.dump()}.")
@@ -69,7 +69,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
             val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
 
             dockerProcess.enter("echo 'test'")
-            poll { dockerProcess.ioLog.logged.any { it is IO.OUT && it.unformatted == "test" } }
+            poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT && it.unformatted == "test" } }
                 .every(100.milliseconds).forAtMost(8.seconds) { fail("Did not log self-induced \"test\" output within 8 seconds.") }
             dockerProcess.kill()
         }
@@ -86,7 +86,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
                 """done""",
                 processor = noopProcessor())
 
-            poll { dockerProcess.ioLog.logged.any { it is IO.OUT } }
+            poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT } }
                 .every(100.milliseconds).forAtMost(8.seconds) { fail("Did not log any output within 8 seconds.") }
             dockerProcess.kill()
         }
@@ -106,7 +106,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
             dockerProcess.enter("echo 'test'")
             poll {
-                dockerProcess.ioLog.logged.mapNotNull { if (it is IO.OUT) it.unformatted else null }.containsAll(listOf("test", "test 4", "test 4 6"))
+                dockerProcess.ioLog.getCopy().mapNotNull { if (it is IO.OUT) it.unformatted else null }.containsAll(listOf("test", "test 4", "test 4 6"))
             }
                 .every(100.milliseconds)
                 .forAtMost(30.seconds) { fail("Did not log self-produced \"test\", \"test 4\" and \"test 4 6\" output within 30 seconds.") }

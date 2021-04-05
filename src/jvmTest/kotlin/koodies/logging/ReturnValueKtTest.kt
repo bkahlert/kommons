@@ -1,5 +1,6 @@
 package koodies.logging
 
+import koodies.concurrent.process.ManagedProcessMock
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
@@ -32,6 +33,7 @@ class ReturnValueKtTest {
     private val successfulExpectations = listOf(
         null to Semantics.Null,
         "string" to "string",
+        ManagedProcessMock.SUCCEEDED_MANAGED_PROCESS to "Process {} terminated successfully at {}",
     )
 
     private val failedExpectations = listOf(
@@ -39,6 +41,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
+        ManagedProcessMock.FAILED_MANAGED_PROCESS to "failed"
     )
 
     private val expectations = successfulExpectations + failedExpectations
@@ -46,11 +49,7 @@ class ReturnValueKtTest {
     @TestFactory
     fun `should convert to ReturnValue`() =
         expectations.testEach { (subject, expected) ->
-            expect {
-                with(MutedRenderingLogger()) {
-                    subject.toReturnValue().format()
-                }
-            }.that { matchesCurlyPattern(expected) }
+            expect { ReturnValue.of(subject).format() }.that { matchesCurlyPattern(expected) }
         }
 
     @TestFactory

@@ -1,6 +1,7 @@
 package koodies.shell
 
-import koodies.concurrent.process.logged
+import koodies.concurrent.process.io
+import koodies.concurrent.process.merged
 import koodies.concurrent.script
 import koodies.docker.docker
 import koodies.io.path.Locations
@@ -16,6 +17,7 @@ import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.toStringContains
 import koodies.test.withTempDir
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Document
 import koodies.text.joinLinesToString
@@ -201,7 +203,7 @@ class ShellScriptTest {
             }
             expect {
                 that(process.exitValue).isEqualTo(0)
-                that(process.logged.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
+                that(process.io.merged.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                     .matchesCurlyPattern("""
                         Executing ${asString()}/koodies.process.{}.sh
                         $Document file://${asString()}/koodies.process.{}.sh

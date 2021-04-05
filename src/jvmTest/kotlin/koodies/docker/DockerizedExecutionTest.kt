@@ -5,9 +5,12 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed.UnexpectedExitCode
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
-import koodies.concurrent.process.logged
+import koodies.concurrent.process.hasState
+import koodies.concurrent.process.io
+import koodies.concurrent.process.merged
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
@@ -17,6 +20,7 @@ import koodies.shell.ShellExecutable
 import koodies.test.SystemIoExclusive
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -26,13 +30,11 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
-import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isNotEqualTo
-import strikt.assertions.isNotNull
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.size
-import java.util.concurrent.CompletionException
 
 @Execution(CONCURRENT)
 class DockerizedExecutionTest {
@@ -59,7 +61,7 @@ class DockerizedExecutionTest {
     @Test
     fun InMemoryLogger.`should record IO`() {
         val process = shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image, null)
-        expectThat(process.logged<IO>()).matchesCurlyPattern("""
+        expectThat(process.io.merged.ansiRemoved).matchesCurlyPattern("""
                 Executing docker run --name {} --rm -i ubuntu printenv
                 {{}}
                 Process {} terminated successfully at {}
@@ -115,12 +117,12 @@ class DockerizedExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should throw on exit code mismatch`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun InMemoryLogger.`should not throw on exit code mismatch`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectCatching {
             shellExecutable.executeDockerized(testImage) {
                 executionOptions { expectedExitValue { -1 } }; null
             }
-        }.isFailure().containsDump()
+        }.isSuccess().hasState<UnexpectedExitCode> { io<IO>().containsDump(containedStrings = emptyArray()) }
     }
 
     @Test
@@ -136,15 +138,8 @@ class DockerizedExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectCatching { CommandLine("echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
-            .isFailure()
-            .isA<CompletionException>()
-            .with({ message }) {
-                isNotNull() and {
-                    @Suppress("RemoveRedundantSpreadOperator")
-                    containsDump(*emptyArray())
-                }
-            }
+            .isSuccess().hasState<UnexpectedExitCode> { io<IO>().containsDump(containedStrings = emptyArray()) }
     }
 }

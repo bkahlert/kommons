@@ -230,7 +230,7 @@ public open class RenderingLogger(
         }
 
         private fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
-            RETURN_VALUE_FORMATTER(result.toReturnValue())
+            RETURN_VALUE_FORMATTER(ReturnValue.of(result))
 
         @Suppress("LocalVariableName", "NonAsciiCharacters")
         private fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
@@ -277,4 +277,12 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
             })
         }.runLogging(block)
     }
+}
+
+
+/**
+ * Logs the given [returnValue] as the value that is returned from the logging span.
+ */
+public fun <T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue): Unit {
+    logResult { Result.success(returnValue) }
 }

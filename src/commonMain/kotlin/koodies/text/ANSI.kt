@@ -21,7 +21,7 @@ public object ANSI {
     /**
      * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
      */
-    public val CharSequence.escapeSequencesRemoved: String get() = AnsiCode.REGEX.replace(toString(), "")
+    public val <T : CharSequence> T.ansiRemoved: String get() = AnsiCode.REGEX.replace(toString(), "")
     public val <T : CharSequence> T.containsEscapeSequences: Boolean get() = AnsiCode.REGEX.containsMatchIn(this)
 
     public fun interface Formatter {
@@ -35,7 +35,7 @@ public object ANSI {
              * from any previous formatting and wrapped in a [ANSI.Text] for convenient
              * customizations.
              */
-            public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.escapeSequencesRemoved.ansi.transform() }
+            public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.ansiRemoved.ansi.transform() }
 
             /**
              * `Null`-safe formatter function that delegates to the actual formatter if

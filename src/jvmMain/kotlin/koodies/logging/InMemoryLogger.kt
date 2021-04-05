@@ -2,7 +2,7 @@ package koodies.logging
 
 import koodies.collections.synchronizedListOf
 import koodies.runtime.JVM
-import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.TruncationStrategy.MIDDLE
@@ -51,7 +51,7 @@ public open class InMemoryLogger(
         } else {
             assemble(lineSkip, getBlockEnd(fallbackReturnValue).toString())
         }
-        return if (keepEscapeSequences) assembled else assembled.escapeSequencesRemoved
+        return if (keepEscapeSequences) assembled else assembled.ansiRemoved
     }
 
     public companion object {

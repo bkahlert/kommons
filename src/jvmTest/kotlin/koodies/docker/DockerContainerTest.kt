@@ -36,7 +36,6 @@ class DockerContainerTest {
 
         @TestFactory
         fun `should throw on illegal name`() = ILLEGAL_NAMES.testEach {
-            val x = DockerContainer { "ds".sanitized }
             expectThrowing { DockerContainer(it) }.that { isFailure().isA<IllegalArgumentException>() }
         }
 

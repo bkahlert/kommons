@@ -1,12 +1,21 @@
 package koodies.concurrent.process
 
+import koodies.concurrent.process.IO.ERR
+import koodies.concurrent.process.ManagedProcess.Evaluated
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed.UnexpectedExitCode
+import koodies.concurrent.process.ManagedProcess.Evaluated.Successful
+import koodies.concurrent.process.Process.ProcessState
+import koodies.concurrent.process.Process.ProcessState.Prepared
+import koodies.concurrent.process.Process.ProcessState.Running
 import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
 import koodies.io.TeeOutputStream
 import koodies.logging.InMemoryLogger
+import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
+import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiColors.yellow
 import koodies.text.GraphemeCluster
@@ -20,6 +29,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.milliseconds
@@ -46,6 +56,15 @@ public open class JavaProcessMock(
     }
 
     public companion object {
+        public val RUNNING_PROCESS: JavaProcessMock
+            get() = InMemoryLogger().withUnclosedWarningDisabled.withSlowInput("this",
+                "process",
+                "processed",
+                "slowly",
+                echoInput = true) { ProcessExitMock.immediateSuccess() }
+        public val SUCCEEDED_PROCESS: JavaProcessMock get() = JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() }
+        public val FAILED_PROCESS: JavaProcessMock get() = JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateExit(-1) }
+
         public fun InMemoryLogger.processMock(
             outputStream: OutputStream = ByteArrayOutputStream(),
             inputStream: InputStream = InputStream.nullInputStream(),
@@ -127,14 +146,19 @@ public open class JavaProcessMock(
     public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
 }
 
-public class ManagedProcessMock(public val processMock: JavaProcessMock, public val name: String? = null) : DelegatingProcess({ processMock }), ManagedProcess {
+public open class ManagedProcessMock(public val processMock: JavaProcessMock, public val name: String? = null) : DelegatingProcess({ processMock }),
+    ManagedProcess {
 
     public var logger: RenderingLogger = processMock.logger
 
     override fun start(): ManagedProcessMock {
         super.start()
+        state = ProcessState.Running(12345L)
         return this
     }
+
+    override var state: ProcessState = ProcessState.Prepared()
+        protected set
 
     override val ioLog: IOLog by lazy { IOLog() }
     override val metaStream: MetaStream = MetaStream()
@@ -153,24 +177,57 @@ public class ManagedProcessMock(public val processMock: JavaProcessMock, public 
     private val preTerminationCallbacks = mutableListOf<ManagedProcess.() -> Unit>()
     override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess = also { preTerminationCallbacks.add(callback) }
 
-    private val postTerminationCallbacks = mutableListOf<ManagedProcess.(Throwable?) -> Unit>()
-    override fun addPostTerminationCallback(callback: ManagedProcess.(Throwable?) -> Unit): ManagedProcess = also { postTerminationCallbacks.add(callback) }
+    private val postTerminationCallbacks = mutableListOf<ManagedProcess.(Evaluated) -> Unit>()
+    override fun addPostTerminationCallback(callback: ManagedProcess.(Evaluated) -> Unit): ManagedProcess = also { postTerminationCallbacks.add(callback) }
 
-    private val cachedOnExit: CompletableFuture<out Process> by lazy<CompletableFuture<out Process>> {
+    private val cachedOnExit: CompletableFuture<out Evaluated> by lazy<CompletableFuture<out Evaluated>> {
         val p = this
         preTerminationCallbacks.runCatching { p }.exceptionOrNull()
+        var termination: Evaluated? = null
         processMock.onExit().thenApply {
-            postTerminationCallbacks.forEach { p.it(null) }
-            p
+            Successful(12345L, exitValue, ioLog.getCopy()).also { state = it }
+                .also { term -> postTerminationCallbacks.forEach { p.it(term) } }
         }
     }
 
     override val successful: Boolean? get() = kotlin.runCatching { exitValue }.fold({ true }, { null })
-    override val onExit: CompletableFuture<out Process> get() = cachedOnExit
+    override val onExit: CompletableFuture<out Evaluated> get() = cachedOnExit
 
     override fun toString(): String =
         if (name != null) super.toString().substringBeforeLast(")") + ", name=$name)"
         else super.toString()
+
+    public companion object {
+        public val PREPARED_MANAGED_PROCESS: ManagedProcessMock
+            get() = object : ManagedProcessMock(JavaProcessMock.SUCCEEDED_PROCESS) {
+                override val started: Boolean = false
+                override var state: ProcessState = Prepared()
+                override val onExit: CompletableFuture<out Evaluated> get() = completedFuture(Any() as Evaluated)
+                override val successful: Boolean? = null
+            }
+        public val RUNNING_MANAGED_PROCESS: ManagedProcessMock
+            get() = object : ManagedProcessMock(JavaProcessMock.RUNNING_PROCESS) {
+                override val started: Boolean = true
+                override var state: ProcessState = Running(12345L)
+                override val onExit: CompletableFuture<out Evaluated> get() = completedFuture(Any() as Evaluated)
+                override val successful: Boolean? = null
+            }
+        public val SUCCEEDED_MANAGED_PROCESS: ManagedProcessMock
+            get() = object : ManagedProcessMock(JavaProcessMock.SUCCEEDED_PROCESS) {
+                override val started: Boolean = true
+                override var state: ProcessState = Successful(12345L, 0, listOf(IO.OUT typed "line 1", IO.OUT typed "line 2"))
+                override val onExit: CompletableFuture<out Evaluated> = completedFuture(state as Evaluated)
+                override val successful: Boolean = true
+            }
+        public val FAILED_MANAGED_PROCESS: ManagedProcessMock
+            get() = object : ManagedProcessMock(JavaProcessMock.FAILED_PROCESS) {
+                override val started: Boolean = true
+                override var state: ProcessState =
+                    UnexpectedExitCode(12345L, 10, CommandLine("command", "argument"), "failed", 42, listOf(ERR typed "error 1", ERR typed "error 2"))
+                override val onExit: CompletableFuture<out Evaluated> = completedFuture(state as Evaluated)
+                override val successful: Boolean? = false
+            }
+    }
 }
 
 

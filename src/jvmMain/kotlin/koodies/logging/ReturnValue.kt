@@ -101,18 +101,3 @@ public inline class ExceptionReturnValue(private val exception: Throwable) : Ret
     override val successful: Boolean get() = false
     override fun format(): CharSequence = exception.toCompactString()
 }
-
-/**
- * Converts any value to a [ReturnValue] used to compute its representation
- * based on whether it implements [ReturnValue] or not.
- *
- * If [ReturnValue] is implemented this implementation is used. Otherwise
- * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
- * for any other value.
- *
- * This extension function is only valid in the context of an existing [RenderingLogger].
- */
-@Suppress("unused")
-public val RenderingLogger.toReturnValue: Any?.() -> ReturnValue
-    get() = { ReturnValue.of(this) }
-

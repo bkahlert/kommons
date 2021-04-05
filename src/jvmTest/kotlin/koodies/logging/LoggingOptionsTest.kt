@@ -1,6 +1,8 @@
 package koodies.logging
 
 import koodies.concurrent.execute
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
+import koodies.concurrent.process.hasState
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
 import koodies.text.ANSI
@@ -10,9 +12,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
-import strikt.api.expectCatching
+import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEmpty
-import strikt.assertions.isFailure
 
 @Execution(SAME_THREAD)
 class LoggingOptionsTest {
@@ -625,20 +627,24 @@ class LoggingOptionsTest {
             }
 
             @Test
-            fun InMemoryLogger.`should display exceptions`() {
-                expectCatching {
+            fun InMemoryLogger.`should display failed`() {
+                expectThat(
                     countDownAndBoom().execute {
                         errorsOnly("caption")
                         null
-                    }
-                }.isFailure()
+                    })
+                    .hasState<Failed>()
                 expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │   
-                    {}
-                    │   ϟ {}Exception: {}
-                    │
-                    ╰──╴✔︎
+                    {{}}
+                    │   caption: 4
+                    │   ϟ Process {} terminated with exit code {}
+                    {{}}
+                    │   ➜ A dump has been written to:
+                    │     - file://{}
+                    │     - file://{}
+                    │   ➜ The last 10 lines are:
+                    │     7
+                    {{}}
                 """.trimIndent())
             }
 
@@ -684,21 +690,24 @@ class LoggingOptionsTest {
             }
 
             @Test
-            fun InMemoryLogger.`should display exceptions`() {
-                expectCatching {
+            fun InMemoryLogger.`should display failed`() {
+                expectThat(
                     countDownAndBoom().execute {
                         processing { async }
                         errorsOnly("caption")
                         null
-                    }.waitForTermination()
-                }.isFailure()
+                    }.waitForTermination())
+                    .isA<Failed>()
                 expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │   
-                    {}
-                    │   ϟ {}Exception: {}
-                    │
-                    ╰──╴✔︎
+                    {{}}
+                    │   caption: 4
+                    │   ϟ Process {} terminated with exit code {}
+                    {{}}
+                    │   ➜ A dump has been written to:
+                    │     - file://{}
+                    │     - file://{}
+                    │   ➜ The last 10 lines are:
+                    {{}}
                 """.trimIndent())
             }
 

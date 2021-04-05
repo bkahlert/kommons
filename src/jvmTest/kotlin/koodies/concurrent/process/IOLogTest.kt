@@ -50,9 +50,9 @@ class IOLogTest {
             }
         }
 
-        poll { ioLog.logged.isNotEmpty() }.every(10.milliseconds).forAtMost(1.seconds) { fail("No I/O logged in one second.") }
+        poll { ioLog.getCopy().isNotEmpty() }.every(10.milliseconds).forAtMost(1.seconds) { fail("No I/O logged in one second.") }
 
-        expectThat(ioLog.logged) {
+        expectThat(ioLog.getCopy()) {
             isNotEmpty()
             contains(IO.META typed "being busy 0 times")
         }
@@ -63,7 +63,7 @@ class IOLogTest {
     internal fun `should provide filtered access`() {
         val ioLog = createIOLog()
 
-        expectThat(ioLog.logged<IO.OUT>()).isEqualTo("""
+        expectThat(ioLog.getCopy().merge<IO.OUT>()).isEqualTo("""
             processing
             awaiting input: 
         """.trimIndent())

@@ -7,7 +7,7 @@ import koodies.debug.Debug.secondaryMeta
 import koodies.terminal.AnsiColors.brightCyan
 import koodies.terminal.AnsiColors.cyan
 import koodies.terminal.AnsiColors.gray
-import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics
 import koodies.text.Semantics.Enclosements.introspection
 import koodies.text.Semantics.formattedAs
@@ -23,7 +23,7 @@ public object Debug {
     public fun wrap(text: CharSequence?, prefix: String = introspection.open, suffix: String = introspection.end): String =
         text?.wrap(prefix.meta(), suffix.meta()) ?: null.wrap("❬".meta(), "❭".meta())
 
-    public val DELIM: String = Semantics.Delimiter.escapeSequencesRemoved.formattedAs.debug
+    public val DELIM: String = Semantics.Delimiter.ansiRemoved.formattedAs.debug
 }
 
 public val <T> XRay<T>.debug: XRay<T>

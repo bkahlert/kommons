@@ -1,13 +1,12 @@
 package koodies.concurrent.process
 
 import koodies.collections.synchronizedListOf
+import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.debug.asEmoji
-import koodies.exception.toCompactString
 import koodies.logging.ReturnValue
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.locks.ReentrantLock
 import java.lang.Process as JavaProcess
 
 /**
@@ -57,6 +56,26 @@ public interface Process : ReturnValue {
      */
     public fun start(): Process
 
+    public sealed class ProcessState(public val status: String) {
+        public class Prepared(
+            status: String = "Process has not yet started.",
+        ) : ProcessState(status)
+
+        public class Running(
+            public val pid: Long,
+            status: String = "Process $pid is running.",
+        ) : ProcessState(status)
+
+        public open class Terminated(
+            public val pid: Long,
+            public val exitCode: Int,
+            public val io: List<IO>,
+            status: String = "Process $pid terminated with exit code $exitCode.",
+        ) : ProcessState(status)
+    }
+
+    public val state: ProcessState
+
     /**
      * Returns whether [start] was called.
      *
@@ -89,26 +108,26 @@ public interface Process : ReturnValue {
 
     override fun format(): CharSequence {
         requireNotNull(successful) { "$this has not terminated, yet." }
-        return kotlin.runCatching { waitForTermination() }.exceptionOrNull()?.toCompactString() ?: ""
+        return (state as? ReturnValue)?.format() ?: state.status
     }
 
     /**
      * A completable future that returns an instances of this process once
      * the program represented by this process terminated.
      */
-    public val onExit: CompletableFuture<out Process>
+    public val onExit: CompletableFuture<out Terminated>
 
     /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    public fun waitFor(): Int = onExit.join().exitValue
+    public fun waitFor(): Int = onExit.join().exitCode
 
     /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    public fun waitForTermination(): Int = onExit.thenApply { process -> process.exitValue }.join()
+    public fun waitForTermination(): Terminated = onExit.join()
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.
@@ -122,7 +141,6 @@ public interface Process : ReturnValue {
 }
 
 public class MetaStream(vararg listeners: (IO.META) -> Unit) {
-    private val lock: ReentrantLock = ReentrantLock()
     private val history: MutableList<IO.META> = synchronizedListOf()
     private val listeners: MutableList<(IO.META) -> Unit> = synchronizedListOf(*listeners)
 
@@ -156,15 +174,15 @@ public abstract class DelegatingProcess(private val processProvider: Process.() 
     override val started: Boolean get() = _started
     override val alive: Boolean get() = started && javaProcess.isAlive
     override val exitValue: Int get() = javaProcess.exitValue()
-    abstract override val onExit: CompletableFuture<out Process>
-    override fun waitFor(): Int = onExit.join().exitValue
+    abstract override val onExit: CompletableFuture<out ManagedProcess.Evaluated>
+    override fun waitFor(): Int = onExit.join().exitCode
     override fun stop(): Process = also { javaProcess.destroy() }
     override fun kill(): Process = also { javaProcess.destroyForcibly() }
 
     override fun toString(): String {
         val delegateString =
             if (started) "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful.asEmoji}"
-            else "not yet initialized"
-        return "${this::class.simpleName}(delegate=$delegateString, started=${started.asEmoji})"
+            else "not yet started"
+        return "${this::class.simpleName ?: "object"}(delegate=$delegateString, started=${started.asEmoji})"
     }
 }

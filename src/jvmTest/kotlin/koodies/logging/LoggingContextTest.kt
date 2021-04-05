@@ -11,7 +11,7 @@ import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
 import koodies.text.prefixLinesWith
@@ -224,4 +224,4 @@ public val LoggingContext.expectLogged
  * Returns an [Assertion.Builder] for all log messages recorded in the asserted [LoggingContext].
  */
 public val Assertion.Builder<LoggingContext>.logged: Assertion.Builder<String>
-    get() = get("record log messages in %s") { logged.escapeSequencesRemoved }
+    get() = get("record log messages in %s") { logged.ansiRemoved }

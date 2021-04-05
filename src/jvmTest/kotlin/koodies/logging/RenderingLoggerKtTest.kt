@@ -1,6 +1,5 @@
 package koodies.logging
 
-import koodies.concurrent.Status
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.META
 import koodies.io.ByteArrayOutputStream
@@ -389,40 +388,6 @@ class RenderingLoggerKtTest {
         }
 
         expect { logger }.that { toStringMatchesCurlyPattern(expectation) }
-    }
-
-    @Execution(SAME_THREAD)
-    @TestFactory
-    fun `should show unsuccessful return statuses`() = listOf(
-        SOLID to """
-            ╭──╴{}
-            │   
-            │   ╭──╴{}
-            │   │   
-            │   │   logged line
-            │   ϟ
-            │   ╰──╴𝟷↩
-            ϟ
-            ╰──╴𝟷↩{}
-        """.trimIndent(),
-        DOTTED to """
-            ╭──╴{}
-            │   
-            │   ▶ caption
-            │   · logged line
-            │   ϟ 𝟷↩
-            ϟ
-            ╰──╴𝟷↩{}
-        """.trimIndent(),
-    ).testEach("border={}") { (border, expectation) ->
-        val logger: InMemoryLogger = InMemoryLogger().withUnclosedWarningDisabled.applyLogging {
-            logging(caption = "caption", border = border) {
-                logLine { "logged line" }
-                Status.FAILURE
-            }
-        }
-
-        test { logger.expectThatLogged().matchesCurlyPattern(expectation) }
     }
 
     @Nested

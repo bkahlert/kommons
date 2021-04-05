@@ -16,6 +16,7 @@ import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
+import koodies.logging.logReturnValue
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
 import koodies.runtime.Program
@@ -64,10 +65,9 @@ public object Processors {
  * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
 public fun <P : Process> P.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
-    (this as? ManagedProcess)?.addPostTerminationCallback { ex ->
+    (this as? ManagedProcess)?.addPostTerminationCallback { terminated ->
         if (async) {
-            if (ex != null) logger.logResult { Result.failure(ex) }
-            else logger.logResult()
+            logger.logReturnValue(terminated)
         }
     } ?: error("process can't be attached to")
     return Processors.loggingProcessor(logger)

@@ -3,6 +3,8 @@ package koodies.concurrent.process
 import koodies.io.path.asPath
 import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.LineSeparators.LF
 import koodies.text.Semantics
 import koodies.text.containsEscapeSequences
 import koodies.text.matchesCurlyPattern
@@ -13,6 +15,8 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
 @Execution(CONCURRENT)
@@ -120,7 +124,7 @@ class IOTest {
     @Nested
     inner class In {
 
-        private val `in` = IO.IN typed "in"
+        private val `in` = IO.INPUT typed "in"
 
         @Test
         fun `should have original text`() {
@@ -171,5 +175,57 @@ class IOTest {
                 {{}}
             """.trimIndent())
         }
+    }
+
+    @Nested
+    inner class IoProperties {
+
+        @Test
+        fun `should filter meta`() {
+            expectThat(IO_LIST.meta).containsExactly(IO_LIST.subList(0, 5))
+        }
+
+        @Test
+        fun `should filter in`() {
+            expectThat(IO_LIST.input).containsExactly(IO_LIST.subList(5, 6))
+        }
+
+        @Test
+        fun `should filter out`() {
+            expectThat(IO_LIST.out).containsExactly(IO_LIST.subList(6, 7))
+        }
+
+        @Test
+        fun `should filter err`() {
+            expectThat(IO_LIST.err).containsExactly(IO_LIST.subList(7, 8))
+        }
+
+        @Test
+        fun `should keep ansi escape codes when merging`() {
+            expectThat(IO_LIST.merged).containsEscapeSequences()
+        }
+
+        @Test
+        fun `should merge multiple types`() {
+            expectThat(IO_LIST.drop(2).take(2).merged.ansiRemoved).isEqualTo("text${LF}dump")
+        }
+
+        @Test
+        fun `should merge single type`() {
+            expectThat(IO_LIST.out.merged.ansiRemoved).isEqualTo("out")
+        }
+    }
+
+    companion object {
+        val IO_LIST = listOf(
+            IO.META.STARTING(CommandLine("command", "arg")),
+            IO.META typed "file".asPath(),
+            IO.META.TEXT("text"),
+            IO.META.DUMP("dump"),
+            IO.META.TERMINATED(ManagedProcessMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })),
+            IO.INPUT typed "in",
+            IO.OUT typed "out",
+            IO.ERR(RuntimeException("err")),
+        )
     }
 }

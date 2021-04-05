@@ -2,6 +2,7 @@ package koodies.concurrent.process
 
 import koodies.asString
 import koodies.concurrent.process.IO.META
+import koodies.concurrent.process.IO.OUT
 import koodies.exception.persistDump
 import koodies.io.ByteArrayOutputStream
 import koodies.text.INTERMEDIARY_LINE_PATTERN
@@ -26,24 +27,15 @@ public class IOLog {
     private val lock = ReentrantLock()
 
     /**
-     * Contains the currently logged I/O of the corresponding [ManagedProcess].
+     * Returns a copy of the currently logged I/O of the corresponding [ManagedProcess].
      *
      * ***Note:** Only complete lines can be accessed to avoid
      * non-corrupted data (e.g. split characters).*
      */
-    public val logged: List<IO> get() = lock.withLock { log.toList() }
+    public fun getCopy(): List<IO> = lock.withLock { log.toList() }
 
     /**
-     * Contains the currently logged I/O of the corresponding [ManagedProcess].
-     *
-     * ***Note:** Only complete lines can be accessed to avoid
-     * non-corrupted data (e.g. split characters).*
-     */
-    public inline fun <reified T : IO> logged(removeEscapeSequences: Boolean = true): String =
-        logged.filterIsInstance<T>().joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
-
-    /**
-     * Contains the currently logged I/O. See [logged] for more details.
+     * Contains the currently logged I/O. See [copy] for more details.
      */
     private val log = mutableListOf<IO>()
 
@@ -55,12 +47,12 @@ public class IOLog {
     }
 
     /**
-     * Assembles [IO.IN] chunks and adds successfully reconstructed ones
+     * Assembles [IO.INPUT] chunks and adds successfully reconstructed ones
      * to this log.
      */
     public val input: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.IN typed it) }
+            lines.forEach { log.add(IO.INPUT typed it) }
         }
     }
 
@@ -97,7 +89,7 @@ public class IOLog {
     /**
      * Returns a dump of the logged I/O log.
      */
-    public fun dump(): String = logged<IO>(removeEscapeSequences = false)
+    public fun dump(): String = getCopy().merge<IO>(removeEscapeSequences = false)
 
     /**
      * Dumps the logged I/O log in the specified [directory] using the name scheme `koodies.process.{PID}.{RANDOM}.log".
@@ -105,7 +97,7 @@ public class IOLog {
     public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
 
     override fun toString(): String = asString {
-        OK to logged.joinToString { it.truncate() }
+        OK to getCopy().joinToString { it.truncate() }
         "OUT" to out.incompleteBytes
         "ERR" to err.incompleteBytes
     }
@@ -161,21 +153,20 @@ public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Uni
     override fun toString(): String = asString(::lock, ::incomplete)
 }
 
-/**
- * Contains the currently logged I/O of this [ManagedProcess].
- *
- * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
- * to have non-corrupted data (e.g. split characters).
- */
-public inline fun <reified T : IO> ManagedProcess.logged(): String = ioLog.logged<T>()
 
 /**
- * Contains the currently logged I/O of this [ManagedProcess].
+ * Filters this [IO] list by the specified type.
  *
- * **Important:** Only complete lines can be accessed as this is considered to be the only safe way
- * to have non-corrupted data (e.g. split characters).
+ * By default [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
+ * Set [removeEscapeSequences] to `false` to keep escapes codes.
  */
-public val ManagedProcess.logged: String get() = ioLog.logged<IO>()
+public inline fun <reified T : IO> List<IO>.merge(removeEscapeSequences: Boolean = true): String =
+    filterIsInstance<T>().joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
+
+/**
+ * Contains a copy of the currently logged I/O of `this` corresponding [ManagedProcess].
+ */
+public val ManagedProcess.io: List<IO> get() = ioLog.getCopy()
 
 /**
  * Convenience method to get the output of a process.
@@ -188,7 +179,7 @@ public val ManagedProcess.logged: String get() = ioLog.logged<IO>()
  */
 public fun ManagedProcess.output(): String = run {
     process({ sync }, Processors.noopProcessor())
-    ioLog.logged<IO.OUT>()
+    ioLog.getCopy().merge<OUT>()
 }
 
 /**
@@ -210,7 +201,7 @@ public fun <T> ManagedProcess.output(transform: String.() -> T?): List<T> =
  */
 public fun ManagedProcess.errors(): String = run {
     process({ sync }, Processors.noopProcessor())
-    ioLog.logged<IO.ERR>()
+    ioLog.getCopy().merge<IO.ERR>()
 }
 
 /**

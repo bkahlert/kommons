@@ -4,8 +4,8 @@ import koodies.test.testEach
 import koodies.text.ANSI.Style.bold
 import koodies.text.ANSI.Style.strikethrough
 import koodies.text.ANSI.Style.underline
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.ANSI.containsEscapeSequences
-import koodies.text.ANSI.escapeSequencesRemoved
 import koodies.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -47,7 +47,7 @@ class ANSITest {
             "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___" to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___",
 
             ) { (ansi, plain) ->
-            with { ansi.escapeSequencesRemoved }.then {
+            with { ansi.ansiRemoved }.then {
                 expect { this }.that { isEqualTo(plain) }
                 expect { this }.that { not { containsEscapeSequences() } }
             }
@@ -77,5 +77,5 @@ fun <T : CharSequence> Assertion.Builder<T>.containsEscapeSequences(): Assertion
         }
     }
 
-inline val <reified T : CharSequence> Assertion.Builder<T>.escapeSequencesRemoved: DescribeableBuilder<String>
-    get() = get("escape sequences removed") { escapeSequencesRemoved }
+inline val <reified T : CharSequence> Assertion.Builder<T>.ansiRemoved: DescribeableBuilder<String>
+    get() = get("escape sequences removed") { ansiRemoved }

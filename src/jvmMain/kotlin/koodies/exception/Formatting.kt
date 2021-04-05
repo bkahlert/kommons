@@ -11,7 +11,7 @@ public fun Any?.toCompactString(): String = when (this) {
     is Path -> toUri().toString()
     is Array<*> -> toList().toCompactString()
     is Iterable<*> -> joinToString(prefix = "[", postfix = "]") { it.toCompactString() }
-    is Process -> also { waitFor() }.exitValue.toString()
+    is Process -> kotlin.runCatching { state.status }.fold({ it }, { it.toCompactString() })
     is java.lang.Process -> also { waitFor() }.exitValue().toString()
     else -> when (this) {
         null -> ""

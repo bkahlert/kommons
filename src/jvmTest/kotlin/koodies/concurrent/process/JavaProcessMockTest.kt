@@ -1,9 +1,19 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.daemon
+import koodies.concurrent.process.JavaProcessMock.Companion.FAILED_PROCESS
+import koodies.concurrent.process.JavaProcessMock.Companion.RUNNING_PROCESS
+import koodies.concurrent.process.JavaProcessMock.Companion.SUCCEEDED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.processMock
 import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
 import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
+import koodies.concurrent.process.ManagedProcess.Evaluated.Successful
+import koodies.concurrent.process.ManagedProcessMock.Companion.FAILED_MANAGED_PROCESS
+import koodies.concurrent.process.ManagedProcessMock.Companion.PREPARED_MANAGED_PROCESS
+import koodies.concurrent.process.ManagedProcessMock.Companion.RUNNING_MANAGED_PROCESS
+import koodies.concurrent.process.ManagedProcessMock.Companion.SUCCEEDED_MANAGED_PROCESS
+import koodies.concurrent.process.Process.ProcessState
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateExit
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateSuccess
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
@@ -16,9 +26,11 @@ import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.Slow
 import koodies.test.assertTimeoutPreemptively
+import koodies.test.test
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
+import koodies.time.poll
 import koodies.time.sleep
 import koodies.tracing.subTrace
 import org.junit.jupiter.api.Nested
@@ -29,6 +41,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
@@ -46,6 +59,74 @@ import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class JavaProcessMockTest {
+
+    @Execution(CONCURRENT)
+    @Nested
+    inner class ProcessMockFixtures {
+
+        @Execution(CONCURRENT)
+        @Nested
+        inner class ProcessMocks {
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should run`() = test({ RUNNING_PROCESS }) {
+                expect { it().isAlive }.that { isTrue() }
+                expect("stays running for 5s") { val p = it(); poll { !p.isAlive }.every(500.milliseconds).forAtMost(5.seconds) }.that { isFalse() }
+            }
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should have completed successfully`() = test({ SUCCEEDED_PROCESS }) {
+                expect { it().isAlive }.that { isFalse() }
+                expect { it().exitValue() }.that { isEqualTo(0) }
+            }
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should have failed`() = test({ FAILED_PROCESS }) {
+                expect { it().isAlive }.that { isFalse() }
+                expect { it().exitValue() }.that { isEqualTo(-1) }
+            }
+        }
+
+        @Execution(CONCURRENT)
+        @Nested
+        inner class ManagedProcessMocks {
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should not run`() = test({ PREPARED_MANAGED_PROCESS }) {
+                expect { it() }.that { notStarted() }
+                expect { it() }.that { hasState<ProcessState.Prepared> { status.contains("not yet started") } }
+                expect("stays prepared for 5s") { val p = it(); poll { p.started }.every(500.milliseconds).forAtMost(5.seconds) }.that { isFalse() }
+            }
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should run`() = test({ RUNNING_MANAGED_PROCESS }) {
+                expect { it() }.that { started() }
+                expect { it() }.that { hasState<ProcessState.Running> { status.contains("running") } }
+                expect("stays running for 5s") {
+                    val p = it(); poll { p.state !is ProcessState.Running }.every(500.milliseconds).forAtMost(5.seconds)
+                }.that { isFalse() }
+            }
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should succeed`() = test({ SUCCEEDED_MANAGED_PROCESS }) {
+                expect { it() }.that { completesSuccessfully() }
+                expect { it() }.that { hasState<Successful> { status.contains("terminated successfully") } }
+            }
+
+            @Execution(CONCURRENT)
+            @TestFactory
+            fun `should fail`() = test({ FAILED_MANAGED_PROCESS }) {
+                expect { it() }.that { fails() }
+                expect { it() }.that { hasState<Failed.UnexpectedExitCode> { status.contains("failed") } }
+            }
+        }
+    }
 
     @Nested
     inner class WithSlowInputStream {
@@ -384,10 +465,10 @@ class JavaProcessMockTest {
             process.enter("shutdown")
         }
 
-        val exitValue = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
+        val status = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
 
-        expectThat(exitValue) {
-            isEqualTo(0)
+        expectThat(status) {
+            isA<Successful>().exitCode.isEqualTo(0)
         }
     }
 }

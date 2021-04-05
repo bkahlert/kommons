@@ -2,17 +2,13 @@ package koodies.docker
 
 import koodies.builder.Init
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.output
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.MountOptionContext.Type.bind
 import koodies.io.path.asPath
-import koodies.requireNotBlank
 import koodies.shell.HereDocBuilder
-import koodies.shell.ShellExecutable
 import koodies.shell.toHereDoc
 import koodies.test.BuilderFixture
 import koodies.test.toStringIsEqualTo
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -309,22 +305,4 @@ class DockerRunCommandLineTest {
     ) {
         private val dockerImage = Docker.images { "repo" / "name" tag "tag" }
     }
-
-
-    private val shellExecutable: ShellExecutable = CommandLine("printenv")
-//    echo $(printenv LOGNAME) using $(printenv SHELL)
-
-    @BeforeEach
-    fun setUp() {
-        DockerTestImageExclusive.DOCKER_TEST_CONTAINER.start()
-    }
-
-    @DockerRequiring(requiredImages = ["ubuntu"]) @Test
-    fun name() {
-        val dockerOutput = shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image, null).output().requireNotBlank()
-        expectThat(dockerOutput).contains("hostOutput")
-    }
-
-
-    private val testImage = DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image
 }

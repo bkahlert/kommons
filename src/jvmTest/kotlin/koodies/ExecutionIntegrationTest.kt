@@ -3,7 +3,9 @@ package koodies
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.logged
+import koodies.concurrent.process.err
+import koodies.concurrent.process.io
+import koodies.concurrent.process.merged
 import koodies.concurrent.process.output
 import koodies.concurrent.script
 import koodies.debug.CapturedOutput
@@ -23,7 +25,8 @@ import koodies.test.withTempDir
 import koodies.text.ANSI
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.escapeSequencesRemoved
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.LineSeparators.lines
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
@@ -70,7 +73,7 @@ class ExecutionIntegrationTest {
 
         // all possible context information available
         process check {
-            logged {
+            io.merged.ansiRemoved {
                 matchesCurlyPattern("""
                     Executing echo "Hello, World!"
                     Hello, World!
@@ -170,9 +173,9 @@ class ExecutionIntegrationTest {
         // luckily it prints to the console as a fallback
         // with the run script and the complete output linked
         pollCatching {
-            (consoleOutput.out.escapeSequencesRemoved.lines()) {
+            (consoleOutput.out.ansiRemoved.lines()) {
                 any { matchesCurlyPattern("⌛️ ➜ A dump has been written to{}") }
-                any { matchesCurlyPattern("⌛️ ϟ ProcessExecutionException: Process {} terminated with exit code 0. Expected -1. at{}") }
+                any { matchesCurlyPattern("⌛️ ϟ Process {} terminated with exit code 0. Expected -1.") }
             }
         }.every(500.milliseconds).forAtMost(5.seconds) { fail { "No exception logged" } }
     }
@@ -181,13 +184,7 @@ class ExecutionIntegrationTest {
     fun `should be simple`() {
         tempDir().apply {
 
-            runCatching { script { !"cat sample.html" } }.exceptionOrNull() check {
-                (message.toString().toLowerCase()) {
-                    contains("sample.html")
-                    contains("exit code")
-                    contains("expected 0")
-                }
-            }
+            script { !"cat sample.html" } check { io.err.merged.ansiRemoved { contains("cat: sample.html: No such file or directory") } }
 
             HtmlFile.copyTo(resolve("sample.html"))
             val process = script { !"cat sample.html" }
@@ -217,11 +214,11 @@ class ExecutionIntegrationTest {
     fun `should process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         // boring ...
-        CommandLine("printenv").execute { null } check { logged { lines().count().isGreaterThan(10) } }
+        CommandLine("printenv").execute { null } check { io.merged.ansiRemoved { lines().count().isGreaterThan(10) } }
 
         // how about that ...
         CommandLine("printenv").executeDockerized(DockerImage { official("ubuntu") }, null) check {
-            logged { lines().count().isGreaterThan(2) }
+            io.merged.ansiRemoved { lines().count().isGreaterThan(2) }
         }
 
 //        DockerContainer.listContainers

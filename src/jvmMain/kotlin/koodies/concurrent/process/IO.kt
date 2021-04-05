@@ -1,6 +1,10 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.Companion.ERASE_MARKER
+import koodies.concurrent.process.IO.ERR
+import koodies.concurrent.process.IO.INPUT
+import koodies.concurrent.process.IO.META
+import koodies.concurrent.process.IO.OUT
 import koodies.logging.ReturnValue
 import koodies.terminal.AnsiString
 import koodies.text.ANSI.Colors.brightBlue
@@ -78,26 +82,26 @@ public sealed class IO(
     /**
      * An [IO] (of another process) serving as an input.
      */
-    public class IN(text: AnsiString) : IO(text, { text.mapLines { it.brightBlue().dim().italic() } }) {
+    public class INPUT(text: AnsiString) : IO(text, { text.mapLines { it.brightBlue().dim().italic() } }) {
         public companion object {
-            private val EMPTY: IN = IN(AnsiString.EMPTY)
+            private val EMPTY: INPUT = INPUT(AnsiString.EMPTY)
 
             /**
              * Factory to classify different [Type]s of [IO].
              */
-            public infix fun typed(text: CharSequence): IN = if (text.isEmpty()) EMPTY else IN(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): INPUT = if (text.isEmpty()) EMPTY else INPUT(filter(text).asAnsiString())
         }
 
-        private val lines: List<IN> by lazy { text.lines().map { IN typed it }.toList() }
+        private val lines: List<INPUT> by lazy { text.lines().map { INPUT typed it }.toList() }
 
         /**
          * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
          */
-        public fun lines(): List<IN> = lines
+        public fun lines(): List<INPUT> = lines
     }
 
     /**
-     * An [IO] that is neither [META], [IN] nor [ERR].
+     * An [IO] that is neither [META], [INPUT] nor [ERR].
      */
     public class OUT(text: AnsiString) : IO(text, { text.mapLines { it.yellow() } }) {
         public companion object {
@@ -155,3 +159,29 @@ public sealed class IO(
         }
     }
 }
+
+
+/**
+ * Contains a filtered copy only consisting of [META].
+ */
+public val List<IO>.meta: List<META> get() = filterIsInstance<META>()
+
+/**
+ * Contains a filtered copy only consisting of [INPUT].
+ */
+public val List<IO>.input: List<INPUT> get() = filterIsInstance<INPUT>()
+
+/**
+ * Contains a filtered copy only consisting of [OUT].
+ */
+public val List<IO>.out: List<OUT> get() = filterIsInstance<OUT>()
+
+/**
+ * Contains a filtered copy only consisting of [ERR].
+ */
+public val List<IO>.err: List<ERR> get() = filterIsInstance<ERR>()
+
+/**
+ * Contains a filtered copy of I/O merged to a string.
+ */
+public val List<IO>.merged: String get() = merge<IO>(removeEscapeSequences = false)

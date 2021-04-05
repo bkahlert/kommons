@@ -4,9 +4,12 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed.UnexpectedExitCode
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.containsDump
-import koodies.concurrent.process.logged
+import koodies.concurrent.process.hasState
+import koodies.concurrent.process.io
+import koodies.concurrent.process.merged
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
@@ -21,6 +24,7 @@ import koodies.test.SystemIoRead
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.IntervalPolling
@@ -35,7 +39,6 @@ import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import strikt.assertions.isSuccess
@@ -83,8 +86,9 @@ class ExecutionTest {
         }
 
         @Test
-        fun InMemoryLogger.`should throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectCatching { CommandLine("exit", "42").execute { Processors.noopProcessor() } }.isFailure().containsDump()
+        fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectCatching { CommandLine("exit", "42").execute { Processors.noopProcessor() } }.isSuccess()
+                .hasState<UnexpectedExitCode> { io<IO>().containsDump(containedStrings = emptyArray()) }
         }
 
         @Test
@@ -112,7 +116,7 @@ class ExecutionTest {
             val process = getExecutable(uniqueId).execute { Processors.noopProcessor() }
             process.output()
 
-            expectThat(process.ioLog.logged.drop(3).dropLast(1))
+            expectThat(process.ioLog.getCopy().drop(3).dropLast(1))
                 .containsExactlyInAnyOrder(
                     OUT typed "test output env",
                     ERR typed "test error 1",
@@ -209,7 +213,7 @@ class ExecutionTest {
         @Test
         fun `should provide recorded output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = getExecutable(uniqueId).execute { {} }
-            expectThat(process.logged).matchesCurlyPattern("""
+            expectThat(process.io.merged.ansiRemoved).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
                     {{}}
@@ -317,13 +321,13 @@ class ExecutionTest {
             expectThat(output).get { out }.isEmpty()
             expectThat(output).get { err }.isEmpty()
         }
-        
+
         @SystemIoExclusive // prints log start to console
         @Test
         fun InMemoryLogger.`should provide recorded output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = getExecutable(uniqueId).execute { processing { async }; { logLine { it } } }
             poll()
-            expectThat(process.logged).matchesCurlyPattern("""
+            expectThat(process.io.merged.ansiRemoved).matchesCurlyPattern("""
                     Executing {}
                     {} file:{}
                     {{}}
