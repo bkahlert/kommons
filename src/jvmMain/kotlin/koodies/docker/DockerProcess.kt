@@ -24,12 +24,10 @@ public open class DockerProcess private constructor(
     public companion object {
         public fun from(
             dockerRunCommandLine: DockerRunCommandLine,
-            expectedExitValue: Int?,
             processTerminationCallback: ProcessTerminationCallback? = null,
         ): DockerProcess {
             val container = dockerRunCommandLine.options.name ?: error("Docker container name missing.")
             val managedProcess = ManagedProcess.from(dockerRunCommandLine,
-                expectedExitValue = expectedExitValue,
                 processTerminationCallback = { ex ->
                     //TODO       container.remove { force { on } }.apply { onExit.orTimeout(8, SECONDS).get() }
                     processTerminationCallback?.also { it(ex) }

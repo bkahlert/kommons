@@ -9,8 +9,8 @@ public interface ShellExecutable : Executable {
     public override val summary: String
     public fun toCommandLine(): CommandLine
 
-    public fun toProcess(): ManagedProcess = toProcess(0, null)
+    public fun toProcess(): ManagedProcess = toProcess(null)
 
-    override fun toProcess(expectedExitValue: Int?, processTerminationCallback: ProcessTerminationCallback?): ManagedProcess =
-        ManagedProcess.from(toCommandLine(), expectedExitValue, processTerminationCallback)
+    override fun toProcess(processTerminationCallback: ProcessTerminationCallback?): ManagedProcess =
+        ManagedProcess.from(toCommandLine(), processTerminationCallback)
 }

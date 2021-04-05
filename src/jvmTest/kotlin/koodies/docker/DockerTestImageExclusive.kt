@@ -94,7 +94,6 @@ public class DockerTestRunner(private val baseName: String = "koodies.docker.tes
 //                dockerOptions { name { name }; detached { on } }
 //                executionOptions {
 //                    noDetails("sleeping for 10 seconds")
-//                    ignoreExitValue()
 //                }
 //                null
 //            }
@@ -173,7 +172,6 @@ public class DockerTestContainerProvider(name: String, val image: DockerImage, p
                 dockerOptions { name { name }; detached { on } }
                 executionOptions {
                     noDetails("sleeping for 10 seconds")
-                    ignoreExitValue()
                 }
                 null
             }

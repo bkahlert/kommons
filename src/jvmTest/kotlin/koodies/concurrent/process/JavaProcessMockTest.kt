@@ -7,7 +7,6 @@ import koodies.concurrent.process.JavaProcessMock.Companion.SUCCEEDED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.processMock
 import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
 import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
 import koodies.concurrent.process.ManagedProcess.Evaluated.Successful
 import koodies.concurrent.process.ManagedProcessMock.Companion.FAILED_MANAGED_PROCESS
 import koodies.concurrent.process.ManagedProcessMock.Companion.PREPARED_MANAGED_PROCESS
@@ -123,7 +122,7 @@ class JavaProcessMockTest {
             @TestFactory
             fun `should fail`() = test({ FAILED_MANAGED_PROCESS }) {
                 expect { it() }.that { fails() }
-                expect { it() }.that { hasState<Failed.UnexpectedExitCode> { status.contains("failed") } }
+                expect { it() }.that { hasState<ManagedProcess.Evaluated.Failed> { status.contains("failed") } }
             }
         }
     }
@@ -224,14 +223,13 @@ class JavaProcessMockTest {
 
     @Nested
     inner class ReadingExitValue {
-        val expectedExitValue = 42
 
         @Nested
-        inner class UsingExitValue {
+        inner class UsingExitState {
             @Test
             fun InMemoryLogger.`should return mocked exit`() {
-                val p = processMock(processExit = { immediateExit(expectedExitValue) })
-                expectThat(p.exitValue()).isEqualTo(expectedExitValue)
+                val p = processMock(processExit = { immediateExit(0) })
+                expectThat(p.exitValue()).isEqualTo(0)
             }
 
             @Test
@@ -251,11 +249,11 @@ class JavaProcessMockTest {
         inner class UsingWaitFor {
             @Test
             fun InMemoryLogger.`should return mocked exit code`() {
-                val p = processMock(processExit = { immediateExit(expectedExitValue) })
+                val p = processMock(processExit = { immediateExit(0) })
 
                 val exitValue = p.waitFor()
 
-                expectThat(exitValue).isEqualTo(expectedExitValue)
+                expectThat(exitValue).isEqualTo(0)
             }
 
             @Test
@@ -270,18 +268,18 @@ class JavaProcessMockTest {
 
             @Test
             fun InMemoryLogger.`should delay exit`() {
-                val p = processMock(processExit = { ProcessExitMock.delayedExit(expectedExitValue, 50.milliseconds) })
+                val p = processMock(processExit = { ProcessExitMock.delayedExit(0, 50.milliseconds) })
                 val start = System.currentTimeMillis()
 
                 val exitValue = p.waitFor()
 
-                expectThat(exitValue).isEqualTo(42)
+                expectThat(exitValue).isEqualTo(0)
                 expectThat(System.currentTimeMillis() - start).isGreaterThan(40).isLessThan(80)
             }
 
             @Test
             fun InMemoryLogger.`should return true if process exits in time`() {
-                val p = processMock(processExit = { ProcessExitMock.delayedExit(expectedExitValue, 50.milliseconds) })
+                val p = processMock(processExit = { ProcessExitMock.delayedExit(0, 50.milliseconds) })
 
                 val returnValue = p.waitFor(100, TimeUnit.MILLISECONDS)
 
@@ -290,7 +288,7 @@ class JavaProcessMockTest {
 
             @Test
             fun InMemoryLogger.`should return false if process not exits in time`() {
-                val p = processMock(processExit = { ProcessExitMock.delayedExit(expectedExitValue, 50.milliseconds) })
+                val p = processMock(processExit = { ProcessExitMock.delayedExit(0, 50.milliseconds) })
 
                 val returnValue = p.waitFor(25, TimeUnit.MILLISECONDS)
 
@@ -305,13 +303,13 @@ class JavaProcessMockTest {
             inner class WithDefaultInputStream {
                 @Test
                 fun InMemoryLogger.`should be finished if exit is immediate`() {
-                    val p = processMock(processExit = { immediateExit(expectedExitValue) })
+                    val p = processMock(processExit = { immediateExit(0) })
                     expectThat(p.isAlive).isFalse()
                 }
 
                 @Test
                 fun InMemoryLogger.`should be alive if exit is delayed`() {
-                    val p = processMock(processExit = { ProcessExitMock.delayedExit(expectedExitValue, 50.milliseconds) })
+                    val p = processMock(processExit = { ProcessExitMock.delayedExit(0, 50.milliseconds) })
                     expectThat(p.isAlive).isTrue()
                 }
             }
@@ -320,7 +318,7 @@ class JavaProcessMockTest {
             inner class WithSlowInputStream {
                 @Test
                 fun InMemoryLogger.`should be finished if all read`() {
-                    val p = withSlowInput(echoInput = true, processExit = { immediateExit(expectedExitValue) })
+                    val p = withSlowInput(echoInput = true, processExit = { immediateExit(0) })
                     expectThat(p.isAlive).isFalse()
                 }
 
@@ -329,7 +327,7 @@ class JavaProcessMockTest {
                     val p = withSlowInput(
                         "unread",
                         echoInput = true,
-                        processExit = { immediateExit(expectedExitValue) },
+                        processExit = { immediateExit(0) },
                     )
                     expectThat(p.isAlive).isTrue()
                 }

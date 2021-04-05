@@ -613,16 +613,20 @@ class LoggingOptionsTest {
             @Test
             fun InMemoryLogger.`should display ERR`() {
                 countDownAndBoom().execute {
-                    ignoreExitValue()
                     errorsOnly("caption")
                     null
                 }
                 expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │   
+                    {{}}
                     │   caption: 4
-                    │
-                    ╰──╴✔︎
+                    │   ϟ Process {} terminated with exit code {}
+                    {{}}
+                    │   ➜ A dump has been written to:
+                    │     - file://{}
+                    │     - file://{}
+                    │   ➜ The last 10 lines are:
+                    │     7
+                    {{}}
                 """.trimIndent())
             }
 
@@ -651,7 +655,6 @@ class LoggingOptionsTest {
             @Test
             fun InMemoryLogger.`should hide regular result`() {
                 countDownAndStart().execute {
-                    ignoreExitValue()
                     errorsOnly("caption")
                     null
                 }
@@ -676,16 +679,19 @@ class LoggingOptionsTest {
             fun InMemoryLogger.`should display ERR`() {
                 countDownAndBoom().execute {
                     processing { async }
-                    ignoreExitValue()
                     errorsOnly("caption")
                     null
                 }.waitForTermination()
                 expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │   
+                    {{}}
                     │   caption: 4
-                    │
-                    ╰──╴✔︎
+                    │   ϟ Process {} terminated with exit code {}
+                    {{}}
+                    │   ➜ A dump has been written to:
+                    │     - file://{}
+                    │     - file://{}
+                    │   ➜ The last 10 lines are:
+                    {{}}
                 """.trimIndent())
             }
 
@@ -714,7 +720,6 @@ class LoggingOptionsTest {
             @Test
             fun InMemoryLogger.`should hide regular result`() {
                 countDownAndStart().execute {
-                    ignoreExitValue()
                     errorsOnly("caption")
                     null
                 }.waitForTermination()

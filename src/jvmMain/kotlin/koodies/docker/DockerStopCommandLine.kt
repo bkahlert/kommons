@@ -106,7 +106,6 @@ public val DockerContainer.stop: (Init<OptionsContext>) -> Boolean
             containers by listOf(this@stop.name)
         }.execute {
             summary("Stopping ${this@stop.formattedAs.input}")
-            ignoreExitValue()
             null
         }.parseResponse()
     }
@@ -124,7 +123,6 @@ public val RenderingLogger?.stop: DockerContainer.(Init<OptionsContext>) -> Bool
             containers by listOf(thisContainer.name)
         }.execute {
             summary("Stopping ${thisContainer.formattedAs.input}")
-            ignoreExitValue()
             null
         }.parseResponse()
     }

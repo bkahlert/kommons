@@ -121,7 +121,6 @@ public val DockerContainer.remove: (Init<OptionsContext>) -> Boolean
         val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
         dockerRemoveCommandLine.execute {
             summary("Removing$forcefully ${this@remove.formattedAs.input}")
-            ignoreExitValue()
             null
         }.parseResponse()
     }
@@ -141,7 +140,6 @@ public val RenderingLogger?.remove: DockerContainer.(Init<OptionsContext>) -> Bo
         val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
         dockerRemoveCommandLine.execute {
             summary("Removing$forcefully ${thisContainer.formattedAs.input}")
-            ignoreExitValue()
             null
         }.parseResponse()
     }

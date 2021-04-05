@@ -2,7 +2,7 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.ManagedProcess.Evaluated
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed.UnexpectedExitCode
+import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
 import koodies.concurrent.process.ManagedProcess.Evaluated.Successful
 import koodies.concurrent.process.Process.ProcessState
 import koodies.concurrent.process.Process.ProcessState.Prepared
@@ -223,7 +223,7 @@ public open class ManagedProcessMock(public val processMock: JavaProcessMock, pu
             get() = object : ManagedProcessMock(JavaProcessMock.FAILED_PROCESS) {
                 override val started: Boolean = true
                 override var state: ProcessState =
-                    UnexpectedExitCode(12345L, 10, CommandLine("command", "argument"), "failed", 42, listOf(ERR typed "error 1", ERR typed "error 2"))
+                    Failed(42, 12345L, CommandLine("command", "argument"), "failed", listOf(ERR typed "error 1", ERR typed "error 2"))
                 override val onExit: CompletableFuture<out Evaluated> = completedFuture(state as Evaluated)
                 override val successful: Boolean? = false
             }

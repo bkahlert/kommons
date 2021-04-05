@@ -32,7 +32,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with no input`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("echo", "Hello World!"), null, null).process(ProcessingMode(Sync, NonInteractive(null))) { io -> log.add(io) }
+                process(CommandLine("echo", "Hello World!"), null).process(ProcessingMode(Sync, NonInteractive(null))) { io -> log.add(io) }
                 expectThat(log)
                     .with({ size }) { isEqualTo(3) }
                     .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -43,7 +43,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("cat"), null, null).process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
+                process(CommandLine("cat"), null).process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                 expectThat(log)
                     .with({ size }) { isEqualTo(3) }
                     .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -59,7 +59,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with non-blocking reader`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null, null)
+                process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
@@ -76,7 +76,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with blocking reader`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null, null)
+                process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
@@ -105,7 +105,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("echo", "Hello World!"), null, null)
+                    process(CommandLine("echo", "Hello World!"), null)
                         .process(ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
                         .waitForTermination()
                     expectThat(log)
@@ -118,7 +118,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("cat"), null, null)
+                    process(CommandLine("cat"), null)
                         .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                         .waitForTermination()
                     expectThat(log)
@@ -135,7 +135,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val timePassed = measureTime {
-                        process(CommandLine("sleep", "10"), null, null).process(ProcessingMode(Async, NonInteractive(null))) { }
+                        process(CommandLine("sleep", "10"), null).process(ProcessingMode(Async, NonInteractive(null))) { }
                     }
                     expectThat(timePassed).isLessThan(250.milliseconds)
                 }
@@ -143,7 +143,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        process(CommandLine("cat"), null, null).process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
+                        process(CommandLine("cat"), null).process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
                     expectThat(timePassed).isLessThan(250.milliseconds)
                 }
@@ -160,7 +160,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with non-blocking reader`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null, null)
+                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
@@ -177,7 +177,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with blocking reader`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null, null)
+                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
@@ -198,7 +198,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with non-blocking reader`() {
                     val timePassed = measureTime {
-                        process(CommandLine("sleep", "10"), null, null)
+                        process(CommandLine("sleep", "10"), null)
                             .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                             .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { }
                     }
@@ -208,7 +208,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with blocking reader`() {
                     val timePassed = measureTime {
-                        process(CommandLine("sleep", "10"), null, null)
+                        process(CommandLine("sleep", "10"), null)
                             .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                             .process(ProcessingMode(Async, Interactive(nonBlocking = false))) {}
                     }

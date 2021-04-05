@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.execute
+import koodies.concurrent.process.IO
 import koodies.concurrent.process.output
 import koodies.docker.DockerContainer.Companion.ContainerContext
 import koodies.docker.DockerContainer.Status.Existent.Created
@@ -20,6 +21,22 @@ import koodies.text.randomString
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import java.nio.file.Path
+
+
+/**
+ * Convenience method to get the output of a process, split the lines
+ * and apply [transform] to each line. The lines [transform] maps to `null`
+ * are filtered out.
+ *
+ * - If the process was not started, it will be started.
+ * - If the process is running, this method blocks until the process terminated.
+ * - If the process already terminated, the recorded IO is returned.
+ *
+ * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
+ */
+//public fun <T> ManagedProcess.parseResponse(transform: String.() -> T?): List<T> {
+//    waitForTermination().status.return output().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }
+//}
 
 public inline class DockerContainer(public val name: String) {
 

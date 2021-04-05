@@ -3,8 +3,8 @@ package koodies.concurrent.process
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.isScriptFile
 import koodies.concurrent.process.ManagedProcess.Evaluated
+import koodies.concurrent.process.ManagedProcess.Evaluated.Exceptional
 import koodies.concurrent.process.ManagedProcess.Evaluated.Failed
-import koodies.concurrent.process.ManagedProcess.Evaluated.Failed.UnexpectedExitCode
 import koodies.concurrent.process.ManagedProcess.Evaluated.Successful
 import koodies.concurrent.process.Process.ProcessState
 import koodies.concurrent.thenAlso
@@ -40,11 +40,9 @@ public interface ManagedProcess : Process {
     public companion object {
         public fun from(
             commandLine: CommandLine,
-            expectedExitValue: Int? = 0,
             processTerminationCallback: ProcessTerminationCallback? = null,
         ): ManagedProcess = ManagedJavaProcess(
             commandLine = commandLine,
-            expectedExitValue = expectedExitValue,
             processTerminationCallback = processTerminationCallback)
     }
 
@@ -73,34 +71,30 @@ public interface ManagedProcess : Process {
             pid: Long,
             exitCode: Int,
             io: List<IO>,
-        ) : ManagedProcess.Evaluated(pid, exitCode, io, "Process $pid terminated successfully at $Now.") {
+        ) : Evaluated(pid, exitCode, io, "Process $pid terminated successfully at $Now.") {
             override val successful: Boolean = true
         }
 
-        public sealed class Failed(
+        public class Failed(
+            exitCode: Int,
             pid: Long,
+            public val commandLine: CommandLine,
+            status: String,
+            io: List<IO>,
+        ) : Evaluated(pid, exitCode, io, status) {
+
+            override val successful: Boolean = false
+        }
+
+        public class Exceptional(
+            pid: Long,
+            public val exception: Throwable,
             status: String,
             exitCode: Int,
             io: List<IO>,
-        ) : ManagedProcess.Evaluated(pid, exitCode, io, status) {
+        ) : Evaluated(pid, exitCode, io, status) {
+
             override val successful: Boolean = false
-
-            public class UnexpectedExitCode(
-                pid: Long,
-                public val expectedExitValue: Int,
-                public val commandLine: CommandLine,
-                status: String,
-                exitCode: Int,
-                io: List<IO>,
-            ) : Failed(pid, status, exitCode, io)
-
-            public class ExecutionException(
-                pid: Long,
-                public val exception: Throwable,
-                status: String,
-                exitCode: Int,
-                io: List<IO>,
-            ) : Failed(pid, status, exitCode, io)
         }
     }
 }
@@ -140,7 +134,6 @@ private fun CommandLine.toJavaProcess(): JavaProcess {
  */
 private open class ManagedJavaProcess(
     protected val commandLine: CommandLine,
-    protected val expectedExitValue: Int? = 0,
     protected val processTerminationCallback: ProcessTerminationCallback? = {},
     protected val destroyOnShutdown: Boolean = true,
 ) : DelegatingProcess({
@@ -169,8 +162,8 @@ private open class ManagedJavaProcess(
     override fun start(): ManagedProcess = also { super.start() }
     override fun waitForTermination(): Evaluated = onExit.join()
 
-    private var termination: Evaluated? = null
-    override val state: ProcessState get() = termination ?: run { if (!started) ProcessState.Prepared() else ProcessState.Running(pid) }
+    private var exitState: Evaluated? = null
+    override val state: ProcessState get() = exitState ?: run { if (!started) ProcessState.Prepared() else ProcessState.Running(pid) }
 
     private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, RedirectingOutputStream { ioLog.input + it }) }
     private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.out + it }) }
@@ -203,21 +196,21 @@ private open class ManagedJavaProcess(
                 val dump = commandLine.workingDirectory.dump("""
                     Process ${commandLine.summary} terminated with ${cause.toCompactString()}.
                 """.trimIndent()) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
-                Failed.ExecutionException(pid, cause, dump.removeEscapeSequences(), exitValue, ioLog.getCopy())
-            } else if (expectedExitValue != null && exitValue != expectedExitValue) {
-                val message = StringBuilder("Process $pid terminated with exit code $exitValue. Expected $expectedExitValue.").apply {
+                Exceptional(pid, cause, dump.removeEscapeSequences(), exitValue, ioLog.getCopy())
+            } else if (exitValue != 0) {
+                val message = StringBuilder("Process $pid terminated with exit code $exitValue. Expected 0.").apply {
                     append(LF + commandLine.includedFiles.joinToString(LF) { IO.META typed it })
                 }.toString()
                 message.also { metaStream.emit(IO.META typed it) }
                 val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
-                UnexpectedExitCode(pid, expectedExitValue, commandLine, message.withTrailingLineSeparator() + dump, exitValue, ioLog.getCopy())
+                Failed(exitValue, pid, commandLine, message.withTrailingLineSeparator() + dump, ioLog.getCopy())
             } else {
                 metaStream.emit(IO.META.TERMINATED(process))
                 Successful(pid, exitValue, ioLog.getCopy())
-            }.also { termination = it }
+            }.also { exitState = it }
         }.thenAlso { term, ex ->
             postTerminationCallbacks.forEach {
-                process.it(term ?: Failed.ExecutionException(pid, ex!!,
+                process.it(term ?: Exceptional(pid, ex!!,
                     "Unexpected exception in process termination handling.",
                     exitValue, ioLog.getCopy()))
             }
@@ -229,15 +222,14 @@ private open class ManagedJavaProcess(
         apply { postTerminationCallbacks.add(callback) }
 
 
-    override val successful: Boolean? get() = termination?.successful
-    override fun format(): CharSequence = termination?.format() ?: state.status
+    override val successful: Boolean? get() = exitState?.successful
+    override fun format(): CharSequence = exitState?.format() ?: state.status
 
-    override val onExit: CompletableFuture<out Evaluated> get() = termination?.let { completedFuture(it) } ?: cachedOnExit
+    override val onExit: CompletableFuture<out Evaluated> get() = exitState?.let { completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String =
         super.toString().substringBeforeLast(")") +
             ", commandLine=${commandLine.commandLine.toCompactString().truncate(50, MIDDLE, " … ")}" +
-            ", expectedExitValue=${expectedExitValue}" +
             ", processTerminationCallback=${processTerminationCallback.asEmoji}" +
             ", destroyOnShutdown=${destroyOnShutdown.asEmoji})"
 }

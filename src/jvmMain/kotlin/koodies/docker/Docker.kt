@@ -136,7 +136,7 @@ public object Docker {
     /**
      * Explicitly stops the Docker container with the given [name] **asynchronously**.
      */
-    public fun stop(name: String): Unit = stop { containers { +name } }.fireAndForget(expectedExitValue = null)
+    public fun stop(name: String): Unit = stop { containers { +name } }.fireAndForget()
 
     /**
      * Explicitly (stops and) removes the Docker container with the given [name] **synchronously**.
@@ -146,7 +146,7 @@ public object Docker {
     public fun remove(name: String, forcibly: Boolean = false): String = remove {
         options { force using forcibly }
         containers { +name }
-    }.execute { expectedExitValue by null; noopProcessor() }
+    }.execute { noopProcessor() }
         .apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }
         .output()
 }
@@ -157,11 +157,10 @@ public object Docker {
  * Only if something goes wrong an exception is logged on the console.
  */
 private fun DockerCommandLine.fireAndForget(
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
 ) {
     daemon {
-        toManagedProcess(expectedExitValue, processTerminationCallback)
+        toManagedProcess(processTerminationCallback)
             .processSilently().apply { waitForTermination() }
     }
 }
@@ -187,7 +186,7 @@ private fun Path.dockerRunCommandLine(
  * - [DockerImage] built by the specified [imageInit]
  * - [DockerRunCommandLineOptions] built by the specified [optionsInit]
  * - specified [arguments]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
+ * in `this` [Path].
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -197,11 +196,10 @@ public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
     optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
-        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .toManagedProcess(processTerminationCallback)
         .processSilently().apply { waitForTermination() }
 
 /**
@@ -209,7 +207,7 @@ public fun Path.docker(
  * - [DockerImage] built by the specified [imageInit]
  * - [DockerRunCommandLineOptions] built by the specified [optionsInit]
  * - specified [arguments]
- * in `this` [Path] optionally checking the specified [expectedExitValue] (default: `0`).
+ * in `this` [Path].
  *
  * The output of the [DockerProcess] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
@@ -224,17 +222,16 @@ public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
     optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<ManagedProcess>?,
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
-        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .toManagedProcess(processTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
 /**
  * Runs a Docker process using the [DockerRunCommandLine] built by the
- * specified [init] checking the specified [expectedExitValue] (default: `0`).
+ * specified [init].
  *
  * The output of the [DockerProcess] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
@@ -247,18 +244,17 @@ public fun Path.docker(
  */
 public fun docker(
     init: Init<Companion.CommandContext>,
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
     processor: Processor<DockerProcess>?,
 ): DockerProcess =
     DockerRunCommandLine(init)
-        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .toManagedProcess(processTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
 
 /**
  * Runs a Docker process using the [DockerRunCommandLine] built by the
- * specified [init] checking the specified [expectedExitValue] (default: `0`).
+ * specified [init].
  *
  * The output of the [DockerProcess] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
@@ -271,10 +267,9 @@ public fun docker(
  */
 public fun docker(
     processor: Processor<DockerProcess>?,
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
     init: Init<Companion.CommandContext>,
 ): DockerProcess =
     DockerRunCommandLine(init)
-        .toManagedProcess(expectedExitValue, processTerminationCallback)
+        .toManagedProcess(processTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }

@@ -12,19 +12,18 @@ import java.nio.file.Path
 /**
  * Creates a [DockerProcess] that executes this command line.
  */
-public fun DockerRunCommandLine.toManagedProcess(expectedExitValue: Int?, processTerminationCallback: ProcessTerminationCallback?): DockerProcess =
+public fun DockerRunCommandLine.toManagedProcess(processTerminationCallback: ProcessTerminationCallback?): DockerProcess =
     // TODO implement in DockerRunCommandLine
-    DockerProcess.from(this, expectedExitValue, processTerminationCallback)
+    DockerProcess.from(this, processTerminationCallback)
 
 /**
  * Creates a [ManagedProcess] that executes this command line.
  */
-public fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerminationCallback: ProcessTerminationCallback? = null): ManagedProcess =
-    toProcess(expectedExitValue, processTerminationCallback)
+public fun CommandLine.toManagedProcess(processTerminationCallback: ProcessTerminationCallback? = null): ManagedProcess =
+    toProcess(processTerminationCallback)
 
 /**
- * Creates a [ManagedProcess] from the specified [commandLine]
- * optionally checking the specified [expectedExitValue] (default: `0`).
+ * Creates a [ManagedProcess] from the specified [commandLine].
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -32,14 +31,12 @@ public fun CommandLine.toManagedProcess(expectedExitValue: Int? = 0, processTerm
  */
 public fun process(
     commandLine: CommandLine,
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
-): ManagedProcess = commandLine.toManagedProcess(expectedExitValue, processTerminationCallback)
+): ManagedProcess = commandLine.toManagedProcess(processTerminationCallback)
 
 /**
  * Creates a [ManagedProcess] from the specified [shellScript]
- * with the specified [workingDirectory] and the specified [environment]
- * optionally checking the specified [expectedExitValue] (default: `0`).
+ * with the specified [workingDirectory] and the specified [environment].
  *
  * If provided, the [processTerminationCallback] will be called on process
  * termination and before other [ManagedProcess.onExit] registered listeners
@@ -49,9 +46,8 @@ public fun process(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     workingDirectory: Path = Locations.Temp,
-    expectedExitValue: Int? = 0,
     processTerminationCallback: ProcessTerminationCallback? = null,
 ): ManagedProcess {
     val commandLine = shellScript.toCommandLine(workingDirectory, environment)
-    return process(commandLine, expectedExitValue, processTerminationCallback)
+    return process(commandLine, processTerminationCallback)
 }

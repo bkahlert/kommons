@@ -42,7 +42,7 @@ public class DockerizedExecution(
 
         return with(options.executionOptions) {
             val processLogger = loggingOptions.newLogger(parentLogger, "Executing dockerized with ${image.formattedAs.input}: ${commandLine.summary}")
-            val dockerProcess = dockerRunCommandLine.toManagedProcess(expectedExitValue, processTerminationCallback)
+            val dockerProcess = dockerRunCommandLine.toManagedProcess(processTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
                     dockerProcess.process(processingMode, processor = processor ?: loggingProcessor(processLogger))

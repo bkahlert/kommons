@@ -75,9 +75,7 @@ class ScriptsKtTest {
 
         @Test
         fun `should have failed state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(script { !"exit -1" }).hasState<Failed.UnexpectedExitCode> {
-                io<IO>().containsDump()
-            }
+            expectThat(script { !"exit -1" }).hasState<Failed> { io<IO>().containsDump() }
         }
     }
 

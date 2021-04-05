@@ -19,7 +19,7 @@ public fun Docker.busybox(
     init: Init<CommandLineContext>,
 ): DockerProcess =
     docker({
-        image { official("busybox") }
+        images { official("busybox") }
         options { name { name } }
         commandLine(init)
     }, processor = processor)
@@ -51,7 +51,7 @@ public fun Docker.busybox(
     init: Init<CommandLineContext>,
 ): DockerProcess =
     docker({
-        image(image)
+        images(image)
         options { name { CommandLine(init).summary.toBaseName() } }
         commandLine(init)
     }, processor = processor)

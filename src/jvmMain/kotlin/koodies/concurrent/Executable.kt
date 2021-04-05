@@ -36,7 +36,6 @@ import koodies.text.truncate
 public interface Executable {
     public val summary: String
     public fun toProcess(
-        expectedExitValue: Int? = 0,
         processTerminationCallback: ProcessTerminationCallback? = null,
     ): ManagedProcess
 }
@@ -60,7 +59,7 @@ public class Execution(
     private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): ManagedProcess =
         with(Options(init)) {
             val processLogger = loggingOptions.newLogger(parentLogger, executable.summary)
-            val managedProcess = executable.toProcess(expectedExitValue, processTerminationCallback)
+            val managedProcess = executable.toProcess(processTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
                     managedProcess.process(processingMode, processor = processor ?: loggingProcessor(processLogger))
@@ -75,7 +74,6 @@ public class Execution(
      * Options used to [execute] an [Executable].
      */
     public data class Options(
-        val expectedExitValue: Int? = 0,
         val processTerminationCallback: ProcessTerminationCallback? = null,
         val loggingOptions: LoggingOptions = SmartLoggingOptions(),
         val processingMode: ProcessingMode = ProcessingMode { sync },
@@ -83,8 +81,6 @@ public class Execution(
         public companion object : BuilderTemplate<OptionsContext, Options>() {
             @ExecutionDsl
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val expectedExitValue: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder<Int?>() default 0
-                public fun ignoreExitValue(): Unit = expectedExitValue { null }
                 public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> ProcessTerminationCallback, ProcessTerminationCallback?> by builder()
 
                 public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
@@ -149,7 +145,6 @@ public class Execution(
 
             override fun BuildContext.build(): Options = ::OptionsContext{
                 Options(
-                    ::expectedExitValue.eval(),
                     ::processTerminationCallback.evalOrNull(),
                     ::block.evalOrNull<BlockLoggingOptions>()
                         ?: ::compact.evalOrNull<CompactLoggingOptions>()

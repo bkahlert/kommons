@@ -55,7 +55,7 @@ class CommandLineTest {
         val command = CommandLine(emptyMap(), this, "echo", "test")
         expectThat(command) {
             continuationsRemoved.isEqualTo("echo test")
-            evaluatesTo("test", 0)
+            evaluatesTo("test")
         }
     }
 
@@ -64,7 +64,7 @@ class CommandLineTest {
         val command = CommandLine(emptyMap(), this, "echo", "one", "two", "three")
         expectThat(command) {
             continuationsRemoved.isEqualTo("echo one two three")
-            evaluatesTo("one two three", 0)
+            evaluatesTo("one two three")
         }
     }
 
@@ -76,7 +76,7 @@ class CommandLineTest {
             val command = CommandLine(emptyMap(), this, "echo", "\$HOME")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo \$HOME")
-                evaluatesTo(System.getProperty("user.home"), 0)
+                evaluatesTo(System.getProperty("user.home"))
             }
         }
 
@@ -87,7 +87,7 @@ class CommandLineTest {
                 continuationsRemoved.isEqualTo("echo \\\$HOME")
                 evaluated {
                     not { output.isEqualTo(System.getProperty("user.home")) }
-                    exitValue.isEqualTo(0)
+                    exitState.isEqualTo(0)
                 }
             }
         }
@@ -147,7 +147,7 @@ class CommandLineTest {
             val command = CommandLine(emptyMap(), this, "echo", "Hello")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo Hello")
-                evaluatesTo("Hello", 0)
+                evaluatesTo("Hello")
             }
         }
 
@@ -156,7 +156,7 @@ class CommandLineTest {
             val command = CommandLine(emptyMap(), this, "echo", "Hello World!")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo \"Hello World!\"")
-                evaluatesTo("Hello World!", 0)
+                evaluatesTo("Hello World!")
             }
         }
 
@@ -165,7 +165,7 @@ class CommandLineTest {
             val command = CommandLine(emptyMap(), this, "echo", "'\$HOME'")
             expectThat(command) {
                 continuationsRemoved.isEqualTo("echo '\$HOME'")
-                evaluatesTo("\$HOME", 0)
+                evaluatesTo("\$HOME")
             }
         }
     }
@@ -181,7 +181,7 @@ class CommandLineTest {
                 continuationsRemoved.isEqualTo("echo \"echo Hello\"")
                 evaluated {
                     output.isEqualTo("echo Hello")
-                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("Hello", 0)
+                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("Hello")
                 }
             }
         }
@@ -194,7 +194,7 @@ class CommandLineTest {
                 continuationsRemoved.isEqualTo("echo \"echo \\\"Hello World!\\\"\"")
                 evaluated {
                     output.isEqualTo("echo \"Hello World!\"")
-                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("Hello World!", 0)
+                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("Hello World!")
                 }
             }
         }
@@ -207,7 +207,7 @@ class CommandLineTest {
                 continuationsRemoved.isEqualTo("echo \"echo \\\"'Hello World!'\\\"\"")
                 evaluated {
                     output.isEqualTo("echo \"'Hello World!'\"")
-                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("'Hello World!'", 0)
+                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("'Hello World!'")
                 }
             }
         }
@@ -266,7 +266,7 @@ val Assertion.Builder<CommandLine>.continuationsRemoved
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<ManagedProcess>
     get() = get("evaluated %s") {
-        toManagedProcess(expectedExitValue = null).process({ sync }, Processors.noopProcessor())
+        toManagedProcess().process({ sync }, Processors.noopProcessor())
     }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<ManagedProcess>.() -> Unit) =
@@ -278,13 +278,12 @@ val Assertion.Builder<ManagedProcess>.output
 val Assertion.Builder<IOLog>.out
     get() = get("output of type OUT %s") { getCopy().filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
 
-val <P : ManagedProcess> Assertion.Builder<P>.exitValue
+val <P : ManagedProcess> Assertion.Builder<P>.exitState
     get() = get("exit value %s") { exitValue }
 
-fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String, expectedExitValue: Int) {
+fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String) {
     with(evaluated) {
         output.isEqualTo(expectedOutput)
         50.milliseconds.sleep()
-        exitValue.isEqualTo(expectedExitValue)
     }
 }
