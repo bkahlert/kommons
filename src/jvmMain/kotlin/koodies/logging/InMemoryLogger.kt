@@ -58,12 +58,10 @@ public open class InMemoryLogger(
 
         public val SUCCESSFUL_RETURN_VALUE: ReturnValue = object : ReturnValue {
             override val successful: Boolean = true
-            override fun format(): CharSequence = ""
         }
 
         public val NO_RETURN_VALUE: ReturnValue = object : ReturnValue {
             override val successful: Boolean? = null
-            override fun format(): CharSequence = ""
         }
 
         private const val LOG_MESSAGE: String = "log message"

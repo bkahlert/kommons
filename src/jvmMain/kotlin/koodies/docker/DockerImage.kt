@@ -5,7 +5,6 @@ import koodies.concurrent.execute
 import koodies.concurrent.process.Process.ExitState
 import koodies.docker.DockerImage.ImageContext
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.RenderingLogger
 import koodies.text.Semantics.formattedAs
 
 /**
@@ -85,7 +84,7 @@ public open class DockerImage(
             }.execute {
                 summary("Checking if ${this@DockerImage.formattedAs.input} is pulled")
                 null
-            }.parseImages() // TODO show red - if not pulled
+            }.parseImages()
         }.isNotEmpty()
 
     /**
@@ -114,25 +113,10 @@ public open class DockerImage(
             options { this.force by force }
             image by this@DockerImage
         }.execute {
-            summary("Removing ${this@DockerImage.formattedAs.input}")
+            noDetails("Removing ${this@DockerImage.formattedAs.input}")
             null
         }.waitFor()
     }
-
-    /**
-     * Removes this image from the locally stored images
-     * while logging progress using `this` logger.
-     *
-     * If [force] is specified, a force removal is triggered.
-     */
-    public fun RenderingLogger.remove(force: Boolean = false): ExitState =
-        DockerImageRemoveCommandLine {
-            options { this.force by force }
-            image by this@DockerImage
-        }.execute {
-            summary("Removing ${this@DockerImage.formattedAs.input}")
-            null
-        }.waitFor()
 
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {

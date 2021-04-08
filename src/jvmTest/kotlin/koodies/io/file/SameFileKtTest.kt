@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
-import strikt.assertions.exists
+import strikt.java.exists
 import strikt.assertions.isEqualTo
 
 @Execution(CONCURRENT)

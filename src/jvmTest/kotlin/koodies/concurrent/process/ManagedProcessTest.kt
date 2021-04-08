@@ -11,6 +11,7 @@ import koodies.concurrent.toManagedProcess
 import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.shell.ShellScript
+import koodies.terminal.escapeSequencesRemoved
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.testEach
@@ -18,7 +19,7 @@ import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
-import koodies.text.Semantics.Document
+import koodies.text.Semantics.Symbols
 import koodies.text.ansiRemoved
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
@@ -146,7 +147,7 @@ class ManagedProcessTest {
             val process = createCompletingManagedProcess().start()
             expectThat(process).log.logs {
                 any {
-                    it.contains(Document)
+                    it.contains(Symbols.Document)
                     it.contains("file:")
                     it.contains(".sh")
                 }
@@ -381,7 +382,7 @@ class ManagedProcessTest {
             fun `should fail on non-0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
                 expectThat(process.waitFor()).isA<Failure>().io.any {
-                    contains("terminated with exit code 42.")
+                    escapeSequencesRemoved.contains("terminated with exit code 42")
                 }
             }
 
@@ -389,7 +390,7 @@ class ManagedProcessTest {
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingManagedProcess(42)
                 expectThat(process.waitForTermination()).isA<Failure>().io.any {
-                    contains("terminated with exit code 42.")
+                    escapeSequencesRemoved.contains("terminated with exit code 42")
                 }
             }
 

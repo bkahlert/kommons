@@ -1,7 +1,7 @@
 package koodies.io.file
 
 import koodies.nio.file.toBase64
-import koodies.runtime.deleteOnExit
+import koodies.runtime.JVM
 import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
 import koodies.test.UniqueId
@@ -17,7 +17,7 @@ class ToBase64KtTest {
 
     @Test
     fun `should encode using Base64`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val htmlFile = HtmlFile.copyToDirectory(this).deleteOnExit()
+        val htmlFile = JVM.deleteOnExit(HtmlFile.copyToDirectory(this))
 
         @Suppress("SpellCheckingInspection")
         expectThat(htmlFile.toBase64())

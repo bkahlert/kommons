@@ -303,6 +303,20 @@ class BlockRenderingLoggerKtTest {
                 """.trimIndent()
             )
         }
+
+        @Test
+        fun @receiver:Bordered(NONE) InMemoryLogger.`should log exception NONE`() {
+            logException { RuntimeException("exception") }
+
+            expectThatLogged().matchesCurlyPattern(
+                """
+                    {}
+                    java.lang.RuntimeException: exception
+                    	at koodies.logging.{}
+                    {{}}
+                """.trimIndent()
+            )
+        }
     }
 
     @TestFactory
@@ -349,13 +363,13 @@ class BlockRenderingLoggerKtTest {
             │{}
             ╵
             ╵
-            ⌛️ async computation
+            ⌛️
         """.trimIndent(), """
             ▶ DOTTED caption
-            ⌛️ async computation
+            ⌛️
         """.trimIndent(), """
             NONE caption
-            ⌛️ async computation
+            ⌛️
         """.trimIndent()) {
         logResult {
             Result.success(InMemoryLogger.NO_RETURN_VALUE)

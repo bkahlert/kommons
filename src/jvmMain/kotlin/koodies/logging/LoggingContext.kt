@@ -4,13 +4,14 @@ import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.runtime.Program
+import koodies.runtime.isTesting
+import koodies.runtime.onExit
 import koodies.takeIfDebugging
 import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.prefixLinesWith
 import koodies.text.styling.wrapWithBorder
@@ -33,7 +34,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
                 groupBy({ it.first }) { it.second }.map { (logger, messages) ->
                     logger.caption to messages.joinToString("").withoutTrailingLineSeparator
                 }
-                    .joinToString(Semantics.Delimiter)
+                    .joinToString(Symbols.Delimiter)
             }
         }
     }
@@ -58,7 +59,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
         val message = if (closed) {
-            val prefix = Semantics.Computation + " "
+            val prefix = Symbols.Computation + " "
             val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
             if (trailingNewline || !message.hasTrailingLineSeparator) message + LineSeparators.LF else message
         } else {
@@ -75,9 +76,9 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
         }
 
     init {
-        Program.onExit {
+        onExit {
             val debugging = " in debugging mode".takeIfDebugging() ?: ""
-            if (Program.isTesting) println("Session was running ${Now.passedSince(startup)}$debugging and logged a total of $bytes")
+            if (isTesting) println("Session was running ${Now.passedSince(startup)}$debugging and logged a total of $bytes")
             else println("Program was running ${Now.passedSince(startup)}$debugging and logged a total of $bytes".wrapWithBorder())
         }
     }
@@ -89,7 +90,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
         ::muted to muted
     }
 
-    private var bytes = Size.ZERO
+    private var bytes: Size = Size.ZERO
     public fun reset() {
         bytes = messages.use { sumBy { it.second.length }.bytes }
         messages.clear()

@@ -1,26 +1,14 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.concurrent.process.ManagedProcess
-import koodies.debug.CapturedOutput
 import koodies.docker.DockerStartCommandLine.Companion.CommandContext
 import koodies.docker.DockerStartCommandLine.Options
-import koodies.logging.InMemoryLogger
-import koodies.logging.expectThatLogged
 import koodies.test.BuilderFixture
-import koodies.test.SystemIoExclusive
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
-import strikt.assertions.contains
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isTrue
 
 
 @Execution(CONCURRENT)
@@ -30,37 +18,6 @@ class DockerStartCommandLineTest {
     fun `should build command line`() {
         val dockerStartCommandLine = DockerStartCommandLine(init)
         expectThat(dockerStartCommandLine).isEqualTo(result)
-    }
-
-    @Tag("docker")
-    @DockerTestImageExclusive
-    @Nested
-    inner class Extension {
-
-        @BeforeEach
-        fun setUp() {
-            DockerTestImageExclusive.DOCKER_TEST_CONTAINER.stop()
-        }
-
-        @Test
-        fun InMemoryLogger.`should start container and log`() {
-            expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.container.start {}).isA<ManagedProcess>()
-            expectThatLogged().contains("Removing ${DockerTestImageExclusive.DOCKER_TEST_CONTAINER}")
-            expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.isRunning).isTrue()
-        }
-
-        @SystemIoExclusive
-        @Test
-        fun `should start image and print`(capturedOutput: CapturedOutput) {
-            expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.container.start {}).isA<ManagedProcess>()
-            expectThat(capturedOutput).contains("Removing ${DockerTestImageExclusive.DOCKER_TEST_CONTAINER}")
-            expectThat(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.isRunning).isTrue()
-        }
-
-        @AfterEach
-        fun tearDown() {
-            DockerTestImageExclusive.DOCKER_TEST_CONTAINER.stop()
-        }
     }
 
     companion object : BuilderFixture<Init<CommandContext>, DockerStartCommandLine>(

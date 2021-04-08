@@ -5,7 +5,7 @@ import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.containsEscapeSequences
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
@@ -50,12 +50,12 @@ class IOTest {
 
             @Test
             fun `should have original text`() {
-                expectThat(meta.text).toStringIsEqualTo("${Semantics.Document} ${file.toUri()}")
+                expectThat(meta.text).toStringIsEqualTo("${Symbols.Document} ${file.toUri()}")
             }
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().toStringIsEqualTo("${Semantics.Document} ${file.toUri()}")
+                expectThat(meta).containsEscapeSequences().toStringIsEqualTo("${Symbols.Document} ${file.toUri()}")
             }
         }
 

@@ -16,7 +16,7 @@ import koodies.text.ANSI.Style.dim
 import koodies.text.ANSI.Style.italic
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.mapLines
 import koodies.time.Now
@@ -66,7 +66,7 @@ public sealed class IO(
      */
     public sealed class META(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
         public class STARTING(public val commandLine: CommandLine) : META("Executing ${commandLine.commandLine}")
-        public class FILE(path: Path) : META("${Semantics.Document} ${path.toUri()}")
+        public class FILE(path: Path) : META("${Symbols.Document} ${path.toUri()}")
         public class TEXT(text: String) : META(text)
         public class DUMP(dump: String) : META(dump.also { require(it.contains("dump")) { "Please use ${TEXT::class.simpleName} for free-form text." } })
         public class TERMINATED(process: Process) : META("Process ${process.pid} terminated successfully at $Now."), ReturnValue by process

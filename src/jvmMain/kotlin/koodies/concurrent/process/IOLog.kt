@@ -9,7 +9,7 @@ import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
-import koodies.text.Semantics.OK
+import koodies.text.Semantics.Symbols
 import koodies.text.truncate
 import koodies.unit.Size
 import koodies.unit.bytes
@@ -97,7 +97,7 @@ public class IOLog {
     public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
 
     override fun toString(): String = asString {
-        OK to getCopy().joinToString { it.truncate() }
+        Symbols.OK to getCopy().joinToString { it.truncate() }
         "OUT" to out.incompleteBytes
         "ERR" to err.incompleteBytes
     }

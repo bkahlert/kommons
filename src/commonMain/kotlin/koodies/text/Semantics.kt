@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.collections.map
 import koodies.text.ANSI.Colors.blue
 import koodies.text.ANSI.Colors.brightCyan
 import koodies.text.ANSI.Colors.brightYellow
@@ -7,20 +8,30 @@ import koodies.text.ANSI.Colors.cyan
 import koodies.text.ANSI.Colors.gray
 import koodies.text.ANSI.Colors.green
 import koodies.text.ANSI.Colors.red
-import koodies.text.ANSI.Style.bold
 import koodies.text.ANSI.Style.italic
 
 public object Semantics {
 
-    public val OK: String = Unicode.Emojis.heavyCheckMark.textVariant.formattedAs.success
-    public val Computation: String = Unicode.Emojis.hourglass.emojiVariant.formattedAs.progress
-    public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
-    public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
-    public val Delimiter: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
+    /**
+     * An object that has a symbolic representation.
+     */
+    public interface Symbolizable {
+        /**
+         * Symbolic text representing this object.
+         */
+        public val symbol: String
+    }
 
-    public val Document: String = Unicode.Emojis.pageFacingUp.toString()
-
-    public val Null: String = "␀".bold().toString()
+    public object Symbols {
+        public val OK: String = Unicode.Emojis.heavyCheckMark.textVariant.formattedAs.success
+        public val Negative: String = Unicode.BoxDrawings.HeavyHorizontal.formattedAs.error
+        public val Computation: String = Unicode.Emojis.hourglass.emojiVariant.formattedAs.progress
+        public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
+        public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
+        public val Delimiter: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
+        public val Document: String = Unicode.Emojis.pageFacingUp.toString()
+        public val Null: String = "␀".formattedAs.warning
+    }
 
     /**
      * Semantic formatter which binds to the specified [text].
@@ -65,30 +76,23 @@ public object Semantics {
         /**
          * Formats `this` [text] as expressing a meta information.
          */
-        public val meta: String get() = text { gray().italic() }
+        public val meta: String get() = text { italic().gray() }
 
         /**
          * Formats `this` [text] as expressing a unit.
          */
-        public val unit: String get() = text { wrap(Enclosements.unit.formatAs { meta }) }
+        public val unit: String get() = text { wrap(Markers.unit.map { meta }) }
 
         /**
          * Formats `this` [text] as expressing a block.
          */
-        public val block: String get() = text { wrap(Enclosements.block.formatAs { meta }) }
+        public val block: String get() = text { wrap(Markers.block.map { meta }) }
     }
 
-    public object Enclosements {
-        public val unit: Enclosement = Enclosement("⟨" to "⟩")
-        public val block: Enclosement = Enclosement("{" to "}")
-        public val introspection: Enclosement = Enclosement("❬" to "❭")
-    }
-
-    public inline class Enclosement(public val pair: Pair<String, String>) {
-        public val open: String get() = pair.first
-        public val end: String get() = pair.second
-        public fun formatAs(format: SemanticText.() -> String): Pair<String, String> =
-            SemanticText(pair.first).format() to SemanticText(pair.second).format()
+    public object Markers {
+        public val unit: Pair<String, String> = "⟨" to "⟩"
+        public val block: Pair<String, String> = "{" to "}"
+        public val introspection: Pair<String, String> = "❬" to "❭"
     }
 
     private inline operator fun String.invoke(transform: String.() -> CharSequence): String = transform().toString()

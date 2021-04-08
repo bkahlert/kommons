@@ -7,7 +7,7 @@ import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.prefixLinesWith
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -16,13 +16,13 @@ public class MicroLogger(
     private val symbol: String,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
 ) : RenderingLogger("", log) {
 
     private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
-    private val returnValueFormatter: (ReturnValue) -> String = returnValueFormatter ?: RETURN_VALUE_FORMATTER
+    private val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
 
     private val messages: MutableList<CharSequence> = synchronizedListOf()
     private val lock = ReentrantLock()
@@ -32,7 +32,7 @@ public class MicroLogger(
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
         when {
             closed -> {
-                val prefix = decorationFormatter(Semantics.Computation).toString() + " "
+                val prefix = decorationFormatter(Symbols.Computation).toString() + " "
                 logWithLock { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
@@ -66,7 +66,7 @@ public class MicroLogger(
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
-        val formattedResult = returnValueFormatter(ReturnValue.of(result))
+        val formattedResult: String = returnValueFormatter(ReturnValue.of(result)).format()
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
@@ -75,7 +75,7 @@ public class MicroLogger(
     }
 
     override fun logException(block: () -> Throwable) {
-        returnValueFormatter(ReturnValue.of(block())).also { render(true) { it } }
+        render(true) { ReturnValue.of(block()).format() }
     }
 
     override fun toString(): String = asString {

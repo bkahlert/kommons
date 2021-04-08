@@ -120,7 +120,7 @@ class InMemoryLoggerTest {
                     │   line
                     ╵
                     ╵
-                    ⌛️ async computation
+                    ⌛️
                 """.trimIndent())
             }
 

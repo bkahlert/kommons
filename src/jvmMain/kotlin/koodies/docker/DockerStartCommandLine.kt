@@ -4,7 +4,6 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
-import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.buildArray
 import koodies.builder.buildList
@@ -12,12 +11,8 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess
 import koodies.docker.DockerStartCommandLine.Companion.CommandContext
 import koodies.docker.DockerStartCommandLine.Options.Companion.OptionsContext
-import koodies.logging.RenderingLogger
-import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerCommandLine] that starts the specified [containers] using the specified [options].
@@ -87,36 +82,3 @@ public open class DockerStartCommandLine(
         }
     }
 }
-
-/**
- * Starts `this` [DockerContainer] from the locally stored containers using the
- * [DockerStartCommandLine.Options] built with the given [OptionsContext] [Init].
- * and prints the [DockerCommandLine]'s execution to [System.out].
- */
-public val DockerContainer.start: (Init<OptionsContext>) -> ManagedProcess
-    get() = {
-        DockerStartCommandLine {
-            options(it)
-            containers by listOf(this@start.name)
-        }.execute {
-            summary("Startping ${this@start.formattedAs.input}")
-            null
-        }
-    }
-
-/**
- * Starts `this` [DockerContainer] from the locally stored containers using the
- * [DockerStartCommandLine.Options] built with the given [OptionsContext] [Init].
- * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
- */
-public val RenderingLogger?.start: DockerContainer.(Init<OptionsContext>) -> ManagedProcess
-    get() = {
-        val thisContainer: DockerContainer = this
-        DockerStartCommandLine {
-            options(it)
-            containers by listOf(thisContainer.name)
-        }.execute {
-            summary("Startping ${thisContainer.formattedAs.input}")
-            null
-        }
-    }

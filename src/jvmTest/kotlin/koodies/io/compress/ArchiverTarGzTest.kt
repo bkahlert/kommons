@@ -27,10 +27,10 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.exists
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isLessThan
+import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path

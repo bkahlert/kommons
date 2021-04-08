@@ -8,7 +8,7 @@ import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.withTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.prefixLinesWith
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -17,13 +17,13 @@ public class CompactRenderingLogger(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
 ) : RenderingLogger(caption.toString(), log) {
 
     private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
-    private val returnValueFormatter: (ReturnValue) -> String = returnValueFormatter ?: RETURN_VALUE_FORMATTER
+    private val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
 
     init {
         require(caption.isNotBlank()) { "No blank caption allowed." }
@@ -37,7 +37,7 @@ public class CompactRenderingLogger(
     override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
         when {
             closed -> {
-                val prefix = decorationFormatter(Semantics.Computation).toString() + " "
+                val prefix = decorationFormatter(Symbols.Computation).toString() + " "
                 logWithLock { block().toString().prefixLinesWith(prefix) }
             }
             loggingResult -> {
@@ -70,7 +70,7 @@ public class CompactRenderingLogger(
 
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
-        val formattedResult = returnValueFormatter(ReturnValue.of(result))
+        val formattedResult = returnValueFormatter(ReturnValue.of(result)).format()
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
@@ -79,7 +79,7 @@ public class CompactRenderingLogger(
     }
 
     override fun logException(block: () -> Throwable) {
-        returnValueFormatter(ReturnValue.of(block())).also { render(true) { it } }
+        render(true) { ReturnValue.of(block()).format() }
     }
 
     override fun toString(): String = asString {
@@ -100,9 +100,9 @@ public class CompactRenderingLogger(
         caption: CharSequence? = null,
         contentFormatter: Formatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
-        returnValueFormatter: ((ReturnValue) -> String)? = this.returnValueFormatter,
+        returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         block: MicroLogger.() -> R,
-    ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter, { logText { it } }).runLogging(block)
+    ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
 }
 
 
@@ -117,7 +117,7 @@ public fun <R> compactLogging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     block: CompactRenderingLogger.() -> R,
 ): R = CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, null).runLogging(block)
 
@@ -132,7 +132,7 @@ public fun <T : RenderingLogger?, R> T.compactLogging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     block: CompactRenderingLogger.() -> R,
 ): R =
     if (this is CompactRenderingLogger) compactLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, block)

@@ -9,7 +9,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.runtime.Program
+import koodies.runtime.isDebugging
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiColors.red
 import koodies.terminal.escapeSequencesRemoved
@@ -19,7 +19,7 @@ import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Disabled
@@ -262,7 +262,7 @@ class RenderingLoggerKtTest {
             ╭──╴{}
             │{}
             │   before
-            │   caption Logging to ${Semantics.Document} ${ansiLog.toUri()} ✔︎
+            │   caption Logging to ${Symbols.Document} ${ansiLog.toUri()} ✔︎
             │   after
             │{}
             ╰──╴✔︎{}
@@ -396,7 +396,7 @@ class RenderingLoggerKtTest {
         private fun createLogger(caption: String, init: RenderingLogger.() -> Unit): Pair<ByteArrayOutputStream, RenderingLogger> {
             val baos = ByteArrayOutputStream()
             return baos to RenderingLogger(caption) {
-                if (Program.isDebugging) print(it)
+                if (isDebugging) print(it)
                 baos.write(it.removeEscapeSequences().toByteArray())
             }.apply(init)
         }

@@ -19,7 +19,7 @@ import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
-import koodies.text.Semantics.Document
+import koodies.text.Semantics.Symbols
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -29,10 +29,10 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.exists
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isExecutable
+import strikt.java.exists
+import strikt.java.isExecutable
 import java.nio.file.Path
 import kotlin.io.path.listDirectoryEntries
 
@@ -206,7 +206,7 @@ class ShellScriptTest {
                 that(process.io.merged.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                     .matchesCurlyPattern("""
                         Executing ${asString()}/koodies.process.{}.sh
-                        $Document file://${asString()}/koodies.process.{}.sh
+                        ${Symbols.Document} file://${asString()}/koodies.process.{}.sh
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝
                         finished to run embedded script

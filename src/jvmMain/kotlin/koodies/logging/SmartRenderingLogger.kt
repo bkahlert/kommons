@@ -17,7 +17,7 @@ public open class SmartRenderingLogger(
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = Border.DEFAULT,
     statusInformationColumn: Int? = null,
     statusInformationPadding: Int? = null,
@@ -103,7 +103,7 @@ public fun <R> logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = DEFAULT_BORDER,
     block: FixedWidthRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(

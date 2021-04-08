@@ -19,13 +19,13 @@
                 </style>
             </head>
             <body>
-                <pre>implementation("com.bkahlert.koodies:koodies:${version}</pre>
+                <pre>implementation("com.bkahlert:koodies:${version}</pre>
                 <script>
                     fetch('https://api.github.com/repos/bkahlert/koodies/releases/latest')
                             .then(response => response.json())
                             .then(data => {
                                 let version = data['tag_name']
-                                let kotlinScript = `implementation("com.bkahlert.koodies:koodies:${version}")`
+                                let kotlinScript = `implementation("com.bkahlert:koodies:${version}")`
                                 document.querySelector('pre').textContent = kotlinScript
                             })
                 </script>

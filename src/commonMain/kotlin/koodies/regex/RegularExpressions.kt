@@ -10,6 +10,16 @@ public object RegularExpressions {
     public val camelCaseRegex: Regex = Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
     public val screamingSnakeCaseRegex: Regex = Regex("(?<leftChar>[A-Z0-9]?)_(?<rightChar>[A-Z0-9])")
     public val kebabCaseRegex: Regex = Regex("(?<leftChar>[a-z0-9]?)-(?<rightChar>[a-z0-9])")
+
+    public val fullyClassifiedClassNameRegex: Regex = Regex("(?<package>(\\w+\\.)*)(?<class>\\w+)") // package.Class
+    public val receiverRegex: Regex = Regex("(?<receiverPackage>(\\w+\\.)*)(?<receiverClass>\\w+)") // package.Class
+    public val returnValueRegex: Regex = Regex("(?<returnValuePackage>(\\w+\\.)*)(?<returnValueClass>\\w+)") // Unit
+
+    public val unnamedArgumentRegex: Regex = Regex(fullyClassifiedClassNameRegex.pattern.replace(Regex("\\?<.*?>"), "")) // package.Class
+    public val unnamedParameterListRegex: Regex = Regex("(($unnamedArgumentRegex),\\s+)*($unnamedArgumentRegex)?") // Int, String
+
+    public val ignoreArgsLambdaRegex: Regex =
+        Regex("(?<receiver>$receiverRegex\\.)?\\((?<params>$unnamedParameterListRegex)\\)\\s+->\\s+(?<return>$returnValueRegex)")
 }
 
 /**

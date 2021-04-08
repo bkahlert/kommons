@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.runtime.deleteOnExit
+import koodies.runtime.JVM
 import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
 import koodies.test.UniqueId
@@ -16,7 +16,7 @@ class ToDataUriKtTest {
 
     @Test
     fun `should create data URI`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val htmlFile = HtmlFile.copyToDirectory(this).deleteOnExit()
+        val htmlFile = JVM.deleteOnExit(HtmlFile.copyToDirectory(this))
 
         @Suppress("SpellCheckingInspection")
         expectThat(htmlFile.toDataUri())

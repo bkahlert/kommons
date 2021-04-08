@@ -1,34 +1,55 @@
 package koodies.docker
 
+import koodies.collections.synchronizedMapOf
+import koodies.concurrent.process.CommandLine
 import koodies.docker.DockerContainer.State
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
-import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_CONTAINER
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
-import koodies.test.string
+import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics.Symbols
+import koodies.text.Semantics.Symbols.Delimiter
+import koodies.text.Semantics.Symbols.Negative
+import koodies.text.Unicode.NBSP
 import koodies.text.endsWithRandomSuffix
 import koodies.text.randomString
+import koodies.text.spaced
+import koodies.text.toStringMatchesCurlyPattern
+import koodies.time.poll
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
+import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
+import strikt.assertions.isSuccess
+import strikt.assertions.isTrue
 import strikt.assertions.length
 import java.nio.file.Path
+import kotlin.math.ceil
+import kotlin.time.Duration
+import kotlin.time.measureTime
+import kotlin.time.milliseconds
+import kotlin.time.seconds
 
-@Execution(SAME_THREAD)
+@Execution(CONCURRENT)
 class DockerContainerTest {
 
     @Nested
@@ -41,7 +62,25 @@ class DockerContainerTest {
 
         @TestFactory
         fun `should accept legal name`() = LEGAL_NAMES.testEach {
-            expect { DockerContainer(it) }.that { toStringIsEqualTo(it) }
+            expectThrowing { DockerContainer(it) }.that { isSuccess() }
+        }
+    }
+
+    @Nested
+    inner class ToString {
+
+        @Test
+        fun `should contain pseudo not existent state if not exists`() {
+            val name = randomString()
+            expectThat(DockerContainer(name)).toStringMatchesCurlyPattern("DockerContainer { name = {}⦀{}state = not existent }")
+        }
+
+        @Disabled
+        @Test
+        fun `should contain actual state if exists`() { // TODO
+            val container = DockerContainer(randomString())
+            // container start stop
+            expectThat(container).toStringIsEqualTo("name (exited 0)")
         }
     }
 
@@ -65,7 +104,7 @@ class DockerContainerTest {
         @Test
         fun `should append random suffix to container`() {
             val container = DockerContainer("docker-container")
-            expectThat(DockerContainer { container.withRandomSuffix }).isA<DockerContainer>().string.endsWithRandomSuffix()
+            expectThat(DockerContainer { container.withRandomSuffix }).isA<DockerContainer>().name.endsWithRandomSuffix()
         }
 
         @Nested
@@ -73,27 +112,27 @@ class DockerContainerTest {
 
             @TestFactory
             fun `should sanitize illegal name`() = ILLEGAL_NAMES.testEach {
-                expect { DockerContainer.from(it) }.that { string.length.isGreaterThanOrEqualTo(8) }
-                expect { DockerContainer { it.sanitized } }.that { string.length.isGreaterThanOrEqualTo(8) }
+                expect { DockerContainer.from(it) }.that { name.length.isGreaterThanOrEqualTo(8) }
+                expect { DockerContainer { it.sanitized } }.that { name.length.isGreaterThanOrEqualTo(8) }
             }
 
             @TestFactory
             fun `should sanitize legal name`() = LEGAL_NAMES.testEach {
-                expect { DockerContainer.from(it) }.that { toStringIsEqualTo(it) }
-                expect { DockerContainer { it.sanitized } }.that { toStringIsEqualTo(it) }
+                expect { DockerContainer.from(it) }.that { name.toStringIsEqualTo(it) }
+                expect { DockerContainer { it.sanitized } }.that { name.toStringIsEqualTo(it) }
             }
 
             @TestFactory
             fun `should not append random suffix by default`() = (ILLEGAL_NAMES + LEGAL_NAMES).testEach {
                 expect { DockerContainer.from(it) }.that {
-                    string.not { endsWithRandomSuffix() }
+                    name.not { endsWithRandomSuffix() }
                 }
             }
 
             @TestFactory
             fun `should append random suffix if specified`() = (ILLEGAL_NAMES + LEGAL_NAMES).testEach {
-                expect { DockerContainer.from(it, randomSuffix = true) }.that { string.endsWithRandomSuffix() }
-                expect { DockerContainer { it.withRandomSuffix } }.that { string.endsWithRandomSuffix() }
+                expect { DockerContainer.from(it, randomSuffix = true) }.that { name.endsWithRandomSuffix() }
+                expect { DockerContainer { it.withRandomSuffix } }.that { name.endsWithRandomSuffix() }
             }
         }
 
@@ -103,84 +142,314 @@ class DockerContainerTest {
             @Test
             fun `should sanitize illegal path`() {
                 val path = Path.of("~file202")
-                expectThat(DockerContainer.from(path, randomSuffix = false)) { toStringIsEqualTo("Xfile202") }
-                expectThat(DockerContainer { path.sanitized }) { toStringIsEqualTo("Xfile202") }
+                expectThat(DockerContainer.from(path, randomSuffix = false)) { name.toStringIsEqualTo("Xfile202") }
+                expectThat(DockerContainer { path.sanitized }) { name.toStringIsEqualTo("Xfile202") }
             }
 
             @Test
             fun `should sanitize legal path`() {
                 val path = Path.of("2020-08-20-raspios-buster-armhf-lite.img")
-                expectThat(DockerContainer.from(path, randomSuffix = false)) { toStringIsEqualTo("2020-08-20-raspios-buster-armhf-lite.img") }
-                expectThat(DockerContainer { path.sanitized }) { toStringIsEqualTo("2020-08-20-raspios-buster-armhf-lite.img") }
+                expectThat(DockerContainer.from(path, randomSuffix = false)) { name.toStringIsEqualTo("2020-08-20-raspios-buster-armhf-lite.img") }
+                expectThat(DockerContainer { path.sanitized }) { name.toStringIsEqualTo("2020-08-20-raspios-buster-armhf-lite.img") }
             }
 
             @Test
             fun `should only use filename`() {
                 val path = Path.of("dir/2020-08-20-raspios-buster-armhf-lite.img")
-                expectThat(DockerContainer.from(path)) { string.not { contains("dir") } }
-                expectThat(DockerContainer { path.withRandomSuffix }) { string.not { contains("dir") } }
+                expectThat(DockerContainer.from(path)) { name.not { contains("dir") } }
+                expectThat(DockerContainer { path.withRandomSuffix }) { name.not { contains("dir") } }
             }
 
             @Test
             fun `should append random suffix by default`() {
-                expectThat(DockerContainer.from(Path.of("2020-08-20-raspios-buster-armhf-lite.img"))) { string.endsWithRandomSuffix() }
-                expectThat(DockerContainer { Path.of("2020-08-20-raspios-buster-armhf-lite.img").withRandomSuffix }) { string.endsWithRandomSuffix() }
+                expectThat(DockerContainer.from(Path.of("2020-08-20-raspios-buster-armhf-lite.img"))) { name.endsWithRandomSuffix() }
+                expectThat(DockerContainer { Path.of("2020-08-20-raspios-buster-armhf-lite.img").withRandomSuffix }) { name.endsWithRandomSuffix() }
             }
 
             @TestFactory
             fun `should not append random suffix if specified`() {
                 expectThat(DockerContainer.from(Path.of("2020-08-20-raspios-buster-armhf-lite.img"), randomSuffix = false)) {
-                    string.not { endsWithRandomSuffix() }
+                    name.not { endsWithRandomSuffix() }
                 }
             }
         }
 
         @Test
         fun `should fill to short name`() {
-            expectThat(DockerContainer.from("abc")).string.length.isEqualTo(8)
-            expectThat(DockerContainer { "abc".sanitized }).string.length.isEqualTo(8)
+            expectThat(DockerContainer.from("abc")).name.length.isEqualTo(8)
+            expectThat(DockerContainer { "abc".sanitized }).name.length.isEqualTo(8)
         }
 
         @Test
         fun `should truncate to long name`() {
-            expectThat(DockerContainer.from("X".repeat(130))).toStringIsEqualTo("X".repeat(128))
-            expectThat(DockerContainer { "X".repeat(130).sanitized }).toStringIsEqualTo("X".repeat(128))
-        }
-    }
-
-    @Nested
-    inner class GetStatus {
-
-        @Test
-        fun `should get status of non-existent`() {
-            val container = DockerContainer(randomString())
-            expectThat(container).hasState<NotExistent>()
-            BACKGROUND.expectLogged.contains("Checking status of $container")
-        }
-
-        @Test
-        fun `should get status`() {
-            use(DOCKER_TEST_CONTAINER) {
-                expectThat(it.container).hasState<Running> { get { status }.isNotEmpty() }
-                BACKGROUND.expectLogged.contains("Checking status of ${it.container}")
-            }
-        }
-    }
-
-    @Nested
-    inner class ListContainers {
-
-        @Test
-        fun `should list containers and log`() {
-            val containers = (1..3).map { DOCKER_TEST_CONTAINER.start(true).container }
-            expectThat(DockerContainer.toList()).contains(containers)
-            BACKGROUND.expectLogged.contains("Listing all containers")
+            expectThat(DockerContainer.from("X".repeat(130))).name.toStringIsEqualTo("X".repeat(128))
+            expectThat(DockerContainer { "X".repeat(130).sanitized }).name.toStringIsEqualTo("X".repeat(128))
         }
     }
 
     companion object {
         val ILLEGAL_NAMES = listOf("", "---", ".container")
         val LEGAL_NAMES = listOf("dockerDocker", "docker-container", "container.1234")
+    }
+
+    @Nested
+    inner class DockerCommands {
+
+        private val container: MutableMap<UniqueId, MutableList<DockerContainer>> = synchronizedMapOf()
+
+        private val testImage = DockerImage("ubuntu", emptyList(), null, null)
+        private fun startTestContainer(
+            uniqueId: UniqueId, rm: Boolean = true,
+            commandLine: CommandLine,
+        ): DockerContainer {
+            val container = DockerContainer.from(name = uniqueId.uniqueId, randomSuffix = true)
+            with(BACKGROUND) {
+                commandLine.executeDockerized(testImage) {
+                    dockerOptions { name by container.name; autoCleanup by rm; detached { on } }
+                    executionOptions {
+                        noDetails("running ${commandLine.summary}")
+                    }
+                    null
+                }
+            }
+            return container
+        }
+
+        private fun startTestContainer(runningFor: Duration, uniqueId: UniqueId, remove: Boolean = true): DockerContainer =
+            startTestContainer(uniqueId, remove, CommandLine("sleep", ceil(runningFor.inSeconds).toString()))
+
+        private fun createNotExistingContainer() = DockerContainer.from(randomString())
+        private fun createExitedTestContainer(uniqueId: UniqueId, sleepDurationOnNextStart: Duration = 30.seconds): DockerContainer =
+            startTestContainer(uniqueId, false, CommandLine("sh", "-c", """
+                if [ -f "booted-before" ]; then
+                  sleep ${ceil(sleepDurationOnNextStart.inSeconds).toInt()}
+                else
+                  touch "booted-before"
+                fi
+                exit 0
+            """.trimIndent())).also {
+                poll { it.isExited }.every(500.milliseconds).forAtMost(5.seconds) { duration ->
+                    fail { "Could not provide exited test container $it within $duration." }
+                }
+            }
+
+        private fun createRunningTestContainer(uniqueId: UniqueId): DockerContainer =
+            startTestContainer(30.seconds, uniqueId, false).also {
+                poll { it.isRunning }.every(500.milliseconds).forAtMost(5.seconds) { duration ->
+                    fail { "Could not provide stopped test container $it within $duration." }
+                }
+            }
+
+
+        @Nested
+        inner class GetStatus {
+
+            @Test
+            fun `should get status of non-existent`() {
+                val container = DockerContainer(randomString())
+                expectThat(container).hasState<NotExistent>()
+                BACKGROUND.expectLogged.contains("Checking status of ${container.name}")
+            }
+
+            @Test
+            fun `should get status`(uniqueId: UniqueId) {
+                val container = createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                expectThat(container).hasState<Running> { get { status }.isNotEmpty() }
+                BACKGROUND.expectLogged.contains("Checking status of ${container.name}")
+            }
+        }
+
+        @Nested
+        inner class ListContainers {
+
+            @Test
+            fun `should list containers and log`(uniqueId: UniqueId) {
+                val containers = (1..3).map { createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) } }
+                expectThat(DockerContainer.toList()).contains(containers)
+                BACKGROUND.expectLogged.contains("Listing all containers")
+            }
+        }
+
+        @Nested
+        inner class Start {
+
+            @Nested
+            inner class NotExisting {
+
+                @Test
+                fun `should start container and log`() {
+                    val container = createNotExistingContainer()
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).get { start(attach = false) }.isFailed()
+                    BACKGROUND.expectLogged.contains("Starting ${container.name} $Negative no such container".ansiRemoved)
+                }
+            }
+
+            @Nested
+            inner class Stopped {
+
+                @Test
+                fun `should start container and log`(uniqueId: UniqueId) {
+                    val container = createExitedTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).get { start(attach = false) }.isSuccessful()
+                    BACKGROUND.expectLogged.contains("Starting ${container.name}")
+                    expectThat(container.isRunning).isTrue()
+                }
+
+                @Test
+                fun `should start attached by default`(uniqueId: UniqueId) {
+                    val container = createExitedTestContainer(uniqueId, 5.seconds).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    val passed = measureTime { expectThat(container).get { start(attach = true) }.isSuccessful() }
+                    BACKGROUND.expectLogged.contains("Starting ${container.name}")
+                    expectThat(passed).isGreaterThanOrEqualTo(5.seconds)
+                    expectThat(container.isRunning).isFalse()
+                }
+
+                @Test
+                fun `should start multiple and log`(uniqueId: UniqueId) {
+                    val containers = listOf(createNotExistingContainer(),
+                        createExitedTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) })
+                    expectThat(DockerContainer.start(*containers.toTypedArray(), attach = false)).isFailed()
+                    BACKGROUND.expectLogged.contains("Starting ${containers[0].name}$NBSP${Delimiter.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
+                    expectThat(containers).all { not { hasState<State.Existent.Exited>() } }
+                }
+            }
+
+
+            @Nested
+            inner class Running {
+
+                @Test
+                fun `should start container and log`(uniqueId: UniqueId) {
+                    val container = createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    expectThat(container.isRunning).isTrue()
+                    expectThat(container).get { start(attach = false) }.isSuccessful()
+                    BACKGROUND.expectLogged.contains("Starting ${container.name}")
+                    expectThat(container.isRunning).isTrue()
+                    expectThat(container).hasState<State.Existent.Running>()
+                }
+            }
+        }
+
+        @Nested
+        inner class Stop {
+
+            @Nested
+            inner class NotExisting {
+
+                @Test
+                fun `should stop container and log`(uniqueId: UniqueId) {
+                    val container = createNotExistingContainer()
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).get { stop() }.isFailed()
+                    BACKGROUND.expectLogged.contains("Stopping ${container.name} ${Negative.ansiRemoved} no such container")
+                    expectThat(container.isRunning).isFalse()
+                }
+            }
+
+            @Nested
+            inner class NotRunning {
+
+                @Test
+                fun `should stop container and log`(uniqueId: UniqueId) {
+                    val container = createExitedTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).get { stop() }.isSuccessful()
+                    BACKGROUND.expectLogged.contains("Stopping ${container.name}")
+                    expectThat(container.isRunning).isFalse()
+                }
+            }
+
+            @Nested
+            inner class Running {
+
+                @Test
+                fun `should stop container - but not remove it - and log`(uniqueId: UniqueId) {
+                    val container = createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    expectThat(container.isRunning).isTrue()
+                    expectThat(container).get { stop() }.isSuccessful()
+                    BACKGROUND.expectLogged.contains("Stopping ${container.name}")
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).hasState<State.Existent.Exited>()
+                }
+
+                @Test
+                fun `should stop multiple and log`(uniqueId: UniqueId) {
+                    val containers = listOf(createNotExistingContainer(),
+                        createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) })
+                    expectThat(DockerContainer.stop(*containers.toTypedArray())).isFailed()
+                    BACKGROUND.expectLogged.contains("Stopping ${containers[0].name}$NBSP${Delimiter.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
+                    expectThat(containers).all { not { hasState<State.Existent.Running>() } }
+                }
+            }
+        }
+
+        @Nested
+        inner class Remove {
+
+            @Nested
+            inner class NotExistent {
+
+                @Test
+                fun `should remove container and log`(uniqueId: UniqueId) {
+                    val container = DockerContainer { uniqueId.uniqueId.sanitized }
+                    expectThat(container.remove()).isFailed()
+                    BACKGROUND.expectLogged.contains("Removing ${container.name} ${Negative.ansiRemoved} no such container")
+                }
+            }
+
+            @Nested
+            inner class Existent {
+
+                @Test
+                fun `should remove container and log`(uniqueId: UniqueId) {
+                    val container = createExitedTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    expectThat(container.remove()).isSuccessful()
+                    BACKGROUND.expectLogged.contains("Removing ${container.name}")
+                }
+            }
+
+            @Nested
+            inner class Running {
+
+                @Test
+                fun `should remove container and log`(uniqueId: UniqueId) {
+                    val container = createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                    expectThat(container.remove()).isFailed()
+                    BACKGROUND.expectLogged.contains("Removing ${container.name}")
+                    expectThat(container.isRunning).isTrue()
+                    expectThat(container.exists).isTrue()
+                }
+            }
+        }
+
+        @Nested
+        inner class RemoveForcefully {
+
+            @Test
+            fun `should remove forcibly container and log`(uniqueId: UniqueId) {
+                val container = createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) }
+                expectThat(container.remove(force = true)).isSuccessful()
+                BACKGROUND.expectLogged.contains("Removing forcefully ${container.name}")
+                expectThat(container.isRunning).isFalse()
+                expectThat(container.exists).isFalse()
+            }
+
+            @Test
+            fun `should remove multiple and log`(uniqueId: UniqueId) {
+                val containers =
+                    listOf(createNotExistingContainer(), createRunningTestContainer(uniqueId).also { container.getOrPut(uniqueId) { mutableListOf() }.add(it) })
+                expectThat(DockerContainer.remove(*containers.toTypedArray(), force = true)).isSuccessful()
+                BACKGROUND.expectLogged.contains("Removing forcefully ${containers[0].name}${Delimiter.spaced}${containers[1].name} ${Symbols.OK}".ansiRemoved)
+                expectThat(containers).all { hasState<NotExistent>() }
+            }
+        }
+
+        @AfterAll
+        fun tearDown() {
+            DockerContainer.remove(*container.map { it.value }.flatten().toTypedArray(), force = true)
+        }
     }
 }
 
@@ -196,3 +465,4 @@ public inline fun <reified T : State> Builder<DockerContainer>.hasState(
         get { state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
+public val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }

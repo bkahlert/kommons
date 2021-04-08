@@ -24,7 +24,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.exists
+import strikt.java.exists
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isLessThan

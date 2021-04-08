@@ -1,6 +1,5 @@
 package koodies.docker
 
-import koodies.builder.BooleanBuilder.OnOff.Context.on
 import koodies.concurrent.daemon
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process
@@ -51,7 +50,7 @@ public open class DockerProcess private constructor(
      */
     public fun stop(async: Boolean = false, escalationTimeout: Duration = 10.seconds): Process = also {
         val block: () -> Unit = {
-            daemon { container.stop { time { 5 } } }.also {
+            daemon { container.stop(5.seconds) }.also {
                 runCatching { pollTermination(escalationTimeout) }
                 managedProcess.stop()
             }
@@ -72,9 +71,9 @@ public open class DockerProcess private constructor(
      */
     public fun kill(async: Boolean = false, gracefulStopTimeout: Duration = 2.seconds): Process = also {
         val block: () -> Unit = {
-            daemon { container.stop { time { 5 } } }.also {
+            daemon { container.stop(5.seconds) }.also {
                 runCatching { pollTermination(gracefulStopTimeout) }
-                container.remove { force { on } }
+                container.remove(force = true)
                 onExit.orTimeout(8, SECONDS).get()
             }
         }

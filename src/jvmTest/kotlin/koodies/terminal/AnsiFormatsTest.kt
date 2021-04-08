@@ -1,6 +1,6 @@
 package koodies.terminal
 
-import koodies.runtime.Program
+import koodies.runtime.isIntelliJ
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiFormats.dim
 import koodies.terminal.AnsiFormats.hidden
@@ -44,7 +44,7 @@ class AnsiFormatsTest {
 
     @Test
     fun `should format hidden`() {
-        expectThat("hidden".hidden()).isEqualTo(if (Program.isIntelliJ) " ".repeat("hidden".length + 2) else ANSI.termColors.hidden("hidden"))
+        expectThat("hidden".hidden()).isEqualTo(if (isIntelliJ) " ".repeat("hidden".length + 2) else ANSI.termColors.hidden("hidden"))
     }
 
     @Test

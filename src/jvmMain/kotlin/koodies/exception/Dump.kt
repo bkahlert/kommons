@@ -3,7 +3,7 @@ package koodies.exception
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
 import koodies.io.path.writeText
-import koodies.runtime.deleteOldTempFilesOnExit
+import koodies.runtime.JVM
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
@@ -17,7 +17,7 @@ private object Dump {
     const val dumpSuffix = ".log"
 
     init {
-        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 5.days, keepAtMost = 200)
+        JVM.deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 5.days, keepAtMost = 200)
     }
 }
 

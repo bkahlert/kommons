@@ -15,11 +15,11 @@ import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.exists
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNull
+import strikt.java.exists
 import java.io.IOException
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.LinkOption.NOFOLLOW_LINKS

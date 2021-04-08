@@ -15,6 +15,8 @@ import koodies.test.test
 import koodies.test.testEach
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
+import koodies.unit.Size
+import koodies.unit.size
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -190,7 +192,7 @@ class ClassPathsKtTest {
                     fixtures.copyToDirectory(randomDirectory("copy1")) to copyToDirectory(randomDirectory("copy2"))
                 }?.also { (copy1, copy2) ->
                     expectThat(copy1) {
-                        size.isGreaterThan(0)
+                        size.isGreaterThan(Size.ZERO)
                         isCopyOf(fixtures)
                         isCopyOf(copy2)
                     }

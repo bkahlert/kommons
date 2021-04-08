@@ -1,6 +1,8 @@
 package koodies.regex
 
 import koodies.debug.debug
+import koodies.test.DynamicTestsBuilder
+import koodies.test.test
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -71,6 +73,31 @@ class RegularExpressionsTest {
                 "0.b.0",
                 "crap",
             )),
+
+        RegularExpressions.fullyClassifiedClassNameRegex to MatchExpectations(
+            matchingInput = listOf(
+                "ClassName",
+                "package.ClassName",
+                "package1.PACKAGE2.ClassName",
+            ), nonMatchingInput = listOf(
+                ".ClassName",
+                "ClassName.",
+                "package..ClassName",
+            )),
+        RegularExpressions.ignoreArgsLambdaRegex to MatchExpectations(
+            matchingInput = listOf(
+                "() -> Unit",
+                "() -> package.Unit",
+                "() -> package1.PACKAGE2.Unit",
+                "ClassName.() -> Unit",
+                "package.ClassName.() -> package.Unit",
+                "package1.PACKAGE2.ClassName.() -> package1.PACKAGE2.Unit",
+            ), nonMatchingInput = listOf(
+                ".ClassName",
+                "ClassName.",
+                "package..ClassName",
+                "package1.PACKAGE2.ClassName",
+            )),
     ).map { (regex, expectations) ->
         dynamicContainer("for ${regex.pattern}", listOf(
             dynamicContainer("should match", expectations.matchingInput.map { matchingInput ->
@@ -84,6 +111,60 @@ class RegularExpressionsTest {
                 }
             }),
         ))
+    }
+
+    @Nested
+    inner class Lambdas {
+
+        @Nested
+        inner class IgnoreArgs {
+
+            fun DynamicTestsBuilder<Regex>.testMatch(
+                text: String,
+                receiverPackage: String?,
+                receiverClass: String?,
+                parameterList: String?,
+                returnValuePackage: String?,
+                returnValueClass: String?,
+            ) {
+                test {
+                    expect { matchEntire(text) }.that {
+                        isNotNull().and {
+                            get("field receiverPackage") { get("receiverPackage") }.isEqualTo(receiverPackage)
+                            get("field receiverClass") { get("receiverClass") }.isEqualTo(receiverClass)
+                            get("field parameterList") { get("parameterList") }.isEqualTo(receiverClass)
+                            get("field returnValuePackage") { get("returnValuePackage") }.isEqualTo(returnValuePackage)
+                            get("field returnValueClass") { get("returnValueClass") }.isEqualTo(returnValueClass)
+                        }
+                    }
+                }
+            }
+
+            @TestFactory
+            fun `should match lambda with no args`() = test(RegularExpressions.ignoreArgsLambdaRegex) {
+                listOf(
+                    "no arg" to "",
+                    "one arg" to "Int",
+                    "named arg" to "name:Int",
+                    "lambda arg" to "package.String.(package.Int) -> package.Float",
+                ).forEach { (name, argList) ->
+                    group(name) {
+                        testMatch("($argList) -> Unit",
+                            null, null, argList, null, "Unit")
+                        testMatch("($argList) -> package.Unit",
+                            null, null, argList, "package", "Unit")
+                        testMatch("($argList) -> package1.PACKAGE2.Unit",
+                            null, null, argList, "package1.PACKAGE2", "Unit")
+                        testMatch("ClassName.($argList) -> Unit",
+                            null, "ClassName", argList, null, "Unit")
+                        testMatch("package.ClassName.($argList) -> package.Unit",
+                            "package", "ClassName", argList, "package", "Unit")
+                        testMatch("package1.PACKAGE2.ClassName.($argList) -> package1.PACKAGE2.Unit",
+                            "package1.PACKAGE2", "ClassName", argList, "package1.PACKAGE2", "Unit")
+                    }
+                }
+            }
+        }
     }
 
     @Nested

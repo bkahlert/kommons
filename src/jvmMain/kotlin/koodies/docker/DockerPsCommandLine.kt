@@ -6,7 +6,6 @@ import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
 import koodies.builder.Init
 import koodies.builder.PairBuilder
-import koodies.builder.SkippableBuilder
 import koodies.builder.buildArray
 import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
@@ -48,6 +47,7 @@ public open class DockerPsCommandLine(
         public val filters: List<Pair<String, String>> = emptyList(),
     ) : List<String> by (buildList {
         if (all) add("--all")
+        filters.forEach { (key, value) -> add("--filter"); add("$key=$value") }
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
             @DockerCommandLineDsl
@@ -65,8 +65,7 @@ public open class DockerPsCommandLine(
                 /**
                  * 	Filter output based on container’s exact name
                  */
-                public val exactName: SkippableBuilder<() -> String, String, Pair<String, String>>
-                    by builder<String>() then { "name" to "name=^$it${'$'}" }
+                public fun exactName(name: String): Unit = filter { "name" to "^$name${'$'}" }
             }
 
             override fun BuildContext.build(): Options = Companion::OptionsContext {

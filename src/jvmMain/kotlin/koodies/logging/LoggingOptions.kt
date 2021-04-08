@@ -27,7 +27,7 @@ public sealed class LoggingOptions {
         public val caption: CharSequence? = null,
         public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
+        public val returnValueFormatter: ((ReturnValue) -> ReturnValue)? = DEFAULT_RESULT_FORMATTER,
         public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
         override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
@@ -49,7 +49,7 @@ public sealed class LoggingOptions {
                 public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
                 public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
                 public val decorationFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_DECORATION_FORMATTER
-                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> String)?, ((ReturnValue) -> String)?> by builder<((ReturnValue) -> String)?>() default DEFAULT_RESULT_FORMATTER
+                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> ReturnValue)?, ((ReturnValue) -> ReturnValue)?> by builder<((ReturnValue) -> ReturnValue)?>() default DEFAULT_RESULT_FORMATTER
                 public var border: Border by setter(Border.DOTTED)
             }
 
@@ -66,7 +66,7 @@ public sealed class LoggingOptions {
         public val caption: CharSequence? = null,
         public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
+        public val returnValueFormatter: ((ReturnValue) -> ReturnValue)? = DEFAULT_RESULT_FORMATTER,
     ) : LoggingOptions() {
         override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
             CompactRenderingLogger(
@@ -82,7 +82,7 @@ public sealed class LoggingOptions {
             public class CompactLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
                 public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
-                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> String)?, ((ReturnValue) -> String)?> by builder<((ReturnValue) -> String)?>() default DEFAULT_RESULT_FORMATTER
+                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> ReturnValue)?, ((ReturnValue) -> ReturnValue)?> by builder<((ReturnValue) -> ReturnValue)?>() default DEFAULT_RESULT_FORMATTER
             }
 
             override fun BuildContext.build(): CompactLoggingOptions = ::CompactLoggingOptionsContext {
@@ -100,7 +100,7 @@ public sealed class LoggingOptions {
         public val caption: CharSequence? = null,
         public val contentFormatter: Formatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
-        public val returnValueFormatter: ((ReturnValue) -> String)? = DEFAULT_RESULT_FORMATTER,
+        public val returnValueFormatter: ((ReturnValue) -> ReturnValue)? = DEFAULT_RESULT_FORMATTER,
         public val border: Border = Border.DOTTED,
     ) : LoggingOptions() {
         override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
@@ -123,7 +123,7 @@ public sealed class LoggingOptions {
                 public val caption: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
                 public val contentFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_CONTENT_FORMATTER
                 public val decorationFormatter: SkippableCapturingBuilderInterface<() -> Formatter?, Formatter?> by builder<Formatter?>() default DEFAULT_DECORATION_FORMATTER
-                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> String)?, ((ReturnValue) -> String)?> by builder<((ReturnValue) -> String)?>() default DEFAULT_RESULT_FORMATTER
+                public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> ReturnValue)?, ((ReturnValue) -> ReturnValue)?> by builder<((ReturnValue) -> ReturnValue)?>() default DEFAULT_RESULT_FORMATTER
                 public var border: Border by setter(Border.DOTTED)
             }
 
@@ -137,7 +137,7 @@ public sealed class LoggingOptions {
 
         public val DEFAULT_CONTENT_FORMATTER: Formatter = Formatter.PassThrough
         public val DEFAULT_DECORATION_FORMATTER: Formatter = Colors.brightBlue
-        public val DEFAULT_RESULT_FORMATTER: (ReturnValue) -> String = RenderingLogger.RETURN_VALUE_FORMATTER
+        public val DEFAULT_RESULT_FORMATTER: (ReturnValue) -> ReturnValue = { it }
 
         public class LoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
             public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions

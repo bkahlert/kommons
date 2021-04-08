@@ -1,8 +1,55 @@
 import org.gradle.api.plugins.JavaBasePlugin.DOCUMENTATION_GROUP
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
+import kotlin.text.toBoolean as kotlinToBoolean
+
+
+val camelCaseRegex = Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
+fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String = camelCaseRegex
+    .replace(this.toString().decapitalize(), "\${lowerLeftChar}$separator\${upperRightChar}")
+    .let(transform)
+
+fun CharSequence.camelCaseToScreamingSnakeCase() = convertCamelCase('_', String::toUpperCase)
+
+fun String?.toBoolean(default: Boolean = false): Boolean =
+    this?.run { isBlank() || kotlinToBoolean() } ?: default
+
+fun Project.findBooleanPropertyEverywhere(name: String, default: Boolean = false): Boolean =
+    findPropertyEverywhere(name).toBoolean(default)
+
+fun Project.findPropertyEverywhere(name: String): String? =
+    extra.properties[name]?.toString()
+        ?: findProperty(name)?.toString()
+        ?: System.getenv(name.camelCaseToScreamingSnakeCase())
+
+fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
+    findPropertyEverywhere(name) ?: defaultValue
+
+private var _syncToMavenCentralUsingBintray: Boolean? = null
+var Project.syncToMavenCentralUsingBintray: Boolean
+    get() = _syncToMavenCentralUsingBintray ?: findBooleanPropertyEverywhere("syncToMavenCentralUsingBintray", true)
+    set(value) {
+        _syncToMavenCentralUsingBintray = value
+    }
+
+private var _releasingFinal: Boolean? = null
+var Project.releasingFinal: Boolean
+    get() = _releasingFinal ?: findBooleanPropertyEverywhere("releasingFinal", true)
+    set(value) {
+        _releasingFinal = value
+    }
+
+val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
+
+/**
+ * Returns whether this object represents a final version number
+ * of the format `<major>.<minor.<patch>`.
+ */
+fun Any.isFinal(): Boolean =
+    Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)").matches(toString())
+
 
 plugins {
-    kotlin("multiplatform") version Versions.kotlin
+    kotlin("multiplatform") version "1.4.32"
     id("org.jetbrains.dokka") version "1.4.20"
     id("com.github.ben-manes.versions") version "0.36.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
@@ -19,14 +66,29 @@ plugins {
 allprojects {
     apply { plugin("com.github.ben-manes.versions") }
     apply { plugin("se.patrikerdes.use-latest-versions") }
+    configurations.all {
+        resolutionStrategy.eachDependency {
+
+
+            val kotlinVersion = "1.4.32"
+            val kotlinModules = listOf(
+                "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
+                "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
+                "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
+            if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
+                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ —̳͟͞͞   ${requested.version}")
+                useVersion("1.4.32")
+                because("of ambiguity issues")
+            }
+        }
+    }
 }
 
 description = "Random Kotlin Goodies"
-group = "com.bkahlert.koodies"
+group = "com.bkahlert"
 
 repositories {
     mavenCentral()
-    jcenter()
     maven {
         url = uri("https://maven.pkg.github.com/bkahlert/koodies")
         credentials {
@@ -46,9 +108,11 @@ kotlin {
     jvm {
         compilations.all {
             kotlinOptions {
+                languageVersion = "1.4"
+                apiVersion = "1.4"
                 jvmTarget = "11"
                 useIR = true
-                freeCompilerArgs = listOf("-Xjvm-default=all")
+                freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.io.path.ExperimentalPathApi")
             }
         }
 
@@ -74,22 +138,9 @@ kotlin {
             commonWebpackConfig {
                 cssSupport.enabled = true
             }
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                }
-            }
-        }
-
-        binaries.executable()
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                moduleKind = "umd"
-                metaInfo = true
-            }
         }
     }
+
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     val nativeTarget = when {
@@ -99,10 +150,10 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
+
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 api("com.ionspin.kotlin:bignum:0.2.8") {
                     because("bigint for IPv6Address")
                 }
@@ -120,9 +171,7 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
                 implementation("org.jline:jline-reader:3.19.0")
-                implementation("com.github.ajalt:mordant:1.2.1") {// implementation("com.github.ajalt.mordant:mordant:2.0.0-alpha1")
-                    exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-                }
+                implementation("com.github.ajalt:mordant:1.2.1") // TODO delete
             }
         }
 
@@ -132,13 +181,14 @@ kotlin {
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
                 listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
-                runtimeOnly("org.junit.platform:junit-platform-console") {
+                runtimeOnly("org.junit.platform:junit-platform-console:1.7.0") {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
-                implementation("io.strikt:strikt-core:0.28.2")
-                implementation("com.christophsturm:filepeek:0.1.2")
-                implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}") {
+                implementation("io.strikt:strikt-core:0.30.0")
+                implementation("io.strikt:strikt-jvm:0.30.0")
+
+                implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.32") {
                     because("filepeek takes 1.3")
                 }
             }
@@ -164,14 +214,6 @@ kotlin {
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
                 useExperimentalAnnotation("kotlin.time.ExperimentalTime")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
-            }
-        }
-    }
-
-    targets {
-        jvm().compilations {
-            all {
-                kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.io.path.ExperimentalPathApi")
             }
         }
     }
@@ -274,6 +316,7 @@ tasks.configureEach {
 }
 
 if (version.isFinal()) {
+    // TODO see https://github.com/christophsturm/filepeek/pull/11/files
     bintray {
         user.set(findPropertyEverywhere("bintrayUser", ""))
         apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
@@ -292,4 +335,8 @@ if (version.isFinal()) {
         sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
         sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
     }
+}
+
+gradle.buildFinished {
+    println("Version: ${version} - ${findPropertyEverywhere("org.gradle.java.home")}")
 }

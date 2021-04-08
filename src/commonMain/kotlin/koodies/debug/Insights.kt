@@ -2,11 +2,12 @@
 
 package koodies.debug
 
+import koodies.collections.map
 import koodies.text.CodePoint
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
-import koodies.text.Semantics.Enclosements
+import koodies.text.Semantics.Markers
 import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
@@ -86,8 +87,8 @@ public class XRay<T>(
         private fun lineBreakSymbol(lineBreak: String) = "⏎$lineBreak"
 
         private fun highlight(subject: Any?) = subject.toString().formattedAs.debug
-        private val selfBrackets = Enclosements.unit.formatAs { debug }
-        private val transformedBrackets = Enclosements.block.formatAs { debug }
+        private val selfBrackets = Markers.unit.map { it.formattedAs.debug }
+        private val transformedBrackets = Markers.block.map { it.formattedAs.debug }
     }
 }
 

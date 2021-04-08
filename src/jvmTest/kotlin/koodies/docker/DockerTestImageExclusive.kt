@@ -192,14 +192,14 @@ public class DockerTestContainerProvider(name: String, val image: DockerImage, p
      * Silently removes this [DockerContainer].
      */
     fun stop(actual: DockerContainer = container, timeout: Duration = 1.seconds) {
-        with(MutedRenderingLogger()) { actual.stop { timeout { timeout } } }
+        with(MutedRenderingLogger()) { actual.stop(timeout) }
     }
 
     /**
      * Silently removes this [DockerContainer].
      */
     fun remove(actual: DockerContainer = container) {
-        with(MutedRenderingLogger()) { runCatching { actual.remove {} } }
+        with(MutedRenderingLogger()) { runCatching { actual.remove() } }
     }
 
     override fun toString(): String = container.toString()
@@ -242,8 +242,8 @@ public object DockerTestUtil {
     }
 }
 
-public val <T : DockerContainer> Assertion.Builder<T>.exists
-    get() = assert("%s exists") {
+public val Assertion.Builder<DockerContainer>.exists
+    get() = assert("exists") {
         when (it.exists) {
             true -> pass()
             else -> fail()

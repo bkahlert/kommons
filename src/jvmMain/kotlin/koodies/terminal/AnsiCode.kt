@@ -3,7 +3,7 @@ package koodies.terminal
 import com.github.ajalt.mordant.TermColors
 import koodies.regex.namedGroups
 import koodies.runtime.AnsiSupport
-import koodies.runtime.Program
+import koodies.runtime.ansiSupport
 import koodies.text.Unicode
 import com.github.ajalt.mordant.AnsiCode as MordantAnsiCode
 
@@ -44,7 +44,7 @@ public class AnsiCode(
         public const val CSI: Char = Unicode.controlSequenceIntroducer
 
         private val termColors by lazy {
-            TermColors(when (Program.ansiSupport) {
+            TermColors(when (ansiSupport) {
                 AnsiSupport.NONE -> TermColors.Level.NONE
                 AnsiSupport.ANSI4 -> TermColors.Level.ANSI16
                 AnsiSupport.ANSI8 -> TermColors.Level.ANSI256

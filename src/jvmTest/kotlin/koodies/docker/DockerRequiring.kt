@@ -44,11 +44,11 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
             val container = context.dockerContainer()
             when (context.withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
                 ThanksForCleaningUp -> {
-                    if (container.isRunning) container.remove { force { yes } }
+                    if (container.isRunning) container.remove(force = true)
                 }
                 FailAndKill -> {
                     check(!container.isRunning) {
-                        container.remove { force { yes } }
+                        container.remove(true)
                         "Container $container was still running and had to be killed forcibly."
                     }
                 }

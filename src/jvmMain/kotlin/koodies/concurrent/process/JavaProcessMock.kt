@@ -226,7 +226,7 @@ public open class ManagedProcessMock(public val processMock: JavaProcessMock, pu
             get() = object : ManagedProcessMock(JavaProcessMock.FAILED_PROCESS) {
                 override val started: Boolean = true
                 override var state: ProcessState =
-                    Failure(42, 12345L, emptyList(), "dump", listOf(ERR typed "error 1", ERR typed "error 2"))
+                    Failure(42, 12345L, emptyList(), null, listOf(ERR typed "error 1", ERR typed "error 2"))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)
                 override val successful: Boolean? = false
             }

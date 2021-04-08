@@ -1,7 +1,11 @@
 package koodies.docker
 
+import koodies.asString
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.execute
+import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Process.ExitState
+import koodies.concurrent.process.errors
 import koodies.docker.DockerContainer.Companion.ContainerContext
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
@@ -14,23 +18,40 @@ import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
 import koodies.io.path.asString
 import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.ReturnValue
+import koodies.lowerSentenceCaseName
 import koodies.map
 import koodies.or
+import koodies.regex.get
 import koodies.text.CharRanges.Alphanumeric
+import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
+import koodies.text.spaced
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import java.nio.file.Path
+import kotlin.time.Duration
+import kotlin.time.seconds
 
 
-public inline class DockerContainer(public val name: String) {
+public class DockerContainer(public val name: String) {
 
     init {
         require(isValid(name)) { "${name.formattedAs.input} is invalid. It needs to match ${REGEX.formattedAs.input}." }
     }
 
-    public val state: State get() = queryState(this)
+    /**
+     * Current state of this container.
+     */
+    public val state: State get() = queryState(this).also { _cachedState = it }
+    private var _cachedState: State? = null
+
+    /**
+     * Last known state of this container, or
+     * the current [state] if the state is read for the first time.
+     */
+    public val cachedState: State get() = _cachedState ?: state
 
     public val exists: Boolean get() = state !is NotExistent
     public val isCreated: Boolean get() = state is Created
@@ -41,22 +62,112 @@ public inline class DockerContainer(public val name: String) {
     public val isExited: Boolean get() = state is Exited
     public val isDead: Boolean get() = state is Dead
 
-    public sealed class State {
-        public object NotExistent : State()
-        public sealed class Existent(public val status: String) : State() {
-            public class Created(status: String) : Existent(status)
-            public class Restarting(status: String) : Existent(status)
-            public class Running(status: String) : Existent(status)
-            public class Removing(status: String) : Existent(status)
-            public class Paused(status: String) : Existent(status)
-            public class Exited(status: String) : Existent(status)
-            public class Dead(status: String) : Existent(status)
+    public sealed class State(override val successful: Boolean?, override val symbol: String) : ReturnValue {
+
+        public object NotExistent : State(false, Symbols.Negative)
+
+        public sealed class Existent(successful: Boolean?, symbol: String, public val status: String) : State(successful, symbol) {
+            public class Created(status: String) : Existent(true, "✱", status)
+            public class Restarting(status: String) : Existent(true, "↻", status)
+            public class Running(status: String) : Existent(true, "▶", status)
+            public class Removing(status: String) : Existent(true, "🗑", status)
+            public class Paused(status: String) : Existent(true, "❚❚", status)
+            public class Exited(status: String, public val exitCode: Int? = parseExitCode(status)) :
+                Existent(true, if (exitCode == 0) Symbols.OK else Symbols.Error, status) {
+                override val successful: Boolean get() = exitCode == 0
+
+                private companion object {
+                    private val exitCodeRegex = Regex(".*\\((?<exitCode>\\d+)\\).*")
+                    private fun parseExitCode(status: String): Int? =
+                        exitCodeRegex.matchEntire(status)?.get("exitCode")?.toInt()
+                }
+            }
+
+            public class Dead(status: String) : Existent(false, "✝", status)
+
+            override fun toString(): String = format()
         }
 
-        public data class Error(val code: Int, val message: String) : State()
+        public data class Error(val code: Int, val message: String) : State(false, Symbols.Error)
+
+        override val textRepresentation: String = this::class.lowerSentenceCaseName
+        override fun toString(): String = textRepresentation
     }
 
-    override fun toString(): String = name
+    /**
+     * Starts this container.
+     *
+     * @param attach whether to attach STDOUT/STDERR and forward signals
+     * @param interactive whether to attach this container's STDIN
+     */
+    public fun start(attach: Boolean = true, interactive: Boolean = false): ExitState = with(BACKGROUND) {
+        DockerStartCommandLine {
+            options { this.attach by attach; this.interactive by interactive }
+            containers by listOf(this@DockerContainer.name)
+        }.execute {
+            noDetails("Starting ${this@DockerContainer.name.formattedAs.input}")
+            null
+        }.waitFor()
+    }
+
+    /**
+     * Stops this container with the optionally specified timeout (default: 5 seconds).
+     */
+    public fun stop(timeout: Duration = 5.seconds, async: Boolean = false): ExitState = with(BACKGROUND) {
+        DockerStopCommandLine {
+            options { this.timeout by timeout }
+            containers by listOf(this@DockerContainer.name)
+        }.execute {
+            if (async) processing { this.async }
+            noDetails("Stopping ${this@DockerContainer.name.formattedAs.input}")
+            null
+        }.waitFor()
+    }
+
+    private fun ManagedProcess.dockerDaemonParse(): Boolean = errors().let {
+        it.isBlank()
+            || it.contains("no such container", ignoreCase = true)
+            && !it.contains("cannot remove a running container", ignoreCase = true)
+    }
+
+    /**
+     * Removes this container.
+     *
+     * @param force if the container is running, kill it before removing it
+     * @param link remove the specified link associated with the container
+     * @param volumes remove anonymous volumes associated with the container
+     */
+    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false): ExitState = with(BACKGROUND) {
+        val dockerRemoveCommandLine = DockerRemoveCommandLine {
+            options { this.force by force; this.link by link; this.volumes by volumes }
+            this.containers by listOf(name)
+        }
+        val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
+        dockerRemoveCommandLine.execute {
+            noDetails("Removing$forcefully $name")
+            null
+        }.waitFor()
+    }
+
+    override fun toString(): String = asString {
+        ::name.name to name
+        ::state.name to cachedState
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DockerContainer
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 
 
     public companion object : StatelessBuilder.Returning<ContainerContext, DockerContainer>(ContainerContext), Iterable<DockerContainer> {
@@ -65,7 +176,7 @@ public inline class DockerContainer(public val name: String) {
 
         private fun queryState(container: DockerContainer): State = with(BACKGROUND) {
             DockerPsCommandLine {
-                options { all by true; container.run { exactName by name } }
+                options { all by true; container.run { exactName(name) } }
             }.execute {
                 noDetails("Checking status of ${container.name.formattedAs.input}")
                 null
@@ -93,6 +204,59 @@ public inline class DockerContainer(public val name: String) {
                 DockerContainer(name)
             }.or { error(it) }
         }
+
+        /**
+         * Starts the given [containers].
+         *
+         * @param attach whether to attach STDOUT/STDERR and forward signals
+         * @param interactive whether to attach this container's STDIN
+         */
+        public fun start(vararg containers: DockerContainer, attach: Boolean = true, interactive: Boolean = false): ExitState = with(BACKGROUND) {
+            val names: List<String> = containers.map { it.name }
+            DockerStartCommandLine {
+                options { this.attach by attach; this.interactive by interactive }
+                this.containers by names
+            }.execute {
+                noDetails("Starting ${names.joinToString(Symbols.Delimiter.spaced) { it.formattedAs.input }}")
+                null
+            }.waitFor()
+        }
+
+
+        /**
+         * Stops the given [containers] with the optionally specified timeout (default: 5 seconds).
+         */
+        public fun stop(vararg containers: DockerContainer, timeout: Duration = 5.seconds): ExitState = with(BACKGROUND) {
+            val names: List<String> = containers.map { it.name }
+            DockerStopCommandLine {
+                options { this.timeout by timeout }
+                this.containers by names
+            }.execute {
+                noDetails("Stopping ${names.joinToString(Symbols.Delimiter.spaced) { it.formattedAs.input }}")
+                null
+            }.waitFor()
+        }
+
+        /**
+         * Removes the given [containers].
+         *
+         * @param force    if the container is running, kill it before removing it
+         * @param link remove the specified link associated with the container
+         * @param volumes remove anonymous volumes associated with the container
+         */
+        public fun remove(vararg containers: DockerContainer, force: Boolean = false, link: Boolean = false, volumes: Boolean = false): ExitState =
+            with(BACKGROUND) {
+                val names: List<String> = containers.map { it.name }
+                val dockerRemoveCommandLine = DockerRemoveCommandLine {
+                    options { this.force by force; this.link by link; this.volumes by volumes }
+                    this.containers by containers.map { it.name }
+                }
+                val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
+                dockerRemoveCommandLine.execute {
+                    noDetails("Removing$forcefully ${names.joinToString(Symbols.Delimiter.spaced) { it.formattedAs.input }}")
+                    null
+                }.waitFor()
+            }
 
         /**
          * Builder to provide DSL elements to create instances of [DockerImage].

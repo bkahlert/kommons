@@ -203,10 +203,6 @@ private open class ManagedJavaProcess(
     public override fun addPostTerminationCallback(callback: ManagedProcess.(ExitState) -> Unit): ManagedProcess =
         apply { postTerminationCallbacks.add(callback) }
 
-
-    override val successful: Boolean? get() = exitState?.successful
-    override fun format(): CharSequence = exitState?.format() ?: state.status
-
     override val onExit: CompletableFuture<out ExitState> get() = exitState?.let { completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String =

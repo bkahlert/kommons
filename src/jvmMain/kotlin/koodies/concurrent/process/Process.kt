@@ -69,7 +69,12 @@ public interface Process : ReturnValue {
         public override val successful: Boolean?,
     ) : ReturnValue {
         override fun toString(): String = status
-        override fun format(): CharSequence = status
+        override val textRepresentation: String?
+            get() = when (successful) {
+                true -> null
+                null -> "async computation"
+                false -> status
+            }
 
         public class Prepared(
             status: String = "Process has not yet started.",
@@ -113,7 +118,7 @@ public interface Process : ReturnValue {
             io: List<IO> = emptyList(),
             status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
         ) : ExitState(exitCode, pid, io, status) {
-            override fun format(): CharSequence = toString()
+            override val textRepresentation: String? get() = toString()
             override fun toString(): String =
                 StringBuilder(status).apply {
                     relevantFiles.forEach {
@@ -165,12 +170,9 @@ public interface Process : ReturnValue {
      *
      * `null` is the process has not terminated, yet.
      */
-    override val successful: Boolean?
-
-    override fun format(): CharSequence {
-        requireNotNull(successful) { "$this has not terminated, yet." }
-        return (state as? ReturnValue)?.format() ?: state.status
-    }
+    override val successful: Boolean? get() = exitState?.successful
+    override val symbol: String get() = exitState?.symbol ?: state.symbol
+    override val textRepresentation: String? get() = exitState?.textRepresentation ?: state.textRepresentation
 
     /**
      * A completable future that returns an instances of this process once
@@ -215,6 +217,18 @@ public class MetaStream(vararg listeners: (IO.META) -> Unit) {
         listeners.forEach { it(meta) }
     }
 }
+// TODO
+///**
+// * Returns whether [start] was called.
+// *
+// * Contrary to [alive] this property will never return `false` once [start] was called.
+// */
+//public val Process.started: Boolean
+//    get() = when (state) {
+//        is Prepared -> false
+//        is Running -> true
+//        is Terminated -> true
+//    }
 
 /**
  * A process that delegates to the [JavaProcess] provided by the specified [processProvider].

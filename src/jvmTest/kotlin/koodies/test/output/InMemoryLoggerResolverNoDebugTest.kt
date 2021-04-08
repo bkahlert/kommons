@@ -99,7 +99,7 @@ class InMemoryLoggerResolverNoDebugTest {
                     │   line
                     ╵
                     ╵
-                    ⌛️ async computation
+                    ⌛️
                 """.trimIndent())
             }
         }

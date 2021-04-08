@@ -15,9 +15,9 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.exists
 import strikt.assertions.isEmpty
 import strikt.assertions.isTrue
+import strikt.java.exists
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.reflect.full.memberProperties

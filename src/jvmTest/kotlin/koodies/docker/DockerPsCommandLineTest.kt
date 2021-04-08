@@ -58,12 +58,12 @@ class DockerPsCommandLineTest {
         {
             options {
                 all { no }
-                filter { "key" to "value" }
-                exactName { "container-name" }
+                filter { "key" to "value with spaces" }
+                exactName("container-name")
             }
         },
         DockerPsCommandLine(
-            options = Options(all = false, filters = listOf("key" to "value", "name" to "name=^container-name$")),
+            options = Options(all = false, filters = listOf("key" to "value with spaces", "name" to "^container-name$")),
         ),
     )
 }

@@ -8,7 +8,7 @@ import koodies.io.path.hasContent
 import koodies.io.path.randomFile
 import koodies.io.path.randomPath
 import koodies.io.path.writeText
-import koodies.runtime.deleteOnExit
+import koodies.runtime.JVM
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
@@ -66,8 +66,8 @@ class AsReadyOnlyKtTest {
 
         allowedFileOperation(
             "copy", uniqueId,
-            { copyTo(sameFile("$fileName").deleteOnExit()) },
-            { sameFile("$fileName").deleteOnExit().also { Files.copy(this, it) } },
+            { copyTo(JVM.deleteOnExit(sameFile("$fileName"))) },
+            { JVM.deleteOnExit(sameFile("$fileName")).also { Files.copy(this, it) } },
         ) { get { sameFile("$fileName") }.hasContent("line #1\nline #2$LF") },
 
         allowedFileOperation(

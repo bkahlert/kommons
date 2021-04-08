@@ -27,10 +27,11 @@ import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLog
 import koodies.logging.LoggingOptions.SmartLoggingOptions
 import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
 import koodies.logging.RenderingLogger
+import koodies.logging.ReturnValue
 import koodies.logging.runLogging
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 
@@ -122,7 +123,7 @@ public class Execution(
                                     val step = substringAfter(":").trim().run {
                                         takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
                                     }
-                                    Semantics.PointNext + " $step"
+                                    Symbols.PointNext + " $step"
                                 } ?: ""
                             }
                         }
@@ -147,6 +148,11 @@ public class Execution(
                  * Example output: `ϟ Process 64207 terminated with exit code 255.`
                  */
                 public fun errorsOnly(caption: String) {
+                    val none = object : ReturnValue {
+                        override val successful: Boolean = true
+                        override val symbol: String = ""
+                        override val textRepresentation: String? = null
+                    }
                     block {
                         this.caption { "" }
                         border = NONE
@@ -154,7 +160,7 @@ public class Execution(
                             (it as? IO.ERR)?.let { err -> "$caption: $err" } ?: ""
                         }
                         decorationFormatter by Formatter { "" }
-                        returnValueFormatter { { if (it.successful == false) "${Semantics.Error} ${it.format()}" else "" } }
+                        returnValueFormatter { { if (it.successful == false) it else none } }
                     }
                 }
 

@@ -2,7 +2,7 @@ package koodies
 
 import koodies.Either.Left
 import koodies.Either.Right
-import koodies.runtime.Program
+import koodies.runtime.isDebugging
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 
@@ -74,14 +74,14 @@ public fun String.checkNotBlank(lazyMessage: () -> Any): String = also{check(it.
 // @formatter:on
 
 /**
- * Returns `this` object if this [Program] runs in debug mode or `null`, if it's not.
+ * Returns `this` object if this [ProgramInstance] runs in debug mode or `null`, if it's not.
  */
-public fun <T> T.takeIfDebugging(): T? = takeIf { Program.isDebugging }
+public fun <T> T.takeIfDebugging(): T? = takeIf { isDebugging }
 
 /**
- * Returns `this` object if this [Program] does not run in debug mode or `null`, if it is.
+ * Returns `this` object if this [ProgramInstance] does not run in debug mode or `null`, if it is.
  */
-public fun <T> T.takeUnlessDebugging(): T? = takeIf { Program.isDebugging }
+public fun <T> T.takeUnlessDebugging(): T? = takeIf { isDebugging }
 
 /**
  * Represents a container containing either an instance of type [A] ([Left]]

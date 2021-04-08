@@ -2,7 +2,7 @@ package koodies.debug
 
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.TextFile
-import koodies.text.Semantics
+import koodies.text.Semantics.Symbols
 import koodies.text.asCodePointSequence
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -28,7 +28,7 @@ class DebugPropertyKtTest {
     @Test
     fun `should render ByteArray`() {
         expectThat(byteArrayOf(Byte.MIN_VALUE, -1, 0, 1, Byte.MAX_VALUE).debug.removeEscapeSequences())
-            .isEqualTo("【0x80\u0080,0xFFÿ,0x00${Semantics.Null.removeEscapeSequences()},0x01␁,0x7F␡】")
+            .isEqualTo("【0x80\u0080,0xFFÿ,0x00${Symbols.Null.removeEscapeSequences()},0x01␁,0x7F␡】")
     }
 
     @Test

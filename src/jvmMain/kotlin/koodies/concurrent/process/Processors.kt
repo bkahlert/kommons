@@ -19,7 +19,7 @@ import koodies.logging.RenderingLogger
 import koodies.logging.logReturnValue
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
-import koodies.runtime.Program
+import koodies.runtime.isDebugging
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
@@ -210,8 +210,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
     }
 
     ioProcessingThreadPool.completableFuture {
-        kotlin.runCatching { onExit.join() }
-            .onFailure { if (Program.isDebugging) throw it }
+        kotlin.runCatching { onExit.join() }.onFailure { if (isDebugging) throw it }
     }
 }
 

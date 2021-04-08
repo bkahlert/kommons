@@ -12,7 +12,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
-import strikt.assertions.exists
+import strikt.java.exists
 import java.nio.file.Path
 import kotlin.io.path.writeText
 
@@ -28,7 +28,7 @@ class ProgramKtTest {
 
         @BeforeAll
         fun setUp() {
-            markerFile.deleteOnExit()
+            JVM.deleteOnExit(markerFile)
         }
 
         @Test
@@ -53,7 +53,7 @@ class ProgramKtTest {
 
         @Test
         fun InMemoryLogger.`should not throw`() {
-            logLine { "Debugging: ${Program.isDebugging.asEmoji}" }
+            logLine { "Debugging: ${isDebugging.asEmoji}" }
         }
     }
 }

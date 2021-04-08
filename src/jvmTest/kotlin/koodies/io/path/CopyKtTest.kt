@@ -3,7 +3,7 @@ package koodies.io.path
 import koodies.io.compress.TarArchiver.tar
 import koodies.io.file.isSiblingOf
 import koodies.io.file.lastModified
-import koodies.runtime.deleteOnExit
+import koodies.runtime.JVM
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.UniqueId
@@ -395,14 +395,13 @@ class CopyKtTest {
             }
         }
     }
-
 }
 
 
 fun <T : Path> Assertion.Builder<T>.createsEqualTar(other: Path) =
     assert("is copy of $other") { self ->
-        val selfTar = self.tar(tempFile()).deleteOnExit()
-        val otherTar = other.tar(tempFile()).deleteOnExit()
+        val selfTar = JVM.deleteOnExit(self.tar(tempFile()))
+        val otherTar = JVM.deleteOnExit(other.tar(tempFile()))
 
         val selfBytes = selfTar.readBytes()
         val otherBytes = otherTar.readBytes()

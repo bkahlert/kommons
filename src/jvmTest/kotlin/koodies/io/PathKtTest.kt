@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
-import strikt.assertions.exists
 import strikt.assertions.isNotNull
-import strikt.assertions.parent
+import strikt.java.exists
+import strikt.java.parent
 
 @Execution(CONCURRENT)
 class PathKtTest {

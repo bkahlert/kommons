@@ -8,24 +8,36 @@ import koodies.io.path.readLine
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
 import koodies.runtime.JVM
-import koodies.runtime.deleteOnExit
 import koodies.terminal.AnsiColors.red
 import koodies.test.DynamicTestsBuilder.ExpectationBuilder
-import koodies.test.TestLabeler.callerSource
-import koodies.test.TestLabeler.property
-import koodies.test.TestLabeler.subject
-import koodies.text.Semantics
+import koodies.test.TestFlattener.flatten
+import koodies.test.Tester.callerSource
+import koodies.test.Tester.property
+import koodies.test.Tester.subject
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics.Symbols
 import koodies.text.TruncationStrategy
+import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
+import koodies.toSimpleString
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
+import strikt.assertions.isEqualTo
+import strikt.assertions.size
 import java.net.URI
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
@@ -36,12 +48,13 @@ import kotlin.io.path.exists
 import kotlin.jvm.internal.CallableReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
+import kotlin.streams.asSequence
 import kotlin.system.exitProcess
 import filepeek.FilePeek2 as FilePeek
 
-private val root by lazy { createTempDirectory("koodies").deleteOnExit() }
+private val root by lazy { JVM.deleteOnExit(createTempDirectory("koodies")) }
 
-object TestLabeler {
+object Tester {
 
     /**
      * Calculates the display name for a test with the specified [subject]
@@ -55,7 +68,7 @@ object TestLabeler {
      */
     fun <T> String.subject(subject: T, testNamePattern: String? = null): String {
         val (fallbackPattern: String, args: Array<*>) = displayNameFallback(subject)
-        return SLF4J.format(testNamePattern ?: fallbackPattern, *args)
+        return SLF4J.format(testNamePattern ?: fallbackPattern, *args).ansiRemoved
     }
 
     /**
@@ -84,7 +97,7 @@ object TestLabeler {
         is KFunction<*> -> "$this return value of ${function.name}"
         is CallableReference -> findCaller().let { (_, callerMethodName) -> "$this value of ${function.getPropertyName(callerMethodName)}" }
         else -> "$this " + findCaller().let { (callerClassName, callerMethodName) ->
-            getLambdaBodyOrNull(callerClassName, callerMethodName) ?: "$function"
+            getLambdaBodyOrNull(callerClassName, callerMethodName) ?: function.toSimpleString()
         }
     }
 
@@ -136,7 +149,7 @@ object TestLabeler {
 
     /**
      * Finds the calling class and method name of any member
-     * function of this [TestLabeler].
+     * function of this [Tester].
      */
     private fun findCaller() = JVM.currentThread.stackTrace
         .dropWhile { it.className != enclosingClassName }
@@ -144,7 +157,7 @@ object TestLabeler {
         .first().let { it.className to it.methodName }
 
     /**
-     * Reliably contains the fully qualified name of [TestLabeler].
+     * Reliably contains the fully qualified name of [Tester].
      * The result is still correct after typical refactorings like renaming.
      */
     private val enclosingClassName = this::class.qualifiedName
@@ -312,6 +325,12 @@ interface DynamicTestsBuilder<T> {
      * Builds a new test tree testing the aspect returned by [transform].
      */
     @DynamicTestsDsl
+    fun <R> aspect(transform: T.() -> R, init: DynamicTestsBuilder<R>.(R) -> Unit)
+
+    /**
+     * Builds a new test tree testing the aspect returned by [transform].
+     */
+    @DynamicTestsDsl
     fun <R> with(description: String? = null, transform: T.() -> R): PropertyTestBuilder<R>
 
     /**
@@ -349,19 +368,19 @@ interface DynamicTestsBuilder<T> {
             }
 
             override fun test(description: String?, executable: (T) -> Unit) {
-                callback(DynamicTest.dynamicTest(description ?: "test".property(executable), callerSource) { executable(subject) })
+                callback(dynamicTest(description?.takeUnlessBlank() ?: "test".property(executable), callerSource) { executable(subject) })
             }
 
             override fun <R> expect(description: String?, transform: T.() -> R): ExpectationBuilder<R> {
                 val aspect = kotlin.runCatching { subject.transform() }
-                    .onFailure { println("TEST ${Semantics.Error} Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
+                    .onFailure { println("TEST ${Symbols.Error} Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
                     .getOrThrow()
-                return CallbackCallingExpectationBuilder(description ?: "expect".property(transform).subject(aspect), aspect, callback)
+                return CallbackCallingExpectationBuilder(description?.takeUnlessBlank() ?: "expect".property(transform).subject(aspect), aspect, callback)
             }
 
             override fun <R> expectThrowing(description: String?, transform: T.() -> R): ExpectationBuilder<Result<R>> {
                 val aspect = kotlin.runCatching { subject.transform() }
-                return CallbackCallingExpectationBuilder(description ?: "expect".property(transform).subject(aspect), aspect, callback)
+                return CallbackCallingExpectationBuilder(description?.takeUnlessBlank() ?: "expect".property(transform).subject(aspect), aspect, callback)
             }
 
             override fun expect(description: String): ExpectationBuilder<T> =
@@ -370,10 +389,17 @@ interface DynamicTestsBuilder<T> {
             override val expect: ExpectationBuilder<T>
                 get() = CallbackCallingExpectationBuilder("expect".subject(subject), subject, callback)
 
+            override fun <R> aspect(transform: T.() -> R, init: DynamicTestsBuilder<R>.(R) -> Unit) {
+                val aspect = subject.transform()
+                callback(dynamicContainer("with".property(transform).subject(aspect),
+                    callerSource,
+                    build(aspect, init).asStream()))
+            }
+
             override fun <R> with(description: String?, transform: T.() -> R): PropertyTestBuilder<R> {
                 val aspect = subject.transform()
                 val nodes = mutableListOf<DynamicNode>()
-                callback(dynamicContainer(description ?: "with".property(transform).subject(aspect), callerSource, nodes.asStream()))
+                callback(dynamicContainer(description?.takeUnlessBlank() ?: "with".property(transform).subject(aspect), callerSource, nodes.asStream()))
                 return CallbackCallingPropertyTestBuilder(aspect) { nodes.add(it) }
             }
         }
@@ -385,7 +411,7 @@ interface DynamicTestsBuilder<T> {
         ) : ExpectationBuilder<T>, Assertion.Builder<T> by expectThat(subject) {
 
             override fun that(block: Assertion.Builder<T>.() -> Unit) {
-                callback(DynamicTest.dynamicTest(description.property(block), callerSource) { block() })
+                callback(dynamicTest(description.property(block), callerSource) { block() })
             }
         }
 
@@ -461,3 +487,77 @@ inline fun <reified K, reified V> Map<K, V>.testWithTempDir(
     }
 }
 
+public object TestFlattener {
+
+    public fun Array<out DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()
+    public fun Iterable<out DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()
+    public fun Sequence<out DynamicNode>.flatten(): Sequence<DynamicTest> = flatMap { it.flatten() }
+
+    public fun DynamicNode.flatten(): Sequence<out DynamicTest> = when (this) {
+        is DynamicContainer -> flatten()
+        is DynamicTest -> flatten()
+        else -> error("Unknown ${DynamicNode::class.simpleName} type ${this::class}")
+    }
+
+    public fun DynamicTest.flatten(): Sequence<DynamicTest> = sequenceOf(this)
+
+    public fun DynamicContainer.flatten(): Sequence<DynamicTest> = children.asSequence().flatten()
+}
+
+@Execution(SAME_THREAD)
+public class TesterTest {
+
+    @Nested
+    inner class TestFlattening {
+
+        @Test
+        fun `should flatten`() {
+            val tests = TestsSample().TestingSingleSubject().`as parameter`().flatten()
+            expectThat(tests.toList()).size.isEqualTo(8)
+        }
+    }
+
+    @Nested
+    inner class TestLabelling {
+        private operator fun String.not() = trimIndent()
+
+        private val tests get() = TestsSample().TestingSingleSubject().`as parameter`()
+
+        @TestFactory
+        fun `↓ ↓ ↓ ↓ ↓ compare here | in test runner output ↓ ↓ ↓ ↓ ↓`() = tests
+
+        val ESC = '\u001B'
+        val String.green get() = "$ESC[1;31m$this"
+
+        @Test
+        fun `should label test automatically`() {
+            val displayNames = tests.flatten().map { it.displayName }.toList()
+            expectThat(displayNames).containsExactlyInAnyOrder(
+                !"""
+                    test (String) -> Unit
+                """,
+                !"""
+                    test (String) -> Unit
+                """,
+                !"""
+                    test (String) -> Unit
+                """,
+                !"""
+                    test
+                """,
+                !"""
+                    test (String) -> Unit
+                """,
+                !"""
+                    expect String.() -> Int  ❮ 7 ❯   ❴ isGreaterThan(0) ❵ 
+                """,
+                !"""
+                    expect  ❮ tcejbus ❯   ❴ not { isEqualTo("au … lly named test") } ❵ 
+                """,
+                !"""
+                    expect String.() -> Int  ❮ 7 ❯   ❴ isGreaterThan(0).is … an(10)isEqualTo(7) ❵ 
+                """,
+            )
+        }
+    }
+}

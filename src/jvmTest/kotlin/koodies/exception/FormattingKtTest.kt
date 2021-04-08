@@ -52,7 +52,7 @@ class FormattingKtTest {
     }
 
     @Nested
-    inner class WithException {
+    inner class SuccessfulResult {
 
         @Test
         fun `should format compact`() {
@@ -72,7 +72,7 @@ class FormattingKtTest {
     }
 
     @Nested
-    inner class AResult {
+    inner class FailedResult {
 
         @Nested
         inner class WithValue {

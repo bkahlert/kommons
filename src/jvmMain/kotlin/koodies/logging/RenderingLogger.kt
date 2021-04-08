@@ -1,25 +1,22 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.collections.synchronizedListOf
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
 import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
 import koodies.runtime.JVM
-import koodies.runtime.Program
+import koodies.runtime.onExit
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
-import koodies.text.ANSI
-import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
+import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
-import koodies.text.Semantics
-import koodies.text.Semantics.Document
+import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.Unicode.greekSmallLetterKoppa
 import koodies.text.mapLines
 import koodies.text.prefixLinesWith
 import java.nio.file.Path
@@ -79,7 +76,7 @@ public open class RenderingLogger(
     public open fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
         logWithLock {
             if (closed) {
-                val prefix = Semantics.Computation + " "
+                val prefix = Symbols.Computation + " "
                 val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
                 if (trailingNewline || !message.hasTrailingLineSeparator) message + LF else message
             } else {
@@ -112,7 +109,7 @@ public open class RenderingLogger(
      */
     public open fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
-        val formattedResult = formatResult(result)
+        val formattedResult = ReturnValue.format(result)
         render(true) { formattedResult }
         open = false
         return result.getOrThrow()
@@ -135,8 +132,9 @@ public open class RenderingLogger(
      */
     public fun <R : Throwable> logCaughtException(block: () -> R): Unit {
         val ex = block()
-        recoveredLoggers.add(this)
-        val formattedResult = formatResult(Result.failure<R>(ex))
+        val formattedResult = object : ReturnValue by ReturnValue.of(Result.failure<R>(ex)) {
+            override val symbol: String = Symbols.Error.ansiRemoved.ansi.green.toString()
+        }.format()
         render(true) { formattedResult }
         open = false
     }
@@ -204,7 +202,7 @@ public open class RenderingLogger(
             get() = also { disabledUnclosedWarningLoggers.add(it) }
 
         init {
-            Program.onExit {
+            onExit {
                 val unclosed = openLoggers.filterKeys { logger -> logger !in disabledUnclosedWarningLoggers }
 
                 if (unclosed.isNotEmpty()) {
@@ -217,26 +215,6 @@ public open class RenderingLogger(
                     }
                 }
             }
-        }
-
-        public val recoveredLoggers: MutableList<RenderingLogger> = synchronizedListOf()
-
-        public val RETURN_VALUE_FORMATTER: (ReturnValue) -> String = {
-            when (it.successful) {
-                true -> Semantics.OK
-                null -> "${Semantics.Computation} async computation"
-                false -> Semantics.Error + " ${it.format()}"
-            }
-        }
-
-        private fun RenderingLogger.formatResult(result: Result<*>): CharSequence =
-            RETURN_VALUE_FORMATTER(ReturnValue.of(result))
-
-        @Suppress("LocalVariableName", "NonAsciiCharacters")
-        private fun RenderingLogger.formatException(prefix: CharSequence, returnValue: ReturnValue): String {
-            val format = if (recoveredLoggers.contains(this)) ANSI.Colors.green else ANSI.Colors.red
-            val ϟ = format("$greekSmallLetterKoppa").toString()
-            return ϟ + prefix + returnValue.format().red()
         }
     }
 }
@@ -268,7 +246,7 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     crossinline block: RenderingLogger.() -> R,
 ): R = CompactRenderingLogger(caption, null, null, null, log = { logText { it } }).runLogging {
     logLine { IO.META typed "Logging to" }
-    logLine { "$Document ${path.toUri()}" }
+    logLine { "${Symbols.Document} ${path.toUri()}" }
     path.bufferedWriter().use { ansiLog ->
         path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->
             BlockRenderingLogger(caption.toString(), log = {

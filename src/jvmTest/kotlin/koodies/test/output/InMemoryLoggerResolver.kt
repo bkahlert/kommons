@@ -11,7 +11,7 @@ import koodies.logging.RenderingLoggingDsl
 import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
-import koodies.runtime.Program
+import koodies.runtime.onExit
 import koodies.test.Verbosity.Companion.isVerbose
 import koodies.test.testName
 import koodies.text.ANSI.Formatter
@@ -74,7 +74,7 @@ object TestLogging {
     private val streams = synchronizedMapOf<String, ByteArrayOutputStream>()
 
     init {
-        Program.onExit {
+        onExit {
             val count = streams.size
             val size = streams.values.sumBy { it.size() }.bytes
             println("$count tests logged a total of $size".wrapWithBorder())
@@ -169,7 +169,7 @@ public fun <R> ExtensionContext.logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = Border.DEFAULT,
     block: FixedWidthRenderingLogger.() -> R,
 ): R =

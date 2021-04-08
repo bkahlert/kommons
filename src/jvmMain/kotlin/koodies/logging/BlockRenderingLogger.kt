@@ -6,6 +6,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.terminal.AnsiString.Companion.asAnsiString
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
+import koodies.text.Semantics.Symbols.Computation
 import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
 import kotlin.properties.Delegates
@@ -15,7 +16,7 @@ public open class BlockRenderingLogger(
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = DEFAULT_BORDER,
     statusInformationColumn: Int? = null,
     statusInformationPadding: Int? = null,
@@ -63,10 +64,14 @@ public open class BlockRenderingLogger(
         }
     }
 
+    private fun ReturnValue.withSymbol(symbol: String) = object : ReturnValue by this {
+        override val symbol: String = symbol
+    }
+
     override fun <R> logResult(block: () -> Result<R>): R {
         val result = block()
         val returnValue = ReturnValue.of(result)
-        val formatted = if (closed) returnValueFormatter(returnValue) else getBlockEnd(returnValue)
+        val formatted = if (closed) returnValueFormatter(returnValue.withSymbol(Computation)).format() else getBlockEnd(returnValue)
         formatted.takeUnlessBlank()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
         open = false
         return result.getOrThrow()
@@ -111,7 +116,7 @@ public fun <R> blockLogging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = Border.DEFAULT,
     block: FixedWidthRenderingLogger.() -> R,
 ): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
@@ -127,7 +132,7 @@ public fun <T : RenderingLogger?, R> T.blockLogging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = Formatter { it.red() },
-    returnValueFormatter: ((ReturnValue) -> String)? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = Border.DEFAULT,
     block: FixedWidthRenderingLogger.() -> R,
 ): R =

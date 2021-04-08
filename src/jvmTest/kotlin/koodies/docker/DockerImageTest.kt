@@ -5,6 +5,8 @@ import koodies.logging.expectLogged
 import koodies.test.test
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics.Symbols
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -69,7 +71,7 @@ class DockerImageTest {
 
     @TestFactory
     fun `should equal`() = test {
-        this.aspect("ds", { DockerImage.parse("repo/path") }) {
+        aspect({ DockerImage.parse("repo/path") }) {
             expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
@@ -183,8 +185,8 @@ class DockerImageTest {
                 BACKGROUND.expectLogged.contains("Removing $testImage")
                 expectThat(testImage.isPulled).isFalse()
 
-                expectThat(testImage.remove()).isSuccessful()
-                BACKGROUND.expectLogged.contains("Pulling $testImage")
+                expectThat(testImage.remove()).isFailed()
+                BACKGROUND.expectLogged.contains("Removing $testImage ${Symbols.Negative.ansiRemoved} no such image")
             }
         }
 

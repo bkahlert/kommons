@@ -4,7 +4,6 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
-import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.buildArray
 import koodies.builder.buildList
@@ -12,13 +11,8 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.errors
 import koodies.docker.DockerRemoveCommandLine.Companion.CommandContext
 import koodies.docker.DockerRemoveCommandLine.Options.Companion.OptionsContext
-import koodies.logging.RenderingLogger
-import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerCommandLine] that removes the specified [containers] using the specified [options].
@@ -42,17 +36,17 @@ public open class DockerRemoveCommandLine(
          */
         public val force: Boolean = false,
         /**
-         * 	Remove the specified link
+         * 	Remove the specified link associated with the container.
          */
-        public val link: String? = null,
+        public val link: Boolean = false,
         /**
          * 	Remove anonymous volumes associated with the container
          */
-        public val volumes: List<String> = emptyList(),
+        public val volumes: Boolean = false,
     ) : List<String> by (buildList {
         if (force) add("--force")
-        link?.also { add("--link", it) }
-        volumes.forEach { add("--volumes", it) }
+        if (link) add("--link")
+        if (volumes) add("--volumes")
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
 
@@ -66,12 +60,12 @@ public open class DockerRemoveCommandLine(
                 /**
                  * 	Remove the specified link
                  */
-                public val link: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>()
+                public val link: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
 
                 /**
                  * 	Remove anonymous volumes associated with the container
                  */
-                public val volumes: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder()
+                public val volumes: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
             }
 
             override fun BuildContext.build(): Options = ::OptionsContext {
@@ -98,48 +92,3 @@ public open class DockerRemoveCommandLine(
         }
     }
 }
-
-
-private fun ManagedProcess.dockerDaemonParse(): Boolean = errors().let {
-    it.isBlank()
-        || it.contains("no such container", ignoreCase = true)
-        && !it.contains("cannot remove a running container", ignoreCase = true)
-}
-
-
-/**
- * Removes `this` [DockerContainer] from the locally stored containers using the
- * [DockerRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
- * and prints the [DockerCommandLine]'s execution to [System.out].
- */
-public val DockerContainer.remove: (Init<OptionsContext>) -> Boolean
-    get() = {
-        val dockerRemoveCommandLine = DockerRemoveCommandLine {
-            options(it)
-            containers by listOf(this@remove.name)
-        }
-        val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
-        dockerRemoveCommandLine.execute {
-            summary("Removing$forcefully ${this@remove.formattedAs.input}")
-            null
-        }.dockerDaemonParse()
-    }
-
-/**
- * Removes `this` [DockerContainer] from the locally stored containers using the
- * [DockerRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
- * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
- */
-public val RenderingLogger?.remove: DockerContainer.(Init<OptionsContext>) -> Boolean
-    get() = {
-        val thisContainer: DockerContainer = this
-        val dockerRemoveCommandLine = DockerRemoveCommandLine {
-            options(it)
-            containers by listOf(thisContainer.name)
-        }
-        val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
-        dockerRemoveCommandLine.execute {
-            summary("Removing$forcefully ${thisContainer.formattedAs.input}")
-            null
-        }.dockerDaemonParse()
-    }
