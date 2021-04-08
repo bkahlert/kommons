@@ -164,6 +164,15 @@ public inline fun <reified T : IO> List<IO>.merge(removeEscapeSequences: Boolean
     filterIsInstance<T>().joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
 
 /**
+ * Filters this [IO] list using the given filter.
+ *
+ * By default [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
+ * Set [removeEscapeSequences] to `false` to keep escapes codes.
+ */
+public inline fun <reified T : IO> List<T>.merge(removeEscapeSequences: Boolean = true, filter: (T) -> Boolean): String =
+    filter(filter).joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
+
+/**
  * Contains a copy of the currently logged I/O of `this` corresponding [ManagedProcess].
  */
 public val ManagedProcess.io: List<IO> get() = ioLog.getCopy()

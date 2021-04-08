@@ -2,19 +2,20 @@ package koodies.docker
 
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.execute
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.output
 import koodies.docker.DockerContainer.Companion.ContainerContext
-import koodies.docker.DockerContainer.Status.Existent.Created
-import koodies.docker.DockerContainer.Status.Existent.Dead
-import koodies.docker.DockerContainer.Status.Existent.Exited
-import koodies.docker.DockerContainer.Status.Existent.Paused
-import koodies.docker.DockerContainer.Status.Existent.Removing
-import koodies.docker.DockerContainer.Status.Existent.Restarting
-import koodies.docker.DockerContainer.Status.Existent.Running
-import koodies.docker.DockerContainer.Status.NotExistent
+import koodies.docker.DockerContainer.State.Error
+import koodies.docker.DockerContainer.State.Existent.Created
+import koodies.docker.DockerContainer.State.Existent.Dead
+import koodies.docker.DockerContainer.State.Existent.Exited
+import koodies.docker.DockerContainer.State.Existent.Paused
+import koodies.docker.DockerContainer.State.Existent.Removing
+import koodies.docker.DockerContainer.State.Existent.Restarting
+import koodies.docker.DockerContainer.State.Existent.Running
+import koodies.docker.DockerContainer.State.NotExistent
 import koodies.io.path.asString
 import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.map
+import koodies.or
 import koodies.text.CharRanges.Alphanumeric
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
@@ -23,51 +24,36 @@ import koodies.text.wrap
 import java.nio.file.Path
 
 
-/**
- * Convenience method to get the output of a process, split the lines
- * and apply [transform] to each line. The lines [transform] maps to `null`
- * are filtered out.
- *
- * - If the process was not started, it will be started.
- * - If the process is running, this method blocks until the process terminated.
- * - If the process already terminated, the recorded IO is returned.
- *
- * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
- */
-//public fun <T> ManagedProcess.parseResponse(transform: String.() -> T?): List<T> {
-//    waitForTermination().status.return output().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }
-//}
-
 public inline class DockerContainer(public val name: String) {
 
     init {
         require(isValid(name)) { "${name.formattedAs.input} is invalid. It needs to match ${REGEX.formattedAs.input}." }
     }
 
-    public val status: Status get() = queryStatus(this)
+    public val state: State get() = queryState(this)
 
-    public val exists: Boolean get() = status !is NotExistent
-    public val isCreated: Boolean get() = status is Created
-    public val isRestarting: Boolean get() = status is Restarting
-    public val isRunning: Boolean get() = status is Running
-    public val isRemoving: Boolean get() = status is Removing
-    public val isPaused: Boolean get() = status is Paused
-    public val isExited: Boolean get() = status is Exited
-    public val isDead: Boolean get() = status is Dead
+    public val exists: Boolean get() = state !is NotExistent
+    public val isCreated: Boolean get() = state is Created
+    public val isRestarting: Boolean get() = state is Restarting
+    public val isRunning: Boolean get() = state is Running
+    public val isRemoving: Boolean get() = state is Removing
+    public val isPaused: Boolean get() = state is Paused
+    public val isExited: Boolean get() = state is Exited
+    public val isDead: Boolean get() = state is Dead
 
-    public sealed class Status {
-        public object NotExistent : Status()
-        public sealed class Existent(public val details: String) : Status() {
-            public class Created(details: String) : Existent(details)
-            public class Restarting(details: String) : Existent(details)
-            public class Running(details: String) : Existent(details)
-            public class Removing(details: String) : Existent(details)
-            public class Paused(details: String) : Existent(details)
-            public class Exited(details: String) : Existent(details)
-            public class Dead(details: String) : Existent(details)
+    public sealed class State {
+        public object NotExistent : State()
+        public sealed class Existent(public val status: String) : State() {
+            public class Created(status: String) : Existent(status)
+            public class Restarting(status: String) : Existent(status)
+            public class Running(status: String) : Existent(status)
+            public class Removing(status: String) : Existent(status)
+            public class Paused(status: String) : Existent(status)
+            public class Exited(status: String) : Existent(status)
+            public class Dead(status: String) : Existent(status)
         }
 
-        public data class Error(val code: Int, val message: String) : Status()
+        public data class Error(val code: Int, val message: String) : State()
     }
 
     override fun toString(): String = name
@@ -77,28 +63,24 @@ public inline class DockerContainer(public val name: String) {
 
         override fun iterator(): Iterator<DockerContainer> = query().iterator()
 
-        private fun queryStatus(container: DockerContainer): Status = with(BACKGROUND) {
+        private fun queryState(container: DockerContainer): State = with(BACKGROUND) {
             DockerPsCommandLine {
                 options { all by true; container.run { exactName by name } }
             }.execute {
                 noDetails("Checking status of ${container.name.formattedAs.input}")
                 null
-            }.output {
-                split("\t").takeIf { it.size == 3 }?.let { row ->
-                    val status = row[1].capitalize()
-                    val details = row[2]
-                    when (status) {
-                        Created::class.simpleName -> Created(details)
-                        Restarting::class.simpleName -> Restarting(details)
-                        Running::class.simpleName -> Running(details)
-                        Removing::class.simpleName -> Removing(details)
-                        Paused::class.simpleName -> Paused(details)
-                        Exited::class.simpleName -> Exited(details)
-                        Dead::class.simpleName -> Dead(details)
-                        else -> Status.Error(-1, "Unknown status $status: $details")
-                    }
-                } ?: Status.Error(-1, "Unknown response: $this")
-            }.singleOrNull() ?: NotExistent
+            }.parse.columns(3) { (_, state, status) ->
+                when (state.capitalize()) {
+                    Created::class.simpleName -> Created(status)
+                    Restarting::class.simpleName -> Restarting(status)
+                    Running::class.simpleName -> Running(status)
+                    Removing::class.simpleName -> Removing(status)
+                    Paused::class.simpleName -> Paused(status)
+                    Exited::class.simpleName -> Exited(status)
+                    Dead::class.simpleName -> Dead(status)
+                    else -> Error(-1, "Unknown status $state: $status")
+                }
+            }.map { singleOrNull() ?: NotExistent }.or { error(it) }
         }
 
         private fun query(): List<DockerContainer> = with(BACKGROUND) {
@@ -107,11 +89,9 @@ public inline class DockerContainer(public val name: String) {
             }.execute {
                 noDetails("Listing ${"all".formattedAs.input} containers")
                 null
-            }.output {
-                split("\t").takeIf { it.size == 3 }?.let {
-                    DockerContainer(it[0])
-                }
-            }
+            }.parse.columns(3) { (name, _, _) ->
+                DockerContainer(name)
+            }.or { error(it) }
         }
 
         /**

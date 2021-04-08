@@ -36,7 +36,7 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
         context.pullRequiredImages()
 
         val container = context.dockerContainer()
-        check(!with(BACKGROUND) { container.isRunning }) { "Container $container is already running." }
+        check(!container.isRunning) { "Container $container is already running." }
     }
 
     override fun afterEach(context: ExtensionContext) {
@@ -63,8 +63,8 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
 
     private fun ExtensionContext.pullRequiredImages() =
         BACKGROUND.logging("Pulling required images") {
-            val missing = requiredDockerImages() subtract Docker.images.list {}
-            missing.forEach { it.pull {} }
+            val missing = requiredDockerImages() subtract Docker.images.list()
+            missing.forEach { it.pull() }
         }
 
     private fun ExtensionContext.requiredDockerImages(): List<DockerImage> =

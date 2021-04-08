@@ -4,18 +4,13 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
-import koodies.builder.Init
 import koodies.builder.buildArray
 import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerImageRemoveCommandLine.Options.Companion.OptionsContext
-import koodies.logging.RenderingLogger
-import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerImageCommandLine] that removes the specified [images] using the specified [options].
@@ -71,36 +66,36 @@ public open class DockerImageRemoveCommandLine(
         }
     }
 }
-
-/**
- * Removes `this` [DockerImage] from the locally stored images using the
- * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
- * and prints the [DockerCommandLine]'s execution to [System.out].
- */
-public val DockerImage.removeImage: (Init<OptionsContext>) -> ManagedProcess
-    get() = {
-        DockerImageRemoveCommandLine {
-            options(it)
-            image by this@removeImage
-        }.execute {
-            summary("Removing ${this@removeImage.formattedAs.input}")
-            null
-        }
-    }
-
-/**
- * Removes `this` [DockerImage] from the locally stored images using the
- * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
- * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
- */
-public val RenderingLogger?.removeImage: DockerImage.(Init<OptionsContext>) -> ManagedProcess
-    get() = {
-        val thisImage = this
-        DockerImageRemoveCommandLine {
-            options(it)
-            image by thisImage
-        }.execute {
-            summary("Removing ${thisImage.formattedAs.input}")
-            null
-        }
-    }
+//
+///**
+// * Removes `this` [DockerImage] from the locally stored images using the
+// * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
+// * and prints the [DockerCommandLine]'s execution to [System.out].
+// */
+//public val DockerImage.removeImage: (Init<OptionsContext>) -> ManagedProcess
+//    get() = {
+//        DockerImageRemoveCommandLine {
+//            options(it)
+//            image by this@removeImage
+//        }.execute {
+//            summary("Removing ${this@removeImage.formattedAs.input}")
+//            null
+//        }
+//    }
+//
+///**
+// * Removes `this` [DockerImage] from the locally stored images using the
+// * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
+// * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
+// */
+//public val RenderingLogger?.removeImage: DockerImage.(Init<OptionsContext>) -> ManagedProcess
+//    get() = {
+//        val thisImage = this
+//        DockerImageRemoveCommandLine {
+//            options(it)
+//            image by thisImage
+//        }.execute {
+//            summary("Removing ${thisImage.formattedAs.input}")
+//            null
+//        }.also { it.parseImages() }
+//    }

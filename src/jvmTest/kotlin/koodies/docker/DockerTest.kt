@@ -31,7 +31,7 @@ class DockerTest {
 
         @Test
         fun `should provide commands`() {
-            expectCatching { Docker.images.list {} }.isSuccess()
+            expectCatching { Docker.images.list() }.isSuccess()
         }
     }
 

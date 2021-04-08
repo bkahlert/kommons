@@ -4,6 +4,8 @@ import koodies.builder.BuilderTemplate
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Process.ExitState.ExitStateHandler
+import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.io.path.Locations
 import java.nio.file.Path
 
@@ -61,6 +63,25 @@ public open class DockerCommandLine(
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
 
+    /**
+     * Creates a [ManagedProcess] to run this Docker command line.
+     *
+     * @param processTerminationCallback if specified, will be called with the process's final exit state
+     */
+    public fun toProcess(processTerminationCallback: ProcessTerminationCallback?): ManagedProcess =
+        toProcess(null, processTerminationCallback)
+
+    /**
+     * Creates a [ManagedProcess] to run this Docker command line.
+     *
+     * @param exitStateHandler if specified, the process's exit state is delegated to it.
+     *                         By default, exit state handling is delegated to [DockerExitStateHandler].
+     * @param processTerminationCallback if specified, will be called with the process's final exit state
+     */
+    override fun toProcess(exitStateHandler: ExitStateHandler?, processTerminationCallback: ProcessTerminationCallback?): ManagedProcess {
+        return super.toProcess(exitStateHandler ?: DockerExitStateHandler, processTerminationCallback)
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -86,3 +107,4 @@ public open class DockerCommandLine(
         }
     }
 }
+

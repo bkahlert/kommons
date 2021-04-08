@@ -10,6 +10,7 @@ import koodies.concurrent.Execution.Options.Companion.OptionsContext
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Process.ExitState.ExitStateHandler
 import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.ProcessingMode
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
@@ -33,9 +34,24 @@ import koodies.text.Semantics
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 
+/**
+ * An executable is something that can be run using the [ManagedProcess]
+ * return by [toProcess].
+ */
 public interface Executable {
+    /**
+     * Brief description of that this executable is doing.
+     */
     public val summary: String
+
+    /**
+     * Creates a [ManagedProcess] to run this executable.
+     *
+     * @param exitStateHandler if specified, the process's exit state is delegated to it
+     * @param processTerminationCallback if specified, will be called with the process's final exit state
+     */
     public fun toProcess(
+        exitStateHandler: ExitStateHandler? = null,
         processTerminationCallback: ProcessTerminationCallback? = null,
     ): ManagedProcess
 }
@@ -59,7 +75,7 @@ public class Execution(
     private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): ManagedProcess =
         with(Options(init)) {
             val processLogger = loggingOptions.newLogger(parentLogger, executable.summary)
-            val managedProcess = executable.toProcess(processTerminationCallback)
+            val managedProcess = executable.toProcess(exitStateHandler, processTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
                     managedProcess.process(processingMode, processor = processor ?: loggingProcessor(processLogger))
@@ -74,6 +90,7 @@ public class Execution(
      * Options used to [execute] an [Executable].
      */
     public data class Options(
+        val exitStateHandler: ExitStateHandler? = null,
         val processTerminationCallback: ProcessTerminationCallback? = null,
         val loggingOptions: LoggingOptions = SmartLoggingOptions(),
         val processingMode: ProcessingMode = ProcessingMode { sync },
@@ -81,6 +98,7 @@ public class Execution(
         public companion object : BuilderTemplate<OptionsContext, Options>() {
             @ExecutionDsl
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
+                public val exitStateHandler: SkippableCapturingBuilderInterface<() -> ExitStateHandler?, ExitStateHandler?> by builder<ExitStateHandler?>()
                 public val processTerminationCallback: SkippableCapturingBuilderInterface<() -> ProcessTerminationCallback, ProcessTerminationCallback?> by builder()
 
                 public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
@@ -141,10 +159,32 @@ public class Execution(
                 }
 
                 public val processing: SkippableCapturingBuilderInterface<ProcessingModeContext.() -> ProcessingMode, ProcessingMode?> by ProcessingMode
+
+                /**
+                 * Can be used to return a [Processor] to process the [IO].
+                 *
+                 * Alternatively you would have to write: `; { io -> … }`, that is put a semicolon in front of your lambda.
+                 */
+                public fun process(processor: Processor<ManagedProcess>): Processor<ManagedProcess> = processor
+
+                /**
+                 * Can be used to return a [Processor] to process only the [IO]
+                 * passing the [predicate].
+                 */
+                public fun processOnly(predicate: ManagedProcess.(IO) -> Boolean, processor: Processor<ManagedProcess>): Processor<ManagedProcess> =
+                    { io -> if (predicate(io)) processor(io) }
+
+                /**
+                 * Can be used to return a [Processor] to process only [IO]
+                 * of the given type [T].
+                 */
+                public inline fun <reified T : IO> processOnly(crossinline processor: Processor<ManagedProcess>): Processor<ManagedProcess> =
+                    { io -> if (io is T) processor(io) }
             }
 
             override fun BuildContext.build(): Options = ::OptionsContext{
                 Options(
+                    ::exitStateHandler.evalOrNull(),
                     ::processTerminationCallback.evalOrNull(),
                     ::block.evalOrNull<BlockLoggingOptions>()
                         ?: ::compact.evalOrNull<CompactLoggingOptions>()

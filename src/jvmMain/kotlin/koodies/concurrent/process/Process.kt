@@ -8,12 +8,14 @@ import koodies.exception.toCompactString
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
+import koodies.text.takeUnlessBlank
 import koodies.time.Now
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 import java.lang.Process as JavaProcess
+
 
 /**
  * Platform independent representation of a running program.
@@ -93,33 +95,46 @@ public interface Process : ReturnValue {
     public sealed class ExitState(exitCode: Int, pid: Long, io: List<IO>, status: String) :
         Terminated(pid, exitCode, io, status), ReturnValue {
 
-        public class Success(
+        public fun interface ExitStateHandler {
+            public fun handle(terminated: Terminated): ExitState
+        }
+
+        public open class Success(
             pid: Long,
             io: List<IO>,
-        ) : ExitState(0, pid, io, "Process ${pid.formattedAs.input} terminated successfully at $Now.")
+            status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
+        ) : ExitState(0, pid, io, status)
 
-        public class Failure(
+        public open class Failure(
             exitCode: Int,
             pid: Long,
-            private val relevantFiles: List<URI>,
-            public val dump: String,
-            io: List<IO>,
-        ) : ExitState(exitCode, pid, io, "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.") {
+            private val relevantFiles: List<URI> = emptyList(),
+            public val dump: String? = null,
+            io: List<IO> = emptyList(),
+            status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
+        ) : ExitState(exitCode, pid, io, status) {
             override fun format(): CharSequence = toString()
             override fun toString(): String =
                 StringBuilder(status).apply {
-                    append(LF + relevantFiles.joinToString(LF))
-                    append(LF).append(dump)
+                    relevantFiles.forEach {
+                        append(LF)
+                        append(it)
+                    }
+                    dump?.takeUnlessBlank()?.let {
+                        append(LF)
+                        append(dump)
+                    }
                 }.toString()
         }
 
-        public class Fatal(
+        public open class Fatal(
             public val exception: Throwable,
             exitCode: Int,
             pid: Long,
             public val dump: String,
             io: List<IO>,
-        ) : ExitState(exitCode, pid, io, "Process ${pid.formattedAs.input} fatally failed with ${exception.toCompactString()}")
+            status: String = "Process ${pid.formattedAs.input} fatally failed with ${exception.toCompactString()}",
+        ) : ExitState(exitCode, pid, io, status)
     }
 
     /**

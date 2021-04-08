@@ -7,8 +7,10 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.hasLength
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import strikt.assertions.isSuccess
 import strikt.assertions.length
 
 @Execution(CONCURRENT)
@@ -19,6 +21,12 @@ class TestsSample {
 
         @TestFactory
         fun `as parameter`() = test("subject") {
+
+            test { expect { length }.isGreaterThan(0) }
+
+            test { expectThrowing { throw RuntimeException() }.isFailure() }
+            test { expectThrowing { "nope" }.isSuccess() }
+
             group("group") {
                 test("test") {
                     expectThat(it).length.isGreaterThan(0)
@@ -66,6 +74,12 @@ class TestsSample {
 
         @TestFactory
         fun `as parameters`() = testEach("subject 1", "subject 2", "subject 3") {
+
+            test { expect { length }.isGreaterThan(0) }
+
+            test { expectThrowing { throw RuntimeException() }.isFailure() }
+            test { expectThrowing { "nope" }.isSuccess() }
+
             group("group") {
                 test("test") {
                     expectThat(it).length.isGreaterThan(0)

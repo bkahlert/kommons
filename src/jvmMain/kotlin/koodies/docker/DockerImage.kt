@@ -1,6 +1,11 @@
 package koodies.docker
 
 import koodies.builder.StatelessBuilder
+import koodies.concurrent.execute
+import koodies.concurrent.process.Process.ExitState
+import koodies.docker.DockerImage.ImageContext
+import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.RenderingLogger
 import koodies.text.Semantics.formattedAs
 
 /**
@@ -54,6 +59,80 @@ public open class DockerImage(
      * If neither [digest] nor [tag] are specified, this string is empty.
      */
     public val specifier: String get() = digest?.let { "@$it" } ?: tag?.let { ":$it" } ?: ""
+
+
+    /**
+     * Lists locally available instances this image.
+     */
+    public fun list(ignoreIntermediateImages: Boolean = true): List<DockerImage> =
+        with(BACKGROUND) {
+            DockerImageListCommandLine {
+                options { all by !ignoreIntermediateImages }
+                image by this@DockerImage
+            }.execute {
+                summary("Listing ${this@DockerImage.formattedAs.input} images")
+                null
+            }.parseImages()
+        }
+
+    /**
+     * Checks if this image is pulled.
+     */
+    public val isPulled: Boolean
+        get() = with(BACKGROUND) {
+            DockerImageListCommandLine {
+                image by this@DockerImage
+            }.execute {
+                summary("Checking if ${this@DockerImage.formattedAs.input} is pulled")
+                null
+            }.parseImages() // TODO show red - if not pulled
+        }.isNotEmpty()
+
+    /**
+     * Pulls this image from [Docker Hub](https://hub.docker.com/)
+     * while logging progress using `this` logger.
+     *
+     * Enabled [allTags] to download all tagged images in the repository.
+     */
+    public fun pull(allTags: Boolean = false): ExitState = with(BACKGROUND) {
+        DockerImagePullCommandLine {
+            options { this.allTags by allTags }
+            image by this@DockerImage
+        }.execute {
+            summary("Pulling ${this@DockerImage.formattedAs.input}")
+            null
+        }.waitFor()
+    }
+
+    /**
+     * Removes this image from the locally stored images.
+     *
+     * If [force] is specified, a force removal is triggered.
+     */
+    public fun remove(force: Boolean = false): ExitState = with(BACKGROUND) {
+        DockerImageRemoveCommandLine {
+            options { this.force by force }
+            image by this@DockerImage
+        }.execute {
+            summary("Removing ${this@DockerImage.formattedAs.input}")
+            null
+        }.waitFor()
+    }
+
+    /**
+     * Removes this image from the locally stored images
+     * while logging progress using `this` logger.
+     *
+     * If [force] is specified, a force removal is triggered.
+     */
+    public fun RenderingLogger.remove(force: Boolean = false): ExitState =
+        DockerImageRemoveCommandLine {
+            options { this.force by force }
+            image by this@DockerImage
+        }.execute {
+            summary("Removing ${this@DockerImage.formattedAs.input}")
+            null
+        }.waitFor()
 
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {
@@ -147,5 +226,21 @@ public open class DockerImage(
             val (repository, path) = imageWithTag[0].split("/").map { it.trim() }.let { it[0] to it.drop(1) }
             return DockerImage(repository, path, tag, digest)
         }
+
+
+        /**
+         * Lists locally available instances this image.
+         */
+        public fun list(ignoreIntermediateImages: Boolean = true): List<DockerImage> =
+            with(BACKGROUND) {
+                DockerImageListCommandLine {
+                    options { all by !ignoreIntermediateImages }
+                }.execute {
+                    noDetails("Listing images")
+                    null
+                }.parseImages()
+            }
     }
 }
+
+public typealias DockerImageInit = ImageContext.() -> DockerImage

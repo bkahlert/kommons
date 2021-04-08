@@ -65,7 +65,7 @@ public sealed class IO(
      * An [IO] that represents information about a [Process].
      */
     public sealed class META(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
-        public class STARTING(commandLine: CommandLine) : META("Executing ${commandLine.commandLine}")
+        public class STARTING(public val commandLine: CommandLine) : META("Executing ${commandLine.commandLine}")
         public class FILE(path: Path) : META("${Semantics.Document} ${path.toUri()}")
         public class TEXT(text: String) : META(text)
         public class DUMP(dump: String) : META(dump.also { require(it.contains("dump")) { "Please use ${TEXT::class.simpleName} for free-form text." } })

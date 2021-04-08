@@ -14,6 +14,7 @@ import koodies.test.DynamicTestsBuilder.ExpectationBuilder
 import koodies.test.TestLabeler.callerSource
 import koodies.test.TestLabeler.property
 import koodies.test.TestLabeler.subject
+import koodies.text.Semantics
 import koodies.text.TruncationStrategy
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
@@ -353,7 +354,7 @@ interface DynamicTestsBuilder<T> {
 
             override fun <R> expect(description: String?, transform: T.() -> R): ExpectationBuilder<R> {
                 val aspect = kotlin.runCatching { subject.transform() }
-                    .onFailure { println("Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
+                    .onFailure { println("TEST ${Semantics.Error} Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
                     .getOrThrow()
                 return CallbackCallingExpectationBuilder(description ?: "expect".property(transform).subject(aspect), aspect, callback)
             }

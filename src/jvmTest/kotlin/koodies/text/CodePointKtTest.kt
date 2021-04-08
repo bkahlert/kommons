@@ -53,6 +53,12 @@ class CodePointKtTest {
     }
 
     @Test
+    fun `should be instantiatable from char`() {
+        val subject = 'A'.asCodePoint()
+        expectThat(subject).toStringIsEqualTo("A")
+    }
+
+    @Test
     fun `should be instantiatable from CharSequence`() {
         expectThat(CodePoint("A".subSequence(0, 1))).toStringIsEqualTo("A")
     }
@@ -190,6 +196,62 @@ class CodePointKtTest {
         fun `is not whitespace`() = "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".asCodePointSequence().testEach {
             expect { isWhitespace }.that { isFalse() }
         }
+
+
+        @TestFactory
+        fun `is 0-9`() = "0123456789".asCodePointSequence().testEach {
+            expect { is0to9 }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not 0-9`() = "AzΑωष".asCodePointSequence().testEach {
+            expect { is0to9 }.that { isFalse() }
+        }
+
+
+        @TestFactory
+        fun `is A-Z_`() = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".asCodePointSequence().testEach {
+            expect { isAtoZ }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not A-Z_`() = "abc123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+            expect { isAtoZ }.that { isFalse() }
+        }
+
+
+        @TestFactory
+        fun `is a-z`() = "abcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEach {
+            expect { isatoz }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not a-z`() = "ABC123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+            expect { isatoz }.that { isFalse() }
+        }
+
+        @Suppress("SpellCheckingInspection")
+        @TestFactory
+        fun `is A-z `() = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEach {
+            expect { isAtoz }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not A-z `() = "123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+            expect { isAtoz }.that { isFalse() }
+        }
+
+
+        @TestFactory
+        fun `is ASCII alphanumeric`() = "Az09".asCodePointSequence().testEach {
+            expect { isAsciiAlphanumeric }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is not ASCII alphanumeric`() = "Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+            expect { isAsciiAlphanumeric }.that { isFalse() }
+        }
+
 
         @TestFactory
         fun `is alphanumeric`() = "Az09Αωष".asCodePointSequence().testEach {

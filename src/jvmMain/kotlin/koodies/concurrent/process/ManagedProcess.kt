@@ -3,10 +3,12 @@ package koodies.concurrent.process
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.isScriptFile
 import koodies.concurrent.process.Process.ExitState
+import koodies.concurrent.process.Process.ExitState.ExitStateHandler
 import koodies.concurrent.process.Process.ExitState.Failure
 import koodies.concurrent.process.Process.ExitState.Fatal
 import koodies.concurrent.process.Process.ExitState.Success
 import koodies.concurrent.process.Process.ProcessState
+import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.concurrent.thenAlso
 import koodies.concurrent.toShellScriptFile
 import koodies.debug.asEmoji
@@ -19,6 +21,7 @@ import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 import java.io.InputStream
@@ -37,9 +40,11 @@ public interface ManagedProcess : Process {
     public companion object {
         public fun from(
             commandLine: CommandLine,
+            exitStateHandler: ExitStateHandler? = null,
             processTerminationCallback: ProcessTerminationCallback? = null,
         ): ManagedProcess = ManagedJavaProcess(
             commandLine = commandLine,
+            exitStateHandler = exitStateHandler,
             processTerminationCallback = processTerminationCallback)
     }
 
@@ -95,6 +100,7 @@ private fun CommandLine.toJavaProcess(): JavaProcess {
  */
 private open class ManagedJavaProcess(
     protected val commandLine: CommandLine,
+    protected val exitStateHandler: ExitStateHandler? = null,
     protected val processTerminationCallback: ProcessTerminationCallback? = {},
     protected val destroyOnShutdown: Boolean = true,
 ) : DelegatingProcess({
@@ -162,8 +168,19 @@ private open class ManagedJavaProcess(
                         """.trimIndent()) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
                     Fatal(cause, exitValue, pid, dump.removeEscapeSequences(), ioLog.getCopy())
                 }
+                exitStateHandler != null -> {
+                    kotlin.runCatching {
+                        exitStateHandler.handle(Terminated(pid, exitValue, ioLog.getCopy()))
+                    }.getOrElse { ex ->
+                        val message =
+                            "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:$LF\t${ex.message.formattedAs.error}"
+                                .also { metaStream.emit(IO.META typed it) }
+                        val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
+                        Fatal(ex, exitValue, pid, dump, io, message)
+                    }
+                }
                 exitValue != 0 -> {
-                    val message = StringBuilder("Process $pid terminated with exit code $exitValue.").apply {
+                    val message = StringBuilder("Process ${pid.formattedAs.input} terminated with exit code ${exitValue.formattedAs.input}").apply {
                         append(LF + commandLine.includedFiles.joinToString(LF) { IO.META typed it })
                     }.toString()
                     message.also { metaStream.emit(IO.META typed it) }

@@ -6,6 +6,7 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.Execution
+import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.loggingProcessor

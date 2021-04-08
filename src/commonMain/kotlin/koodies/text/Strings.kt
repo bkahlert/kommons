@@ -1,5 +1,7 @@
 package koodies.text
 
+import koodies.Exceptions
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import kotlin.random.Random
 
@@ -102,25 +104,25 @@ public fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence
     "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"
 
 /**
- * Returns `this` char sequence if it [isEmpty] or `null`, if it is.
+ * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
  */
-public fun CharSequence.takeIfEmpty(): CharSequence? = takeIf { it.isEmpty() }
+public fun CharSequence.takeIfNotEmpty(): CharSequence? = takeIf { it.isNotEmpty() }
 
 /**
- * Returns `this` char sequence if it [isEmpty] or `null`, if it is.
+ * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
  */
-public fun String.takeIfEmpty(): String? = takeIf { it.isEmpty() }
+public fun String.takeIfNotEmpty(): String? = takeIf { it.isNotEmpty() }
 
 
 /**
- * Returns `this` char sequence if it [isBlank] or `null`, if it is.
+ * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
  */
-public fun CharSequence.takeIfBlank(): CharSequence? = takeIf { it.isBlank() }
+public fun CharSequence.takeIfNotBlank(): CharSequence? = takeIf { it.isNotBlank() }
 
 /**
- * Returns `this` char sequence if it [isBlank] or `null`, if it is.
+ * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
  */
-public fun String.takeIfBlank(): String? = takeIf { it.isBlank() }
+public fun String.takeIfNotBlank(): String? = takeIf { it.isNotBlank() }
 
 /**
  * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
@@ -142,3 +144,124 @@ public fun CharSequence.takeUnlessBlank(): CharSequence? = takeUnless { it.isBla
  * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun String.takeUnlessBlank(): String? = takeUnless { it.isBlank() }
+
+/**
+ * Splits this char sequence into at most [limit] columns
+ * and returns the two columns [index1] and [index2] mapped
+ * using [transform]. If not enough columns exist, `null` is returned.
+ *
+ * ***Note:** Columns start counting at 1*.
+ *
+ * @param index1 index of the first column
+ * @param index2 index of the second column
+ * @param delimiter string to be used to split this char sequence into columns
+ * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
+ * @param removeAnsi whether to remove ANSI escape sequences (default: true)
+ * @param transform function used to transform the two columns with indices [index1] and [index2]
+ *
+ * @return transform applied to columns specified by [index1] and [index2]; `null` if not enough columns exist
+ */
+public inline fun <T> CharSequence.mapColumnsOrNull(
+    index1: Int = 1,
+    index2: Int = 2,
+    delimiter: String = "\t",
+    limit: Int? = null,
+    removeAnsi: Boolean = true,
+    transform: (String, String) -> T,
+): T? {
+    listOf(index1, index2).filter { it <= 0 }.joinToString(" and ") { "index $it" }.takeIfNotBlank()
+        ?.let { throw Exceptions.IAE("$it must be greater than or equal to 1") }
+    require(limit?.let { it >= 2 } != false) { "Limit $limit must be greater than or equal to 2." }
+    return (takeUnless { removeAnsi } ?: ansiRemoved)
+        .split(delimiter, limit = limit ?: 0).takeIf { it.size >= maxOf(index1, index2) }
+        ?.let { transform(it[index1 - 1], it[index2 - 1]) }
+}
+
+/**
+ * Splits this char sequence into at most [limit] columns
+ * and returns the two columns [index1] and [index2] mapped
+ * using [transform].
+ *
+ * ***Note:** Columns start counting at 1*.
+ *
+ * @param index1 index of the first column
+ * @param index2 index of the second column
+ * @param delimiter string to be used to split this char sequence into columns
+ * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
+ * @param removeAnsi whether to remove ANSI escape sequences (default: true)
+ * @param transform function used to transform the two columns with indices [index1] and [index2]
+ *
+ * @return transform applied to columns specified by [index1] and [index2]
+ * @throws NoSuchElementException if not enough columns exist
+ *
+ */
+public inline fun <T> CharSequence.mapColumns(
+    index1: Int = 1,
+    index2: Int = 2,
+    delimiter: String = "\t",
+    limit: Int? = null,
+    removeAnsi: Boolean = true,
+    transform: (String, String) -> T,
+): T = mapColumnsOrNull(index1, index2, delimiter, limit, removeAnsi, transform) ?: throw NoSuchElementException("No enough columns exist.")
+
+/**
+ * Splits this char sequence into at most [limit] columns
+ * and returns the three columns [index1], [index2] and [index3] mapped
+ * using [transform]. If not enough columns exist, `null` is returned.
+ *
+ * ***Note:** Columns start counting at 1*.
+ *
+ * @param index1 index of the first column
+ * @param index2 index of the second column
+ * @param index3 index of the third column
+ * @param delimiter string to be used to split this char sequence into columns
+ * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
+ * @param removeAnsi whether to remove ANSI escape sequences (default: true)
+ * @param transform function used to transform the two columns with indices [index1], [index2] and [index3]
+ *
+ * @return transform applied to columns specified by [index1], [index2] and [index3]; `null` if not enough columns exist
+ */
+public inline fun <T> CharSequence.mapColumnsOrNull(
+    index1: Int = 1,
+    index2: Int = 2,
+    index3: Int = 3,
+    delimiter: String = "\t",
+    limit: Int? = null,
+    removeAnsi: Boolean = true,
+    transform: (String, String, String) -> T,
+): T? {
+    listOf(index1, index2, index3).filter { it <= 0 }.joinToString(" and ") { "index $it" }.takeIfNotBlank()
+        ?.let { throw Exceptions.IAE("$it must be greater than or equal to 1") }
+    require(limit?.let { it >= 3 } != false) { "Limit $limit must be greater than or equal to 3." }
+    return (takeUnless { removeAnsi } ?: ansiRemoved)
+        .split(delimiter, limit = limit ?: 0).takeIf { it.size >= maxOf(index1, index2, index3) }
+        ?.let { transform(it[index1 - 1], it[index2 - 1], it[index3 - 1]) }
+}
+
+/**
+ * Splits this char sequence into at most [limit] columns
+ * and returns the three columns [index1], [index2] and [index3] mapped
+ * using [transform].
+ *
+ * ***Note:** Columns start counting at 1*.
+ *
+ * @param index1 index of the first column
+ * @param index2 index of the second column
+ * @param index3 index of the third column
+ * @param delimiter string to be used to split this char sequence into columns
+ * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
+ * @param removeAnsi whether to remove ANSI escape sequences (default: true)
+ * @param transform function used to transform the two columns with indices [index1], [index2] and [index3]
+ *
+ * @return transform applied to columns specified by [index1], [index2] and [index3]
+ * @throws NoSuchElementException if not enough columns exist
+ */
+public inline fun <T> CharSequence.mapColumns(
+    index1: Int = 1,
+    index2: Int = 2,
+    index3: Int = 3,
+    delimiter: String = "\t",
+    limit: Int? = null,
+    removeAnsi: Boolean = true,
+    transform: (String, String, String) -> T,
+): T = mapColumnsOrNull(index1, index2, index3, delimiter, limit, removeAnsi, transform) ?: throw NoSuchElementException("No enough columns exist.")

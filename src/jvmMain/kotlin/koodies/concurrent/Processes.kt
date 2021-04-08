@@ -2,6 +2,7 @@ package koodies.concurrent
 
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.ManagedProcess
+import koodies.concurrent.process.Process.ExitState.ExitStateHandler
 import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
@@ -19,8 +20,11 @@ public fun DockerRunCommandLine.toManagedProcess(processTerminationCallback: Pro
 /**
  * Creates a [ManagedProcess] that executes this command line.
  */
-public fun CommandLine.toManagedProcess(processTerminationCallback: ProcessTerminationCallback? = null): ManagedProcess =
-    toProcess(processTerminationCallback)
+public fun CommandLine.toManagedProcess(
+    exitStateHandle: ExitStateHandler? = null,
+    processTerminationCallback: ProcessTerminationCallback? = null,
+): ManagedProcess =
+    toProcess(exitStateHandle, processTerminationCallback)
 
 /**
  * Creates a [ManagedProcess] from the specified [commandLine].
@@ -31,8 +35,9 @@ public fun CommandLine.toManagedProcess(processTerminationCallback: ProcessTermi
  */
 public fun process(
     commandLine: CommandLine,
+    exitStateHandler: ExitStateHandler? = null,
     processTerminationCallback: ProcessTerminationCallback? = null,
-): ManagedProcess = commandLine.toManagedProcess(processTerminationCallback)
+): ManagedProcess = commandLine.toManagedProcess(exitStateHandler, processTerminationCallback)
 
 /**
  * Creates a [ManagedProcess] from the specified [shellScript]
@@ -46,8 +51,9 @@ public fun process(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     workingDirectory: Path = Locations.Temp,
+    exitStateHandler: ExitStateHandler? = null,
     processTerminationCallback: ProcessTerminationCallback? = null,
 ): ManagedProcess {
     val commandLine = shellScript.toCommandLine(workingDirectory, environment)
-    return process(commandLine, processTerminationCallback)
+    return process(commandLine, exitStateHandler, processTerminationCallback)
 }

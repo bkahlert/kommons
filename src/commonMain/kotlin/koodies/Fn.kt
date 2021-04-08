@@ -1,9 +1,10 @@
 package koodies
 
+import koodies.Either.Left
+import koodies.Either.Right
 import koodies.runtime.Program
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-
 
 /**
  * Runs the specified [block] if `this` is `null` and provide
@@ -81,3 +82,46 @@ public fun <T> T.takeIfDebugging(): T? = takeIf { Program.isDebugging }
  * Returns `this` object if this [Program] does not run in debug mode or `null`, if it is.
  */
 public fun <T> T.takeUnlessDebugging(): T? = takeIf { Program.isDebugging }
+
+/**
+ * Represents a container containing either an instance of type [A] ([Left]]
+ * or [B] ([Right]).
+ */
+// TODO transform to sealed interface when Kotlin 1.5 is out
+public sealed class Either<A, B> {
+    public class Left<A, B>(public val left: A) : Either<A, B>()
+    public class Right<A, B>(public val right: B) : Either<A, B>()
+}
+
+/**
+ * Returns either the encapsulated instance [A] or
+ * the encapsulated instance [B] transformed to an instance of [A]
+ * using the given [transform].
+ */
+public inline fun <reified A, reified B> Either<A, B>.or(transform: (B) -> A): A =
+    when (this) {
+        is Left -> left
+        is Right -> transform(right)
+    }
+
+/**
+ * Returns either the encapsulated instance [A] mapped using [transform] or
+ * the encapsulated instance [B].
+ */
+public inline fun <reified A, reified B, reified R> Either<A, B>.map(transform: A.() -> R): Either<R, B> =
+    when (this) {
+        is Left -> Left(left.transform())
+        is Right ->
+            @Suppress("UNCHECKED_CAST")
+            this.also { check(it === right) } as Either<R, B>
+    }
+//
+///**
+// * Returns either the encapsulated instance [A] mapped using [transform] or
+// * the encapsulated instance [B].
+// */
+//public inline fun <reified A, reified B> Either<List<A>, B>.singleOr(transform: List<A>.(B) -> A): A =
+//    when (this) {
+//        is Left -> left.singleOrNull() ?: left.transform()
+//        is Right -> emptyList<A>().transform(right)
+//    }

@@ -1,8 +1,8 @@
 package koodies.docker
 
-import koodies.docker.DockerContainer.Status
-import koodies.docker.DockerContainer.Status.Existent.Running
-import koodies.docker.DockerContainer.Status.NotExistent
+import koodies.docker.DockerContainer.State
+import koodies.docker.DockerContainer.State.Existent.Running
+import koodies.docker.DockerContainer.State.NotExistent
 import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_CONTAINER
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
@@ -154,14 +154,14 @@ class DockerContainerTest {
         @Test
         fun `should get status of non-existent`() {
             val container = DockerContainer(randomString())
-            expectThat(container).hasStatus<NotExistent>()
+            expectThat(container).hasState<NotExistent>()
             BACKGROUND.expectLogged.contains("Checking status of $container")
         }
 
         @Test
         fun `should get status`() {
             use(DOCKER_TEST_CONTAINER) {
-                expectThat(it.container).hasStatus<Running> { get { details }.isNotEmpty() }
+                expectThat(it.container).hasState<Running> { get { status }.isNotEmpty() }
                 BACKGROUND.expectLogged.contains("Checking status of ${it.container}")
             }
         }
@@ -184,27 +184,15 @@ class DockerContainerTest {
     }
 }
 
-public inline fun <reified T : Status> Builder<DockerContainer>.hasStatus(): Builder<DockerContainer> =
+public inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<DockerContainer> =
     compose("status") {
-        get { status }.isA<T>()
+        get { state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
-public inline fun <reified T : Status> Builder<DockerContainer>.hasStatus(
+public inline fun <reified T : State> Builder<DockerContainer>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<DockerContainer> =
     compose("status") {
-        get { status }.isA<T>().statusAssertion()
+        get { state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
-
-//public inline fun <reified T:Status> Assertion.Builder<DockerContainer>.hasStatus(
-//    expectedState: T,
-//    detailsAssertion: Assertion.Builder<String>.() -> Unit,
-//): Builder<DockerContainer> =
-//    compose("status") {
-//        with(it.status) {
-//            get { state }.isEqualTo(expectedState)
-//            get { details }.detailsAssertion()
-//        }
-//    }.then { if (allPassed) pass() else fail() }
-//

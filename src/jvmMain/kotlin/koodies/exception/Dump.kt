@@ -31,7 +31,11 @@ private val dumpInitWorkaround = "$Dump"
  * If an error occurs in this process—so to as a last resort—the returned description
  * includes the complete dump itself.
  */
-public fun Path.dump(errorMessage: String?, file: Path = randomFile(Dump.dumpPrefix, Dump.dumpSuffix), data: () -> String): String = runCatching {
+public fun Path.dump(
+    errorMessage: String?,
+    file: Path = randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    data: () -> String,
+): String = runCatching {
     var dumped: String? = null
     val dumps = persistDump(file) { data().also { dumped = it } }
 
@@ -59,16 +63,24 @@ public fun Path.dump(errorMessage: String?, file: Path = randomFile(Dump.dumpPre
  * If an error occurs in this process—so to as as a last resort—the returned description
  * includes the complete dump itself.
  */
-@Suppress("unused")
-public fun Path.dump(errorMessage: String?, path: Path = randomFile(Dump.dumpPrefix, Dump.dumpSuffix), data: String): String =
+public fun Path.dump(
+    errorMessage: String?,
+    path: Path = randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    data: String,
+): String =
     dump(errorMessage, path) { data }
 
 /**
  * Dumps whatever is returned by [data] to the specified [path].
  *
  * This method returns a map of file format to [Path] mappings.
+ *
+ * ***Note:** To also create an default error message, use [Path.dump].
  */
-public fun persistDump(path: Path, data: () -> String): Map<String, Path> = runCatching {
+public fun persistDump(
+    path: Path,
+    data: () -> String,
+): Map<String, Path> = runCatching {
     data().run {
         mapOf("unchanged" to path.withExtension("log").writeText(this),
             "ANSI escape/control sequences removed" to path.withExtension("no-ansi.log").writeText(removeEscapeSequences()))

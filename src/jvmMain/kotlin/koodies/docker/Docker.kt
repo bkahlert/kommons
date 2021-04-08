@@ -160,8 +160,8 @@ private fun DockerCommandLine.fireAndForget(
     processTerminationCallback: ProcessTerminationCallback? = null,
 ) {
     daemon {
-        toManagedProcess(processTerminationCallback)
-            .processSilently().apply { waitForTermination() }
+        toManagedProcess(null, processTerminationCallback)
+            .processSilently().apply { waitFor() }
     }
 }
 

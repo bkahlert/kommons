@@ -100,7 +100,7 @@ public open class DockerRemoveCommandLine(
 }
 
 
-private fun ManagedProcess.parseResponse(): Boolean = errors().let {
+private fun ManagedProcess.dockerDaemonParse(): Boolean = errors().let {
     it.isBlank()
         || it.contains("no such container", ignoreCase = true)
         && !it.contains("cannot remove a running container", ignoreCase = true)
@@ -122,7 +122,7 @@ public val DockerContainer.remove: (Init<OptionsContext>) -> Boolean
         dockerRemoveCommandLine.execute {
             summary("Removing$forcefully ${this@remove.formattedAs.input}")
             null
-        }.parseResponse()
+        }.dockerDaemonParse()
     }
 
 /**
@@ -141,5 +141,5 @@ public val RenderingLogger?.remove: DockerContainer.(Init<OptionsContext>) -> Bo
         dockerRemoveCommandLine.execute {
             summary("Removing$forcefully ${thisContainer.formattedAs.input}")
             null
-        }.parseResponse()
+        }.dockerDaemonParse()
     }

@@ -140,17 +140,16 @@ public inline class DockerTestImageProvider(val image: DockerImage) {
      * Silently pulls this [DockerImage].
      */
     fun pull() {
-        with(MutedRenderingLogger()) { image.pull {} }
+        image.pull()
     }
 
-    val isPulled: Boolean
-        get() = with(MutedRenderingLogger()) { image.isPulled() }
+    val isPulled: Boolean get() = image.isPulled
 
     /**
      * Silently removes this [DockerImage].
      */
     fun remove() {
-        with(MutedRenderingLogger()) { runCatching { image.removeImage {} } }
+        with(MutedRenderingLogger()) { runCatching { image.remove() } }
     }
 
     override fun toString(): String = image.toString()

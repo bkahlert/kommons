@@ -4,19 +4,14 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
-import koodies.builder.Init
 import koodies.builder.buildArray
 import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerImagePullCommandLine.Companion.CommandContext
 import koodies.docker.DockerImagePullCommandLine.Options.Companion.OptionsContext
-import koodies.logging.RenderingLogger
-import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerCommandLine] that pulls the specified [image] using the specified [options].
@@ -73,36 +68,3 @@ public open class DockerImagePullCommandLine(
         }
     }
 }
-
-/**
- * Pulls `this` [DockerImage] from [Docker Hub](https://hub.docker.com/) using the
- * [DockerImagePullCommandLine.Options] built with the given [OptionsContext] [Init].
- * and prints the [DockerCommandLine]'s execution to [System.out].
- */
-public val DockerImage.pull: (Init<OptionsContext>) -> ManagedProcess
-    get() = {
-        DockerImagePullCommandLine {
-            options(it)
-            image by this@pull
-        }.execute {
-            summary("Pulling ${this@pull.formattedAs.input}")
-            null
-        }
-    }
-
-/**
- * Pulls `this` [DockerImage] from [Docker Hub](https://hub.docker.com/) using the
- * [DockerImagePullCommandLine.Options] built with the given [OptionsContext] [Init].
- * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
- */
-public val RenderingLogger?.pull: DockerImage.(Init<OptionsContext>) -> ManagedProcess
-    get() = {
-        val thisImage = this
-        DockerImagePullCommandLine {
-            options(it)
-            image by thisImage
-        }.execute {
-            summary("Pulling ${thisImage.formattedAs.input}")
-            null
-        }
-    }

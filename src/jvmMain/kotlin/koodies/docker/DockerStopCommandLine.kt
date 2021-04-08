@@ -88,7 +88,7 @@ public open class DockerStopCommandLine(
 }
 
 
-private fun ManagedProcess.parseResponse(): Boolean = errors().let {
+private fun ManagedProcess.dockerDaemonParse(): Boolean = errors().let {
     it.isBlank()
         || it.contains("no such container", ignoreCase = true)
         && !it.contains("cannot remove a running container", ignoreCase = true)
@@ -107,7 +107,7 @@ public val DockerContainer.stop: (Init<OptionsContext>) -> Boolean
         }.execute {
             summary("Stopping ${this@stop.formattedAs.input}")
             null
-        }.parseResponse()
+        }.dockerDaemonParse()
     }
 
 /**
@@ -124,5 +124,5 @@ public val RenderingLogger?.stop: DockerContainer.(Init<OptionsContext>) -> Bool
         }.execute {
             summary("Stopping ${thisContainer.formattedAs.input}")
             null
-        }.parseResponse()
+        }.dockerDaemonParse()
     }

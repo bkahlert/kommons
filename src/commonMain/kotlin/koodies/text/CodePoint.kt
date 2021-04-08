@@ -172,13 +172,39 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
     public val isWhitespace: Boolean get() = this in Whitespaces || char?.isWhitespace() == true
 
     /**
+     * Determines if this code point is one of the 10 digits `0`-`9`.
+     */
+    public val is0to9: Boolean get() = codePoint in 0x30..0x39
+
+    /**
+     * Determines if this code point is one of the 26 upper case characters `A`-`Z`.
+     */
+    public val isAtoZ: Boolean get() = codePoint in 0x41..0x5a
+
+    /**
+     * Determines if this code point is one of the 26 lower case characters `a`-`z`.
+     */
+    @Suppress("SpellCheckingInspection")
+    public val isatoz: Boolean
+        get() = codePoint in 0x61..0x7a
+
+    /**
+     * Determines if this code point is one of
+     * the 26 upper case characters `A`-`Z` or
+     * the 26 lower case characters `a`-`z`.
+     */
+    @Suppress("SpellCheckingInspection")
+    public val isAtoz: Boolean
+        get() = isAtoZ || isatoz
+
+    /**
      * Determines if this code point is an alphanumeric ASCII character, that is,
      * is `A`-`Z`, `a`-`z` or `0`-`9`.
      *
      * @return `true` if this code point is between a high surrogate
      * @see isHighSurrogate
      */
-    public val isAsciiAlphanumeric: Boolean get() = (codePoint in 0x30..0x39) || (codePoint in 0x41..0x5a) || (codePoint in 0x61..0x7a)
+    public val isAsciiAlphanumeric: Boolean get() = is0to9 || isAtoZ || isatoz
 
     /**
      * Determines if this code point is alphanumeric, that is,
@@ -453,6 +479,11 @@ public fun String.asCodePoint(): CodePoint? = singleCodePoint()?.takeIf { it.isU
  * Returns the Unicode code point with the same value.
  */
 public fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
+
+/**
+ * Returns the Unicode code point with the same value.
+ */
+public fun Char.asCodePoint(): CodePoint = CodePoint(toInt())
 
 /**
  * Returns a lazily propagated sequence containing the [CodePoint] instances this string consists of.
