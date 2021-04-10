@@ -113,5 +113,3 @@ public open class DockerSearchCommandLine(
         }
     }
 }
-
-// TODO extensions

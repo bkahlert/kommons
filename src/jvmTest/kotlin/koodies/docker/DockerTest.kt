@@ -2,7 +2,6 @@ package koodies.docker
 
 import koodies.concurrent.process.output
 import koodies.docker.Docker.run
-import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.SystemIoExclusive
@@ -26,7 +25,7 @@ class DockerTest {
 
         @Test
         fun `should build instances`() {
-            expectThat(Docker.images { official("hello-world") }).isEqualTo(DOCKER_TEST_IMAGE.image)
+            expectThat(Docker.images { official("hello-world") }).isEqualTo(DockerResources.TestImage.HelloWorld)
         }
 
         @Test

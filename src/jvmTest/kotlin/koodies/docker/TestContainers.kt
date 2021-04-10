@@ -2,17 +2,14 @@ package koodies.docker
 
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
-import koodies.docker.DockerImage.ImageContext
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.runWrapping
 import koodies.test.UniqueId
 import koodies.text.withRandomSuffix
 import koodies.toBaseName
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Isolated
 import org.junit.jupiter.api.parallel.ResourceAccessMode
-import org.junit.jupiter.api.parallel.ResourceAccessMode.READ
 import org.junit.jupiter.api.parallel.ResourceLock
 import strikt.api.Assertion
 import strikt.api.expectThat
@@ -23,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.Duration
 import kotlin.time.seconds
+
 
 /**
  * Declares a requirement on a Docker image used for testing.
@@ -36,123 +34,12 @@ import kotlin.time.seconds
 annotation class DockerTestImageExclusive {
     companion object {
         public const val RESOURCE: String = "koodies.docker.test-image"
-        public val DOCKER_TEST_IMAGE: DockerTestImageProvider = DockerTestImageProvider("hello-world")
         public val DOCKER_TEST_CONTAINER: DockerTestContainerProvider = DockerTestContainerProvider(
             "koodies.docker.test-container",
-            DockerImage { official("ubuntu") },
+            DockerResources.TestImage.Ubuntu,
             CommandLine("sleep", "10")
         )
     }
-}
-
-
-/**
- * Declares a requirement on Docker.
- * If no Docker is available this test is skipped.
- */
-@ResourceLock(DockerResources.SERIAL, mode = READ)
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@ExtendWith(DockerContainerLifeCycleCheck::class)
-annotation class WithDockerContainer(val requiredState: State, val expectedState: State) {
-
-    enum class State {
-        ThanksForCleaningUp, FailAndKill
-    }
-}
-
-
-public class DockerTestRunner(private val baseName: String = "koodies.docker.test-runner") {
-    private val image: DockerImage = DockerImage { ImageContext.official("ubuntu") }
-    private val cmd: CommandLine = CommandLine("sleep", "10")
-
-    val lock: ReentrantLock = ReentrantLock()
-    val container: DockerContainer = DockerContainer { baseName.sanitized }
-
-    public sealed class ContainerState {
-        public class ContainerNotExistent : ContainerState()
-        public sealed class ContainerExistent : ContainerState() {
-            public class Created : ContainerExistent()
-            public class Restarting : ContainerExistent()
-            public class Running : ContainerExistent()
-            public class Removing : ContainerExistent()
-            public class Paused : ContainerExistent()
-            public class Exited : ContainerExistent()
-            public class Dead : ContainerExistent()
-        }
-    }
-//
-//    public fun containerWithState(state: State)
-//
-//    /**
-//     * Silently starts this [DockerContainer].
-//     */
-//    fun start(uniqueName: Boolean = true): DockerProcess {
-//        val name = container.name.takeUnless { uniqueName } ?: container.name.withRandomSuffix()
-//        return with(MutedRenderingLogger()) {
-//            commandLine.executeDockerized(image) {
-//                dockerOptions { name { name }; detached { on } }
-//                executionOptions {
-//                    noDetails("sleeping for 10 seconds")
-//                }
-//                null
-//            }
-//        }
-//    }
-
-    /**
-     * Silently checks if this [DockerContainer] is running.
-     */
-//    val isRunning: Boolean
-//        get() = with(MutedRenderingLogger()) { container.isRunning }
-
-//    fun <R> use(block: (DockerProcess) -> R) = lock.withLock {
-//        runWrapping({ start() }, { stop() }) { block(it) }
-}
-
-//
-//    /**
-//     * Silently removes this [DockerContainer].
-//     */
-//    fun stop(actual: DockerContainer = container, timeout: Duration = 1.seconds) {
-//        with(MutedRenderingLogger()) { actual.stop { timeout { timeout } } }
-//    }
-//
-//    /**
-//     * Silently removes this [DockerContainer].
-//     */
-//    fun remove(actual: DockerContainer = container) {
-//        with(MutedRenderingLogger()) { runCatching { actual.remove {} } }
-//    }
-//
-//    override fun toString(): String = container.toString()
-//}
-
-
-/**
- * Provider of a [DockerImage] with non-logging / non-printing implementations
- * of [pull] and [remove] for the purpose of testing.
- */
-public inline class DockerTestImageProvider(val image: DockerImage) {
-    constructor(officialName: String) : this(DockerImage(officialName, emptyList(), null, null))
-
-    /**
-     * Silently pulls this [DockerImage].
-     */
-    fun pull() {
-        image.pull()
-    }
-
-    val isPulled: Boolean get() = image.isPulled
-
-    /**
-     * Silently removes this [DockerImage].
-     */
-    fun remove() {
-        with(MutedRenderingLogger()) { runCatching { image.remove() } }
-    }
-
-    override fun toString(): String = image.toString()
 }
 
 

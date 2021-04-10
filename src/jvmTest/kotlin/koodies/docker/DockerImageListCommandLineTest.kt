@@ -3,7 +3,7 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.docker.DockerImageListCommandLine.Companion.CommandContext
 import koodies.docker.DockerImageListCommandLine.Options
-import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
+import koodies.docker.DockerResources.TestImage.HelloWorld
 import koodies.test.BuilderFixture
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -27,11 +27,11 @@ class DockerImageListCommandLineTest {
             options {
                 all { no }
             }
-            image by DOCKER_TEST_IMAGE.image
+            image by HelloWorld
         },
         DockerImageListCommandLine(
             options = Options(all = false),
-            image = DOCKER_TEST_IMAGE.image
+            image = HelloWorld
         ),
     )
 }

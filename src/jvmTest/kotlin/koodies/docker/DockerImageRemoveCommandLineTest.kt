@@ -3,7 +3,7 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.docker.DockerImageRemoveCommandLine.Companion.CommandContext
 import koodies.docker.DockerImageRemoveCommandLine.Options
-import koodies.docker.DockerTestImageExclusive.Companion.DOCKER_TEST_IMAGE
+import koodies.docker.DockerResources.TestImage.HelloWorld
 import koodies.test.BuilderFixture
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -27,11 +27,11 @@ class DockerImageRemoveCommandLineTest {
             options {
                 force { no }
             }
-            image by DOCKER_TEST_IMAGE.image
+            image by HelloWorld
         },
         DockerImageRemoveCommandLine(
             options = Options(force = false),
-            images = listOf(DOCKER_TEST_IMAGE.image)
+            images = listOf(HelloWorld)
         ),
     )
 }

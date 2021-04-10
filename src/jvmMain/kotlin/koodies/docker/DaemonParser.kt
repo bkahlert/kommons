@@ -47,12 +47,6 @@ public inline fun <reified T> ManagedProcess.dockerDaemonParse(
     }
 }
 
-
-//public inline fun <reified T> ManagedProcess.columns(num: Int, crossinline lineParser: (List<String>) -> T?): List<T> =
-//    dockerDaemonParse(num) { lineParser(it) }
-//private val pipeline: (Sequence<IO>) -> List<String> =
-//    { it.filterIsInstance<OUT>().map { it.ansiRemoved }.map { it.split("\t") }.filter { it.size == 3 }.toList() }
-
 public inline class ColumnParseHelper(public val process: ManagedProcess) {
     public inline fun <reified T> columns(num: Int, crossinline lineParser: (List<String>) -> T?): Either<List<T>, Failure> =
         process.dockerDaemonParse(num) { lineParser(it) }

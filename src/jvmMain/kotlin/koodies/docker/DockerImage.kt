@@ -121,7 +121,7 @@ public open class DockerImage(
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is DockerImage) return false
 
         other as DockerImage
 

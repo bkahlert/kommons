@@ -27,14 +27,19 @@ import koodies.provideDelegate
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
-
 /**
- * Provides methods to create and interact with a [DockerProcess].
+ * Entrypoint to ease discovery of Docker related features.
  */
 public object Docker {
 
+    /**
+     * Entry point for [DockerImage] related features like pulling images.
+     */
     public val images: DockerImage.Companion = DockerImage.Companion
 
+    /**
+     * Entry point for [DockerContainer] related features like starting containers.
+     */
     public val containers: DockerContainer.Companion = DockerContainer.Companion
 
     /**
@@ -44,17 +49,10 @@ public object Docker {
 
     /**
      * Whether a Docker container with the given [name] is running.
+     *
+     * @see DockerContainer
      */
-    public fun isContainerRunning(name: String): Boolean = name.let { sanitizedName ->
-        scriptOutputContains("""docker ps --no-trunc --format "{{.Names}}" --filter "name=^$sanitizedName${'$'}"""", sanitizedName)
-    }
-
-    /**
-     * Whether a Docker container—no matter if it's running or not—exists.
-     */
-    public fun exists(name: String): Boolean = name.let { sanitizedName ->
-        scriptOutputContains("""docker ps --no-trunc --format "{{.Names}}" --filter "name=^$sanitizedName${'$'}" --all""", sanitizedName)
-    }
+    public fun containerRunning(name: String): Boolean = DockerContainer.from(name).isRunning
 
 //    /**
 //     * Builds a [DockerSearchCommandLine] and executes it.

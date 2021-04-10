@@ -76,7 +76,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
         @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and process output`(uniqueId: UniqueId) {
-            if (Docker.isContainerRunning(uniqueId.simple)) fail("Container already running!")
+            if (Docker.containerRunning(uniqueId.simple)) fail("Container already running!")
 
             val dockerProcess = Docker.busybox(
                 uniqueId.simple,

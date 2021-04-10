@@ -3,10 +3,10 @@ package koodies.docker
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.terminal.AnsiColors.cyan
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.withAnnotation
+import koodies.text.Semantics.formattedAs
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -36,25 +36,26 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
         context.pullRequiredImages()
 
         val container = context.dockerContainer()
-        check(!container.isRunning) { "Container $container is already running." }
+        check(!container.isRunning) {
+            container.remove(force = true)
+            "Container $container is already running."
+        }
     }
 
-    override fun afterEach(context: ExtensionContext) {
-        with(BACKGROUND) {
-            val container = context.dockerContainer()
-            when (context.withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
-                ThanksForCleaningUp -> {
-                    if (container.isRunning) container.remove(force = true)
+    override fun afterEach(context: ExtensionContext) = with(BACKGROUND) {
+        val container = context.dockerContainer()
+        when (context.withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
+            ThanksForCleaningUp -> {
+                if (container.isRunning) container.remove(force = true)
+            }
+            FailAndKill -> {
+                check(!container.isRunning) {
+                    container.remove(true)
+                    "Container $container was still running and had to be killed forcibly."
                 }
-                FailAndKill -> {
-                    check(!container.isRunning) {
-                        container.remove(true)
-                        "Container $container was still running and had to be killed forcibly."
-                    }
-                }
-                else -> {
-                    if (container.isRunning) println("Container $container is still running... just saying".cyan())
-                }
+            }
+            else -> {
+                if (container.isRunning) println("Container $container is still running... just saying".formattedAs.debug)
             }
         }
     }

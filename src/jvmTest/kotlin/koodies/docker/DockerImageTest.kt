@@ -1,5 +1,6 @@
 package koodies.docker
 
+import koodies.docker.DockerResources.TestImage.HelloWorld
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
 import koodies.test.test
@@ -7,8 +8,6 @@ import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -101,32 +100,20 @@ class DockerImageTest {
     @Nested
     inner class DockerCommands {
 
-        private val testImage = DockerImage("hello-world", emptyList(), null, null)
-
         @Nested
         inner class ListImages {
 
-            @BeforeEach
-            fun setUp() {
-                testImage.pull()
-            }
-
-            @Nested
-            inner class ListImages {
-
-                @Test
-                fun `should list images and log`() {
+            @Test
+            fun `should list images and log`() {
+                HelloWorld.usingPulledImage { testImage ->
                     expectThat(DockerImage.list()).contains(testImage)
                     BACKGROUND.expectLogged.contains("Listing images")
                 }
             }
 
-
-            @Nested
-            inner class ListImage {
-
-                @Test
-                fun `should list existing image and log`() {
+            @Test
+            fun `should list existing image and log`() {
+                HelloWorld.usingPulledImage { testImage ->
                     expectThat(testImage.list()).contains(testImage)
                     BACKGROUND.expectLogged.contains("Listing $testImage images")
 
@@ -136,12 +123,9 @@ class DockerImageTest {
                 }
             }
 
-
-            @Nested
-            inner class IsPulled {
-
-                @Test
-                fun `should check if is pulled and log`() {
+            @Test
+            fun `should check if is pulled and log`() {
+                HelloWorld.usingPulledImage { testImage ->
                     expectThat(testImage.isPulled).isTrue()
                     BACKGROUND.expectLogged.contains("Checking if $testImage is pulled")
 
@@ -152,16 +136,9 @@ class DockerImageTest {
             }
         }
 
-        @Nested
-        inner class Pull {
-
-            @BeforeEach
-            fun setUp() {
-                testImage.remove()
-            }
-
-            @Test
-            fun `should pull image and log`() {
+        @Test
+        fun `should pull image and log`() {
+            HelloWorld.usingRemovedImage { testImage ->
                 expectThat(testImage.pull()).isSuccessful()
                 BACKGROUND.expectLogged.contains("Pulling $testImage")
                 expectThat(testImage.isPulled).isTrue()
@@ -171,16 +148,9 @@ class DockerImageTest {
             }
         }
 
-        @Nested
-        inner class Remove {
-
-            @BeforeEach
-            fun setUp() {
-                DockerTestImageProvider("hello-world").pull()
-            }
-
-            @Test
-            fun `should remove image and log`() {
+        @Test
+        fun `should remove image and log`() {
+            HelloWorld.usingPulledImage { testImage ->
                 expectThat(testImage.remove()).isSuccessful()
                 BACKGROUND.expectLogged.contains("Removing $testImage")
                 expectThat(testImage.isPulled).isFalse()
@@ -188,11 +158,6 @@ class DockerImageTest {
                 expectThat(testImage.remove()).isFailed()
                 BACKGROUND.expectLogged.contains("Removing $testImage ${Symbols.Negative.ansiRemoved} no such image")
             }
-        }
-
-        @AfterAll
-        fun tearDown() {
-            testImage.remove(force = true)
         }
     }
 }
