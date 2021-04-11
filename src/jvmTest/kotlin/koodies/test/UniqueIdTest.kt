@@ -16,22 +16,22 @@ class UniqueIdTest {
 
     @Test
     fun `should resolve unique id`(uniqueId: UniqueId) {
-        expectThat(uniqueId.simple).isEqualTo("UniqueIdTest.should_resolve_unique_id")
+        expectThat(uniqueId.simplified).isEqualTo("UniqueIdTest.should_resolve_unique_id")
     }
 
     @Test
     fun `should resolve unique id`(uniqueId: UniqueId, @Suppress("UNUSED_PARAMETER") `with differing arguments`: TestInfo) {
-        expectThat(uniqueId.simple).isEqualTo("UniqueIdTest.should_resolve_unique_id-TestInfo")
+        expectThat(uniqueId.simplified).isEqualTo("UniqueIdTest.should_resolve_unique_id-TestInfo")
     }
 
     @TestFactory
     fun `should resolve dynamic unique id`(uniqueId: UniqueId): DynamicContainer {
         return dynamicContainer("dynamic container", listOf(
             dynamicTest("dynamic test/container") {
-                expectThat(uniqueId.simple).isEqualTo("UniqueIdTest.should_resolve_dynamic_unique_id")
+                expectThat(uniqueId.simplified).isEqualTo("UniqueIdTest.should_resolve_dynamic_unique_id")
             },
             dynamicTest("dynamic test") {
-                expectThat(uniqueId.simple).isEqualTo("UniqueIdTest.should_resolve_dynamic_unique_id")
+                expectThat(uniqueId.simplified).isEqualTo("UniqueIdTest.should_resolve_dynamic_unique_id")
             }
         ))
     }

@@ -444,7 +444,7 @@ interface DynamicTestsBuilder<T> {
  * @throws IllegalStateException if called from outside of a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir = root.resolve(uniqueId.simple.withRandomSuffix()).createDirectories()
+    val tempDir = root.resolve(uniqueId.simplified.withRandomSuffix()).createDirectories()
     tempDir.block()
     check(root.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".red())

@@ -356,7 +356,7 @@ class DockerContainerTest {
 
                 @Test
                 fun `should remove container and log`(uniqueId: UniqueId) {
-                    val container = DockerContainer { uniqueId.uniqueId.sanitized }
+                    val container = DockerContainer { uniqueId.simplified.sanitized }
                     expectThat(container.remove()).isFailed()
                     BACKGROUND.expectLogged.contains("Removing ${container.name} ${Negative.ansiRemoved} no such container")
                 }

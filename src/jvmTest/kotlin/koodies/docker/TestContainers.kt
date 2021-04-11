@@ -107,7 +107,7 @@ public object DockerTestUtil {
      * The container is verified to not run anymore when returned.
      */
     public fun createContainer(uniqueId: UniqueId): DockerContainer {
-        val containerName = uniqueId.uniqueId.toBaseName()
+        val containerName = uniqueId.simplified.toBaseName()
         val container = DockerContainer.from(containerName)
         expectThat(container).exists
 

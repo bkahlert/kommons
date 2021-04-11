@@ -30,7 +30,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
     @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should start docker`(uniqueId: UniqueId) {
-        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
+        val dockerProcess = Docker.busybox(uniqueId.simplified, "echo test", processor = noopProcessor())
 
         poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT && it.unformatted == "test" } }
             .every(100.milliseconds).forAtMost(8.seconds) {
@@ -42,7 +42,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
     @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should override toString`(uniqueId: UniqueId) {
-        val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
+        val dockerProcess = Docker.busybox(uniqueId.simplified, "echo test", processor = noopProcessor())
         expectThat(dockerProcess.toString())
             .matchesCurlyPattern("DockerProcess(name={}.should_override_toString, Process({}))")
             .not { containsAny(*LineSeparators.toTypedArray()) }
@@ -54,7 +54,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
         @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and pass arguments`(uniqueId: UniqueId) {
-            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
+            val dockerProcess = Docker.busybox(uniqueId.simplified, "echo test", processor = noopProcessor())
 
             poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT && it.unformatted == "test" } }
                 .every(100.milliseconds).forAtMost(8.seconds) {
@@ -66,7 +66,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
         @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and process input`(uniqueId: UniqueId) {
-            val dockerProcess = Docker.busybox(uniqueId.simple, "echo test", processor = noopProcessor())
+            val dockerProcess = Docker.busybox(uniqueId.simplified, "echo test", processor = noopProcessor())
 
             dockerProcess.enter("echo 'test'")
             poll { dockerProcess.ioLog.getCopy().any { it is IO.OUT && it.unformatted == "test" } }
@@ -76,10 +76,10 @@ class DockerProcessTest { // TODO rewrite to generic bash
 
         @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should start docker and process output`(uniqueId: UniqueId) {
-            if (Docker.containerRunning(uniqueId.simple)) fail("Container already running!")
+            if (Docker.containerRunning(uniqueId.simplified)) fail("Container already running!")
 
             val dockerProcess = Docker.busybox(
-                uniqueId.simple,
+                uniqueId.simplified,
                 """while true; do""",
                 """echo "looping"""",
                 """sleep 1""",
@@ -95,7 +95,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) {
             val logged = synchronizedListOf<String>()
             val dockerProcess =
-                Docker.busybox(uniqueId.simple) { io ->
+                Docker.busybox(uniqueId.simplified) { io ->
                     logged.add(io.unformatted)
                     if (io is IO.OUT) {
                         if (logged.contains("test 4 6")) stop()
@@ -119,7 +119,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
             @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should return false on not yet started container container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId.simple,
+                    uniqueId.simplified,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -133,7 +133,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
             @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should return true on running container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId.simple,
+                    uniqueId.simplified,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -149,7 +149,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
             @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should return false on completed container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId.simple,
+                    uniqueId.simplified,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -170,7 +170,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
             @DockerRequiring(requiredImages = ["busybox"]) @Test
             fun `should stop started container`(uniqueId: UniqueId) {
                 val dockerProcess = Docker.busybox(
-                    uniqueId.simple,
+                    uniqueId.simplified,
                     """while true; do""",
                     """echo "looping"""",
                     """sleep 1""",
@@ -192,7 +192,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
         @Slow @DockerRequiring(requiredImages = ["busybox"]) @Test
         fun `should remove docker container after completion`(uniqueId: UniqueId) {
             val dockerProcess = Docker.busybox(
-                uniqueId.simple,
+                uniqueId.simplified,
                 """while true; do""",
                 """echo "looping"""",
                 """sleep 1""",
@@ -216,7 +216,7 @@ class DockerProcessTest { // TODO rewrite to generic bash
     fun `should not produce incorrect empty lines`(uniqueId: UniqueId) {
         val output = synchronizedListOf<IO>()
         val dockerProcess = Docker.busybox(
-            uniqueId.simple,
+            uniqueId.simplified,
             """while true; do""",
             """echo "looping"""",
             """sleep 1""",

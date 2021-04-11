@@ -55,7 +55,7 @@ class ExecutionTest {
     private val echoingCommands =
         "echo \"test output env\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
-    private fun getExecutable(uniqueId: UniqueId) = ShellScript(uniqueId.uniqueId) { !echoingCommands }
+    private fun getExecutable(uniqueId: UniqueId) = ShellScript(uniqueId.simplified) { !echoingCommands }
 
     @Nested
     inner class ExecuteFn {

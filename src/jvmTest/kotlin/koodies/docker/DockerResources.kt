@@ -182,7 +182,7 @@ internal class TestContainers(
         autoCleanup: Boolean = true,
         commandLine: CommandLine,
     ): DockerContainer {
-        val container = DockerContainer.from(name = uniqueId.uniqueId, randomSuffix = true).also { provisioned.add(it) }
+        val container = DockerContainer.from(name = uniqueId.simplified, randomSuffix = true).also { provisioned.add(it) }
         with(logger) {
             commandLine.executeDockerized(this@TestContainers.image) {
                 dockerOptions {

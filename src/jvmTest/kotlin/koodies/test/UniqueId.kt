@@ -4,32 +4,28 @@ import koodies.text.withPrefix
 import koodies.text.withoutSuffix
 import org.junit.jupiter.api.extension.ExtensionContext
 
-class UniqueId(val uniqueId: String) {
+class UniqueId(private val fullyQualified: String) {
 
     companion object {
         fun ExtensionContext.uniqueId(): UniqueId = UniqueId(uniqueId)
     }
 
     /**
-     * Contains the unchanged reported unique ID.
-     */
-    val fullyQualified: String get() = uniqueId
-
-    /**
      * Contains a simplified unique ID that only uses simple class names
      * and a formatting that strives for readability.
      *
-     * In contrast to [fullyQualified] this property cannot guarantee uniqueness
+     * In contrast to the fully qualified [fullyQualified] this property cannot guarantee uniqueness
      * in case of equally named classes in different packages.
      */
-    val simple: String
-        get() = uniqueId
+    val simplified: String by lazy {
+        fullyQualified
             .split("/")
             .map { formatNode(it) }
             .filter { it.isNotBlank() }
             .joinToString(".")
+    }
 
-    fun formatNode(node: String): String {
+    private fun formatNode(node: String): String {
         val (type, value) = node.removeSurrounding("[", "]").split(":")
 
         fun formatClass(value: String): String = value.split(".").last()
@@ -53,5 +49,5 @@ class UniqueId(val uniqueId: String) {
         }
     }
 
-    override fun toString(): String = fullyQualified
+    override fun toString(): String = simplified
 }

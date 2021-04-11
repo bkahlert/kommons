@@ -60,7 +60,7 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
         }
     }
 
-    private fun ExtensionContext.dockerContainer() = DockerContainer(UniqueId(uniqueId).simple)
+    private fun ExtensionContext.dockerContainer() = DockerContainer(UniqueId(uniqueId).simplified)
 
     private fun ExtensionContext.pullRequiredImages() =
         BACKGROUND.logging("Pulling required images") {

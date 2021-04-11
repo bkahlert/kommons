@@ -18,7 +18,7 @@ class BusyboxKtTest { // TODO generalize to docker run command
     @DockerRequiring(requiredImages = ["busybox"]) @Test
     fun `should start busybox`(uniqueId: UniqueId) {
         val processed = mutableListOf<IO>()
-        val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simple, "echo busybox") { io ->
+        val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simplified, "echo busybox") { io ->
             processed.add(io)
         }
 
