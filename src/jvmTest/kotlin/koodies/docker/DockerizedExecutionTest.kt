@@ -60,9 +60,9 @@ class DockerizedExecutionTest {
 
     @Test
     fun InMemoryLogger.`should record IO`() {
-        val process = shellExecutable.executeDockerized(DockerTestImageExclusive.DOCKER_TEST_CONTAINER.image, null)
+        val process = shellExecutable.executeDockerized(TestImages.Ubuntu, null)
         expectThat(process.io.merged.ansiRemoved).matchesCurlyPattern("""
-                Executing docker run --name {} --rm -i ${DockerResources.TestImage.Ubuntu} printenv
+                Executing docker run --name {} --rm -i ${TestImages.Ubuntu} printenv
                 {{}}
                 Process {} terminated successfully at {}
             """.trimIndent())

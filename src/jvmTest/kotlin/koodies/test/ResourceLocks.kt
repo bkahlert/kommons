@@ -17,8 +17,8 @@ import org.junit.jupiter.api.parallel.Resources
  * Adds [OutputCaptureExtension] automatically.
  */
 @ResourceLocks(
-    ResourceLock(Resources.SYSTEM_OUT, mode = ResourceAccessMode.READ_WRITE),
-    ResourceLock(Resources.SYSTEM_ERR, mode = ResourceAccessMode.READ_WRITE),
+    ResourceLock(Resources.SYSTEM_OUT),
+    ResourceLock(Resources.SYSTEM_ERR),
 )
 @ExtendWith(OutputCaptureExtension::class)
 @Retention(AnnotationRetention.RUNTIME)

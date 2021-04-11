@@ -3,7 +3,7 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.docker.DockerImageRemoveCommandLine.Companion.CommandContext
 import koodies.docker.DockerImageRemoveCommandLine.Options
-import koodies.docker.DockerResources.TestImage.HelloWorld
+import koodies.docker.TestImages.HelloWorld
 import koodies.test.BuilderFixture
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

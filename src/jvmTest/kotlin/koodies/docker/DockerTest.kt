@@ -25,7 +25,7 @@ class DockerTest {
 
         @Test
         fun `should build instances`() {
-            expectThat(Docker.images { official("hello-world") }).isEqualTo(DockerResources.TestImage.HelloWorld)
+            expectThat(Docker.images { official("hello-world") }).isEqualTo(TestImages.HelloWorld)
         }
 
         @Test
@@ -44,7 +44,7 @@ class DockerTest {
 
         @Test
         fun `should provide commands`() {
-            expectCatching { Docker.containers.toList() }.isSuccess()
+            expectCatching { Docker.containers.list() }.isSuccess()
         }
     }
 

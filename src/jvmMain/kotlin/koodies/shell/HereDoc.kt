@@ -1,5 +1,6 @@
 package koodies.shell
 
+import koodies.regex.get
 import koodies.text.CharRanges
 import koodies.text.LineSeparators
 import koodies.text.randomString
@@ -56,6 +57,14 @@ public class HereDoc(
         this(delimiter = label, lineSeparator = lineSeparator, lines = lines.map { "$it" })
 
     public companion object {
+
+        /**
+         * A [Regex] that can be used to extract [here document](https://en.wikipedia.org/wiki/Here_document) delimiters.
+         */
+        private val hereDocDelimiterRegex: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
+
+        public fun findAllDelimiters(text: String): List<String> = hereDocDelimiterRegex.findAll(text).mapNotNull { it["name"] }.toList()
+
         /**
          * Returns a random—most likely unique—label to be used for a [HereDoc].
          */

@@ -1,12 +1,12 @@
 package koodies.docker
 
-import koodies.collections.synchronizedListOf
 import koodies.docker.DockerContainer.State
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
-import koodies.test.UniqueId
+import koodies.test.IdeaWorkaroundTest
+import koodies.test.IdeaWorkaroundTestFactory
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.ansiRemoved
@@ -15,11 +15,8 @@ import koodies.text.Semantics.Symbols.Delimiter
 import koodies.text.Semantics.Symbols.Negative
 import koodies.text.Unicode.NBSP
 import koodies.text.endsWithRandomSuffix
-import koodies.text.randomString
+import koodies.text.matchesCurlyPattern
 import koodies.text.spaced
-import koodies.text.toStringMatchesCurlyPattern
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -63,18 +60,14 @@ class DockerContainerTest {
     @Nested
     inner class ToString {
 
-        @Test
-        fun `should contain pseudo not existent state if not exists`() {
-            val name = randomString()
-            expectThat(DockerContainer(name)).toStringMatchesCurlyPattern("DockerContainer { name = {}⦀{}state = not existent }")
-        }
-
-        @Disabled
-        @Test
-        fun `should contain actual state if exists`() { // TODO
-            val container = DockerContainer(randomString())
-            // container start stop
-            expectThat(container).toStringIsEqualTo("name (exited 0)")
+        @ContainersTestFactory @IdeaWorkaroundTestFactory
+        fun `should contain actual state`(testContainers: TestContainers) = listOf<Pair<String, (TestContainers) -> DockerContainer>>(
+            "not existent" to { it.newNotExistentContainer() },
+            "▶ running" to { it.newRunningTestContainer() },
+            "✔︎ exited" to { it.newExitedTestContainer() },
+        ).testEach("{}") { (state, provider) ->
+            val container = provider(testContainers)
+            expect { container.toString() }.that { matchesCurlyPattern("DockerContainer { name = {}⦀{}state = $state }") }
         }
     }
 
@@ -189,25 +182,18 @@ class DockerContainerTest {
     @Nested
     inner class DockerCommands {
 
-        private val provider = DockerResources.TestImage.Ubuntu
-        private fun containerFor(uniqueId: UniqueId, logging: Boolean = false) =
-            provider.testContainersFor(uniqueId, logging).also { container.add(uniqueId) }
-
-        private val container: MutableList<UniqueId> = synchronizedListOf()
-
         @Nested
         inner class GetStatus {
 
-            @Test
-            fun `should get status of non-existent`() {
-                val container = DockerContainer(randomString())
+            @ContainersTest @IdeaWorkaroundTest
+            fun `should get status of non-existent`(testContainers: TestContainers) {
+                val container = testContainers.newNotExistentContainer()
                 expectThat(container).hasState<NotExistent>()
                 BACKGROUND.expectLogged.contains("Checking status of ${container.name}")
             }
 
-            @Test
-            fun `should get status`(uniqueId: UniqueId) {
-                val testContainers = containerFor(uniqueId)
+            @ContainersTest @IdeaWorkaroundTest
+            fun `should get status`(testContainers: TestContainers) {
                 val container = testContainers.newRunningTestContainer()
                 expectThat(container).hasState<Running> { get { status }.isNotEmpty() }
                 BACKGROUND.expectLogged.contains("Checking status of ${container.name}")
@@ -217,11 +203,10 @@ class DockerContainerTest {
         @Nested
         inner class ListContainers {
 
-            @Test
-            fun `should list containers and log`(uniqueId: UniqueId) {
-                val testContainers = containerFor(uniqueId)
+            @ContainersTest @IdeaWorkaroundTest
+            fun `should list containers and log`(testContainers: TestContainers) {
                 val containers = (1..3).map { testContainers.newRunningTestContainer() }
-                expectThat(DockerContainer.toList()).contains(containers)
+                expectThat(DockerContainer.list()).contains(containers)
                 BACKGROUND.expectLogged.contains("Listing all containers")
             }
         }
@@ -232,9 +217,8 @@ class DockerContainerTest {
             @Nested
             inner class NotExisting {
 
-                @Test
-                fun `should start container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should start container and log`(testContainers: TestContainers) {
                     val container = testContainers.newNotExistentContainer()
                     expectThat(container.isRunning).isFalse()
                     expectThat(container).get { start(attach = false) }.isFailed()
@@ -245,9 +229,8 @@ class DockerContainerTest {
             @Nested
             inner class Stopped {
 
-                @Test
-                fun `should start container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should start container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
                     expectThat(container.isRunning).isFalse()
                     expectThat(container).get { start(attach = false) }.isSuccessful()
@@ -255,9 +238,8 @@ class DockerContainerTest {
                     expectThat(container.isRunning).isTrue()
                 }
 
-                @Test
-                fun `should start attached by default`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should start attached by default`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer(5.seconds)
                     val passed = measureTime { expectThat(container).get { start(attach = true) }.isSuccessful() }
                     BACKGROUND.expectLogged.contains("Starting ${container.name}")
@@ -265,9 +247,8 @@ class DockerContainerTest {
                     expectThat(container.isRunning).isFalse()
                 }
 
-                @Test
-                fun `should start multiple and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should start multiple and log`(testContainers: TestContainers) {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newExitedTestContainer())
                     expectThat(DockerContainer.start(*containers.toTypedArray(), attach = false)).isFailed()
                     BACKGROUND.expectLogged.contains("Starting ${containers[0].name}$NBSP${Delimiter.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
@@ -279,9 +260,8 @@ class DockerContainerTest {
             @Nested
             inner class Running {
 
-                @Test
-                fun `should start container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should start container and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
                     expectThat(container.isRunning).isTrue()
                     expectThat(container).get { start(attach = false) }.isSuccessful()
@@ -298,9 +278,8 @@ class DockerContainerTest {
             @Nested
             inner class NotExisting {
 
-                @Test
-                fun `should stop container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should stop container and log`(testContainers: TestContainers) {
                     val container = testContainers.newNotExistentContainer()
                     expectThat(container.isRunning).isFalse()
                     expectThat(container).get { stop() }.isFailed()
@@ -312,9 +291,8 @@ class DockerContainerTest {
             @Nested
             inner class NotRunning {
 
-                @Test
-                fun `should stop container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should stop container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
                     expectThat(container.isRunning).isFalse()
                     expectThat(container).get { stop() }.isSuccessful()
@@ -326,9 +304,8 @@ class DockerContainerTest {
             @Nested
             inner class Running {
 
-                @Test
-                fun `should stop container - but not remove it - and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should stop container - but not remove it - and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
                     expectThat(container.isRunning).isTrue()
                     expectThat(container).get { stop() }.isSuccessful()
@@ -337,9 +314,8 @@ class DockerContainerTest {
                     expectThat(container).hasState<State.Existent.Exited>()
                 }
 
-                @Test
-                fun `should stop multiple and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should stop multiple and log`(testContainers: TestContainers) {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
                     expectThat(DockerContainer.stop(*containers.toTypedArray())).isFailed()
                     BACKGROUND.expectLogged.contains("Stopping ${containers[0].name}$NBSP${Delimiter.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
@@ -354,9 +330,9 @@ class DockerContainerTest {
             @Nested
             inner class NotExistent {
 
-                @Test
-                fun `should remove container and log`(uniqueId: UniqueId) {
-                    val container = DockerContainer { uniqueId.simplified.sanitized }
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should remove container and log`(testContainers: TestContainers) {
+                    val container = testContainers.newNotExistentContainer()
                     expectThat(container.remove()).isFailed()
                     BACKGROUND.expectLogged.contains("Removing ${container.name} ${Negative.ansiRemoved} no such container")
                 }
@@ -365,9 +341,8 @@ class DockerContainerTest {
             @Nested
             inner class Existent {
 
-                @Test
-                fun `should remove container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should remove container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
                     expectThat(container.remove()).isSuccessful()
                     BACKGROUND.expectLogged.contains("Removing ${container.name}")
@@ -377,9 +352,8 @@ class DockerContainerTest {
             @Nested
             inner class Running {
 
-                @Test
-                fun `should remove container and log`(uniqueId: UniqueId) {
-                    val testContainers = containerFor(uniqueId)
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should remove container and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
                     expectThat(container.remove()).isFailed()
                     BACKGROUND.expectLogged.contains("Removing ${container.name}")
@@ -392,9 +366,8 @@ class DockerContainerTest {
         @Nested
         inner class RemoveForcefully {
 
-            @Test
-            fun `should remove forcibly container and log`(uniqueId: UniqueId) {
-                val testContainers = containerFor(uniqueId)
+            @ContainersTest @IdeaWorkaroundTest
+            fun `should remove forcibly container and log`(testContainers: TestContainers) {
                 val container = testContainers.newRunningTestContainer()
                 expectThat(container.remove(force = true)).isSuccessful()
                 BACKGROUND.expectLogged.contains("Removing forcefully ${container.name}")
@@ -402,20 +375,13 @@ class DockerContainerTest {
                 expectThat(container.exists).isFalse()
             }
 
-            @Test
-            fun `should remove multiple and log`(uniqueId: UniqueId) {
-                val testContainers = containerFor(uniqueId)
-                val containers =
-                    listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
+            @ContainersTest @IdeaWorkaroundTest
+            fun `should remove multiple and log`(testContainers: TestContainers) {
+                val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
                 expectThat(DockerContainer.remove(*containers.toTypedArray(), force = true)).isSuccessful()
                 BACKGROUND.expectLogged.contains("Removing forcefully ${containers[0].name}${Delimiter.spaced}${containers[1].name} ${Symbols.OK}".ansiRemoved)
                 expectThat(containers).all { hasState<NotExistent>() }
             }
-        }
-
-        @AfterAll
-        fun tearDown() {
-            container.forEach { provider.release(it) }
         }
     }
 }

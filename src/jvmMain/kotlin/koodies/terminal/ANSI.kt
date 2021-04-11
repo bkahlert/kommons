@@ -6,6 +6,7 @@ import koodies.collections.toLinkedMap
 import koodies.runtime.AnsiSupport
 import koodies.runtime.ansiSupport
 
+@Deprecated("remove")
 public object ANSI {
     public val termColors: TermColors by lazy {
         TermColors(when (ansiSupport) {

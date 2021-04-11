@@ -14,7 +14,6 @@ import koodies.concurrent.process.Process.ExitState.Success
 import koodies.concurrent.process.io
 import koodies.docker.DockerExitStateHandler.Failure
 import koodies.or
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.takeUnlessBlank
 
 public const val NONE: String = "<none>"
@@ -37,12 +36,15 @@ public inline fun <reified T> ManagedProcess.dockerDaemonParse(
         is Success -> {
             Left(exitState.io.asSequence()
                 .filterIsInstance<OUT>()
-                .map { it.ansiRemoved }
+                .map { it.unformatted }
                 .map { it.split("\t") }
                 .filter { it.size == numColumns }
                 .map { it.map { field -> if (field == NONE) "" else field } }
-                .mapNotNull { transform(it) }
-                .toList())
+                .mapNotNull { columns ->
+                    kotlin.runCatching { transform(columns) }.recover {
+                        throw IllegalStateException("Error parsing $columns", it)
+                    }.getOrThrow()
+                }.toList())
         }
     }
 }

@@ -4,7 +4,7 @@ import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.test.Slow
-import koodies.test.UniqueId
+import koodies.test.UniqueId.Companion.simplifiedId
 import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import org.junit.jupiter.api.Tag
@@ -60,7 +60,7 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback {
         }
     }
 
-    private fun ExtensionContext.dockerContainer() = DockerContainer(UniqueId(uniqueId).simplified)
+    private fun ExtensionContext.dockerContainer() = DockerContainer(simplifiedId)
 
     private fun ExtensionContext.pullRequiredImages() =
         BACKGROUND.logging("Pulling required images") {

@@ -53,6 +53,7 @@ public object Docker {
      * @see DockerContainer
      */
     public fun containerRunning(name: String): Boolean = DockerContainer.from(name).isRunning
+    
 
 //    /**
 //     * Builds a [DockerSearchCommandLine] and executes it.

@@ -2,7 +2,12 @@ package koodies
 
 import koodies.Either.Left
 import koodies.Either.Right
+import koodies.debug.xray
 import koodies.runtime.isDebugging
+import koodies.text.ANSI.containsEscapeSequences
+import koodies.text.Semantics.formattedAs
+import koodies.text.TruncationStrategy.MIDDLE
+import koodies.text.truncate
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 
@@ -72,6 +77,32 @@ public fun String.checkNotBlank(): String = also{check(it.isNotBlank())}
 /** Throws an [IllegalStateException] with the result of calling [lazyMessage] if `this` string [isBlank]. */
 public fun String.checkNotBlank(lazyMessage: () -> Any): String = also{check(it.isNotBlank(),lazyMessage)}
 // @formatter:on
+
+/**
+ * Throws an [IllegalArgumentException] with the details if the value is obviously
+ * spoiled with unusual characters such as escape sequences.
+ */
+public fun String.requireSaneInput() {
+    require(!containsEscapeSequences) {
+        "ANSI escape sequences detected: $xray"
+    }
+    if (length > 1) {
+        mapOf(
+            "double quotes" to '\"',
+            "single quotes" to '\'',
+        ).forEach { (name, char) ->
+            require((first() == char) == (last() == char)) {
+                val annotatedInput = truncate(30, strategy = MIDDLE).let {
+                    val error = "$char".formattedAs.input
+                    if ((first() == char)) error + it.substring(1, lastIndex)
+                    else it.substring(0, lastIndex - 1) + error
+                }
+
+                "Unmatched $name detected: $annotatedInput"
+            }
+        }
+    }
+}
 
 /**
  * Returns `this` object if this [ProgramInstance] runs in debug mode or `null`, if it's not.

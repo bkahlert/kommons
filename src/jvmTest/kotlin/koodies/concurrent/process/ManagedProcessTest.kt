@@ -10,6 +10,7 @@ import koodies.concurrent.scriptPath
 import koodies.concurrent.toManagedProcess
 import koodies.io.path.asString
 import koodies.io.path.randomPath
+import koodies.shell.HereDoc
 import koodies.shell.ShellScript
 import koodies.terminal.escapeSequencesRemoved
 import koodies.test.Slow
@@ -43,6 +44,7 @@ import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThanOrEqualTo
@@ -52,6 +54,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import strikt.assertions.message
 import wait
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -62,6 +65,19 @@ import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class ManagedProcessTest {
+
+    @Nested
+    inner class Requirements {
+
+        // TODO delete check one day when its clear no more callers exist that use API incorrectly
+        // because it's legit to pass heredocs; they simply will not be intepreted
+        @Test
+        fun `should throw on contained here documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val cmdLine = CommandLine(HereDoc("command", delimiter = "DELIM1").toString(), HereDoc("command", delimiter = "DELIM2").toString())
+            expectCatching { cmdLine.toProcess().start() }.isFailure().isA<IllegalArgumentException>().message
+                .isNotNull().contains("DELIM1").contains("DELIM2")
+        }
+    }
 
     @Nested
     inner class Startup {

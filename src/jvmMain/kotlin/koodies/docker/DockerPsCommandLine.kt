@@ -4,19 +4,13 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.YesNo
 import koodies.builder.BooleanBuilder.YesNo.Context
 import koodies.builder.BuilderTemplate
-import koodies.builder.Init
 import koodies.builder.PairBuilder
 import koodies.builder.buildArray
 import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.output
 import koodies.docker.DockerPsCommandLine.Options.Companion.OptionsContext
-import koodies.logging.RenderingLogger
-import koodies.text.quoted
 
 /**
  * [DockerCommandLine] that lists locally available instances of [DockerContainer].
@@ -32,7 +26,7 @@ public open class DockerPsCommandLine(
         addAll(options)
         add("--no-trunc")
         add("--format")
-        add("{{.Names}}\t{{.State}}\t{{.Status}}".quoted)
+        add("{{.Names}}\t{{.State}}\t{{.Status}}")
     },
 ) {
     public open class Options(
@@ -88,41 +82,3 @@ public open class DockerPsCommandLine(
         }
     }
 }
-
-private fun ManagedProcess.parseContainers(): List<DockerContainer> =
-    output {
-        split("\t").takeIf { it.size == 3 }?.let {
-            DockerContainer.from(it[0])
-        }
-    }
-
-/**
- * Lists locally available instances of [DockerContainer] using the
- * [DockerPsCommandLine.Options] built with the given [OptionsContext] [Init].
- * and prints the [DockerCommandLine]'s execution to [System.out].
- */
-@Suppress("unused")
-public val Docker.ps: (Init<OptionsContext>) -> List<DockerContainer>
-    get() = {
-        DockerPsCommandLine {
-            options(it)
-        }.execute {
-            noDetails("Listing containers")
-            null
-        }.parseContainers()
-    }
-
-/**
- * Lists locally available instances of [DockerContainer] using the
- * [DockerPsCommandLine.Options] built with the given [OptionsContext] [Init]
- * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
- */
-public val RenderingLogger?.ps: Docker.(Init<OptionsContext>) -> List<DockerContainer>
-    get() = {
-        DockerPsCommandLine {
-            options(it)
-        }.execute {
-            noDetails("Listing containers")
-            null
-        }.parseContainers()
-    }

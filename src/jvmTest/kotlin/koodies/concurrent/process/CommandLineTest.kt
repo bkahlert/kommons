@@ -4,9 +4,11 @@ import koodies.concurrent.toManagedProcess
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.UniqueId
+import koodies.test.string
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -54,7 +57,7 @@ class CommandLineTest {
     fun `should run`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val command = CommandLine(emptyMap(), this, "echo", "test")
         expectThat(command) {
-            continuationsRemoved.isEqualTo("echo test")
+            string.continuationsRemoved.isEqualTo("echo test")
             evaluatesTo("test")
         }
     }
@@ -63,8 +66,39 @@ class CommandLineTest {
     fun `should run with more arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val command = CommandLine(emptyMap(), this, "echo", "one", "two", "three")
         expectThat(command) {
-            continuationsRemoved.isEqualTo("echo one two three")
+            string.continuationsRemoved.isEqualTo("echo one two three")
             evaluatesTo("one two three")
+        }
+    }
+
+    @Nested
+    inner class CompanionObject {
+
+        @Test
+        fun `should parse single line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine.parse("""
+                echo Hello
+            """.trimIndent(), this).commandLineParts.toList())
+                .containsExactly("echo", "Hello")
+        }
+
+        @Test
+        fun `should parse multi line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine.parse("""
+                echo \
+                Hello
+            """.trimIndent(), this).commandLineParts.toList())
+                .containsExactly("echo", "Hello")
+        }
+
+        @Test
+        fun `should parse empty line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine.parse("""
+                echo \
+                \
+                Hello
+            """.trimIndent(), this).commandLineParts.toList())
+                .containsExactly("echo", "Hello")
         }
     }
 
@@ -72,19 +106,22 @@ class CommandLineTest {
     inner class Expansion {
 
         @Test
-        fun `should expand`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should not expand unquoted parameters`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "\$HOME")
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo \$HOME")
-                evaluatesTo(System.getProperty("user.home"))
+                string.continuationsRemoved.isEqualTo("echo \$HOME")
+                evaluated {
+                    not { output.isEqualTo(System.getProperty("user.home")) }
+                    exitState.isEqualTo(0)
+                }
             }
         }
 
         @Test
-        fun `should not expand`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should not expand quoted parameters`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "\\\$HOME")
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo \\\$HOME")
+                string.continuationsRemoved.isEqualTo("echo \\\$HOME")
                 evaluated {
                     not { output.isEqualTo(System.getProperty("user.home")) }
                     exitState.isEqualTo(0)
@@ -146,7 +183,7 @@ class CommandLineTest {
         fun `should not quote unnecessarily`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "Hello")
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo Hello")
+                string.continuationsRemoved.isEqualTo("echo Hello")
                 evaluatesTo("Hello")
             }
         }
@@ -155,17 +192,24 @@ class CommandLineTest {
         fun `should quote on whitespaces`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val command = CommandLine(emptyMap(), this, "echo", "Hello World!")
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo \"Hello World!\"")
+                string.continuationsRemoved.isEqualTo("echo \"Hello World!\"")
                 evaluatesTo("Hello World!")
             }
         }
 
         @Test
-        fun `should support single quotes`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val command = CommandLine(emptyMap(), this, "echo", "'\$HOME'")
+        fun `should not substitute parameters`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val command = CommandLine(emptyMap(), this, "echo", "\$HOME")
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo '\$HOME'")
                 evaluatesTo("\$HOME")
+            }
+        }
+
+        @Test
+        fun `should not escape parameters`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val command = CommandLine(emptyMap(), this, "echo", "\$HOME")
+            expectThat(command) {
+                string.continuationsRemoved.isEqualTo("echo \$HOME")
             }
         }
     }
@@ -173,41 +217,65 @@ class CommandLineTest {
     @Nested
     inner class Nesting {
 
+        private fun Assertion.Builder<ManagedProcess>.outputParsedAsCommandLine(workingDir: Path) =
+            get { CommandLine.parse(io.out.merged.ansiRemoved, workingDir) }
+
         @Test
         fun `should produce runnable output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val nestedCommand = CommandLine(emptyMap(), this, "echo", "Hello")
-            val command = CommandLine(emptyMap(), this, "echo", nestedCommand.toString())
+            val nestedCommand = CommandLine(emptyMap(), this, "echo", "Hello").toString()
+            val command = CommandLine(emptyMap(), this, "echo", nestedCommand)
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo \"echo Hello\"")
+                toStringIsEqualTo("""
+                    echo \
+                    "echo \
+                    Hello"
+                """.trimIndent())
                 evaluated {
-                    output.isEqualTo("echo Hello")
-                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("Hello")
+                    output.isEqualTo("""
+                        echo \
+                        Hello
+                    """.trimIndent())
+                    outputParsedAsCommandLine(this@withTempDir).evaluatesTo("Hello")
                 }
             }
         }
 
         @Test
         fun `should produce runnable quoted output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val nestedCommand = CommandLine(emptyMap(), this, "echo", "Hello World!")
-            val command = CommandLine(emptyMap(), this, "echo", nestedCommand.toString())
+            val nestedCommand = CommandLine(emptyMap(), this, "echo", "Hello World!").toString()
+            val command = CommandLine(emptyMap(), this, "echo", nestedCommand)
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo \"echo \\\"Hello World!\\\"\"")
+                toStringIsEqualTo("""
+                    echo \
+                    "echo \
+                    \"Hello World!\""
+                """.trimIndent())
                 evaluated {
-                    output.isEqualTo("echo \"Hello World!\"")
-                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("Hello World!")
+                    output.isEqualTo("""
+                        echo \
+                        "Hello World!"
+                    """.trimIndent())
+                    outputParsedAsCommandLine(this@withTempDir).evaluatesTo("Hello World!")
                 }
             }
         }
 
         @Test
         fun `should produce runnable single quoted output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val nestedCommand = CommandLine(emptyMap(), this, "echo", "'Hello World!'")
-            val command = CommandLine(emptyMap(), this, "echo", nestedCommand.toString())
+            val nestedCommand = CommandLine(emptyMap(), this, "echo", "'Hello World!'").toString()
+            val command = CommandLine(emptyMap(), this, "echo", nestedCommand)
             expectThat(command) {
-                continuationsRemoved.isEqualTo("echo \"echo \\\"'Hello World!'\\\"\"")
+                toStringIsEqualTo("""
+                    echo \
+                    "echo \
+                    \"'Hello World!'\""
+                """.trimIndent())
                 evaluated {
-                    output.isEqualTo("echo \"'Hello World!'\"")
-                    log.out.get { CommandLine.parse(this, this@withTempDir) }.evaluatesTo("'Hello World!'")
+                    output.isEqualTo("""
+                        echo \
+                        "'Hello World!'"
+                    """.trimIndent())
+                    outputParsedAsCommandLine(this@withTempDir).evaluatesTo("'Hello World!'")
                 }
             }
         }
@@ -261,8 +329,8 @@ class CommandLineTest {
     }
 }
 
-val Assertion.Builder<CommandLine>.continuationsRemoved
-    get() = get("continuation removed %s") { toString().replace("\\s+\\\\.".toRegex(RegexOption.DOT_MATCHES_ALL), " ") }
+val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBuilder<String>
+    get() = get("continuation removed %s") { replace("\\s+\\\\.".toRegex(RegexOption.DOT_MATCHES_ALL), " ") }
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<ManagedProcess>
     get() = get("evaluated %s") {

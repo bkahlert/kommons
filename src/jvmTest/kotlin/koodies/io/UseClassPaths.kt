@@ -99,7 +99,7 @@ class ClassPathsKtTest {
         }
 
         @TestFactory
-        fun `should throw on write access`(uniqueId: UniqueId) = mapOf<String, Path.(Path) -> Unit>(
+        fun `should throw on write access`(uniqueId: UniqueId) = listOf<Pair<String, Path.(Path) -> Unit>>(
             "outputStream" to { Files.newBufferedWriter(it) },
             "move" to { Files.move(it, this) },
             "delete" to { Files.delete(it) },

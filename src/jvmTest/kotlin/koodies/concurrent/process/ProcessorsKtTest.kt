@@ -59,7 +59,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with non-blocking reader`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
+                process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
@@ -76,7 +76,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with blocking reader`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
+                process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
@@ -160,7 +160,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with non-blocking reader`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
+                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
@@ -177,7 +177,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with blocking reader`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\\${'$'}input you, too\""), null)
+                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)

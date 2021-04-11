@@ -11,7 +11,6 @@ import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerImageListCommandLine.Options.Companion.OptionsContext
-import koodies.text.quoted
 
 /**
  * [DockerImageCommandLine] that lists locally available instances of [DockerImage].
@@ -28,7 +27,7 @@ public open class DockerImageListCommandLine(
         addAll(options)
         add("--no-trunc")
         add("--format")
-        add("{{.Repository}}\t{{.Tag}}\t{{.Digest}}".quoted)
+        add("{{.Repository}}\t{{.Tag}}\t{{.Digest}}")
         image?.also { add(it.toString()) }
     },
 ) {

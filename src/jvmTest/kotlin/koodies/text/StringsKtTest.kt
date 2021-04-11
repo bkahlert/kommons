@@ -60,6 +60,30 @@ class StringsKtTest {
         }
     }
 
+    @Nested
+    inner class TrailingWhitespaces {
+
+        @Test
+        fun `should find single whitespace`() {
+            expectThat("abc ".trailingWhitespaces).isEqualTo(" ")
+        }
+
+        @Test
+        fun `should find untypical whitespaces`() {
+            expectThat(Unicode.whitespaces.joinToString("").trailingWhitespaces).hasLength(17)
+        }
+
+        @Test
+        fun `should find only last whitespaces`() {
+            expectThat("ab   c  ".trailingWhitespaces).isEqualTo("  ")
+        }
+
+
+        @Test
+        fun `should not find non trailing whitespaces`() {
+            expectThat("abc  x".trailingWhitespaces).isEqualTo("")
+        }
+    }
 
     @Nested
     inner class WithPrefixKtTest {

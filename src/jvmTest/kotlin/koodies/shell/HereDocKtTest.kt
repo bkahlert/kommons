@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotBlank
@@ -90,6 +91,20 @@ class HereDocKtTest {
             <<HERE-{}
             HERE-{}
         """.trimIndent())
+    }
+
+    @Nested
+    inner class CompanionObject {
+
+        @Test
+        fun `should find delimiters`() {
+            val text = "random string " +
+                HereDoc("command a-1", "command a-2", delimiter = "DELIMITER-A") +
+                " random string" +
+                HereDoc("command b-1", "command b-1", delimiter = "DELIMITER-B")
+
+            expectThat(HereDoc.findAllDelimiters(text)).containsExactly("DELIMITER-A", "DELIMITER-B")
+        }
     }
 
     @Nested

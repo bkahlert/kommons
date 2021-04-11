@@ -52,6 +52,18 @@ import kotlin.streams.asSequence
 import kotlin.system.exitProcess
 import filepeek.FilePeek2 as FilePeek
 
+/**
+ * Workaround annotation for
+ * [IDEA-265284: Add support for JUnit5 composed(meta) annotations annotated with `@ParametrizedTest`](https://youtrack.jetbrains.com/issue/IDEA-265284)
+ */
+public typealias IdeaWorkaroundTest = Test
+
+/**
+ * Workaround annotation for
+ * [IDEA-265284: Add support for JUnit5 composed(meta) annotations annotated with `@ParametrizedTest`](https://youtrack.jetbrains.com/issue/IDEA-265284)
+ */
+public typealias IdeaWorkaroundTestFactory = TestFactory
+
 private val root by lazy { JVM.deleteOnExit(createTempDirectory("koodies")) }
 
 object Tester {
@@ -459,7 +471,11 @@ fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
  * The name for each test is heuristically derived but can also be explicitly specified using [testNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
-inline fun <reified T> Iterable<T>.testWithTempDir(uniqueId: UniqueId, testNamePattern: String? = null, crossinline executable: Path.(T) -> Unit) =
+inline fun <reified T> Iterable<T>.testWithTempDir(
+    uniqueId: UniqueId,
+    testNamePattern: String? = null,
+    crossinline executable: Path.(T) -> Unit,
+) =
     testEach(testNamePattern) {
         test {
             withTempDir(uniqueId) {
@@ -467,25 +483,6 @@ inline fun <reified T> Iterable<T>.testWithTempDir(uniqueId: UniqueId, testNameP
             }
         }
     }
-
-/**
- * Creates a [DynamicTest] for each map entry—providing each test with a temporary work directory
- * that is automatically deletes after execution as the receiver object.
- *
- * The name for each test is heuristically derived but can also be explicitly specified using [testNamePattern]
- * which supports curly placeholders `{}` like [SLF4J] does.
- */
-inline fun <reified K, reified V> Map<K, V>.testWithTempDir(
-    uniqueId: UniqueId,
-    testNamePattern: String? = null,
-    crossinline executable: Path.(Pair<K, V>) -> Unit,
-) = toList().testEach(testNamePattern) {
-    test {
-        withTempDir(uniqueId) {
-            executable(it)
-        }
-    }
-}
 
 public object TestFlattener {
 

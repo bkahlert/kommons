@@ -9,6 +9,7 @@ import koodies.debug.trace
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options
 import koodies.test.BuilderFixture
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -24,6 +25,7 @@ class DockerSearchCommandLineTest {
         expectThat(dockerSearchCommandLine).isEqualTo(result)
     }
 
+    @Tag("docker")
     @Test
     fun `should search`() {
         val dockerSearchCommandLine = DockerSearchCommandLine {

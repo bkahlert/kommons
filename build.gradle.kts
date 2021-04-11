@@ -76,7 +76,7 @@ allprojects {
                 "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
                 "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
             if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
-                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ —̳͟͞͞   ${requested.version}")
+                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
                 useVersion("1.4.32")
                 because("of ambiguity issues")
             }

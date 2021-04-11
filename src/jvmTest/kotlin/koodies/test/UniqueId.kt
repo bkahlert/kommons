@@ -7,23 +7,34 @@ import org.junit.jupiter.api.extension.ExtensionContext
 class UniqueId(private val fullyQualified: String) {
 
     companion object {
-        fun ExtensionContext.uniqueId(): UniqueId = UniqueId(uniqueId)
+        val ExtensionContext.id get(): UniqueId = UniqueId(uniqueId)
+
+        /**
+         * Contains a simplified unique ID that only uses simple class names
+         * and a formatting that strives for readability.
+         *
+         * In contrast to the fully qualified [ExtensionContext.getUniqueId]
+         * its simplified variant cannot guarantee uniqueness
+         * in case of equally named classes in different packages.
+         */
+        val ExtensionContext.simplifiedId: String
+            get() = UniqueId(uniqueId).simplified
     }
 
     /**
      * Contains a simplified unique ID that only uses simple class names
      * and a formatting that strives for readability.
      *
-     * In contrast to the fully qualified [fullyQualified] this property cannot guarantee uniqueness
+     * In contrast to the fully qualified [fullyQualified]
+     * its simplified variant cannot guarantee uniqueness
      * in case of equally named classes in different packages.
      */
-    val simplified: String by lazy {
-        fullyQualified
+    val simplified: String
+        get() = fullyQualified
             .split("/")
             .map { formatNode(it) }
             .filter { it.isNotBlank() }
             .joinToString(".")
-    }
 
     private fun formatNode(node: String): String {
         val (type, value) = node.removeSurrounding("[", "]").split(":")

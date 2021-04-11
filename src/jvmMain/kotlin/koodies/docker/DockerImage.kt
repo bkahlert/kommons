@@ -4,7 +4,10 @@ import koodies.builder.StatelessBuilder
 import koodies.concurrent.execute
 import koodies.concurrent.process.Process.ExitState
 import koodies.docker.DockerImage.ImageContext
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.RenderingLogger
+import koodies.requireSaneInput
 import koodies.text.Semantics.formattedAs
 
 /**
@@ -43,12 +46,19 @@ public open class DockerImage(
 
     init {
         repoAndPath.forEach {
+            it.requireSaneInput()
             require(PATH_REGEX.matches(it)) {
                 "Specified path ${it.formattedAs.input} is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)"
             }
         }
-        tag?.also { require(it.isNotBlank()) { "Specified tag must not be blank." } }
-        digest?.also { require(it.isNotBlank()) { "Specified digest must not be blank." } }
+        tag?.also {
+            it.requireSaneInput()
+            require(it.isNotBlank()) { "Specified tag must not be blank." }
+        }
+        digest?.also {
+            it.requireSaneInput()
+            require(it.isNotBlank()) { "Specified digest must not be blank." }
+        }
     }
 
     /**
@@ -77,15 +87,18 @@ public open class DockerImage(
     /**
      * Checks if this image is pulled.
      */
-    public val isPulled: Boolean
-        get() = with(BACKGROUND) {
-            DockerImageListCommandLine {
-                image by this@DockerImage
-            }.execute {
-                summary("Checking if ${this@DockerImage.formattedAs.input} is pulled")
-                null
-            }.parseImages()
-        }.isNotEmpty()
+    public val isPulled: Boolean get() = with(BACKGROUND) { isPulled }
+
+    /**
+     * Current pulled state of this image—queried using `this` [RenderingLogger].
+     */
+    public val RenderingLogger.isPulled: Boolean
+        get() = DockerImageListCommandLine {
+            image by this@DockerImage
+        }.execute {
+            summary("Checking if ${this@DockerImage.formattedAs.input} is pulled")
+            null
+        }.parseImages().isNotEmpty()
 
     /**
      * Pulls this image from [Docker Hub](https://hub.docker.com/)
@@ -93,30 +106,32 @@ public open class DockerImage(
      *
      * Enabled [allTags] to download all tagged images in the repository.
      */
-    public fun pull(allTags: Boolean = false): ExitState = with(BACKGROUND) {
-        DockerImagePullCommandLine {
-            options { this.allTags by allTags }
-            image by this@DockerImage
-        }.execute {
-            summary("Pulling ${this@DockerImage.formattedAs.input}")
-            null
-        }.waitFor()
-    }
+    public fun pull(allTags: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
+        with(logger) {
+            DockerImagePullCommandLine {
+                options { this.allTags by allTags }
+                image by this@DockerImage
+            }.execute {
+                summary("Pulling ${this@DockerImage.formattedAs.input}")
+                null
+            }.waitFor()
+        }
 
     /**
      * Removes this image from the locally stored images.
      *
      * If [force] is specified, a force removal is triggered.
      */
-    public fun remove(force: Boolean = false): ExitState = with(BACKGROUND) {
-        DockerImageRemoveCommandLine {
-            options { this.force by force }
-            image by this@DockerImage
-        }.execute {
-            noDetails("Removing ${this@DockerImage.formattedAs.input}")
-            null
-        }.waitFor()
-    }
+    public fun remove(force: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
+        with(logger) {
+            DockerImageRemoveCommandLine {
+                options { this.force by force }
+                image by this@DockerImage
+            }.execute {
+                noDetails("Removing ${this@DockerImage.formattedAs.input}")
+                null
+            }.waitFor()
+        }
 
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {
@@ -211,12 +226,11 @@ public open class DockerImage(
             return DockerImage(repository, path, tag, digest)
         }
 
-
         /**
          * Lists locally available instances this image.
          */
-        public fun list(ignoreIntermediateImages: Boolean = true): List<DockerImage> =
-            with(BACKGROUND) {
+        public fun list(ignoreIntermediateImages: Boolean = true, logger: FixedWidthRenderingLogger = BACKGROUND): List<DockerImage> =
+            with(logger) {
                 DockerImageListCommandLine {
                     options { all by !ignoreIntermediateImages }
                 }.execute {

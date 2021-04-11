@@ -9,9 +9,8 @@ import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
-import koodies.regex.get
 import koodies.shell.ShellExecutable
-import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
@@ -20,8 +19,6 @@ import org.codehaus.plexus.util.StringUtils
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import java.nio.file.Path
 import kotlin.io.path.exists
-import kotlin.text.RegexOption.DOT_MATCHES_ALL
-import kotlin.text.RegexOption.MULTILINE
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 
 @DslMarker
@@ -102,7 +99,7 @@ public open class CommandLine(
      * e.g. `echo "Hello World!"`.
      */
     public val commandLine: String by lazy {
-        formattedRedirects + CommandLineUtils.toString(commandLineParts).fixHereDoc()
+        formattedRedirects + CommandLineUtils.toString(commandLineParts)
     }
 
     /**
@@ -117,12 +114,12 @@ public open class CommandLine(
      * ```
      */
     public val multiLineCommandLine: String by lazy {
-        commandLineParts.joinToString(separator = " \\${LineSeparators.LF}") {
+        commandLineParts.joinToString(separator = " \\$LF") {
             StringUtils.quoteAndEscape(
                 it.trim(),
                 '\"'
             )
-        }.fixHereDoc()
+        }
     }
 
     /**
@@ -195,45 +192,16 @@ public open class CommandLine(
             )
         }
 
-
         /**
          * Parses a [commandLine] string and returns an instance of [CommandLine]
          * that would generate the same string again.
          */
         public fun parse(commandLine: String, workingDirectory: Path): CommandLine {
-            val plexusCommandLine = PlexusCommandLine(commandLine)
+            val plexusCommandLine = PlexusCommandLine(commandLine.replace("\\$LF", ""))
             val rawCommandline = plexusCommandLine.rawCommandline
             return rawCommandline.takeIf { it.isNotEmpty() }
                 ?.let { CommandLine(emptyList(), emptyMap(), workingDirectory, it.first(), it.drop(1)) }
                 ?: throw IllegalArgumentException("$commandLine is no valid command line.")
-        }
-
-        /**
-         * A [Regex] that matches the start of a [here document](https://en.wikipedia.org/wiki/Here_document).
-         */
-        private val HEREDOC_START_PATTERN: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
-
-        /**
-         * Given `this` command line string containing [here documents](https://en.wikipedia.org/wiki/Here_document),
-         * this function will returns a command line string where the here documents will no longer
-         * be wrapped by double or single quotes.
-         */
-        public fun String.fixHereDoc(): String {
-            var fixed = this
-            val hereDocNames = HEREDOC_START_PATTERN.findAll(fixed).map { it["name"] }
-            hereDocNames.forEach { name ->
-                fixed = Regex("[\"']+<<$name.*^$name[\"']+", setOf(MULTILINE, DOT_MATCHES_ALL)).replace(fixed) {
-                    var hereDoc = it.value
-                    while (true) {
-                        val unquoted = hereDoc.unquoted
-                        if (unquoted != hereDoc) hereDoc = unquoted
-                        else break
-                    }
-                    hereDoc
-                }
-            }
-
-            return fixed
         }
     }
 

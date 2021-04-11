@@ -3,9 +3,7 @@ package koodies.docker
 import koodies.asString
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.execute
-import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.errors
 import koodies.docker.DockerContainer.Companion.ContainerContext
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
@@ -17,12 +15,15 @@ import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
 import koodies.io.path.asString
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValue
 import koodies.lowerSentenceCaseName
 import koodies.map
 import koodies.or
 import koodies.regex.get
+import koodies.requireSaneInput
 import koodies.text.CharRanges.Alphanumeric
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
@@ -38,13 +39,20 @@ import kotlin.time.seconds
 public class DockerContainer(public val name: String) {
 
     init {
+        name.requireSaneInput()
         require(isValid(name)) { "${name.formattedAs.input} is invalid. It needs to match ${REGEX.formattedAs.input}." }
     }
 
     /**
      * Current state of this container.
      */
-    public val state: State get() = queryState(this).also { _cachedState = it }
+    public val state: State get() = BACKGROUND.state
+
+    /**
+     * Current state of this container—queried using `this` [RenderingLogger].
+     */
+    public val RenderingLogger.state: State get() = queryState(this@DockerContainer, this).also { _cachedState = it }
+
     private var _cachedState: State? = null
 
     /**
@@ -124,12 +132,6 @@ public class DockerContainer(public val name: String) {
         }.waitFor()
     }
 
-    private fun ManagedProcess.dockerDaemonParse(): Boolean = errors().let {
-        it.isBlank()
-            || it.contains("no such container", ignoreCase = true)
-            && !it.contains("cannot remove a running container", ignoreCase = true)
-    }
-
     /**
      * Removes this container.
      *
@@ -137,17 +139,18 @@ public class DockerContainer(public val name: String) {
      * @param link remove the specified link associated with the container
      * @param volumes remove anonymous volumes associated with the container
      */
-    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false): ExitState = with(BACKGROUND) {
-        val dockerRemoveCommandLine = DockerRemoveCommandLine {
-            options { this.force by force; this.link by link; this.volumes by volumes }
-            this.containers by listOf(name)
+    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
+        with(logger) {
+            val dockerRemoveCommandLine = DockerRemoveCommandLine {
+                options { this.force by force; this.link by link; this.volumes by volumes }
+                this.containers by listOf(name)
+            }
+            val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
+            dockerRemoveCommandLine.execute {
+                noDetails("Removing$forcefully $name")
+                null
+            }.waitFor()
         }
-        val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
-        dockerRemoveCommandLine.execute {
-            noDetails("Removing$forcefully $name")
-            null
-        }.waitFor()
-    }
 
     override fun toString(): String = asString {
         ::name.name to name
@@ -170,40 +173,44 @@ public class DockerContainer(public val name: String) {
     }
 
 
-    public companion object : StatelessBuilder.Returning<ContainerContext, DockerContainer>(ContainerContext), Iterable<DockerContainer> {
+    public companion object : StatelessBuilder.Returning<ContainerContext, DockerContainer>(ContainerContext) {
 
-        override fun iterator(): Iterator<DockerContainer> = query().iterator()
+        private fun queryState(container: DockerContainer, logger: RenderingLogger = BACKGROUND): State =
+            with(logger) {
+                DockerPsCommandLine {
+                    options { all by true; container.run { exactName(name) } }
+                }.execute {
+                    noDetails("Checking status of ${container.name.formattedAs.input}")
+                    null
+                }.parse.columns(3) { (_, state, status) ->
+                    when (state.capitalize()) {
+                        Created::class.simpleName -> Created(status)
+                        Restarting::class.simpleName -> Restarting(status)
+                        Running::class.simpleName -> Running(status)
+                        Removing::class.simpleName -> Removing(status)
+                        Paused::class.simpleName -> Paused(status)
+                        Exited::class.simpleName -> Exited(status)
+                        Dead::class.simpleName -> Dead(status)
+                        else -> Error(-1, "Unknown status $state: $status")
+                    }
+                }.map { singleOrNull() ?: NotExistent }.or { error(it) }
+            }
 
-        private fun queryState(container: DockerContainer): State = with(BACKGROUND) {
-            DockerPsCommandLine {
-                options { all by true; container.run { exactName(name) } }
-            }.execute {
-                noDetails("Checking status of ${container.name.formattedAs.input}")
-                null
-            }.parse.columns(3) { (_, state, status) ->
-                when (state.capitalize()) {
-                    Created::class.simpleName -> Created(status)
-                    Restarting::class.simpleName -> Restarting(status)
-                    Running::class.simpleName -> Running(status)
-                    Removing::class.simpleName -> Removing(status)
-                    Paused::class.simpleName -> Paused(status)
-                    Exited::class.simpleName -> Exited(status)
-                    Dead::class.simpleName -> Dead(status)
-                    else -> Error(-1, "Unknown status $state: $status")
-                }
-            }.map { singleOrNull() ?: NotExistent }.or { error(it) }
-        }
+        /**
+         * Lists locally available instances this containers.
+         */
+        public fun list(logger: FixedWidthRenderingLogger = BACKGROUND): List<DockerContainer> =
+            with(logger) {
+                DockerPsCommandLine {
+                    options { all by true }
+                }.execute {
+                    noDetails("Listing ${"all".formattedAs.input} containers")
+                    null
+                }.parse.columns(3) { (name, _, _) ->
+                    DockerContainer(name)
+                }.or { error(it) }
+            }
 
-        private fun query(): List<DockerContainer> = with(BACKGROUND) {
-            DockerPsCommandLine {
-                options { all by true }
-            }.execute {
-                noDetails("Listing ${"all".formattedAs.input} containers")
-                null
-            }.parse.columns(3) { (name, _, _) ->
-                DockerContainer(name)
-            }.or { error(it) }
-        }
 
         /**
          * Starts the given [containers].

@@ -10,7 +10,6 @@ import koodies.concurrent.process.Process.ExitState.Success
 import koodies.concurrent.process.Process.ProcessState
 import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.concurrent.thenAlso
-import koodies.concurrent.toShellScriptFile
 import koodies.debug.asEmoji
 import koodies.exception.dump
 import koodies.exception.toCompactString
@@ -19,13 +18,18 @@ import koodies.io.TeeInputStream
 import koodies.io.TeeOutputStream
 import koodies.io.path.asPath
 import koodies.io.path.asString
+import koodies.shell.HereDoc
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
+import org.codehaus.plexus.util.cli.CommandLineUtils
+import org.codehaus.plexus.util.cli.shell.Shell
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.failedFuture
@@ -65,21 +69,70 @@ public interface ManagedProcess : Process {
     public fun addPostTerminationCallback(callback: ManagedProcess.(ExitState) -> Unit): ManagedProcess
 }
 
-private fun CommandLine.toJavaProcess(): JavaProcess {
-    val scriptFile: String = if (command.asPath().isScriptFile()) command else toShellScriptFile().asString()
+private fun Path.runScriptAsJavaProcess(environment: Map<String, String>, workingDirectory: Path): JavaProcess {
+    require(isScriptFile()) { "$this must be a script file." }
+    val scriptFile: String = asString()
+
+    val directory: File = requireValidWorkingDirectory(workingDirectory)
 
     val shell = PlexusCommandLine().shell
     val shellCommandLine = shell.getShellCommandLine(arrayOf(scriptFile))
-    val processBuilder = ProcessBuilder(shellCommandLine).also { pb ->
+
+    return ProcessBuilder(shellCommandLine).let { pb ->
         pb.environment().putAll(environment)
-        pb.directory(workingDirectory.toAbsolutePath().run {
-            require(exists()) { "Working directory $this does not exist." }
-            require(isDirectory()) { "Working directory $this is no directory." }
-            toFile()
-        })
+        pb.directory(directory)
+        pb.start()
     }
-    return processBuilder.start()
 }
+
+private fun CommandLine.runCommandLineAsJavaProcess(): JavaProcess {
+
+    require(redirects.isEmpty()) {
+        "Redirects are only supported for shell scripts.$LF" +
+            "Convert your command line first to a script file and execute that one."
+    }
+    val hereDocDelimiters = HereDoc.findAllDelimiters(CommandLineUtils.toString(commandLineParts))
+    require(hereDocDelimiters.isEmpty()) {
+        "The command line contained here documents ($hereDocDelimiters) which " +
+            "will not be escaped and are not what you intended to do."
+    }
+
+    val directory: File = requireValidWorkingDirectory(workingDirectory)
+
+    val shell = PlexusCommandLine().shell
+    val shellCommandLine = shell.getShellCommandLine(commandLineParts)
+
+    return ProcessBuilder(shellCommandLine).let { pb ->
+        pb.environment().putAll(environment)
+        pb.directory(directory)
+        pb.start()
+    }
+}
+
+// TODO implement toggle to run commandLine always as script to provide
+// an easy way to see what was executed
+/**
+ * # THE function to execute command lines
+ *
+ * Checks if `this` command line points to a script file and if yes,
+ * executes it using a [Shell].
+ *
+ * Otherwise the command line is taken as is and executes using the VM's
+ * [ProcessBuilder].
+ */
+private fun CommandLine.toJavaProcess(): JavaProcess {
+    val scriptFile: Path? = kotlin.runCatching { command.asPath() }.getOrNull()?.takeIf { it.isScriptFile() }
+    return scriptFile
+        ?.runScriptAsJavaProcess(environment, workingDirectory)
+        ?: runCommandLineAsJavaProcess()
+}
+
+private fun requireValidWorkingDirectory(workingDirectory: Path): File =
+    workingDirectory.toAbsolutePath().run {
+        require(exists()) { "Working directory $this does not exist." }
+        require(isDirectory()) { "Working directory $this is no directory." }
+        toFile()
+    }
 
 /**
  * Process that wraps an existing [JavaProcess] and forwards all
