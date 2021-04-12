@@ -28,7 +28,7 @@ public open class DockerProcess private constructor(
             val container = dockerRunCommandLine.options.name ?: error("Docker container name missing.")
             val managedProcess = ManagedProcess.from(dockerRunCommandLine,
                 processTerminationCallback = { ex ->
-                    //TODO       container.remove { force { on } }.apply { onExit.orTimeout(8, SECONDS).get() }
+//                    TODO       container.remove { force { on } }.apply { onExit.orTimeout(8, SECONDS).get() }
                     processTerminationCallback?.also { it(ex) }
                 })
             return DockerProcess(container, managedProcess)

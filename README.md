@@ -28,6 +28,94 @@
 
 ## Features
 
+### Run Commands & Scripts Locally and in a Docker Container
+
+#### Command Lines
+
+```kotlin
+commandLine("echo", "Hello World!").execute() // 💻 Local
+
+with(DockerImage { official("ubuntu") }) { // 🐳 Docker Container
+    commandLine("echo", "Hello World!").execute()
+}
+```
+
+#### Shell Scripts
+
+```kotlin
+script { // 💻 Local
+    !"echo 'Hello World!'"
+}
+
+with(DockerImage { official("ubuntu") }) { // 🐳 Docker Container
+    script {
+        !"echo 'Hello World!'"
+    }
+}
+```
+
+#### Interact with a Process
+
+```kotlin
+process("echo 'Hello World!'") { io ->
+    println("Process did output $io") // process the I/O of any process
+}.start()
+```
+
+#### Automatically Captured I/O
+
+```kotlin
+println(process.io)
+```
+
+```shell
+Executing /some/where/koodies.process.bka.sh
+Hello World!
+Process 1234 terminated successfully at 2021-05-15T14:30:00Z.
+```
+
+### Docker Runner
+
+Run busybox …
+
+```kotlin
+Docker.busybox("""
+  while true; do
+  echo "looping"
+  sleep 1
+  done
+""").execute()
+```
+
+… or any container you want …
+
+```kotlin
+Docker.run {
+    image { "lukechilds" / "dockerpi" tag "vm" }
+    options {
+        name { "raspberry-pi" }
+        remove { on }
+        interactive { on }
+        mount { Locations.HomeDir mountAt "/sdcard/filesystem.img" }
+    }
+}
+```
+
+… and if something goes wrong, easy to read error message:
+
+```shell
+ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(ManagedProcess.kt:126)
+  ➜ A dump has been written to:
+    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.log (unchanged)
+    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.no-ansi.log (ANSI escape/control sequences removed)
+  ➜ The last 6 lines are:
+    🐳 docker attach "download-latest-bkahlert_koodies"
+    Executing docker run --name download-latest-bkahlert_koodies --rm -i --mount type=bind,source=/var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T,target=/tmp zero88/ghrd --regex bkahlert/koodies
+    Searching release 'latest' in repository 'bkahlert/koodies'…
+    Not Found artifact '' with regex option 'on'
+    Process 67008 terminated with exit code 2. Expected 0.
+```
+
 ### Multi-Platform Builder Template
 
 #### Example: Car DSL *[full example](src/commonTest/kotlin/koodies/builder/CarDSL.kt)*
@@ -200,85 +288,6 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
             axis with wheel { … } + wheel { … } // 2nd axis with two wheels
           }
           ```
-
-### Processes
-
-#### Run & Interact with a Process
-
-```kotlin
-process("echo 'Hello World!'") { io ->
-    println("Process did output $io") // process the I/O of any process
-}.start()
-```
-
-#### Run a Command Line
-
-```kotlin
-commandLine("echo", "Hello World!").execute()
-```
-
-#### Running a Shell Script
-
-```kotlin
-script {
-    shebang()
-    !"echo 'Hello World!'"
-}
-```
-
-#### Automatically Captured I/O
-
-```kotlin
-println(process.ioLog)
-```
-
-```shell
-Executing /some/where/koodies.process.bka.sh
-Hello World!
-Process 1234 terminated successfully at 2021-05-15T14:30:00Z.
-```
-
-### Docker Runner
-
-Run busybox …
-
-```kotlin
-Docker.busybox("""
-  while true; do
-  echo "looping"
-  sleep 1
-  done
-""").execute()
-```
-
-… or any container you want …
-
-```kotlin
-Docker.run {
-    image { "lukechilds" / "dockerpi" tag "vm" }
-    options {
-        name { "raspberry-pi" }
-        remove { on }
-        interactive { on }
-        mount { Locations.HomeDir mountAt "/sdcard/filesystem.img" }
-    }
-}
-```
-
-… and if something goes wrong, easy to read error message:
-
-```shell
-ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(ManagedProcess.kt:126)
-  ➜ A dump has been written to:
-    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.log (unchanged)
-    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.no-ansi.log (ANSI escape/control sequences removed)
-  ➜ The last 6 lines are:
-    🐳 docker attach "download-latest-bkahlert_koodies"
-    Executing docker run --name download-latest-bkahlert_koodies --rm -i --mount type=bind,source=/var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T,target=/tmp zero88/ghrd --regex bkahlert/koodies
-    Searching release 'latest' in repository 'bkahlert/koodies'…
-    Not Found artifact '' with regex option 'on'
-    Process 67008 terminated with exit code 2. Expected 0.
-```
 
 ### IP Address Tooling (4 & 6)
 

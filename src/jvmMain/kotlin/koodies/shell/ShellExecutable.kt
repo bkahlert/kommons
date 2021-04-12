@@ -13,11 +13,6 @@ import koodies.concurrent.process.ProcessTerminationCallback
 public interface ShellExecutable : Executable {
 
     /**
-     * Creates a [CommandLine] that is able to run [Executable].
-     */
-    public fun toCommandLine(): CommandLine
-
-    /**
      * Creates a [ManagedProcess] to run this executable.
      */
     public fun toProcess(): ManagedProcess = toProcess(null, null)

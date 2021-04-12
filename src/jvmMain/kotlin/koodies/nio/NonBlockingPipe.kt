@@ -1,5 +1,7 @@
 package koodies.nio
 
+import koodies.asString
+import koodies.debug.asEmoji
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -22,7 +24,7 @@ import java.nio.channels.WritableByteChannel
 public open class NonBlockingPipe(
     public val inputStream: InputStream,
     public val outputStream: OutputStream,
-) {
+) : AutoCloseable {
     private val readBuffer: ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
     private val readChannel: ReadableByteChannel = Channels.newChannel(inputStream)
     private val writeChannel: WritableByteChannel = Channels.newChannel(outputStream)
@@ -35,7 +37,7 @@ public open class NonBlockingPipe(
             kotlin.runCatching {
                 when (readChannel.read(readBuffer)) {
                     -1 -> {
-                        closed = true
+                        close()
                         readChannelRead()
                         return
                     }
@@ -51,7 +53,7 @@ public open class NonBlockingPipe(
                     }
                 }
             }.onFailure {
-                closed = true
+                close()
                 readChannelRead()
                 return
             }
@@ -59,4 +61,20 @@ public open class NonBlockingPipe(
     }
 
     protected open fun readChannelRead(): Unit = Unit
+
+    override fun toString(): String = asString {
+        ::readBuffer.name to readBuffer
+        ::readChannel.name to with(readChannel) { asString { "open" to isOpen.asEmoji } }
+        ::writeChannel.name to with(writeChannel) { asString { "open" to isOpen.asEmoji } }
+    }
+
+    override fun close() {
+        if (!closed) {
+            closed = true
+            readChannel.close()
+            inputStream.close()
+            writeChannel.close()
+            outputStream.close()
+        }
+    }
 }

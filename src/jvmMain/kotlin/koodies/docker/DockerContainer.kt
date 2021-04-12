@@ -25,6 +25,7 @@ import koodies.or
 import koodies.regex.get
 import koodies.requireSaneInput
 import koodies.text.CharRanges.Alphanumeric
+import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
@@ -224,7 +225,7 @@ public class DockerContainer(public val name: String) {
                 options { this.attach by attach; this.interactive by interactive }
                 this.containers by names
             }.execute {
-                noDetails("Starting ${names.joinToString(Symbols.Delimiter.spaced) { it.formattedAs.input }}")
+                noDetails("Starting ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
                 null
             }.waitFor()
         }
@@ -239,7 +240,7 @@ public class DockerContainer(public val name: String) {
                 options { this.timeout by timeout }
                 this.containers by names
             }.execute {
-                noDetails("Stopping ${names.joinToString(Symbols.Delimiter.spaced) { it.formattedAs.input }}")
+                noDetails("Stopping ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
                 null
             }.waitFor()
         }
@@ -260,7 +261,7 @@ public class DockerContainer(public val name: String) {
                 }
                 val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
                 dockerRemoveCommandLine.execute {
-                    noDetails("Removing$forcefully ${names.joinToString(Symbols.Delimiter.spaced) { it.formattedAs.input }}")
+                    noDetails("Removing$forcefully ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
                     null
                 }.waitFor()
             }

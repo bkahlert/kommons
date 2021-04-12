@@ -62,8 +62,8 @@ public class DockerizedExecution(
      * Options used to [executeDockerized] a [CommandLine].
      */
     public data class DockerizedExecutionOptions(
-        val dockerOptions: Options = Options(),
-        val executionOptions: Execution.Options = Execution.Options(),
+        public val dockerOptions: Options = Options(),
+        public val executionOptions: Execution.Options = Execution.Options(),
     ) {
         public companion object : BuilderTemplate<OptionsContext, DockerizedExecutionOptions>() {
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {

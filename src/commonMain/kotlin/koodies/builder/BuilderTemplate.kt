@@ -4,6 +4,7 @@ import koodies.asString
 import koodies.builder.BuilderTemplate.BuildContext
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
+import koodies.simpleClassName
 import kotlin.reflect.KProperty
 
 /**
@@ -109,12 +110,15 @@ import kotlin.reflect.KProperty
  */
 public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
 
-    override fun invoke(init: Init<C>): T =
-        runCatching {
-            BuildContext(init).build()
+    override fun invoke(init: Init<C>): T {
+        val buildContext = BuildContext(init)
+        return runCatching {
+            buildContext.build()
         }.getOrElse {
-            throw IllegalStateException("An error occurred while building: ${this::class.simpleName}", it)
+            if (it is IllegalArgumentException) throw IllegalArgumentException("${this::class.simpleClassName} could not build due to illegal input", it)
+            else throw IllegalStateException("An error occurred while building: ${toString(buildContext)}", it)
         }
+    }
 
     /**
      * Builds an instance of type [T].
@@ -200,6 +204,12 @@ public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
          * evaluates and returns it. Otherwise throws a [NoSuchElementException].
          */
         public inline fun <reified T> KProperty<*>.eval(): T = with(captures) { eval() }
+
+        override fun toString(): String = asString(::captures)
+    }
+
+    private fun toString(buildContext: BuildContext): String = asString {
+        "build context" to buildContext
     }
 
     override fun toString(): String = asString()

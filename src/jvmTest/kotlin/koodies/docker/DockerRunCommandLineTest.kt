@@ -281,7 +281,7 @@ class DockerRunCommandLineTest {
                 pseudoTerminal = true,
                 mounts = MountOptions(
                     MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
-                    MountOption("bind", "/e/f/../g".asHostPath(), "//h".asContainerPath()),
+                    MountOption("/e/f/../g".asHostPath(), "//h".asContainerPath(), "bind"),
                 ),
                 custom = listOf("custom1", "custom2")
             ),

@@ -1,14 +1,8 @@
 package koodies.text
 
 import koodies.collections.map
-import koodies.text.ANSI.Colors.blue
-import koodies.text.ANSI.Colors.brightCyan
-import koodies.text.ANSI.Colors.brightYellow
-import koodies.text.ANSI.Colors.cyan
-import koodies.text.ANSI.Colors.gray
-import koodies.text.ANSI.Colors.green
-import koodies.text.ANSI.Colors.red
-import koodies.text.ANSI.Style.italic
+import koodies.text.ANSI.Text
+import koodies.text.ANSI.Text.Companion.ansi
 
 public object Semantics {
 
@@ -28,7 +22,6 @@ public object Semantics {
         public val Computation: String = Unicode.Emojis.hourglass.emojiVariant.formattedAs.progress
         public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
         public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
-        public val Delimiter: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
         public val Document: String = Unicode.Emojis.pageFacingUp.toString()
         public val Null: String = "␀".formattedAs.warning
     }
@@ -41,60 +34,70 @@ public object Semantics {
         /**
          * Formats `this` [text] as expressing something successful.
          */
-        public val success: String get() = text { green() }
+        public val success: String get() = text { green }
 
         /**
          * Formats `this` [text] as expressing something ongoing.
          */
-        public val progress: String get() = text { blue() }
+        public val progress: String get() = text { blue }
 
         /**
          * Formats `this` [text] as expressing a warning.
          */
-        public val warning: String get() = text { brightYellow() }
+        public val warning: String get() = text { brightYellow }
 
         /**
          * Formats `this` [text] as expressing something that failed.
          */
-        public val failure: String get() = text { red() }
+        public val failure: String get() = text { red }
 
         /**
          * Formats `this` [text] as expressing something that failed.
          */
-        public val error: String get() = text { red() }
+        public val error: String get() = text { red }
 
         /**
          * Formats `this` [text] to ease temporary debugging.
          */
-        public val debug: String get() = text { brightCyan() }
+        public val debug: String get() = text { brightCyan }
 
         /**
          * Formats `this` [text] as expressing an input.
          */
-        public val input: String get() = text { cyan() }
+        public val input: String get() = text { cyan }
 
         /**
          * Formats `this` [text] as expressing a meta information.
          */
-        public val meta: String get() = text { italic().gray() }
+        public val meta: String get() = text { italic.gray }
 
         /**
          * Formats `this` [text] as expressing a unit.
          */
-        public val unit: String get() = text { wrap(Markers.unit.map { meta }) }
+        public val unit: String get() = text { wrap(BlockDelimiters.UNIT.map { it.formattedAs.meta }) }
+
+        /**
+         * Formats `this` [text] as expressing a named unit.
+         */
+        public fun unit(name: String): String = "${name.formattedAs.meta} $text".formattedAs.unit
 
         /**
          * Formats `this` [text] as expressing a block.
          */
-        public val block: String get() = text { wrap(Markers.block.map { meta }) }
+        public val block: String get() = text { wrap(BlockDelimiters.BLOCK.map { it.formattedAs.meta }) }
     }
 
-    public object Markers {
-        public val unit: Pair<String, String> = "⟨" to "⟩"
-        public val block: Pair<String, String> = "{" to "}"
-        public val introspection: Pair<String, String> = "❬" to "❭"
+    public object FieldDelimiters {
+        public val UNIT: String = ".".formattedAs.meta
+        public val FIELD: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
     }
 
-    private inline operator fun String.invoke(transform: String.() -> CharSequence): String = transform().toString()
+    public object BlockDelimiters {
+        public val UNIT: Pair<String, String> = "⟨" to "⟩"
+        public val BLOCK: Pair<String, String> = "{" to "}"
+        public val INTROSPECTION: Pair<String, String> = "❬" to "❭"
+    }
+
+    private inline operator fun String.invoke(transform: Text.() -> CharSequence): String = ansi.transform().toString()
     public val <T> T.formattedAs: SemanticText get() = SemanticText(toString())
 }

@@ -110,7 +110,7 @@ kotlin {
             kotlinOptions {
                 languageVersion = "1.4"
                 apiVersion = "1.4"
-                jvmTarget = "11"
+                jvmTarget = "1.8"
                 useIR = true
                 freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.io.path.ExperimentalPathApi")
             }
@@ -335,8 +335,4 @@ if (version.isFinal()) {
         sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
         sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
     }
-}
-
-gradle.buildFinished {
-    println("Version: ${version} - ${findPropertyEverywhere("org.gradle.java.home")}")
 }

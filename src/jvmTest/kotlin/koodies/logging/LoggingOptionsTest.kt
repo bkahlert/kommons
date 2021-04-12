@@ -7,6 +7,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
 import koodies.text.ANSI
 import koodies.text.ANSI.Formatter.Companion.fromScratch
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -172,6 +173,8 @@ class LoggingOptionsTest {
     @Nested
     inner class CompactLog {
 
+        private val formatter: ANSI.Formatter = ANSI.Formatter { it.ansi.inverse.magenta }
+
         @Nested
         inner class Sync {
 
@@ -180,7 +183,7 @@ class LoggingOptionsTest {
                 countDownAndStart().execute {
                     compact {
                         caption { "caption" }
-                        contentFormatter { ANSI.Colors.magenta + ANSI.Style.inverse }
+                        contentFormatter { formatter }
                     }
                     null
                 }
@@ -198,7 +201,7 @@ class LoggingOptionsTest {
                 justStart().execute {
                     compact {
                         caption { "caption" }
-                        contentFormatter { ANSI.Colors.magenta + ANSI.Style.inverse }
+                        contentFormatter { formatter }
                     }
                     null
                 }
@@ -221,7 +224,7 @@ class LoggingOptionsTest {
                     processing { async }
                     compact {
                         caption { "caption" }
-                        contentFormatter { ANSI.Colors.magenta + ANSI.Style.inverse }
+                        contentFormatter { formatter }
                     }
                     null
                 }.waitForTermination()
@@ -257,7 +260,7 @@ class LoggingOptionsTest {
                     processing { async }
                     compact {
                         caption { "caption" }
-                        contentFormatter { ANSI.Colors.magenta + ANSI.Style.inverse }
+                        contentFormatter { formatter }
                     }
                     null
                 }.waitForTermination()

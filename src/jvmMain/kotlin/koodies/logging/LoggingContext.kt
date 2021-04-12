@@ -11,6 +11,7 @@ import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.prefixLinesWith
@@ -34,7 +35,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
                 groupBy({ it.first }) { it.second }.map { (logger, messages) ->
                     logger.caption to messages.joinToString("").withoutTrailingLineSeparator
                 }
-                    .joinToString(Symbols.Delimiter)
+                    .joinToString(FieldDelimiters.FIELD)
             }
         }
     }

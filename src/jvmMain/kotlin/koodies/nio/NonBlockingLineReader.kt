@@ -1,5 +1,6 @@
 package koodies.nio
 
+import koodies.asString
 import koodies.io.ByteArrayOutputStream
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
@@ -24,7 +25,7 @@ public open class NonBlockingLineReader(
         val read = lineBuffer.toString(Charsets.UTF_8)
 
         read.lines(keepDelimiters = true, ignoreTrailingSeparator = true)
-            .filter { line -> line.hasTrailingLineSeparator }
+            .filter { line -> line.hasTrailingLineSeparator || done }
             .forEach { line ->
                 fullyRead.append(line)
                 lineProcessor(line.withoutTrailingLineSeparator)
@@ -35,6 +36,17 @@ public open class NonBlockingLineReader(
         }
     }
 
-    override fun toString(): String =
-        "Reader(lineBuffer=$lineBuffer)"
+    override fun toString(): String = asString {
+        ::lineBuffer.name to lineBuffer
+        ::lineProcessor.name to lineProcessor
+        ::inputStream.name to inputStream
+        ::outputStream.name to outputStream
+    }
+
+    override fun close() {
+        if (!done) {
+            super.close()
+            if (lineBuffer.size() > 0) readChannelRead()
+        }
+    }
 }

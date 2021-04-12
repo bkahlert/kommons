@@ -1,5 +1,6 @@
 package koodies
 
+import koodies.text.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -10,6 +11,44 @@ import strikt.assertions.isNotEqualTo
 
 @Execution(SAME_THREAD)
 class SimpleStringKtTest {
+
+    private companion object
+
+    @Nested
+    inner class ForKClass {
+
+        @Test
+        fun `should return class name`() {
+            expectThat(SimpleStringKtTest::class.simpleClassName)
+                .ansiRemoved.isEqualTo("SimpleStringKtTest")
+        }
+
+        @Test
+        fun `should return inner class name`() {
+            expectThat(ForKClass::class.simpleClassName)
+                .ansiRemoved.isEqualTo("SimpleStringKtTest.ForKClass")
+        }
+
+        @Test
+        fun `should return companion class name`() {
+            expectThat(Companion::class.simpleClassName)
+                .ansiRemoved.isEqualTo("SimpleStringKtTest.Companion")
+        }
+
+        @Test
+        fun `should return anonymous class name`() {
+            expectThat((object : Any() {})::class.simpleClassName)
+                .ansiRemoved.isEqualTo("SimpleStringKtTest.ForKClass.should return anonymous class name.1")
+        }
+
+        @Test
+        fun `should return lambda class name`() {
+            val lambda: (String) -> Int = { 42 }
+            expectThat(lambda::class.simpleClassName)
+                .ansiRemoved.isEqualTo("SimpleStringKtTest.ForKClass.should return lambda class name.lambda.1")
+        }
+    }
+
 
     @Nested
     inner class ForLambdas {

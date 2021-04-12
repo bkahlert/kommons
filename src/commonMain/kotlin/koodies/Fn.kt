@@ -15,6 +15,13 @@ import kotlin.contracts.contract
  * Runs the specified [block] if `this` is `null` and provide
  * and expected instance of [T].
  *
+ * Example:
+ * ```kotlin
+ * val value: String? = …
+ *  …
+ * val result: String = value otherwise { "fallback" }
+ * ```
+ *
  * @see takeIf
  */
 public inline infix fun <T> T?.otherwise(block: () -> T): T {

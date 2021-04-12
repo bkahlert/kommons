@@ -44,6 +44,11 @@ public interface Executable {
      * Brief description of that this executable is doing.
      */
     public val summary: String
+    
+    /**
+     * Creates a [CommandLine] that is able to run [Executable].
+     */
+    public fun toCommandLine(): CommandLine
 
     /**
      * Creates a [ManagedProcess] to run this executable.

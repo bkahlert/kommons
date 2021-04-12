@@ -155,7 +155,7 @@ public object ANSI {
             return round(255 * fraction).toInt().let { rgb(it, it, it) }
         }
 
-        private fun ansi16(code: Int) =
+        private fun ansi16(code: Int): AnsiColorCode =
             if (level == NONE) DisabledAnsiColorCode else Ansi16ColorCode(code)
 
         /**

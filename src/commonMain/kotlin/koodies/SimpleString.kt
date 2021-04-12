@@ -2,20 +2,35 @@ package koodies
 
 import koodies.regex.RegularExpressions
 import koodies.regex.get
+import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
 import kotlin.reflect.KClass
 
 
 /**
- * Returns a string representation of this lambda with eventually
- * existing classes reduced to their [KClass.simpleName].
+ * Contains an package-free class name like `ClassName`.
+ * for strings containing a
+ * - simple class name
+ * - fully qualified class name
+ * - any of the above with a `class ` prefix.
  */
-public fun <T : Any> KClass<T>.toSimpleString(): String = simpleName ?: error("$this has no simple name")
+private val String.simpleClassName: String
+    get() {
+        val classPrefixStripped = toString().substringAfter(" ")
+        return RegularExpressions.fullyClassifiedClassNameRegex.matchEntire(classPrefixStripped)?.let {
+            it["class"] ?: "❓"
+        }?.replace("$", FieldDelimiters.UNIT).takeIf { it != "null" } ?: "object"
+    }
 
-public val String.simpleClassName: String
-    get() = RegularExpressions.fullyClassifiedClassNameRegex.matchEntire(this)?.let {
-        it["class"] ?: "❓"
-    } ?: this
+/**
+ * Contains the (inner) class name like `ClassName` or `ClassName.InnerClassName` of `this` [KClass].
+ */
+public val KClass<*>.simpleClassName: String get() = toString().simpleClassName
+
+/**
+ * Contains the (inner) class name like `ClassName` or `ClassName.InnerClassName` of `this` [KClass].
+ */
+public fun KClass<*>.simpleName(): String = toString().simpleClassName
 
 private fun String.formatParams(limit: Int = 1): String =
     RegularExpressions.fullyClassifiedClassNameRegex.findAll(this)
@@ -24,7 +39,7 @@ private fun String.formatParams(limit: Int = 1): String =
         .mapIndexed { index, text -> if (index == limit) "⋯" else text }
         .joinToString(", ")
 
-public fun Any?.toSimpleString(): String = if (this == null) Symbols.Null else toString()
+public fun Any?.toSimpleString(): String = this?.toString() ?: Symbols.Null
 
 /**
  * Returns a string representation of this lambda with eventually

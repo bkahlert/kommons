@@ -1,18 +1,31 @@
 package koodies.docker
 
+import koodies.debug.CapturedOutput
+import koodies.docker.MountOptionContext.Type.tmpfs
+import koodies.docker.MountOptionContext.Type.volume
+import koodies.docker.MountOptions.Companion.CollectingMountOptionsContext
+import koodies.test.SystemIoExclusive
 import koodies.test.UniqueId
+import koodies.test.testEach
 import koodies.test.withTempDir
+import koodies.time.poll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isTrue
 import strikt.assertions.message
 import java.nio.file.Path
+import kotlin.time.milliseconds
+import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class MountOptionsTest {
@@ -69,6 +82,71 @@ class MountOptionsTest {
             expectCatching { mountOptions.mapToContainerPath("/different/root".asHostPath()) }
                 .isFailure().isA<IllegalArgumentException>()
                 .message.isEqualTo("/different/root is not mapped by any of $this/host/root1, $this/host/root2, $this/host/root3, $this/host/root1")
+        }
+    }
+
+    @Nested
+    inner class WithBuilder {
+
+        @Test
+        fun `should build`() {
+            val mountOption = MountOptions {
+                "string-source" mountAt "/string-target"
+                "host-source".asHostPath() mountAt "/string-target"
+                "host-source".asHostPath() mountAt "/container-target".asContainerPath()
+
+                "string-source" mountAs "string-type" at "/string-target"
+                "string-source" mountAs "string-type" at "/container-target".asContainerPath()
+                "host-source".asHostPath() mountAs "string-type" at "/string-target"
+                "host-source".asHostPath() mountAs "string-type" at "/container-target".asContainerPath()
+
+                "string-source" mountAs volume at "/string-target"
+                "string-source" mountAs volume at "/container-target".asContainerPath()
+                "host-source".asHostPath() mountAs tmpfs at "/string-target"
+                "host-source".asHostPath() mountAs tmpfs at "/container-target".asContainerPath()
+            }
+            expectThat(mountOption).contains(
+                MountOption("string-source".asHostPath(), "/string-target".asContainerPath()),
+                MountOption("host-source".asHostPath(), "/string-target".asContainerPath()),
+                MountOption("host-source".asHostPath(), "/container-target".asContainerPath()),
+
+                MountOption("string-source".asHostPath(), "/string-target".asContainerPath(), "string-type"),
+                MountOption("string-source".asHostPath(), "/container-target".asContainerPath(), "string-type"),
+                MountOption("host-source".asHostPath(), "/string-target".asContainerPath(), "string-type"),
+                MountOption("host-source".asHostPath(), "/container-target".asContainerPath(), "string-type"),
+
+                MountOption("string-source".asHostPath(), "/string-target".asContainerPath(), volume.name),
+                MountOption("string-source".asHostPath(), "/container-target".asContainerPath(), volume.name),
+                MountOption("host-source".asHostPath(), "/string-target".asContainerPath(), tmpfs.name),
+                MountOption("host-source".asHostPath(), "/container-target".asContainerPath(), tmpfs.name),
+            )
+        }
+
+        @TestFactory
+        fun `should throw on relative target`() = listOf<CollectingMountOptionsContext.() -> Unit>(
+            { "host-source".asHostPath() mountAt "string-target" },
+            { "host-source".asHostPath() mountAt "container-target".asContainerPath() },
+            { "string-source" mountAs "string-type" at "string-target" },
+            { "string-source" mountAs "string-type" at "container-target".asContainerPath() },
+        ).testEach { mountOperation ->
+            test {
+                expectThrowing { MountOptions { mountOperation() } }.isFailure().isA<IllegalArgumentException>()
+            }
+        }
+
+        @SystemIoExclusive
+        @TestFactory
+        fun `should throw on incomplete mounts`(capturedOutput: CapturedOutput) = listOf<CollectingMountOptionsContext.() -> Unit>(
+            { "string-source" mountAs "string-type" },
+            { "host-source".asHostPath() mountAs "string-type" },
+            { "string-source" mountAs volume },
+            { "host-source".asHostPath() mountAs tmpfs },
+        ).testEach { mountOperation ->
+            test {
+                MountOptions { mountOperation() }
+                expectThat(poll { capturedOutput.contains("missing") && capturedOutput.contains("complete the configuration") }
+                    .every(100.milliseconds).forAtMost(5.seconds) { fail("No warning due to missing at call logged.") }).isTrue()
+            }
         }
     }
 }

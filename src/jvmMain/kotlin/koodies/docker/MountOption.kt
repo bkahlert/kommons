@@ -1,13 +1,19 @@
 package koodies.docker
 
 import koodies.builder.StatelessBuilder.Returning
+import koodies.concurrent.thread
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
+import koodies.text.Semantics.formattedAs
+import koodies.text.styling.Borders
+import koodies.text.styling.wrapWithBorder
+import koodies.time.sleep
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
+import kotlin.time.milliseconds
 
-public data class MountOption(val type: String = "bind", val source: HostPath, val target: ContainerPath) :
+public data class MountOption(val source: HostPath, val target: ContainerPath, val type: String = "bind") :
     AbstractList<String>() {
     private val list = listOf("--mount", "type=$type,source=${source.asString()},target=${target.asString()}")
 
@@ -27,29 +33,48 @@ public data class MountOption(val type: String = "bind", val source: HostPath, v
     }
 
     public companion object : Returning<MountOptionContext<MountOption>, MountOption>(object : MountOptionContext<MountOption> {
-        override fun mount(type: String, source: HostPath, target: ContainerPath): MountOption {
-            return MountOption(type, source, target)
+        override fun mount(source: HostPath, target: ContainerPath, type: String): MountOption {
+            return MountOption(source, target, type)
         }
     })
 }
 
 public interface MountOptionContext<T> {
+
     public enum class Type { bind, volume, tmpfs }
-    public data class Mount(val type: String, val source: HostPath)
+    public data class Mount<T>(
+        val type: String,
+        val source: HostPath,
+        private val completeCallback: Mount<T>.(ContainerPath) -> T,
+    ) {
+        private var incomplete: Boolean = true
 
-    public fun mount(type: String = "bind", source: HostPath, target: ContainerPath): T
+        init {
+            thread {
+                50.milliseconds.sleep()
+                if (incomplete) listOf("Mount ${source.formattedAs.input} of type ${type.formattedAs.input} is missing its ${"target".formattedAs.input}.",
+                    "Use the ${"at".formattedAs.warning} method to complete the configuration.").wrapWithBorder(Borders.Rounded,
+                    formatter = { it.formattedAs.warning }).also { println(it) }
+            }
+        }
 
-    public infix fun String.mountAt(target: String): T = mount(source = asHostPath(), target = target.asContainerPath())
-    public infix fun HostPath.mountAt(target: ContainerPath): T = mount(source = this, target = target)
-    public infix fun HostPath.mountAt(target: String): T = mount(source = this, target = target.asContainerPath())
+        public infix fun at(target: String): T = at(target.asContainerPath())
+        public infix fun at(target: ContainerPath): T = run {
+            incomplete = false
+            completeCallback(target)
+        }
+    }
 
-    public infix fun String.mountAs(type: String): Mount = Mount(type, asHostPath())
-    public infix fun HostPath.mountAs(type: String): Mount = Mount(type, this)
-    public infix fun String.mountAs(type: Type): Mount = Mount(type.name, asHostPath())
-    public infix fun HostPath.mountAs(type: Type): Mount = Mount(type.name, this)
+    public fun mount(source: HostPath, target: ContainerPath, type: String = "bind"): T
 
-    public infix fun Mount.at(target: String): T = mount(type = type, source = source, target = target.asContainerPath())
-    public infix fun Mount.at(target: ContainerPath): T = mount(type = type, source = source, target = target)
+    public infix fun String.mountAt(target: String): T = mount(asHostPath(), target.asContainerPath())
+    public infix fun HostPath.mountAt(target: ContainerPath): T = mount(this, target)
+    public infix fun HostPath.mountAt(target: String): T = mount(this, target.asContainerPath())
+
+    public infix fun String.mountAs(type: String): Mount<T> = Mount(type, asHostPath()) { mount(source, it, type) }
+    public infix fun HostPath.mountAs(type: String): Mount<T> = Mount(type, this) { mount(source, it, type) }
+    public infix fun String.mountAs(type: Type): Mount<T> = Mount(type.name, asHostPath()) { mount(source, it, type.name) }
+    public infix fun HostPath.mountAs(type: Type): Mount<T> = Mount(type.name, this) { mount(source, it, type.name) }
 }
 
 public inline class ContainerPath(private val containerPath: Path) {

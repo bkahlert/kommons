@@ -7,17 +7,20 @@ import koodies.text.CodePoint
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
-import koodies.text.Semantics.Markers
+import koodies.text.Semantics.BlockDelimiters
 import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
 import koodies.text.asCodePointSequence
+import koodies.text.takeUnlessBlank
 
 public class XRay<T>(
     private val subject: T,
     private val stringifier: T.() -> String,
     private val transform: (T.() -> Any)?,
 ) : CharSequence {
+
+    private val source = callSource
 
     private fun <T> asString(subject: T): String = when (subject) {
         is Array<*> -> asString(subject.toList())
@@ -37,7 +40,12 @@ public class XRay<T>(
     }
 
     private val string: String by lazy {
-        transform?.let { subject.selfString() + " " + subject.it().transformedString() } ?: subject.selfString()
+        val source = source.takeUnlessBlank()?.let { ".⃦⃥ͥ ".formattedAs.debug + "($it) ".formattedAs.meta } ?: ""
+        source + run {
+            transform?.let {
+                subject.selfString() + " " + subject.it().transformedString()
+            } ?: subject.selfString()
+        }
     }
 
     override val length: Int = string.length
@@ -87,8 +95,8 @@ public class XRay<T>(
         private fun lineBreakSymbol(lineBreak: String) = "⏎$lineBreak"
 
         private fun highlight(subject: Any?) = subject.toString().formattedAs.debug
-        private val selfBrackets = Markers.unit.map { it.formattedAs.debug }
-        private val transformedBrackets = Markers.block.map { it.formattedAs.debug }
+        private val selfBrackets = BlockDelimiters.UNIT.map { it.formattedAs.debug }
+        private val transformedBrackets = BlockDelimiters.BLOCK.map { it.formattedAs.debug }
     }
 }
 
@@ -153,3 +161,5 @@ public val <T> T.trace: T
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun <T> T.trace(transform: T.() -> Any?): T =
     apply { println(xray(transform = { transform().toString() })) }
+
+public expect val XRay<*>.callSource: String

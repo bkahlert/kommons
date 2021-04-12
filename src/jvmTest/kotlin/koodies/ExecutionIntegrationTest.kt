@@ -3,14 +3,16 @@ package koodies
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
+import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.err
 import koodies.concurrent.process.io
 import koodies.concurrent.process.merged
+import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.concurrent.script
 import koodies.debug.CapturedOutput
 import koodies.docker.DockerImage
-import koodies.docker.executeDockerized
+import koodies.docker.NONE
 import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
@@ -27,7 +29,7 @@ import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.lines
-import koodies.text.lines
+import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Test
@@ -39,6 +41,7 @@ import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.count
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
@@ -151,30 +154,50 @@ class ExecutionIntegrationTest {
         }
     }
 
-    // TODO exit state
-//    @Test
-//    fun `should handle errors`(consoleOutput: CapturedOutput) {
-//
-//        // and if something goes wrong an exception is thrown
-//        ShellScript {
-//            !"echo 'Countdown!'"
-//            (10 downTo 0).forEach { !"echo '$it'" }
-//            !"echo 'Take Off'"
-//        }.execute {
-//            processing { async } // ❗️
-//            null
-//        }
-//
-//        // the exception can't be caught during async exec
-//        // luckily it prints to the console as a fallback
-//        // with the run script and the complete output linked
-//        pollCatching {
-//            (consoleOutput.out.ansiRemoved.lines()) {
-//                any { matchesCurlyPattern("⌛️ ➜ A dump has been written to{}") }
-//                any { matchesCurlyPattern("⌛️ ϟ Process {} terminated with exit code 0. Expected -1.") }
-//            }
-//        }.every(500.milliseconds).forAtMost(5.seconds) { fail { "No exception logged" } }
-//    }
+    @Test
+    fun `should handle errors`(consoleOutput: CapturedOutput) {
+
+        // and if something goes wrong, a failed exit state is returned
+        ShellScript {
+            !"echo 'Countdown!'"
+            (10 downTo 7).forEach { !"echo '$it'" }
+            !"1>&2 echo 'Boom!'"
+            !"exit -1"
+        }.execute {
+            block { border { NONE } }
+            null
+        } check {
+            exitState { isA<ExitState.Failure>() }
+            io.merged {
+                matchesCurlyPattern("""
+                Executing {}
+                📄 file://{}
+                Countdown!
+                10
+                9
+                8
+                7
+                Boom!
+                Process $pid terminated with exit code $exitValue
+                📄 file://{}
+                ➜ A dump has been written to:
+                  - {}koodies.dump.{}.log (unchanged)
+                  - {}koodies.dump.{}.no-ansi.log (ANSI escape/control sequences removed)
+                ➜ The last 10 lines are:
+                  Executing {}
+                  📄 file://{}
+                  Countdown!
+                  10
+                  9
+                  8
+                  7
+                  Boom!
+                  Process $pid terminated with exit code $exitValue
+                {{}}
+            """.trimIndent())
+            }
+        }
+    }
 
     @Test
     fun `should be simple`() {
@@ -209,31 +232,20 @@ class ExecutionIntegrationTest {
     @Test
     fun `should process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
-        // boring ...
-        CommandLine("printenv").execute { null } check { io.merged.ansiRemoved { lines().count().isGreaterThan(10) } }
+        // let's define a simple command line
+        val commandLine = CommandLine("printenv")
 
-        // how about that ...
-        CommandLine("printenv").executeDockerized(DockerImage { official("ubuntu") }, null) check {
-            io.merged.ansiRemoved { lines().count().isGreaterThan(2) }
+        // and run it
+        commandLine.execute { null } check {
+            io.out { count().isGreaterThan(10) }
         }
 
-//        DockerContainer.listContainers
-//        "non-existent-container".toContainerName().isRunning
-//        DockerContainer.
-//        Docker.remove { containers { +"non-existent-container" } }
-        // DOcker remove example
-        /**
-         * koodies.concurrent.process.ProcessExecutionException: Process 32473 terminated with exit code 1.
-
-        ➜ A dump has been written to:
-        - file:///Users/bkahlert/Development/com.bkahlert/koodies/koodies.dump.LQG.log (unchanged)
-        - file:///Users/bkahlert/Development/com.bkahlert/koodies/koodies.dump.LQG.no-ansi.log (ANSI escape/control sequences removed)
-        ➜ The last 4 lines are:
-        Executing docker rm koodies.docker.test-container
-        Error: No such container: koodies.docker.test-container
-        Process 32473 terminated with exit code 1.
-
-         */
+        // How about running it in a container?
+        with(DockerImage { official("ubuntu") }) {
+            commandLine.execute { null } check {
+                io.out { any { ansiRemoved.isEqualTo("HOME=/root") } }
+            }
+        }
     }
 
     @Test

@@ -262,10 +262,10 @@ class ShellScriptTest {
             -arg1 \
             --argument \
             2 \
-            <<HEREDOC
+            "<<HEREDOC
             heredoc 1
             -heredoc-line-2
-            HEREDOC
+            HEREDOC"
 
         """.trimIndent())
         }

@@ -240,7 +240,7 @@ public fun <P : ManagedProcess> P.processSynchronously(
     }
     while (readers.any { !it.done }) {
         readers.filter { !it.done }.forEach { ioReader ->
-            ioReader.read()
+            ioReader.use { ioReader.read() }
         }
     }
 

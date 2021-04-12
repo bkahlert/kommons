@@ -3,6 +3,7 @@ package koodies.logging
 import koodies.exception.toCompactString
 import koodies.nullable.let
 import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbolizable
 import koodies.text.Semantics.Symbols
 import koodies.text.takeUnlessBlank
@@ -81,7 +82,7 @@ public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableList
             else -> "Multiple problems encountered: " + unsuccessful.joinToString("") { returnValue ->
                 (returnValue.textRepresentation ?: "").lines()
                     .mapNotNull { line -> line.takeUnlessBlank() }
-                    .joinToString(prefix = "$LF    ${returnValue.symbol} ", separator = " ${Symbols.Delimiter} ")
+                    .joinToString(prefix = "$LF    ${returnValue.symbol} ", separator = " ${FieldDelimiters.FIELD} ")
             }
         }
 

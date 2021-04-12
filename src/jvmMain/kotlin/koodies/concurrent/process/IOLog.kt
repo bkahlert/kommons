@@ -1,8 +1,6 @@
 package koodies.concurrent.process
 
 import koodies.asString
-import koodies.concurrent.process.IO.META
-import koodies.concurrent.process.IO.OUT
 import koodies.exception.persistDump
 import koodies.io.ByteArrayOutputStream
 import koodies.text.INTERMEDIARY_LINE_PATTERN
@@ -42,7 +40,7 @@ public class IOLog {
     /**
      * Adds the specified [META] [IO] to this log.
      */
-    public operator fun plus(meta: META) {
+    public operator fun plus(meta: IO.META) {
         lock.withLock { log.add(meta) }
     }
 
@@ -188,7 +186,7 @@ public val ManagedProcess.io: List<IO> get() = ioLog.getCopy()
  */
 public fun ManagedProcess.output(): String = run {
     process({ sync }, Processors.noopProcessor())
-    ioLog.getCopy().merge<OUT>()
+    ioLog.getCopy().merge<IO.OUT>()
 }
 
 /**

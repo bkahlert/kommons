@@ -9,8 +9,8 @@ import koodies.terminal.AnsiColors.brightCyan
 import koodies.terminal.AnsiColors.cyan
 import koodies.terminal.AnsiColors.gray
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.Semantics.Markers.introspection
-import koodies.text.Semantics.Symbols
+import koodies.text.Semantics.BlockDelimiters.INTROSPECTION
+import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.formattedAs
 import koodies.text.asCodePoint
 import koodies.text.withoutPrefix
@@ -21,11 +21,11 @@ import koodies.toSimpleString
 public object Debug {
     public fun CharSequence.meta(): String = brightCyan()
     public fun CharSequence.secondaryMeta(): String = cyan()
-    public val defaultEnclosement: Pair<String, String> = introspection.map { it.formattedAs.debug }
-    public fun wrap(text: CharSequence?, prefix: String = introspection.first, suffix: String = introspection.second): String =
+    public val defaultEnclosement: Pair<String, String> = INTROSPECTION.map { it.formattedAs.debug }
+    public fun wrap(text: CharSequence?, prefix: String = INTROSPECTION.first, suffix: String = INTROSPECTION.second): String =
         text?.wrap(prefix.meta(), suffix.meta()) ?: null.wrap("❬".meta(), "❭".meta())
 
-    public val DELIM: String = Symbols.Delimiter.ansiRemoved.formattedAs.debug
+    public val DELIM: String = FieldDelimiters.FIELD.ansiRemoved.formattedAs.debug
 }
 
 public val <T> XRay<T>.debug: XRay<T>

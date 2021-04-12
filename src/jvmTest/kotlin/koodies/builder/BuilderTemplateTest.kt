@@ -3,10 +3,15 @@ package koodies.builder
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.test.test
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import strikt.api.expectCatching
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 @Execution(SAME_THREAD)
 class BuilderTemplateTest {
@@ -245,6 +250,24 @@ class BuilderTemplateTest {
                     byNullableSetter = "default" to null,
                 ))
             }
+        }
+    }
+
+    @Nested
+    inner class ErrorsHandling {
+
+        private inner class ThrowingBuilder(val exception: Throwable) : BuilderTemplate<Any, Any>() {
+            override fun BuildContext.build(): Any = throw exception
+        }
+
+        @Test
+        fun `should throw IllegalStateException on error`() {
+            expectCatching { ThrowingBuilder(RuntimeException("test")).build { } }.isFailure().isA<IllegalStateException>()
+        }
+
+        @Test
+        fun `should throw IllegalArgumentException on illegal input`() {
+            expectCatching { ThrowingBuilder(IllegalArgumentException("input")).build { } }.isFailure().isA<IllegalArgumentException>()
         }
     }
 }

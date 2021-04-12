@@ -12,7 +12,6 @@ private fun tripleFromTo() {
     "first" to "second" to "third"
 }
 
-
 /**
  * Returns a pair containing the results of applying the given [transform] function
  * to each element in the original pair.

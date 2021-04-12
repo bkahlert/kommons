@@ -1,9 +1,13 @@
 package koodies.docker
 
 import koodies.builder.StatelessBuilder
+import koodies.concurrent.Executable
 import koodies.concurrent.execute
+import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.Process.ExitState
+import koodies.concurrent.process.Processor
 import koodies.docker.DockerImage.ImageContext
+import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
@@ -132,6 +136,42 @@ public open class DockerImage(
                 null
             }.waitFor()
         }
+
+    /**
+     * Runs `this` [CommandLine] using this image and the
+     * [DockerRunCommandLine.Options] built with the given [OptionsContext] [init].
+     */
+    public fun CommandLine.execute(
+        logger: RenderingLogger? = BACKGROUND,
+        init: (OptionsContext.() -> Processor<DockerProcess>?)? = null,
+    ): DockerProcess {
+        return DockerizedExecution(logger, this@DockerImage, this).executeWithOptionalProcessor(init)
+    }
+
+    /**
+     * Runs `this` [CommandLine] using the
+     * given [DockerImage] and the
+     * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
+     * and prints the [DockerCommandLine]'s execution to [System.out].
+     */
+    public fun Executable.execute(
+        logger: RenderingLogger? = BACKGROUND,
+        init: (OptionsContext.() -> Processor<DockerProcess>?)? = null,
+    ): DockerProcess {
+        return DockerizedExecution(logger, this@DockerImage, this.toCommandLine()).executeWithOptionalProcessor(init)
+    }
+
+    /**
+     * Runs `this` [CommandLine] using the
+     * given [DockerImage] and the
+     * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
+     * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
+     */
+    public val RenderingLogger?.execute: Executable.(DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
+        get() = { image, optionsInit ->
+            DockerizedExecution(this@execute, image, this.toCommandLine()).executeWithOptionalProcessor(optionsInit)
+        }
+
 
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {

@@ -4,6 +4,7 @@ import koodies.BuilderClass.Context
 import koodies.builder.Builder
 import koodies.test.test
 import koodies.test.testEach
+import koodies.text.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -15,9 +16,9 @@ class CallablesTest {
 
     @TestFactory
     fun `should have valid test data`() = testEach(Object()) {
-        expect { function("-") }.that { isEqualTo("function(-)") }
-        expect { ForeignClass().extensionFunction(1) }.that { isEqualTo("ForeignClass(id=default).function(default-1)") }
-        expect { SomeClass().memberFunction(2) }.that { isEqualTo("SomeClass(id=default).function(default-2)") }
+        expect { function("-") }.that { ansiRemoved.isEqualTo("function(-)") }
+        expect { ForeignClass().extensionFunction(1) }.that { ansiRemoved.isEqualTo("ForeignClass(id=default).function(default-1)") }
+        expect { SomeClass().memberFunction(2) }.that { ansiRemoved.isEqualTo("SomeClass { id = default }.function(default-2)") }
     }
 
     @Nested
@@ -29,10 +30,10 @@ class CallablesTest {
 
         @TestFactory
         fun `should delegate`() = test(Host()) {
-            expect { implementedFunction("test,", 3) }.that { isEqualTo("test,test,test,") }
-            expect { implementedFunction("test,", null) }.that { isEqualTo("test,test,") }
-            expect { implementedSamInterface("test,", 3) }.that { isEqualTo("test,test,test,") }
-            expect { implementedSamInterface("test,", null) }.that { isEqualTo("test,test,") }
+            expect { implementedFunction("test,", 3) }.that { ansiRemoved.isEqualTo("test,test,test,") }
+            expect { implementedFunction("test,", null) }.that { ansiRemoved.isEqualTo("test,test,") }
+            expect { implementedSamInterface("test,", 3) }.that { ansiRemoved.isEqualTo("test,test,test,") }
+            expect { implementedSamInterface("test,", null) }.that { ansiRemoved.isEqualTo("test,test,") }
         }
     }
 
@@ -50,13 +51,13 @@ class CallablesTest {
 
         @TestFactory
         fun `should delegate`() = test(Host()) {
-            expect { delegatedFunction("-", emptyArray()) }.that { isEqualTo("function(-)") }
-            expect { delegatedExtensionFunction(1) }.that { isEqualTo("ForeignClass(id=default).function(default-1)") }
-            expect { delegatedMemberFunction(2) }.that { isEqualTo("SomeClass(id=default).function(default-2)") }
+            expect { delegatedFunction("-", emptyArray()) }.that { ansiRemoved.isEqualTo("function(-)") }
+            expect { delegatedExtensionFunction(1) }.that { ansiRemoved.isEqualTo("ForeignClass(id=default).function(default-1)") }
+            expect { delegatedMemberFunction(2) }.that { ansiRemoved.isEqualTo("SomeClass { id = default }.function(default-2)") }
             expect { unboundDelegatedExtensionFunction(ForeignClass("invocation-based"), 3) }
-                .that { isEqualTo("ForeignClass(id=invocation-based).function(invocation-based-3)") }
+                .that { ansiRemoved.isEqualTo("ForeignClass(id=invocation-based).function(invocation-based-3)") }
             expect { unboundDelegatedMemberFunction(SomeClass("invocation-based"), 4) }
-                .that { isEqualTo("SomeClass(id=invocation-based).function(invocation-based-4)") }
+                .that { ansiRemoved.isEqualTo("SomeClass { id = invocation-based }.function(invocation-based-4)") }
             expect { delegatedBuilder { count();count() } }.that { isEqualTo(2) }
             expect { delegatedBuilderInstance { count();count() } }.that { isEqualTo(2) }
         }
@@ -77,13 +78,13 @@ class CallablesTest {
 
         @TestFactory
         fun `should delegate using delegate provider`() = test(Host()) {
-            expect { delegatedFunction("-", emptyArray()) }.that { isEqualTo("function(-)") }
-            expect { delegatedExtensionFunction(1) }.that { isEqualTo("ForeignClass(id=default).function(default-1)") }
-            expect { delegatedMemberFunction(2) }.that { isEqualTo("SomeClass(id=default).function(default-2)") }
+            expect { delegatedFunction("-", emptyArray()) }.that { ansiRemoved.isEqualTo("function(-)") }
+            expect { delegatedExtensionFunction(1) }.that { ansiRemoved.isEqualTo("ForeignClass(id=default).function(default-1)") }
+            expect { delegatedMemberFunction(2) }.that { ansiRemoved.isEqualTo("SomeClass { id = default }.function(default-2)") }
             expect { unboundDelegatedExtensionFunction(ForeignClass("invocation-based"), 3) }
-                .that { isEqualTo("ForeignClass(id=invocation-based).function(invocation-based-3)") }
+                .that { ansiRemoved.isEqualTo("ForeignClass(id=invocation-based).function(invocation-based-3)") }
             expect { unboundDelegatedMemberFunction(SomeClass("invocation-based"), 4) }
-                .that { isEqualTo("SomeClass(id=invocation-based).function(invocation-based-4)") }
+                .that { ansiRemoved.isEqualTo("SomeClass { id = invocation-based }.function(invocation-based-4)") }
             expect { delegatedBuilder { count();count() } }.that { isEqualTo(2) }
             expect { delegatedBuilderInstance { count();count() } }.that { isEqualTo(2) }
         }
@@ -92,9 +93,8 @@ class CallablesTest {
 
 data class ForeignClass(val id: String = "default")
 
-fun function(id: String = "default", vararg receivers: Any): String {
-    return receivers.joinToString("") { "$it." } + "function($id)"
-}
+fun function(id: String = "default", vararg receivers: Any): String =
+    receivers.joinToString("") { "$it." } + "function($id)"
 
 fun ForeignClass.extensionFunction(argument: Int): String = function("$id-$argument", this)
 
