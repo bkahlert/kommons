@@ -14,19 +14,17 @@ import koodies.logging.LoggingContext
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValues
+import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.UniqueId.Companion.id
-import koodies.test.UniqueId.Companion.simplifiedId
 import koodies.test.withAnnotation
-import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
 import koodies.time.poll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
@@ -129,7 +127,7 @@ annotation class ContainersTest(
     val logging: Boolean = false,
 )
 
-class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), BeforeEachCallback, AfterEachCallback {
+class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), AfterEachCallback {
 
     private val ExtensionContext.provider: TestContainersProvider
         get() = (withAnnotation<ContainersTestFactory, KClass<out TestContainersProvider>> { provider }
@@ -138,34 +136,16 @@ class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), Be
             ?: error("Currently only ${TestContainersProvider::class.simpleName} singletons are supported, that is, implemented as an object.")
 
     private val ExtensionContext.logger: FixedWidthRenderingLogger
-        get() = if ((withAnnotation<ContainersTestFactory, Boolean> { logging }
-                ?: withAnnotation<ContainersTest, Boolean> { logging }) != false) LoggingContext.BACKGROUND else MutedRenderingLogger()
+        get() = conditionallyVerboseLogger(withAnnotation<ContainersTestFactory, Boolean> { logging } ?: withAnnotation<ContainersTest, Boolean> { logging })
 
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): TestContainers =
         context.provider.testContainersFor(context.id, context.logger).also { context.save(it) }
 
-    override fun beforeEach(context: ExtensionContext) = context.pullRequiredImages()
     override fun afterEach(context: ExtensionContext) = context.load()?.release() ?: Unit
 
-    private fun ExtensionContext.pullRequiredImages() =
-        logger.logging("Pulling required images for ${simplifiedId.formattedAs.input}") {
-            val missing = requiredDockerImages() subtract DockerImage.list(logger = MutedRenderingLogger())
-            missing.forEach { it.pull() }
-        }
-
-    private fun ExtensionContext.requiredDockerImages(): List<DockerImage> =
-        withAnnotation<DockerRequiring, List<DockerImage>> {
-            requiredImages.map { DockerImage.parse(it) }
-        } ?: emptyList()
-
-    private fun ExtensionContext.load(): TestContainers? =
-        store().get(element, TestContainers::class.java)
-
-    private fun ExtensionContext.save(testContainers: TestContainers): Unit =
-        store().put(element, testContainers)
-
-    private fun ExtensionContext.store(): Store =
-        getStore(Namespace.create(ContainersTestExtension::class.java))
+    private fun ExtensionContext.load(): TestContainers? = store().get(element, TestContainers::class.java)
+    private fun ExtensionContext.save(testContainers: TestContainers): Unit = store().put(element, testContainers)
+    private fun ExtensionContext.store(): Store = getStore(Namespace.create(ContainersTestExtension::class.java))
 }
 
 /**
@@ -345,8 +325,7 @@ class ImageTestExtension : TypeBasedParameterResolver<TestImage>() {
             ?: error("Currently only ${TestImageProvider::class.simpleName} singletons are supported, that is, implemented as an object.")
 
     private val ExtensionContext.logger: FixedWidthRenderingLogger
-        get() = if ((withAnnotation<ImageTestFactory, Boolean> { logging }
-                ?: withAnnotation<ImageTest, Boolean> { logging }) != false) LoggingContext.BACKGROUND else MutedRenderingLogger()
+        get() = conditionallyVerboseLogger(withAnnotation<ImageTestFactory, Boolean> { logging } ?: withAnnotation<ImageTest, Boolean> { logging })
 
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): TestImage =
         context.provider.testImageFor(context.logger)

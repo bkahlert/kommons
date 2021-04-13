@@ -176,12 +176,18 @@ class MatchesCurlyPatternKtTest {
     fun `should allow to ignore trailing lines`() {
         expectThat("${ANSI.termColors.red("ab")}c").not { matchesCurlyPattern("abc\nxxx\nyyy", ignoreTrailingLines = true) }
     }
+
+    @Test
+    fun `should unify whitespace`() {
+        expectThat("A B C").toStringMatchesCurlyPattern("A {} C")
+    }
 }
 
 fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     curlyPattern: String,
     removeTrailingBreak: Boolean = true,
     removeEscapeSequences: Boolean = true,
+    unifyWhitespaces: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
     ignoreTrailingLines: Boolean = false,
 ): Assertion.Builder<T> = assert(if (curlyPattern.isMultiline) "matches curly pattern\n$curlyPattern" else "matches curly pattern $curlyPattern") { actual ->
@@ -189,6 +195,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
         true to { s: String -> unify(s) },
         removeTrailingBreak to { s: String -> s.withoutTrailingLineSeparator },
         removeEscapeSequences to { s: String -> s.removeEscapeSequences() },
+        unifyWhitespaces to { s: String -> Whitespaces.unify(s) },
         trimmed to { s: String -> s.trim() },
     )
     var processedActual = preprocessor("$actual")

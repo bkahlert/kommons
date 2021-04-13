@@ -2,6 +2,7 @@ package koodies.concurrent.process
 
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.isScriptFile
+import koodies.concurrent.process.ManagedProcess.Companion.createDump
 import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ExitState.ExitStateHandler
 import koodies.concurrent.process.Process.ExitState.Failure
@@ -50,9 +51,25 @@ public interface ManagedProcess : Process {
             commandLine = commandLine,
             exitStateHandler = exitStateHandler,
             processTerminationCallback = processTerminationCallback)
+
+        /**
+         * Dumps the [IO] of [process] individualized with the given [errorMessage]
+         * to the process's [workingDirectory] and returns the same dump as a string.
+         *
+         * The given error messages are concatenated with a line break.
+         */
+        public fun ManagedProcess.createDump(vararg errorMessage: String): String {
+            metaStream.emit(IO.META typed errorMessage.joinToString(LF))
+            return workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
+        }
     }
 
     public val ioLog: IOLog
+
+    /**
+     * The working directory of this process.
+     */
+    public val workingDirectory: Path
 
     override fun start(): ManagedProcess
 
@@ -179,6 +196,8 @@ private open class ManagedJavaProcess(
 }), ManagedProcess {
     companion object;
 
+    override val workingDirectory get() = commandLine.workingDirectory
+
     override fun start(): ManagedProcess = also { super.start() }
     override fun waitForTermination(): ExitState = onExit.join()
 
@@ -214,36 +233,35 @@ private open class ManagedJavaProcess(
             process
         }.handle { _, throwable ->
             when {
+
                 throwable != null -> {
                     val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
-                    val dump = commandLine.workingDirectory.dump("""
-                            Process ${commandLine.summary} terminated with ${cause.toCompactString()}.
-                        """.trimIndent()) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
+                    val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
                     Fatal(cause, exitValue, pid, dump.removeEscapeSequences(), ioLog.getCopy())
                 }
-                exitStateHandler != null -> {
+
+                exitStateHandler != null ->
                     kotlin.runCatching {
                         exitStateHandler.handle(Terminated(pid, exitValue, ioLog.getCopy()))
                     }.getOrElse { ex ->
-                        val message =
-                            "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:$LF\t${ex.message.formattedAs.error}"
-                                .also { metaStream.emit(IO.META typed it) }
-                        val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
-                        Fatal(ex, exitValue, pid, dump, io, message)
+                        val message = "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:$LF\t" +
+                            ex.message.formattedAs.error
+                        Fatal(ex, exitValue, pid, createDump(message), io, message)
                     }
-                }
+
                 exitValue != 0 -> {
-                    val message = StringBuilder("Process ${pid.formattedAs.input} terminated with exit code ${exitValue.formattedAs.input}").apply {
-                        append(LF + commandLine.includedFiles.joinToString(LF) { IO.META typed it })
-                    }.toString()
-                    message.also { metaStream.emit(IO.META typed it) }
-                    val dump = commandLine.workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
+                    val dump = createDump(
+                        "Process ${pid.formattedAs.input} terminated with exit code ${exitValue.formattedAs.input}",
+                        *commandLine.includedFiles.map { IO.META.FILE(it).formatted }.toTypedArray()
+                    )
                     Failure(exitValue, pid, commandLine.includedFiles.map { it.toUri() }, dump, ioLog.getCopy())
                 }
+
                 else -> {
                     metaStream.emit(IO.META.TERMINATED(process))
                     Success(pid, ioLog.getCopy())
                 }
+
             }.also { exitState = it }
         }.thenAlso { term, ex ->
             postTerminationCallbacks.forEach {

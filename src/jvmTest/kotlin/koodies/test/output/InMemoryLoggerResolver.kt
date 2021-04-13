@@ -157,9 +157,11 @@ fun ExtensionContext.logTestResult() {
 }
 
 /**
- * Contains the current logger currently stored in `this` [ExtensionContext] or `null` otherwise.
+ * Contains the logger currently stored in `this` [ExtensionContext]—which
+ * is the case if an [InMemoryLogger] was requested by specifying
+ * a test parameter of that type—or `null` otherwise.
  */
-public val ExtensionContext.logger: InMemoryLogger? get() = store().get(element, TestLogger::class.java)
+val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store().get(element, TestLogger::class.java)
 
 /**
  * Logs the given [block] in a new span with the active test logger if any.
@@ -175,10 +177,10 @@ public fun <R> ExtensionContext.logging(
 ): R =
     SmartRenderingLogger(
         caption,
-        { (logger ?: BACKGROUND).logText { it } },
+        { (testLocalLogger ?: BACKGROUND).logText { it } },
         contentFormatter,
         decorationFormatter,
         returnValueFormatter,
         border,
-        prefix = logger?.prefix ?: BACKGROUND.prefix,
+        prefix = testLocalLogger?.prefix ?: BACKGROUND.prefix,
     ).runLogging(block)

@@ -1,5 +1,7 @@
 package koodies.text
 
+import koodies.text.Whitespaces.trailingWhitespaces
+
 
 /**
  * Creates a truncated string from selected elements separated using [separator] and using the given [prefix] and [postfix] if supplied.

@@ -3,36 +3,12 @@ package koodies.text
 import koodies.math.mod
 import koodies.number.toHexadecimalString
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.CodePoint.Companion.isDefined
 import koodies.text.CodePoint.Companion.isUsableCodePoint
 import kotlin.Char.Companion.MAX_SURROGATE
 import kotlin.Char.Companion.MAX_VALUE
 import kotlin.Char.Companion.MIN_SURROGATE
 import kotlin.Char.Companion.MIN_VALUE
 import kotlin.random.Random
-
-private val Whitespaces = listOf(
-    CodePoint(0x0020u.toInt()), // SPACE: Depends on font, typically 1/4 em, often adjusted
-    CodePoint(0x00A0u.toInt()), // NO-BREAK SPACE: As a space, but often not adjusted
-    CodePoint(0x1680u.toInt()), // OGHAM SPACE MARK: Unspecified; usually not really a space but a dash
-    CodePoint(0x180Eu.toInt()), // MONGOLIAN VOWEL SEPARATOR: 0
-    CodePoint(0x2000u.toInt()), // EN QUAD: 1 en (= 1/2 em)
-    CodePoint(0x2001u.toInt()), // EM QUAD: 1 em (nominally, the height of the font)
-    CodePoint(0x2002u.toInt()), // EN SPACE (nut): 1 en (= 1/2 em)
-    CodePoint(0x2003u.toInt()), // EM SPACE (mutton): 1 em
-    CodePoint(0x2004u.toInt()), // THREE-PER-EM SPACE (thick space): 1/3 em
-    CodePoint(0x2005u.toInt()), // FOUR-PER-EM SPACE (mid space): 1/4 em
-    CodePoint(0x2006u.toInt()), // SIX-PER-EM SPACE: 1/6 em
-    CodePoint(0x2007u.toInt()), // FIGURE SPACE	fo: “Tabular width”, the width of digits
-    CodePoint(0x2008u.toInt()), // PUNCTUATION SPACE: The width of a period “.”
-    CodePoint(0x2009u.toInt()), // THIN SPACE: 1/5 em (or sometimes 1/6 em)
-    CodePoint(0x200Au.toInt()), // HAIR SPACE: Narrower than THIN SPACE
-    CodePoint(0x200Bu.toInt()), // ZERO WIDTH SPACE: 0
-    CodePoint(0x202Fu.toInt()), // NARROW NO-BREAK SPACE	fo: Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space”
-    CodePoint(0x205Fu.toInt()), // MEDIUM MATHEMATICAL SPACE: 4/18 em
-    CodePoint(0x3000u.toInt()), // IDEOGRAPHIC SPACE: The width of ideographic (CJK) characters.
-    CodePoint(0xFEFFu.toInt()), // ZERO WIDTH NO-BREAK SPACE: 0
-)
 
 /**
  * Representation of a [Unicode code point](http://www.unicode.org/glossary/#code_point)
@@ -169,7 +145,7 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
      * @return `true` if this code point is a space character
      * @see isWhitespace
      */
-    public val isWhitespace: Boolean get() = this in Whitespaces || char?.isWhitespace() == true
+    public val isWhitespace: Boolean get() = this in Whitespaces.asCodePoints || char?.isWhitespace() == true
 
     /**
      * Determines if this code point is one of the 10 digits `0`-`9`.

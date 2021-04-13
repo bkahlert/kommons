@@ -4,6 +4,7 @@ import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.debug.asEmoji
+import koodies.exception.dump
 import koodies.exception.toCompactString
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators.LF
@@ -13,6 +14,7 @@ import koodies.time.Now
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
+import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.lang.Process as JavaProcess
 

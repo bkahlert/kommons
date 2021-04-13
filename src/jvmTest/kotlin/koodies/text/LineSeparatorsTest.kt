@@ -97,8 +97,6 @@ class LineSeparatorsTest {
         }
     }
 
-    private fun h(x: (CharSequence, Boolean, Boolean) -> Iterable<String>): (CharSequence, Boolean, Boolean) -> Iterable<String> = x
-
     @TestFactory
     fun lineOperations() = mapOf(
         "lineSequence" to { input: CharSequence, ignoreTrailSep: Boolean, keepDelimiters: Boolean ->
@@ -145,9 +143,6 @@ class LineSeparatorsTest {
     fun `each line separator`() = LineSeparators.testEach { lineSeparator ->
         group(lineSeparator.replaceNonPrintableCharacters()) {
             expect { this }.that { isEqualTo(lineSeparator) }
-
-            expect { "line$lineSeparator".trailingLineSeparator }.that { isEqualTo(lineSeparator) }
-            expect { "line${lineSeparator}X".trailingLineSeparator }.that { isNullOrEmpty() }
 
             expect { "line$lineSeparator".trailingLineSeparator }.that { isEqualTo(lineSeparator) }
             expect { "line${lineSeparator}X".trailingLineSeparator }.that { isNullOrEmpty() }

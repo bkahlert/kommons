@@ -16,6 +16,7 @@ import koodies.text.LineSeparators.LF
 import koodies.text.fuzzyLevenshteinDistance
 import koodies.text.joinLinesToString
 import koodies.text.repeat
+import koodies.times
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
@@ -127,7 +128,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Suppress("unused")
     @Nested
     inner class Benchmark {
-        private val expected = HtmlFile.text.repeat(50)
+        private val expected :String = StringBuilder().apply { 50 * { append(HtmlFile.text);append(LF) } }.toString()
 
         @Test
         fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {

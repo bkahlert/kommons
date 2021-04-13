@@ -84,10 +84,10 @@ class DockerRunCommandLineTest {
                 -arg1 \
                 --argument \
                 2 \
-                <<HEREDOC
+                "<<HEREDOC
                 heredoc 1
                 -heredoc-line-2
-                HEREDOC \
+                HEREDOC" \
                 /c/d/c \
                 /c/d/e \
                 /h/h \

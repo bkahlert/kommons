@@ -61,31 +61,6 @@ class StringsKtTest {
     }
 
     @Nested
-    inner class TrailingWhitespaces {
-
-        @Test
-        fun `should find single whitespace`() {
-            expectThat("abc ".trailingWhitespaces).isEqualTo(" ")
-        }
-
-        @Test
-        fun `should find untypical whitespaces`() {
-            expectThat(Unicode.whitespaces.joinToString("").trailingWhitespaces).hasLength(17)
-        }
-
-        @Test
-        fun `should find only last whitespaces`() {
-            expectThat("ab   c  ".trailingWhitespaces).isEqualTo("  ")
-        }
-
-
-        @Test
-        fun `should not find non trailing whitespaces`() {
-            expectThat("abc  x".trailingWhitespaces).isEqualTo("")
-        }
-    }
-
-    @Nested
     inner class WithPrefixKtTest {
         @Test
         fun `should prepend prefix if missing`() {
@@ -168,7 +143,7 @@ class StringsKtTest {
     fun `take if not blank`() = testEach(
         "" to null,
         " " to null,
-        *Unicode.whitespaces.map { it.toString() to null }.toTypedArray(),
+        *Whitespaces.map { it to null }.toTypedArray(),
         "abc" to "abc",
     ) { (string, expected) ->
         expect { string.takeIfNotBlank() }.that { isEqualTo(expected) }
@@ -188,7 +163,7 @@ class StringsKtTest {
     fun `take unless blank`() = testEach(
         "" to null,
         " " to null,
-        *Unicode.whitespaces.map { it.toString() to null }.toTypedArray(),
+        *Whitespaces.map { it to null }.toTypedArray(),
         "abc" to "abc",
     ) { (string, expected) ->
         expect { string.takeUnlessBlank() }.that { isEqualTo(expected) }

@@ -3,7 +3,9 @@ package koodies.docker
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process.ExitState
+import koodies.docker.TestImages.BusyBox
 import koodies.test.UniqueId
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -12,10 +14,11 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isFalse
 
+@Disabled
 @Execution(CONCURRENT)
 class BusyboxKtTest { // TODO generalize to docker run command
 
-    @DockerRequiring(requiredImages = ["busybox"]) @Test
+    @DockerRequiring([BusyBox::class]) @Test
     fun `should start busybox`(uniqueId: UniqueId) {
         val processed = mutableListOf<IO>()
         val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simplified, "echo busybox") { io ->

@@ -24,12 +24,6 @@ public fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRan
     }.toString()
 
 /**
- * Contains this char sequences trailing whitespaces.
- */
-public val CharSequence.trailingWhitespaces: String
-    get() = toString().mapCodePoints { if (it.char !in Unicode.whitespaces) null else it.char }.takeLastWhile { it != null }.joinToString("")
-
-/**
  * Returns this [CharSequence] with the [prefix] prepended if it is not already there.
  */
 public fun CharSequence.withPrefix(prefix: String): String =

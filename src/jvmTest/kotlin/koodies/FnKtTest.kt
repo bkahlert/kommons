@@ -1,6 +1,7 @@
 package koodies
 
 import koodies.test.test
+import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -8,11 +9,14 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
 import strikt.assertions.message
+import strikt.assertions.size
 
 @Execution(SAME_THREAD)
 class FnKtTest {
@@ -92,6 +96,34 @@ class FnKtTest {
                     .isFailure().message.isEqualTo("test")
                 expectThat(events).containsExactly("receiver" to "before", "receiver" to "after")
             }
+        }
+    }
+
+    @Nested
+    inner class Times {
+
+        @Test
+        fun `should run block 0 times`() {
+            expectCatching { 0 * { throw IllegalStateException("test failed")} }.isSuccess()
+        }
+
+        @Test
+        fun `should run block n times`() {
+            var n = 3
+            n * { n-- }
+            expectThat(n == 0)
+        }
+
+        @Test
+        fun `should return n results`() {
+            val n = 3
+            val results = run{ n * { it } }
+            expectThat(results).containsExactly(0,1,2)
+        }
+
+        @Test
+        fun `should throw negative index`() {
+            expectCatching { -1 * { println("test failed")} }.isFailure().isA<IllegalArgumentException>()
         }
     }
 

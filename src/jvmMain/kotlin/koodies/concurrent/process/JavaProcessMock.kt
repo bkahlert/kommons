@@ -12,6 +12,7 @@ import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
 import koodies.io.TeeOutputStream
+import koodies.io.path.Locations
 import koodies.logging.InMemoryLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
@@ -28,6 +29,7 @@ import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import kotlin.random.Random
@@ -150,6 +152,8 @@ public open class ManagedProcessMock(public val processMock: JavaProcessMock, pu
     ManagedProcess {
 
     public var logger: RenderingLogger = processMock.logger
+
+    override val workingDirectory: Path = Locations.Temp
 
     override fun start(): ManagedProcessMock {
         super.start()
