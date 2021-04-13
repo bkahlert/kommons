@@ -16,6 +16,7 @@ import koodies.lowerSentenceCaseName
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
+import koodies.text.containsAll
 import koodies.text.rightSpaced
 import koodies.text.spaced
 import koodies.text.splitPascalCase
@@ -81,20 +82,43 @@ public object DockerExitStateHandler : ExitStateHandler {
             override fun toString(): String = symbol.rightSpaced + textRepresentation
 
 
-            public class NoSuchContainer(terminated: Terminated, state: String, status: String) : BadRequest(terminated, 404, status)
+            public class NoSuchContainer(terminated: Terminated, status: String) : BadRequest(terminated, 404, status)
 
             // Error: No such image
-            public class NoSuchImage(terminated: Terminated, state: String, status: String) : BadRequest(terminated, 404, status)
+            public class NoSuchImage(terminated: Terminated, status: String) : BadRequest(terminated, 404, status)
             public class PathDoesNotExistInsideTheContainer(terminated: Terminated, state: String, status: String) : BadRequest(terminated, 404, status)
 
-            public class NameAlreadyInUse(terminated: Terminated, state: String, status: String) : BadRequest(terminated, 409, status)
-            public class Conflict(terminated: Terminated, state: String, status: String) : BadRequest(terminated, 409, status)
+            public class NameAlreadyInUse(terminated: Terminated, status: String) : BadRequest(terminated, 409, status)
+            public open class Conflict(terminated: Terminated, status: String) : BadRequest(terminated, 409, status)
 
             public class CannotRemoveRunningContainer(terminated: Terminated, status: String) : BadRequest(terminated, 409, status = status) {
                 override val textRepresentation: String get() = status.formattedAs.error
                 override fun format(): String = symbol.rightSpaced + textRepresentation
                 override fun toString(): String = format()
             }
+
+            public class CannotKillContainer(terminated: Terminated, private val wrapped: Failure) :
+                BadRequest(terminated, (wrapped as? BadRequest)?.statusCode ?: 500, wrapped.status) {
+                override val textRepresentation: String? get() = wrapped.textRepresentation
+
+                public companion object {
+                    public fun parseWrapped(terminated: Terminated, status: String): Failure {
+                        val (affected, innerStatus) = status.split(messageSplitRegex, limit = 2)
+                        return when {
+                            innerStatus.containsAll("container", "not", "running", ignoreCase = true) -> object : Conflict(terminated, affected) {
+                                override val textRepresentation: String = "container is not running"
+                            }
+
+                            innerStatus.split(messageSplitRegex, limit = 2)
+                                .let { it.size == 2 && it[0].containsAll("no", "such", "container", ignoreCase = true) } -> NoSuchContainer(terminated,
+                                innerStatus.split(messageSplitRegex, limit = 2)[1])
+
+                            else -> UnknownError(status, terminated)
+                        }
+                    }
+                }
+            }
+
 
             public companion object {
                 // ThisIsAClassName -> This is a class name
@@ -105,11 +129,12 @@ public object DockerExitStateHandler : ExitStateHandler {
 
                 public fun from(message: String, status: String, terminated: Terminated): BadRequest? = with(message) {
                     when {
-                        matches<NoSuchContainer>() -> NoSuchContainer(terminated, message, status)
-                        matches<NoSuchImage>() -> NoSuchImage(terminated, message, status)
+                        matches<NoSuchContainer>() -> NoSuchContainer(terminated, status)
+                        matches<NoSuchImage>() -> NoSuchImage(terminated, status)
                         matches<PathDoesNotExistInsideTheContainer>() -> PathDoesNotExistInsideTheContainer(terminated, message, status)
-                        matches<NameAlreadyInUse>() -> NameAlreadyInUse(terminated, message, status)
-                        matches<Conflict>() -> Conflict(terminated, message, status)
+                        matches<NameAlreadyInUse>() -> NameAlreadyInUse(terminated, status)
+                        matches<Conflict>() -> Conflict(terminated, status)
+                        matches<CannotKillContainer>() -> CannotKillContainer(terminated, CannotKillContainer.parseWrapped(terminated, status))
                         else -> null
                     }
                 }

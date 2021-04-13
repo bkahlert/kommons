@@ -4,7 +4,6 @@ import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.debug.asEmoji
-import koodies.exception.dump
 import koodies.exception.toCompactString
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators.LF
@@ -14,7 +13,6 @@ import koodies.time.Now
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.lang.Process as JavaProcess
 
@@ -246,6 +244,7 @@ public abstract class DelegatingProcess(private val processProvider: Process.() 
      * The Java process this process delegates to.
      */
     protected val javaProcess: JavaProcess by lazy { processProvider().also { _started = true } }
+
     override fun start(): Process = also { javaProcess.pid() }
     private var _started: Boolean = false
     override val started: Boolean get() = _started

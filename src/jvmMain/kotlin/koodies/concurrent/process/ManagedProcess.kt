@@ -60,11 +60,14 @@ public interface ManagedProcess : Process {
          */
         public fun ManagedProcess.createDump(vararg errorMessage: String): String {
             metaStream.emit(IO.META typed errorMessage.joinToString(LF))
-            return workingDirectory.dump(null) { ioLog.dump() }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
+            return workingDirectory.dump(null) { io.merge<IO>(removeEscapeSequences = false) }.also { dump -> metaStream.emit(IO.META.DUMP(dump)) }
         }
     }
 
-    public val ioLog: IOLog
+    /**
+     * Contains the so far logged I/O of this process.
+     */
+    public val io: Sequence<IO>
 
     /**
      * The working directory of this process.
@@ -194,9 +197,9 @@ private open class ManagedJavaProcess(
         kotlin.runCatching { processTerminationCallback?.invoke(it) }
     }.getOrThrow()
 }), ManagedProcess {
-    companion object;
+    public companion object;
 
-    override val workingDirectory get() = commandLine.workingDirectory
+    override val workingDirectory: Path get() = commandLine.workingDirectory
 
     override fun start(): ManagedProcess = also { super.start() }
     override fun waitForTermination(): ExitState = onExit.join()
@@ -206,16 +209,16 @@ private open class ManagedJavaProcess(
     override var exitState: ExitState? = null
         protected set
 
-    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, RedirectingOutputStream { ioLog.input + it }) }
-    private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { ioLog.out + it }) }
-    private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, RedirectingOutputStream { ioLog.err + it }) }
+    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, RedirectingOutputStream { io.input + it }) }
+    private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, RedirectingOutputStream { io.out + it }) }
+    private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, RedirectingOutputStream { io.err + it }) }
 
-    final override val metaStream: MetaStream = MetaStream({ ioLog + it })
+    final override val metaStream: MetaStream = MetaStream({ io + it })
     final override val inputStream: OutputStream get() = capturingInputStream
     final override val outputStream: InputStream get() = capturingOutputStream
     final override val errorStream: InputStream get() = capturingErrorStream
 
-    override val ioLog: IOLog by lazy { IOLog() }
+    override val io: IOLog by lazy { IOLog() }
 
     private val preTerminationCallbacks = synchronizedSetOf<ManagedProcess.() -> Unit>()
     public override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess =
@@ -229,7 +232,7 @@ private open class ManagedJavaProcess(
             ?: completedFuture(process)
 
         callbackStage.thenCombine(javaProcess.onExit()) { _, _ ->
-            ioLog.flush()
+            io.flush()
             process
         }.handle { _, throwable ->
             when {
@@ -237,16 +240,16 @@ private open class ManagedJavaProcess(
                 throwable != null -> {
                     val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
                     val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
-                    Fatal(cause, exitValue, pid, dump.removeEscapeSequences(), ioLog.getCopy())
+                    Fatal(cause, exitValue, pid, dump.removeEscapeSequences(), io.toList())
                 }
 
                 exitStateHandler != null ->
                     kotlin.runCatching {
-                        exitStateHandler.handle(Terminated(pid, exitValue, ioLog.getCopy()))
+                        exitStateHandler.handle(Terminated(pid, exitValue, io.toList()))
                     }.getOrElse { ex ->
                         val message = "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:$LF\t" +
                             ex.message.formattedAs.error
-                        Fatal(ex, exitValue, pid, createDump(message), io, message)
+                        Fatal(ex, exitValue, pid, createDump(message), io.toList(), message)
                     }
 
                 exitValue != 0 -> {
@@ -254,18 +257,18 @@ private open class ManagedJavaProcess(
                         "Process ${pid.formattedAs.input} terminated with exit code ${exitValue.formattedAs.input}",
                         *commandLine.includedFiles.map { IO.META.FILE(it).formatted }.toTypedArray()
                     )
-                    Failure(exitValue, pid, commandLine.includedFiles.map { it.toUri() }, dump, ioLog.getCopy())
+                    Failure(exitValue, pid, commandLine.includedFiles.map { it.toUri() }, dump, io.toList())
                 }
 
                 else -> {
                     metaStream.emit(IO.META.TERMINATED(process))
-                    Success(pid, ioLog.getCopy())
+                    Success(pid, io.toList())
                 }
 
             }.also { exitState = it }
         }.thenAlso { term, ex ->
             postTerminationCallbacks.forEach {
-                process.it(term ?: Fatal(ex!!, exitValue, pid, "Unexpected exception in process termination handling.", ioLog.getCopy()))
+                process.it(term ?: Fatal(ex!!, exitValue, pid, "Unexpected exception in process termination handling.", io.toList()))
             }
         }
     }

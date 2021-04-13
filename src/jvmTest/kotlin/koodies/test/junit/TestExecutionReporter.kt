@@ -1,5 +1,6 @@
 package koodies.test.junit
 
+import koodies.docker.DockerRequiring
 import koodies.test.Debug
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
@@ -7,10 +8,12 @@ import koodies.test.withAnnotation
 import koodies.test.withoutAnnotation
 import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.draw
 import koodies.text.styling.wrapWithBorder
+import koodies.toSimpleString
 import org.junit.jupiter.api.extension.TestWatcher
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -19,6 +22,7 @@ import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
 import java.lang.reflect.AnnotatedElement
+import java.lang.reflect.Method
 import kotlin.properties.Delegates
 import kotlin.time.milliseconds
 
@@ -38,6 +42,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
     override fun testPlanExecutionFinished(testPlan: TestPlan) {
         val timeNeeded = (System.currentTimeMillis() - startTimestamp).milliseconds
         checkDebug(testPlan)
+        checkSkippedDockerTests()
 
         if (failedTestsCount == 0) {
             val allTestClasses = testPlan.allContainerJavaClasses
@@ -80,10 +85,27 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
         val debugAnnotatedMethods = testPlan.allTestJavaMethods.withAnnotation<Debug> { debug -> debug.includeInReport }
         if (debugAnnotatedMethods.isNotEmpty()) {
             listOf(
-                "Attention!".formattedAs.warning,
-                "You only see the results of the",
-                "${debugAnnotatedMethods.size} @${Debug::class.simpleName} annotated tests.",
+                "@${Debug::class.simpleName} in use!".formattedAs.warning,
+                "You are only seeing the results of the ${debugAnnotatedMethods.size} annotated tests.",
                 "Don't forget to remove them.".ansi.bold,
+            )
+                .joinToString(LF)
+                .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { yellow })
+                .also { println(it) }
+        }
+    }
+
+    private fun checkSkippedDockerTests() {
+        val groupBy = DockerRequiring.skipped.keys.groupBy { testElement: Any ->
+            val container = (testElement as? Method)?.declaringClass ?: testElement
+            container.toSimpleString().ansiRemoved.split(".")[0]
+        }.map { (group, elements) -> "$group: ${elements.size}" }
+        if (DockerRequiring.skipped.isNotEmpty()) {
+            listOf(
+                "@${DockerRequiring::class.simpleName} tests skipped!".formattedAs.warning,
+                "Docker is not running. Therefore all ${DockerRequiring.skipped.size} annotated",
+                "tests belonging to the following classes were skipped:",
+                *groupBy.toTypedArray(),
             )
                 .joinToString(LF)
                 .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { yellow })

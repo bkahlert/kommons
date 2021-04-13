@@ -167,7 +167,7 @@ public open class ManagedProcessMock(public val processMock: JavaProcessMock, pu
     override var exitState: ExitState? = null
         protected set
 
-    override val ioLog: IOLog by lazy { IOLog() }
+    override val io: IOLog by lazy { IOLog() }
     override val metaStream: MetaStream = MetaStream()
     override val inputStream: OutputStream by lazy {
         TeeOutputStream(
@@ -175,7 +175,7 @@ public open class ManagedProcessMock(public val processMock: JavaProcessMock, pu
                 // ugly hack; IN logs are just there and the processor is just notified;
                 // whereas OUT and ERR have to be processed first, are delayed and don't show in right order
                 // therefore we delay here
-                1.milliseconds.sleep { ioLog.input + it }
+                1.milliseconds.sleep { io.input + it }
             },
             javaProcess.outputStream,
         )
@@ -192,7 +192,7 @@ public open class ManagedProcessMock(public val processMock: JavaProcessMock, pu
         preTerminationCallbacks.runCatching { p }.exceptionOrNull()
         var termination: ExitState? = null
         processMock.onExit().thenApply {
-            Success(12345L, ioLog.getCopy()).also { state = it }
+            Success(12345L, io.toList()).also { state = it }
                 .also { term -> postTerminationCallbacks.forEach { p.it(term) } }
         }
     }

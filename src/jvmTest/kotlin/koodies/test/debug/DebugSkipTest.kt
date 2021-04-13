@@ -63,8 +63,8 @@ class DebugSkipTest {
                 get { testsFailedCount }.isEqualTo(0)
             } then { if (allPassed) pass() else fail() }
         expectThat("$capturedOutput")
-            .contains("You only see the results of the")
-            .contains("1 @Debug annotated test")
+            .contains("@Debug in use!")
+            .contains("1 annotated test")
             .contains("Don't forget to remove")
     }
 

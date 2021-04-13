@@ -168,28 +168,34 @@ class CodePointKtTest {
 
         @TestFactory
         fun `is whitespace`() = testEach(
-            CodePoint(0x0020u.toInt()),
-            CodePoint(0x00A0u.toInt()),
-            CodePoint(0x1680u.toInt()),
-            CodePoint(0x180Eu.toInt()),
-            CodePoint(0x2000u.toInt()),
-            CodePoint(0x2001u.toInt()),
-            CodePoint(0x2002u.toInt()),
-            CodePoint(0x2003u.toInt()),
-            CodePoint(0x2004u.toInt()),
-            CodePoint(0x2005u.toInt()),
-            CodePoint(0x2006u.toInt()),
-            CodePoint(0x2007u.toInt()),
-            CodePoint(0x2008u.toInt()),
-            CodePoint(0x2009u.toInt()),
-            CodePoint(0x200Au.toInt()),
-            CodePoint(0x200Bu.toInt()),
-            CodePoint(0x202Fu.toInt()),
-            CodePoint(0x205Fu.toInt()),
-            CodePoint(0x3000u.toInt()),
-            CodePoint(0xFEFFu.toInt()),
+            '\u0020'.asCodePoint(),
+            '\u00A0'.asCodePoint(),
+            '\u1680'.asCodePoint(),
+            '\u2000'.asCodePoint(),
+            '\u2001'.asCodePoint(),
+            '\u2002'.asCodePoint(),
+            '\u2003'.asCodePoint(),
+            '\u2004'.asCodePoint(),
+            '\u2005'.asCodePoint(),
+            '\u2006'.asCodePoint(),
+            '\u2007'.asCodePoint(),
+            '\u2008'.asCodePoint(),
+            '\u2009'.asCodePoint(),
+            '\u200A'.asCodePoint(),
+            '\u202F'.asCodePoint(),
+            '\u205F'.asCodePoint(),
+            '\u3000'.asCodePoint(),
         ) {
             expect { isWhitespace }.that { isTrue() }
+        }
+
+        @TestFactory
+        fun `is zero-width whitespace`() = testEach(
+            '\u180E'.asCodePoint(),//            MONGOLIAN_VOWEL_SEPARATO
+            '\u200B'.asCodePoint(),//            ZERO_WIDTH_SPACE to "ZER
+            '\uFEFF'.asCodePoint(),//            ZERO_WIDTH_NO_BREAK_SPAC
+        ) {
+            expect { isZeroWidthWhitespace }.that { isTrue() }
         }
 
         @TestFactory

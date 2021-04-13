@@ -8,6 +8,7 @@ import koodies.concurrent.process.Process.ProcessState.Running
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.scriptPath
 import koodies.concurrent.toManagedProcess
+import koodies.debug.trace
 import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.shell.HereDoc
@@ -18,7 +19,6 @@ import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
 import koodies.text.ansiRemoved
@@ -28,6 +28,7 @@ import koodies.text.styling.wrapWithBorder
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
 import koodies.time.sleep
+import koodies.toSimpleClassName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.Assertion.Builder
+import strikt.api.DescribeableBuilder
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -222,18 +224,19 @@ class ManagedProcessTest {
 
             kotlin.runCatching {
                 process.process({ async }) { io ->
+                    io.toSimpleClassName().trace
                     if (io !is IO.META && io !is IO.INPUT) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
                     }
                 }
 
-                poll { process.ioLog.getCopy().size >= 7 }.every(100.milliseconds)
+                poll { process.io.toList().trace.size >= 7 }.every(100.milliseconds)
                     .forAtMost(15.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
                 process.stop()
-                process.waitForTermination()
+                process.waitFor()
                 expectThat(process) {
-                    killed.log.get("logged %s") { getCopy() }.contains(
+                    killed.io.get("logged %s") { toList() }.contains(
                         IO.OUT typed "test out",
                         IO.ERR typed "test err",
                         IO.INPUT typed "just read ${IO.OUT typed "test out"}",
@@ -245,7 +248,7 @@ class ManagedProcessTest {
                 println(
                     """
                     Logged instead:
-                    ${process.ioLog.getCopy()}
+                    ${process.io.toList()}
                     """.trimIndent().wrapWithBorder())
             }.getOrThrow()
         }
@@ -574,14 +577,14 @@ fun Path.createLazyFileCreatingProcess(): Pair<ManagedProcess, Path> {
 
 
 val <T : ManagedProcess> Builder<T>.alive: Builder<T>
-    get() = assert("is alive") { if (it.alive) pass() else fail("is not alive: ${it.ioLog.dump()}") }
+    get() = assert("is alive") { if (it.alive) pass() else fail("is not alive: ${it.io}") }
 
-val <T : ManagedProcess> Builder<T>.log get() = get("log %s") { ioLog }
+val <T : ManagedProcess> Builder<T>.log get() = get("log %s") { io }
 
 private fun Assertion.Builder<ManagedProcess>.completesWithIO() = log.logs(IO.OUT typed "test out", IO.ERR typed "test err")
 
-val <T : ManagedProcess> Builder<T>.io
-    get() = get("logged IO") { io.merged.ansiRemoved }
+val <T : ManagedProcess> Builder<T>.io: DescribeableBuilder<List<IO>>
+    get() = get("logged IO") { io.toList() }
 
 @JvmName("failureContainsDump")
 fun <T : Failure> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =
@@ -601,25 +604,25 @@ fun Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh"
 }
 
 
-fun Builder<IOLog>.logs(vararg io: IO) = logs(io.toList())
-fun Builder<IOLog>.logs(io: Collection<IO>) = logsWithin(io = io)
-fun Builder<IOLog>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
+fun Builder<Sequence<IO>>.logs(vararg io: IO) = logs(io.toList())
+fun Builder<Sequence<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
+fun Builder<Sequence<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
 
-fun Builder<IOLog>.logsWithin(timeFrame: Duration = 5.seconds, vararg io: IO) = logsWithin(timeFrame, io.toList())
-fun Builder<IOLog>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
+fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, vararg io: IO) = logsWithin(timeFrame, io.toList())
+fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
     assert("logs $io within $timeFrame") { ioLog ->
         when (poll {
-            ioLog.getCopy().containsAll(io)
+            ioLog.toList().containsAll(io)
         }.every(100.milliseconds).forAtMost(5.seconds)) {
             true -> pass()
-            else -> fail("logged ${ioLog.getCopy()} instead")
+            else -> fail("logged ${ioLog.toList()} instead")
         }
     }
 
-fun Builder<IOLog>.logsWithin(timeFrame: Duration = 5.seconds, predicate: List<IO>.() -> Boolean) =
+fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate: List<IO>.() -> Boolean) =
     assert("logs within $timeFrame") { ioLog ->
         when (poll {
-            ioLog.getCopy().predicate()
+            ioLog.toList().predicate()
         }.every(100.milliseconds).forAtMost(5.seconds)) {
             true -> pass()
             else -> fail("did not log within $timeFrame")
@@ -729,4 +732,4 @@ public inline val Builder<out Process.ExitState.Failure>.dump: Builder<String?>
     get(): Builder<String?> = get("dump") { dump }
 
 public inline fun <reified T : IO> Builder<out Process.ProcessState.Terminated>.io() =
-    get("IO of specified type") { io.merge<T>() }
+    get("IO of specified type") { io.merge(removeEscapeSequences = false) }

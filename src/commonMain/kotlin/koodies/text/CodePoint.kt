@@ -30,7 +30,7 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
     /**
      * Returns this code point as string that can be used to match exactly this code point using a regular expression.
      */
-    public fun toRegex(): Regex = Regex("\\x{" + toHexadecimalString() + "}")
+    public fun toRegex(): Regex = Regex("\\x{${toHexadecimalString()}}")
 
     /**
      * Contains the character pointed to and represented by a [String].
@@ -146,6 +146,14 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
      * @see isWhitespace
      */
     public val isWhitespace: Boolean get() = this in Whitespaces.asCodePoints || char?.isWhitespace() == true
+
+    /**
+     * Determines if this code point is one of the mistakenly
+     * considered whitespaces listed in [Whitespaces.ZeroWidthWhitespaces].
+     *
+     * @return `true` if this code point is listed in [Whitespaces.ZeroWidthWhitespaces].
+     */
+    public val isZeroWidthWhitespace: Boolean get() = string in Whitespaces.ZeroWidthWhitespaces
 
     /**
      * Determines if this code point is one of the 10 digits `0`-`9`.

@@ -344,7 +344,7 @@ val Assertion.Builder<ManagedProcess>.output
     get() = get("output %s") { output() }
 
 val Assertion.Builder<IOLog>.out
-    get() = get("output of type OUT %s") { getCopy().filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
+    get() = get("output of type OUT %s") { filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
 
 val <P : ManagedProcess> Assertion.Builder<P>.exitState
     get() = get("exit value %s") { exitValue }

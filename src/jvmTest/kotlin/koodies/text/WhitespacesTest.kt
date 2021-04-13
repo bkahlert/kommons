@@ -11,7 +11,6 @@ import koodies.text.Whitespaces.FOUR_PER_EM_SPACE
 import koodies.text.Whitespaces.HAIR_SPACE
 import koodies.text.Whitespaces.IDEOGRAPHIC_SPACE
 import koodies.text.Whitespaces.MEDIUM_MATHEMATICAL_SPACE
-import koodies.text.Whitespaces.MONGOLIAN_VOWEL_SEPARATOR
 import koodies.text.Whitespaces.NARROW_NO_BREAK_SPACE_FO
 import koodies.text.Whitespaces.NO_BREAK_SPACE
 import koodies.text.Whitespaces.OGHAM_SPACE_MARK
@@ -20,8 +19,6 @@ import koodies.text.Whitespaces.SIX_PER_EM_SPACE
 import koodies.text.Whitespaces.SPACE
 import koodies.text.Whitespaces.THIN_SPACE
 import koodies.text.Whitespaces.THREE_PER_EM_SPACE
-import koodies.text.Whitespaces.ZERO_WIDTH_NO_BREAK_SPACE
-import koodies.text.Whitespaces.ZERO_WIDTH_SPACE
 import koodies.text.Whitespaces.hasTrailingWhitespaces
 import koodies.text.Whitespaces.trailingWhitespaces
 import koodies.text.Whitespaces.unify
@@ -43,7 +40,7 @@ class WhitespacesTest {
 
     @Test
     fun `should iterate all whitespaces in order`() {
-        expectThat(Whitespaces.joinToString(" ") { "($it)" }).isEqualTo("($SPACE) ($NO_BREAK_SPACE) ($OGHAM_SPACE_MARK) ($MONGOLIAN_VOWEL_SEPARATOR) ($EN_QUAD) ($EM_QUAD) ($EN_SPACE) ($EM_SPACE) ($THREE_PER_EM_SPACE) ($FOUR_PER_EM_SPACE) ($SIX_PER_EM_SPACE) ($FIGURE_SPACE_FO) ($PUNCTUATION_SPACE) ($THIN_SPACE) ($HAIR_SPACE) ($ZERO_WIDTH_SPACE) ($NARROW_NO_BREAK_SPACE_FO) ($MEDIUM_MATHEMATICAL_SPACE) ($IDEOGRAPHIC_SPACE) ($ZERO_WIDTH_NO_BREAK_SPACE)")
+        expectThat(Whitespaces.joinToString(" ") { "($it)" }).isEqualTo("($SPACE) ($NO_BREAK_SPACE) ($OGHAM_SPACE_MARK) ($EN_QUAD) ($EM_QUAD) ($EN_SPACE) ($EM_SPACE) ($THREE_PER_EM_SPACE) ($FOUR_PER_EM_SPACE) ($SIX_PER_EM_SPACE) ($FIGURE_SPACE_FO) ($PUNCTUATION_SPACE) ($THIN_SPACE) ($HAIR_SPACE) ($NARROW_NO_BREAK_SPACE_FO) ($MEDIUM_MATHEMATICAL_SPACE) ($IDEOGRAPHIC_SPACE)")
     }
 
     @Nested
@@ -55,7 +52,6 @@ class WhitespacesTest {
                 "(SPACE) " +
                     "(NO BREAK SPACE) " +
                     "(OGHAM SPACE MARK) " +
-                    "(MONGOLIAN VOWEL SEPARATOR) " +
                     "(EN QUAD) " +
                     "(EM QUAD) " +
                     "(EN SPACE) " +
@@ -67,16 +63,14 @@ class WhitespacesTest {
                     "(PUNCTUATION SPACE) " +
                     "(THIN SPACE) " +
                     "(HAIR SPACE) " +
-                    "(ZERO WIDTH SPACE) " +
                     "(NARROW NO BREAK SPACE FO) " +
                     "(MEDIUM MATHEMATICAL SPACE) " +
-                    "(IDEOGRAPHIC SPACE) " +
-                    "(ZERO WIDTH NO BREAK SPACE)")
+                    "(IDEOGRAPHIC SPACE)")
         }
 
         @Test
         fun `should iterate all line breaks in order`() {
-            expectThat(Whitespaces.Dict.keys.joinToString(" ") { "($it)" }).isEqualTo("($SPACE) ($NO_BREAK_SPACE) ($OGHAM_SPACE_MARK) ($MONGOLIAN_VOWEL_SEPARATOR) ($EN_QUAD) ($EM_QUAD) ($EN_SPACE) ($EM_SPACE) ($THREE_PER_EM_SPACE) ($FOUR_PER_EM_SPACE) ($SIX_PER_EM_SPACE) ($FIGURE_SPACE_FO) ($PUNCTUATION_SPACE) ($THIN_SPACE) ($HAIR_SPACE) ($ZERO_WIDTH_SPACE) ($NARROW_NO_BREAK_SPACE_FO) ($MEDIUM_MATHEMATICAL_SPACE) ($IDEOGRAPHIC_SPACE) ($ZERO_WIDTH_NO_BREAK_SPACE)")
+            expectThat(Whitespaces.Dict.keys.joinToString(" ") { "($it)" }).isEqualTo("($SPACE) ($NO_BREAK_SPACE) ($OGHAM_SPACE_MARK) ($EN_QUAD) ($EM_QUAD) ($EN_SPACE) ($EM_SPACE) ($THREE_PER_EM_SPACE) ($FOUR_PER_EM_SPACE) ($SIX_PER_EM_SPACE) ($FIGURE_SPACE_FO) ($PUNCTUATION_SPACE) ($THIN_SPACE) ($HAIR_SPACE) ($NARROW_NO_BREAK_SPACE_FO) ($MEDIUM_MATHEMATICAL_SPACE) ($IDEOGRAPHIC_SPACE)")
         }
     }
 

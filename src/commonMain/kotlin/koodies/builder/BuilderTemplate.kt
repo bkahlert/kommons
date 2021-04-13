@@ -4,7 +4,7 @@ import koodies.asString
 import koodies.builder.BuilderTemplate.BuildContext
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
-import koodies.simpleClassName
+import koodies.toSimpleString
 import kotlin.reflect.KProperty
 
 /**
@@ -115,7 +115,7 @@ public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
         return runCatching {
             buildContext.build()
         }.getOrElse {
-            if (it is IllegalArgumentException) throw IllegalArgumentException("${this::class.simpleClassName} could not build due to illegal input", it)
+            if (it is IllegalArgumentException) throw IllegalArgumentException("${this::class.toSimpleString()} could not build due to illegal input", it)
             else throw IllegalStateException("An error occurred while building: ${toString(buildContext)}", it)
         }
     }

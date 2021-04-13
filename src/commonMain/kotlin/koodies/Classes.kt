@@ -20,7 +20,7 @@ import kotlin.reflect.KProperty1
 private var indent: Int = 0
 public fun <T> T.indenting(block: T.(String) -> Unit) {
     runWrapping({ indent++ }, { indent-- }) {
-        val prefix = "    ".repeat(indent)
+        val prefix = "    ".repeat(indent.coerceAtLeast(0))
         block(prefix)
     }
 }
@@ -46,7 +46,7 @@ public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
                     @Suppress("UNCHECKED_CAST") val typedProperty = property as KProperty1<T, *>
                     typedProperty.get(this@asString)
                 }.recover { "<$it>" }.getOrThrow()
-                else -> "<unexpected property type ${property::class.simpleClassName}>"
+                else -> "<unexpected property type ${this::class.toSimpleString()}>"
             })
         }
     }
@@ -60,7 +60,7 @@ private fun StringBuilder.close() = append(brackets.second)
  * built by the given [init] in the format `ClassName(name1=value1, name2=value2, ...)`.
  */
 public fun Any.asString(
-    className: String = this::class.simpleName(),
+    className: String = this::class.toSimpleString(),
     init: Init<MapBuildingContext<Any?, Any?>>,
 ): String =
     StringBuilder(className).apply {

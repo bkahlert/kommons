@@ -3,6 +3,10 @@ package koodies.text
 import koodies.collections.Dictionary
 import koodies.collections.dictOf
 
+/**
+ * A collection of all whitespaces described in
+ * [Unicode Space Character](http://www.unicode.org/versions/Unicode13.0.0/ch06.pdf).
+ */
 public object Whitespaces : Collection<String> {
 
     /** SPACE: Depends on font, typically 1/4 em, often adjusted */
@@ -13,9 +17,6 @@ public object Whitespaces : Collection<String> {
 
     /** OGHAM SPACE MARK: Unspecified; usually not really a space but a dash */
     public const val OGHAM_SPACE_MARK: String = "\u1680"
-
-    /** MONGOLIAN VOWEL SEPARATOR: 0 */
-    public const val MONGOLIAN_VOWEL_SEPARATOR: String = "\u180E"
 
     /** EN QUAD: 1 en (= 1/2 em) */
     public const val EN_QUAD: String = "\u2000"
@@ -50,9 +51,6 @@ public object Whitespaces : Collection<String> {
     /** HAIR SPACE: Narrower than THIN SPACE */
     public const val HAIR_SPACE: String = "\u200A"
 
-    /** ZERO WIDTH SPACE: 0 */
-    public const val ZERO_WIDTH_SPACE: String = "\u200B"
-
     /** NARROW NO-BREAK SPACE	fo: Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space” */
     public const val NARROW_NO_BREAK_SPACE_FO: String = "\u202F"
 
@@ -62,15 +60,11 @@ public object Whitespaces : Collection<String> {
     /** IDEOGRAPHIC SPACE: The width of ideographic (CJK) characters. */
     public const val IDEOGRAPHIC_SPACE: String = "\u3000"
 
-    /** ZERO WIDTH NO-BREAK SPACE: 0 */
-    public const val ZERO_WIDTH_NO_BREAK_SPACE: String = "\uFEFF"
-
     public val Dict: Dictionary<String, String> by lazy {
         dictOf(
             SPACE to "SPACE",
             NO_BREAK_SPACE to "NO BREAK SPACE",
             OGHAM_SPACE_MARK to "OGHAM SPACE MARK",
-//            MONGOLIAN_VOWEL_SEPARATOR to "MONGOLIAN VOWEL SEPARATOR", // not considered blank by Kotlin on JVM
             EN_QUAD to "EN QUAD",
             EM_QUAD to "EM QUAD",
             EN_SPACE to "EN SPACE",
@@ -82,11 +76,28 @@ public object Whitespaces : Collection<String> {
             PUNCTUATION_SPACE to "PUNCTUATION SPACE",
             THIN_SPACE to "THIN SPACE",
             HAIR_SPACE to "HAIR SPACE",
-//            ZERO_WIDTH_SPACE to "ZERO WIDTH SPACE", // not considered blank by Kotlin on JVM
             NARROW_NO_BREAK_SPACE_FO to "NARROW NO BREAK SPACE FO",
             MEDIUM_MATHEMATICAL_SPACE to "MEDIUM MATHEMATICAL SPACE",
             IDEOGRAPHIC_SPACE to "IDEOGRAPHIC SPACE",
-//            ZERO_WIDTH_NO_BREAK_SPACE to "ZERO WIDTH NO BREAK SPACE", // not considered blank by Kotlin on JVM
+            default = { "UNKNOWN" })
+    }
+
+    /**
+     * A Whitespace that "although called a “space” in its name, does not
+     * actually have any width or visible glyph in display. It functions
+     * primarily to indicate word boundaries in writing systems that do
+     * not actually use orthographic spaces to separate words in text."
+     * Determines if this code point is a
+     * [Unicode Space Character](http://www.unicode.org/versions/Unicode13.0.0/ch06.pdf).
+     *
+     * @return `true` if this code point is a space character
+     * @see isWhitespace
+     */
+    public val ZeroWidthWhitespaces: Dictionary<String, String> by lazy {
+        dictOf(
+            "\u180E" to "MONGOLIAN VOWEL SEPARATOR",
+            "\u200B" to "ZERO WIDTH SPACE",
+            "\uFEFF" to "ZERO WIDTH NO BREAK SPACE",
             default = { "UNKNOWN" })
     }
 

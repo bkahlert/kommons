@@ -1,7 +1,7 @@
 package koodies.debug
 
 import koodies.text.Unicode
-import koodies.text.Unicode.zeroWidthSpace
+import koodies.text.Whitespaces
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -25,8 +25,14 @@ class NonPrintableKtTest {
 
     @Test
     fun `should replace blank characters but simple space`() {
-        expectThat("                  $zeroWidthSpace    ".replaceNonPrintableCharacters())
-            .isEqualTo("❲EN SPACE❳ ❲EM SPACE❳ ❲THREE-PER-EM SPACE❳ ❲FOUR-PER-EM SPACE❳ ❲SIX-PER-EM SPACE❳ ❲FIGURE SPACE❳ ❲PUNCTUATION SPACE❳ ❲THIN SPACE❳ ❲HAIR SPACE❳ ❲ZERO WIDTH SPACE❳ ❲NARROW NO-BREAK SPACE❳ ❲MEDIUM MATHEMATICAL SPACE❳")
+        expectThat("                     ".replaceNonPrintableCharacters())
+            .isEqualTo("❲EN SPACE❳ ❲EM SPACE❳ ❲THREE-PER-EM SPACE❳ ❲FOUR-PER-EM SPACE❳ ❲SIX-PER-EM SPACE❳ ❲FIGURE SPACE❳ ❲PUNCTUATION SPACE❳ ❲THIN SPACE❳ ❲HAIR SPACE❳ ❲NARROW NO-BREAK SPACE❳ ❲MEDIUM MATHEMATICAL SPACE❳")
+    }
+
+    @Test
+    fun `should replace zero width white spaces`() {
+        expectThat(Whitespaces.ZeroWidthWhitespaces.keys.joinToString(" ").replaceNonPrintableCharacters())
+            .isEqualTo("❲MONGOLIAN VOWEL SEPARATOR❳ ❲ZERO WIDTH SPACE❳ ❲ZERO WIDTH NO BREAK SPACE❳")
     }
 
     @Test

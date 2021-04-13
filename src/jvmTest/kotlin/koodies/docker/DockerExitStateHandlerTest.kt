@@ -6,6 +6,7 @@ import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ProcessState.Terminated
 import koodies.concurrent.process.status
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
+import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotKillContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotRemoveRunningContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.Conflict
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NameAlreadyInUse
@@ -56,29 +57,18 @@ class DockerExitStateHandlerTest {
     private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, listOf(IO.ERR typed errorMessage))
 
     @TestFactory
-    fun `should match bad request error message22`() = listOf(
-        NoSuchContainer::class to "Error: No such container: abcd/defg" to "no such container",
-    ).testEach { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
-        val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
-        expect("matches ${clazz.simpleName}") { badRequestState::class }.that { isEqualTo(clazz) }
-        expect("status is abcd/defg") { badRequestState.status.ansiRemoved }.that { isEqualTo("abcd/defg") }
-        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("$status${Negative.spaced.ansiRemoved}abcd/defg") }
-        expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
-    }
-
-    @TestFactory
     fun `should match bad request error message`() = listOf(
-        NoSuchContainer::class to "Error: No such container: abcd/defg" to "no such container",
-        NoSuchImage::class to "Error: No such image: abcd/defg" to "no such image",
-        PathDoesNotExistInsideTheContainer::class to "Error: Path does not exist inside the container: abcd/defg" to "path does not exist inside the container",
-        NameAlreadyInUse::class to "Error: Name already in use: abcd/defg" to "name already in use",
-        Conflict::class to "Error: Conflict: abcd/defg" to "conflict"
+        NoSuchContainer::class to "Error: No such container: AFFECTED" to "no such container",
+        NoSuchImage::class to "Error: No such image: AFFECTED" to "no such image",
+        PathDoesNotExistInsideTheContainer::class to "Error: Path does not exist inside the container: AFFECTED" to "path does not exist inside the container",
+        NameAlreadyInUse::class to "Error: Name already in use: AFFECTED" to "name already in use",
+        Conflict::class to "Error: Conflict: AFFECTED" to "conflict"
     ).testEach { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
         val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
 
         expect("matches ${clazz.simpleName}") { badRequestState::class }.that { isEqualTo(clazz) }
-        expect("status is abcd/defg") { badRequestState.status.ansiRemoved }.that { isEqualTo("abcd/defg") }
-        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("$status${Negative.spaced.ansiRemoved}abcd/defg") }
+        expect("status is AFFECTED") { badRequestState.status.ansiRemoved }.that { isEqualTo("AFFECTED") }
+        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
         expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
     }
 
@@ -87,15 +77,28 @@ class DockerExitStateHandlerTest {
         "Error response from daemon: You cannot remove a running container 2c5e082a462134. " +
             "Stop the container before attempting removal or force remove") { errorMessage ->
 
-        val status = "You cannot remove a running container. Stop the container before attempting removal or force remove."
-        val response = DockerExitStateHandler.handle(getTerminated(errorMessage))
+        val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
 
-        expect("matches ${CannotRemoveRunningContainer::class.simpleName}") { response::class }.that { isEqualTo(CannotRemoveRunningContainer::class) }
-        expect("status is abcd/defg") { response.status.ansiRemoved }.that { isEqualTo(status) }
-        expect("formatted state ${response.format()}") { response.format().ansiRemoved }.that { isEqualTo("${Negative.rightSpaced.ansiRemoved}$status") }
-        expect("toString() is ${toString()}") { response }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}$status") }
+        val status = "You cannot remove a running container. Stop the container before attempting removal or force remove."
+        expect("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class }.that { isEqualTo(CannotRemoveRunningContainer::class) }
+        expect("status is AFFECTED") { badRequestState.status.ansiRemoved }.that { isEqualTo(status) }
+        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("${Negative.rightSpaced.ansiRemoved}$status") }
+        expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}$status") }
     }
 
+    @TestFactory
+    fun `should match cannot kill container`() = testEach(
+        "Error response from daemon: Cannot kill container: AFFECTED: No such container: AFFECTED" to "no such container",
+        "Error response from daemon: Cannot kill container: AFFECTED: Container AFFECTED is not running" to "container is not running",
+    ) { (errorMessage, status) ->
+
+        val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
+
+        expect("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class }.that { isEqualTo(CannotKillContainer::class) }
+        expect("status is AFFECTED") { badRequestState.status.ansiRemoved }.that { isEqualTo("AFFECTED") }
+        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
+        expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
+    }
 
     @Test
     fun `should return unknown state for unknown error`() {
@@ -109,8 +112,8 @@ class DockerExitStateHandlerTest {
 
     @Test
     fun `should throw on error-like message without error prefix`() {
-        expectCatching { DockerExitStateHandler.handle(getTerminated("No Error: No such container: abcd/defg")) }.isFailure().isA<ParseException>().and {
-            message.isNotNull().ansiRemoved.isEqualTo("Error parsing response from Docker daemon: No Error: No such container: abcd/defg")
+        expectCatching { DockerExitStateHandler.handle(getTerminated("No Error: No such container: AFFECTED")) }.isFailure().isA<ParseException>().and {
+            message.isNotNull().ansiRemoved.isEqualTo("Error parsing response from Docker daemon: No Error: No such container: AFFECTED")
         }
     }
 

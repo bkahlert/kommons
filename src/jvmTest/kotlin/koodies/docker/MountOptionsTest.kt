@@ -15,6 +15,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -134,18 +135,23 @@ class MountOptionsTest {
             }
         }
 
-        @SystemIoExclusive
-        @TestFactory
-        fun `should throw on incomplete mounts`(capturedOutput: CapturedOutput) = listOf<CollectingMountOptionsContext.() -> Unit>(
-            { "string-source" mountAs "string-type" },
-            { "host-source".asHostPath() mountAs "string-type" },
-            { "string-source" mountAs volume },
-            { "host-source".asHostPath() mountAs tmpfs },
-        ).testEach { mountOperation ->
-            test {
-                MountOptions { mountOperation() }
-                expectThat(poll { capturedOutput.contains("missing") && capturedOutput.contains("complete the configuration") }
-                    .every(100.milliseconds).forAtMost(5.seconds) { fail("No warning due to missing at call logged.") }).isTrue()
+        @Isolated
+        @Nested
+        inner class IncompleteMounts {
+
+            @SystemIoExclusive
+            @TestFactory
+            fun `should throw on incomplete mounts`(capturedOutput: CapturedOutput) = listOf<CollectingMountOptionsContext.() -> Unit>(
+                { "string-source" mountAs "string-type" },
+                { "host-source".asHostPath() mountAs "string-type" },
+                { "string-source" mountAs volume },
+                { "host-source".asHostPath() mountAs tmpfs },
+            ).testEach { mountOperation ->
+                test {
+                    MountOptions { mountOperation() }
+                    expectThat(poll { capturedOutput.contains("missing") && capturedOutput.contains("complete the configuration") }
+                        .every(100.milliseconds).forAtMost(9.seconds) { fail("No warning due to missing at call logged.") }).isTrue()
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package koodies.docker
 
 import koodies.docker.DockerContainer.State
+import koodies.docker.DockerContainer.State.Existent.Exited
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
 import koodies.logging.LoggingContext.Companion.BACKGROUND
@@ -325,6 +326,58 @@ class DockerContainerTest {
         }
 
         @Nested
+        inner class Kill {
+
+            @Nested
+            inner class NotExisting {
+
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should kill container and log`(testContainers: TestContainers) {
+                    val container = testContainers.newNotExistentContainer()
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).get { kill() }.isFailed()
+                    BACKGROUND.expectLogged.contains("Killing ${container.name} ${Negative.ansiRemoved} no such container")
+                    expectThat(container.isRunning).isFalse()
+                }
+            }
+
+            @Nested
+            inner class NotRunning {
+
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should kill container and log`(testContainers: TestContainers) {
+                    val container = testContainers.newExitedTestContainer()
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).get { kill() }.isFailed()
+                    BACKGROUND.expectLogged.contains("Killing ${container.name}")
+                    expectThat(container.isRunning).isFalse()
+                }
+            }
+
+            @Nested
+            inner class Running {
+
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should kill container - but not remove it - and log`(testContainers: TestContainers) {
+                    val container = testContainers.newRunningTestContainer()
+                    expectThat(container.isRunning).isTrue()
+                    expectThat(container).get { kill() }.isSuccessful()
+                    BACKGROUND.expectLogged.contains("Killing ${container.name}")
+                    expectThat(container.isRunning).isFalse()
+                    expectThat(container).hasState<Exited> { exitCode.isNotEqualTo(0) }
+                }
+
+                @ContainersTest @IdeaWorkaroundTest
+                fun `should kill multiple and log`(testContainers: TestContainers) {
+                    val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
+                    expectThat(DockerContainer.kill(*containers.toTypedArray())).isFailed()
+                    BACKGROUND.expectLogged.contains("Killing ${containers[0].name}$NBSP${FieldDelimiters.FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
+                    expectThat(containers).all { not { hasState<State.Existent.Running>() } }
+                }
+            }
+        }
+
+        @Nested
         inner class Remove {
 
             @Nested
@@ -399,3 +452,5 @@ public inline fun <reified T : State> Builder<DockerContainer>.hasState(
     }.then { if (allPassed) pass() else fail() }
 
 public val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }
+
+public val Builder<Exited>.exitCode get(): Builder<Int?> = get("exit code") { exitCode }

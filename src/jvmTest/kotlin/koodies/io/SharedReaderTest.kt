@@ -9,13 +9,13 @@ import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.HtmlFile
 import koodies.test.Slow
+import koodies.test.SystemIoExclusive
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.fuzzyLevenshteinDistance
 import koodies.text.joinLinesToString
-import koodies.text.repeat
 import koodies.times
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
@@ -126,9 +126,10 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     }
 
     @Suppress("unused")
+    @SystemIoExclusive
     @Nested
     inner class Benchmark {
-        private val expected :String = StringBuilder().apply { 50 * { append(HtmlFile.text);append(LF) } }.toString()
+        private val expected: String = StringBuilder().apply { 50 * { append(HtmlFile.text);append(LF) } }.toString()
 
         @Test
         fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {

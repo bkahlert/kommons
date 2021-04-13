@@ -82,7 +82,7 @@ public class DockerContainer(public val name: String) {
             public class Removing(status: String) : Existent(true, "🗑", status)
             public class Paused(status: String) : Existent(true, "❚❚", status)
             public class Exited(status: String, public val exitCode: Int? = parseExitCode(status)) :
-                Existent(true, if (exitCode == 0) Symbols.OK else Symbols.Error, status) {
+                Existent(true, if (exitCode == 0) Symbols.OK else Symbols.Error + " " + exitCode.formattedAs.error, status) {
                 override val successful: Boolean get() = exitCode == 0
 
                 private companion object {
@@ -120,15 +120,29 @@ public class DockerContainer(public val name: String) {
     }
 
     /**
-     * Stops this container with the optionally specified timeout (default: 5 seconds).
+     * Stops this container with the optionally specified [timeout] (default: 5 seconds).
      */
-    public fun stop(timeout: Duration = 5.seconds, async: Boolean = false): ExitState = with(BACKGROUND) {
+    public fun stop(timeout: Duration? = 5.seconds, async: Boolean = false): ExitState = with(BACKGROUND) {
         DockerStopCommandLine {
             options { this.timeout by timeout }
             containers by listOf(this@DockerContainer.name)
         }.execute {
             if (async) processing { this.async }
             noDetails("Stopping ${this@DockerContainer.name.formattedAs.input}")
+            null
+        }.waitFor()
+    }
+
+    /**
+     * Kills this container with the optionally specified [signal] (default: KILL).
+     */
+    public fun kill(signal: String? = null, async: Boolean = false): ExitState = with(BACKGROUND) {
+        DockerKillCommandLine {
+            options { this.signal by signal }
+            containers by listOf(this@DockerContainer.name)
+        }.execute {
+            if (async) processing { this.async }
+            noDetails("Killing ${this@DockerContainer.name.formattedAs.input}")
             null
         }.waitFor()
     }
@@ -232,7 +246,7 @@ public class DockerContainer(public val name: String) {
 
 
         /**
-         * Stops the given [containers] with the optionally specified timeout (default: 5 seconds).
+         * Stops the given [containers] with the optionally specified [timeout] (default: 5 seconds).
          */
         public fun stop(vararg containers: DockerContainer, timeout: Duration = 5.seconds): ExitState = with(BACKGROUND) {
             val names: List<String> = containers.map { it.name }
@@ -241,6 +255,21 @@ public class DockerContainer(public val name: String) {
                 this.containers by names
             }.execute {
                 noDetails("Stopping ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
+                null
+            }.waitFor()
+        }
+
+        /**
+         * Kills the given [containers] with the optionally specified [signal] (default: KILL).
+         */
+        public fun kill(vararg containers: DockerContainer, signal: String? = null, async: Boolean = false): ExitState = with(BACKGROUND) {
+            val names: List<String> = containers.map { it.name }
+            DockerKillCommandLine {
+                options { this.signal by signal }
+                this.containers by names
+            }.execute {
+                if (async) processing { this.async }
+                noDetails("Killing ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
                 null
             }.waitFor()
         }

@@ -11,7 +11,6 @@ import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ExitState.Fatal
 import koodies.concurrent.process.Process.ExitState.Success
-import koodies.concurrent.process.io
 import koodies.docker.DockerExitStateHandler.Failure
 import koodies.or
 import koodies.text.takeUnlessBlank

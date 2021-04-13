@@ -106,7 +106,7 @@ class ExecutionTest {
             val process = getExecutable(uniqueId).execute { Processors.noopProcessor() }
             process.output()
 
-            expectThat(process.ioLog.getCopy().drop(3).dropLast(1))
+            expectThat(process.io.drop(3).toList().dropLast(1))
                 .containsExactlyInAnyOrder(
                     OUT typed "test output env",
                     ERR typed "test error 1",

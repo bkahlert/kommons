@@ -1,7 +1,6 @@
 package koodies.docker
 
 import koodies.asString
-import koodies.concurrent.daemon
 import koodies.concurrent.process.ManagedProcess
 import koodies.concurrent.process.ManagedProcess.Companion.createDump
 import koodies.concurrent.process.Process
@@ -10,8 +9,6 @@ import koodies.concurrent.process.Process.ExitState.Fatal
 import koodies.concurrent.process.Process.ProcessState
 import koodies.concurrent.process.Process.ProcessState.Prepared
 import koodies.concurrent.process.ProcessTerminationCallback
-import koodies.concurrent.process.io
-import koodies.concurrent.thread
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
 import koodies.docker.DockerContainer.State.Existent.Dead
@@ -22,10 +19,8 @@ import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
 import koodies.text.ANSI.ansiRemoved
-import koodies.time.poll
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
-import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 /**
@@ -44,86 +39,54 @@ public open class DockerProcess private constructor(
             val container = dockerRunCommandLine.options.name ?: error("Docker container name missing.")
             val managedProcess = ManagedProcess.from(dockerRunCommandLine,
                 processTerminationCallback = { ex ->
-//                    TODO       container.remove { force { on } }.apply { onExit.orTimeout(8, SECONDS).get() }
+//                    container.kill() TODO
                     processTerminationCallback?.also { it(ex) }
                 })
             return DockerProcess(container, managedProcess)
         }
     }
 
-    private var x: ExitState? = null
-
-
     override var exitState: ExitState? = null
     override val state: ProcessState
-        get() {
-            val state1 = container.state
-            return when (state1) {
-                is NotExistent -> exitState ?: Prepared()
-                is Created -> Prepared(format())
-                is Restarting, is Running, is Removing, is Paused -> ProcessState.Running(pid, format())
-                is Exited, is Dead, is Error -> exitState ?: run {
-                    val message = "Backed Docker process no more running but no exit state is known."
-                    val dump = createDump(message)
-                    Fatal(IllegalStateException(dump.ansiRemoved), exitValue, pid, dump, io, message).also { exitState = it }
-                }
+        get() = when (container.state) {
+            is NotExistent -> exitState ?: Prepared()
+            is Created -> Prepared(format())
+            is Restarting, is Running, is Removing, is Paused -> ProcessState.Running(pid, format())
+                .also { onExit } // hack to trigger lazy on exit register an exit state storing future
+            is Exited, is Dead, is Error -> exitState ?: run {
+                val message = "Backed Docker process no more running but no exit state is known."
+                val dump = createDump(message)
+                Fatal(IllegalStateException(dump.ansiRemoved), exitValue, pid, dump, io.toList(), message).also { exitState = it }
             }
         }
+
+    override val onExit: CompletableFuture<out ExitState> by lazy {
+        managedProcess.onExit.apply { thenAccept { run { exitState = it } } }
+    }
 
     override fun start(): DockerProcess = also { managedProcess.start() }
-    override fun stop(): DockerProcess = stop(async = false)
-    override fun kill(): DockerProcess = kill(async = false)
 
     /**
-     * Gracefully attempts to stop the execution of the backing Docker container
-     * for at most the given [timeout]. If the Docker container does not
-     * stop in time the backing OS process is requested to [ManagedProcess.stop].
-     *
-     * If [async] is set, this call returns immediately, stopping the Docker
-     * container in a separate thread.
+     * Stops this process by stopping its container.
      */
-    public fun stop(async: Boolean = false, timeout: Duration = 10.seconds): DockerProcess = also {
-        val block: () -> Unit = {
-            daemon { container.stop(5.seconds) }.also {
-                runCatching { pollTermination(timeout + .5.milliseconds) }
-                managedProcess.stop()
-            }
-        }
-
-        if (async) thread(block = block)
-        else block()
-    }
+    override fun stop(): DockerProcess = stop(null)
 
     /**
-     * Forcefully stops the execution of the backing Docker container by
-     * attempting to [stop] it gracefully for at most the given [gracefulStopTimeout].
-     *
-     * If the Docker container does not stop in time a container is forcefully removed.
-     *
-     * If [async] is set, this call returns immediately, killing the Docker
-     * container in a separate thread.
+     * Kills this process by killing its container.
      */
-    public fun kill(async: Boolean = false, gracefulStopTimeout: Duration = 2.seconds): DockerProcess = also {
-        val block: () -> Unit = {
-            daemon { container.stop(gracefulStopTimeout) }.also {
-                runCatching { pollTermination(gracefulStopTimeout + .5.milliseconds) }
-                container.remove(force = true)
-            }
-        }
+    override fun kill(): DockerProcess = kill(null)
 
-        if (async) thread(block = block)
-        else block()
-    }
+    /**
+     * Stops this process by stopping its container with the optionally specified [timeout] (default: 5 seconds).
+     */
+    public fun stop(timeout: Duration? = 5.seconds): DockerProcess =
+        also { container.stop(timeout = timeout) }.also { managedProcess.stop() }
 
-    private fun pollTermination(timeout: Duration): DockerProcess = also {
-        poll { !container.isRunning }
-            .every(500.milliseconds)
-            .forAtMost(timeout) { throw TimeoutException("Could not clean up $this within $it.") }
-    }
+    /**
+     * Kills this process by killing its container with the optionally specified [signal] (default: KILL).
+     */
+    public fun kill(signal: String?): DockerProcess =
+        also { container.kill(signal = signal) }.also { managedProcess.kill() }
 
     override fun toString(): String = asString(::container, ::managedProcess)
-
-    init {
-        onExit.thenAccept { run { exitState = it } }
-    }
 }

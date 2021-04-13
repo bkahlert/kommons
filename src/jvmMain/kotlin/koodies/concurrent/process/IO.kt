@@ -164,24 +164,49 @@ public sealed class IO(
 /**
  * Contains a filtered copy only consisting of [META].
  */
-public val List<IO>.meta: List<META> get() = filterIsInstance<META>()
+public val Sequence<IO>.meta: Sequence<META> get() = filterIsInstance<META>()
+
+/**
+ * Contains a filtered copy only consisting of [META].
+ */
+public val Iterable<IO>.meta: Iterable<META> get() = filterIsInstance<META>()
 
 /**
  * Contains a filtered copy only consisting of [INPUT].
  */
-public val List<IO>.input: List<INPUT> get() = filterIsInstance<INPUT>()
+public val Sequence<IO>.input: Sequence<INPUT> get() = filterIsInstance<INPUT>()
+
+/**
+ * Contains a filtered copy only consisting of [INPUT].
+ */
+public val Iterable<IO>.input: Iterable<INPUT> get() = filterIsInstance<INPUT>()
 
 /**
  * Contains a filtered copy only consisting of [OUT].
  */
-public val List<IO>.out: List<OUT> get() = filterIsInstance<OUT>()
+public val Sequence<IO>.out: Sequence<OUT> get() = filterIsInstance<OUT>()
+
+/**
+ * Contains a filtered copy only consisting of [OUT].
+ */
+public val Iterable<IO>.out: Iterable<OUT> get() = filterIsInstance<OUT>()
 
 /**
  * Contains a filtered copy only consisting of [ERR].
  */
-public val List<IO>.err: List<ERR> get() = filterIsInstance<ERR>()
+public val Sequence<IO>.err: Sequence<ERR> get() = filterIsInstance<ERR>()
+
+/**
+ * Contains a filtered copy only consisting of [ERR].
+ */
+public val Iterable<IO>.err: Iterable<ERR> get() = filterIsInstance<ERR>()
 
 /**
  * Contains a filtered copy of I/O merged to a string.
  */
-public val List<IO>.merged: String get() = merge<IO>(removeEscapeSequences = false)
+public val Sequence<IO>.merged: String get() = merge<IO>(removeEscapeSequences = false)
+
+/**
+ * Contains a filtered copy of I/O merged to a string.
+ */
+public val Iterable<IO>.merged: String get() = merge<IO>(removeEscapeSequences = false)

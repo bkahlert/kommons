@@ -1,11 +1,12 @@
 package koodies
 
+import koodies.collections.any
+import koodies.collections.size
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.err
-import koodies.concurrent.process.io
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.concurrent.process.output
@@ -40,7 +41,6 @@ import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
-import strikt.assertions.count
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
@@ -237,7 +237,7 @@ class ExecutionIntegrationTest {
 
         // and run it
         commandLine.execute { null } check {
-            io.out { count().isGreaterThan(10) }
+            io.out { size.isGreaterThan(10) }
         }
 
         // How about running it in a container?

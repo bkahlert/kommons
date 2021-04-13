@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.concurrent.process.output
 import koodies.docker.Docker.run
+import koodies.docker.TestImages.BusyBox
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.SystemIoExclusive
@@ -49,7 +50,7 @@ class DockerTest {
     }
 
     @SystemIoExclusive
-    @DockerRequiring(["busybox"])
+    @DockerRequiring([BusyBox::class])
     @TestFactory
     fun `should provide builder access points`() = test(Docker) {
 //        expect { search(DockerSearchCommandLineBuilderExpectation.init) }.that { o }
@@ -57,7 +58,7 @@ class DockerTest {
         expect { stop(DockerStopCommandLineTest.init) }.that { isEqualTo(DockerStopCommandLineTest.result) }
     }
 
-    @DockerRequiring(["busybox"])
+    @DockerRequiring([BusyBox::class])
     @Nested
     inner class RunCommand {
 
@@ -87,7 +88,7 @@ class DockerTest {
         }
     }
 
-    @DockerRequiring(["busybox"])
+    @DockerRequiring([BusyBox::class])
     @Nested
     inner class StopCommand {
 

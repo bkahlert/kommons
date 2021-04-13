@@ -9,7 +9,7 @@ public fun CharSequence.levenshteinDistance(other: CharSequence): Int {
     (0..length).forEach { i -> cost[i][0] = i }
     (0..other.length).forEach { i -> cost[0][i] = i }
 
-    val thisInOtherIndex = mutableMapOf<Char, Int>()
+    val thisInOtherIndex: MutableMap<Char, Int> = mutableMapOf<Char, Int>()
     (1..length).forEach { thisIndex ->
         var prevMatchingOtherIndex = 0
         (1..other.length).forEach { otherIndex ->
@@ -21,7 +21,7 @@ public fun CharSequence.levenshteinDistance(other: CharSequence): Int {
             possibleCosts.add(cost[thisIndex][otherIndex - 1] + 1) // insertion cost
             possibleCosts.add(cost[thisIndex - 1][otherIndex] + 1) // deletion cost
 
-            val otherToThisIndex = thisInOtherIndex.getOrDefault(other[otherIndex - 1], 0) // transposition cost
+            val otherToThisIndex = thisInOtherIndex.getOrPut(other[otherIndex - 1]) { 0 } // transposition cost
             if (otherToThisIndex != 0 && prevMatchingOtherIndex != 0)
                 possibleCosts += cost[otherToThisIndex - 1][prevMatchingOtherIndex - 1] +
                     (thisIndex - otherToThisIndex - 1) + 1 + (otherIndex - prevMatchingOtherIndex - 1)

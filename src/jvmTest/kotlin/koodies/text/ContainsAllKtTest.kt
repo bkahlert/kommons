@@ -1,9 +1,9 @@
 package koodies.text
 
-import org.junit.jupiter.api.Test
+import koodies.test.test
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -11,23 +11,27 @@ import strikt.assertions.isTrue
 class ContainsAllKtTest {
     val string = "foo bar"
 
-    @Test
-    fun `should return true if all of the others is case-matching substring`() {
-        expectThat(string.containsAll(listOf("foo ", " bar"))).isTrue()
+    @TestFactory
+    fun `should return true if all of the others is case-matching substring`() = test(string) {
+        expect { containsAll(listOf("foo ", " bar")) }.that { isTrue() }
+        expect { containsAll("foo ", " bar") }.that { isTrue() }
     }
 
-    @Test
-    fun `should return true if all of the others is non-case-matching substring but case is ignored`() {
-        expectThat(string.containsAll(listOf("foo ", "BAR"), ignoreCase = true)).isTrue()
+    @TestFactory
+    fun `should return true if all of the others is non-case-matching substring but case is ignored`() = test(string) {
+        expect { containsAll(listOf("foo ", "BAR"), ignoreCase = true) }.that { isTrue() }
+        expect { containsAll("foo ", "BAR", ignoreCase = true) }.that { isTrue() }
     }
 
-    @Test
-    fun `should return false if none of the others is no case-matching substring`() {
-        expectThat(string.containsAll(listOf("baz", "O B", "abc"))).isFalse()
+    @TestFactory
+    fun `should return false if none of the others is no case-matching substring`() = test(string) {
+        expect { containsAll(listOf("baz", "O B", "abc")) }.that { isFalse() }
+        expect { containsAll("baz", "O B", "abc") }.that { isFalse() }
     }
 
-    @Test
-    fun `should return false if none of the others is substring`() {
-        expectThat(string.containsAll(listOf("baz", "---", "abc"))).isFalse()
+    @TestFactory
+    fun `should return false if none of the others is substring`() = test(string) {
+        expect { containsAll(listOf("baz", "---", "abc")) }.that { isFalse() }
+        expect { containsAll("baz", "---", "abc") }.that { isFalse() }
     }
 }

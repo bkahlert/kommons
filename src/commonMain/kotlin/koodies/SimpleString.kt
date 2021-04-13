@@ -4,46 +4,36 @@ import koodies.regex.RegularExpressions
 import koodies.regex.get
 import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
+import koodies.text.withoutPrefix
 import kotlin.reflect.KClass
 
-
 /**
- * Contains an package-free class name like `ClassName`.
- * for strings containing a
- * - simple class name
- * - fully qualified class name
- * - any of the above with a `class ` prefix.
+ * Returns a **simple** string representation of `this` [KClass].
+ *
+ * Examples are `ClassName` and `ClassName.InnerClassName`.
  */
-private val String.simpleClassName: String
-    get() {
-        val classPrefixStripped = toString().substringAfter(" ")
-        return RegularExpressions.fullyClassifiedClassNameRegex.matchEntire(classPrefixStripped)?.let {
-            it["class"] ?: "❓"
-        }?.replace("$", FieldDelimiters.UNIT).takeIf { it != "null" } ?: "object"
-    }
+public fun KClass<*>.toSimpleString(): String = toString().simpleClassName ?: "object"
 
 /**
- * Contains the (inner) class name like `ClassName` or `ClassName.InnerClassName` of `this` [KClass].
+ * Returns a **simple** string representation of `this` object.
  */
-public val KClass<*>.simpleClassName: String get() = toString().simpleClassName
+public fun Any?.toSimpleString(): String =
+    this?.let {
+        val string = toString()
+        string.simpleClassName ?: string
+    } ?: Symbols.Null
 
 /**
- * Contains the (inner) class name like `ClassName` or `ClassName.InnerClassName` of `this` [KClass].
+ * Returns a **simple** string representation of `this` object's [KClass].
+ *
+ * Examples are `ClassName` and `ClassName.InnerClassName`.
  */
-public fun KClass<*>.simpleName(): String = toString().simpleClassName
-
-private fun String.formatParams(limit: Int = 1): String =
-    RegularExpressions.fullyClassifiedClassNameRegex.findAll(this)
-        .map { it["class"] ?: "…" }
-        .take(limit + 1)
-        .mapIndexed { index, text -> if (index == limit) "⋯" else text }
-        .joinToString(", ")
-
-public fun Any?.toSimpleString(): String = this?.toString() ?: Symbols.Null
+public fun Any?.toSimpleClassName(): String = this?.let { it::class.toSimpleString() } ?: Symbols.Null
 
 /**
- * Returns a string representation of this lambda with eventually
- * existing classes reduced to their [KClass.simpleName].
+ * Returns a **simple** string representation of `this` [Function] / lambda.
+ *
+ * Examples are `() -> Int` and `Receiver.() -> Unit`.
  */
 public fun <R> Function<R>.toSimpleString(): String =
     RegularExpressions.ignoreArgsLambdaRegex.matchEntire(toString())?.let { result ->
@@ -54,3 +44,27 @@ public fun <R> Function<R>.toSimpleString(): String =
             ?: "($params) -> $returnType"
     } ?: toString()
 
+private fun String.formatParams(limit: Int = 1): String =
+    RegularExpressions.fullyClassifiedClassNameRegex.findAll(this)
+        .map { it["class"] ?: "…" }
+        .take(limit + 1)
+        .mapIndexed { index, text -> if (index == limit) "⋯" else text }
+        .joinToString(", ")
+
+/**
+ * Contains an package-free class name like `ClassName`.
+ * for strings containing a
+ * - simple class name
+ * - fully qualified class name
+ * - any of the above with a `class ` prefix.
+ */
+private val String.simpleClassName: String?
+    get() {
+        val classPrefixStripped = toString().withoutPrefix("class ")
+        val classNameMatch = RegularExpressions.fullyClassifiedClassNameRegex.matchEntire(classPrefixStripped)
+        if (classNameMatch != null) {
+            val fqcn = classNameMatch["class"] ?: error("expected named group \"class\" missing.")
+            return fqcn.replace("$", FieldDelimiters.UNIT)
+        }
+        return null
+    }

@@ -6,11 +6,13 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.Process.ExitState
 import koodies.concurrent.process.Process.ProcessState.Running
 import koodies.concurrent.process.Process.ProcessState.Terminated
+import koodies.concurrent.process.ProcessTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.exitCode
 import koodies.concurrent.process.hasState
+import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.TestImages.BusyBox
@@ -18,6 +20,8 @@ import koodies.docker.TestImages.Ubuntu
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.containsAll
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
 import koodies.times
@@ -27,6 +31,7 @@ import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThanOrEqualTo
@@ -41,19 +46,19 @@ import kotlin.time.seconds
 class DockerProcessTest {
 
     @DockerRequiring([BusyBox::class]) @Test
-    fun `should start docker`(uniqueId: UniqueId) {
-        val dockerProcess = createProcess(uniqueId, "echo", "test")
-        dockerProcess.waitForOutputOrFail(
-            "Process terminated without logging: ${dockerProcess.ioLog.dump()}.",
-            "Did not log \"test\" output within 8 seconds.") {
-            any { it is IO.OUT && it.unformatted == "test" }
-        }
-    }
-
-    @DockerRequiring([BusyBox::class]) @Test
     fun `should override toString`(uniqueId: UniqueId) {
         val dockerProcess = createProcess(uniqueId, "echo", "test")
         expectThat(dockerProcess).toStringMatchesCurlyPattern("DockerProcess { container = {} managedProcess = {} }")
+    }
+
+    @DockerRequiring([BusyBox::class]) @Test
+    fun `should start docker`(uniqueId: UniqueId) {
+        val dockerProcess = createProcess(uniqueId, "echo", "test")
+        dockerProcess.waitForOutputOrFail(
+            "Process terminated without logging: ${dockerProcess.io.merged}.",
+            "Did not log \"test\" output within 8 seconds.") {
+            any { it is IO.OUT && it.unformatted == "test" }
+        }
     }
 
     @Nested
@@ -63,7 +68,7 @@ class DockerProcessTest {
         fun `should start docker and pass arguments`(uniqueId: UniqueId) {
             val dockerProcess = createProcess(uniqueId, "echo", "test")
             dockerProcess.waitForOutputOrFail(
-                "Process terminated without logging: ${dockerProcess.ioLog.dump()}.",
+                "Process terminated without logging: ${dockerProcess.io.merged}.",
                 "Did not log \"test\" output within 8 seconds.") {
                 any { it is IO.OUT && it.unformatted == "test" }
             }
@@ -83,7 +88,7 @@ class DockerProcessTest {
             }
 
             dockerProcess.waitForOutputOrFail("Did not log self-induced \"test\" output within 8 seconds.") {
-                out.containsAll(listOf(IO.OUT typed "test 1", IO.OUT typed "test 2"))
+                out.merged.ansiRemoved.containsAll("test 1", "test 2")
             }
         }
 
@@ -92,7 +97,7 @@ class DockerProcessTest {
             val dockerProcess = createProcess(uniqueId, "echo", "Hello\nWorld")
 
             dockerProcess.waitForOutputOrFail("Did not log any output within 8 seconds.") {
-                out.containsAll(listOf(IO.OUT typed "Hello", IO.OUT typed "World"))
+                out.merged.ansiRemoved.containsAll("Hello", "World")
             }
         }
 
@@ -111,30 +116,36 @@ class DockerProcessTest {
             }
 
             dockerProcess.waitForOutputOrFail("Did not log self-produced \"test\" output within 8 seconds.") {
-                out.containsAll(listOf(
+                out.merged.ansiRemoved.containsAll(
                     IO.OUT typed "test 1",
                     IO.OUT typed "test 2",
                     IO.OUT typed "test 4",
                     IO.OUT typed "test 8",
-                ))
+                )
             }
         }
 
         @Nested
         inner class IsRunning {
 
-            private fun unprocessedProcess(uniqueId: UniqueId, command: String, vararg args: String): DockerProcess {
+            private fun unprocessedProcess(
+                uniqueId: UniqueId,
+                command: String,
+                vararg args: String,
+                callback: ProcessTerminationCallback? = null,
+            ): DockerProcess {
                 val dockerRunCommandLine = DockerRunCommandLine(
                     image = BusyBox,
                     options = DockerRunCommandLine.Options(name = DockerContainer(uniqueId.simplified)),
                     commandLine = CommandLine(command, *args))
-                return DockerProcess.from(dockerRunCommandLine)
+                return DockerProcess.from(dockerRunCommandLine, callback)
             }
 
             @DockerRequiring([BusyBox::class]) @Test
             fun `should return false on not yet started container container`(uniqueId: UniqueId) {
                 val unprocessedProcess = unprocessedProcess(uniqueId, "sleep", "10")
-                expectThat(unprocessedProcess.started).isFalse()
+                val subject = unprocessedProcess.started
+                expectThat(subject).isFalse()
                 expectThat(unprocessedProcess.alive).isFalse()
             }
 
@@ -157,11 +168,9 @@ class DockerProcessTest {
             @DockerRequiring([BusyBox::class]) @Test
             fun `should stop running container`(uniqueId: UniqueId) {
                 val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
-                runningProcess.start().apply {
-                    waitForCondition("Did not start in time.") { state is Running }
-                }
+                runningProcess.start().waitForCondition("Did not start in time.") { state is Running }
 
-                val passed = measureTime { runningProcess.stop(timeout = 1.seconds) }
+                val passed = measureTime { runningProcess.stop(1.seconds) }
                 expectThat(passed).isLessThan(3.seconds)
             }
 
@@ -172,23 +181,30 @@ class DockerProcessTest {
                     waitForCondition("Did not start in time.") { state is Running }
                 }
 
-                val passed = measureTime { runningProcess.kill(gracefulStopTimeout = 0.seconds) }
+                val passed = measureTime { runningProcess.kill() }
                 expectThat(passed).isLessThan(1.seconds)
+            }
+
+            @DockerRequiring([BusyBox::class]) @Test
+            fun `should call callback on termination`(uniqueId: UniqueId) {
+                var calledBack = false
+                val runningProcess = unprocessedProcess(uniqueId, "exit", "0") { calledBack = true }
+                runningProcess.start().waitForCondition("Did not call back.") { calledBack }
             }
         }
 
         @DockerRequiring([BusyBox::class]) @Test
         fun `should have failed state on non 0 exit code`(uniqueId: UniqueId) {
-            val completedProcess = createProcess(uniqueId, "invalid")
-            expectThat(completedProcess).hasState<ExitState.Failure> { exitCode.isEqualTo(127) }
+            val dockerProcess = createProcess(uniqueId, "invalid")
+            expectThat(dockerProcess).hasState<ExitState.Failure> { exitCode.isEqualTo(127) }
         }
 
         @Slow @DockerRequiring([BusyBox::class]) @Test
         fun `should remove docker container after completion`(uniqueId: UniqueId) {
-            val completedProcess = createProcess(uniqueId, "sleep", "1")
-            completedProcess.apply {
-                waitForCondition("Did not start in time.") { container.state is DockerContainer.State.Existent.Running }
-                waitForCondition("Did not stop in time.") { state is Terminated }
+            val dockerProcess = createProcess(uniqueId, "echo", "was alive")
+
+            dockerProcess.apply {
+                expectThat(io.merged.ansiRemoved).contains("was alive")
                 expectThat(container).hasState<DockerContainer.State.NotExistent>()
             }
         }
@@ -196,8 +212,9 @@ class DockerProcessTest {
 
     @Slow @DockerRequiring([BusyBox::class]) @Test
     fun `should not produce incorrect empty lines`(uniqueId: UniqueId) {
+        var killed = false
         val output = synchronizedListOf<IO>()
-        val dockerProcess = createProcess(uniqueId, "/bin/sh", "-c", """
+        createProcess(uniqueId, "/bin/sh", "-c", """
                 while true; do
                 ${20.times { "echo \"looping\"" }.joinToString("; ")}
                 sleep 1
@@ -205,7 +222,8 @@ class DockerProcessTest {
             """.trimIndent()) {
             if (it !is IO.META) {
                 output.add(it)
-                if (output.size > 100) {
+                if (output.size > 100 && !killed) {
+                    killed = true
                     kill()
                 }
             }
@@ -245,7 +263,7 @@ private fun DockerProcess.waitForOutputOrFail(
     test: List<IO>.() -> Boolean,
 ) {
     poll {
-        ioLog.getCopy().test()
+        io.toList().test()
     }.every(100.milliseconds).forAtMost(8.seconds) {
         if (alive) fail(stillRunningErrorMessage)
         fail(errorMessage)
