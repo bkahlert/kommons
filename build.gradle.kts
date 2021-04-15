@@ -69,14 +69,13 @@ allprojects {
     configurations.all {
         resolutionStrategy.eachDependency {
 
-
             val kotlinVersion = "1.4.32"
             val kotlinModules = listOf(
                 "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
                 "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
                 "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
             if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
-                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
+//                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
 //                useVersion(kotlinVersion)
                 because("of ambiguity issues")
             }
@@ -89,11 +88,34 @@ group = "com.bkahlert"
 
 repositories {
     mavenCentral()
+
     maven {
         url = uri("https://maven.pkg.github.com/bkahlert/koodies")
         credentials {
             username = project.findPropertyEverywhere("githubUsername", "")
             password = project.findPropertyEverywhere("githubToken", "")
+        }
+    }
+
+    maven {
+        name = "MavenCentral"
+        url = if (version.isFinal()) {
+            uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+        } else {
+            uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
+        credentials {
+            username = findPropertyEverywhere("sonatypeNexusUsername", "")
+            password = findPropertyEverywhere("sonatypeNexusPassword", "")
+        }
+    }
+
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+        credentials {
+            username = findPropertyEverywhere("githubUsername", "")
+            password = findPropertyEverywhere("githubToken", "")
         }
     }
 }
@@ -148,6 +170,14 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                languageVersion = "1.4"
+                apiVersion = "1.4"
+            }
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -205,100 +235,77 @@ kotlin {
             languageSettings.apply {
                 languageVersion = "1.4"
                 apiVersion = "1.4"
-                progressiveMode = true
-
-                enableLanguageFeature("InlineClasses")
+                enableLanguageFeature("InlineClasses") // language feature name
                 useExperimentalAnnotation("kotlin.RequiresOptIn")
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
                 useExperimentalAnnotation("kotlin.time.ExperimentalTime")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+                progressiveMode = true // false by default
             }
         }
     }
 
-    publishing {
-        publications {
-            withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
-                artifact(tasks.register<Jar>("dokkaHtmlJar") {
-                    group = DOCUMENTATION_GROUP
-                    dependsOn(tasks.dokkaHtml)
-                    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-                    archiveClassifier.set("kdoc")
-                })
-            }
-            withType<MavenPublication>().configureEach {
-                artifact(tasks.register<Jar>("${name}JavaDocJar") {
-                    archiveBaseName.set("${project.name}-${this@configureEach.name}")
-                    archiveClassifier.set("javadoc")
-                })
+}
 
-                pom {
-                    name.set("Koodies")
-                    description.set(project.description)
+publishing {
+    publications {
+        withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
+            artifact(tasks.register<Jar>("dokkaHtmlJar") {
+                group = DOCUMENTATION_GROUP
+                dependsOn(tasks.dokkaHtml)
+                from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+                archiveClassifier.set("kdoc")
+            })
+        }
+        withType<MavenPublication>().configureEach {
+            artifact(tasks.register<Jar>("${name}JavaDocJar") {
+                dependsOn(tasks.dokkaHtml)
+                from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+                archiveBaseName.set("${project.name}-${this@configureEach.name}")
+                archiveClassifier.set("javadoc")
+            })
+
+            pom {
+                name.set("Koodies")
+                description.set(project.description)
+                url.set(baseUrl)
+                licenses {
+                    license {
+                        name.set("MIT")
+                        url.set("$baseUrl/blob/master/LICENSE")
+                    }
+                }
+                scm {
                     url.set(baseUrl)
-                    licenses {
-                        license {
-                            name.set("MIT")
-                            url.set("$baseUrl/blob/master/LICENSE")
-                        }
-                    }
-                    scm {
-                        url.set(baseUrl)
-                        connection.set("scm:git:$baseUrl.git")
-                        developerConnection.set("scm:git:$baseUrl.git")
-                    }
-                    issueManagement {
-                        url.set("$baseUrl/issues")
-                        system.set("GitHub")
-                    }
+                    connection.set("scm:git:$baseUrl.git")
+                    developerConnection.set("scm:git:$baseUrl.git")
+                }
+                issueManagement {
+                    url.set("$baseUrl/issues")
+                    system.set("GitHub")
+                }
 
-                    ciManagement {
-                        url.set("$baseUrl/issues")
-                        system.set("GitHub")
-                    }
+                ciManagement {
+                    url.set("$baseUrl/issues")
+                    system.set("GitHub")
+                }
 
-                    developers {
-                        developer {
-                            id.set("bkahlert")
-                            name.set("Björn Kahlert")
-                            email.set("mail@bkahlert.com")
-                            url.set("https://bkahlert.com")
-                            timezone.set("Europe/Berlin")
-                        }
+                developers {
+                    developer {
+                        id.set("bkahlert")
+                        name.set("Björn Kahlert")
+                        email.set("mail@bkahlert.com")
+                        url.set("https://bkahlert.com")
+                        timezone.set("Europe/Berlin")
                     }
                 }
             }
         }
-
-        repositories {
-
-            maven {
-                name = "MavenCentral"
-                url = if (version.isFinal()) {
-                    uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                } else {
-                    uri("https://oss.sonatype.org/content/repositories/snapshots/")
-                }
-                credentials {
-                    username = findPropertyEverywhere("sonatypeNexusUsername", "")
-                    password = findPropertyEverywhere("sonatypeNexusPassword", "")
-                }
-            }
-
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-                credentials {
-                    username = findPropertyEverywhere("githubUsername", "")
-                    password = findPropertyEverywhere("githubToken", "")
-                }
-            }
-        }
     }
+}
 
-    signing {
-        sign(publishing.publications)
-    }
+signing {
+    sign(publishing.publications)
 }
 
 // TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
