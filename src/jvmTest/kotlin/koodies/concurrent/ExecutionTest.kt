@@ -43,6 +43,7 @@ import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.measureTime
@@ -55,7 +56,7 @@ class ExecutionTest {
     private val echoingCommands =
         "echo \"test output env\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
-    private fun getExecutable(uniqueId: UniqueId) = ShellScript(uniqueId.simplified) { !echoingCommands }
+    private fun Path.getExecutable(uniqueId: UniqueId): ShellScript = ShellScript(uniqueId.simplified) { !echoingCommands }
 
     @Nested
     inner class ExecuteFn {
@@ -87,7 +88,7 @@ class ExecutionTest {
 
         @Test
         fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectCatching { CommandLine("exit", "42").execute { Processors.noopProcessor() } }.isSuccess()
+            expectCatching { CommandLine(this, "exit", "42").execute { Processors.noopProcessor() } }.isSuccess()
                 .hasState<Failure> { io<IO>().containsDump(containedStrings = emptyArray()) }
         }
     }
@@ -331,9 +332,9 @@ class ExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should execute using existing logger`() {
+    fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId){
 
-        val executable: Executable = CommandLine("echo", "test")
+        val executable: Executable = CommandLine(this, "echo", "test")
 
         with(executable) {
             logging("existing logging context") {

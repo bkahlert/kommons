@@ -1,14 +1,15 @@
 package koodies.kaomoji
 
-import koodies.text.GraphemeCluster
-import koodies.text.asGraphemeClusterSequence
+import koodies.text.CodePoint
+import koodies.text.asCodePointSequence
+import koodies.text.charCount
 import kotlin.properties.PropertyDelegateProvider
 
 public open class Category : AbstractList<Kaomojis.Kaomoji>() {
     private val _list = mutableListOf<Kaomojis.Kaomoji>()
 
     override val size: Int get() = _list.size
-    override fun get(index: Int): Kaomojis.Kaomoji = _list.get(index)
+    override fun get(index: Int): Kaomojis.Kaomoji = _list[index]
 
     /**
      * Creates a new Kaomoji property based on the property's name.
@@ -19,10 +20,9 @@ public open class Category : AbstractList<Kaomojis.Kaomoji>() {
     public fun auto(kaomoji: String? = null): PropertyDelegateProvider<Category, Kaomojis.Kaomoji> =
         PropertyDelegateProvider { category, property ->
             val template = kaomoji ?: property.name
-            val parts = template.asGraphemeClusterSequence().toMutableList()
-            val ranges = parts.runningFold(IntRange(0, -1)) { previousRange: IntRange, graphemeCluster: GraphemeCluster ->
-                IntRange(previousRange.last + 1,
-                    previousRange.last + graphemeCluster.codePoints.size)
+            val parts = template.asCodePointSequence().toMutableList()
+            val ranges = parts.runningFold(IntRange(0, -1)) { previousRange: IntRange, codePoint: CodePoint ->
+                (previousRange.last + 1)..(previousRange.last + codePoint.charCount)
             }.drop(1)
 
             var leftArmRange: IntRange? = null

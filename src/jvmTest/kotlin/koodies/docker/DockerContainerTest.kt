@@ -38,6 +38,7 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.length
 import java.nio.file.Path
+import kotlin.text.repeat
 import kotlin.time.measureTime
 import kotlin.time.seconds
 
@@ -63,7 +64,7 @@ class DockerContainerTest {
 
         @ContainersTestFactory @IdeaWorkaroundTestFactory
         fun `should contain actual state`(testContainers: TestContainers) = listOf<Pair<String, (TestContainers) -> DockerContainer>>(
-            "not existent" to { it.newNotExistentContainer() },
+            "not existent" to {  it.newNotExistentContainer().apply { state } },
             "▶ running" to { it.newRunningTestContainer() },
             "✔︎ exited" to { it.newExitedTestContainer() },
         ).testEach("{}") { (state, provider) ->
@@ -253,7 +254,7 @@ class DockerContainerTest {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newExitedTestContainer())
                     expectThat(DockerContainer.start(*containers.toTypedArray(), attach = false)).isFailed()
                     BACKGROUND.expectLogged.contains("Starting ${containers[0].name}$NBSP${FieldDelimiters.FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
-                    expectThat(containers).all { not { hasState<State.Existent.Exited>() } }
+                    expectThat(containers).all { not { hasState<Exited>() } }
                 }
             }
 
@@ -312,7 +313,7 @@ class DockerContainerTest {
                     expectThat(container).get { stop() }.isSuccessful()
                     BACKGROUND.expectLogged.contains("Stopping ${container.name}")
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).hasState<State.Existent.Exited>()
+                    expectThat(container).hasState<Exited>()
                 }
 
                 @ContainersTest @IdeaWorkaroundTest

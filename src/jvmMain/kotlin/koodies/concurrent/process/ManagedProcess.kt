@@ -25,7 +25,6 @@ import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
-import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.cli.shell.Shell
 import java.io.File
 import java.io.InputStream
@@ -111,7 +110,7 @@ private fun CommandLine.runCommandLineAsJavaProcess(): JavaProcess {
         "Redirects are only supported for shell scripts.$LF" +
             "Convert your command line first to a script file and execute that one."
     }
-    val hereDocDelimiters = HereDoc.findAllDelimiters(CommandLineUtils.toString(commandLineParts))
+    val hereDocDelimiters = HereDoc.findAllDelimiters(CommandLine.asShellCommand(commandLineParts))
     require(hereDocDelimiters.isEmpty()) {
         "The command line contained here documents ($hereDocDelimiters) which " +
             "will not be escaped and are not what you intended to do."
@@ -221,7 +220,7 @@ private open class ManagedJavaProcess(
     override val io: IOLog by lazy { IOLog() }
 
     private val preTerminationCallbacks = synchronizedSetOf<ManagedProcess.() -> Unit>()
-    public override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess =
+    override fun addPreTerminationCallback(callback: ManagedProcess.() -> Unit): ManagedProcess =
         apply { preTerminationCallbacks.add(callback) }
 
     protected val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {

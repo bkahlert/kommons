@@ -15,8 +15,7 @@ import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 import koodies.text.unquoted
-import org.codehaus.plexus.util.StringUtils
-import org.codehaus.plexus.util.cli.CommandLineUtils
+import org.codehaus.plexus.util.StringUtils.quoteAndEscape
 import java.nio.file.Path
 import kotlin.io.path.exists
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
@@ -99,7 +98,7 @@ public open class CommandLine(
      * e.g. `echo "Hello World!"`.
      */
     public val commandLine: String by lazy {
-        formattedRedirects + CommandLineUtils.toString(commandLineParts)
+        formattedRedirects + asShellCommand(commandLineParts)
     }
 
     /**
@@ -115,7 +114,7 @@ public open class CommandLine(
      */
     public val multiLineCommandLine: String by lazy {
         commandLineParts.joinToString(separator = " \\$LF") {
-            StringUtils.quoteAndEscape(
+            quoteAndEscape(
                 it.trim(),
                 '\"'
             )
@@ -203,6 +202,22 @@ public open class CommandLine(
                 ?.let { CommandLine(emptyList(), emptyMap(), workingDirectory, it.first(), it.drop(1)) }
                 ?: throw IllegalArgumentException("$commandLine is no valid command line.")
         }
+
+        /**
+         * Formats the given [commandLineParts] so they can be run in a shell.
+         */
+        public fun asShellCommand(commandLineParts: Array<String>): String =
+            if (commandLineParts.isEmpty()) ""
+            else {
+                val quoteChar='\"'
+                val escapedChars = charArrayOf('\"')
+                val quotingTriggers = charArrayOf(' ', '\t')
+                val escapeChar='\\'
+                val force = false
+                commandLineParts.joinToString(" ") { part ->
+                    quoteAndEscape(part, quoteChar, escapedChars, quotingTriggers, escapeChar, force)
+                }
+            }
     }
 
     override fun equals(other: Any?): Boolean {

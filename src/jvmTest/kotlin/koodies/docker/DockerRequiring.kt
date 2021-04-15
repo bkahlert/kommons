@@ -4,26 +4,24 @@ import koodies.collections.synchronizedMapOf
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.DockerContainer.State.Existent.Running
-import koodies.jvm.orNull
 import koodies.logging.conditionallyVerboseLogger
-import koodies.test.Debug
 import koodies.test.Slow
 import koodies.test.UniqueId.Companion.simplifiedId
-import koodies.test.isAnnotated
 import koodies.test.testName
 import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import koodies.text.quoted
-import koodies.text.styling.Boxes.Companion.wrapWithBox
-import koodies.toSimpleString
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
+import org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled
+import org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled
 import org.junit.jupiter.api.extension.ExecutionCondition
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.Extensions
 import kotlin.reflect.KClass
 
 /**
@@ -35,34 +33,18 @@ import kotlin.reflect.KClass
 @Slow @Tag("docker")
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@ExtendWith(DockerContainerLifeCycleCheck::class)
-annotation class DockerRequiring(val value: Array<KClass<out DockerImage>> = [], val mode: CleanUpMode = FailAndKill) {
-    companion object {
-        var skipped: MutableMap<Any, String> = synchronizedMapOf()
-    }
-}
+@Extensions(
+    ExtendWith(DockerRunningCondition::class),
+    ExtendWith(TestContainerCheck::class)
+)
+annotation class DockerRequiring(val value: Array<KClass<out DockerImage>> = [], val mode: CleanUpMode = FailAndKill)
 
 enum class CleanUpMode {
     ThanksForCleaningUp, FailAndKill
 }
 
-class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback, ExecutionCondition {
 
-    private val dockerUpAndRunning: Boolean by lazy { Docker.engineRunning }
-    val annotation = "@${DockerRequiring::class.toSimpleString()}"
-
-    private fun ExtensionContext.getEnabledCondition(): ConditionEvaluationResult =
-        ConditionEvaluationResult.enabled("No $annotation annotation at test ${testName.quoted} found.")
-
-    private fun ExtensionContext.getDisabledCondition(): ConditionEvaluationResult {
-        val name = testName
-        DockerRequiring.skipped[element.orNull() ?: error("Ignoring missing test subject.")] = name
-        return ConditionEvaluationResult.disabled("Test ${name.quoted} is annotated with $annotation but no Docker is running.")
-    }
-
-    override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
-        if (context.isAnnotated<DockerRequiring>() && !dockerUpAndRunning) context.getDisabledCondition()
-        else context.getEnabledCondition()
+class TestContainerCheck : BeforeEachCallback, AfterEachCallback {
 
     private val ExtensionContext.logger get() = conditionallyVerboseLogger()
 
@@ -113,18 +95,21 @@ class DockerContainerLifeCycleCheck : BeforeEachCallback, AfterEachCallback, Exe
         } ?: emptyList()
 }
 
-class DockerRequiringCondition : ExecutionCondition {
-    fun ExtensionContext.getEnabledDueToAbsentDebugAnnotation() =
-        ConditionEvaluationResult.enabled("Neither ${testName.quoted} nor any other test is annotated with @${Debug::class.simpleName}.")
+/**
+ * Conditions that disables the test if no running Docker can be found.
+ */
+class DockerRunningCondition : ExecutionCondition {
 
-    val dockerUpAndRunning get() = Docker.engineRunning
-    val annotation = "@${DockerRequiring::class.simpleName}"
-    fun ExtensionContext.getEnabledCondition() = ConditionEvaluationResult.enabled("No $annotation annotation at test ${testName.quoted} found.")
-    fun ExtensionContext.getDisabledCondition() =
-        ConditionEvaluationResult.disabled("Test ${testName.quoted} is annotated with $annotation but no Docker is running.".wrapWithBox())
+    private val dockerUpAndRunning: Boolean by lazy { Docker.engineRunning }
 
-    override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult {
-        return if (context.isAnnotated<DockerRequiring>() && !dockerUpAndRunning) context.getDisabledCondition()
-        else context.getEnabledCondition()
+    override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
+        context.testName.let { testName ->
+            if (dockerUpAndRunning) enabled("Test ${testName.quoted} enabled because Docker is found running.")
+            else disabled("Test ${testName.quoted} enabled because Docker is found running.")
+                .also { skipped[context.element] = testName }
+        }
+
+    companion object {
+        var skipped: MutableMap<Any, String> = synchronizedMapOf()
     }
 }

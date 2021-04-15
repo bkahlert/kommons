@@ -1,6 +1,7 @@
 package koodies.io
 
 import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
+import koodies.debug.trace
 import koodies.exception.dump
 import koodies.io.path.notContainsLineSeparator
 import koodies.io.path.prefixes
@@ -129,7 +130,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @SystemIoExclusive
     @Nested
     inner class Benchmark {
-        private val expected: String = StringBuilder().apply { 50 * { append(HtmlFile.text);append(LF) } }.toString()
+        private val expected: String = StringBuilder().apply { 25 * { append(HtmlFile.text);append(LF) } }.toString()
 
         @Test
         fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -142,7 +143,9 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
                         read.add(it)
                     }
                 }
-            }.onFailure { dump("Test failed.") { read.joinLinesToString() } }
+            }.onFailure {
+                dump("Test failed.") { read.joinLinesToString() }
+            }
 
             expectThat(read.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
         }

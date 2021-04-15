@@ -434,7 +434,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
   if(file.age > 3.minutes) …
   ```
 
-* Unicode, Code Points & Grapheme Clusters
+* Unicode & Code Points
 
   **Named Characters and Dictionary**
   ```kotlin
@@ -451,11 +451,6 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
   **Process Each Actual Character** (and not each `char`)
   ```kotlin
   "aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67".asCodePointSequence() -> "a", "Ⓑ", "☷", ":woman:" ZWJ, ":woman:", ZWJ, ":girl:", ZWJ, ":girl:"
-  ```
-
-  **Process Each Actual Grapheme** (that is, what users perceive as a character)
-  ```kotlin
-  "aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67‍‍".asGraphemeClusterSequence() -> "a", "Ⓑ", "☷", ":family-woman-woman-girl-girl:"
   ```
 
 * Colors & Formatting

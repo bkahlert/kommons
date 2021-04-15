@@ -45,17 +45,18 @@ import strikt.assertions.isNotEqualTo
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.size
+import java.nio.file.Path
 
 @Execution(SAME_THREAD)
 class DockerizedExecutionTest {
 
-    private val shellExecutable: ShellExecutable = CommandLine("printenv")
+    private val Path.shellExecutable: ShellExecutable get() = CommandLine(this, "printenv")
 
     private val testImage = DockerImage { official("busybox") }
 
     @SystemIoExclusive
     @Test
-    fun InMemoryLogger.`should run container without options and log`(capturedOutput: CapturedOutput) {
+    fun InMemoryLogger.`should run container without options and log`(capturedOutput: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
         shellExecutable.executeDockerized(testImage, null)
         expectThatLogged().contains("Executing dockerized")
         expectThat(capturedOutput).isEmpty()
@@ -63,25 +64,25 @@ class DockerizedExecutionTest {
 
     @SystemIoExclusive
     @Test
-    fun `should run command line without options and print`(capturedOutput: CapturedOutput) {
+    fun `should run command line without options and print`(capturedOutput: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
         shellExecutable.executeDockerized(testImage, null)
         expectThat(capturedOutput).contains("Executing dockerized")
     }
 
     @SystemIoExclusive
     @Test
-    fun InMemoryLogger.`should run command line using docker image in receiver and provided logger`(capturedOutput: CapturedOutput) {
-        val logger = this
-        with(testImage) {
-            (shellExecutable as Executable).execute(logger)
+    fun `should run command line using docker image in receiver and provided logger`(capturedOutput: CapturedOutput, uniqueId: UniqueId, logger: InMemoryLogger) =
+        withTempDir(uniqueId) {
+            with(testImage) {
+                (shellExecutable as Executable).execute(logger)
+            }
+            logger.expectThatLogged().contains("Executing dockerized")
+            expectThat(capturedOutput).isEmpty()
         }
-        expectThatLogged().contains("Executing dockerized")
-        expectThat(capturedOutput).isEmpty()
-    }
 
     @SystemIoExclusive
     @Test
-    fun `should run command line with docker image in receiver and default logger`(capturedOutput: CapturedOutput) {
+    fun `should run command line with docker image in receiver and default logger`(capturedOutput: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
         with(testImage) {
             (shellExecutable as CommandLine).execute()
         }
@@ -90,7 +91,7 @@ class DockerizedExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should record IO`() {
+    fun InMemoryLogger.`should record IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val process: DockerProcess = shellExecutable.executeDockerized(TestImages.Ubuntu, null)
         expectThat(process.io.merged.ansiRemoved).matchesCurlyPattern("""
                 Executing docker run --name {} --rm -i ${TestImages.Ubuntu} printenv
@@ -100,13 +101,13 @@ class DockerizedExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should return Docker process`() {
+    fun InMemoryLogger.`should return Docker process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val process: DockerProcess = shellExecutable.executeDockerized(testImage, null)
         expectThat(process).isA<DockerProcess>()
     }
 
     @Test
-    fun InMemoryLogger.`should run in actual docker container`() {
+    fun InMemoryLogger.`should run in actual docker container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dockerOutput = shellExecutable.executeDockerized(testImage, null).output().requireNotBlank()
         val hostOutput = shellExecutable.execute { null }.output().requireNotBlank()
         expectThat(dockerOutput).isNotEqualTo(hostOutput)
@@ -171,7 +172,7 @@ class DockerizedExecutionTest {
     @Test
     fun InMemoryLogger.`should process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val processed = mutableListOf<IO>()
-        CommandLine("/bin/sh", "-c", "echo OUT; >&2 echo ERR; printenv").executeDockerized(testImage) {
+        CommandLine(this, "/bin/sh", "-c", "echo OUT; >&2 echo ERR; printenv").executeDockerized(testImage) {
             { io -> processed.add(io) }
         }
         expectThat(processed) {
@@ -182,7 +183,7 @@ class DockerizedExecutionTest {
 
     @Test
     fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectCatching { CommandLine("echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
+        expectCatching { CommandLine(this, "echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
             .isSuccess().hasState<Failure> { io<IO>().containsDump(containedStrings = emptyArray()) }
     }
 }

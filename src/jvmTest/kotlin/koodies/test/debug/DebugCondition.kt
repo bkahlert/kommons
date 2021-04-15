@@ -31,13 +31,13 @@ class DebugCondition : ExecutionCondition {
         val ExtensionContext.anyDebugTest: Boolean get() = allTests.any { it.isA<Debug>() }
 
         private fun ExtensionContext.getEnabledDueToAbsentDebugAnnotation(): ConditionEvaluationResult =
-            enabled("Neither ${testName.quoted} nor any other test is annotated with @${Debug::class.simpleName}.")
+            enabled("Neither ${testName.quoted} nor any other test is annotated with ${Debug::class.simpleName}.")
 
         private fun ExtensionContext.getEnabledDueToDebugAnnotation(): ConditionEvaluationResult =
-            enabled("Test ${testName.quoted} is annotated with @${Debug::class.simpleName}.")
+            enabled("Test ${testName.quoted} is annotated with ${Debug::class.simpleName}.")
 
         private fun ExtensionContext.getDisabledDueToSiblingDebugAnnotation(): ConditionEvaluationResult =
-            disabled("Test ${testName.quoted} skipped due to existing @${Debug::class.simpleName} annotation on another test.")
+            disabled("Test ${testName.quoted} skipped due to existing ${Debug::class.simpleName} annotation on another test.")
     }
 }
 

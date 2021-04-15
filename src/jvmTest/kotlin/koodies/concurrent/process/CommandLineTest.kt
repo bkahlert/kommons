@@ -103,6 +103,28 @@ class CommandLineTest {
     }
 
     @Nested
+    inner class CommandLineProperty {
+
+        @Test
+        fun `should return command line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine("command", "arg1", "arg2").commandLine)
+                .isEqualTo("command arg1 arg2")
+        }
+
+        @Test
+        fun `should quote parts with spaces`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine("com mand", "arg 1").commandLine)
+                .isEqualTo("\"com mand\" \"arg 1\"")
+        }
+
+        @Test
+        fun `should quote parts with tabs`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(CommandLine("com\tmand", "arg\t1").commandLine)
+                .isEqualTo("\"com\tmand\" \"arg\t1\"")
+        }
+    }
+
+    @Nested
     inner class Expansion {
 
         @Test

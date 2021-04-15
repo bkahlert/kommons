@@ -7,7 +7,9 @@ import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.UserInput.enter
+import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
+import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -57,9 +59,9 @@ class ProcessorsKtTest {
         inner class Interactively {
 
             @Test
-            fun `should process with non-blocking reader`() {
+            fun `should process with non-blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId){
                 val log = mutableListOf<IO>()
-                process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
+                process(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
@@ -74,9 +76,9 @@ class ProcessorsKtTest {
             }
 
             @Test
-            fun `should process with blocking reader`() {
+            fun `should process with blocking reader`(uniqueId: UniqueId)  = withTempDir(uniqueId){
                 val log = mutableListOf<IO>()
-                process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
+                process(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)

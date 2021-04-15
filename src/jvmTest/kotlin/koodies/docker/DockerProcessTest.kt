@@ -20,6 +20,7 @@ import koodies.docker.TestImages.Ubuntu
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
+import koodies.test.withTempDir
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.containsAll
 import koodies.text.toStringMatchesCurlyPattern
@@ -38,6 +39,7 @@ import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isLessThan
 import strikt.assertions.isTrue
 import strikt.assertions.size
+import java.nio.file.Path
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 import kotlin.time.seconds
@@ -46,13 +48,13 @@ import kotlin.time.seconds
 class DockerProcessTest {
 
     @DockerRequiring([BusyBox::class]) @Test
-    fun `should override toString`(uniqueId: UniqueId) {
+    fun `should override toString`(uniqueId: UniqueId)= withTempDir(uniqueId){
         val dockerProcess = createProcess(uniqueId, "echo", "test")
         expectThat(dockerProcess).toStringMatchesCurlyPattern("DockerProcess { container = {} managedProcess = {} }")
     }
 
     @DockerRequiring([BusyBox::class]) @Test
-    fun `should start docker`(uniqueId: UniqueId) {
+    fun `should start docker`(uniqueId: UniqueId) = withTempDir(uniqueId){
         val dockerProcess = createProcess(uniqueId, "echo", "test")
         dockerProcess.waitForOutputOrFail(
             "Process terminated without logging: ${dockerProcess.io.merged}.",
@@ -65,7 +67,7 @@ class DockerProcessTest {
     inner class Lifecycle {
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should start docker and pass arguments`(uniqueId: UniqueId) {
+        fun `should start docker and pass arguments`(uniqueId: UniqueId) = withTempDir(uniqueId){
             val dockerProcess = createProcess(uniqueId, "echo", "test")
             dockerProcess.waitForOutputOrFail(
                 "Process terminated without logging: ${dockerProcess.io.merged}.",
@@ -75,7 +77,7 @@ class DockerProcessTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should start docker and process input`(uniqueId: UniqueId) {
+        fun `should start docker and process input`(uniqueId: UniqueId) = withTempDir(uniqueId){
             var entered = false
             val dockerProcess = createProcess(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
                 if (it !is IO.META) {
@@ -93,7 +95,7 @@ class DockerProcessTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should start docker and process output`(uniqueId: UniqueId) {
+        fun `should start docker and process output`(uniqueId: UniqueId) = withTempDir(uniqueId){
             val dockerProcess = createProcess(uniqueId, "echo", "Hello\nWorld")
 
             dockerProcess.waitForOutputOrFail("Did not log any output within 8 seconds.") {
@@ -102,7 +104,7 @@ class DockerProcessTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Smoke @Test
-        fun `should start docker and process output produced by own input`(uniqueId: UniqueId) {
+        fun `should start docker and process output produced by own input`(uniqueId: UniqueId) = withTempDir(uniqueId){
             var times = 0
             val dockerProcess = createProcess(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
                 if (it !is IO.META) {
@@ -128,7 +130,7 @@ class DockerProcessTest {
         @Nested
         inner class IsRunning {
 
-            private fun unprocessedProcess(
+            private fun Path.unprocessedProcess(
                 uniqueId: UniqueId,
                 command: String,
                 vararg args: String,
@@ -137,12 +139,12 @@ class DockerProcessTest {
                 val dockerRunCommandLine = DockerRunCommandLine(
                     image = BusyBox,
                     options = DockerRunCommandLine.Options(name = DockerContainer(uniqueId.simplified)),
-                    commandLine = CommandLine(command, *args))
+                    commandLine = CommandLine(this, command, *args))
                 return DockerProcess.from(dockerRunCommandLine, callback)
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should return false on not yet started container container`(uniqueId: UniqueId) {
+            fun `should return false on not yet started container container`(uniqueId: UniqueId) = withTempDir(uniqueId){
                 val unprocessedProcess = unprocessedProcess(uniqueId, "sleep", "10")
                 val subject = unprocessedProcess.started
                 expectThat(subject).isFalse()
@@ -150,14 +152,14 @@ class DockerProcessTest {
             }
 
             @DockerRequiring([BusyBox::class], mode = ThanksForCleaningUp) @Test
-            fun `should return true on running container`(uniqueId: UniqueId) {
+            fun `should return true on running container`(uniqueId: UniqueId)  = withTempDir(uniqueId){
                 val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
                 runningProcess.start().waitForCondition("Did not start in time.") { state is Running }
                 expectThat(runningProcess.alive).isTrue()
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should return false on completed container`(uniqueId: UniqueId) {
+            fun `should return false on completed container`(uniqueId: UniqueId) = withTempDir(uniqueId){
                 val completedProcess = unprocessedProcess(uniqueId, "sleep", "1")
                 completedProcess.start().apply {
                     waitForCondition("Did not start in time.") { state is Running }
@@ -166,27 +168,27 @@ class DockerProcessTest {
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should stop running container`(uniqueId: UniqueId) {
+            fun `should stop running container`(uniqueId: UniqueId) = withTempDir(uniqueId){
                 val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
                 runningProcess.start().waitForCondition("Did not start in time.") { state is Running }
 
                 val passed = measureTime { runningProcess.stop(1.seconds) }
-                expectThat(passed).isLessThan(3.seconds)
+                expectThat(passed).isLessThan(4.seconds)
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should kill running container`(uniqueId: UniqueId) {
+            fun `should kill running container`(uniqueId: UniqueId) = withTempDir(uniqueId){
                 val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
                 runningProcess.start().apply {
                     waitForCondition("Did not start in time.") { state is Running }
                 }
 
                 val passed = measureTime { runningProcess.kill() }
-                expectThat(passed).isLessThan(1.seconds)
+                expectThat(passed).isLessThan(2.seconds)
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should call callback on termination`(uniqueId: UniqueId) {
+            fun `should call callback on termination`(uniqueId: UniqueId)  = withTempDir(uniqueId){
                 var calledBack = false
                 val runningProcess = unprocessedProcess(uniqueId, "exit", "0") { calledBack = true }
                 runningProcess.start().waitForCondition("Did not call back.") { calledBack }
@@ -194,13 +196,13 @@ class DockerProcessTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should have failed state on non 0 exit code`(uniqueId: UniqueId) {
+        fun `should have failed state on non 0 exit code`(uniqueId: UniqueId) = withTempDir(uniqueId){
             val dockerProcess = createProcess(uniqueId, "invalid")
             expectThat(dockerProcess).hasState<ExitState.Failure> { exitCode.isEqualTo(127) }
         }
 
         @Slow @DockerRequiring([BusyBox::class]) @Test
-        fun `should remove docker container after completion`(uniqueId: UniqueId) {
+        fun `should remove docker container after completion`(uniqueId: UniqueId) = withTempDir(uniqueId){
             val dockerProcess = createProcess(uniqueId, "echo", "was alive")
 
             dockerProcess.apply {
@@ -211,7 +213,7 @@ class DockerProcessTest {
     }
 
     @Slow @DockerRequiring([BusyBox::class]) @Test
-    fun `should not produce incorrect empty lines`(uniqueId: UniqueId) {
+    fun `should not produce incorrect empty lines`(uniqueId: UniqueId)= withTempDir(uniqueId){
         var killed = false
         val output = synchronizedListOf<IO>()
         createProcess(uniqueId, "/bin/sh", "-c", """
@@ -234,7 +236,7 @@ class DockerProcessTest {
 }
 
 
-private fun createProcess(
+private fun Path.createProcess(
     uniqueId: UniqueId,
     command: String,
     vararg args: String,
@@ -243,7 +245,7 @@ private fun createProcess(
     docker({
         image by Ubuntu
         options { name { uniqueId.simplified } }
-        commandLine by CommandLine(command, *args)
+        commandLine by CommandLine(this@createProcess, command, *args)
     }, processor = processor)
 
 private fun DockerProcess.waitForCondition(
@@ -252,7 +254,7 @@ private fun DockerProcess.waitForCondition(
 ) {
     poll {
         test()
-    }.every(100.milliseconds).forAtMost(2.seconds) {
+    }.every(100.milliseconds).forAtMost(4.seconds) {
         fail(errorMessage)
     }
 }

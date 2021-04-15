@@ -5,6 +5,7 @@ import org.junit.platform.commons.support.AnnotationSupport
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import java.util.Optional
+import kotlin.reflect.KClass
 
 /**
  * Filters this list and leaves all elements which are annotated with [A] **and** satisfy [annotationFilter].
@@ -45,6 +46,14 @@ inline fun <reified A : Annotation> AnnotatedElement?.isA(annotationFilter: (A) 
 /**
  * Checks if at least one of [this] elements annotations or meta annotations is of the provided type.
  */
+inline fun <A : Annotation> AnnotatedElement?.isA(annotationClass: KClass<A>, annotationFilter: (A) -> Boolean = { true }): Boolean {
+    val annotation: A? = AnnotationSupport.findAnnotation(this, annotationClass.java).orElseGet { null }
+    return annotation?.let { annotationFilter(it) } ?: false
+}
+
+/**
+ * Checks if at least one of [this] elements annotations or meta annotations is of the provided type.
+ */
 inline fun <reified T : Annotation> Optional<AnnotatedElement>?.isA(): Boolean =
     AnnotationSupport.isAnnotated(this, T::class.java)
 
@@ -65,6 +74,15 @@ inline fun <reified T : Annotation> Method?.isA(): Boolean =
 inline fun <reified A : Annotation> ExtensionContext.isAnnotated(
     crossinline annotationFilter: (A) -> Boolean = { true },
 ): Boolean = element { isA(annotationFilter) }
+
+/**
+ * Checks if current context is annotated with [A].
+ */
+@Suppress("unused")
+inline fun <A : Annotation> ExtensionContext.isAnnotated(
+    annotationClass: KClass<A>,
+    crossinline annotationFilter: (A) -> Boolean = { true },
+): Boolean = element { isA(annotationClass, annotationFilter) }
 
 inline fun <reified A : Annotation, reified T> ExtensionContext.withAnnotation(crossinline annotationFilter: A.() -> T): T? =
     AnnotationSupport.findAnnotation(element, A::class.java).orElseGet { null }?.run(annotationFilter)

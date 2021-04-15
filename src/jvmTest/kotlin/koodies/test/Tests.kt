@@ -21,6 +21,7 @@ import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
+import koodies.toBaseName
 import koodies.toSimpleString
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
@@ -456,7 +457,7 @@ interface DynamicTestsBuilder<T> {
  * @throws IllegalStateException if called from outside of a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir = root.resolve(uniqueId.simplified.withRandomSuffix()).createDirectories()
+    val tempDir = root.resolve(uniqueId.simplified.toBaseName().withRandomSuffix()).createDirectories()
     tempDir.block()
     check(root.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".red())

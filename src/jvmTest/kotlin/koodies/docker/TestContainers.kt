@@ -4,6 +4,7 @@ import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.collections.synchronizedMapOf
 import koodies.concurrent.process.CommandLine
+import koodies.docker.DockerContainer.Companion
 import koodies.docker.DockerContainer.State.Existent.Exited
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.TestImages.HelloWorld
@@ -29,8 +30,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
 import org.junit.jupiter.api.extension.ExtensionContext.Store
+import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
+import org.junit.jupiter.api.extension.ParameterResolver
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.ResourceLock
 import java.util.concurrent.locks.ReentrantLock
@@ -82,16 +85,6 @@ object TestImages {
         override val lock: ReentrantLock by lazy { ReentrantLock() }
 
         private val imageLock = ReentrantLock()
-        private fun <R> runWithLock(logging: Boolean, pulled: Boolean, block: (DockerImage) -> R): R = imageLock.withLock {
-            with(if (logging) LoggingContext.BACKGROUND else MutedRenderingLogger()) {
-                if (pulled && !isPulled) pull()
-                else if (!pulled && isPulled) remove(force = true)
-                poll { isPulled == pulled }.every(500.milliseconds).forAtMost(5.seconds) {
-                    "Failed to " + (if (pulled) "pull" else "remove") + " $this"
-                }
-                runCatching(block)
-            }
-        }.getOrThrow()
     }
 }
 
@@ -105,7 +98,10 @@ object TestImages {
 @TestFactory
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@ExtendWith(ContainersTestExtension::class)
+@Extensions(
+    ExtendWith(DockerRunningCondition::class),
+    ExtendWith(ContainersTestExtension::class)
+)
 annotation class ContainersTestFactory(
     val provider: KClass<out TestContainersProvider> = Ubuntu::class,
     val logging: Boolean = false,
@@ -121,12 +117,19 @@ annotation class ContainersTestFactory(
 @Test
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@ExtendWith(ContainersTestExtension::class)
+@Extensions(
+    ExtendWith(DockerRunningCondition::class),
+    ExtendWith(ContainersTestExtension::class)
+)
 annotation class ContainersTest(
     val provider: KClass<out TestContainersProvider> = Ubuntu::class,
     val logging: Boolean = false,
 )
 
+/**
+ * [ParameterResolver] that provides an instance of [TestContainers] which can be used
+ * to create containers with a specific state.
+ */
 class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), AfterEachCallback {
 
     private val ExtensionContext.provider: TestContainersProvider
@@ -189,8 +192,8 @@ interface TestContainersProvider {
 }
 
 /**
- * Provider of [DockerContainer] instances to facilitate
- * testing.
+ * Provider of [DockerContainer] instances that
+ * are in a specific state to facilitate testing.
  */
 class TestContainers(
     private val logger: FixedWidthRenderingLogger,
@@ -280,7 +283,6 @@ class TestContainers(
 
     override fun toString(): String = asString(::provisioned)
 }
-
 
 /**
  * A [TestFactory] that is provided with a [TestImage].

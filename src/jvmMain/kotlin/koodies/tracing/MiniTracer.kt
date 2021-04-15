@@ -4,7 +4,6 @@ import koodies.concurrent.process.IO
 import koodies.logging.CompactRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.runLogging
-import koodies.text.GraphemeCluster
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction0
 import kotlin.reflect.KFunction1
@@ -14,7 +13,6 @@ import kotlin.reflect.KFunction3
 @Suppress("NonAsciiCharacters")
 public interface MiniTracer {
     public fun trace(input: String)
-    public fun <R> microTrace(graphemeCluster: GraphemeCluster, block: MicroTracer.() -> R): R
     public fun <R> microTrace(f: String, block: MicroTracer.() -> R): R
     public fun <R> microTrace(f: KCallable<R>, block: MicroTracer.() -> R): R
     public fun <R> microTrace(f: KFunction0<R>, block: MicroTracer.() -> R): R
@@ -34,19 +32,18 @@ public fun <R> MiniTracer?.microTrace3(f: KFunction3<*, *, *, R>, block: MicroTr
 
 public class RenderingLoggerBasedMiniTracer(private val renderingLogger: RenderingLogger) : MiniTracer {
     public override fun trace(input: String): Unit = renderingLogger.logLine { IO.META typed input }
-    public override fun <R> microTrace(graphemeCluster: GraphemeCluster, block: MicroTracer.() -> R): R {
-        val simpleMicroTracer = SimpleMicroTracer(graphemeCluster)
+    public override fun <R> microTrace(f: String, block: MicroTracer.() -> R): R {
+        val simpleMicroTracer = SimpleMicroTracer(f)
         val returnValue: R = simpleMicroTracer.run(block)
         trace(simpleMicroTracer.render())
         return returnValue
     }
 
-    public override fun <R> microTrace(f: String, block: MicroTracer.() -> R): R = microTrace(GraphemeCluster("𝙛"), block)
-    public override fun <R> microTrace(f: KCallable<R>, block: MicroTracer.() -> R): R = microTrace(GraphemeCluster("𝙛"), block)
-    public override fun <R> microTrace(f: KFunction0<R>, block: MicroTracer.() -> R): R = microTrace(GraphemeCluster("𝙛"), block)
-    public override fun <R> microTrace1(f: KFunction1<*, R>, block: MicroTracer.() -> R): R = microTrace(GraphemeCluster("𝙛"), block)
-    public override fun <R> microTrace2(f: KFunction2<*, *, R>, block: MicroTracer.() -> R): R = microTrace(GraphemeCluster("𝙛"), block)
-    public override fun <R> microTrace3(f: KFunction3<*, *, *, R>, block: MicroTracer.() -> R): R = microTrace(GraphemeCluster("𝙛"), block)
+    public override fun <R> microTrace(f: KCallable<R>, block: MicroTracer.() -> R): R = microTrace("𝙛", block)
+    public override fun <R> microTrace(f: KFunction0<R>, block: MicroTracer.() -> R): R = microTrace("𝙛", block)
+    public override fun <R> microTrace1(f: KFunction1<*, R>, block: MicroTracer.() -> R): R = microTrace("𝙛", block)
+    public override fun <R> microTrace2(f: KFunction2<*, *, R>, block: MicroTracer.() -> R): R = microTrace("𝙛", block)
+    public override fun <R> microTrace3(f: KFunction3<*, *, *, R>, block: MicroTracer.() -> R): R = microTrace("𝙛", block)
 }
 
 public inline fun <reified R> RenderingLogger.subTrace(f: String, crossinline block: MiniTracer.() -> R): R =

@@ -4,7 +4,7 @@ import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.LF
 import koodies.text.asCodePointSequence
-import koodies.text.graphemeClusterCount
+import koodies.text.codePointCount
 import koodies.text.joinLinesToString
 import koodies.text.repeat
 import koodies.text.styling.Borders.Block
@@ -207,7 +207,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
         val lines = matrix.lines()
         check(lines.size == 3) { "Matrix must have exactly 3 lines. Only ${lines.size} found." }
         lines.onEach { line ->
-            check(line.graphemeClusterCount == 3) {
+            check(line.codePointCount == 3) {
                 "Each line of the matrix must consist of exactly 3 characters. Instead " +
                     line.asCodePointSequence().map { "$it" + ":" + it.string }.toList() +
                     " found in $line."

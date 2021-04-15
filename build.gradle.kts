@@ -50,9 +50,9 @@ fun Any.isFinal(): Boolean =
 
 plugins {
     kotlin("multiplatform") version "1.4.32"
-    id("org.jetbrains.dokka") version "1.4.20"
-    id("com.github.ben-manes.versions") version "0.36.0"
-    id("se.patrikerdes.use-latest-versions") version "0.2.15"
+    id("org.jetbrains.dokka") version "1.4.30"
+    id("com.github.ben-manes.versions") version "0.38.0"
+    id("se.patrikerdes.use-latest-versions") version "0.2.16"
 
     id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
@@ -77,7 +77,7 @@ allprojects {
                 "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
             if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
                 println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
-                useVersion("1.4.32")
+//                useVersion(kotlinVersion)
                 because("of ambiguity issues")
             }
         }
@@ -108,9 +108,7 @@ kotlin {
     jvm {
         compilations.all {
             kotlinOptions {
-                languageVersion = "1.4"
-                apiVersion = "1.4"
-                jvmTarget = "1.8"
+                jvmTarget = "11"
                 useIR = true
                 freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.io.path.ExperimentalPathApi")
             }
@@ -181,12 +179,12 @@ kotlin {
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
                 listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
-                runtimeOnly("org.junit.platform:junit-platform-console:1.7.0") {
+                runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-M1") {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
-                implementation("io.strikt:strikt-core:0.30.0")
-                implementation("io.strikt:strikt-jvm:0.30.0")
+                implementation("io.strikt:strikt-core:0.30.1")
+                implementation("io.strikt:strikt-jvm:0.30.1")
 
                 implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.32") {
                     because("filepeek takes 1.3")

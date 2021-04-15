@@ -2,7 +2,6 @@ package koodies.test
 
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.CodePoint
-import koodies.text.GraphemeCluster
 import koodies.unit.BinaryPrefix
 import koodies.unit.Size
 import strikt.api.Assertion
@@ -41,7 +40,6 @@ fun Assertion.Builder<*>.asString(trim: Boolean = true): DescribeableBuilder<Str
     return this.get("asString") {
         val string = when (this) {
             is CodePoint -> this.string
-            is GraphemeCluster -> this.asString
             is Size -> this.toString<BinaryPrefix>()
             else -> this.toString()
         }

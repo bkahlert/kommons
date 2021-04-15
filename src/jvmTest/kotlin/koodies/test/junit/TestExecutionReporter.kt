@@ -1,6 +1,6 @@
 package koodies.test.junit
 
-import koodies.docker.DockerRequiring
+import koodies.docker.DockerRunningCondition
 import koodies.test.Debug
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
@@ -85,7 +85,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
         val debugAnnotatedMethods = testPlan.allTestJavaMethods.withAnnotation<Debug> { debug -> debug.includeInReport }
         if (debugAnnotatedMethods.isNotEmpty()) {
             listOf(
-                "@${Debug::class.simpleName} in use!".formattedAs.warning,
+                "${Debug::class.simpleName} in use!".formattedAs.warning,
                 "You are only seeing the results of the ${debugAnnotatedMethods.size} annotated tests.",
                 "Don't forget to remove them.".ansi.bold,
             )
@@ -96,18 +96,17 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
     }
 
     private fun checkSkippedDockerTests() {
-        val groupBy = DockerRequiring.skipped.keys.groupBy { testElement: Any ->
-            val container = (testElement as? Method)?.declaringClass ?: testElement
-            container.toSimpleString().ansiRemoved.split(".")[0]
-        }.map { (group, elements) -> "$group: ${elements.size}" }
-        if (DockerRequiring.skipped.isNotEmpty()) {
+        val skipped = DockerRunningCondition.skipped
+        if (skipped.isNotEmpty()) {
+            val groupBy = skipped.keys.groupBy { testElement: Any ->
+                val container = (testElement as? Method)?.declaringClass ?: testElement
+                container.toSimpleString().ansiRemoved.split(".")[0]
+            }.map { (group, elements) -> "$group: ${elements.size}" }
+
             listOf(
-                "@${DockerRequiring::class.simpleName} tests skipped!".formattedAs.warning,
-                "Docker is not running. Therefore all ${DockerRequiring.skipped.size} annotated",
-                "tests belonging to the following classes were skipped:",
+                "Docker is not running: ${skipped.size} tests skipped!".formattedAs.warning,
                 *groupBy.toTypedArray(),
             )
-                .joinToString(LF)
                 .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { yellow })
                 .also { println(it) }
         }

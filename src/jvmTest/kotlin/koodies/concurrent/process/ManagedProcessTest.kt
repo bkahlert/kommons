@@ -19,6 +19,7 @@ import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.testWithTempDir
 import koodies.test.withTempDir
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
 import koodies.text.ansiRemoved
@@ -224,14 +225,14 @@ class ManagedProcessTest {
 
             kotlin.runCatching {
                 process.process({ async }) { io ->
-                    io.toSimpleClassName().trace
+                    io.toSimpleClassName()
                     if (io !is IO.META && io !is IO.INPUT) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
                     }
                 }
 
-                poll { process.io.toList().trace.size >= 7 }.every(100.milliseconds)
+                poll { process.io.toList().size >= 7 }.every(100.milliseconds)
                     .forAtMost(15.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
                 process.stop()
                 process.waitFor()
@@ -485,8 +486,8 @@ class ManagedProcessTest {
                     val process = fatallyFailingProcess()
                     expectThat(process.waitFor()).isA<Fatal>().and {
                         get { exception.message }.isEqualTo("handler error")
-                        status.ansiRemoved.isEqualTo("Unexpected error terminating process $pid with exit code 42:$LF\thandler error")
-                        io.any { contains("for 42 terminated process") }
+                        status.ansiRemoved.isEqualTo("Unexpected error terminating process ${process.pid} with exit code 42:$LF\thandler error")
+                        io.any { contains("handler error") }
                     }
                 }
 

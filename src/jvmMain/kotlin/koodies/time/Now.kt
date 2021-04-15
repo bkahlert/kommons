@@ -1,7 +1,6 @@
 package koodies.time
 
-import koodies.text.GraphemeCluster
-import koodies.text.emoji
+import koodies.debug.asEmoji
 import java.nio.file.attribute.FileTime
 import java.time.Instant
 import java.time.LocalDate
@@ -27,11 +26,11 @@ public object Now {
     public val year: Year get() = Year.now()
     public val fileTime: FileTime get() = FileTime.from(instant)
     public val millis: Long get() = instant.toEpochMilli()
+    public val emoji: String get() = instant.asEmoji
     public fun passedSince(start: Long): Duration = (System.currentTimeMillis() - start).milliseconds
 
     public operator fun plus(duration: Duration): Instant = instant.plusMillis(duration.toLongMilliseconds())
 
     public operator fun minus(duration: Duration): Instant = instant.minusMillis(duration.toLongMilliseconds())
     public override fun toString(): String = "$instant"
-    public val graphemeCluster: GraphemeCluster get() = GraphemeCluster(emoji)
 }
