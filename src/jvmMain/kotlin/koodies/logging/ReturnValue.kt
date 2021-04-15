@@ -1,7 +1,6 @@
 package koodies.logging
 
 import koodies.exception.toCompactString
-import koodies.nullable.let
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbolizable

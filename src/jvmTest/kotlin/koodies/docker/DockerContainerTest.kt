@@ -38,7 +38,6 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.length
 import java.nio.file.Path
-import kotlin.text.repeat
 import kotlin.time.measureTime
 import kotlin.time.seconds
 
@@ -64,7 +63,7 @@ class DockerContainerTest {
 
         @ContainersTestFactory @IdeaWorkaroundTestFactory
         fun `should contain actual state`(testContainers: TestContainers) = listOf<Pair<String, (TestContainers) -> DockerContainer>>(
-            "not existent" to {  it.newNotExistentContainer().apply { state } },
+            "not existent" to { it.newNotExistentContainer().apply { state } },
             "▶ running" to { it.newRunningTestContainer() },
             "✔︎ exited" to { it.newExitedTestContainer() },
         ).testEach("{}") { (state, provider) ->

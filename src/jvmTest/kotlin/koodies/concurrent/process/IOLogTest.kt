@@ -1,6 +1,7 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.daemon
+import koodies.concurrent.process.IO.META
+import koodies.jvm.daemon
 import koodies.io.path.asString
 import koodies.io.path.text
 import koodies.io.path.writeText
@@ -44,7 +45,7 @@ class IOLogTest {
         daemon {
             var i = 0
             while (!stop) {
-                ioLog + (IO.META typed "being busy $i times")
+                ioLog + (META typed "being busy $i times")
                 10.milliseconds.sleep()
                 i++
             }

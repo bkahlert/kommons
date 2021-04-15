@@ -1,5 +1,6 @@
 package koodies
 
+import koodies.invoke
 import koodies.test.test
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested
@@ -157,5 +158,23 @@ class FnKtTest {
         test { expectThat("abc".checkNotBlank { "error" }).isEqualTo("abc") }
         test { expectCatching { "   ".checkNotBlank() }.isFailure().isA<IllegalStateException>() }
         test { expectCatching { "   ".checkNotBlank { "error" } }.isFailure().isA<IllegalStateException>().message.isEqualTo("error") }
+    }
+
+    @Nested
+    inner class NullableInvoke {
+
+        @Test
+        fun `should apply f if set`() {
+            @Suppress("RedundantNullableReturnType")
+            val f: ((String) -> String)? = { it + it }
+            expectThat(f("a")).isEqualTo("aa")
+        }
+
+        @Test
+        fun `should return unchanged argument if f is unset`() {
+            @Suppress("RedundantNullableReturnType")
+            val f: ((String) -> String)? = null
+            expectThat(f("a")).isEqualTo("a")
+        }
     }
 }

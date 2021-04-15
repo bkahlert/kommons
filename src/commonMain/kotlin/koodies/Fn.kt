@@ -78,6 +78,13 @@ public operator fun <R> Int.times(block:(index:Int)->R): List<R> {
 }
 
 
+/**
+ * Invokes this nullable identity lambda with [arg] and returns its result.
+ * If this is `null`, [arg] is returned unchanged.
+ */
+public operator fun <R, T : (R) -> R> T?.invoke(arg: R): R = this?.invoke(arg) ?: arg
+
+
 // @formatter:off
 /** Throws an [IllegalArgumentException] if `this` string [isEmpty]. */
 public fun String.requireNotEmpty(): String = also{require(it.isNotEmpty())}

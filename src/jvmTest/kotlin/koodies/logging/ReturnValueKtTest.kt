@@ -1,6 +1,6 @@
 package koodies.logging
 
-import koodies.concurrent.process.ManagedProcessMock
+import koodies.concurrent.process.ExecMock
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
@@ -32,7 +32,7 @@ class ReturnValueKtTest {
     private val successfulExpectations = listOf(
         null to Symbols.Null,
         "string" to "string",
-        ManagedProcessMock.SUCCEEDED_MANAGED_PROCESS to "Process {} terminated successfully at {}",
+        ExecMock.SUCCEEDED_MANAGED_PROCESS to "Process {} terminated successfully at {}",
     )
 
     private val failedExpectations = listOf(
@@ -40,7 +40,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-//        ManagedProcessMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42. ${Semantics.Delimiter} dump"
+//        ExecMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42. ${Semantics.Delimiter} dump"
     )
 
     private val expectations = successfulExpectations + failedExpectations
@@ -50,7 +50,7 @@ class ReturnValueKtTest {
         null to Symbols.Null,
         Unit to "✔︎",
         "string" to "✔︎",
-        ManagedProcessMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
+        ExecMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
         failedReturnValue to "ϟ return value",
         RuntimeException("exception") to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "ϟ return value",
@@ -66,7 +66,7 @@ class ReturnValueKtTest {
         null to "␀",
         Unit to "✔︎",
         "string" to "✔︎",
-        ManagedProcessMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
+        ExecMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
     ) { (subject, expected) ->
         test(subject.toSimpleString()) {
             expectThat(loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
@@ -96,7 +96,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        ManagedProcessMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42."
+        ExecMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42."
     ) { (subject, expected) ->
         test(subject.toSimpleString()) {
             expectThat(loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""

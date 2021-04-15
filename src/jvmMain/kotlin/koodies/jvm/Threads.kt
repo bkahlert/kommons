@@ -1,8 +1,7 @@
-package koodies.concurrent
+package koodies.jvm
 
 import koodies.logging.RenderingLogger
 import koodies.runWrapping
-import koodies.runtime.JVM
 import koodies.time.sleep
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
@@ -15,7 +14,7 @@ import kotlin.time.Duration
 import kotlin.time.milliseconds
 
 public fun <T> withThreadName(temporaryName: String, block: () -> T): T =
-    JVM.currentThread.runWrapping({ name.also { name = temporaryName } }, { oldName -> name = oldName }, { block() })
+    currentThread.runWrapping({ name.also { name = temporaryName } }, { oldName -> name = oldName }, { block() })
 
 public fun thread(
     start: Boolean = true,

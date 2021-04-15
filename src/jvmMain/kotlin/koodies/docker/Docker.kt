@@ -4,13 +4,13 @@ import koodies.CallableProperty
 import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.mapBuild
-import koodies.concurrent.daemon
+import koodies.jvm.daemon
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.ProcessTerminationCallback
+import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.Processors.noopProcessor
@@ -19,7 +19,7 @@ import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.terminationLoggingProcessor
 import koodies.concurrent.scriptOutputContains
-import koodies.concurrent.toManagedProcess
+import koodies.concurrent.toExec
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
 import koodies.logging.RenderingLogger
@@ -59,12 +59,12 @@ public object Docker {
 //     * Builds a [DockerSearchCommandLine] and executes it.
 //     */
 //    public val search: (Init<SearchContext> /* = koodies.docker.DockerSearchCommandLine.Companion.SearchContext.() -> kotlin.Unit */)
-//    -> ManagedProcess by DockerSearchCommandLine.mapBuild { it.execute().output() }
+//    -> Exec by DockerSearchCommandLine.mapBuild { it.execute().output() }
 //
 //    /**
 //     * Builds a [DockerSearchCommandLine] and executes it using `this` [RenderingLogger].
 //     */
-//    public val RenderingLogger?.search: Builder<Init<SearchContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+//    public val RenderingLogger?.search: Builder<Init<SearchContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
 //        DockerSearchCommandLine.mapBuild { it.execute(processor = thisRef.toProcessor()) }
 //    }
 
@@ -74,13 +74,13 @@ public object Docker {
      */
     @Deprecated("no command line builders")
     public val start: (Init<DockerStartCommandLine.Companion.CommandContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */)
-    -> ManagedProcess by DockerStartCommandLine.mapBuild { it.execute { null } }
+    -> Exec by DockerStartCommandLine.mapBuild { it.execute { null } }
 
     /**
      * Builds a [DockerStartCommandLine] and executes it using `this` [RenderingLogger].
      */
     @Deprecated("no command line builders")
-    public val RenderingLogger?.start: Builder<Init<DockerStartCommandLine.Companion.CommandContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+    public val RenderingLogger?.start: Builder<Init<DockerStartCommandLine.Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
         DockerStartCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
     }
 
@@ -88,12 +88,12 @@ public object Docker {
      * Builds a [DockerRunCommandLine] and executes it.
      */
     public val run: (Init<Companion.CommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
-    -> ManagedProcess by DockerRunCommandLine.mapBuild { it.execute { null } }
+    -> Exec by DockerRunCommandLine.mapBuild { it.execute { null } }
 
     /**
      * Builds a [DockerRunCommandLine] and executes it using `this` [RenderingLogger].
      */
-    public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, ManagedProcess> by CallableProperty { thisRef: RenderingLogger?, _ ->
+    public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
         DockerRunCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
     }
 
@@ -156,10 +156,10 @@ public object Docker {
  * Only if something goes wrong an exception is logged on the console.
  */
 private fun DockerCommandLine.fireAndForget(
-    processTerminationCallback: ProcessTerminationCallback? = null,
+    execTerminationCallback: ExecTerminationCallback? = null,
 ) {
     daemon {
-        toManagedProcess(null, processTerminationCallback)
+        toExec(null, execTerminationCallback)
             .processSilently().apply { waitFor() }
     }
 }
@@ -187,18 +187,18 @@ private fun Path.dockerRunCommandLine(
  * - specified [arguments]
  * in `this` [Path].
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
  * get called.
  */
 public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
     optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
-    processTerminationCallback: ProcessTerminationCallback? = null,
+    execTerminationCallback: ExecTerminationCallback? = null,
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
-        .toManagedProcess(processTerminationCallback)
+        .toExec(execTerminationCallback)
         .processSilently().apply { waitForTermination() }
 
 /**
@@ -213,19 +213,19 @@ public fun Path.docker(
  * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
  * get called.
  */
 public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
     optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-    processor: Processor<ManagedProcess>?,
+    execTerminationCallback: ExecTerminationCallback? = null,
+    processor: Processor<Exec>?,
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
-        .toManagedProcess(processTerminationCallback)
+        .toExec(execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
 /**
@@ -237,17 +237,17 @@ public fun Path.docker(
  * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
  * get called.
  */
 public fun docker(
     init: Init<Companion.CommandContext>,
-    processTerminationCallback: ProcessTerminationCallback? = null,
+    execTerminationCallback: ExecTerminationCallback? = null,
     processor: Processor<DockerProcess>?,
 ): DockerProcess =
     DockerRunCommandLine(init)
-        .toManagedProcess(processTerminationCallback)
+        .toExec(execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
 
@@ -260,15 +260,15 @@ public fun docker(
  * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
  * get called.
  */
 public fun docker(
     processor: Processor<DockerProcess>?,
-    processTerminationCallback: ProcessTerminationCallback? = null,
+    execTerminationCallback: ExecTerminationCallback? = null,
     init: Init<Companion.CommandContext>,
 ): DockerProcess =
     DockerRunCommandLine(init)
-        .toManagedProcess(processTerminationCallback)
+        .toExec(execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }

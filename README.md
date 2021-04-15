@@ -104,7 +104,7 @@ Docker.run {
 … and if something goes wrong, easy to read error message:
 
 ```shell
-ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(ManagedProcess.kt:126)
+ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(Exec.kt:126)
   ➜ A dump has been written to:
     - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.log (unchanged)
     - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.no-ansi.log (ANSI escape/control sequences removed)

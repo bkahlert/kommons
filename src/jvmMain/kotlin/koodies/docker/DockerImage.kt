@@ -4,7 +4,7 @@ import koodies.builder.StatelessBuilder
 import koodies.concurrent.Executable
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.Process.ExitState
+import koodies.exec.Process.ExitState
 import koodies.concurrent.process.Processor
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext

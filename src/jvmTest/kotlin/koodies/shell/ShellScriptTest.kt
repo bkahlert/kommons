@@ -1,6 +1,5 @@
 package koodies.shell
 
-import koodies.concurrent.process.io
 import koodies.concurrent.process.merged
 import koodies.concurrent.script
 import koodies.docker.docker

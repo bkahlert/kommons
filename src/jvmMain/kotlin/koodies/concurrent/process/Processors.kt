@@ -4,7 +4,7 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.ExecutionDsl
-import koodies.concurrent.completableFuture
+import koodies.jvm.completableFuture
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.ProcessingMode.Interactivity
 import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive
@@ -14,6 +14,8 @@ import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
+import koodies.exec.Exec
+import koodies.exec.Process
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.logReturnValue
@@ -65,7 +67,7 @@ public object Processors {
  * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
 public fun <P : Process> P.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
-    (this as? ManagedProcess)?.addPostTerminationCallback { terminated ->
+    (this as? Exec)?.addPostTerminationCallback { terminated ->
         if (async) {
             logger.logReturnValue(terminated)
         }
@@ -77,7 +79,7 @@ public fun <P : Process> P.terminationLoggingProcessor(logger: RenderingLogger =
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */
-public inline fun <reified P : ManagedProcess> P.processSilently(): P =
+public inline fun <reified P : Exec> P.processSilently(): P =
     process({ async }, noopProcessor())
 
 private val asynchronouslyProcessed: MutableSet<Process> = synchronizedSetOf()
@@ -130,7 +132,7 @@ public data class ProcessingMode(val synchronicity: Synchronicity, val interacti
  *
  *
  */
-public fun <P : ManagedProcess> P.process(
+public fun <P : Exec> P.process(
     mode: ProcessingModeContext.() -> ProcessingMode,
     processor: Processor<P>,
 ): P = process(ProcessingMode(mode), processor)
@@ -144,7 +146,7 @@ public fun <P : ManagedProcess> P.process(
  *
  *
  */
-public fun <P : ManagedProcess> P.process(
+public fun <P : Exec> P.process(
     mode: ProcessingMode = ProcessingMode(Sync, NonInteractive(null)),
     processor: Processor<P>,
 ): P = when (mode.synchronicity) {
@@ -162,7 +164,7 @@ public fun <P : ManagedProcess> P.process(
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-public fun <P : ManagedProcess> P.processAsynchronously(
+public fun <P : Exec> P.processAsynchronously(
     interactivity: Interactivity = NonInteractive(null),
     processor: Processor<P> = noopProcessor(),
 ): P = apply {
@@ -222,7 +224,7 @@ public fun <P : ManagedProcess> P.processAsynchronously(
  * If no [processor] is specified a [Processors.loggingProcessor] prints
  * all [IO] to the console.
  */
-public fun <P : ManagedProcess> P.processSynchronously(
+public fun <P : Exec> P.processSynchronously(
     interactivity: Interactivity = NonInteractive(null),
     processor: Processor<P> = terminationLoggingProcessor(),
 ): P {

@@ -1,5 +1,5 @@
-import koodies.concurrent.BusyThread
-import koodies.concurrent.completableFuture
+package koodies.jvm
+
 import koodies.logging.InMemoryLogger
 import koodies.time.sleep
 import org.junit.jupiter.api.DynamicTest.dynamicTest

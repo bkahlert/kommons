@@ -1,11 +1,11 @@
 package koodies.concurrent
 
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.Process.ExitState.Failure
-import koodies.concurrent.process.completesSuccessfully
-import koodies.concurrent.process.containsDump
-import koodies.concurrent.process.hasState
-import koodies.concurrent.process.io
+import koodies.exec.Process.ExitState.Failure
+import koodies.exec.completesSuccessfully
+import koodies.exec.containsDump
+import koodies.exec.hasState
+import koodies.exec.io
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.io.path.Locations

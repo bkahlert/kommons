@@ -1,5 +1,6 @@
 package koodies.concurrent.process
 
+import koodies.exec.Process
 import koodies.text.LineSeparators.CRLF
 import koodies.text.withSuffix
 import java.io.BufferedWriter

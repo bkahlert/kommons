@@ -6,7 +6,7 @@ import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
 import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
-import koodies.runtime.JVM
+import koodies.jvm.currentStackTrace
 import koodies.runtime.onExit
 import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
@@ -181,7 +181,7 @@ public open class RenderingLogger(
          */
         private fun setOpen(logger: RenderingLogger, open: Boolean) {
             if (open) {
-                openLoggers.getOrPut(logger) { JVM.currentStackTrace }
+                openLoggers.getOrPut(logger) { currentStackTrace }
             } else {
                 openLoggers.remove(logger)
             }

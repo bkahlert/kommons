@@ -1,8 +1,8 @@
 package koodies.docker
 
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.Process.ExitState
+import koodies.exec.Exec
+import koodies.exec.Process.ExitState
 import koodies.docker.TestImages.BusyBox
 import koodies.test.UniqueId
 import org.junit.jupiter.api.Disabled
@@ -21,7 +21,7 @@ class BusyboxKtTest { // TODO generalize to docker run command
     @DockerRequiring([BusyBox::class]) @Test
     fun `should start busybox`(uniqueId: UniqueId) {
         val processed = mutableListOf<IO>()
-        val dockerProcess: ManagedProcess = Docker.busybox(uniqueId.simplified, "echo busybox") { io ->
+        val dockerProcess: Exec = Docker.busybox(uniqueId.simplified, "echo busybox") { io ->
             processed.add(io)
         }
 

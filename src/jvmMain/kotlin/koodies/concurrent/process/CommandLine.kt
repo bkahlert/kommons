@@ -32,12 +32,12 @@ public open class CommandLine(
      */
     public val redirects: List<String>,
     /**
-     * The environment to be exposed to the [ManagedProcess] that runs this
+     * The environment to be exposed to the [Exec] that runs this
      * command line.
      */
     public val environment: Map<String, String>,
     /**
-     * The working directory of the [ManagedProcess] that runs this
+     * The working directory of the [Exec] that runs this
      * command line.
      */
     workingDirectory: Path,
@@ -79,7 +79,7 @@ public open class CommandLine(
 
 
     /**
-     * The working directory of the [ManagedProcess] that runs this
+     * The working directory of the [Exec] that runs this
      * command line.
      */
     public val workingDirectory: Path = workingDirectory.toAbsolutePath()
@@ -159,13 +159,13 @@ public open class CommandLine(
             public val redirects: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder<String>()
 
             /**
-             * Specifies the environment to be exposed to the [ManagedProcess] that runs this built
+             * Specifies the environment to be exposed to the [Exec] that runs this built
              * command line.
              */
             public val environment: SkippableCapturingBuilderInterface<MapBuildingContext<String, String>.() -> Unit, Map<String, String>> by mapBuilder<String, String>()
 
             /**
-             * Specifies the working directory of the [ManagedProcess] that runs this built
+             * Specifies the working directory of the [Exec] that runs this built
              * command line.
              */
             public val workingDirectory: SkippableCapturingBuilderInterface<() -> Path, Path?> by builder<Path>()

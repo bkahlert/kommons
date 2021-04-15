@@ -1,7 +1,7 @@
 package koodies.io.path
 
 import koodies.io.fileAlreadyExists
-import koodies.runtime.JVM
+import koodies.jvm.deleteOnExit
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -10,9 +10,9 @@ import kotlin.io.path.writeText
 public val cloneFileSupport: Boolean by lazy {
     val file: Path = tempFile().apply {
         writeText("cloneFile test")
-        JVM.deleteOnExit(this)
+        deleteOnExit(this)
     }
-    val clone = JVM.deleteOnExit(file.resolveSibling("cloned"))
+    val clone = deleteOnExit(file.resolveSibling("cloned"))
     Runtime.getRuntime()?.exec(arrayOf("cp", "-c", file.asString(), clone.asString()))
         ?.waitFor()
         ?.let { exitValue ->

@@ -1,9 +1,9 @@
 package koodies.concurrent
 
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.Process.ExitState.ExitStateHandler
-import koodies.concurrent.process.ProcessTerminationCallback
+import koodies.exec.Exec
+import koodies.exec.Process.ExitState.ExitStateHandler
+import koodies.exec.ExecTerminationCallback
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
 import koodies.io.path.Locations
@@ -13,38 +13,38 @@ import java.nio.file.Path
 /**
  * Creates a [DockerProcess] that executes this command line.
  */
-public fun DockerRunCommandLine.toManagedProcess(processTerminationCallback: ProcessTerminationCallback?): DockerProcess =
+public fun DockerRunCommandLine.toExec(execTerminationCallback: ExecTerminationCallback?): DockerProcess =
     // TODO implement in DockerRunCommandLine
-    DockerProcess.from(this, processTerminationCallback)
+    DockerProcess.from(this, execTerminationCallback)
 
 /**
- * Creates a [ManagedProcess] that executes this command line.
+ * Creates a [Exec] that executes this command line.
  */
-public fun CommandLine.toManagedProcess(
+public fun CommandLine.toExec(
     exitStateHandle: ExitStateHandler? = null,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-): ManagedProcess =
-    toProcess(exitStateHandle, processTerminationCallback)
+    execTerminationCallback: ExecTerminationCallback? = null,
+): Exec =
+    toProcess(exitStateHandle, execTerminationCallback)
 
 /**
- * Creates a [ManagedProcess] from the specified [commandLine].
+ * Creates a [Exec] from the specified [commandLine].
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
  * get called.
  */
 public fun process(
     commandLine: CommandLine,
     exitStateHandler: ExitStateHandler? = null,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-): ManagedProcess = commandLine.toManagedProcess(exitStateHandler, processTerminationCallback)
+    execTerminationCallback: ExecTerminationCallback? = null,
+): Exec = commandLine.toExec(exitStateHandler, execTerminationCallback)
 
 /**
- * Creates a [ManagedProcess] from the specified [shellScript]
+ * Creates a [Exec] from the specified [shellScript]
  * with the specified [workingDirectory] and the specified [environment].
  *
- * If provided, the [processTerminationCallback] will be called on process
- * termination and before other [ManagedProcess.onExit] registered listeners
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
  * get called.
  */
 public fun process(
@@ -52,8 +52,8 @@ public fun process(
     environment: Map<String, String> = emptyMap(),
     workingDirectory: Path = Locations.Temp,
     exitStateHandler: ExitStateHandler? = null,
-    processTerminationCallback: ProcessTerminationCallback? = null,
-): ManagedProcess {
+    execTerminationCallback: ExecTerminationCallback? = null,
+): Exec {
     val commandLine = shellScript.toCommandLine(workingDirectory, environment)
-    return process(commandLine, exitStateHandler, processTerminationCallback)
+    return process(commandLine, exitStateHandler, execTerminationCallback)
 }

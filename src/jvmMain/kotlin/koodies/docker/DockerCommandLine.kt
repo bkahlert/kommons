@@ -3,9 +3,9 @@ package koodies.docker
 import koodies.builder.BuilderTemplate
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.Process.ExitState.ExitStateHandler
-import koodies.concurrent.process.ProcessTerminationCallback
+import koodies.exec.Exec
+import koodies.exec.Process.ExitState.ExitStateHandler
+import koodies.exec.ExecTerminationCallback
 import koodies.io.path.Locations
 import java.nio.file.Path
 
@@ -18,12 +18,12 @@ public open class DockerCommandLine(
      */
     redirects: List<String>,
     /**
-     * The environment to be exposed to the [ManagedProcess] that runs this
+     * The environment to be exposed to the [Exec] that runs this
      * docker command line.
      */
     environment: Map<String, String>,
     /**
-     * The working directory of the [ManagedProcess] that runs this
+     * The working directory of the [Exec] that runs this
      * docker command line.
      */
     workingDirectory: Path,
@@ -64,22 +64,22 @@ public open class DockerCommandLine(
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
 
     /**
-     * Creates a [ManagedProcess] to run this Docker command line.
+     * Creates a [Exec] to run this Docker command line.
      *
-     * @param processTerminationCallback if specified, will be called with the process's final exit state
+     * @param execTerminationCallback if specified, will be called with the process's final exit state
      */
-    public fun toProcess(processTerminationCallback: ProcessTerminationCallback?): ManagedProcess =
-        toProcess(null, processTerminationCallback)
+    public fun toProcess(execTerminationCallback: ExecTerminationCallback?): Exec =
+        toProcess(null, execTerminationCallback)
 
     /**
-     * Creates a [ManagedProcess] to run this Docker command line.
+     * Creates a [Exec] to run this Docker command line.
      *
      * @param exitStateHandler if specified, the process's exit state is delegated to it.
      *                         By default, exit state handling is delegated to [DockerExitStateHandler].
-     * @param processTerminationCallback if specified, will be called with the process's final exit state
+     * @param execTerminationCallback if specified, will be called with the process's final exit state
      */
-    override fun toProcess(exitStateHandler: ExitStateHandler?, processTerminationCallback: ProcessTerminationCallback?): ManagedProcess {
-        return super.toProcess(exitStateHandler ?: DockerExitStateHandler, processTerminationCallback)
+    override fun toProcess(exitStateHandler: ExitStateHandler?, execTerminationCallback: ExecTerminationCallback?): Exec {
+        return super.toProcess(exitStateHandler ?: DockerExitStateHandler, execTerminationCallback)
     }
 
     override fun equals(other: Any?): Boolean {

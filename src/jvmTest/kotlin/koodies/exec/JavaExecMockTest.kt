@@ -1,25 +1,30 @@
-package koodies.concurrent.process
+package koodies.exec
 
-import koodies.concurrent.daemon
+import koodies.jvm.daemon
 import koodies.concurrent.process.JavaProcessMock.Companion.FAILED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.RUNNING_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.SUCCEEDED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.processMock
 import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
 import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
-import koodies.concurrent.process.ManagedProcessMock.Companion.FAILED_MANAGED_PROCESS
-import koodies.concurrent.process.ManagedProcessMock.Companion.PREPARED_MANAGED_PROCESS
-import koodies.concurrent.process.ManagedProcessMock.Companion.RUNNING_MANAGED_PROCESS
-import koodies.concurrent.process.ManagedProcessMock.Companion.SUCCEEDED_MANAGED_PROCESS
-import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.Process.ExitState.Success
-import koodies.concurrent.process.Process.ProcessState
+import koodies.concurrent.process.ExecMock.Companion.FAILED_MANAGED_PROCESS
+import koodies.concurrent.process.ExecMock.Companion.PREPARED_MANAGED_PROCESS
+import koodies.concurrent.process.ExecMock.Companion.RUNNING_MANAGED_PROCESS
+import koodies.concurrent.process.ExecMock.Companion.SUCCEEDED_MANAGED_PROCESS
+import koodies.concurrent.process.ProcessExitMock
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.Success
+import koodies.exec.Process.ProcessState
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateExit
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateSuccess
+import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
+import koodies.concurrent.process.SlowInputStream
 import koodies.concurrent.process.SlowInputStream.Companion.prompt
 import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.concurrent.process.UserInput.enter
+import koodies.concurrent.process.process
+import koodies.concurrent.process.terminationLoggingProcessor
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.isEqualToByteWise
 import koodies.logging.InMemoryLogger
@@ -58,7 +63,7 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Execution(CONCURRENT)
-class JavaProcessMockTest {
+class JavaExecMockTest {
 
     @Execution(CONCURRENT)
     @Nested
@@ -92,7 +97,7 @@ class JavaProcessMockTest {
 
         @Execution(CONCURRENT)
         @Nested
-        inner class ManagedProcessMocks {
+        inner class ExecMocks {
 
             @Execution(CONCURRENT)
             @TestFactory
@@ -464,7 +469,7 @@ class JavaProcessMockTest {
             process.enter("shutdown")
         }
 
-        val status = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
+        val status = process.process({ ProcessingModeContext.async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
 
         expectThat(status) {
             isA<Success>().exitCode.isEqualTo(0)

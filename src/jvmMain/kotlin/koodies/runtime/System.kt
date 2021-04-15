@@ -1,15 +1,17 @@
 package koodies.runtime
 
 import koodies.io.loadClassOrNull
+import koodies.jvm.addShutDownHook
+import koodies.jvm.contextClassLoader
 import koodies.runtime.AnsiSupport.ANSI24
 import koodies.runtime.AnsiSupport.ANSI4
 import koodies.runtime.AnsiSupport.ANSI8
 import koodies.text.anyContainsAny
 
 private val jvmArgs: List<String> by lazy {
-    JVM.contextClassLoader.loadClassOrNull("java.lang.management.ManagementFactory")?.let {
+    contextClassLoader.loadClassOrNull("java.lang.management.ManagementFactory")?.let {
         val runtimeMxBean: Any = it.getMethod("getRuntimeMXBean").invoke(null)
-        val runtimeMxBeanClass: Class<*> = JVM.contextClassLoader.loadClass("java.lang.management.RuntimeMXBean")
+        val runtimeMxBeanClass: Class<*> = contextClassLoader.loadClass("java.lang.management.RuntimeMXBean")
         val inputArgs: Any = runtimeMxBeanClass.getMethod("getInputArguments").invoke(runtimeMxBean)
         (inputArgs as? List<*>)?.map { arg -> arg.toString() }
     } ?: emptyList()
@@ -41,7 +43,7 @@ public actual val isTesting: Boolean by lazy { isIntelliJ || isDebugging }
 /**
  * Registers [handler] as to be called when this program is about to stop.
  */
-public actual fun <T : () -> Unit> onExit(handler: T): T = JVM.addShutDownHook(handler)
+public actual fun <T : () -> Unit> onExit(handler: T): T = addShutDownHook(handler)
 
 /**
  * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).

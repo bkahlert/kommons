@@ -72,7 +72,7 @@ public open class DockerImageRemoveCommandLine(
 // * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
 // * and prints the [DockerCommandLine]'s execution to [System.out].
 // */
-//public val DockerImage.removeImage: (Init<OptionsContext>) -> ManagedProcess
+//public val DockerImage.removeImage: (Init<OptionsContext>) -> Exec
 //    get() = {
 //        DockerImageRemoveCommandLine {
 //            options(it)
@@ -88,7 +88,7 @@ public open class DockerImageRemoveCommandLine(
 // * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
 // * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
 // */
-//public val RenderingLogger?.removeImage: DockerImage.(Init<OptionsContext>) -> ManagedProcess
+//public val RenderingLogger?.removeImage: DockerImage.(Init<OptionsContext>) -> Exec
 //    get() = {
 //        val thisImage = this
 //        DockerImageRemoveCommandLine {

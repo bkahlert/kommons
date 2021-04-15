@@ -5,6 +5,7 @@ import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
+import koodies.exec.Process
 import koodies.logging.ReturnValue
 import koodies.terminal.AnsiString
 import koodies.text.ANSI.Colors.brightBlue

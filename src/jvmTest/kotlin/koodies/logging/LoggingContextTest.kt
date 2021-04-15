@@ -1,15 +1,16 @@
 package koodies.logging
 
-import koodies.concurrent.completableFuture
+import koodies.jvm.completableFuture
 import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.runtime.JVM
+import koodies.jvm.currentThread
 import koodies.test.SystemIoExclusive
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI
+import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
@@ -141,16 +142,16 @@ class LoggingContextTest {
     fun `should handle concurrent access`() {
         val result = listOf("foo", "bar", "baz").map { name ->
             completableFuture {
-                val color = ANSI.Colors.random(120)
+                val color = Colors.random(120)
                 root.logging(name, decorationFormatter = color, contentFormatter = color) {
-                    (0..20).forEach { logLine { "${JVM.currentThread.name}: $name $it" } }
+                    (0..20).forEach { logLine { "${currentThread.name}: $name $it" } }
                 }
             }
         }.toTypedArray().let { CompletableFuture.allOf(*it) }
 
         val color = ANSI.Colors.random(20)
         root.logging("main", decorationFormatter = color, contentFormatter = color) {
-            (0..5).forEach { logLine { "${JVM.currentThread.name}: shared $it" } }
+            (0..5).forEach { logLine { "${currentThread.name}: shared $it" } }
             with(root) {
                 runExclusive {
                     (10..15).forEach { logLine { "exclusive $it" } }
@@ -159,7 +160,7 @@ class LoggingContextTest {
                     }
                 }
             }
-            (20..25).forEach { logLine { "${JVM.currentThread.name}: shared $it" } }
+            (20..25).forEach { logLine { "${currentThread.name}: shared $it" } }
         }
 
         result.join()

@@ -1,6 +1,6 @@
 package koodies.exception
 
-import koodies.concurrent.process.Process
+import koodies.exec.Process
 import koodies.debug.replaceNonPrintableCharacters
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines

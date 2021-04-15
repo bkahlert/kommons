@@ -12,7 +12,7 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.loggingProcessor
 import koodies.concurrent.process.process
 import koodies.concurrent.process.terminationLoggingProcessor
-import koodies.concurrent.toManagedProcess
+import koodies.concurrent.toExec
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
 import koodies.logging.RenderingLogger
@@ -43,7 +43,7 @@ public class DockerizedExecution(
 
         return with(options.executionOptions) {
             val processLogger = loggingOptions.newLogger(parentLogger, "Executing dockerized with ${image.formattedAs.input}: ${commandLine.summary}")
-            val dockerProcess = dockerRunCommandLine.toManagedProcess(processTerminationCallback)
+            val dockerProcess = dockerRunCommandLine.toExec(execTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
                     dockerProcess.process(processingMode, processor = processor ?: loggingProcessor(processLogger))

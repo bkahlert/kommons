@@ -1,7 +1,7 @@
 package koodies.logging
 
 import koodies.collections.synchronizedListOf
-import koodies.runtime.JVM
+import koodies.jvm.currentThread
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -24,7 +24,7 @@ public open class InMemoryLogger(
     outputStream: OutputStream? = null,
     private val start: Long = System.currentTimeMillis(),
     log: (String) -> Unit = {
-        val thread = JVM.currentThread.name.padStartFixedLength(30, strategy = MIDDLE)
+        val thread = currentThread.name.padStartFixedLength(30, strategy = MIDDLE)
         val time = Now.passedSince(start).toString().padStartFixedLength(7)
         val prefix = "$thread: $time: "
         outputStream?.apply { write(it.prefixLinesWith(prefix = prefix).toByteArray()) }

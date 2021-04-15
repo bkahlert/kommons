@@ -4,7 +4,7 @@ import koodies.io.file.WrappedPath
 import koodies.io.file.asReadOnly
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.toMappedPath
-import koodies.runtime.JVM
+import koodies.jvm.contextClassLoader
 import koodies.text.withoutPrefix
 import java.net.URI
 import java.nio.file.FileSystem
@@ -37,7 +37,7 @@ public fun ClassLoader.loadClassOrNull(name: String): Class<*>? = kotlin.runCatc
  */
 public inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
-    return JVM.contextClassLoader.getResources(normalizedPath).asSequence().map { url ->
+    return contextClassLoader.getResources(normalizedPath).asSequence().map { url ->
         url.toMappedPath { classPath -> classPath.asReadOnly().transform() }
     }.toList()
 }
@@ -57,7 +57,7 @@ public inline fun <reified T> useClassPaths(path: String, crossinline transform:
  */
 public inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
     val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
-    return JVM.contextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
+    return contextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
 }
 
 /**

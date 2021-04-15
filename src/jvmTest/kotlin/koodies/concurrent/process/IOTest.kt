@@ -106,7 +106,7 @@ class IOTest {
         @Nested
         inner class Terminated {
 
-            private val process = ManagedProcessMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })
+            private val process = ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })
             private val meta = IO.META.TERMINATED(process)
 
             @Test
@@ -222,7 +222,7 @@ class IOTest {
             IO.META typed "file".asPath(),
             IO.META.TEXT("text"),
             IO.META.DUMP("dump"),
-            IO.META.TERMINATED(ManagedProcessMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })),
+            IO.META.TERMINATED(ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })),
             IO.INPUT typed "in",
             IO.OUT typed "out",
             IO.ERR(RuntimeException("err")),

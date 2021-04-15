@@ -5,9 +5,11 @@ import koodies.collections.asStream
 import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.readLine
+import koodies.jvm.currentStackTrace
+import koodies.jvm.currentThread
+import koodies.jvm.deleteOnExit
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
-import koodies.runtime.JVM
 import koodies.terminal.AnsiColors.red
 import koodies.test.DynamicTestsBuilder.ExpectationBuilder
 import koodies.test.TestFlattener.flatten
@@ -65,7 +67,7 @@ public typealias IdeaWorkaroundTest = Test
  */
 public typealias IdeaWorkaroundTestFactory = TestFactory
 
-private val root by lazy { JVM.deleteOnExit(createTempDirectory("koodies")) }
+private val root by lazy { deleteOnExit(createTempDirectory("koodies")) }
 
 object Tester {
 
@@ -164,7 +166,7 @@ object Tester {
      * Finds the calling class and method name of any member
      * function of this [Tester].
      */
-    private fun findCaller() = JVM.currentThread.stackTrace
+    private fun findCaller() = currentStackTrace
         .dropWhile { it.className != enclosingClassName }
         .dropWhile { it.className == enclosingClassName }
         .first().let { it.className to it.methodName }

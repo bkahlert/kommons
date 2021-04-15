@@ -3,15 +3,15 @@ package koodies.docker
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.Process.ProcessState.Running
-import koodies.concurrent.process.Process.ProcessState.Terminated
-import koodies.concurrent.process.ProcessTerminationCallback
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ProcessState.Running
+import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.ExecTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.exitCode
-import koodies.concurrent.process.hasState
+import koodies.exec.exitCode
+import koodies.exec.hasState
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
@@ -50,7 +50,7 @@ class DockerProcessTest {
     @DockerRequiring([BusyBox::class]) @Test
     fun `should override toString`(uniqueId: UniqueId)= withTempDir(uniqueId){
         val dockerProcess = createProcess(uniqueId, "echo", "test")
-        expectThat(dockerProcess).toStringMatchesCurlyPattern("DockerProcess { container = {} managedProcess = {} }")
+        expectThat(dockerProcess).toStringMatchesCurlyPattern("DockerProcess { container = {} exec = {} }")
     }
 
     @DockerRequiring([BusyBox::class]) @Test
@@ -134,7 +134,7 @@ class DockerProcessTest {
                 uniqueId: UniqueId,
                 command: String,
                 vararg args: String,
-                callback: ProcessTerminationCallback? = null,
+                callback: ExecTerminationCallback? = null,
             ): DockerProcess {
                 val dockerRunCommandLine = DockerRunCommandLine(
                     image = BusyBox,

@@ -1,5 +1,6 @@
-package koodies.concurrent.process
+package koodies.exec
 
+import koodies.concurrent.process.ProcessExitMock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -12,7 +13,8 @@ import kotlin.time.Duration
 import kotlin.time.milliseconds
 
 @Execution(CONCURRENT)
-class ProcessExitMockTest {
+@Deprecated("remove")
+class ExecExitMockTest {
 
     @Test
     fun `should provide exit code immediately`() {

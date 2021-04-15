@@ -1,14 +1,14 @@
 package koodies.docker
 
 import koodies.asString
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.ManagedProcess.Companion.createDump
-import koodies.concurrent.process.Process
-import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.Process.ExitState.Fatal
-import koodies.concurrent.process.Process.ProcessState
-import koodies.concurrent.process.Process.ProcessState.Prepared
-import koodies.concurrent.process.ProcessTerminationCallback
+import koodies.exec.Exec
+import koodies.exec.Exec.Companion.createDump
+import koodies.exec.Process
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.Fatal
+import koodies.exec.Process.ProcessState
+import koodies.exec.Process.ProcessState.Prepared
+import koodies.exec.ExecTerminationCallback
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
 import koodies.docker.DockerContainer.State.Existent.Dead
@@ -28,22 +28,16 @@ import kotlin.time.seconds
  */
 public open class DockerProcess private constructor(
     public val container: DockerContainer,
-    private val managedProcess: ManagedProcess,
-) : ManagedProcess by managedProcess {
+    private val exec: Exec,
+) : Exec by exec {
 
     public companion object {
         public fun from(
             dockerRunCommandLine: DockerRunCommandLine,
-            processTerminationCallback: ProcessTerminationCallback? = null,
-        ): DockerProcess {
-            val container = dockerRunCommandLine.options.name ?: error("Docker container name missing.")
-            val managedProcess = ManagedProcess.from(dockerRunCommandLine,
-                processTerminationCallback = { ex ->
-//                    container.kill() TODO
-                    processTerminationCallback?.also { it(ex) }
-                })
-            return DockerProcess(container, managedProcess)
-        }
+            execTerminationCallback: ExecTerminationCallback? = null,
+        ): DockerProcess = DockerProcess(
+            container = dockerRunCommandLine.options.name ?: error("Docker container name missing."),
+            exec = Exec.from(dockerRunCommandLine, null, execTerminationCallback))
     }
 
     override var exitState: ExitState? = null
@@ -61,10 +55,10 @@ public open class DockerProcess private constructor(
         }
 
     override val onExit: CompletableFuture<out ExitState> by lazy {
-        managedProcess.onExit.apply { thenAccept { run { exitState = it } } }
+        exec.onExit.apply { thenAccept { run { exitState = it } } }
     }
 
-    override fun start(): DockerProcess = also { managedProcess.start() }
+    override fun start(): DockerProcess = also { exec.start() }
 
     /**
      * Stops this process by stopping its container.
@@ -80,13 +74,13 @@ public open class DockerProcess private constructor(
      * Stops this process by stopping its container with the optionally specified [timeout] (default: 5 seconds).
      */
     public fun stop(timeout: Duration? = 5.seconds): DockerProcess =
-        also { container.stop(timeout = timeout) }.also { managedProcess.stop() }
+        also { container.stop(timeout = timeout) }.also { exec.stop() }
 
     /**
      * Kills this process by killing its container with the optionally specified [signal] (default: KILL).
      */
     public fun kill(signal: String?): DockerProcess =
-        also { container.kill(signal = signal) }.also { managedProcess.kill() }
+        also { container.kill(signal = signal) }.also { exec.kill() }
 
-    override fun toString(): String = asString(::container, ::managedProcess)
+    override fun toString(): String = asString(::container, ::exec)
 }

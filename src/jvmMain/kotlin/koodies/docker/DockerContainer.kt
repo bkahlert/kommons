@@ -3,7 +3,7 @@ package koodies.docker
 import koodies.asString
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.execute
-import koodies.concurrent.process.Process.ExitState
+import koodies.exec.Process.ExitState
 import koodies.docker.DockerContainer.Companion.ContainerContext
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
@@ -52,15 +52,13 @@ public class DockerContainer(public val name: String) {
     /**
      * Current state of this container—queried using `this` [RenderingLogger].
      */
-    public val RenderingLogger.state: State get() = queryState(this@DockerContainer, this).also { _cachedState = it }
-
-    private var _cachedState: State? = null
+    public val RenderingLogger.state: State get() = queryState(this@DockerContainer, this).also { cachedState = it }
 
     /**
-     * Last known state of this container, or
-     * the current [state] if the state is read for the first time.
+     * Last known state of this container.
      */
-    public val cachedState: State get() = _cachedState ?: state
+    public var cachedState: State? = null
+        private set
 
     public val exists: Boolean get() = state !is NotExistent
     public val isCreated: Boolean get() = state is Created

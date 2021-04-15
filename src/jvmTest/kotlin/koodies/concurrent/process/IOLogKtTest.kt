@@ -2,6 +2,7 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process
 import koodies.concurrent.script
+import koodies.exec.alive
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
 import koodies.test.Slow

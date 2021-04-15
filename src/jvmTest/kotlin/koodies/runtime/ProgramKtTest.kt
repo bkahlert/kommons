@@ -2,6 +2,7 @@ package koodies.runtime
 
 import koodies.debug.asEmoji
 import koodies.io.path.Locations
+import koodies.jvm.deleteOnExit
 import koodies.logging.InMemoryLogger
 import koodies.time.Now
 import org.junit.jupiter.api.AfterAll
@@ -28,7 +29,7 @@ class ProgramKtTest {
 
         @BeforeAll
         fun setUp() {
-            JVM.deleteOnExit(markerFile)
+            deleteOnExit(markerFile)
         }
 
         @Test

@@ -1,7 +1,7 @@
 package koodies.shell
 
 import koodies.concurrent.process.CommandLine
-import koodies.concurrent.scriptPath
+import koodies.exec.scriptPath
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.io.path.executable

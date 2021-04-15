@@ -1,6 +1,7 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.toManagedProcess
+import koodies.concurrent.toExec
+import koodies.exec.Exec
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.UniqueId
@@ -239,7 +240,7 @@ class CommandLineTest {
     @Nested
     inner class Nesting {
 
-        private fun Assertion.Builder<ManagedProcess>.outputParsedAsCommandLine(workingDir: Path) =
+        private fun Assertion.Builder<Exec>.outputParsedAsCommandLine(workingDir: Path) =
             get { CommandLine.parse(io.out.merged.ansiRemoved, workingDir) }
 
         @Test
@@ -354,21 +355,21 @@ class CommandLineTest {
 val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBuilder<String>
     get() = get("continuation removed %s") { replace("\\s+\\\\.".toRegex(RegexOption.DOT_MATCHES_ALL), " ") }
 
-val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<ManagedProcess>
+val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
     get() = get("evaluated %s") {
-        toManagedProcess().process({ sync }, Processors.noopProcessor())
+        toExec().process({ sync }, Processors.noopProcessor())
     }
 
-fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<ManagedProcess>.() -> Unit) =
+fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =
     evaluated.block()
 
-val Assertion.Builder<ManagedProcess>.output
+val Assertion.Builder<Exec>.output
     get() = get("output %s") { output() }
 
 val Assertion.Builder<IOLog>.out
     get() = get("output of type OUT %s") { filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
 
-val <P : ManagedProcess> Assertion.Builder<P>.exitState
+val <P : Exec> Assertion.Builder<P>.exitState
     get() = get("exit value %s") { exitValue }
 
 fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String) {

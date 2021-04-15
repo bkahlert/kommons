@@ -4,9 +4,9 @@ import koodies.collections.head
 import koodies.collections.tail
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
-import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.Process.ExitState.ExitStateHandler
-import koodies.concurrent.process.Process.ProcessState.Terminated
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.ExitStateHandler
+import koodies.exec.Process.ProcessState.Terminated
 import koodies.concurrent.process.err
 import koodies.concurrent.process.merge
 import koodies.debug.asEmoji

@@ -1,5 +1,7 @@
-package koodies.concurrent.process
+package koodies.exec
 
+import koodies.concurrent.process.IO.META
+import koodies.concurrent.process.IO.META.FILE
 import koodies.io.path.Locations
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -13,14 +15,14 @@ import strikt.assertions.isSuccess
 @Execution(SAME_THREAD)
 class MetaStreamTest {
 
-    private class Listener : (IO.META) -> Unit {
-        public var message: IO.META? = null
-        override fun invoke(message: IO.META) {
+    private class Listener : (META) -> Unit {
+        public var message: META? = null
+        override fun invoke(message: META) {
             this.message = message
         }
     }
 
-    private val message = IO.META.FILE(Locations.Temp)
+    private val message = FILE(Locations.Temp)
 
     @Test
     fun `should subscribe`() {

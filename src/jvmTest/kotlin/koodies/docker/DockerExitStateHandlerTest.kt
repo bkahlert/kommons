@@ -2,9 +2,9 @@ package koodies.docker
 
 import koodies.collections.to
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.Process.ProcessState.Terminated
-import koodies.concurrent.process.status
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.status
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotKillContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotRemoveRunningContainer

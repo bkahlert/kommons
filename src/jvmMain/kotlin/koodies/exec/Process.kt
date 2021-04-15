@@ -1,12 +1,11 @@
-package koodies.concurrent.process
+package koodies.exec
 
-import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.Process.ExitState
-import koodies.concurrent.process.Process.ProcessState.Terminated
-import koodies.debug.asEmoji
+import koodies.concurrent.process.IO
+import koodies.exec.MetaStream
 import koodies.exception.toCompactString
+import koodies.exec.Process.ProcessState.Terminated
 import koodies.logging.ReturnValue
-import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.time.Now
@@ -14,8 +13,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
 import java.util.concurrent.CompletableFuture
-import java.lang.Process as JavaProcess
-
 
 /**
  * Platform independent representation of a running program.
@@ -122,11 +119,11 @@ public interface Process : ReturnValue {
             override fun toString(): String =
                 StringBuilder(status).apply {
                     relevantFiles.forEach {
-                        append(LF)
+                        append(LineSeparators.LF)
                         append(it)
                     }
                     dump?.takeUnlessBlank()?.let {
-                        append(LF)
+                        append(LineSeparators.LF)
                         append(dump)
                     }
                 }.toString()
@@ -201,64 +198,4 @@ public interface Process : ReturnValue {
      * Forcefully stops the execution of the program represented by this process.
      */
     public fun kill(): Process
-}
-
-public class MetaStream(vararg listeners: (IO.META) -> Unit) {
-    private val history: MutableList<IO.META> = synchronizedListOf()
-    private val listeners: MutableList<(IO.META) -> Unit> = synchronizedListOf(*listeners)
-
-    public fun subscribe(listener: (IO.META) -> Unit): Unit {
-        history.forEach { listener(it) }
-        listeners.add(listener)
-    }
-
-    public fun emit(meta: IO.META): Unit {
-        history.add(meta)
-        listeners.forEach { it(meta) }
-    }
-}
-// TODO
-///**
-// * Returns whether [start] was called.
-// *
-// * Contrary to [alive] this property will never return `false` once [start] was called.
-// */
-//public val Process.started: Boolean
-//    get() = when (state) {
-//        is Prepared -> false
-//        is Running -> true
-//        is Terminated -> true
-//    }
-
-/**
- * A process that delegates to the [JavaProcess] provided by the specified [processProvider].
- */
-public abstract class DelegatingProcess(private val processProvider: Process.() -> JavaProcess) : Process {
-    override val metaStream: MetaStream = MetaStream()
-    override val inputStream: OutputStream by lazy { javaProcess.outputStream }
-    override val outputStream: InputStream by lazy { javaProcess.inputStream }
-    override val errorStream: InputStream by lazy { javaProcess.errorStream }
-    override val pid: Long by lazy { javaProcess.pid() }
-
-    /**
-     * The Java process this process delegates to.
-     */
-    protected val javaProcess: JavaProcess by lazy { processProvider().also { _started = true } }
-
-    override fun start(): Process = also { javaProcess.pid() }
-    private var _started: Boolean = false
-    override val started: Boolean get() = _started
-    override val alive: Boolean get() = started && javaProcess.isAlive
-    override val exitValue: Int get() = javaProcess.exitValue()
-    abstract override val onExit: CompletableFuture<out ExitState>
-    override fun waitFor(): ExitState = exitState ?: onExit.join()
-    override fun stop(): Process = also { javaProcess.destroy() }
-    override fun kill(): Process = also { javaProcess.destroyForcibly() }
-
-    override fun toString(): String {
-        val delegateString =
-            if (started) "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful.asEmoji}"
-            else "not yet started"
-        return "${this::class.simpleName ?: "object"}(delegate=$delegateString, started=${started.asEmoji})"
-    }
 }

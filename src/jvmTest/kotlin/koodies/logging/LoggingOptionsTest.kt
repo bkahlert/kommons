@@ -1,8 +1,8 @@
 package koodies.logging
 
 import koodies.concurrent.execute
-import koodies.concurrent.process.Process.ExitState.Failure
-import koodies.concurrent.process.hasState
+import koodies.exec.Process.ExitState.Failure
+import koodies.exec.hasState
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
 import koodies.text.ANSI

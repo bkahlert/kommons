@@ -7,6 +7,7 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.SystemIoExclusive
 import koodies.test.test
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -18,6 +19,7 @@ import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 
+@Disabled
 @Execution(CONCURRENT)
 class DockerTest {
 

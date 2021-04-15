@@ -2,6 +2,7 @@ package koodies.concurrent.process
 
 import koodies.asString
 import koodies.exception.persistDump
+import koodies.exec.Exec
 import koodies.io.ByteArrayOutputStream
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
@@ -16,7 +17,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * An I/O log can be used to log what a [ManagedProcess] received and produces as data.
+ * An I/O log can be used to log what a [Exec] received and produces as data.
  *
  * In order to log I/O only [plus] must be called.
  */
@@ -26,7 +27,7 @@ public class IOLog : Sequence<IO> {
 
     /**
      * Returns an [Iterator] that iterates over all currently logged I/O
-     * of the corresponding [ManagedProcess].
+     * of the corresponding [Exec].
      */
     override fun iterator(): Iterator<IO> =
         lock.withLock { log.toList() }.iterator()
@@ -178,7 +179,7 @@ public inline fun <reified T : IO> Iterable<T>.merge(removeEscapeSequences: Bool
  *
  * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
  */
-public fun ManagedProcess.output(): String = run {
+public fun Exec.output(): String = run {
     process({ sync }, Processors.noopProcessor())
     io.merge<IO.OUT>()
 }
@@ -194,13 +195,13 @@ public fun ManagedProcess.output(): String = run {
  *
  * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
  */
-public fun <T> ManagedProcess.output(transform: String.() -> T?): List<T> =
+public fun <T> Exec.output(transform: String.() -> T?): List<T> =
     output().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }
 
 /**
  * Convenience method to get the errors of a process.
  */
-public fun ManagedProcess.errors(): String = run {
+public fun Exec.errors(): String = run {
     process({ sync }, Processors.noopProcessor())
     io.merge<IO.ERR>()
 }
@@ -208,5 +209,5 @@ public fun ManagedProcess.errors(): String = run {
 /**
  * Convenience method to get the errors of a process.
  */
-public fun <T> ManagedProcess.errors(transform: String.() -> T?): List<T> =
+public fun <T> Exec.errors(transform: String.() -> T?): List<T> =
     errors().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }

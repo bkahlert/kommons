@@ -1,12 +1,12 @@
 package koodies.docker
 
 import koodies.builder.StatelessBuilder.Returning
-import koodies.concurrent.thread
+import koodies.jvm.thread
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
 import koodies.text.Semantics.formattedAs
-import koodies.text.styling.Borders
+import koodies.text.styling.Borders.Rounded
 import koodies.text.styling.wrapWithBorder
 import koodies.time.sleep
 import java.nio.file.Path
@@ -53,7 +53,7 @@ public interface MountOptionContext<T> {
             thread {
                 50.milliseconds.sleep()
                 if (incomplete) listOf("Mount ${source.formattedAs.input} of type ${type.formattedAs.input} is missing its ${"target".formattedAs.input}.",
-                    "Use the ${"at".formattedAs.warning} method to complete the configuration.").wrapWithBorder(Borders.Rounded,
+                    "Use the ${"at".formattedAs.warning} method to complete the configuration.").wrapWithBorder(Rounded,
                     formatter = { it.formattedAs.warning }).also { println(it) }
             }
         }

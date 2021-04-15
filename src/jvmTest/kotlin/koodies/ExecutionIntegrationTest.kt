@@ -5,7 +5,7 @@ import koodies.collections.size
 import koodies.concurrent.execute
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.Process.ExitState
+import koodies.exec.Process.ExitState
 import koodies.concurrent.process.err
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.out

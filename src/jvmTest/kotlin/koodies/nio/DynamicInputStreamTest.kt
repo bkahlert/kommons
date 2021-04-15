@@ -1,6 +1,6 @@
 package koodies.nio
 
-import koodies.concurrent.thread
+import koodies.jvm.thread
 import koodies.time.sleep
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

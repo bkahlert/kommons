@@ -3,8 +3,8 @@ package koodies.concurrent
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.ManagedProcess
-import koodies.concurrent.process.Process.ExitState.Failure
+import koodies.exec.Exec
+import koodies.exec.Process.ExitState.Failure
 import koodies.concurrent.process.process
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
@@ -27,7 +27,7 @@ class ProcessesKtTest {
         "echo \"test output ${'$'}TEST\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
 
 
-    private fun testProcesses(uniqueId: UniqueId, command: String = echoingCommands, block: (ManagedProcess) -> Unit): List<DynamicNode> =
+    private fun testProcesses(uniqueId: UniqueId, command: String = echoingCommands, block: (Exec) -> Unit): List<DynamicNode> =
         test {
             test {
                 withTempDir(uniqueId) {
