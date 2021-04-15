@@ -18,7 +18,6 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.logging.expectThatLogged
 import koodies.shell.ShellScript
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoExclusive
 import koodies.test.SystemIoRead
 import koodies.test.UniqueId
@@ -229,10 +228,10 @@ class ExecutionTest {
             koodies.time.poll { toString().predicate() }.withDefaults()
 
         private fun CapturedOutput.poll(predicate: String.() -> Boolean = defaultPredicate) =
-            koodies.time.poll { all.removeEscapeSequences().predicate() }.withDefaults()
+            koodies.time.poll { all.ansiRemoved.predicate() }.withDefaults()
 
         private fun StringBuilder.poll(predicate: String.() -> Boolean = defaultPredicate) =
-            koodies.time.poll { toString().removeEscapeSequences().predicate() }.withDefaults()
+            koodies.time.poll { toString().ansiRemoved.predicate() }.withDefaults()
 
         @Test
         fun InMemoryLogger.`should process asynchronously if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {

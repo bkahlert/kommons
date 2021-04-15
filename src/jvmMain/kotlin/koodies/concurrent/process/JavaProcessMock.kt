@@ -19,8 +19,7 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.terminal.AnsiColors.magenta
-import koodies.terminal.AnsiColors.yellow
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.takeUnlessEmpty
 import koodies.time.Now
 import koodies.time.sleep
@@ -358,7 +357,7 @@ public class SlowInputStream(
             10.milliseconds.sleep()
         }
 
-        trace("${unreadCount.padded.yellow()} bytes unread")
+        trace("${unreadCount.padded.ansi.yellow} bytes unread")
 
         if (terminated) {
             trace("Backing buffer is depleted ➜ EOF reached.")
@@ -385,7 +384,7 @@ public class SlowInputStream(
             }
             currentLine.second
         }
-        trace("— available ${currentWord.debug.magenta()}")
+        trace("— available ${currentWord.debug.ansi.magenta}")
         val currentByte = currentWord.removeFirst()
         trace("— current: $currentByte/${currentByte.toChar()}")
 

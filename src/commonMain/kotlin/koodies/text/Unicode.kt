@@ -17,6 +17,11 @@ public object Unicode {
     public const val startOfHeading: Char = '\u0001'
 
     /**
+     * [BELL](https://codepoints.net/U+0007)
+     */
+    public const val bell: Char = '\u0007'
+
+    /**
      * [ESCAPE](https://codepoints.net/U+001B)
      */
     public const val escape: Char = '\u001B'

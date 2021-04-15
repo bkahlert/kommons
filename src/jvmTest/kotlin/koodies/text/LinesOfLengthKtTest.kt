@@ -1,9 +1,8 @@
 package koodies.text
 
-import koodies.terminal.AnsiCode
-import koodies.terminal.AnsiString.Companion.asAnsiString
-import koodies.terminal.AnsiStringTest.Companion.ansiString
-import koodies.terminal.AnsiStringTest.Companion.nonAnsiString
+import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiStringTest.Companion.ansiString
+import koodies.text.AnsiStringTest.Companion.nonAnsiString
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import koodies.text.Unicode.escape as ESC
 
 @Execution(CONCURRENT)
 class LinesOfLengthKtTest {
@@ -61,10 +61,10 @@ class LinesOfLengthKtTest {
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
-                    "${AnsiCode.ESC}[3;36m${AnsiCode.ESC}[4mImportant:${AnsiCode.ESC}[24m This line has ${AnsiCode.ESC}[9mn${AnsiCode.ESC}[23;39;29m".asAnsiString(),
-                    "${AnsiCode.ESC}[3;36;9mo${AnsiCode.ESC}[29m ANSI escapes.${AnsiCode.ESC}[23;39m".asAnsiString(),
-                    "${AnsiCode.ESC}[3;36mThis one's ${AnsiCode.ESC}[1mbold!${AnsiCode.ESC}[23;39;22m".asAnsiString(),
-                    "${AnsiCode.ESC}[3;36mLast one is clean.${AnsiCode.ESC}[23;39m".asAnsiString(),
+                    "${ESC}[3;36m${ESC}[4mImportant:${ESC}[24m This line has ${ESC}[9mn${ESC}[23;39;29m".asAnsiString(),
+                    "${ESC}[3;36;9mo${ESC}[29m ANSI escapes.${ESC}[23;39m".asAnsiString(),
+                    "${ESC}[3;36mThis one's ${ESC}[1mbold!${ESC}[23;39;22m".asAnsiString(),
+                    "${ESC}[3;36mLast one is clean.${ESC}[23;39m".asAnsiString(),
                     "".asAnsiString(),
                 )
             }
@@ -77,10 +77,10 @@ class LinesOfLengthKtTest {
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
-                    "${AnsiCode.ESC}[3;36m${AnsiCode.ESC}[4mImportant:${AnsiCode.ESC}[24m This line has ${AnsiCode.ESC}[9mn${AnsiCode.ESC}[23;39;29m".asAnsiString(),
-                    "${AnsiCode.ESC}[3;36;9mo${AnsiCode.ESC}[29m ANSI escapes.${AnsiCode.ESC}[23;39m".asAnsiString(),
-                    "${AnsiCode.ESC}[3;36mThis one's ${AnsiCode.ESC}[1mbold!${AnsiCode.ESC}[23;39;22m".asAnsiString(),
-                    "${AnsiCode.ESC}[3;36mLast one is clean.${AnsiCode.ESC}[23;39m".asAnsiString(),
+                    "${ESC}[3;36m${ESC}[4mImportant:${ESC}[24m This line has ${ESC}[9mn${ESC}[23;39;29m".asAnsiString(),
+                    "${ESC}[3;36;9mo${ESC}[29m ANSI escapes.${ESC}[23;39m".asAnsiString(),
+                    "${ESC}[3;36mThis one's ${ESC}[1mbold!${ESC}[23;39;22m".asAnsiString(),
+                    "${ESC}[3;36mLast one is clean.${ESC}[23;39m".asAnsiString(),
                 )
             }
         }

@@ -11,7 +11,6 @@ import koodies.io.path.randomFile
 import koodies.io.path.single
 import koodies.logging.InMemoryLogger
 import koodies.shell.HereDocBuilder.hereDoc
-import koodies.terminal.AnsiCode.Companion.ESC
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.toStringContains
@@ -34,6 +33,7 @@ import strikt.java.exists
 import strikt.java.isExecutable
 import java.nio.file.Path
 import kotlin.io.path.listDirectoryEntries
+import koodies.text.Unicode.escape as ESC
 
 @Execution(CONCURRENT)
 class ShellScriptTest {
@@ -52,7 +52,7 @@ class ShellScriptTest {
     fun `should build valid script`() {
         expectThat(shellScript().build()).isEqualTo("""
             #!/bin/sh
-            echo "[40;90m░[49;39m[46;96m░[49;39m[44;94m░[49;39m[42;92m░[49;39m[43;93m░[49;39m[45;95m░[49;39m[41;91m░[49;39m [96mTEST[39m"
+            echo "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m $ESC[96mTEST$ESC[39m"
             cd "/some/where" || exit -1
             echo "Hello World!"
             echo "Bye!"
@@ -67,7 +67,7 @@ class ShellScriptTest {
         shellScript().buildTo(file)
         expectThat(file).hasContent("""
             #!/bin/sh
-            echo "[40;90m░[49;39m[46;96m░[49;39m[44;94m░[49;39m[42;92m░[49;39m[43;93m░[49;39m[45;95m░[49;39m[41;91m░[49;39m [96mTEST[39m"
+            echo "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m $ESC[96mTEST$ESC[39m"
             cd "/some/where" || exit -1
             echo "Hello World!"
             echo "Bye!"
@@ -316,9 +316,9 @@ class ShellScriptTest {
 
     @Nested
     inner class Name {
-        private val testBanner = "$ESC[40;90m░$ESC[49;39m$ESC[46;96m░$ESC[49;39m" +
-            "$ESC[44;94m░$ESC[49;39m$ESC[42;92m░$ESC[49;39m$ESC[43;93m░" +
-            "$ESC[49;39m$ESC[45;95m░$ESC[49;39m$ESC[41;91m░$ESC[49;39m " +
+        private val testBanner = "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m" +
+            "$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░" +
+            "$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m " +
             "$ESC[96mTEST$ESC[39m"
 
         @Test

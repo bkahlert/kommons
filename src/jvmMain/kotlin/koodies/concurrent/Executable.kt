@@ -29,8 +29,8 @@ import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLogging
 import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValue
 import koodies.logging.runLogging
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
@@ -124,7 +124,7 @@ public class Execution(
                         this.caption by caption
                         contentFormatter {
                             Formatter {
-                                it.takeUnless { it is IO.META }?.removeEscapeSequences()?.run {
+                                it.takeUnless { it is IO.META }?.ansiRemoved?.run {
                                     val step = substringAfter(":").trim().run {
                                         takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
                                     }

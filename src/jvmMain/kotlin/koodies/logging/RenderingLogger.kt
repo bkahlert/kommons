@@ -8,7 +8,6 @@ import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
 import koodies.jvm.currentStackTrace
 import koodies.runtime.onExit
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.ANSI.Text.Companion.ansi
@@ -251,7 +250,7 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
         path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->
             BlockRenderingLogger(caption.toString(), log = {
                 ansiLog.appendLine(it)
-                noAnsiLog.appendLine(it.removeEscapeSequences())
+                noAnsiLog.appendLine(it.ansiRemoved)
             })
         }.runLogging(block)
     }

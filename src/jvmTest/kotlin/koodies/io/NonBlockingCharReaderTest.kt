@@ -4,9 +4,9 @@ import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingCharReader
 import koodies.number.times
-import koodies.terminal.ANSI
-import koodies.terminal.AnsiColors.magenta
 import koodies.test.Slow
+import koodies.text.ANSI
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.styling.Borders
 import koodies.text.styling.wrapWithBorder
 import org.junit.jupiter.api.Test
@@ -62,13 +62,13 @@ class NonBlockingCharReaderTest {
             expectThat(reader.readLines()).containsExactly("123abc!\"")
                 .get { this[0] }.not { contains("$") } // needs a wrapper like NonBlockingReader for characters of length > 1 byte
         }.recover {
-            val color = ANSI.termColors.green
+            val color = ANSI.Colors.green
             if (it is AssertionFailedError) throw it
             fail(listOf("An exception has occurred while reading the input stream.",
                 "Please make sure you don't use a greedy implementation like",
-                InputStreamReader::class.qualifiedName?.magenta() + ".",
+                InputStreamReader::class.qualifiedName?.let { it.ansi.magenta.toString() } + ".",
                 "\nTheir reading strategy blocks the execution leaving you with nothing but timeouts and exceptions.",
-                color.invoke(org.jline.utils.InputStreamReader::class.qualifiedName!!) + "",
+                color.invoke(org.jline.utils.InputStreamReader::class.qualifiedName.toString()).toString() + "",
                 " is known to be a working non-greedy implementation.")
                 .wrapWithBorder(Borders.SpikedOutward), it)
         }

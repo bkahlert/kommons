@@ -4,6 +4,7 @@ package koodies.io.path
 
 import koodies.debug.debug
 import koodies.debug.replaceNonPrintableCharacters
+import koodies.debug.trace
 import koodies.io.file.lastModified
 import koodies.io.file.quoted
 import koodies.io.file.resolveBetweenFileSystems
@@ -96,11 +97,10 @@ fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharAr
     }
 
 fun <T : Path> Assertion.Builder<T>.hasContent(expectedContent: String) =
-    assert("has content ${expectedContent.debug}") {
-        val actualContent = it.readText()
-        when (actualContent.contentEquals(expectedContent)) {
-            true -> pass()
-            else -> fail("was ${actualContent.debug}")
+     assert("is equal to %s", expectedContent.trace{toByteArray().toList()}) { path ->
+         when (val actualContent = path.readText()) {
+            expectedContent -> pass()
+            else -> fail(actual = actualContent)
         }
     }
 

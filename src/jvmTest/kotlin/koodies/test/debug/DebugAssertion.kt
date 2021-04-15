@@ -1,7 +1,7 @@
 package koodies.test.debug
 
 import koodies.debug.debug
-import koodies.terminal.AnsiColors.brightCyan
+import koodies.text.ANSI.Text.Companion.ansi
 import strikt.api.Assertion
 
 /**
@@ -14,4 +14,4 @@ fun <T> Assertion.Builder<T>.debug(): Assertion.Builder<T> =
             override fun invoke(): T = this@get
             override fun toString(): String = this@get.debug
         }
-    }.get("⬆ DEBUGGED".brightCyan()) { this() }
+    }.get("⬆ DEBUGGED".ansi.brightCyan.toString()) { this() }

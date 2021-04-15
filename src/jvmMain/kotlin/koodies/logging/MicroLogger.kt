@@ -3,9 +3,9 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.Symbols
 import koodies.text.prefixLinesWith
@@ -81,7 +81,7 @@ public class MicroLogger(
     override fun toString(): String = asString {
         ::open to open
         ::caption to caption
-        ::messages to messages.map { it.removeEscapeSequences() }
+        ::messages to messages.map { it.ansiRemoved }
         ::loggingResult to loggingResult
         ::open to open
     }

@@ -10,12 +10,12 @@ import koodies.jvm.currentThread
 import koodies.jvm.deleteOnExit
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
-import koodies.terminal.AnsiColors.red
 import koodies.test.DynamicTestsBuilder.ExpectationBuilder
 import koodies.test.TestFlattener.flatten
 import koodies.test.Tester.callerSource
 import koodies.test.Tester.property
 import koodies.test.Tester.subject
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
 import koodies.text.TruncationStrategy
@@ -158,7 +158,7 @@ object Tester {
         private val lock = ReentrantLock()
         private val cache: MutableMap<String, FilePeek> = mutableMapOf()
         override fun invoke(callerClassName: String): FilePeek = lock.withLock {
-            cache.computeIfAbsent(callerClassName) { FilePeek(listOfNotNull("strikt.internal", "strikt.api", "filepeek", enclosingClassName, callerClassName)) }
+            cache.getOrPut(callerClassName) { FilePeek(listOfNotNull("strikt.internal", "strikt.api", "filepeek", enclosingClassName, callerClassName)) }
         }
     }
 
@@ -462,7 +462,7 @@ fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
     val tempDir = root.resolve(uniqueId.simplified.toBaseName().withRandomSuffix()).createDirectories()
     tempDir.block()
     check(root.exists()) {
-        println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".red())
+        println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".ansi.red.toString())
         exitProcess(-1)
     }
 }

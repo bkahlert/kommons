@@ -1,12 +1,11 @@
 package koodies.text
 
-import koodies.terminal.AnsiCode
-import koodies.terminal.AnsiStringTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import koodies.text.Unicode.escape as ESC
 
 @Execution(CONCURRENT)
 class WrapLinesKtTest {
@@ -23,10 +22,10 @@ class WrapLinesKtTest {
     @Test
     fun `should wrap ANSI lines`() {
         expectThat(AnsiStringTest.ansiString.wrapLines(26)).isEqualTo("""
-                ${AnsiCode.ESC}[3;36m${AnsiCode.ESC}[4mImportant:${AnsiCode.ESC}[24m This line has ${AnsiCode.ESC}[9mn${AnsiCode.ESC}[23;39;29m
-                ${AnsiCode.ESC}[3;36;9mo${AnsiCode.ESC}[29m ANSI escapes.${AnsiCode.ESC}[23;39m
-                ${AnsiCode.ESC}[3;36mThis one's ${AnsiCode.ESC}[1mbold!${AnsiCode.ESC}[23;39;22m
-                ${AnsiCode.ESC}[3;36mLast one is clean.${AnsiCode.ESC}[23;39m
+                ${ESC}[3;36m${ESC}[4mImportant:${ESC}[24m This line has ${ESC}[9mn${ESC}[23;39;29m
+                ${ESC}[3;36;9mo${ESC}[29m ANSI escapes.${ESC}[23;39m
+                ${ESC}[3;36mThis one's ${ESC}[1mbold!${ESC}[23;39;22m
+                ${ESC}[3;36mLast one is clean.${ESC}[23;39m
             """.trimIndent())
     }
 }

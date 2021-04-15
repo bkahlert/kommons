@@ -4,9 +4,9 @@ import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.SystemIoRead
 import koodies.test.toStringContains
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.containsEscapeSequences
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -30,7 +30,7 @@ class InMemoryLoggerResolverNoDebugTest {
         logLine { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
 
         expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
-        expectThat(output.removeEscapeSequences()).not { toStringContains("☎Σ⊂⊂(☉ω☉∩)") }
+        expectThat(output.ansiRemoved).not { toStringContains("☎Σ⊂⊂(☉ω☉∩)") }
     }
 
     @Test

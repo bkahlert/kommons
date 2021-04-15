@@ -66,7 +66,7 @@ public open class InMemoryLogger(
 
         private const val LOG_MESSAGE: String = "log message"
 
-        public val LOG_OPERATIONS: Map<String, RenderingLogger.() -> Unit> = linkedMapOf(
+        public val LOG_OPERATIONS: Map<String, RenderingLogger.() -> Unit> = mapOf<String, RenderingLogger.() -> Unit>(
             "logText { … }"
                 to { logText { LOG_MESSAGE } },
             "logLine { … }"

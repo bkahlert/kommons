@@ -3,9 +3,8 @@
 package koodies.kaomoji
 
 import koodies.kaomoji.Kaomojis.Generator.Companion.removeRightArm
-import koodies.terminal.ANSI
 import koodies.terminal.AnsiFormats.hidden
-import koodies.terminal.colorize
+import koodies.text.ANSI.colorize
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.reflect.KProperty
 
@@ -94,7 +93,7 @@ public object Kaomojis {
         public fun withMagic(): String {
             val listOfNotNull: List<IntRange> = listOfNotNull(wandRange)
             return listOfNotNull.fold(template) { acc, intRange ->
-                acc.substring(0 until intRange.first) + ANSI.termColors.colorize(acc.substring(intRange)) + acc.subSequence(intRange.last, acc.lastIndex + 1)
+                acc.substring(0 until intRange.first) + acc.substring(intRange).colorize() + acc.subSequence(intRange.last, acc.lastIndex + 1)
             }
         }
 

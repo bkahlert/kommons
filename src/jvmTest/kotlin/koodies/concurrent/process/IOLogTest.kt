@@ -1,15 +1,15 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.META
-import koodies.jvm.daemon
 import koodies.io.path.asString
 import koodies.io.path.text
 import koodies.io.path.writeText
-import koodies.terminal.escapeSequencesRemoved
+import koodies.jvm.daemon
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
+import koodies.text.ansiRemoved
 import koodies.text.containsEscapeSequences
 import koodies.time.poll
 import koodies.time.sleep
@@ -80,7 +80,7 @@ class IOLogTest {
             val dumps: Map<String, Path> = ioLog.dump(this, 123)
             expectThat(dumps.values) {
                 hasSize(2)
-                all { text.escapeSequencesRemoved.startsWith("Executing command arg") }
+                all { text.ansiRemoved.startsWith("Executing command arg") }
             }
         }
 

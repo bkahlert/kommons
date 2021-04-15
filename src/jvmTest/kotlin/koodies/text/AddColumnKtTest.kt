@@ -1,9 +1,9 @@
 package koodies.text
 
-import koodies.terminal.AnsiCode.Companion.ESC
-import koodies.terminal.AnsiString.Companion.asAnsiString
-import koodies.terminal.AnsiStringTest.Companion.ansiString
-import koodies.terminal.AnsiStringTest.Companion.nonAnsiString
+import koodies.text.Unicode.escape as ESC
+import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiStringTest.Companion.ansiString
+import koodies.text.AnsiStringTest.Companion.nonAnsiString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

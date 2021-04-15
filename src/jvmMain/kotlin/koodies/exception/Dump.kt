@@ -4,7 +4,7 @@ import koodies.io.path.randomFile
 import koodies.io.path.withExtension
 import koodies.io.path.writeText
 import koodies.jvm.*
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
 import koodies.text.withSuffix
@@ -83,7 +83,7 @@ public fun persistDump(
 ): Map<String, Path> = runCatching {
     data().run {
         mapOf("unchanged" to path.withExtension("log").writeText(this),
-            "ANSI escape/control sequences removed" to path.withExtension("no-ansi.log").writeText(removeEscapeSequences()))
+            "ANSI escape/control sequences removed" to path.withExtension("no-ansi.log").writeText(ansiRemoved))
     }
 }.getOrElse {
     if (it is IOException) throw it

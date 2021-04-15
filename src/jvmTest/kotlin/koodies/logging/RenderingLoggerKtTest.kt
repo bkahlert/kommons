@@ -10,16 +10,16 @@ import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.runtime.isDebugging
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
-import koodies.terminal.AnsiColors.red
-import koodies.terminal.escapeSequencesRemoved
 import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.test.withTempDir
+import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
 import koodies.text.Semantics.Symbols
+import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Disabled
@@ -269,8 +269,8 @@ class RenderingLoggerKtTest {
         """.trimIndent())
         expect {
             that(ansiLog.also { it.readText() }.readLines().filter { it.isNotBlank() }) {
-                first().escapeSequencesRemoved.isEqualTo("▶ caption")
-                get { last { it.isNotBlank() } }.escapeSequencesRemoved.endsWith("✔︎")
+                first().ansiRemoved.isEqualTo("▶ caption")
+                get { last { it.isNotBlank() } }.ansiRemoved.endsWith("✔︎")
             }
 
             val noAnsiLog = ansiLog.withExtension("no-ansi.${ansiLog.extension}")
@@ -382,7 +382,7 @@ class RenderingLoggerKtTest {
         """.trimIndent(),
     ).testEach("border={}") { (border, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
-            logging(caption = "line #1\nline #2".red(), border = border) {
+            logging(caption = "line #1\nline #2".ansi.red, border = border) {
                 logLine { "logged line" }
             }
         }
@@ -397,7 +397,7 @@ class RenderingLoggerKtTest {
             val baos = ByteArrayOutputStream()
             return baos to RenderingLogger(caption) {
                 if (isDebugging) print(it)
-                baos.write(it.removeEscapeSequences().toByteArray())
+                baos.write(it.ansiRemoved.toByteArray())
             }.apply(init)
         }
 

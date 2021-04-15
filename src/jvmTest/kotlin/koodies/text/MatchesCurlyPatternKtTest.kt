@@ -3,12 +3,10 @@ package koodies.text
 import koodies.debug.asEmoji
 import koodies.debug.debug
 import koodies.functional.compositionOf
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
-import koodies.terminal.AnsiColors.gray
-import koodies.terminal.AnsiColors.magenta
 import koodies.test.test
 import koodies.test.testEach
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.unify
@@ -194,7 +192,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     val preprocessor = compositionOf(
         true to { s: String -> unify(s) },
         removeTrailingBreak to { s: String -> s.withoutTrailingLineSeparator },
-        removeEscapeSequences to { s: String -> s.removeEscapeSequences() },
+        removeEscapeSequences to { s: String -> s.ansiRemoved },
         unifyWhitespaces to { s: String -> Whitespaces.unify(s) },
         trimmed to { s: String -> s.trim() },
     )
@@ -235,8 +233,8 @@ private fun String.highlightTooManyLinesTo(other: String): String {
     val lines = lines()
     val tooManyStart = other.lines().size
     val sb = StringBuilder()
-    lines.take(tooManyStart).forEach { sb.append(it.gray() + LF) }
-    lines.drop(tooManyStart).forEach { sb.append(it.magenta() + LF) }
+    lines.take(tooManyStart).forEach { sb.append(it.ansi.gray.toString() + LF) }
+    lines.drop(tooManyStart).forEach { sb.append(it.ansi.magenta.toString() + LF) }
     @Suppress("ReplaceToStringWithStringTemplate")
     return sb.toString()
 }

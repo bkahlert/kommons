@@ -1,7 +1,7 @@
 package koodies.text
 
-import koodies.terminal.AnsiString
-import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.lineSequence
 
 /**

@@ -1,31 +1,23 @@
-package koodies.terminal
+package koodies.text
 
-import koodies.terminal.AnsiCode.Companion.ESC
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
-import koodies.terminal.AnsiColors.black
-import koodies.terminal.AnsiColors.magenta
-import koodies.terminal.AnsiFormats.bold
-import koodies.terminal.AnsiFormats.strikethrough
-import koodies.terminal.AnsiFormats.underline
-import koodies.terminal.AnsiString.Companion.asAnsiString
-import koodies.terminal.AnsiString.Companion.getChar
-import koodies.terminal.AnsiString.Companion.render
-import koodies.terminal.AnsiString.Companion.subSequence
-import koodies.terminal.AnsiString.Companion.tokenize
+import koodies.test.testEach
+import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.AnsiString.Companion.ansiString
+import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.getChar
+import koodies.text.AnsiString.Companion.render
+import koodies.text.AnsiString.Companion.subSequence
+import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.LF
-import koodies.text.joinLinesToString
-import koodies.text.mapLines
-import koodies.text.quoted
-import org.junit.jupiter.api.DynamicContainer.dynamicContainer
-import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -35,15 +27,17 @@ import strikt.assertions.isBlank
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotBlank
+import strikt.assertions.isSameInstanceAs
+import koodies.text.Unicode.escape as ESC
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class AnsiStringTest {
 
     companion object {
-        val italicCyan = with(ANSI.termColors) { italic + cyan }
+        val italicCyan = ANSI.Colors.cyan + ANSI.Style.italic
         val nonAnsiString = "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean."
         val ansiString =
-            AnsiString(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
+            AnsiString(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean."))
         val blankAnsiString = AnsiString("$ESC[3;36m$ESC[4m$ESC[24m$ESC[9m$ESC[29m$ESC[23;39m")
     }
 
@@ -60,9 +54,26 @@ class AnsiStringTest {
     )
 
     @Nested
+    inner class AnsiStringCache {
+        @Test
+        fun `should match same`() {
+            val text: CharSequence = "abc"
+            val ansiString = text.ansiString
+            expectThat(ansiString).isSameInstanceAs(text.ansiString)
+        }
+
+        @Test
+        fun `should match equals`() {
+            val text: CharSequence = "abc"
+            val ansiString = text.ansiString
+            expectThat(ansiString).isSameInstanceAs("abc".ansiString)
+        }
+    }
+
+    @Nested
     inner class Tokenization {
         val string: String =
-            italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean.")
+            italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString()
 
         @Test
         fun `should tokenize string`() {
@@ -146,7 +157,7 @@ class AnsiStringTest {
 
     @Nested
     inner class Get {
-        val ansiString = AnsiString("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.")
+        val ansiString = AnsiString("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.")
 
         @TestFactory
         fun `should char at position`(): List<DynamicTest> {
@@ -177,64 +188,60 @@ class AnsiStringTest {
         val ansiString = AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[0m")
 
         @TestFactory
-        fun `should product right substring`(): List<DynamicNode> {
-            return listOf(
-                41 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[23;39m"),
-                40 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes$ESC[23;39m"),
-                25 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[23;39m"),
-                11 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m $ESC[23;39m"),
-                10 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[23;39;24m"),
-                9 to AnsiString("$ESC[3;36m$ESC[4mImportant$ESC[23;39;24m"),
-                0 to AnsiString(""),
-            ).map { (length, expected) ->
-                dynamicContainer("$expected ...", listOf(
-                    dynamicTest("should have subSequence(0, $length): \"$expected\"") {
-                        val subject = ansiString.subSequence(0, length)
-                        expectThat(subject).isEqualTo(expected)
-                    },
-                    dynamicTest("should have subString(0, $length): \"$expected\"") {
-                        @Suppress("ReplaceSubstringWithTake")
-                        expectThat(ansiString.substring(0, length)).isEqualTo("$expected")
-                    },
-                    dynamicTest("should take first $length characters: \"$expected\"") {
-                        val subject = ansiString.take(length)
-                        expectThat(subject).isEqualTo(expected)
-                    },
-                    dynamicTest("should have length $length") {
-                        val substring = ansiString.subSequence(0, length)
-                        val actualLength = substring.length
-                        expectThat(actualLength).isEqualTo(length)
-                    },
-                ))
+        fun `should product right substring`() = testEach(
+            41 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[23;39m"),
+            40 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes$ESC[23;39m"),
+            25 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[23;39m"),
+            11 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m $ESC[23;39m"),
+            10 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[23;39;24m"),
+            9 to AnsiString("$ESC[3;36m$ESC[4mImportant$ESC[23;39;24m"),
+            0 to AnsiString(""),
+        ) { (length, expected) ->
+            group("$expected ...") {
+                test("should have ansiAwareSubSequence(0, $length): \"$expected\"") {
+                    val subject = ansiString.subSequence(0, length)
+                    expectThat(subject).isEqualTo(expected)
+                }
+                test("should have subString(0, $length): \"$expected\"") {
+                    @Suppress("ReplaceSubstringWithTake")
+                    expectThat(ansiString.substring(0, length)).isEqualTo(expected.toString())
+                }
+                test("should take first $length characters: \"$expected\"") {
+                    val subject = ansiString.take(length)
+                    expectThat(subject).isEqualTo(expected)
+                }
+                test("should have length $length") {
+                    val substring = ansiString.subSequence(0, length)
+                    val actualLength = substring.length
+                    expectThat(actualLength).isEqualTo(length)
+                }
             }
         }
 
         @TestFactory
-        fun `should product right non zero start substring`(): List<DynamicNode> {
-            return listOf(
-                0 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[23;39m"),
-                1 to AnsiString("$ESC[3;36;4mmportant:$ESC[24m This line has $ESC[23;39m"),
-                9 to AnsiString("$ESC[3;36;4m:$ESC[24m This line has $ESC[23;39m"),
-                10 to AnsiString("$ESC[3;36;4m$ESC[24m This line has $ESC[23;39m"),
-                11 to AnsiString("$ESC[3;36mThis line has $ESC[23;39m"),
-                25 to AnsiString("$ESC[3;36m$ESC[23;39m"),
-            ).map { (startIndex, expected) ->
-                dynamicContainer("$expected ...", listOf(
-                    dynamicTest("should have subSequence($startIndex, 25): \"$expected\"") {
-                        expectThat(ansiString.subSequence(startIndex, 25)).isEqualTo(expected)
-                    },
-                    dynamicTest("should have substring($startIndex, 25): \"$expected\"") {
-                        expectThat(ansiString.substring(startIndex, 25)).isEqualTo(expected.toString())
-                    },
-                    dynamicTest("should drop first $startIndex characters: \"$expected\"") {
-                        expectThat(ansiString.take(25).drop(startIndex)).isEqualTo(expected)
-                    },
-                    dynamicTest("should have length ${25 - startIndex}") {
-                        val substring = ansiString.subSequence(startIndex, 25)
-                        val actualLength = substring.length
-                        expectThat(actualLength).isEqualTo(25 - startIndex)
-                    },
-                ))
+        fun `should product right non zero start substring`() = testEach(
+            0 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[23;39m"),
+            1 to AnsiString("$ESC[3;36;4mmportant:$ESC[24m This line has $ESC[23;39m"),
+            9 to AnsiString("$ESC[3;36;4m:$ESC[24m This line has $ESC[23;39m"),
+            10 to AnsiString("$ESC[3;36;4m$ESC[24m This line has $ESC[23;39m"),
+            11 to AnsiString("$ESC[3;36mThis line has $ESC[23;39m"),
+            25 to AnsiString("$ESC[3;36m$ESC[23;39m"),
+        ) { (startIndex, expected) ->
+            group("$expected ...") {
+                test("should have ansiAwareSubSequence($startIndex, 25): \"$expected\"") {
+                    expectThat(ansiString.subSequence(startIndex, 25)).isEqualTo(expected)
+                }
+                test("should have substring($startIndex, 25): \"$expected\"") {
+                    expectThat(ansiString.substring(startIndex, 25)).isEqualTo(expected.toString())
+                }
+                test("should drop first $startIndex characters: \"$expected\"") {
+                    expectThat(ansiString.take(25).drop(startIndex)).isEqualTo(expected)
+                }
+                test("should have length ${25 - startIndex}") {
+                    val substring = ansiString.subSequence(startIndex, 25)
+                    val actualLength = substring.length
+                    expectThat(actualLength).isEqualTo(25 - startIndex)
+                }
             }
         }
 
@@ -286,12 +293,12 @@ class AnsiStringTest {
     inner class ToString {
         @Test
         fun `should be string-wise comparable`() {
-            expectThat(ansiString).toStringIsEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
+            expectThat(ansiString).toStringIsEqualTo(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean."))
         }
 
         @Test
         fun `should create string with escape sequences`() {
-            expectThat(ansiString.toString(removeEscapeSequences = false)).isEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
+            expectThat(ansiString.toString(removeEscapeSequences = false)).isEqualTo(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString())
         }
 
         @Test
@@ -301,7 +308,7 @@ class AnsiStringTest {
 
         @Test
         fun `should create string with escape sequences by default`() {
-            expectThat(ansiString.toString()).isEqualTo(italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean."))
+            expectThat(ansiString.toString()).isEqualTo(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString())
         }
     }
 
@@ -345,12 +352,14 @@ class AnsiStringTest {
         }
 
         @Test
-        fun `should skip errors`() {
-            expectThat(AnsiString("$ESC[4;m ← missing second code $ESC[24m").mapLines {
-                it.black()
+        fun `should not throw on errors`() {
+            val subject = AnsiString("$ESC[4;m ← missing second code $ESC[24m").mapLines {
+                it.ansi.black
             }.mapLines {
-                "$it".replace("second", "second".magenta())
-            }).isEqualTo("$ESC[4;m ← missing $ESC[35msecond$ESC[39m code $ESC[24m")
+                "$it".replace("second", "second".ansi.magenta.toString())
+            }
+            val expected = "$ESC[30m$ESC[4m ← missing $ESC[35msecond$ESC[39m code $ESC[24m$ESC[39m"
+            expectThat(subject).isEqualTo(expected)
         }
     }
 
@@ -532,7 +541,7 @@ class AnsiStringTest {
 fun <T : AnsiString> Assertion.Builder<out T>.toStringIsEqualTo(other: Any?): Assertion.Builder<out T> =
     assert("have same toString value") { value ->
         val actualString = value.unformatted
-        val expectedString = other.let { if (it is AnsiString) it.unformatted else it.toString().removeEscapeSequences() }
+        val expectedString = other.let { if (it is AnsiString) it.unformatted else it.toString().ansiRemoved }
         when (actualString == expectedString) {
             true -> pass()
             else -> fail("was $actualString instead of $expectedString.")

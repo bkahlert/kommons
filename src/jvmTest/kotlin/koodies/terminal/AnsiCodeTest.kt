@@ -1,26 +1,25 @@
 package koodies.terminal
 
-import koodies.terminal.AnsiCode.Companion.ESC
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.terminal.AnsiFormats.bold
 import koodies.terminal.AnsiFormats.strikethrough
-import koodies.terminal.AnsiFormats.underline
+import koodies.text.ANSI
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.CRLF
+import koodies.text.ansiRemoved
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.Assertion
-import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import koodies.text.Unicode.escape as ESC
 
 @Execution(CONCURRENT)
 class AnsiCodeTest {
 
-    val italicCyan = with(ANSI.termColors) { italic + cyan }
+    val italicCyan = ANSI.Colors.cyan + ANSI.Style.italic
     val ansiFormattedString =
-        italicCyan("${"Important:".underline()} This line has ${"no".strikethrough()} ANSI escapes.\nThis one's ${"bold!".bold()}${CRLF}Last one is clean.")
+        italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.")
     val expectedLines = listOf(
         "Important: This line has no ANSI escapes.",
         "This one's bold!",
@@ -45,11 +44,8 @@ class AnsiCodeTest {
     ).flatMap { (formatted, expected) ->
         listOf(
             dynamicTest("\"$formatted\" should produce \"$expected\"") {
-                expectThat(formatted).escapeSequencesRemoved.isEqualTo(expected)
+                expectThat(formatted).ansiRemoved.isEqualTo(expected)
             }
         )
     }
 }
-
-inline val <reified T : CharSequence> Assertion.Builder<T>.escapeSequencesRemoved: DescribeableBuilder<String>
-    get() = get("escape sequences removed") { removeEscapeSequences() }

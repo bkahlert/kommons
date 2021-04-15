@@ -10,7 +10,9 @@ import koodies.terminal.AnsiFormats.bold
 import koodies.test.TextFile
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 import koodies.text.randomString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -53,7 +55,7 @@ class DumpKtTest {
 
         @Test
         fun `should contain url pointing to dumps`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
+            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
             expectThat(dump("", data = data)).get {
                 RegularExpressions.urlRegex.findAllValues(this)
                     .map { url -> URL(url) }
@@ -66,14 +68,14 @@ class DumpKtTest {
 
         @Test
         fun `should contains last lines of dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
+            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
             expectThat(dump("", data = data)).get { lines().takeLast(11).map { it.trim() } }
                 .containsExactly(data.lines().takeLast(10) + "")
         }
 
         @Test
         fun `should log all lines if problem saving the log`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
+            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
             val path = randomPath(extension = ".log").writeText("already exists")
             path.toFile().setReadOnly()
             expectThat(dump("error message", path = path, data = data)) {
@@ -92,7 +94,7 @@ class DumpKtTest {
 
         @Test
         fun `should dump data`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.LF)
+            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { data })
             expectThat(dumps.values.map { it.readText() }).hasSize(2).all {
                 isEqualTo(data)
@@ -109,7 +111,7 @@ class DumpKtTest {
 
         @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".bold() + LineSeparators.LF + "no ansi" }).values
+            val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
             expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 ${"ansi".bold()}
                 no ansi
@@ -118,7 +120,7 @@ class DumpKtTest {
 
         @Test
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".bold() + LineSeparators.LF + "no ansi" }).values
+            val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".bold() + LF + "no ansi" }).values
             expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 ansi
                 no ansi

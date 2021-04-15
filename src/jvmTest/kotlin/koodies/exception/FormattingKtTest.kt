@@ -2,11 +2,11 @@ package koodies.exception
 
 import koodies.concurrent.process
 import koodies.concurrent.process.CommandLine
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
+import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -80,7 +80,7 @@ class FormattingKtTest {
             @Test
             fun `should format compact`() {
                 expectThat(Result.success("good").toCompactString()) {
-                    get { removeEscapeSequences() }.isEqualTo("good")
+                    ansiRemoved.isEqualTo("good")
                     isSingleLine()
                 }
             }
@@ -88,7 +88,7 @@ class FormattingKtTest {
             @Test
             fun `should format Path instances as URI`() {
                 expectThat(Result.success(Path.of("/path")).toCompactString()) {
-                    get { removeEscapeSequences() }.isEqualTo("file:///path")
+                    ansiRemoved.isEqualTo("file:///path")
                     isSingleLine()
                 }
             }
@@ -96,7 +96,7 @@ class FormattingKtTest {
             @Test
             fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectThat(Result.success(process(CommandLine("exit", "42"))).toCompactString()) {
-                    get { removeEscapeSequences() }.isEqualTo("Process has not yet started.")
+                    ansiRemoved.isEqualTo("Process has not yet started.")
                     isSingleLine()
                 }
             }
@@ -104,7 +104,7 @@ class FormattingKtTest {
             @Test
             fun `should format empty collection as empty brackets`() {
                 expectThat(Result.success(emptyList<Any>()).toCompactString()) {
-                    get { removeEscapeSequences() }.isEqualTo("[]")
+                    ansiRemoved.isEqualTo("[]")
                     isSingleLine()
                 }
             }

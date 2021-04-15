@@ -7,7 +7,7 @@ import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
 import koodies.exec.Process
 import koodies.logging.ReturnValue
-import koodies.terminal.AnsiString
+import koodies.text.AnsiString
 import koodies.text.ANSI.Colors.brightBlue
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Colors.yellow
@@ -15,6 +15,7 @@ import koodies.text.ANSI.Style
 import koodies.text.ANSI.Style.bold
 import koodies.text.ANSI.Style.dim
 import koodies.text.ANSI.Style.italic
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.Semantics.Symbols
@@ -83,7 +84,7 @@ public sealed class IO(
     /**
      * An [IO] (of another process) serving as an input.
      */
-    public class INPUT(text: AnsiString) : IO(text, { text.mapLines { it.brightBlue().dim().italic() } }) {
+    public class INPUT(text: AnsiString) : IO(text, { text.mapLines { it.ansi.brightBlue.dim.italic.done } }) {
         public companion object {
             private val EMPTY: INPUT = INPUT(AnsiString.EMPTY)
 
@@ -104,7 +105,7 @@ public sealed class IO(
     /**
      * An [IO] that is neither [META], [INPUT] nor [ERR].
      */
-    public class OUT(text: AnsiString) : IO(text, { text.mapLines { it.yellow() } }) {
+    public class OUT(text: AnsiString) : IO(text, { text.mapLines { it.ansi.yellow } }) {
         public companion object {
             private val EMPTY: OUT = OUT(AnsiString.EMPTY)
 
@@ -125,7 +126,7 @@ public sealed class IO(
     /**
      * An [IO] that represents an error.
      */
-    public class ERR(text: AnsiString) : IO(text, { text.mapLines { it.red().bold() } }) {
+    public class ERR(text: AnsiString) : IO(text, { text.mapLines { it.ansi.red.bold } }) {
 
         /**
          * Creates a new error IO from the given [exception].

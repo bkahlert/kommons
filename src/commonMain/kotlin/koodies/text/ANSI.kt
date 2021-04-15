@@ -1,19 +1,27 @@
 package koodies.text
 
 import koodies.math.mod
+import koodies.regex.namedGroups
 import koodies.runtime.AnsiSupport
 import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.ansiSupport
 import koodies.runtime.isDeveloping
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.ColoredText
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.AnsiCode.Companion.REGEX
+import koodies.text.AnsiCodeHelper.closingControlSequence
+import koodies.text.AnsiCodeHelper.controlSequence
+import koodies.text.AnsiCodeHelper.parseAnsiCodesAsSequence
+import koodies.text.AnsiCodeHelper.unclosedCodes
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random.Default.nextDouble
-import kotlin.text.Regex.Companion.escape
+import kotlin.text.contains as containsNonAnsiAware
 
 public object ANSI {
 
@@ -57,6 +65,8 @@ public object ANSI {
         }
     }
 
+    public fun CharSequence.colorize(): String = mapCharacters { Colors.random()(it) }
+
     public interface Colorizer : Formatter {
         public val bg: Formatter
         public fun on(backgroundColorizer: Colorizer): Formatter
@@ -69,8 +79,8 @@ public object ANSI {
     }
 
     private class AnsiColorCodeFormatter(ansiCode: AnsiColorCode) : Colorizer, AnsiCodeFormatter(ansiCode) {
-        public override val bg: Formatter = AnsiCodeFormatter(ansiCode.bg)
-        public override fun on(backgroundColorizer: Colorizer): Formatter = this + (backgroundColorizer.bg)
+        override val bg: Formatter = AnsiCodeFormatter(ansiCode.bg)
+        override fun on(backgroundColorizer: Colorizer): Formatter = this + (backgroundColorizer.bg)
     }
 
     private val reset: AnsiCode by lazy { if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0) }
@@ -190,10 +200,6 @@ public object ANSI {
         public fun CharSequence.bold(): CharSequence = bold(this)
         public fun CharSequence.dim(): CharSequence = dim(this)
         public fun CharSequence.italic(): CharSequence = italic(this)
-        public fun CharSequence.underline(): CharSequence = underline(this)
-        public fun CharSequence.inverse(): CharSequence = inverse(this)
-        public fun CharSequence.hidden(): CharSequence = if (isDeveloping) " ".repeat((length * 1.35).toInt()) else hidden("$this")
-        public fun CharSequence.strikethrough(): CharSequence = strikethrough("$this")
 
         private fun ansi(open: Int, close: Int) =
             if (level == NONE) DisabledAnsiCode else AnsiCode(open, close)
@@ -201,73 +207,69 @@ public object ANSI {
 
     public open class Preview(
         protected val text: CharSequence,
-        private val formatted: String = "$text",
-    ) : CharSequence by formatted {
-        protected constructor(text: CharSequence, formatter: Formatter) : this(text, formatter(text).toString())
-
-        public operator fun not(): String = formatted
-        override fun toString(): String = formatted
+        protected open val formatter: Formatter = Formatter.PassThrough,
+        public val done: String = formatter(text).toString(),
+    ) : CharSequence by done {
+        @Deprecated("use done", ReplaceWith("this.done"))
+        public operator fun not(): String = done
+        override fun toString(): String = done
     }
 
-    public open class Text private constructor(text: CharSequence) : Preview(text) {
-        protected open fun color(colorizer: Colorizer): ColoredText = ColoredText(text, colorizer)
-        protected open fun format(formatter: Formatter): Text = Text(formatter(text))
+    public interface Colorable<T : CharSequence> {
+        public fun color(colorizer: Colorizer): T
 
-        public val black: ColoredText get() = color(Colors.black)
-        public val red: ColoredText get() = color(Colors.red)
-        public val green: ColoredText get() = color(Colors.green)
-        public val yellow: ColoredText get() = color(Colors.yellow)
-        public val blue: ColoredText get() = color(Colors.blue)
-        public val magenta: ColoredText get() = color(Colors.magenta)
-        public val cyan: ColoredText get() = color(Colors.cyan)
-        public val white: ColoredText get() = color(Colors.white)
-        public val gray: ColoredText get() = color(Colors.gray)
+        public val black: T get() = color(Colors.black)
+        public val red: T get() = color(Colors.red)
+        public val green: T get() = color(Colors.green)
+        public val yellow: T get() = color(Colors.yellow)
+        public val blue: T get() = color(Colors.blue)
+        public val magenta: T get() = color(Colors.magenta)
+        public val cyan: T get() = color(Colors.cyan)
+        public val white: T get() = color(Colors.white)
+        public val gray: T get() = color(Colors.gray)
 
-        public val brightRed: ColoredText get() = color(Colors.brightRed)
-        public val brightGreen: ColoredText get() = color(Colors.brightGreen)
-        public val brightYellow: ColoredText get() = color(Colors.brightYellow)
-        public val brightBlue: ColoredText get() = color(Colors.brightBlue)
-        public val brightMagenta: ColoredText get() = color(Colors.brightMagenta)
-        public val brightCyan: ColoredText get() = color(Colors.brightCyan)
-        public val brightWhite: ColoredText get() = color(Colors.brightWhite)
+        public val brightRed: T get() = color(Colors.brightRed)
+        public val brightGreen: T get() = color(Colors.brightGreen)
+        public val brightYellow: T get() = color(Colors.brightYellow)
+        public val brightBlue: T get() = color(Colors.brightBlue)
+        public val brightMagenta: T get() = color(Colors.brightMagenta)
+        public val brightCyan: T get() = color(Colors.brightCyan)
+        public val brightWhite: T get() = color(Colors.brightWhite)
 
-        public val random: ColoredText get() = random()
-        public fun random(hue: Int, variance: Double = 60.0): ColoredText = color(Colors.random(hue, variance))
-        public fun random(hue: Double, variance: Double = 60.0): ColoredText = color(Colors.random(hue, variance))
-        public fun random(range: ClosedRange<Double> = 0.0..360.0): ColoredText = color(Colors.random(range))
+        public val random: T get() = random()
+        public fun random(hue: Int, variance: Double = 60.0): T = color(Colors.random(hue, variance))
+        public fun random(hue: Double, variance: Double = 60.0): T = color(Colors.random(hue, variance))
+        public fun random(range: ClosedRange<Double> = 0.0..360.0): T = color(Colors.random(range))
+    }
 
-        public val bold: Text get() = format(Style.bold)
-        public val dim: Text get() = format(Style.dim)
-        public val italic: Text get() = format(Style.italic)
-        public val underline: Text get() = format(Style.underline)
-        public val inverse: Text get() = format(Style.inverse)
-        public val hidden: Text get() = if (isDeveloping) Text(" ".repeat((toString().length * 1.35).toInt())) else format(Style.hidden)
-        public val strikethrough: Text get() = format(Style.strikethrough)
+    public interface Styleable<T : CharSequence> {
+        public fun style(formatter: Formatter): T
 
-        public class ColoredText(text: CharSequence, private val formatter: Colorizer) : Preview(text, formatter) {
-            public val bg: String get() = formatter.bg(text).toString()
-            public val on: ForegroundColoredText get() = ForegroundColoredText(text, formatter)
+        public val bold: T get() = style(Style.bold)
+        public val dim: T get() = style(Style.dim)
+        public val italic: T get() = style(Style.italic)
+        public val underline: T get() = style(Style.underline)
+        public val inverse: T get() = style(Style.inverse)
+        public val hidden: T get() = style(if (isDeveloping) Formatter { " ".repeat((toString().length * 1.35).toInt()) } else Style.hidden)
+        public val strikethrough: T get() = style(Style.strikethrough)
+    }
+
+    public class Text private constructor(text: CharSequence, formatter: Formatter = Formatter.PassThrough) :
+        Preview(text, formatter),
+        Colorable<ColoredText>,
+        Styleable<Text> {
+        override fun color(colorizer: Colorizer): ColoredText = ColoredText(text, colorizer)
+        override fun style(formatter: Formatter): Text = Text(formatter(text))
+
+        public class ColoredText(text: CharSequence, private val colorizer: Colorizer) : Preview(text, colorizer),
+            Styleable<Text> {
+            override fun style(formatter: Formatter): Text = Text(text, colorizer + formatter)
+            public val bg: Text get() = Text(text, colorizer.bg)
+            public val on: ForegroundColoredText get() = ForegroundColoredText(text, colorizer)
         }
 
-        public class ForegroundColoredText(text: CharSequence, private val formatter: Colorizer) : Preview(text, formatter) {
-            private fun render(bg: Colorizer): Text = Text(formatter.on(bg).invoke(text))
-            public val black: Text get() = render(Colors.black)
-            public val red: Text get() = render(Colors.red)
-            public val green: Text get() = render(Colors.green)
-            public val yellow: Text get() = render(Colors.yellow)
-            public val blue: Text get() = render(Colors.blue)
-            public val magenta: Text get() = render(Colors.magenta)
-            public val cyan: Text get() = render(Colors.cyan)
-            public val white: Text get() = render(Colors.white)
-            public val gray: Text get() = render(Colors.gray)
-
-            public val brightRed: Text get() = render(Colors.brightRed)
-            public val brightGreen: Text get() = render(Colors.brightGreen)
-            public val brightYellow: Text get() = render(Colors.brightYellow)
-            public val brightBlue: Text get() = render(Colors.brightBlue)
-            public val brightMagenta: Text get() = render(Colors.brightMagenta)
-            public val brightCyan: Text get() = render(Colors.brightCyan)
-            public val brightWhite: Text get() = render(Colors.brightWhite)
+        public class ForegroundColoredText(private val text: CharSequence, private val fg: Colorizer) : Colorable<Text> {
+            override fun color(colorizer: Colorizer): Text = Text(text, fg.on(colorizer))
         }
 
         public companion object {
@@ -331,15 +333,42 @@ public object ANSI {
 }
 
 private const val ESC = Unicode.escape
-private const val CSI = "$ESC["
-private val ansiCloseRe = Regex("""$ESC\[((?:\d{1,3};?)+)m""")
+private const val CSI = Unicode.controlSequenceIntroducer
+private val ansiCloseRe = Regex("""$ESC\[(?<codes>(?:\d{1,3};?)+)m""")
+
+public object Banner {
+    private val prefix = with(ANSI.Colors) {
+        listOf(
+            black to gray, cyan to brightCyan, blue to brightBlue, green to brightGreen, yellow to brightYellow, magenta to brightMagenta, red to brightRed,
+        ).joinToString("") { (normal, bright) -> (normal.bg + bright)("░") }
+    }
+    private val delimiters = Regex("\\s+")
+    private val capitalLetter = Regex("[A-Z]")
+
+    public fun banner(text: String): String {
+        return text.split(delimiters).mapIndexed { index, word ->
+            if (index == 0) {
+                val (first: String, second: String) = word.splitCamelCase()
+                (prefix + " " + first.toUpperCase().ansi.brightCyan + " " + second.toUpperCase().ansi.cyan).trim()
+            } else {
+                word.toUpperCase().ansi.brightMagenta
+            }
+        }.joinToString(" ")
+    }
+
+    private fun String.splitCamelCase(): Pair<String, String> =
+        replace(capitalLetter) { match -> " " + match.value }
+            .split(" ")
+            .filter { it.isNotBlank() }
+            .let { words -> words.first() to words.drop(1).joinToString("") { it.capitalize() } }
+}
 
 /**
  * A class representing one or more numeric ANSI codes.
  *
  * @property codes A list of pairs, with each pair being the list of opening codes and a closing code.
  */
-private open class AnsiCode(protected val codes: List<Pair<List<Int>, Int>>) {
+private open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
     constructor(openCodes: List<Int>, closeCode: Int) : this(listOf(openCodes to closeCode))
     constructor(openCode: Int, closeCode: Int) : this(listOf(openCode), closeCode)
 
@@ -352,24 +381,24 @@ private open class AnsiCode(protected val codes: List<Pair<List<Int>, Int>>) {
 
     open operator fun plus(other: AnsiCode) = AnsiCode(codes + other.codes)
 
-    private fun nest(text: CharSequence) = ansiCloseRe.replace(text) {
+    private fun nest(text: CharSequence): String = ansiCloseRe.replace(text) {
         // Replace instances of our close codes with their corresponding opening codes. If the close
         // code is at the end of the text, omit it instead so that we don't open and immediately
         // close a command.
         val openCodesByCloseCode = HashMap<Int, List<Int>>()
         for ((o, c) in codes) openCodesByCloseCode[c] = o
         val atEnd = it.range.endInclusive == text.lastIndex
-        val codes = it.groupValues[1].splitToSequence(';').flatMap {
-            it.toInt().let {
-                if (atEnd && it in openCodesByCloseCode) emptySequence()
+        val codes:Sequence<Int> = it.groupValues[1].splitToSequence(';').flatMap {
+            it.toIntOrNull().let {
+                if (it==null || (atEnd && it in openCodesByCloseCode)) emptySequence()
                 else (openCodesByCloseCode[it]?.asSequence() ?: sequenceOf(it))
             }
         }
 
-        tag(codes.toList())
+         tag(codes.toList())
     }
 
-    private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "$CSI${c.joinToString(";")}m"
+    private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "$ESC[${c.joinToString(";")}m"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -384,7 +413,7 @@ private open class AnsiCode(protected val codes: List<Pair<List<Int>, Int>>) {
         /**
          * [Regex] that matches an [AnsiCode].
          */
-        public val REGEX: Regex = Regex("(?<CSI>${escape(CSI)}|${ESC}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
+        val REGEX: Regex = Regex("(?<CSI>${CSI}\\[|${ESC}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
     }
 }
 
@@ -585,7 +614,7 @@ private interface Color {
     /** Convert this color to a 256-color ANSI code */
     fun toAnsi256(): Ansi256 = toRGB().toAnsi256()
 
-    public companion object
+    companion object
 }
 
 private enum class RenderCondition {
@@ -816,3 +845,370 @@ private fun HueColor.hueAsRad(): Float = (h * PI / 180).toFloat()
 /** Convert this color's hue to turns (360° == 1 turn) */
 private fun HueColor.hueAsTurns(): Float = h / 360f
 
+
+private object AnsiStringCache {
+    private val cache = mutableMapOf<Int, AnsiString>()
+    fun getOrPut(charSequence: CharSequence): AnsiString = when {
+        charSequence is AnsiString -> charSequence
+        charSequence.isEmpty() -> AnsiString.EMPTY
+        else -> cache.getOrPut(charSequence.hashCode()) { AnsiString(charSequence) }
+    }
+}
+private typealias Token = Pair<CharSequence, Int>
+private typealias Tokens = Array<Token>
+
+private object TokenizationCache {
+    private val cache = mutableMapOf<Int, Tokens>()
+    fun getOrPut(text: String, block: () -> Tokens): Tokens {
+        return cache.getOrPut(text.hashCode(), block)
+    }
+}
+
+/**
+ * A char sequence which is [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) aware
+ * and which does not break any sequence.
+ *
+ * The behaviour is as follows:
+ * - escape sequences have length 0, that is, an [AnsiString] has the same length as its [String] counterpart
+ * - [get] returns the unformatted char at the specified index
+ * - [subSequence] returns the same char sequence as an unformatted [String] would do—but with the formatting ANSI escape sequences intact.
+ * the sub sequence. Also escape sequences are ignored from [length].
+ */
+public open class AnsiString private constructor(public val string: String) : CharSequence {
+    public constructor(charSequence: CharSequence) : this("$charSequence")
+
+    private val tokens: Tokens by lazy { string.tokenize() }
+
+    public companion object {
+        public val EMPTY: AnsiString = AnsiString("")
+
+        public val CharSequence.ansiString: AnsiString get() = AnsiStringCache.getOrPut(this)
+        public fun <T : CharSequence> T.asAnsiString(): AnsiString = AnsiStringCache.getOrPut(this)
+
+        public fun String.tokenize(): Tokens = TokenizationCache.getOrPut(this) {
+            val tokens = mutableListOf<Token>()
+            val codes = mutableListOf<Int>()
+            var consumed = 0
+            while (consumed < length) {
+                val match = REGEX.find(this, consumed)
+                val range = match?.range
+                if (range?.first == consumed) {
+                    val escapeSequence = this.subSequence(consumed, match.range.last + 1).also {
+                        val currentCodes = AnsiCodeHelper.parseAnsiCode(match).toList()
+                        codes.addAll(currentCodes)
+                        consumed += it.length
+                    }
+                    if (escapeSequence.isNotEmpty()) tokens.add(escapeSequence to 0)
+                } else {
+                    val first: Int? = range?.first
+                    val ansiAhead = if (first != null) {
+                        first < length
+                    } else false
+                    val substring1 = this.subSequence(consumed, if (ansiAhead) first!! else length)
+                    val ansiCodeXFreeString = substring1.also {
+                        consumed += it.length
+                    }
+                    tokens.add(ansiCodeXFreeString to ansiCodeXFreeString.length)
+                }
+            }
+            tokens.toTypedArray()
+        }
+
+        public val Tokens.length: Int get():Int = sumBy { it.second }
+
+        private fun Tokens.subSequence(endIndex: Int): Pair<String, List<Int>> {
+            if (endIndex == 0) return "" to emptyList()
+            if (endIndex > length) throw IndexOutOfBoundsException("$endIndex must not be greater than $length")
+            var read = 0
+            val codes = mutableListOf<Int>()
+            val sb = StringBuilder()
+
+            forEach { (token, tokenLength) ->
+                val needed = endIndex - read
+                if (needed > 0 && tokenLength == 0) {
+                    sb.append(token)
+                    codes.addAll(token.parseAnsiCodesAsSequence())
+                } else {
+                    if (needed <= tokenLength) {
+                        sb.append(token.subSequence(0, needed))
+                        return@subSequence "$sb" + closingControlSequence(codes) to unclosedCodes(codes)
+                    }
+                    sb.append(token)
+                    read += tokenLength
+                }
+            }
+            error("must not happen")
+        }
+
+        private val subSequenceCache = mutableMapOf<Pair<Int, Pair<Int, Int>>, String>()
+        public fun Tokens.subSequence(startIndex: Int, endIndex: Int): String =
+            subSequenceCache.getOrPut(hashCode() to (startIndex to endIndex)) {
+                if (startIndex > 0) {
+                    subSequence(startIndex).let { (prefix, unclosedCodes) ->
+                        val (full, _) = subSequence(endIndex)
+                        val controlSequence = controlSequence(unclosedCodes)
+                        val startIndex1 = prefix.length - closingControlSequence(unclosedCodes).length
+                        val endIndex1 = full.length
+                        controlSequence + full.subSequence(startIndex1, endIndex1)
+                    }
+                } else {
+                    subSequence(endIndex).first
+                }
+            }
+
+        public fun Tokens.getChar(index: Int): Char {
+            if (index > length) throw IndexOutOfBoundsException("$index must not be greater than $length")
+            var read = 0
+            forEach { (token, tokenLength) ->
+                val needed = index - read
+                if (tokenLength >= 0) {
+                    if (needed <= tokenLength) {
+                        return@getChar token[needed]
+                    }
+                    read += tokenLength
+                }
+            }
+            error("must not happen")
+        }
+
+        public fun Tokens.render(ansi: Boolean = true): String =
+            if (ansi) subSequence(0, length)
+            else filter { it.second != 0 }.joinToString("") { it.first }
+    }
+
+    /**
+     * Contains this [string] with all ANSI escape sequences removed.
+     */
+    @Suppress("SpellCheckingInspection")
+    public val unformatted: String by lazy { tokens.render(ansi = false) }
+
+    /**
+     * Returns the logical length of this string. That is, the same length as the unformatted [String] would return.
+     */
+    override val length: Int by lazy { unformatted.length }
+
+    /**
+     * Returns the unformatted char at the specified [index].
+     *
+     * Due to the limitation of a [Char] to two byte no formatted [Char] can be returned.
+     */
+    override fun get(index: Int): Char = unformatted[index]
+
+    /**
+     * Returns the same char sequence as an unformatted [String.subSequence] would do.
+     *
+     * Sole difference: The formatting ANSI escape sequences are kept.
+     * Eventually open sequences will be closes at the of the sub sequence.
+     */
+    override fun subSequence(startIndex: Int, endIndex: Int): AnsiString =
+        tokens.subSequence(startIndex, endIndex).asAnsiString()
+
+    /**
+     * Whether this [text] (ignoring eventually existing ANSI escape sequences)
+     * is blank (≝ is empty or consists of nothing but whitespaces).
+     */
+    public fun isBlank(): Boolean = unformatted.isBlank()
+
+    /**
+     * Whether this [text] (ignoring eventually existing ANSI escape sequences)
+     * is not blank (≝ is not empty and consists of at least one non-whitespace).
+     */
+    public fun isNotBlank(): Boolean = unformatted.isNotBlank()
+
+    public fun toString(removeEscapeSequences: Boolean = false): String =
+        if (removeEscapeSequences) unformatted
+        else string
+
+    override fun toString(): String = toString(false)
+
+
+    /**
+     * Returns a ANSI string with content of this ANSI string padded at the beginning
+     * to the specified [length] with the specified character or space.
+     *
+     * @param length the desired string length.
+     * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
+     * @return Returns an ANSI string of length at least [length] consisting of `this` ANSI string prepended with [padChar] as many times
+     * as are necessary to reach that length.
+     */
+    public fun CharSequence.padStart(length: Int, padChar: Char = ' '): CharSequence {
+        require(length >= 0) { "Desired length $length is less than zero." }
+        return if (length <= this.length) this.subSequence(0, this.length)
+        else "$padChar".repeat(length - this.length) + this
+    }
+
+    /**
+     * Returns an ANSI string with content of this ANSI string padded at the end
+     * to the specified [length] with the specified character or space.
+     *
+     * @param length the desired string length.
+     * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
+     * @return Returns an ANSI string of length at least [length] consisting of `this` ANSI string appended with [padChar] as many times
+     * as are necessary to reach that length.
+     */
+    public fun padEnd(length: Int, padChar: Char = ' '): AnsiString {
+        require(length >= 0) { "Desired length $length is less than zero." }
+        return if (length <= this.length) this.subSequence(0, this.length)
+        else this + "$padChar".repeat(length - this.length)
+    }
+
+    /**
+     * Returns a sequence of strings of which each but possibly the last is of length [size].
+     */
+    public fun chunkedSequence(size: Int): Sequence<AnsiString> {
+        check(size > 0)
+        var processed = 0
+        var unprocessed = length
+        return generateSequence {
+            if (unprocessed <= 0) {
+                null
+            } else {
+                val take = size.coerceAtMost(unprocessed)
+                subSequence(processed, processed + take).also {
+                    processed += take
+                    unprocessed -= take
+                }
+            }
+        }
+    }
+
+    public operator fun plus(other: CharSequence): AnsiString = "$string$other".asAnsiString()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as AnsiString
+
+        if (string != other.string) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return string.hashCode()
+    }
+}
+
+/**
+ * Returns if this char sequence contains the specified [other] [CharSequence] as a substring.
+ *
+ * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
+ * @param ignoreAnsiFormatting ANSI formatting / escapes are ignored by default. Use `false` consider escape codes as well
+ */
+public fun <T : CharSequence> T.contains(
+    other: CharSequence,
+    ignoreCase: Boolean = false,
+    ignoreAnsiFormatting: Boolean = false,
+): Boolean =
+    if (ignoreAnsiFormatting) ansiRemoved.containsNonAnsiAware(other.ansiRemoved, ignoreCase)
+    else containsNonAnsiAware(other, ignoreCase)
+
+private object AnsiCodeHelper {
+
+    const val splitCodeMarker: String = "👈 ansi code splitter 👉"
+
+    /**
+     * Returns the control sequence needed to close all [codes] that are
+     * not already closed in the list.
+     *
+     * Think of it as a bunch of HTML tags of which a few have not been closed,
+     * whereas this function returns the string that renders the HTML valid again.
+     */
+    fun closingControlSequence(codes: List<Int>): String = controlSequence(closingCodes(unclosedCodes(codes)))
+
+    /**
+     * Iterates through the codes and returns the ones that have no closing counterpart.
+     *
+     * Think of it as a bunch of HTML tags of which a few have not been closed,
+     * whereas this function returns those tags that render the HTML invalid.
+     */
+    fun unclosedCodes(codes: List<Int>): List<Int> {
+        val unclosedCodes = mutableListOf<Int>()
+        codes.forEach { code: Int ->
+            val ansiCodes: List<AnsiCode> = codeToAnsiCodeMappings[code] ?: emptyList()
+            ansiCodes.forEach { ansiCode ->
+                if (code !in ansiCode.codes.map { it.second }) {
+                    unclosedCodes.addAll(ansiCode.codes.flatMap { it.first })
+                } else {
+                    unclosedCodes.removeAll { it in ansiCode.codes.flatMap { it.first } }
+                }
+            }
+        }
+        return unclosedCodes
+    }
+
+    /**
+     * Returns the codes needed to close the given ones.
+     */
+    fun closingCodes(codes: List<Int>): List<Int> =
+        codes.flatMap { openCode -> codeToAnsiCodeMappings[openCode]?.flatMap { ansiCode -> ansiCode.codes.map { it.second } } ?: emptyList() }
+
+    /**
+     * Returns the rendered control sequence for the given codes.
+     */
+    fun controlSequence(codes: List<Int>): String =
+        AnsiCode(codes, 0).format(splitCodeMarker).split(splitCodeMarker)[0]
+
+    /**
+     * A map that maps the open and close codes of all supported instances of [AnsiCodeHelper]
+     * to their respective [AnsiCodeHelper].
+     */
+    val codeToAnsiCodeMappings: Map<Int, List<AnsiCode>> by lazy {
+        hashMapOf<Int, MutableList<AnsiCode>>().apply {
+            listOf(
+                Ansi16ColorCode(Ansi16.black.code),
+                Ansi16ColorCode(Ansi16.red.code),
+                Ansi16ColorCode(Ansi16.green.code),
+                Ansi16ColorCode(Ansi16.yellow.code),
+                Ansi16ColorCode(Ansi16.blue.code),
+                Ansi16ColorCode(Ansi16.purple.code),
+                Ansi16ColorCode(Ansi16.cyan.code),
+                Ansi16ColorCode(Ansi16.white.code),
+                Ansi16ColorCode(Ansi16.brightBlack.code),
+                Ansi16ColorCode(Ansi16.brightRed.code),
+                Ansi16ColorCode(Ansi16.brightGreen.code),
+                Ansi16ColorCode(Ansi16.brightYellow.code),
+                Ansi16ColorCode(Ansi16.brightBlue.code),
+                Ansi16ColorCode(Ansi16.brightPurple.code),
+                Ansi16ColorCode(Ansi16.brightCyan.code),
+                Ansi16ColorCode(Ansi16.brightWhite.code),
+                AnsiCode(0, 0),
+                AnsiCode(1, 22),
+                AnsiCode(2, 22),
+                AnsiCode(3, 23),
+                AnsiCode(4, 24),
+                AnsiCode(5, 25),
+                AnsiCode(6, 25),
+                AnsiCode(7, 27),
+                AnsiCode(8, 28),
+                AnsiCode(9, 29),
+            ).forEach { ansiCode ->
+                ansiCode.codes.flatMap { (first, second) -> first + second }.forEach { code ->
+                    getOrPut(code) { mutableListOf() }.add(ansiCode)
+                }
+            }
+        }
+    }
+
+    /**
+     * Searches this char sequence for [AnsiCodeHelper] and returns a stream of codes.
+     *
+     * ***Note:** This method makes no difference between opening and closing codes.*
+     */
+    fun CharSequence.parseAnsiCodesAsSequence(): Sequence<Int> = REGEX.findAll(this).flatMap { parseAnsiCode(it) }
+
+    /**
+     * Given a [matchResult] resulting from [ansiCodeRegex] all found ANSI codes are returned.
+     *
+     * ***Note:** This method makes no difference between opening and closing codes.*
+     */
+    fun parseAnsiCode(matchResult: MatchResult): List<Int> {
+        val intermediateBytes: String? = matchResult.namedGroups["intermediateBytes"]?.value
+        val lastByte = matchResult.namedGroups["finalByte"]?.value
+        return if (intermediateBytes.isNullOrBlank() && lastByte == "m") {
+            (matchResult.namedGroups["parameterBytes"] ?: return emptyList())
+                .value.split(";").mapNotNull { it.toIntOrNull() }.toList()
+        } else emptyList()
+    }
+}

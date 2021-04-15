@@ -1,8 +1,8 @@
 package koodies.text
 
-import koodies.terminal.AnsiColors.magenta
 import koodies.terminal.AnsiFormats.italic
-import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -39,12 +39,12 @@ class LinesKtTest {
 
         @Test
         fun `should return max length on mixed ansi string line`() {
-            expectThat("default\n${"magenta".magenta()}".maxLength()).isEqualTo(7)
+            expectThat("default\n${"magenta".ansi.magenta}".maxLength()).isEqualTo(7)
         }
 
         @Test
         fun `should return max length on ansi string`() {
-            expectThat("default\n${"magenta".magenta()}".italic().asAnsiString().maxLength()).isEqualTo(7)
+            expectThat("default\n${"magenta".ansi.magenta}".italic().asAnsiString().maxLength()).isEqualTo(7)
         }
     }
 }

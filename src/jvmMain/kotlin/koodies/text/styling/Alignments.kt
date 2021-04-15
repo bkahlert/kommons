@@ -1,6 +1,6 @@
 package koodies.text.styling
 
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.NBSP
 import koodies.text.maxLength
@@ -28,7 +28,7 @@ public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLen
     val maxLength = trimmed.maxLength()
     val finalLength = maxLength.coerceAtLeast(minLength)
     return trimmed.map { line ->
-        val missing: Double = (finalLength - line.removeEscapeSequences().length) / 2.0
+        val missing: Double = (finalLength - line.ansiRemoved.length) / 2.0
         whitespace.repeat(floor(missing).toInt()) + line + whitespace.repeat(ceil(missing).toInt())
     }.toList()
 }

@@ -24,7 +24,7 @@ import koodies.exec.Process.ProcessState.Terminated
 import koodies.io.RedirectingOutputStream
 import koodies.io.TeeInputStream
 import koodies.io.TeeOutputStream
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
 import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
@@ -108,7 +108,7 @@ public open class JavaExec(
                 throwable != null -> {
                     val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
                     val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
-                    Fatal(cause, exitValue, pid, dump.removeEscapeSequences(), io.toList())
+                    Fatal(cause, exitValue, pid, dump.ansiRemoved, io.toList())
                 }
 
                 exitStateHandler != null ->

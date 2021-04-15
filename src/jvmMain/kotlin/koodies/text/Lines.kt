@@ -1,6 +1,6 @@
 package koodies.text
 
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.lineSequence
 
 /**
@@ -20,5 +20,5 @@ public fun <T : CharSequence> Iterable<T>.maxLength(): Int =
  * Returns the length of the longest char sequence.
  */
 public fun <T : CharSequence> Sequence<T>.maxLength(): Int =
-    maxOf { it.removeEscapeSequences().length }
+    maxOf { it.ansiRemoved.length }
 

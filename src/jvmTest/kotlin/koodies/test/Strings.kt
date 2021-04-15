@@ -1,6 +1,6 @@
 package koodies.test
 
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.CodePoint
 import koodies.unit.BinaryPrefix
 import koodies.unit.Size
@@ -8,7 +8,7 @@ import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 
 fun <T> Assertion.Builder<T>.toStringIsEqualTo(expected: String, removeEscapeSequences: Boolean = true): Assertion.Builder<T> =
-    if (removeEscapeSequences) with({ toString().removeEscapeSequences() }) { toStringIsEqualTo(expected, false) }
+    if (removeEscapeSequences) with({ toString().ansiRemoved }) { toStringIsEqualTo(expected, false) }
     else assert("is equal to %s", expected) {
         when (val actual = it.toString()) {
             expected -> pass()

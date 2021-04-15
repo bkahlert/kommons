@@ -5,9 +5,7 @@ import koodies.debug.Debug.DELIM
 import koodies.debug.Debug.defaultEnclosement
 import koodies.debug.Debug.meta
 import koodies.debug.Debug.secondaryMeta
-import koodies.terminal.AnsiColors.brightCyan
-import koodies.terminal.AnsiColors.cyan
-import koodies.terminal.AnsiColors.gray
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.BlockDelimiters.INTROSPECTION
 import koodies.text.Semantics.FieldDelimiters
@@ -19,8 +17,8 @@ import koodies.text.wrap
 import koodies.toSimpleString
 
 public object Debug {
-    public fun CharSequence.meta(): String = brightCyan()
-    public fun CharSequence.secondaryMeta(): String = cyan()
+    public fun CharSequence.meta(): String = ansi.brightCyan.toString()
+    public fun CharSequence.secondaryMeta(): String = ansi.cyan.toString()
     public val defaultEnclosement: Pair<String, String> = INTROSPECTION.map { it.formattedAs.debug }
     public fun wrap(text: CharSequence?, prefix: String = INTROSPECTION.first, suffix: String = INTROSPECTION.second): String =
         text?.wrap(prefix.meta(), suffix.meta()) ?: null.wrap("❬".meta(), "❭".meta())
@@ -33,7 +31,7 @@ public val <T> XRay<T>.debug: XRay<T>
 
 public inline val CharSequence?.debug: String
     get() = if (this == null) null.wrap(defaultEnclosement)
-    else toString().replaceNonPrintableCharacters().wrap("❬".meta(), DELIM.meta() + "${this.length}".gray() + "❭".meta())
+    else toString().replaceNonPrintableCharacters().wrap("❬".meta(), DELIM.meta() + "${this.length}".ansi.gray + "❭".meta())
 public inline val <T> Iterable<T>?.debug: String get() = this?.joinToString("") { it.toString().debug }.debug
 public inline val List<Byte>?.debug: String get() = this?.toByteArray()?.let { bytes: ByteArray -> String(bytes) }.debug
 public inline val Char?.debug: String get() = this.toString().replaceNonPrintableCharacters().wrap("❬", "❭")

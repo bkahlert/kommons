@@ -8,10 +8,6 @@ import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.*
-import koodies.exec.Process.ProcessState.Prepared
-import koodies.exec.Process.ProcessState.Running
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.exitState
 import koodies.concurrent.process.merge
@@ -21,11 +17,15 @@ import koodies.concurrent.process.processAsynchronously
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.processSynchronously
 import koodies.concurrent.toExec
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.*
+import koodies.exec.Process.ProcessState.Prepared
+import koodies.exec.Process.ProcessState.Running
 import koodies.io.path.asString
 import koodies.io.path.randomPath
+import koodies.jvm.wait
 import koodies.shell.HereDoc
 import koodies.shell.ShellScript
-import koodies.terminal.escapeSequencesRemoved
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.testEach
@@ -40,7 +40,6 @@ import koodies.text.styling.wrapWithBorder
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
 import koodies.time.sleep
-import koodies.toSimpleClassName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -69,7 +68,6 @@ import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.message
-import koodies.jvm.wait
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration
@@ -236,7 +234,6 @@ class JavaExecTest {
 
             kotlin.runCatching {
                 process.process({ ProcessingModeContext.async }) { io ->
-                    io.toSimpleClassName()
                     if (io !is META && io !is INPUT) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
@@ -413,7 +410,7 @@ class JavaExecTest {
             fun `should fail on non-0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(42)
                 expectThat(process.waitFor()).isA<Failure>().io.any {
-                    escapeSequencesRemoved.contains("terminated with exit code 42")
+                    this.ansiRemoved.contains("terminated with exit code 42")
                 }
             }
 
@@ -421,7 +418,7 @@ class JavaExecTest {
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(42)
                 expectThat(process.waitForTermination()).isA<Failure>().io.any {
-                    escapeSequencesRemoved.contains("terminated with exit code 42")
+                    this.ansiRemoved.contains("terminated with exit code 42")
                 }
             }
 

@@ -4,9 +4,9 @@ import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.test.Debug
 import koodies.test.SystemIoExclusive
+import koodies.text.ANSI.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -30,7 +30,7 @@ class InMemoryLoggerResolverDebugTest {
             logLine { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
 
             expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
-            expectThat(output.removeEscapeSequences()).contains("☎Σ⊂⊂(☉ω☉∩)")
+            expectThat(output.ansiRemoved).contains("☎Σ⊂⊂(☉ω☉∩)")
         }
     }
 
@@ -47,7 +47,7 @@ class InMemoryLoggerResolverDebugTest {
                 .isFailure().isA<IllegalStateException>()
 
             expectThatLogged().contains("(*｀へ´*)")
-            expectThat(output.removeEscapeSequences()).contains("(*｀へ´*)")
+            expectThat(output.ansiRemoved).contains("(*｀へ´*)")
         }
     }
 }

@@ -130,7 +130,7 @@ fun rainbow() = TermColors(TermColors.Level.TRUECOLOR).run {
     val seconds = 6
     print(hideCursor)
     for (tick in 0..(ticksPerSecond * seconds)) {
-        print(buildString {
+        print(StringBuilder().apply {
             if (tick != 0) append(cursorUp(lines.size))
             for ((lineno, line) in lines.withIndex()) {
                 for ((i, c) in line.iterator().withIndex()) {

@@ -1,7 +1,7 @@
 package koodies.text.styling
 
-import koodies.terminal.AnsiCode.Companion.removeEscapeSequences
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.asCodePointSequence
 import koodies.text.codePointCount
@@ -228,8 +228,8 @@ public fun <T : CharSequence> T.wrapWithBorder(
     formatter: Formatter = Formatter.PassThrough,
 ): String {
     val block = this.lines().center(border[5])
-    if (block.isEmpty()) return this.toString()
-    val width = block[0].removeEscapeSequences().length
+    if (block.isEmpty()) return toString()
+    val width = block[0].ansiRemoved.length
     val height = block.size
     val bordered = "" +
         formatter("${border[0]}${border[1].repeat(width + padding * 2)}${border[2]}") + LF +

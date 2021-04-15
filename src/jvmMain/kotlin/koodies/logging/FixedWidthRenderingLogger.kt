@@ -3,8 +3,7 @@ package koodies.logging
 import koodies.asString
 import koodies.concurrent.process.IO
 import koodies.regex.RegularExpressions
-import koodies.terminal.ANSI
-import koodies.terminal.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.ANSI.Text.Companion.ansi
@@ -236,9 +235,9 @@ public abstract class FixedWidthRenderingLogger(
     }
 }
 
-private val pauseSymbol = ANSI.termColors.gray("▮▮")
-private val playSymbol = ANSI.termColors.gray("◀")
-private val fastForwardSymbol = ANSI.termColors.green("◀◀")
+private val pauseSymbol: String = "▮▮".ansi.gray.toString()
+private val playSymbol: String = "◀".ansi.gray.toString()
+private val fastForwardSymbol: String = "◀◀".ansi.green.toString()
 
 /**
  * Default implementation to render the status of a [List] of [HasStatus] instances.
