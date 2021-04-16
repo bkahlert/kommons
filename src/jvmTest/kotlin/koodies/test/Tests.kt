@@ -6,7 +6,6 @@ import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.readLine
 import koodies.jvm.currentStackTrace
-import koodies.jvm.currentThread
 import koodies.jvm.deleteOnExit
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
@@ -59,13 +58,13 @@ import filepeek.FilePeek2 as FilePeek
  * Workaround annotation for
  * [IDEA-265284: Add support for JUnit5 composed(meta) annotations annotated with `@ParametrizedTest`](https://youtrack.jetbrains.com/issue/IDEA-265284)
  */
-public typealias IdeaWorkaroundTest = Test
+typealias IdeaWorkaroundTest = Test
 
 /**
  * Workaround annotation for
  * [IDEA-265284: Add support for JUnit5 composed(meta) annotations annotated with `@ParametrizedTest`](https://youtrack.jetbrains.com/issue/IDEA-265284)
  */
-public typealias IdeaWorkaroundTestFactory = TestFactory
+typealias IdeaWorkaroundTestFactory = TestFactory
 
 private val root by lazy { deleteOnExit(createTempDirectory("koodies")) }
 
@@ -487,25 +486,24 @@ inline fun <reified T> Iterable<T>.testWithTempDir(
         }
     }
 
-public object TestFlattener {
+object TestFlattener {
 
-    public fun Array<out DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()
-    public fun Iterable<out DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()
-    public fun Sequence<out DynamicNode>.flatten(): Sequence<DynamicTest> = flatMap { it.flatten() }
+    fun Array<DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()
+    fun Iterable<DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()
+    fun Sequence<DynamicNode>.flatten(): Sequence<DynamicTest> = flatMap { it.flatten() }
 
-    public fun DynamicNode.flatten(): Sequence<out DynamicTest> = when (this) {
+    fun DynamicNode.flatten(): Sequence<out DynamicTest> = when (this) {
         is DynamicContainer -> flatten()
         is DynamicTest -> flatten()
         else -> error("Unknown ${DynamicNode::class.simpleName} type ${this::class}")
     }
 
-    public fun DynamicTest.flatten(): Sequence<DynamicTest> = sequenceOf(this)
+    fun DynamicTest.flatten(): Sequence<DynamicTest> = sequenceOf(this)
 
-    public fun DynamicContainer.flatten(): Sequence<DynamicTest> = children.asSequence().flatten()
+    fun DynamicContainer.flatten(): Sequence<DynamicTest> = children.asSequence().flatten()
 }
 
-@Execution(SAME_THREAD)
-public class TesterTest {
+@Execution(SAME_THREAD) class TesterTest {
 
     @Nested
     inner class TestFlattening {

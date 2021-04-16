@@ -277,7 +277,7 @@ public object ANSI {
         }
     }
 
-    private class Controls {
+    public class Controls {
 
         /**
          * Create an ANSI code to move the cursor up [count] cells.
@@ -285,7 +285,7 @@ public object ANSI {
          * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
          * If [count] is negative, the cursor will be moved down instead.
          */
-        fun cursorUp(count: Int): String = moveCursor(if (count < 0) "B" else "A", abs(count))
+        public fun cursorUp(count: Int): String = moveCursor(if (count < 0) "B" else "A", abs(count))
 
         /**
          * Create an ANSI code to move the cursor down [count] cells.
@@ -293,7 +293,7 @@ public object ANSI {
          * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
          * If [count] is negative, the cursor will be moved up instead.
          */
-        fun cursorDown(count: Int): String = moveCursor(if (count < 0) "A" else "B", abs(count))
+        public fun cursorDown(count: Int): String = moveCursor(if (count < 0) "A" else "B", abs(count))
 
         /**
          * Create an ANSI code to move the cursor left [count] cells.
@@ -301,7 +301,7 @@ public object ANSI {
          * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
          * If [count] is negative, the cursor will be moved right instead.
          */
-        fun cursorLeft(count: Int): String = moveCursor(if (count < 0) "C" else "D", abs(count))
+        public fun cursorLeft(count: Int): String = moveCursor(if (count < 0) "C" else "D", abs(count))
 
         /**
          * Create an ANSI code to move the cursor right [count] cells.
@@ -309,21 +309,21 @@ public object ANSI {
          * If ANSI codes are not supported, or [count] is 0, an empty string is returned.
          * If [count] is negative, the cursor will be moved left instead.
          */
-        fun cursorRight(count: Int): String = moveCursor(if (count < 0) "D" else "C", abs(count))
+        public fun cursorRight(count: Int): String = moveCursor(if (count < 0) "D" else "C", abs(count))
 
         /**
          * Create an ANSI code to hide the cursor.
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        val hideCursor: String get() = if (level == NONE) "" else "$CSI?25l"
+        public val hideCursor: String get() = if (level == NONE) "" else "$CSI?25l"
 
         /**
          * Create an ANSI code to show the cursor.
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        val showCursor: String get() = if (level == NONE) "" else "$CSI?25h"
+        public val showCursor: String get() = if (level == NONE) "" else "$CSI?25h"
 
         private fun moveCursor(dir: String, count: Int): String {
             return if (count == 0 || level == NONE) ""
@@ -334,7 +334,7 @@ public object ANSI {
 
 private const val ESC = Unicode.escape
 private const val CSI = Unicode.controlSequenceIntroducer
-private val ansiCloseRe = Regex("""$ESC\[(?<codes>(?:\d{1,3};?)+)m""")
+private val ansiCloseRe = Regex("""$ESC\[((?:\d{1,3};?)+)m""")
 
 public object Banner {
     private val prefix = with(ANSI.Colors) {
@@ -368,7 +368,7 @@ public object Banner {
  *
  * @property codes A list of pairs, with each pair being the list of opening codes and a closing code.
  */
-private open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
+internal open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
     constructor(openCodes: List<Int>, closeCode: Int) : this(listOf(openCodes to closeCode))
     constructor(openCode: Int, closeCode: Int) : this(listOf(openCode), closeCode)
 
@@ -388,14 +388,14 @@ private open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
         val openCodesByCloseCode = HashMap<Int, List<Int>>()
         for ((o, c) in codes) openCodesByCloseCode[c] = o
         val atEnd = it.range.endInclusive == text.lastIndex
-        val codes:Sequence<Int> = it.groupValues[1].splitToSequence(';').flatMap {
+        val codes: Sequence<Int> = it.groupValues[1].splitToSequence(';').flatMap {
             it.toIntOrNull().let {
-                if (it==null || (atEnd && it in openCodesByCloseCode)) emptySequence()
+                if (it == null || (atEnd && it in openCodesByCloseCode)) emptySequence()
                 else (openCodesByCloseCode[it]?.asSequence() ?: sequenceOf(it))
             }
         }
 
-         tag(codes.toList())
+        tag(codes.toList())
     }
 
     private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "$ESC[${c.joinToString(";")}m"
@@ -426,7 +426,7 @@ private object DisabledAnsiCode : AnsiCode(emptyList()) {
  *
  * @property codes A list of pairs, with each pair being the list of opening codes and a closing code.
  */
-private abstract class AnsiColorCode(codes: List<Pair<List<Int>, Int>>) : AnsiCode(codes) {
+internal abstract class AnsiColorCode(codes: List<Pair<List<Int>, Int>>) : AnsiCode(codes) {
     constructor(openCodes: List<Int>, closeCode: Int) : this(listOf(openCodes to closeCode))
     constructor(openCode: Int, closeCode: Int) : this(listOf(openCode), closeCode)
 
@@ -457,15 +457,15 @@ private object DisabledAnsiColorCode : AnsiColorCode(emptyList()) {
     override fun on(bg: AnsiColorCode): AnsiCode = DisabledAnsiCode
 }
 
-private class Ansi16ColorCode(code: Int) : AnsiColorCode(code, 39) {
+internal class Ansi16ColorCode(code: Int) : AnsiColorCode(code, 39) {
     override val bgCodes get() = codes.map { listOf(it.first[0] + 10) to 49 }
 }
 
-private class Ansi256ColorCode(code: Int) : AnsiColorCode(listOf(38, 5, code), 39) {
+internal class Ansi256ColorCode(code: Int) : AnsiColorCode(listOf(38, 5, code), 39) {
     override val bgCodes get() = codes.map { listOf(48, 5, it.first[2]) to 49 }
 }
 
-private class AnsiRGBColorCode(r: Int, g: Int, b: Int) : AnsiColorCode(listOf(38, 2, r, g, b), 39) {
+internal class AnsiRGBColorCode(r: Int, g: Int, b: Int) : AnsiColorCode(listOf(38, 2, r, g, b), 39) {
     override val bgCodes get() = codes.map { (o, _) -> listOf(48, 2, o[2], o[3], o[4]) to 49 }
 }
 

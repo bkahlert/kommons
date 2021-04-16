@@ -43,7 +43,7 @@ class ScriptsKtTest {
         }
 
         @Test
-        fun `should run in temp by default`(uniqueId: UniqueId) {
+        fun `should run in temp by default`() {
             expectThat(script { !"pwd" }.output()).isEqualTo(Locations.Temp.asString())
         }
 

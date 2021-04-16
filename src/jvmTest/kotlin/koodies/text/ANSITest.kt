@@ -24,7 +24,7 @@ import strikt.assertions.isEqualTo
 @Execution(SAME_THREAD)
 class ANSITest {
 
-    private val italicCyan = ANSI.Style.italic + ANSI.Colors.cyan
+    private val italicCyan = Style.italic + ANSI.Colors.cyan
     private val ESC = Unicode.escape
 
     @Nested

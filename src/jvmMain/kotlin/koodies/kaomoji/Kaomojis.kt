@@ -3,7 +3,7 @@
 package koodies.kaomoji
 
 import koodies.kaomoji.Kaomojis.Generator.Companion.removeRightArm
-import koodies.terminal.AnsiFormats.hidden
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.colorize
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.reflect.KProperty
@@ -151,7 +151,7 @@ public object Kaomojis {
      */
     public fun CharSequence.thinking(value: String): String {
         val kaomoji = this
-        val thinkLine = "${kaomoji.hidden()}   ͚͔˱ ❨ ( $value )"
+        val thinkLine = "${kaomoji.ansi.hidden.done}   ͚͔˱ ❨ ( $value )"
         return "$thinkLine\n$kaomoji ˙"
     }
 

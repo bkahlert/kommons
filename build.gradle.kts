@@ -199,7 +199,6 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
                 implementation("org.jline:jline-reader:3.19.0")
-                implementation("com.github.ajalt:mordant:1.2.1") // TODO delete
             }
         }
 

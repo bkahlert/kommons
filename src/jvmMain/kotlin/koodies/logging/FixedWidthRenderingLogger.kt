@@ -86,12 +86,12 @@ public abstract class FixedWidthRenderingLogger(
             }
 
             override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String =
-                !resultValueFormatter(returnValue).format()
-                    .let { if (returnValue.successful == false) it.ansi.red else it }.ansi.bold
+                resultValueFormatter(returnValue).format()
+                    .let { if (returnValue.successful == false) it.ansi.red else it }.ansi.bold.done
         },
         NONE {
             override fun prefix(formatter: Formatter?): String = ""
-            override fun header(caption: String, formatter: Formatter?): String = !caption.ansi.bold
+            override fun header(caption: String, formatter: Formatter?): String = caption.ansi.bold.done
             override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String =
                 resultValueFormatter(returnValue).format()
         };

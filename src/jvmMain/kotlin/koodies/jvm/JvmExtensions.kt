@@ -1,6 +1,5 @@
 package koodies.jvm
 
-import koodies.debug.trace
 import koodies.io.path.Locations
 import koodies.io.path.age
 import koodies.io.path.appendLine
@@ -15,6 +14,7 @@ import java.util.Optional
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
+import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
 import kotlin.time.Duration
 import kotlin.time.minutes
@@ -132,7 +132,7 @@ public fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): () -> Unit =
  * Files matching these criteria are deleted during shutdown.
  */
 public fun deleteOldTempFilesOnExit(prefix: String, suffix: String, minAge: Duration = 10.minutes, keepAtMost: Int = 100) {
-    if(prefix.length == 6 || prefix.endsWith(".tmp")) {
+    if (prefix.length == 6 || prefix.endsWith(".tmp")) {
         println("")
     }
     deleteOnExit {
@@ -174,6 +174,7 @@ public class OnExitDeletionBuilder(private val jobs: MutableList<() -> Unit>) {
     public fun tempFiles(filter: Path.() -> Boolean) {
         jobs.add {
             Locations.Temp.listDirectoryEntriesRecursively()
+                .filter { it.exists() }
                 .filter { it.isRegularFile() }
                 .filter(filter)
                 .forEach { it.deleteRecursively() }
@@ -186,9 +187,10 @@ public class OnExitDeletionBuilder(private val jobs: MutableList<() -> Unit>) {
      */
     public fun allTempFiles(filter: (List<Path>) -> List<Path>) {
         jobs.add {
-            filter(Locations.Temp.listDirectoryEntriesRecursively()).forEach {
-                it.delete()
-            }
+            Locations.Temp.listDirectoryEntriesRecursively()
+                .filter { it.exists() }
+                .let(filter)
+                .forEach { it.delete() }
         }
     }
 }

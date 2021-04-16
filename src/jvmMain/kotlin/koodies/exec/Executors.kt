@@ -25,7 +25,7 @@ private const val shellScriptExtension: String = ".sh"
 private object Executors {
 
     init {
-        deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, 5.days, keepAtMost = 500)
+        deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, 3.days, keepAtMost = 100)
     }
 
     fun requireValidWorkingDirectory(workingDirectory: Path): File =

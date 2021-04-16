@@ -107,7 +107,7 @@ class LoggingOptionsTest {
                         border = SOLID
                     }
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -149,7 +149,7 @@ class LoggingOptionsTest {
                         border = SOLID
                     }
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -227,7 +227,7 @@ class LoggingOptionsTest {
                         contentFormatter { formatter }
                     }
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
                         │   
@@ -263,7 +263,7 @@ class LoggingOptionsTest {
                         contentFormatter { formatter }
                     }
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
                         │   
@@ -369,7 +369,7 @@ class LoggingOptionsTest {
                         border = SOLID
                     }
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -411,7 +411,7 @@ class LoggingOptionsTest {
                         border = SOLID
                     }
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -478,7 +478,7 @@ class LoggingOptionsTest {
                     processing { async }
                     summary("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -508,7 +508,7 @@ class LoggingOptionsTest {
                     processing { async }
                     summary("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -568,7 +568,7 @@ class LoggingOptionsTest {
                     processing { async }
                     noDetails("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -585,7 +585,7 @@ class LoggingOptionsTest {
                     processing { async }
                     noDetails("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -674,7 +674,7 @@ class LoggingOptionsTest {
                     processing { async }
                     errorsOnly("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().isEmpty()
             }
 
@@ -684,7 +684,7 @@ class LoggingOptionsTest {
                     processing { async }
                     errorsOnly("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
                     │   caption: 4
@@ -705,7 +705,7 @@ class LoggingOptionsTest {
                         processing { async }
                         errorsOnly("caption")
                         null
-                    }.waitForTermination())
+                    }.waitFor())
                     .isA<Failure>()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
@@ -725,7 +725,7 @@ class LoggingOptionsTest {
                 countDownAndStart().execute {
                     errorsOnly("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().isEmpty()
             }
 
@@ -735,7 +735,7 @@ class LoggingOptionsTest {
                     processing { async }
                     errorsOnly("caption")
                     null
-                }.waitForTermination()
+                }.waitFor()
                 expectThatLogged().isEmpty()
             }
         }

@@ -19,23 +19,23 @@ class SemanticsTest {
 
         @TestFactory
         fun `should provide symbols`() = test(Semantics) {
-            expect { Symbols.OK }.that { isEqualTo(!"✔$variationSelector15".ansi.green) }
-            expect { Symbols.Negative }.that { isEqualTo(!"━".ansi.red) }
-            expect { Symbols.Error }.that { isEqualTo(!"ϟ".ansi.red) }
-            expect { Symbols.PointNext }.that { isEqualTo(!"➜".ansi.italic.gray) }
+            expect { Symbols.OK }.that { isEqualTo("✔$variationSelector15".ansi.green.done) }
+            expect { Symbols.Negative }.that { isEqualTo("━".ansi.red.done) }
+            expect { Symbols.Error }.that { isEqualTo("ϟ".ansi.red.done) }
+            expect { Symbols.PointNext }.that { isEqualTo("➜".ansi.italic.gray.done) }
             expect { Symbols.Document }.that { isEqualTo("📄") }
-            expect { Symbols.Null }.that { isEqualTo(!"␀".ansi.brightYellow) }
+            expect { Symbols.Null }.that { isEqualTo("␀".ansi.brightYellow.done) }
         }
 
         @TestFactory
         fun `should format`() = test("test") {
-            expect { formattedAs.success }.that { isEqualTo(!"test".ansi.green) }
-            expect { formattedAs.warning }.that { isEqualTo(!"test".ansi.brightYellow) }
-            expect { formattedAs.failure }.that { isEqualTo(!"test".ansi.red) }
-            expect { formattedAs.error }.that { isEqualTo(!"test".ansi.red) }
-            expect { formattedAs.debug }.that { isEqualTo(!"test".ansi.brightCyan) }
-            expect { formattedAs.input }.that { isEqualTo(!"test".ansi.cyan) }
-            expect { formattedAs.meta }.that { isEqualTo(!"test".ansi.italic.gray) }
+            expect { formattedAs.success }.that { isEqualTo("test".ansi.green.done) }
+            expect { formattedAs.warning }.that { isEqualTo("test".ansi.brightYellow.done) }
+            expect { formattedAs.failure }.that { isEqualTo("test".ansi.red.done) }
+            expect { formattedAs.error }.that { isEqualTo("test".ansi.red.done) }
+            expect { formattedAs.debug }.that { isEqualTo("test".ansi.brightCyan.done) }
+            expect { formattedAs.input }.that { isEqualTo("test".ansi.cyan.done) }
+            expect { formattedAs.meta }.that { isEqualTo("test".ansi.italic.gray.done) }
         }
     }
 }

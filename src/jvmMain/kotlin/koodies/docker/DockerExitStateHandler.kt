@@ -86,7 +86,7 @@ public object DockerExitStateHandler : ExitStateHandler {
 
             // Error: No such image
             public class NoSuchImage(terminated: Terminated, status: String) : BadRequest(terminated, 404, status)
-            public class PathDoesNotExistInsideTheContainer(terminated: Terminated, state: String, status: String) : BadRequest(terminated, 404, status)
+            public class PathDoesNotExistInsideTheContainer(terminated: Terminated, status: String) : BadRequest(terminated, 404, status)
 
             public class NameAlreadyInUse(terminated: Terminated, status: String) : BadRequest(terminated, 409, status)
             public open class Conflict(terminated: Terminated, status: String) : BadRequest(terminated, 409, status)
@@ -131,7 +131,7 @@ public object DockerExitStateHandler : ExitStateHandler {
                     when {
                         matches<NoSuchContainer>() -> NoSuchContainer(terminated, status)
                         matches<NoSuchImage>() -> NoSuchImage(terminated, status)
-                        matches<PathDoesNotExistInsideTheContainer>() -> PathDoesNotExistInsideTheContainer(terminated, message, status)
+                        matches<PathDoesNotExistInsideTheContainer>() -> PathDoesNotExistInsideTheContainer(terminated, status)
                         matches<NameAlreadyInUse>() -> NameAlreadyInUse(terminated, status)
                         matches<Conflict>() -> Conflict(terminated, status)
                         matches<CannotKillContainer>() -> CannotKillContainer(terminated, CannotKillContainer.parseWrapped(terminated, status))

@@ -65,7 +65,7 @@ class ProcessesKtTest {
     @TestFactory
     fun `should process`(uniqueId: UniqueId) = testProcesses(uniqueId) { process ->
         val processed = synchronizedListOf<IO>()
-        process.process { io -> processed.add(io) }.waitForTermination()
+        process.process { io -> processed.add(io) }.waitFor()
 
         expectThat(processed).contains(
             IO.OUT typed "test output env",
@@ -84,6 +84,6 @@ class ProcessesKtTest {
     @TestFactory
     fun `should return failed state on unexpected exit value`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
         process.start()
-        expectThat(process.waitForTermination()).isA<Failure>()
+        expectThat(process.waitFor()).isA<Failure>()
     }
 }

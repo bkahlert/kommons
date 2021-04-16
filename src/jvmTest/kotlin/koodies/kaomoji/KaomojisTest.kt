@@ -6,6 +6,7 @@ import koodies.runtime.isIntelliJ
 import koodies.terminal.AnsiFormats.hidden
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.asCodePointSequence
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
@@ -51,7 +52,7 @@ class KaomojisTest {
     inner class RandomThinkingKaomoji {
         @Test
         fun `should create thinking Kaomoji`() {
-            val hidden = if (isIntelliJ) "    " else "・㉨・".hidden()
+            val hidden = if (isIntelliJ) "    " else "・㉨・".ansi.hidden
             expectThat(Kaomojis.Bear[0].thinking("oh no")).isEqualTo("""
                 $hidden   ͚͔˱ ❨ ( oh no )
                 ・㉨・ ˙

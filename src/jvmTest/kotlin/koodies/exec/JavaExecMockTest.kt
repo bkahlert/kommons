@@ -469,7 +469,7 @@ class JavaExecMockTest {
             process.enter("shutdown")
         }
 
-        val status = process.process({ ProcessingModeContext.async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitForTermination()
+        val status = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitFor()
 
         expectThat(status) {
             isA<Success>().exitCode.isEqualTo(0)

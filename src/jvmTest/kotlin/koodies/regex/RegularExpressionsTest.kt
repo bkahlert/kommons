@@ -132,7 +132,7 @@ class RegularExpressionsTest {
                         isNotNull().and {
                             get("field receiverPackage") { get("receiverPackage") }.isEqualTo(receiverPackage)
                             get("field receiverClass") { get("receiverClass") }.isEqualTo(receiverClass)
-                            get("field parameterList") { get("parameterList") }.isEqualTo(receiverClass)
+                            get("field parameterList") { get("parameterList") }.isEqualTo(parameterList)
                             get("field returnValuePackage") { get("returnValuePackage") }.isEqualTo(returnValuePackage)
                             get("field returnValueClass") { get("returnValueClass") }.isEqualTo(returnValueClass)
                         }

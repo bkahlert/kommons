@@ -178,8 +178,6 @@ public open class DockerImage(
         if (this === other) return true
         if (other !is DockerImage) return false
 
-        other as DockerImage
-
         if (repository != other.repository) return false
         if (path != other.path) return false
         if (digest != null && other.digest != null) return digest == other.digest

@@ -122,7 +122,7 @@ class JavaExecTest {
             Pair({ apply { runCatching { exitValue } } }, { isA<Exec>().evaluated.exitCode.isEqualTo(0) }),
             Pair({ onExit.get() }, { isA<Success>().exitCode.isEqualTo(0) }),
             Pair({ waitFor() }, { not { isA<Prepared>() } }),
-            Pair({ waitForTermination() }, { isA<Success>().exitCode.isEqualTo(0) }),
+            Pair({ waitFor() }, { isA<Success>().exitCode.isEqualTo(0) }),
         ) { (operation, assertion) ->
             withTempDir(uniqueId) {
                 val (process, file) = createLazyFileCreatingProcess()
@@ -275,7 +275,7 @@ class JavaExecTest {
         @Test
         fun `by waiting for termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingExec(0)
-            expectThat(process.waitForTermination()) {
+            expectThat(process.waitFor()) {
                 isA<ExitState>().and {
                     status.matchesCurlyPattern("Process ${process.pid} terminated {}")
                     pid.isGreaterThan(0)
@@ -417,7 +417,7 @@ class JavaExecTest {
             @Test
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(42)
-                expectThat(process.waitForTermination()).isA<Failure>().io.any {
+                expectThat(process.waitFor()).isA<Failure>().io.any {
                     this.ansiRemoved.contains("terminated with exit code 42")
                 }
             }
@@ -425,7 +425,7 @@ class JavaExecTest {
             @Test
             fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(42)
-                expectThat(process.waitForTermination()).isA<Failure>()
+                expectThat(process.waitFor()).isA<Failure>()
                     .io<IO>().containsDump()
             }
 
@@ -438,7 +438,7 @@ class JavaExecTest {
             @Test
             fun `should fail on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(42)
-                expectThat(process.waitForTermination()).isA<Failure>()
+                expectThat(process.waitFor()).isA<Failure>()
             }
 
             @Test
@@ -446,7 +446,7 @@ class JavaExecTest {
                 var callbackCalled = false
                 val process = createCompletingExec(42, execTerminationCallback = { callbackCalled = true })
                 expect {
-                    expectThat(process.waitForTermination()).isA<Failure>()
+                    expectThat(process.waitFor()).isA<Failure>()
                     expectThat(callbackCalled).isTrue()
                 }
             }

@@ -7,11 +7,11 @@ import koodies.collections.head
 import koodies.collections.tail
 import koodies.concurrent.process.IO.META.STARTING
 import koodies.concurrent.process.IO.OUT
+import koodies.docker.DockerExitStateHandler.Failure
 import koodies.exec.Exec
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Fatal
 import koodies.exec.Process.ExitState.Success
-import koodies.docker.DockerExitStateHandler.Failure
 import koodies.or
 import koodies.text.takeUnlessBlank
 
@@ -19,8 +19,6 @@ public const val NONE: String = "<none>"
 
 public inline fun <reified T> Exec.dockerDaemonParse(
     numColumns: Int,
-    removeAnsi: Boolean = true,
-    columnSeparator: String = "\t",
     crossinline transform: (List<String>) -> T?,
 ): Either<List<T>, Failure> {
     return when (val exitState = waitFor()) {

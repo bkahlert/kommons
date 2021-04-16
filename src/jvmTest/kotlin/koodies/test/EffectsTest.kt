@@ -1,4 +1,4 @@
-package koodies.terminal
+package koodies.test
 
 import koodies.text.styling.effects
 import org.junit.jupiter.api.Nested

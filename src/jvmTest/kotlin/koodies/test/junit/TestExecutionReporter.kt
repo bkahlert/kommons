@@ -63,9 +63,9 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
                 listOf(
                     "Done. All tests passed within ${timeNeeded.formattedAs.warning}".ansi.bold,
                     "",
-                    !"Non-concurrent test classes: ".ansi.bold + format(nonConcurrentTestClasses),
+                    "Non-concurrent test classes: ".ansi.bold.done + format(nonConcurrentTestClasses),
                     "",
-                    !"Missing @Execution annotation: ".ansi.bold + format(notAnnotatedTestClasses),
+                    "Missing @Execution annotation: ".ansi.bold.done + format(notAnnotatedTestClasses),
                 )
                     .joinToString(LF)
                     .draw.border.double(padding = 2, margin = 1, fromScratch { yellow })

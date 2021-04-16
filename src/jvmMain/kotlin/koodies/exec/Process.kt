@@ -187,7 +187,7 @@ public interface Process : ReturnValue {
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    @Deprecated("use waitFor") public fun waitForTermination(): Terminated = onExit.join()
+    @Deprecated("use waitFor", ReplaceWith("this.waitFor()")) public fun waitForTermination(): Terminated = onExit.join()
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.

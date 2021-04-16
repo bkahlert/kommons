@@ -109,7 +109,7 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     process(CommandLine("echo", "Hello World!"), null)
                         .process(ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
-                        .waitForTermination()
+                        .waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(3) }
                         .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -122,7 +122,7 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     process(CommandLine("cat"), null)
                         .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
-                        .waitForTermination()
+                        .waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(3) }
                         .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -166,7 +166,7 @@ class ProcessorsKtTest {
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
-                        }.waitForTermination()
+                        }.waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(5) }
                         .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -183,7 +183,7 @@ class ProcessorsKtTest {
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
-                        }.waitForTermination()
+                        }.waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(5) }
                         .with({ get(0) }) { isA<IO.META.STARTING>() }

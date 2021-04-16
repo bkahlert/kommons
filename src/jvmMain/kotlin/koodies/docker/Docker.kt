@@ -199,7 +199,7 @@ public fun Path.docker(
 ): DockerProcess =
     dockerRunCommandLine(imageInit, optionsInit, arguments)
         .toExec(execTerminationCallback)
-        .processSilently().apply { waitForTermination() }
+        .processSilently().apply { waitFor() }
 
 /**
  * Runs a Docker process using the
