@@ -1,6 +1,7 @@
 package koodies.builder.context
 
 import koodies.Deferred
+import koodies.builder.SkippableBuilder
 import koodies.test.test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -87,10 +88,10 @@ class CapturingContextTest {
     @Nested
     inner class WithDelegation {
         inner class DelegationTestContext(captures: CapturesMap) : TestContext(captures) {
-            val delegatingToInitializedWithNonNullable: (() -> String) -> Unit by builder<String>() delegate initializedWithNonNullable
-            val delegatingToInitializedWithNullable: (() -> String?) -> Unit by builder<String?>() delegate initializedWithNullable
-            val delegatingToInitializedWithNull: (() -> String?) -> Unit by builder<String?>() delegate initializedWithNull
-            val delegatingToUninitialized by builder<String>() delegate uninitialized
+            val delegatingToInitializedWithNonNullable: SkippableBuilder<() -> String, String, Unit> by builder<String>() then initializedWithNonNullable
+            val delegatingToInitializedWithNullable: SkippableBuilder<() -> String?, String?, Unit> by builder<String?>() then initializedWithNullable
+            val delegatingToInitializedWithNull: SkippableBuilder<() -> String?, String?, Unit> by builder<String?>() then initializedWithNull
+            val delegatingToUninitialized: SkippableBuilder<() -> String, String, Unit> by builder<String>() then  uninitialized
         }
 
         @Test

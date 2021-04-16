@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.containsExactly
@@ -127,7 +128,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     }
 
     @Suppress("unused")
-    @SystemIoExclusive
+    @Isolated
     @Nested
     inner class Benchmark {
         private val expected: String = StringBuilder().apply { 25 * { append(HtmlFile.text);append(LF) } }.toString()

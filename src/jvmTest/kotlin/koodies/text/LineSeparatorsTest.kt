@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
@@ -39,7 +40,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNullOrEmpty
 import strikt.assertions.isTrue
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class LineSeparatorsTest {
 
     @Nested

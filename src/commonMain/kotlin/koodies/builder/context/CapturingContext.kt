@@ -93,7 +93,7 @@ public abstract class CapturingContext {
      * - specifying a custom [Builder] based on `this` existing one
      * - providing an alias for another function
      */
-    @Deprecated("replace by using")
+    @Deprecated("replace by then", ReplaceWith("this then transform"))
     public inline infix fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.delegate(
         crossinline transform: (R) -> S,
     ): CallableProperty<Any?, (T) -> S> = callable(mapBuild(transform))
