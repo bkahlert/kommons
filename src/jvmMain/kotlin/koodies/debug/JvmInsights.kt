@@ -4,10 +4,33 @@ package koodies.debug
 
 import koodies.asString
 import koodies.debug.Debug.meta
+import koodies.math.BigDecimal
+import koodies.math.precision
+import koodies.math.scale
+import koodies.math.toAtMostDecimalsString
+import koodies.math.toExactDecimalsString
+import koodies.math.toScientificString
 import koodies.regex.groupValue
 import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.formattedAs
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
+
+public val Thread.highlightedName: String
+    get() = toString().replace(Regex("(?<prefix>.*?\\[)(?<details>.*)(?<suffix>].*?)")) {
+        val prefix = it.groupValue("prefix")
+        val suffix = it.groupValue("suffix")
+        val details = it.groupValue("details")?.split(",")?.joinToString(", ") { detail -> detail.meta() }
+        prefix + details + suffix
+    }
+
+public val StackTraceElement.highlightedMethod: String
+    get() = toString().replace(Regex("(?<prefix>.*\\.)(?<method>.*?)(?<suffix>\\(.*)")) {
+        val prefix = it.groupValue("prefix")
+        val suffix = it.groupValue("suffix")
+        val methodName = it.groupValue("method")?.meta()
+        prefix + methodName + suffix
+    }
 
 /**
  * Helper property that supports
@@ -16,7 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val <T : Thread> T.trace: Thread
-    get() = apply { println(xray({ highlightThreadName() }, null)) }
+    get() = apply { println(xray({ highlightedName }, null)) }
 
 /**
  * Helper function that supports
@@ -25,18 +48,8 @@ public val <T : Thread> T.trace: Thread
  * while still returning `this`.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T : Thread> T.trace(transform: (T.() -> Any?)): T =
-    apply { println(xray({ highlightThreadName() }, { transform().toString() })) }
-
-
-private val threadDetailsRegex = Regex("(?<prefix>.*?\\[)(?<details>.*)(?<suffix>].*?)")
-private fun Thread.highlightThreadName() =
-    toString().replace(threadDetailsRegex) {
-        val prefix = it.groupValue("prefix")
-        val suffix = it.groupValue("suffix")
-        val details = it.groupValue("details")?.split(",")?.joinToString(", ") { detail -> detail.meta() }
-        prefix + details + suffix
-    }
+public fun <T : Thread> T.trace(transform: T.() -> Any?): T =
+    apply { println(xray({ highlightedName }, { transform().toString() })) }
 
 /**
  * Helper property that supports
@@ -45,17 +58,7 @@ private fun Thread.highlightThreadName() =
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Array<StackTraceElement>.trace: Array<StackTraceElement>
-    get() = also { println(joinToString("$LF\t${"at".meta()} ", postfix = LF) { highlightMethod(it) }) }
-
-private val methodRegex = Regex("(?<prefix>.*\\.)(?<method>.*?)(?<suffix>\\(.*)")
-private fun highlightMethod(element: StackTraceElement) =
-    element.toString().replace(methodRegex) {
-        val prefix = it.groupValue("prefix")
-        val suffix = it.groupValue("suffix")
-        val methodName = it.groupValue("method")?.meta()
-        prefix + methodName + suffix
-    }
-
+    get() = also { println(joinToString("$LF\t${"at".meta()} ", postfix = LF) { it.highlightedMethod }) }
 
 /**
  * Helper property that supports
@@ -87,5 +90,40 @@ public val ReentrantReadWriteLock.trace: ReentrantReadWriteLock
             "writeHoldCount" to writeHoldCount
             "isWriteLocked" to isWriteLocked
             "isWriteLockedByCurrentThread" to isWriteLockedByCurrentThread
+        })
+    }
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` match result properly with details.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public val <T:MatchResult?> T.trace: T
+    get() = this?.apply {
+        val matchedGroups = groups.filterNotNull()
+        println("Regular Expression Matched ${matchedGroups.size.toString().formattedAs.debug} group(s)")
+        println(matchedGroups.joinToString(LF) { "${it.range}: ".padStart(8) + it.value.formattedAs.debug })
+    }?:apply { println("Regular Expression Did Not Match".formattedAs.warning) }
+
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` big decimal with details.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public val BigDecimal.trace: BigDecimal
+    get() = also {
+        println(asString {
+            "double" to it.toDouble()
+            "string value" to it.toString()
+            "at most 3 decimals" to it.toAtMostDecimalsString(3)
+            "exact 3 decimals" to it.toExactDecimalsString(3)
+            "scientific" to it.toScientificString()
+            "engineering" to it.toEngineeringString()
+            "plain" to it.toPlainString()
+            "scale" to it.scale
+            "precision" to it.precision
         })
     }

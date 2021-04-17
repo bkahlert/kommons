@@ -2,8 +2,8 @@
 
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.integer.toBigInteger
+import koodies.math.BigInteger
+import koodies.math.toBigInteger
 import koodies.unit.Size
 
 /**
@@ -41,8 +41,8 @@ internal data class VersionImpl(
     override val major: Int,
     override val addressLength: Size,
 ) : IPAddress.Version {
-    override val bitCount: Int = addressLength.bits.intValue()
-    override val byteCount: Int = addressLength.bytes.intValue()
+    override val bitCount: Int = addressLength.bits.toInt()
+    override val byteCount: Int = addressLength.bytes.toInt()
 }
 
 public fun String.toIP(): IPAddress = when {

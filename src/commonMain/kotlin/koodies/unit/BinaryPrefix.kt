@@ -2,20 +2,26 @@
 
 package koodies.unit
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import koodies.number.toBigDecimal
+import koodies.math.BigDecimal
+import koodies.math.BigDecimalConstants
+import koodies.math.pow
+import koodies.math.precision
+import koodies.math.scale
+import koodies.unit.DecimalPrefix.kilo
 import kotlin.jvm.JvmName
 import kotlin.math.absoluteValue
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 /**
  * Binary prefixes as defined by the [IEC 80000-13:2008](https://www.iso.org/standard/31898.html).
  */
 public enum class BinaryPrefix(
     override val symbol: String,
-    override val exponent: Int,
-) : UnitPrefix, ReadOnlyProperty<Number, BigDecimal> {
+    /**
+     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
+     * then this field denotes the exponent (e.g. `1` for [kilo]).
+     */
+    private val exponent: Int,
+) : UnitPrefix {
 
     /**
      * Yobi is a [UnitPrefix] in the binary system denoting multiplications by 2⁸⁰
@@ -98,14 +104,30 @@ public enum class BinaryPrefix(
     yobi("Yi", -8),
     ;
 
-    override val radix: BigDecimal = BigDecimal.TWO
-    override val radixExponent: Int = 10
-    override val factor: BigDecimal = radix.pow(radixExponent).let { baseFactor ->
-        if (exponent > 0) baseFactor.pow(exponent)
-        else BigDecimal.ONE.divide(baseFactor.pow(exponent.absoluteValue), UnitPrefix.DECIMAL_MODE)
-    }
+    /**
+     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
+     * then this field denotes the basis (e.g. `10` for [kilo]).
+     */
+    public val radix: BigDecimal = BigDecimalConstants.TWO
 
-    override fun getValue(thisRef: Number, property: KProperty<*>): BigDecimal = thisRef.toBigDecimal() * factor
+    /**
+     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
+     * then this field denotes the base exponent (e.g. `3` for [kilo]).
+     */
+    public val radixExponent: Int = 10
+
+    override val baseFactor: BigDecimal = radix.pow(radixExponent)
+
+    /**
+     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
+     * then this field is result of the formula (e.g. `1000` for [kilo]).
+     */
+    public override val factor: BigDecimal by lazy { baseFactor.pow(exponent, exponent.absoluteValue * 3 + 1) }
+
+    override fun toString(): String = "${name.padStart(5)} ($symbol) ≔ " +
+        "$radix^${(exponent * radixExponent).toString().padStart(3)} = " +
+        "${factor.toString().padStart(26)} (scale: ${factor.scale.toString().padStart(2)}, " +
+        "precision: ${factor.precision.toString().padStart(3)})"
 }
 
 /**

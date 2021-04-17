@@ -4,6 +4,7 @@ import koodies.BuilderClass.Context
 import koodies.builder.Builder
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.text.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
@@ -15,10 +16,10 @@ import strikt.assertions.isEqualTo
 class CallablesTest {
 
     @TestFactory
-    fun `should have valid test data`() = testEach(Object()) {
-        expect { function("-") }.that { ansiRemoved.isEqualTo("function(-)") }
-        expect { ForeignClass().extensionFunction(1) }.that { ansiRemoved.isEqualTo("ForeignClass(id=default).function(default-1)") }
-        expect { SomeClass().memberFunction(2) }.that { ansiRemoved.isEqualTo("SomeClass { id = default }.function(default-2)") }
+    fun `should have valid test data`() = tests {
+      test { expecting { function("-") }.that { ansiRemoved.isEqualTo("function(-)") } }
+      test { expecting { ForeignClass().extensionFunction(1) }.that { ansiRemoved.isEqualTo("ForeignClass(id=default).function(default-1)") } }
+      test { expecting { SomeClass().memberFunction(2) }.that { ansiRemoved.isEqualTo("SomeClass { id = default }.function(default-2)") } }
     }
 
     @Nested

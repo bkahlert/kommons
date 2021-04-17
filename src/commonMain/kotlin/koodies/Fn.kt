@@ -69,9 +69,9 @@ public fun <T, U, R> T.runWrapping(before: T.() -> U, after: T.(U) -> Unit, bloc
  * Runs the provided [block] `this` times with an increasing index passed
  * on each call and returns a list of the returned results.
  */
-public operator fun <R> Int.times(block:(index:Int)->R): List<R> {
-    require(this >= 0) { "times must not be negative"}
-    return when(this) {
+public operator fun <R> Int.times(block: (index: Int) -> R): List<R> {
+    require(this >= 0) { "times must not be negative" }
+    return when (this) {
         0 -> emptyList()
         else -> (0 until this).map(block)
     }

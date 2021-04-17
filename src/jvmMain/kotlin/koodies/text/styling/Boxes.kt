@@ -1,6 +1,6 @@
 package koodies.text.styling
 
-import koodies.number.isEven
+import koodies.math.isEven
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.Unicode.NBSP

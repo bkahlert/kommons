@@ -2,7 +2,6 @@
 
 package koodies.builder
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import koodies.builder.CarDSL.CarBuilder.CarContext
 import koodies.builder.CarDSL.Distance.Companion.DistanceContext
 import koodies.builder.CarDSL.Distance.Companion.DistanceContext.inch
@@ -15,6 +14,7 @@ import koodies.builder.CarDSL.Wheel.WheelBuilder.WheelContext
 import koodies.builder.StatelessBuilder.Returning
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
+import koodies.math.BigDecimal
 import koodies.unit.centi
 import koodies.unit.kilo
 import koodies.unit.milli
@@ -88,7 +88,7 @@ class CarDSL {
             }
         }
 
-        override fun toString(): String = "${watts.doubleValue() / 1000.0}kW"
+        override fun toString(): String = "${watts.toDouble() / 1000.0}kW"
     }
 
     data class Distance(val meter: BigDecimal) {
@@ -113,7 +113,7 @@ class CarDSL {
             }
         }
 
-        override fun toString(): String = "${(distance.meter.doubleValue() / 1000.0) / time.inHours}km/h"
+        override fun toString(): String = "${(distance.meter.toDouble() / 1000.0) / time.inHours}km/h"
     }
 
     data class Engine(val power: EnginePower, val maxSpeed: Speed) {
@@ -148,7 +148,7 @@ class CarDSL {
             }
         }
 
-        override fun toString(): String = "⌀ ${diameter.meter.doubleValue() * 100}cm"
+        override fun toString(): String = "⌀ ${diameter.meter.toDouble() * 100}cm"
     }
 
     enum class Trait { Exclusive, PreOwned, TaxExempt }

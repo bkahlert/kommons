@@ -24,3 +24,25 @@ public actual fun <T : () -> Unit> onExit(handler: T): T = handler
  * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
  */
 public actual val ansiSupport: AnsiSupport = AnsiSupport.NONE
+
+/**
+ * Returns a [CharSequence] that represents the current caller.
+ *
+ * If specified, [skip] denotes the number of calls to
+ * be removed from the top of the actual call stack
+ * before returning it.
+ */
+@Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
+public actual inline fun getCaller(skip: UInt): CallStackElement = TODO()
+
+/**
+ * Returns a [CharSequence] that represents the current caller
+ * which is found passing each [StackTraceElement] to the specified [locator].
+ *
+ * The actual [StackTraceElement] used is the predecessor of the first
+ * one [locator] returned `true`.
+ */
+@Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
+public actual inline fun getCaller(crossinline locator: CallStackElement.() -> Boolean): CallStackElement {
+    TODO("Not yet implemented")
+}

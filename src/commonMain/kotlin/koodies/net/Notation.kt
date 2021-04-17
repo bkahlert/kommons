@@ -1,10 +1,13 @@
 package koodies.net
-
-import com.ionspin.kotlin.bignum.integer.BigInteger
+import koodies.math.toUByteArray
+import koodies.math.bigIntegerOf
+import koodies.math.trim
+import koodies.math.BigInteger
+import koodies.math.BigIntegerConstants
+import koodies.math.shl
+import koodies.math.toString
 import koodies.net.Notation.Verbosity
-import koodies.number.bigIntegerOf
-import koodies.number.padStart
-import koodies.number.trim
+import koodies.math.padStart
 import koodies.ranges.size
 import koodies.regex.countMatches
 import koodies.unit.bytes
@@ -83,7 +86,7 @@ public interface Notation {
      */
     public fun format(value: BigInteger, verbosity: Verbosity): String {
         require(byteCount > 0) { "Byte count must be positive." }
-        require(value >= 0 && value <= BigInteger.TWO shl (byteCount * Byte.SIZE_BITS)) { "$value exceeds 2^${byteCount * Byte.SIZE_BITS}." }
+        require(value.compareTo(BigIntegerConstants.ZERO) >= 0 && value <= BigIntegerConstants.TWO shl (byteCount * Byte.SIZE_BITS)) { "$value exceeds 2^${byteCount * Byte.SIZE_BITS}." }
         val conventional = value.toUByteArray().trim() // minimal bytes
             .padStart(ceil(byteCount.div(groupSize.toDouble())).times(groupSize).toInt()) // all bytes
             .windowed(groupSize, groupSize) // groups

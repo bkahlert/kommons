@@ -1,6 +1,5 @@
-package koodies.number
+package koodies.math
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -25,10 +24,10 @@ class FormattingKtTest {
     ).flatMap { (value, expected) ->
         listOf(
             dynamicTest("BigDecimal: $value -> $expected") {
-                expectThat(BigDecimal.parseString(value).formatScientifically()).isEqualTo(expected)
+                expectThat(value.toBigDecimal().toScientificString()).isEqualTo(expected)
             },
             dynamicTest("Double: $value -> $expected") {
-                expectThat(value.toDouble().formatScientifically()).isEqualTo(expected)
+                expectThat(value.toDouble().toScientificString()).isEqualTo(expected)
             },
         )
     }
@@ -47,10 +46,10 @@ class FormattingKtTest {
     ).flatMap { (value, expected) ->
         listOf(
             dynamicTest("BigDecimal: $value -> $expected") {
-                expectThat(BigDecimal.parseString(value).formatToExactDecimals(10)).isEqualTo(expected)
+                expectThat(value.toBigDecimal().toExactDecimalsString(10)).isEqualTo(expected)
             },
             dynamicTest("Double: $value -> $expected") {
-                expectThat(value.toDouble().formatToExactDecimals(10)).isEqualTo(expected)
+                expectThat(value.toDouble().toExactDecimalsString(10)).isEqualTo(expected)
             },
         )
     }
@@ -69,10 +68,10 @@ class FormattingKtTest {
     ).flatMap { (value, expected) ->
         listOf(
             dynamicTest("BigDecimal: $value -> $expected") {
-                expectThat(BigDecimal.parseString(value).formatUpToDecimals(7)).isEqualTo(expected)
+                expectThat(value.toBigDecimal().toAtMostDecimalsString(7)).isEqualTo(expected)
             },
             dynamicTest("Double: $value -> $expected") {
-                expectThat(value.toDouble().formatUpToDecimals(7)).isEqualTo(expected)
+                expectThat(value.toDouble().toAtMostDecimalsString(7)).isEqualTo(expected)
             },
         )
     }

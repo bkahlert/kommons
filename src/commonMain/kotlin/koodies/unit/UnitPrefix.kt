@@ -1,10 +1,16 @@
 package koodies.unit
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.decimal.DecimalMode
-import com.ionspin.kotlin.bignum.decimal.RoundingMode
+import koodies.math.BigDecimal
+import koodies.math.BigDecimalConstants
+import koodies.math.times
+import koodies.math.toBigDecimal
+import koodies.text.CharRanges
+import koodies.text.Semantics.formattedAs
+import koodies.text.takeUnlessBlank
+import koodies.text.takeUnlessEmpty
 import koodies.unit.DecimalPrefix.kilo
 import koodies.unit.DecimalPrefix.milli
+import kotlin.reflect.KProperty
 
 /**
  * > *A unit prefix is a specifier or mnemonic that is prepended to units of measurement to indicate multiples or fractions of the units.
@@ -25,37 +31,52 @@ public interface UnitPrefix {
      */
     public val symbol: String
 
-    /**
-     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
-     * then this field denotes the basis (e.g. `10` for [kilo]).
-     */
-    public val radix: BigDecimal
-
-    /**
-     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
-     * then this field denotes the base exponent (e.g. `3` for [kilo]).
-     */
-    public val radixExponent: Int
-
-    /**
-     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
-     * then this field denotes the exponent (e.g. `1` for [kilo]).
-     */
-    public val exponent: Int
-
-    /**
-     * Assuming this unit prefix is of the form `([radix]^[radixExponent])^[exponent]` (e.g. [kilo] ≙ `(10³)¹`),
-     * then this field is result of the formula (e.g. `1000` for [kilo]).
-     */
+    public val baseFactor: BigDecimal
     public val factor: BigDecimal
 
+    public operator fun getValue(thisRef: Number, property: KProperty<*>): BigDecimal =
+        thisRef.toDouble().toBigDecimal().times(factor, 0)
+
     public companion object {
+
+        private fun Char.isDigit() = this in CharRanges.Numeric
+
+        private val knownPrefixes: List<UnitPrefix> by lazy { sequenceOf(*BinaryPrefix.values(), *DecimalPrefix.values()).toList() }
+
+        private fun parseUnitPrefixOrNull(text: CharSequence): UnitPrefix? =
+            when (text.trim()) {
+                "" -> null
+                "K" -> BinaryPrefix.Kibi
+                else -> knownPrefixes.find { unit -> unit.symbol == text }
+            }
+
         /**
-         * [DecimalMode] used to round [factor].
+         * Tries to parse this char sequence as an instance of any unit (e.g. `1 MiB` or `1.32GB`).
          *
-         * @see [BigDecimal.divide]
+         * Sizes with and without decimals, as much as all binary and decimal units
+         * either with or without a space between value and unit are supported.
          */
-        public val DECIMAL_MODE: DecimalMode = DecimalMode(20, RoundingMode.ROUND_HALF_CEILING)
+        public fun parse(text: CharSequence): Pair<BigDecimal, String?> {
+            val trimmed = text.trim()
+
+            val unitString = trimmed.takeLastWhile { !it.isDigit() && !it.isWhitespace() }
+            val unitPrefixAndLength = generateSequence(unitString) { it.dropLast(1).takeUnlessEmpty() }.mapNotNull { prefix ->
+                parseUnitPrefixOrNull(prefix)?.let { unitPrefix -> unitPrefix to prefix.length }
+            }.firstOrNull() ?: null to 0
+
+            val factorAndBaseUnit = unitPrefixAndLength.let { (unitPrefix, length) ->
+                unitPrefix.factor to unitString.substring(length).takeUnlessBlank()
+            }
+
+            val valueString = trimmed.dropLast(unitString.length).trim()
+
+            val value = "$valueString".toDoubleOrNull()
+                ?.toBigDecimal()
+                ?.let { value -> factorAndBaseUnit.let { (factor, _) -> value * factor } }
+                ?: throw IllegalArgumentException("${text.formattedAs.input} does not contain a numeric with with an optional unit.")
+
+            return value to factorAndBaseUnit.let { (_, baseUnit) -> baseUnit }
+        }
     }
 }
 
@@ -63,7 +84,8 @@ public interface UnitPrefix {
  * Assuming this unit prefix is of the form `([UnitPrefix.radix]^[UnitPrefix.radixExponent])^[UnitPrefix.exponent]` (e.g. [kilo] ≙ `(10³)¹`),
  * then this field is result of the formula (e.g. `1000` for [kilo]).
  */
-public val UnitPrefix?.factor: BigDecimal get() = this?.factor ?: BigDecimal.ONE
+public inline val <reified T : UnitPrefix> T?.factor: BigDecimal
+    get() = this?.factor ?: BigDecimalConstants.ONE
 
 /**
  * Returns the string a unit's symbol is prefixed with, e.g. `1 kg` corresponds to `1000 g`, whereas `k` is the symbol for [kilo].

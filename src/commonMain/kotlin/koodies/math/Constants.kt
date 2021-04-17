@@ -1,4 +1,4 @@
-package koodies.number
+package koodies.math
 
 public object Constants {
 

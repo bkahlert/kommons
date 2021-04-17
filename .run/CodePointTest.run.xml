@@ -1,7 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="CodePointKtTest" type="JUnit" factoryName="JUnit">
     <module name="koodies.jvmTest" />
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <option name="PACKAGE_NAME" value="koodies.text" />
     <option name="MAIN_CLASS_NAME" value="koodies.text.CodePointKtTest" />

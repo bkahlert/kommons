@@ -3,6 +3,8 @@
 package koodies.debug
 
 import koodies.collections.map
+import koodies.math.toHexadecimalString
+import koodies.runtime.getCaller
 import koodies.text.CodePoint
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
@@ -12,7 +14,6 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol
 import koodies.text.asCodePointSequence
-import koodies.text.takeUnlessBlank
 
 public class XRay<T>(
     private val subject: T,
@@ -20,10 +21,10 @@ public class XRay<T>(
     private val transform: (T.() -> Any)?,
 ) : CharSequence {
 
-    private val source = callSource
-
     private fun <T> asString(subject: T): String = when (subject) {
         is Array<*> -> asString(subject.toList())
+        is ByteArray -> asString(subject.toHexadecimalString())
+        is UByteArray -> asString(subject.toHexadecimalString())
         else -> subject.toString()
     }
 
@@ -39,8 +40,13 @@ public class XRay<T>(
         "${transformedBrackets.first} ${asString(this)} ${transformedBrackets.second}"
     }
 
-    private val string: String by lazy {
-        val source = source.takeUnlessBlank()?.let { ".⃦⃥ͥ ".formattedAs.debug + "($it) ".formattedAs.meta } ?: ""
+    private val string: String = run {
+        val source = getCaller {
+            receiver?.endsWith(".InsightsKt") ==true ||
+            receiver?.endsWith(".XRay") ==true ||
+                function == "trace" ||
+                function=="xray"
+        }.run { ".⃦⃥ͥ ".formattedAs.debug + "($file:$line) ".formattedAs.meta }
         source + run {
             transform?.let {
                 subject.selfString() + " " + subject.it().transformedString()
@@ -161,5 +167,3 @@ public val <T> T.trace: T
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun <T> T.trace(transform: T.() -> Any?): T =
     apply { println(xray(transform = { transform().toString() })) }
-
-public expect val XRay<*>.callSource: String

@@ -1,6 +1,6 @@
 package koodies.debug
 
-import koodies.number.toHexadecimalString
+import koodies.math.toHexadecimalString
 import koodies.text.LineSeparators
 import koodies.text.Unicode
 import koodies.text.Unicode.replacementSymbol

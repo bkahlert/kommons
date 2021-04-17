@@ -1,7 +1,7 @@
 package koodies.net
 
 import koodies.collections.to
-import koodies.number.ubyteArrayOfDecimalString
+import koodies.math.ubyteArrayOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
@@ -119,7 +119,7 @@ class IPv6AddressTest {
 
     @TestFactory
     fun `should contain range`() = listOf(
-        IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE + 1 to IPv6Address.RANGE.start),
+        IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE.inc() to IPv6Address.RANGE.start),
         DefaultIPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount to IPv6Address.parse("::ffff:0:0")),
         Nat64IPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount to IPv6Address.parse("64:ff9b::")),
     ).testEach { (range, expected) ->

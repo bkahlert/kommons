@@ -1,7 +1,7 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.number.bigIntegerOfDecimalString
+import koodies.math.BigIntegerConstants
+import koodies.math.bigIntegerOfDecimalString
 import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
@@ -78,9 +78,9 @@ class NotationTest {
         @TestFactory
         fun `should format as conventional representation`() = testEach(
             bigIntegerOfDecimalString("3232239617") to "⌁⌁60⌁ag401",
-            BigInteger.ONE to "⌁⌁1",
-            BigInteger.ZERO to "⌁⌁",
-            (BigInteger.TWO shl (192 - 1)).dec() to "fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv"
+            BigIntegerConstants.ONE to "⌁⌁1",
+            BigIntegerConstants.ZERO to "⌁⌁",
+            (BigIntegerConstants.TWO shl (192 - 1)).dec() to "fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv"
         ) { (value, conventionalRepresentation) ->
             expect { unconventionalNotation.format(value) }.that { isEqualTo(conventionalRepresentation) }
         }

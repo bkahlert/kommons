@@ -1,12 +1,13 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.integer.toBigInteger
+import koodies.math.BigInteger
+import koodies.math.toBigInteger
+import koodies.math.toUByteArray
 import koodies.net.IPv4Notation.format
-import koodies.number.bigIntegerOf
-import koodies.number.padStart
-import koodies.number.toUBytes
-import koodies.number.trim
+import koodies.math.bigIntegerOf
+import koodies.math.padStart
+import koodies.math.toUBytes
+import koodies.math.trim
 import koodies.unit.bits
 
 /**

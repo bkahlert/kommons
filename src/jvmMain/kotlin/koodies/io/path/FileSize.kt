@@ -1,5 +1,6 @@
 package koodies.io.path
 
+import koodies.math.isZero
 import koodies.unit.DecimalPrefix
 import koodies.unit.Size
 import koodies.unit.bytes
@@ -16,7 +17,10 @@ public object FileSizeComparator : (Path, Path) -> Int {
     override fun invoke(path1: Path, path2: Path): Int = path1.getSize().compareTo(path2.getSize())
 }
 
-private val Path.size get() = takeIf { it.isRegularFile() }?.let { Files.size(it) }?.bytes ?: Size.ZERO
+private val Path.size
+    get() = takeIf { it.isRegularFile() }
+        ?.let { file -> Files.size(file).takeUnless { fileSize -> fileSize.isZero } }
+        ?.bytes ?: Size.ZERO
 
 /**
  * Contains the decimal size of this file (`e.g. 3.12 MB`).

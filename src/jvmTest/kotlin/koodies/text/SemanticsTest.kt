@@ -25,6 +25,7 @@ class SemanticsTest {
             expect { Symbols.PointNext }.that { isEqualTo("➜".ansi.italic.gray.done) }
             expect { Symbols.Document }.that { isEqualTo("📄") }
             expect { Symbols.Null }.that { isEqualTo("␀".ansi.brightYellow.done) }
+            expect { Symbols.Unknown }.that { isEqualTo("❓") }
         }
 
         @TestFactory

@@ -24,6 +24,7 @@ public object Semantics {
         public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
         public val Document: String = Unicode.Emojis.pageFacingUp.toString()
         public val Null: String = "␀".formattedAs.warning
+        public val Unknown:String = "❓"
     }
 
     /**

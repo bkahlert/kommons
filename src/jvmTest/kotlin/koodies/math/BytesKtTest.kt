@@ -1,28 +1,30 @@
-package koodies.number
+package koodies.math
 
-import koodies.number.Constants.TWO_POW_128_BIN_STRING
-import koodies.number.Constants.TWO_POW_128_BYTES
-import koodies.number.Constants.TWO_POW_128_DEC_STRING
-import koodies.number.Constants.TWO_POW_128_HEX_STRING
-import koodies.number.Constants.TWO_POW_128_PLUS_1_BIN_STRING
-import koodies.number.Constants.TWO_POW_128_PLUS_1_BYTES
-import koodies.number.Constants.TWO_POW_128_PLUS_1_DEC_STRING
-import koodies.number.Constants.TWO_POW_128_PLUS_1_HEX_STRING
-import koodies.number.Constants.TWO_POW_128_PLUS_1_UBYTES
-import koodies.number.Constants.TWO_POW_128_UBYTES
+import koodies.math.Constants.TWO_POW_128_BIN_STRING
+import koodies.math.Constants.TWO_POW_128_BYTES
+import koodies.math.Constants.TWO_POW_128_DEC_STRING
+import koodies.math.Constants.TWO_POW_128_HEX_STRING
+import koodies.math.Constants.TWO_POW_128_PLUS_1_BIN_STRING
+import koodies.math.Constants.TWO_POW_128_PLUS_1_BYTES
+import koodies.math.Constants.TWO_POW_128_PLUS_1_DEC_STRING
+import koodies.math.Constants.TWO_POW_128_PLUS_1_HEX_STRING
+import koodies.math.Constants.TWO_POW_128_PLUS_1_UBYTES
+import koodies.math.Constants.TWO_POW_128_UBYTES
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.tests
+import koodies.transform.convert
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
+import strikt.assertions.contentEquals
 import strikt.assertions.isEqualTo
 import kotlin.Byte.Companion.MAX_VALUE
 import kotlin.Byte.Companion.MIN_VALUE
 
-@Suppress("RemoveExplicitTypeArguments")
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class BytesKtTest {
 
     private val bytes = listOf<Byte>(0x00, 0x7f, -0x80, -0x01)
@@ -60,40 +62,31 @@ class BytesKtTest {
         )
 
         @TestFactory
-        fun `should convert bytes`() =
-            bytes.test {
-                group("single bytes") {
-                    group("to binary") {
-                        expect { map { it.toBinaryString() } }.that { isEqualTo(paddedBinBytes) }
-                        expect { map { it.toBinaryString(pad = true) } }.that { isEqualTo(paddedBinBytes) }
-                        expect { map { it.toBinaryString(pad = false) } }.that { isEqualTo(nonPaddedBinBytes) }
-                    }
-                    group("to decimal") {
-                        expect { map { it.toDecimalString() } }.that { isEqualTo(decBytes) }
-                    }
-                    group("to hexadecimal") {
-                        expect { map { it.toHexadecimalString() } }.that { isEqualTo(paddedHexBytes) }
-                        expect { map { it.toHexadecimalString(pad = true) } }.that { isEqualTo(paddedHexBytes) }
-                        expect { map { it.toHexadecimalString(pad = false) } }.that { isEqualTo(nonPaddedHexBytes) }
-                    }
-                }
+        fun `should convert bytes`() = tests {
+            bytes testAll {
+                test { expecting { map { it.toBinaryString() } } that { isEqualTo(paddedBinBytes) } }
+                test { expecting { map { it.toBinaryString(pad = true) } } that { isEqualTo(paddedBinBytes) } }
+                test { expecting { map { it.toBinaryString(pad = false) } } that { isEqualTo(nonPaddedBinBytes) } }
 
-                with { toByteArray() }.then {
-                    group("to binary") {
-                        expect { toBinaryString() }.that { isEqualTo(paddedBinString) }
-                        expect { toBinaryString(pad = true) }.that { isEqualTo(paddedBinString) }
-                        expect { toBinaryString(pad = false) }.that { isEqualTo(nonPaddedBinString) }
-                    }
-                    group("to decimal") {
-                        expect { toDecimalString() }.that { isEqualTo(decString) }
-                    }
-                    group("to hexadecimal") {
-                        expect { toHexadecimalString() }.that { isEqualTo(paddedHexString) }
-                        expect { toHexadecimalString(pad = true) }.that { isEqualTo(paddedHexString) }
-                        expect { toHexadecimalString(pad = false) }.that { isEqualTo(nonPaddedHexString) }
-                    }
-                }
+                test { expecting { map { it.toDecimalString() } } that { isEqualTo(decBytes) } }
+
+                test { expecting { map { it.toHexadecimalString() } } that { isEqualTo(paddedHexBytes) } }
+                test { expecting { map { it.toHexadecimalString(pad = true) } } that { isEqualTo(paddedHexBytes) } }
+                test { expecting { map { it.toHexadecimalString(pad = false) } } that { isEqualTo(nonPaddedHexBytes) } }
             }
+
+            bytes.toByteArray() testAll {
+                test { expecting { toBinaryString() } that { isEqualTo(paddedBinString) } }
+                test { expecting { toBinaryString(pad = true) } that { isEqualTo(paddedBinString) } }
+                test { expecting { toBinaryString(pad = false) } that { isEqualTo(nonPaddedBinString) } }
+
+                test { expecting { toDecimalString() } that { isEqualTo(decString) } }
+
+                test { expecting { toHexadecimalString() } that { isEqualTo(paddedHexString) } }
+                test { expecting { toHexadecimalString(pad = true) } that { isEqualTo(paddedHexString) } }
+                test { expecting { toHexadecimalString(pad = false) } that { isEqualTo(nonPaddedHexString) } }
+            }
+        }
 
         @TestFactory
         fun `should convert large numbers`() = bigNumbers.toList().testEach { (bytes: ByteArray, strings: Triple<String, String, String>) ->
@@ -120,40 +113,31 @@ class BytesKtTest {
         )
 
         @TestFactory
-        fun `should convert ubytes`() =
-            ubytes.test {
-                group("single ubytes") {
-                    group("to binary") {
-                        expect { map { it.toBinaryString() } }.that { isEqualTo(paddedBinBytes) }
-                        expect { map { it.toBinaryString(pad = true) } }.that { isEqualTo(paddedBinBytes) }
-                        expect { map { it.toBinaryString(pad = false) } }.that { isEqualTo(nonPaddedBinBytes) }
-                    }
-                    group("to decimal") {
-                        expect { map { it.toDecimalString() } }.that { isEqualTo(decBytes) }
-                    }
-                    group("to hexadecimal") {
-                        expect { map { it.toHexadecimalString() } }.that { isEqualTo(paddedHexBytes) }
-                        expect { map { it.toHexadecimalString(pad = true) } }.that { isEqualTo(paddedHexBytes) }
-                        expect { map { it.toHexadecimalString(pad = false) } }.that { isEqualTo(nonPaddedHexBytes) }
-                    }
-                }
+        fun `should convert ubytes`() = tests {
+            ubytes testAll {
+                test { expecting { map { it.toBinaryString() } } that { isEqualTo(paddedBinBytes) } }
+                test { expecting { map { it.toBinaryString(pad = true) } } that { isEqualTo(paddedBinBytes) } }
+                test { expecting { map { it.toBinaryString(pad = false) } } that { isEqualTo(nonPaddedBinBytes) } }
 
-                with { toUByteArray() }.then {
-                    group("to binary") {
-                        expect { toBinaryString() }.that { isEqualTo(paddedBinString) }
-                        expect { toBinaryString(pad = true) }.that { isEqualTo(paddedBinString) }
-                        expect { toBinaryString(pad = false) }.that { isEqualTo(nonPaddedBinString) }
-                    }
-                    group("to decimal") {
-                        expect { toDecimalString() }.that { isEqualTo(decString) }
-                    }
-                    group("to hexadecimal") {
-                        expect { toHexadecimalString() }.that { isEqualTo(paddedHexString) }
-                        expect { toHexadecimalString(pad = true) }.that { isEqualTo(paddedHexString) }
-                        expect { toHexadecimalString(pad = false) }.that { isEqualTo(nonPaddedHexString) }
-                    }
-                }
+                test { expecting { map { it.toDecimalString() } } that { isEqualTo(decBytes) } }
+
+                test { expecting { map { it.toHexadecimalString() } } that { isEqualTo(paddedHexBytes) } }
+                test { expecting { map { it.toHexadecimalString(pad = true) } } that { isEqualTo(paddedHexBytes) } }
+                test { expecting { map { it.toHexadecimalString(pad = false) } } that { isEqualTo(nonPaddedHexBytes) } }
             }
+
+            ubytes.toUByteArray() testAll {
+                test { expecting { toBinaryString() } that { isEqualTo(paddedBinString) } }
+                test { expecting { toBinaryString(pad = true) } that { isEqualTo(paddedBinString) } }
+                test { expecting { toBinaryString(pad = false) } that { isEqualTo(nonPaddedBinString) } }
+
+                test { expecting { toDecimalString() } that { isEqualTo(decString) } }
+
+                test { expecting { toHexadecimalString() } that { isEqualTo(paddedHexString) } }
+                test { expecting { toHexadecimalString(pad = true) } that { isEqualTo(paddedHexString) } }
+                test { expecting { toHexadecimalString(pad = false) } that { isEqualTo(nonPaddedHexString) } }
+            }
+        }
 
         @TestFactory
         fun `should convert large numbers`() = bigNumbers.toList().testEach { (ubytes: UByteArray, strings: Triple<String, String, String>) ->
@@ -168,6 +152,99 @@ class BytesKtTest {
                 expect.that { isEqualTo(bigIntegerOfDecimalString(strings.second)) }
                 expect.that { isEqualTo(bigIntegerOfHexadecimalString(strings.third)) }
             }
+        }
+    }
+
+
+    @Nested
+    inner class BinaryRepresentation {
+
+        private val binString128 = TWO_POW_128_BIN_STRING
+        private val binString129 = TWO_POW_128_PLUS_1_BIN_STRING
+
+        private val bytes128 = TWO_POW_128_BYTES
+        private val bytes129 = TWO_POW_128_PLUS_1_BYTES
+
+        private val ubytes128 = TWO_POW_128_UBYTES
+        private val ubytes129 = TWO_POW_128_PLUS_1_UBYTES
+
+        private val bigInt128 = BigInteger.TWO.pow(128).dec()
+        private val bigInt129 = BigInteger.TWO.pow(128)
+
+        @TestFactory
+        fun `from 128 Bits binary string`() = test(binString128) {
+            expect { this }.that { isEqualTo(binString128) }
+            expect { convert.asBinaryString.toByteArray() }.that { isEqualTo(bytes128) }
+            expect { byteArrayOfBinaryString(this) }.that { isEqualTo(bytes128) }
+            expect { convert.asBinaryString.toByteArray().toUByteArray() }.that { isEqualToUnsigned(ubytes128) }
+            expect { ubyteArrayOfBinaryString(this) }.that { isEqualToUnsigned(ubytes128) }
+            expect { convert.asBinaryString.toBigInteger() }.that { isEqualTo(bigInt128) }
+            expect { bigIntegerOfBinaryString(this) }.that { isEqualTo(bigInt128) }
+        }
+
+        @TestFactory
+        fun `from 129 Bits binary string`() = test(binString129) {
+            expect { this }.that { isEqualTo(binString129) }
+            expect { convert.asBinaryString.toByteArray() }.that { isEqualTo(bytes129) }
+            expect { byteArrayOfBinaryString(this) }.that { isEqualTo(bytes129) }
+            expect { convert.asBinaryString.toByteArray().toUByteArray() }.that { isEqualToUnsigned(ubytes129) }
+            expect { ubyteArrayOfBinaryString(this) }.that { isEqualToUnsigned(ubytes129) }
+            expect { convert.asBinaryString.toBigInteger() }.that { isEqualTo(bigInt129) }
+            expect { bigIntegerOfBinaryString(this) }.that { isEqualTo(bigInt129) }
+        }
+
+        @TestFactory
+        fun `from 128 Bits byte array`() = test(bytes128) {
+            expect { convert.toBinaryString(padding = false) }.that { isEqualTo(binString128) }
+            expect { convert.toBinaryString(padding = true) }.that { isEqualTo(binString128) }
+            expect { this }.that { isEqualTo(bytes128) }
+            expect { convert.toUByteArray() }.that { isEqualToUnsigned(ubytes128) }
+            expect { convert.toBigInteger() }.that { isEqualTo(bigInt128) }
+        }
+
+        @TestFactory
+        fun `from 129 Bits byte array`() = test(bytes129) {
+            expect { convert.toBinaryString(padding = false) }.that { isEqualTo(binString129.substring(7)) }
+            expect { convert.toBinaryString(padding = true) }.that { isEqualTo(binString129) }
+            expect { this }.that { isEqualTo(bytes129) }
+            expect { convert.toUByteArray() }.that { isEqualToUnsigned(ubytes129) }
+            expect { convert.toBigInteger() }.that { isEqualTo(bigInt129) }
+        }
+
+        @TestFactory
+        fun `from 128 Bits unsigned byte array`() = test(ubytes128) {
+            expect { convert.toBinaryString(padding = false) }.that { isEqualTo(binString128) }
+            expect { convert.toBinaryString(padding = true) }.that { isEqualTo(binString128) }
+            expect { convert.toByteArray() }.that { isEqualTo(bytes128) }
+            expect { this }.that { isEqualToUnsigned(ubytes128) }
+            expect { convert.toBigInteger() }.that { isEqualTo(bigInt128) }
+        }
+
+        @TestFactory
+        fun `from 129 Bits unsigned byte array`() = test(ubytes129) {
+            expect { convert.toBinaryString(padding = false) }.that { isEqualTo(binString129.substring(7)) }
+            expect { convert.toBinaryString(padding = true) }.that { isEqualTo(binString129) }
+            expect { convert.toByteArray() }.that { isEqualTo(bytes129) }
+            expect { this }.that { isEqualToUnsigned(ubytes129) }
+            expect { convert.toBigInteger() }.that { isEqualTo(bigInt129) }
+        }
+
+        @TestFactory
+        fun `from 128 Bits big integer`() = test(bigInt128) {
+            expect { convert.asUnsigned.toBinaryString(padding = false) }.that { isEqualTo(binString128) }
+            expect { convert.asUnsigned.toBinaryString(padding = true) }.that { isEqualTo(binString128) }
+            expect { convert.asUnsigned.toByteArray() }.that { contentEquals(bytes128) }
+            expect { convert.asUnsigned.toUByteArray() }.that { isEqualToUnsigned(ubytes128) }
+            expect { this }.that { isEqualTo(bigInt128) }
+        }
+
+        @TestFactory
+        fun `from 129 Bits big integer`() = test(bigInt129) {
+            expect { convert.asUnsigned.toBinaryString(padding = false) }.that { isEqualTo(binString129.substring(7)) }
+            expect { convert.asUnsigned.toBinaryString(padding = true) }.that { isEqualTo(binString129) }
+            expect { convert.asUnsigned.toByteArray() }.that { contentEquals(bytes129) }
+            expect { convert.asUnsigned.toUByteArray() }.that { isEqualToUnsigned(ubytes129) }
+            expect { this }.that { isEqualTo(bigInt129) }
         }
     }
 
@@ -365,10 +442,10 @@ class BytesKtTest {
  *
  * @param expected the expected value.
  */
-infix fun Assertion.Builder<UByteArray>.isEqualToUnsigned(expected: UByteArray?): Assertion.Builder<UByteArray> =
+infix fun Assertion.Builder<UByteArray>.isEqualToUnsigned(expected: UByteArray): Assertion.Builder<UByteArray> =
     assert("is equal to %s", expected) {
         when (it) {
             expected -> pass()
-            else -> if (expected is UByteArray && it.contentEquals(expected)) pass() else fail(actual = it)
+            else -> if (it.contentEquals(expected)) pass() else fail(actual = it)
         }
     }

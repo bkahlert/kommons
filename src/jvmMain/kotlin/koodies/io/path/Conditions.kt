@@ -1,6 +1,7 @@
 package koodies.io.path
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import koodies.math.BigDecimal
+import koodies.math.BigDecimalConstants
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -33,7 +34,7 @@ public fun Path.isEmpty(vararg options: LinkOption): Boolean {
 public fun Path.isNotEmpty(vararg options: LinkOption): Boolean {
     requireExists(*options)
     return when {
-        isRegularFile(*options) -> getSize().bytes > BigDecimal.ZERO
+        isRegularFile(*options) -> getSize().bytes > BigDecimalConstants.ZERO
         isDirectory(*options) -> listDirectoryEntries().any()
         else -> throw IllegalArgumentException("$this must either be a file or a directory.")
     }

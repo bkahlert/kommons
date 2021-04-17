@@ -150,6 +150,7 @@ class RequireKtTest {
 
         @Nested
         inner class WithDirectory {
+            
             @Test
             fun `should throw on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 expectCatching { randomDirectory().requireNotEmpty() }.isFailure().isA<NoSuchFileException>()
@@ -171,9 +172,8 @@ class RequireKtTest {
         @Test
         fun `should throw in different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             @Suppress("BlockingMethodInNonBlockingContext")
-            expectCatching {
-                Files.createSymbolicLink(randomDirectory().randomPath(), randomFile()).requireNotEmpty()
-            }.isFailure().isA<NoSuchFileException>()
+            expectCatching { Files.createSymbolicLink(randomDirectory().randomPath(), randomFile()).requireNotEmpty() }
+                .isFailure().isA<NoSuchFileException>()
         }
     }
 }

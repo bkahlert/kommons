@@ -1,14 +1,17 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.integer.toBigInteger
+import koodies.math.BigInteger
+import koodies.math.BigIntegerConstants
+import koodies.math.plus
+import koodies.math.toBigInteger
+import koodies.math.toUByteArray
 import koodies.net.IPv6Notation.format
-import koodies.number.bigIntegerOf
-import koodies.number.bigIntegerOfHexadecimalString
-import koodies.number.padStart
-import koodies.number.toHexadecimalString
-import koodies.number.toUBytes
-import koodies.number.trim
+import koodies.math.bigIntegerOf
+import koodies.math.bigIntegerOfHexadecimalString
+import koodies.math.padStart
+import koodies.math.toHexadecimalString
+import koodies.math.toUBytes
+import koodies.math.trim
 import koodies.regex.countMatches
 import koodies.unit.bits
 
@@ -43,11 +46,11 @@ public class IPv6Address private constructor(override val value: BigInteger, ove
     public companion object : IPAddress.Version by VersionImpl(6, 128.bits) {
         private const val sizeHextets = 8
 
-        public val MIN_VALUE: BigInteger = BigInteger.ZERO
+        public val MIN_VALUE: BigInteger = BigIntegerConstants.ZERO
         public val MAX_VALUE: BigInteger = bigIntegerOfHexadecimalString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
 
         public val DEFAULT_ROOT: IPv6Address = IPv6Address(MIN_VALUE)
-        public val LOOPBACK: IPv6Address = IPv6Address(MIN_VALUE + 1)
+        public val LOOPBACK: IPv6Address = IPv6Address(MIN_VALUE + BigIntegerConstants.ONE)
         public val RANGE: IPv6Range = DEFAULT_ROOT..IPv6Address(MAX_VALUE)
 
         public fun parse(ipAddress: String): IPv6Address {

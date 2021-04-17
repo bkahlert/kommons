@@ -2,12 +2,13 @@
 
 package koodies.unit
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import koodies.number.toBigDecimal
-import koodies.unit.UnitPrefix.Companion.DECIMAL_MODE
+import koodies.math.BigDecimal
+import koodies.math.BigDecimalConstants
+import koodies.math.pow
+import koodies.math.precision
+import koodies.math.scale
+import koodies.unit.DecimalPrefix.kilo
 import kotlin.math.absoluteValue
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 /**
  * Metric prefixes in resolutions dating from 1960 to 1991 for use with the International System of Units (SI)
@@ -17,8 +18,12 @@ import kotlin.reflect.KProperty
  */
 public enum class DecimalPrefix(
     override val symbol: String,
-    override val exponent: Int,
-) : UnitPrefix, ReadOnlyProperty<Number, BigDecimal> {
+    /**
+     * Assuming this unit prefix is of the form `[radix]^[exponent]` (e.g. [kilo] ≙ `10³`),
+     * then this field denotes the exponent (e.g. `3` for [kilo]).
+     */
+    private val exponent: Int,
+) : UnitPrefix {
 
     /**
      * Yotta is a [UnitPrefix] in the metric system denoting multiplication by 10²⁴.
@@ -121,13 +126,24 @@ public enum class DecimalPrefix(
     yocto("y", -24),
     ;
 
-    override val radix: BigDecimal get() = BigDecimal.TEN
-    override val radixExponent: Int = 3
-    override val factor: BigDecimal =
-        if (exponent > 0) radix.pow(exponent.absoluteValue)
-        else BigDecimal.ONE.divide(radix.pow(exponent.absoluteValue), DECIMAL_MODE)
+    /**
+     * Assuming this unit prefix is of the form `[radix]^[exponent]` (e.g. [kilo] ≙ `10³`),
+     * then this field denotes the basis (e.g. `10` for [kilo]).
+     */
+    public val radix: BigDecimal = BigDecimalConstants.TEN
 
-    override fun getValue(thisRef: Number, property: KProperty<*>): BigDecimal = thisRef.toBigDecimal() * factor
+    override val baseFactor: BigDecimal = radix.pow(3)
+
+    /**
+     * Assuming this unit prefix is of the form `[radix]^[exponent]` (e.g. [kilo] ≙ `10³`),
+     * then this field is result of the formula (e.g. `1000` for [kilo]).
+     */
+    public override val factor: BigDecimal by lazy { radix.pow(exponent, exponent.absoluteValue + 1) }
+
+    override fun toString(): String = "${name.padStart(5)} ($symbol) ≔ " +
+        "$radix^${exponent.toString().padStart(3)} = " +
+        "${factor.toString().padStart(26)} (scale: ${factor.scale.toString().padStart(2)}, " +
+        "precision: ${factor.precision.toString().padStart(3)})"
 }
 
 /**

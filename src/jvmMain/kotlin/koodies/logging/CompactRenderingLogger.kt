@@ -3,8 +3,8 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
-import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.withTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -43,7 +43,7 @@ public class CompactRenderingLogger(
             loggingResult -> {
                 val paddingAndMessages =
                     messages.joinToString(" ") { "$it".withoutTrailingLineSeparator }.let { if (it.isNotBlank()) " $it" else "" }
-                logWithLock { caption.bold() + paddingAndMessages + " " + block().toString().withTrailingLineSeparator() }
+                logWithLock { caption.ansi.bold.done + paddingAndMessages + " " + block().toString().withTrailingLineSeparator() }
             }
             else -> {
                 messages.add(block())

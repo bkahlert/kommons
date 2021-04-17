@@ -1,6 +1,8 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
+import koodies.math.BigInteger
+import koodies.math.dec
+import koodies.math.inc
 
 public class IPv6Subnet private constructor(override val value: BigInteger, override val prefixLength: Int) : IPSubnet<IPv6Address> {
     override val maxLength: Int = IPv6Address.bitCount

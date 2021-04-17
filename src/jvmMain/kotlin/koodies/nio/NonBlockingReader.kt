@@ -13,7 +13,6 @@ import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.emoji
 import koodies.text.quoted
 import koodies.time.Now
 import java.io.BufferedReader
@@ -23,6 +22,7 @@ import java.lang.System.currentTimeMillis
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 import kotlin.time.seconds
+import java.io.Serializable
 
 /**
  * Non-blocking [Reader] with Unicode code support which is suitable to
@@ -147,19 +147,23 @@ public class NonBlockingReader(
         reader = null
     }
 
-    override fun toString(): String = listOf(
-        "unfinishedLine" to unfinishedLine.debug,
-        "complete?" to "${linePotentiallyComplete.debug}/${lineComplete.debug}",
-        "lastRead" to "${lastRead.debug} (␍? ${(lastRead == CR).asEmoji})",
-        "justRead" to "${justRead.debug} (␊? ${(justRead == LF).debug})",
-        "␍␊?" to justReadCRLF.debug,
-        "lastReadLine" to lastReadLine.debug,
-        "lastReadLineDueTimeout?" to lastReadLineDueTimeout.debug,
-        "timeout" to timeout,
-        "logger" to logger,
-        "reader" to "…",
-    ).joinToString(prefix = "NonBlockingReader(",
-        separator = "; ",
-        postfix = ")") { "${it.first}: ${it.second}" }
+    override fun toString(): String {
+        val x: Serializable
+        val y: Serializable
+        return listOf<Pair<String,Any?>>(
+            "unfinishedLine" to unfinishedLine.debug,
+            "complete?" to "${linePotentiallyComplete.debug}/${lineComplete.debug}",
+            "lastRead" to "${lastRead.debug} (␍? ${(lastRead == CR).asEmoji})",
+            "justRead" to "${justRead.debug} (␊? ${(justRead == LF).debug})",
+            "␍␊?" to justReadCRLF.debug,
+            "lastReadLine" to lastReadLine.debug,
+            "lastReadLineDueTimeout?" to lastReadLineDueTimeout.debug,
+            "timeout" to timeout,
+            "logger" to logger,
+            "reader" to "…",
+        ).joinToString(prefix = "NonBlockingReader(",
+            separator = "; ",
+            postfix = ")") { "${it.first}: ${it.second}" }
+    }
 }
 

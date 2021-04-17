@@ -1,25 +1,113 @@
 package koodies.regex
 
 import koodies.debug.debug
-import koodies.test.DynamicTestsBuilder
+import koodies.test.DeprecatedDynamicTestsBuilder
 import koodies.test.test
+import koodies.test.testEach
+import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics.formattedAs
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import strikt.assertions.isTrue
 import strikt.assertions.matches
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class RegularExpressionsTest {
+
+    @Nested
+    inner class RegexOperations {
+
+        @Nested
+        inner class IsGrouped {
+
+            @TestFactory
+            fun `should return false if blank`() = testEach(
+                "",
+                " ",
+                "   "
+            ) {
+                test2 { expecting { Regex(this).isGrouped } that { isFalse() } }
+            }
+
+            @TestFactory
+            fun `should return false if not all is grouped`() = testEach(
+                "a()",
+                "()b"
+            ) {
+                test2 { expecting { Regex(this).isGrouped } that { isFalse() } }
+            }
+
+            @TestFactory
+            fun `should return false if multiple groups`() = testEach(
+                "()()",
+                "(a)(b)",
+                "(())()",
+                "(a(b)c)(d)"
+            ) {
+                test2 { expecting { Regex(this).isGrouped } that { isFalse() } }
+            }
+
+            @TestFactory
+            fun `should return true if single outer group`() = testEach(
+                "()",
+                "(a)",
+                "(())",
+                "(a())",
+                "(()a)"
+            ) {
+                test2 { expecting { Regex(this).isGrouped } that { isTrue() } }
+            }
+
+            @TestFactory
+            fun `should ignore escaped brackets`() = testEach(
+                "(\\()" to true,
+                "(\\(a)" to true,
+                "(\\)\\(\\))" to true,
+                "()\\)" to false,
+                "\\((())" to false,
+            ) { (expr, expected) ->
+                test2 { expecting { Regex(expr).isGrouped } that { isEqualTo(expected) } }
+            }
+        }
+
+        @Nested
+        inner class Group {
+
+            @Test
+            fun `should group named`() {
+                expectThat(Regex("abc").group("name")).toStringIsEqualTo("(?<name>abc)")
+            }
+
+            @Test
+            fun `should group anonymous`() {
+                expectThat(Regex("abc").group()).toStringIsEqualTo("(?:abc)")
+                expectThat(Regex("abc").grouped).toStringIsEqualTo("(?:abc)")
+            }
+
+            @TestFactory
+            fun `should not add anonymous group if grouped`() = testEach(
+                Regex("(abc)"),
+                Regex("(?:abc)"),
+                Regex("(?<name>abc)"),
+            ) { regex ->
+                test2 { expecting { group() } that { toStringIsEqualTo(regex.pattern) } }
+                test2 { expecting { grouped } that { toStringIsEqualTo(regex.pattern) } }
+            }
+        }
+    }
 
     private data class MatchExpectations(val matchingInput: List<String>, val nonMatchingInput: List<String>)
     private data class SplitExpectations(val splitable: List<Pair<String, List<String>>>, val nonSplitable: List<String>)
@@ -74,7 +162,7 @@ class RegularExpressionsTest {
                 "crap",
             )),
 
-        RegularExpressions.fullyClassifiedClassNameRegex to MatchExpectations(
+        RegularExpressions.classRegex("x") to MatchExpectations(
             matchingInput = listOf(
                 "ClassName",
                 "package.ClassName",
@@ -84,7 +172,7 @@ class RegularExpressionsTest {
                 "ClassName.",
                 "package..ClassName",
             )),
-        RegularExpressions.ignoreArgsLambdaRegex to MatchExpectations(
+        RegularExpressions.lambdaRegex("x") to MatchExpectations(
             matchingInput = listOf(
                 "() -> Unit",
                 "() -> package.Unit",
@@ -119,7 +207,7 @@ class RegularExpressionsTest {
         @Nested
         inner class IgnoreArgs {
 
-            fun DynamicTestsBuilder<Regex>.testMatch(
+            fun DeprecatedDynamicTestsBuilder<Regex>.testMatchesFields(
                 text: String,
                 receiverPackage: String?,
                 receiverClass: String?,
@@ -127,39 +215,40 @@ class RegularExpressionsTest {
                 returnValuePackage: String?,
                 returnValueClass: String?,
             ) {
-                test {
-                    expect { matchEntire(text) }.that {
+                test2 {
+                    expecting { matchEntire(text) }.that {
                         isNotNull().and {
-                            get("field receiverPackage") { get("receiverPackage") }.isEqualTo(receiverPackage)
-                            get("field receiverClass") { get("receiverClass") }.isEqualTo(receiverClass)
-                            get("field parameterList") { get("parameterList") }.isEqualTo(parameterList)
-                            get("field returnValuePackage") { get("returnValuePackage") }.isEqualTo(returnValuePackage)
-                            get("field returnValueClass") { get("returnValueClass") }.isEqualTo(returnValueClass)
+                            get("field receiverPackage") { get("lambdaIreceiverIpkg") }.isEqualTo(receiverPackage)
+                            get("field receiverClass") { get("lambdaIreceiverItype") }.isEqualTo(receiverClass)
+                            get("field parameterList") { get("lambdaIparams") }.isEqualTo(parameterList)
+                            get("field returnValuePackage") { get("lambdaIreturnIpkg") }.isEqualTo(returnValuePackage)
+                            get("field returnValueClass") { get("lambdaIreturnItype") }.isEqualTo(returnValueClass)
                         }
                     }
                 }
             }
 
+            @Suppress("NonAsciiCharacters")
             @TestFactory
-            fun `should match lambda with no args`() = test(RegularExpressions.ignoreArgsLambdaRegex) {
+            fun `should match lambda with …`() = test(RegularExpressions.lambdaRegex("lambda")) {
                 listOf(
                     "no arg" to "",
                     "one arg" to "Int",
                     "named arg" to "name:Int",
                     "lambda arg" to "package.String.(package.Int) -> package.Float",
                 ).forEach { (name, argList) ->
-                    group(name) {
-                        testMatch("($argList) -> Unit",
+                    group("… $name: ${argList.formattedAs.unit.ansiRemoved}") {
+                        testMatchesFields("($argList) -> Unit",
                             null, null, argList, null, "Unit")
-                        testMatch("($argList) -> package.Unit",
+                        testMatchesFields("($argList) -> package.Unit",
                             null, null, argList, "package", "Unit")
-                        testMatch("($argList) -> package1.PACKAGE2.Unit",
+                        testMatchesFields("($argList) -> package1.PACKAGE2.Unit",
                             null, null, argList, "package1.PACKAGE2", "Unit")
-                        testMatch("ClassName.($argList) -> Unit",
+                        testMatchesFields("ClassName.($argList) -> Unit",
                             null, "ClassName", argList, null, "Unit")
-                        testMatch("package.ClassName.($argList) -> package.Unit",
+                        testMatchesFields("package.ClassName.($argList) -> package.Unit",
                             "package", "ClassName", argList, "package", "Unit")
-                        testMatch("package1.PACKAGE2.ClassName.($argList) -> package1.PACKAGE2.Unit",
+                        testMatchesFields("package1.PACKAGE2.ClassName.($argList) -> package1.PACKAGE2.Unit",
                             "package1.PACKAGE2", "ClassName", argList, "package1.PACKAGE2", "Unit")
                     }
                 }
@@ -248,4 +337,3 @@ val Assertion.Builder<MatchResult>.groupValues
 
 val Assertion.Builder<MatchGroup?>.value
     get() = get("value %s") { this?.value }
-

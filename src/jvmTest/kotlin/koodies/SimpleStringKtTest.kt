@@ -1,6 +1,10 @@
 package koodies
 
+import koodies.math.BigDecimal
+import koodies.math.BigDecimalConstants
+import koodies.math.BigInteger
 import koodies.test.testEach
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -58,16 +62,16 @@ class SimpleStringKtTest {
         inner class RepresentingClass {
 
             @TestFactory
-            fun `should return class name`() = listOf(
+            fun `should return class name`() = testEach(
                 "koodies.SimpleStringKtTest" to "SimpleStringKtTest",
                 "koodies.SimpleStringKtTest\$ForKClass" to "SimpleStringKtTest.ForKClass",
                 "koodies.SimpleStringKtTest\$Companion" to "SimpleStringKtTest.Companion",
                 "koodies.SimpleStringKtTest\$ForKClass\$should return anonymous class name\$1" to "SimpleStringKtTest.ForKClass.should return anonymous class name.1",
                 "koodies.SimpleStringKtTest\$ForKClass\$should return lambda class name\$lambda\$1" to "SimpleStringKtTest.ForKClass.should return lambda class name.lambda.1",
                 "class koodies.docker.DockerProcessTest\$Lifecycle\$IsRunning" to "DockerProcessTest.Lifecycle.IsRunning",
-            ).testEach { (classString, expected) ->
-                test {
-                    expectThat(classString.toSimpleString()).ansiRemoved.isEqualTo(expected)
+            ) { (classString, expected) ->
+                test2 {
+                    expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
                 }
             }
         }
@@ -77,17 +81,18 @@ class SimpleStringKtTest {
     inner class ToSimpleClassName {
 
         @TestFactory
-        fun `should return class name`() = listOf(
+        fun `should return class name`() = testEach(
             toSimpleClassName() to "SimpleStringKtTest.ToSimpleClassName",
             this::class.toSimpleClassName() to "KClassImpl",
             null.toSimpleClassName() to "␀",
-        ).testEach { (classString, expected) ->
-            test {
-                expectThat(classString.toSimpleString()).ansiRemoved.isEqualTo(expected)
+        ) { (classString, expected) ->
+            test2 {
+                expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
             }
         }
     }
 
+    @Suppress("RedundantNullableReturnType")
     @Nested
     inner class ForLambdas {
         private inner class Receiver
@@ -95,7 +100,9 @@ class SimpleStringKtTest {
         private val returningLambda: () -> Int = { 42 }
         private val lambdaWithReceiver: Receiver.() -> Int = { 42 }
         private val lambdaWithArgument: (Float) -> Int = { _ -> 42 }
-        private val lambdaWithArguments: (Int, Float) -> Int = { _, _ -> 42 }
+        private val lambdaWithArguments: (Float, Double) -> Int = { _, _ -> 42 }
+        private val optionalLambda: ((Float?, Double?) -> Int?)? = { _, _ -> 42 }
+        private val lambdaWithTypeAliasComments: ((BigInteger?, BigDecimalConstants?) -> BigDecimal?)? = { _, _ -> BigDecimalConstants.ONE }
 
         @Test
         fun `should format returning lambdas`() {
@@ -125,7 +132,30 @@ class SimpleStringKtTest {
         fun `should truncate lambdas with more arguments`() {
             expectThat(lambdaWithArguments.toSimpleString()) {
                 isNotEqualTo(lambdaWithArguments.toString())
-                isEqualTo("(Int, ⋯) -> Int")
+                isEqualTo("(Float, ⋯) -> Int")
+            }
+        }
+
+        @Test
+        fun `should ignore nullable flag`() {
+            expectThat(optionalLambda.toSimpleString()) {
+                isNotEqualTo(optionalLambda.toString())
+                isEqualTo("(Float, ⋯) -> Int")
+            }
+        }
+
+        @Test
+        fun `should remove type alias comments`() {
+            expectThat(lambdaWithTypeAliasComments.toSimpleString()) {
+                isNotEqualTo(lambdaWithTypeAliasComments.toString())
+                isEqualTo("(BigInteger, ⋯) -> BigDecimal")
+            }
+        }
+
+        @Test
+        fun `should remove type alias comments2`() {
+            expectThat("kotlin.ByteArray /* = java.math.BigInteger */.() -> koodies.math.BigInteger /* = java.math.BigInteger */".toSimpleString()) {
+                isEqualTo("ByteArray.() -> BigInteger")
             }
         }
     }

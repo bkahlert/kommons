@@ -1,14 +1,17 @@
 package koodies.exception
 
-import koodies.exec.Process
 import koodies.debug.replaceNonPrintableCharacters
+import koodies.exec.Process
+import koodies.math.toHexadecimalString
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.withoutSuffix
 import java.nio.file.Path
 
+// TODO merge with simpleString
 public fun Any?.toCompactString(): String = when (this) {
     is Path -> toUri().toString()
+    is ByteArray -> toHexadecimalString()
     is Array<*> -> toList().toCompactString()
     is Iterable<*> -> joinToString(prefix = "[", postfix = "]") { it.toCompactString() }
     is Process -> kotlin.runCatching { state.status }.fold({ it }, { it.toCompactString() })

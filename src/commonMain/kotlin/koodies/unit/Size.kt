@@ -1,13 +1,24 @@
 package koodies.unit
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.decimal.toBigDecimal
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.number.formatScientifically
-import koodies.number.formatToExactDecimals
-import koodies.number.toBigDecimal
-import koodies.text.CharRanges
-import koodies.text.quoted
+import koodies.math.BigDecimal
+import koodies.math.BigDecimalConstants
+import koodies.math.BigInteger
+import koodies.math.BigIntegerConstants
+import koodies.math.absoluteValue
+import koodies.math.dec
+import koodies.math.div
+import koodies.math.isZero
+import koodies.math.minus
+import koodies.math.plus
+import koodies.math.shl
+import koodies.math.times
+import koodies.math.toAtMostDecimalsString
+import koodies.math.toBigDecimal
+import koodies.math.toBigInteger
+import koodies.math.toScientificString
+import koodies.math.toString
+import koodies.math.unaryMinus
+import koodies.text.Semantics.formattedAs
 import kotlin.reflect.KClass
 
 /**
@@ -26,10 +37,10 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
      * E.g. `2.bytes.maxLengthOfRepresentationToBaseOf(8) == 4`
      * which is the max length of two bytes represented in octal notation.
      */
-    public fun maxLengthOfRepresentationToBaseOf(base: Int): Int = (BigInteger.TWO shl bits.dec().intValue()).dec().toString(base).length
+    public fun maxLengthOfRepresentationToBaseOf(base: Int): Int = (BigIntegerConstants.TWO shl bits.dec().toInt()).dec().toString(base).length
 
     public companion object {
-        public val ZERO: Size = Size(BigDecimal.ZERO)
+        public val ZERO: Size = Size(BigDecimalConstants.ZERO)
         public val supportedPrefixes: Map<KClass<out UnitPrefix>, List<UnitPrefix?>> = mapOf(
             BinaryPrefix::class to listOf(
                 BinaryPrefix.Yobi,
@@ -79,9 +90,9 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
         public fun precision(value: BigDecimal, unit: UnitPrefix?): Int = when (unit) {
             null -> 0
             else -> when {
-                value < BigDecimal.ONE -> 3
-                value < BigDecimal.TEN -> 2
-                value < BigDecimal.parseString("100", 10) -> 1
+                value <= BigDecimalConstants.ONE -> 3
+                value <= BigDecimalConstants.TEN -> 2
+                value <= BigDecimalConstants.HUNDRED -> 1
                 else -> 0
             }
         }
@@ -113,30 +124,27 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
      *
      * @return the value of size in the automatically determined [UnitPrefix], e.g. 42.2 MB.
      */
-    public inline fun <reified T : UnitPrefix> toString(prefixType: KClass<out UnitPrefix> = T::class, decimals: Int? = null): String {
+    public inline fun <reified T : UnitPrefix> toString(prefixType: KClass<T> = T::class, decimals: Int? = null): String {
+        if (bytes == BigDecimalConstants.ZERO) return "0 $SYMBOL"
+
         val prefixes: List<UnitPrefix?>? = supportedPrefixes[prefixType]
         require(prefixes != null) { "$prefixType is not supported. Valid options are: " + supportedPrefixes.keys }
-        return when (bytes) {
-            BigDecimal.ZERO -> "0 $SYMBOL"
-            else -> {
-                val absNs = bytes.abs()
-                var scientific = false
-                val index = prefixes.dropLastWhile { absNs >= it.factor }.size
-                val millionish = prefixes.find { it != null }
-                    ?.let { unitPrefix -> unitPrefix.radix.pow(2 * unitPrefix.radixExponent) }
-                    ?: error("At least one supported unit prefix required.")
-                if (index == 0 && absNs >= prefixes.first().factor * millionish) scientific = true
-                val prefix = prefixes.getOrNull(index)
-                val value = bytes.divide(prefix.factor)
-                val formattedValue = when {
-                    scientific -> value.formatScientifically()
-                    else -> {
-                        value.formatToExactDecimals(decimals ?: precision(value.abs(), prefix))
-                    }
-                }
-                "$formattedValue ${prefix.getSymbol<Size>()}$SYMBOL"
-            }
+
+        val absoluteValue = bytes.absoluteValue
+        val prefixesGreaterThanOrEqualRequestedPrefix = prefixes.dropLastWhile { absoluteValue >= it.factor }.size
+        val scientific = run {
+            val millionish = prefixes.find { it != null }
+                ?.let { unitPrefix -> unitPrefix.baseFactor * unitPrefix.baseFactor }
+                ?: error("At least one supported unit prefix required.")
+            prefixesGreaterThanOrEqualRequestedPrefix == 0 && absoluteValue >= prefixes.first().factor.times(millionish, 0)
         }
+        val prefix = prefixes.getOrNull(prefixesGreaterThanOrEqualRequestedPrefix)
+        val value = bytes.div(prefix.factor, 128)
+        val formattedValue = when {
+            scientific -> value.toScientificString()
+            else -> value.toAtMostDecimalsString(decimals ?: precision(value.absoluteValue, prefix))
+        }
+        return "$formattedValue ${prefix.getSymbol<Size>()}$SYMBOL"
     }
 
     /**
@@ -149,32 +157,33 @@ public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
      */
     public fun toString(unitPrefix: UnitPrefix, decimals: Int = 0): String {
         require(decimals >= 0) { "decimals must be not negative, but was $decimals" }
-        val number = bytes.divide(unitPrefix.factor)
+        val value: BigDecimal = bytes / unitPrefix.factor
         val upperDetailLimit = 1e14.toBigDecimal()
         return when {
-            number.abs() < upperDetailLimit -> number.formatToExactDecimals(decimals.coerceAtMost(12))
-            else -> BigDecimal.fromBigDecimal(number, UnitPrefix.DECIMAL_MODE).roundToDigitPosition(3).formatScientifically()
+            value.absoluteValue < upperDetailLimit -> value.toAtMostDecimalsString(decimals.coerceAtMost(12))
+            else -> value.toScientificString()
         } + " " + unitPrefix.getSymbol<Size>() + SYMBOL
     }
 
     override fun compareTo(other: Size): Int = this.bytes.compareTo(other.bytes)
+
     public operator fun unaryPlus(): Size = this
-    public operator fun unaryMinus(): Size = this * -BigDecimal.ONE
+    public operator fun unaryMinus(): Size = this * -BigDecimalConstants.ONE
 
     public operator fun plus(other: BigDecimal): Size = Size(bytes + other)
-    public operator fun plus(other: Number): Size = this + other.toBigDecimal()
+    public operator fun plus(other: Number): Size = this + other.toDouble().toBigDecimal()
     public operator fun plus(other: Size): Size = this + other.bytes
 
     public operator fun minus(other: BigDecimal): Size = Size(bytes - other)
-    public operator fun minus(other: Number): Size = this - other.toBigDecimal()
+    public operator fun minus(other: Number): Size = this - other.toDouble().toBigDecimal()
     public operator fun minus(other: Size): Size = this - other.bytes
 
     public operator fun times(factor: BigDecimal): Size = (factor * bytes).bytes
-    public operator fun times(factor: Number): Size = this * factor.toBigDecimal()
+    public operator fun times(factor: Number): Size = this * factor.toDouble().toBigDecimal()
 
-    public operator fun div(other: BigDecimal): Size = Size(bytes.div(other))
-    public operator fun div(other: Number): Size = this / other.toBigDecimal()
-    public operator fun div(other: Size): BigDecimal = bytes.div(other.bytes)
+    public operator fun div(other: BigDecimal): Size = Size(bytes / other)
+    public operator fun div(other: Number): Size = this / other.toDouble().toBigDecimal()
+    public operator fun div(other: Size): BigDecimal = bytes / other.bytes
 }
 
 /**
@@ -197,7 +206,6 @@ public inline fun <T> Sequence<T>.sumBy(selector: (T) -> Size): Size {
  */
 public fun CharSequence.toSize(): Size = parse()
 
-private fun Char.isDigit() = this in CharRanges.Numeric
 
 /**
  * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
@@ -206,49 +214,43 @@ private fun Char.isDigit() = this in CharRanges.Numeric
  * either with or without a space between value and unit are supported.
  */
 public fun CharSequence.parse(): Size {
-    val trimmed = trim()
-    val unitString = trimmed.takeLastWhile { !it.isDigit() && !it.isWhitespace() }
-    val valueString = trimmed.dropLast(unitString.length).trim().toString()
-    val value = valueString.toBigDecimal()
-    return unitString.removeSuffix(Size.SYMBOL).let { it ->
-        when {
-            it.isBlank() -> value.bytes
-            it == "K" -> (value * BinaryPrefix.Kibi.factor).bytes
-            else -> Size.supportedPrefixes.flatMap { prefix -> prefix.value }.find { unit -> unit?.symbol == it }?.let { (value * it.factor).bytes }
-        }
-    } ?: throw IllegalArgumentException("${unitString.quoted} is no valid size unit like MB or GiB.")
+    val (value, unit) = UnitPrefix.parse(this)
+    require(unit?.equals(Size.SYMBOL) != false) { "${unit.formattedAs.input} is no valid size unit like MB or GiB." }
+    return value.bytes
 }
 
 /**
  * Contains the equivalent value as [bytes].
  */
-public val Number.bytes: Size get() = if (this == 0) Size.ZERO else Size(toBigDecimal())
-
-
-/**
- * Contains the equivalent value as [bytes].
- */
-public val BigDecimal.bytes: Size get() = if (this == BigDecimal.ZERO) Size.ZERO else Size(this)
-
+public val Number.bytes: Size
+    get() = if (isZero) Size.ZERO else Size(toDouble().toBigDecimal())
 
 /**
  * Contains the equivalent value as [bytes].
  */
-public val BigInteger.bytes: Size get() = if (this == BigInteger.ZERO) Size.ZERO else Size(toString(10).toBigDecimal(10))
-
-
-/**
- * Contains the equivalent value as [bytes].
- */
-public val Number.bits: Size get() = if (this == 0) Size.ZERO else toBigDecimal().bits
+public val BigDecimal.bytes: Size
+    get() = if (isZero) Size.ZERO else Size(this)
 
 /**
  * Contains the equivalent value as [bytes].
  */
-public val BigDecimal.bits: Size get() = if (this == BigDecimal.ZERO) Size.ZERO else Size(this.divide(Byte.SIZE_BITS.toBigDecimal()))
+public val BigInteger.bytes: Size
+    get() = if (isZero) Size.ZERO else Size(toString(10).toBigDecimal(10))
 
 /**
  * Contains the equivalent value as [bytes].
  */
-public val BigInteger.bits: Size get() = if (this == BigInteger.ZERO) Size.ZERO else toBigDecimal().bits
+public val Number.bits: Size
+    get() = if (isZero) Size.ZERO else toDouble().toBigDecimal().bits
 
+/**
+ * Contains the equivalent value as [bytes].
+ */
+public val BigDecimal.bits: Size
+    get() = if (isZero) Size.ZERO else Size(this / Byte.SIZE_BITS.toBigDecimal())
+
+/**
+ * Contains the equivalent value as [bytes].
+ */
+public val BigInteger.bits: Size
+    get() = if (isZero) Size.ZERO else toBigDecimal().bits

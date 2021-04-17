@@ -1,7 +1,13 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.number.bigIntegerOfBinaryString
+import koodies.math.BigInteger
+import koodies.math.BigIntegerConstants
+import koodies.math.and
+import koodies.math.dec
+import koodies.math.inc
+import koodies.math.plus
+import koodies.math.shl
+import koodies.math.bigIntegerOfBinaryString
 
 public interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
 
@@ -15,8 +21,8 @@ public interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
     public val mask: BigInteger get() = bigIntegerOfBinaryString("1".repeat(prefixLength).padEnd(maxLength, '0'))
     public val network: BigInteger get() = value and mask
     public val networkAddress: IP get() = address(network)
-    public val hostCount: BigInteger get() = (BigInteger.TWO shl suffixLength.dec()).coerceAtLeast(BigInteger.ONE)
-    public val usableHostCount: BigInteger get() = hostCount.dec().dec().coerceAtLeast(BigInteger.ONE)
+    public val hostCount: BigInteger get() = (BigIntegerConstants.TWO shl suffixLength.dec()).coerceAtLeast(BigIntegerConstants.ONE)
+    public val usableHostCount: BigInteger get() = hostCount.dec().dec().coerceAtLeast(BigIntegerConstants.ONE)
     public val broadcast: BigInteger get() = network + hostCount.dec()
     public val broadcastAddress: IP get() = address(broadcast)
 

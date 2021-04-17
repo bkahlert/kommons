@@ -1,6 +1,7 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
+import koodies.math.BigInteger
+
 
 public class IPv6Range(start: BigInteger, endInclusive: BigInteger) : IPRange<IPv6Address> {
     override val start: IPv6Address = IPv6Address(start)

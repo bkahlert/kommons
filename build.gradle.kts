@@ -75,8 +75,8 @@ allprojects {
                 "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
                 "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
             if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
-//                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
-//                useVersion(kotlinVersion)
+                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
+                useVersion(kotlinVersion)
                 because("of ambiguity issues")
             }
         }
@@ -153,7 +153,7 @@ kotlin {
         }
     }
 
-    js(IR) {
+    js(BOTH) {
         browser {
             commonWebpackConfig {
                 cssSupport.enabled = true
@@ -170,23 +170,8 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                languageVersion = "1.4"
-                apiVersion = "1.4"
-            }
-        }
-    }
-
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api("com.ionspin.kotlin:bignum:0.2.8") {
-                    because("bigint for IPv6Address")
-                }
-            }
-        }
+        val commonMain by getting
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
@@ -243,7 +228,22 @@ kotlin {
             }
         }
     }
+}
 
+// TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
+
+tasks.configureEach {
+    onlyIf {
+        if (Regex(".*MavenCentral.*").matches(name)) {
+            !syncToMavenCentralUsingBintray
+        } else {
+            true
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications)
 }
 
 publishing {
@@ -303,21 +303,6 @@ publishing {
     }
 }
 
-signing {
-    sign(publishing.publications)
-}
-
-// TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
-
-tasks.configureEach {
-    onlyIf {
-        if (Regex(".*MavenCentral.*").matches(name)) {
-            !syncToMavenCentralUsingBintray
-        } else {
-            true
-        }
-    }
-}
 
 if (version.isFinal()) {
     // TODO see https://github.com/christophsturm/filepeek/pull/11/files

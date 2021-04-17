@@ -1,8 +1,6 @@
 package koodies
 
-import koodies.invoke
-import koodies.test.test
-import koodies.test.testEach
+import koodies.test.tests
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -10,14 +8,12 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
 import strikt.assertions.message
-import strikt.assertions.size
 
 @Execution(SAME_THREAD)
 class FnKtTest {
@@ -105,7 +101,7 @@ class FnKtTest {
 
         @Test
         fun `should run block 0 times`() {
-            expectCatching { 0 * { throw IllegalStateException("test failed")} }.isSuccess()
+            expectCatching { 0 * { throw IllegalStateException("test failed") } }.isSuccess()
         }
 
         @Test
@@ -118,46 +114,46 @@ class FnKtTest {
         @Test
         fun `should return n results`() {
             val n = 3
-            val results = run{ n * { it } }
-            expectThat(results).containsExactly(0,1,2)
+            val results = run { n * { it } }
+            expectThat(results).containsExactly(0, 1, 2)
         }
 
         @Test
         fun `should throw negative index`() {
-            expectCatching { -1 * { println("test failed")} }.isFailure().isA<IllegalArgumentException>()
+            expectCatching { -1 * { println("test failed") } }.isFailure().isA<IllegalArgumentException>()
         }
     }
 
     @TestFactory
-    fun `should require not empty`() = test {
-        test { expectThat("abc".requireNotEmpty()).isEqualTo("abc") }
-        test { expectThat("abc".requireNotEmpty { "error" }).isEqualTo("abc") }
-        test { expectCatching { "".requireNotEmpty() }.isFailure().isA<IllegalArgumentException>() }
-        test { expectCatching { "".requireNotEmpty { "error" } }.isFailure().isA<IllegalArgumentException>().message.isEqualTo("error") }
+    fun `should require not empty`() = tests {
+        expecting { "abc".requireNotEmpty() } that { isEqualTo("abc") }
+        expecting { "abc".requireNotEmpty { "error" } } that { isEqualTo("abc") }
+        expectThrows<IllegalArgumentException> { "".requireNotEmpty() }
+        expectThrows<IllegalArgumentException> { "".requireNotEmpty { "error" } } that { message.isEqualTo("error") }
     }
 
     @TestFactory
-    fun `should require not blank`() = test {
-        test { expectThat("abc".requireNotBlank()).isEqualTo("abc") }
-        test { expectThat("abc".requireNotBlank { "error" }).isEqualTo("abc") }
-        test { expectCatching { "   ".requireNotBlank() }.isFailure().isA<IllegalArgumentException>() }
-        test { expectCatching { "   ".requireNotBlank { "error" } }.isFailure().isA<IllegalArgumentException>().message.isEqualTo("error") }
+    fun `should require not blank`() = tests {
+        expecting { "abc".requireNotBlank() } that { isEqualTo("abc") }
+        expecting { "abc".requireNotBlank { "error" } } that { isEqualTo("abc") }
+        expectThrows<IllegalArgumentException> { "   ".requireNotBlank() }
+        expectThrows<IllegalArgumentException> { "   ".requireNotBlank { "error" } } that { message.isEqualTo("error") }
     }
 
     @TestFactory
-    fun `should check not empty`() = test {
-        test { expectThat("abc".checkNotEmpty()).isEqualTo("abc") }
-        test { expectThat("abc".checkNotEmpty { "error" }).isEqualTo("abc") }
-        test { expectCatching { "".checkNotEmpty() }.isFailure().isA<IllegalStateException>() }
-        test { expectCatching { "".checkNotEmpty { "error" } }.isFailure().isA<IllegalStateException>().message.isEqualTo("error") }
+    fun `should check not empty`() = tests {
+        expecting { "abc".checkNotEmpty() } that { isEqualTo("abc") }
+        expecting { "abc".checkNotEmpty { "error" } } that { isEqualTo("abc") }
+        expectThrows<IllegalStateException> { "".checkNotEmpty() }
+        expectThrows<IllegalStateException> { "".checkNotEmpty { "error" } } that { message.isEqualTo("error") }
     }
 
     @TestFactory
-    fun `should check not blank`() = test {
-        test { expectThat("abc".checkNotBlank()).isEqualTo("abc") }
-        test { expectThat("abc".checkNotBlank { "error" }).isEqualTo("abc") }
-        test { expectCatching { "   ".checkNotBlank() }.isFailure().isA<IllegalStateException>() }
-        test { expectCatching { "   ".checkNotBlank { "error" } }.isFailure().isA<IllegalStateException>().message.isEqualTo("error") }
+    fun `should check not blank`() = tests {
+        expecting { "abc".checkNotBlank() } that { isEqualTo("abc") }
+        expecting { "abc".checkNotBlank { "error" } } that { isEqualTo("abc") }
+        expectThrows<IllegalStateException> { "   ".checkNotBlank() }
+        expectThrows<IllegalStateException> { "   ".checkNotBlank { "error" } } that { message.isEqualTo("error") }
     }
 
     @Nested

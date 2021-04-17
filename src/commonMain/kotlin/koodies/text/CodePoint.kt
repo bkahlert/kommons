@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.math.mod
-import koodies.number.toHexadecimalString
+import koodies.math.toHexadecimalString
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.CodePoint.Companion.isUsableCodePoint
 import kotlin.Char.Companion.MAX_SURROGATE

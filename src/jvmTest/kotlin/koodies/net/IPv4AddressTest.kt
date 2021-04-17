@@ -1,11 +1,10 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
 import koodies.collections.to
 import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
 import koodies.net.IPv4Address.Companion.RFC1918_24block
-import koodies.number.toUBytes
+import koodies.math.toUBytes
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
@@ -111,9 +110,9 @@ class IPv4AddressTest {
 
     @TestFactory
     fun `should contain RFC1918 blocks`() = listOf(
-        RFC1918_24block to (8 to BigInteger.parseString("16777216", 10) to IPv4Address.parse("10.0.0.0")),
-        RFC1918_20block to (12 to BigInteger.parseString("1048576", 10) to IPv4Address.parse("172.16.0.0")),
-        RFC1918_16block to (16 to BigInteger.parseString("65536", 10) to IPv4Address.parse("192.168.0.0")),
+        RFC1918_24block to (8 to "16777216".toBigInteger(10) to IPv4Address.parse("10.0.0.0")),
+        RFC1918_20block to (12 to "1048576".toBigInteger(10) to IPv4Address.parse("172.16.0.0")),
+        RFC1918_16block to (16 to "65536".toBigInteger(10) to IPv4Address.parse("192.168.0.0")),
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {

@@ -1,8 +1,5 @@
-package koodies.number
+package koodies.math
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.integer.Sign
-import koodies.math.mod
 import koodies.text.takeUnlessEmpty
 
 private val hexChars: Array<Char> = arrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
@@ -22,27 +19,27 @@ public fun Byte.toBinaryString(pad: Boolean = true): String = toPositiveInt().to
 public fun Byte.toDecimalString(): String = toPositiveInt().toString(10)
 public fun Byte.toHexadecimalString(pad: Boolean = true): String = toPositiveInt().toString(16).format(2, pad)
 public fun ByteArray.toBinaryString(pad: Boolean = true): String = joinToString("") { it.toBinaryString(true) }.format(size * 2, pad)
-public fun ByteArray.toDecimalString(): String = BigInteger.fromByteArray(this, Sign.POSITIVE).toString(10)
+public fun ByteArray.toDecimalString(): String = bigIntegerOf(this).toString(10)
 public fun ByteArray.toHexadecimalString(pad: Boolean = true): String = joinToString("") { it.toHexadecimalString(true) }.format(size * 2, pad)
-public fun byteArrayOfBinaryString(binaryString: String): ByteArray = BigInteger.parseString(binaryString, 2).toByteArray().trim()
-public fun byteArrayOfDecimalString(decimalString: String): ByteArray = BigInteger.parseString(decimalString, 10).toByteArray().trim()
-public fun byteArrayOfHexadecimalString(hexadecimalString: String): ByteArray = BigInteger.parseString(hexadecimalString, 16).toByteArray().trim()
+public fun byteArrayOfBinaryString(binaryString: String): ByteArray = binaryString.toBigInteger(2).toByteArray().trim()
+public fun byteArrayOfDecimalString(decimalString: String): ByteArray = decimalString.toBigInteger(10).toByteArray().trim()
+public fun byteArrayOfHexadecimalString(hexadecimalString: String): ByteArray = hexadecimalString.toBigInteger(16).toByteArray().trim()
 public fun bigIntegerOf(byteArray: ByteArray): BigInteger = bigIntegerOfHexadecimalString(byteArray.toHexadecimalString())
 
 public fun UByte.toBinaryString(pad: Boolean = true): String = toInt().toString(2).format(Byte.SIZE_BITS, pad)
 public fun UByte.toDecimalString(): String = toInt().toString(10)
 public fun UByte.toHexadecimalString(pad: Boolean = true): String = toInt().toString(16).format(2, pad)
 public fun UByteArray.toBinaryString(pad: Boolean = true): String = joinToString("") { it.toBinaryString(true) }.format(count() * 2, pad)
-public fun UByteArray.toDecimalString(): String = BigInteger.fromUByteArray(this, Sign.POSITIVE).toString(10)
-public fun UByteArray.toHexadecimalString(pad: Boolean = true): String = joinToString("") { it.toHexadecimalString(true) }.format(count() * 2, pad)
-public fun ubyteArrayOfBinaryString(binaryString: String): UByteArray = BigInteger.parseString(binaryString, 2).toUByteArray().trim()
-public fun ubyteArrayOfDecimalString(decimalString: String): UByteArray = BigInteger.parseString(decimalString, 10).toUByteArray().trim()
-public fun ubyteArrayOfHexadecimalString(hexadecimalString: String): UByteArray = BigInteger.parseString(hexadecimalString, 16).toUByteArray().trim()
+public fun UByteArray.toDecimalString(): String = bigIntegerOf(this).toString(10)
+public fun UByteArray.toHexadecimalString(pad: Boolean = true): String = joinToString("") { it.toHexadecimalString(true) }.format(size * 2, pad)
+public fun ubyteArrayOfBinaryString(binaryString: String): UByteArray = binaryString.toBigInteger(2).toUByteArray().trim()
+public fun ubyteArrayOfDecimalString(decimalString: String): UByteArray = decimalString.toBigInteger(10).toUByteArray().trim()
+public fun ubyteArrayOfHexadecimalString(hexadecimalString: String): UByteArray = hexadecimalString.toBigInteger(16).toUByteArray().trim()
 public fun bigIntegerOf(ubyteArray: UByteArray): BigInteger = bigIntegerOfHexadecimalString(ubyteArray.toHexadecimalString())
 
-public fun bigIntegerOfBinaryString(binaryString: String): BigInteger = BigInteger.parseString(binaryString, 2)
-public fun bigIntegerOfDecimalString(decimalString: String): BigInteger = BigInteger.parseString(decimalString, 10)
-public fun bigIntegerOfHexadecimalString(hexadecimalString: String): BigInteger = BigInteger.parseString(hexadecimalString, 16)
+public fun bigIntegerOfBinaryString(binaryString: String): BigInteger = binaryString.toBigInteger(2)
+public fun bigIntegerOfDecimalString(decimalString: String): BigInteger = decimalString.toBigInteger(10)
+public fun bigIntegerOfHexadecimalString(hexadecimalString: String): BigInteger = hexadecimalString.toBigInteger(16)
 
 public fun Int.toHexadecimalString(pad: Boolean = true): String {
     var rem: Int

@@ -3,8 +3,8 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
-import koodies.terminal.AnsiFormats.bold
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.Symbols
@@ -39,7 +39,7 @@ public class MicroLogger(
                 val prefix = "(" + (symbol.trim().takeUnless { it.isEmpty() }?.let { "$it " } ?: "")
                 val paddingAndMessages =
                     messages.joinToString(prefix = prefix, separator = " ˃ ", postfix = " ˃ ${block()})") { "$it".withoutTrailingLineSeparator }
-                logWithLock { caption.bold() + paddingAndMessages }
+                logWithLock { caption.ansi.bold.done + paddingAndMessages }
             }
             else -> {
                 messages.add(block())

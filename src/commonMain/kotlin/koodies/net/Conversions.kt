@@ -1,11 +1,15 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import koodies.number.FFu
-import koodies.number.OO
-import koodies.number.OOu
-import koodies.number.bigIntegerOf
-import koodies.number.trim
+import koodies.math.BigInteger
+import koodies.math.minus
+import koodies.math.plus
+import koodies.math.toUByteArray
+import koodies.math.FFu
+import koodies.math.OO
+import koodies.math.OOu
+import koodies.math.bigIntegerOf
+import koodies.math.shl
+import koodies.math.trim
 import koodies.ranges.map
 
 /**

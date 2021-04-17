@@ -1,6 +1,8 @@
 package koodies.net
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
+import koodies.math.BigInteger
+import koodies.math.toString
+import koodies.math.xor
 
 public interface IPRange<IP : IPAddress> : ClosedRange<IP> {
 

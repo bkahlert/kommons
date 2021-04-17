@@ -1,7 +1,7 @@
 package koodies.net
 
 import koodies.collections.to
-import koodies.number.bigIntegerOfDecimalString
+import koodies.math.bigIntegerOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.TestFactory

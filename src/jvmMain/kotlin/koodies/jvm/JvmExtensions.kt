@@ -41,17 +41,12 @@ public val currentThread: Thread
     get() = Thread.currentThread()
 
 /**
- * Contains the current stacktrace.
+ * Contains the current stacktrace with the caller of this property
+ * as the first stacktrace element.
  */
-public val currentStackTrace: Array<StackTraceElement>
-    get() = currentThread.stackTrace
-
-/**
- * Returns the current stacktrace with the given [transform] function
- * applied to each [StackTraceElement].
- */
-public fun <T> currentStackTrace(transform: StackTraceElement.() -> T): Sequence<T> =
-    currentStackTrace.asSequence().map(transform)
+@Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
+public inline val currentStackTrace: Array<StackTraceElement>
+    get() = currentThread.stackTrace.dropWhile { it.className == Thread::class.qualifiedName }.toTypedArray()
 
 /**
  * The class containing the execution point represented by this stack trace element.

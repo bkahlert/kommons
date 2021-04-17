@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
  *
  * Examples are `ClassName` and `ClassName.InnerClassName`.
  */
-public fun KClass<*>.toSimpleString(): String = toString().simpleClassName ?: "object"
+public fun KClass<*>.toSimpleString(): String = toString().simpleClassName
 
 /**
  * Returns a **simple** string representation of `this` object.
@@ -20,7 +20,7 @@ public fun KClass<*>.toSimpleString(): String = toString().simpleClassName ?: "o
 public fun Any?.toSimpleString(): String =
     this?.let {
         val string = toString()
-        string.simpleClassName ?: string
+        string.simpleClassName
     } ?: Symbols.Null
 
 /**
@@ -35,19 +35,11 @@ public fun Any?.toSimpleClassName(): String = this?.let { it::class.toSimpleStri
  *
  * Examples are `() -> Int` and `Receiver.() -> Unit`.
  */
-public fun <R> Function<R>.toSimpleString(): String =
-    RegularExpressions.ignoreArgsLambdaRegex.matchEntire(toString())?.let { result ->
-        val returnType = result["returnValueClass"] ?: "❓"
-        val params = result["params"]?.formatParams() ?: ""
-        result["receiverClass"]
-            ?.let { receiver -> "$receiver.($params) -> $returnType" }
-            ?: "($params) -> $returnType"
-    } ?: toString()
+public fun <R> Function<R>.toSimpleString(): String = toString().simpleClassName
 
 private fun String.formatParams(limit: Int = 1): String =
-    RegularExpressions.fullyClassifiedClassNameRegex.findAll(this)
-        .map { it["class"] ?: "…" }
-        .take(limit + 1)
+    RegularExpressions.classRegex("format").findAll(this)
+        .map { it["formatItype"] ?: "…" }.take(limit + 1)
         .mapIndexed { index, text -> if (index == limit) "⋯" else text }
         .joinToString(", ")
 
@@ -58,13 +50,20 @@ private fun String.formatParams(limit: Int = 1): String =
  * - fully qualified class name
  * - any of the above with a `class ` prefix.
  */
-private val String.simpleClassName: String?
+private val String.simpleClassName: String
     get() {
-        val classPrefixStripped = toString().withoutPrefix("class ")
-        val classNameMatch = RegularExpressions.fullyClassifiedClassNameRegex.matchEntire(classPrefixStripped)
-        if (classNameMatch != null) {
-            val fqcn = classNameMatch["class"] ?: error("expected named group \"class\" missing.")
-            return fqcn.replace("$", FieldDelimiters.UNIT)
-        }
-        return null
+        val stringWithoutPossibleClassPrefix = withoutPrefix("class ")
+        return RegularExpressions.lambdaRegex("lambda").matchEntire(stringWithoutPossibleClassPrefix)
+            ?.let { lambdaResult ->
+                val returnType = lambdaResult["lambdaIreturnItype"]?.trim() ?: Symbols.Unknown
+                val params = lambdaResult["lambdaIparams"]?.formatParams() ?: ""
+                lambdaResult["lambdaIreceiverItype"]
+                    ?.let { receiver -> "$receiver.($params) -> $returnType" }
+                    ?: "($params) -> $returnType"
+            }
+            ?: RegularExpressions.classRegex("class").matchEntire(stringWithoutPossibleClassPrefix)
+                ?.let { classNameResult ->
+                    classNameResult["classItype"]?.replace("$", FieldDelimiters.UNIT)
+                }
+            ?: toString()
     }
