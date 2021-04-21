@@ -108,8 +108,8 @@ class JavaExecTest {
         ) { (operation, assertion) ->
             withTempDir(uniqueId) {
                 val (process, file) = createLazyFileCreatingProcess()
-                test2 { expecting { process.operation() }that { assertion() }}
-                test2 { expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that {isFalse() }}
+                test2 { expecting { process.operation() } that { assertion() } }
+                test2 { expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that { isFalse() } }
             }
         }
 
@@ -126,8 +126,8 @@ class JavaExecTest {
         ) { (operation, assertion) ->
             withTempDir(uniqueId) {
                 val (process, file) = createLazyFileCreatingProcess()
-                test2 { expecting {process.operation() } that {assertion() } }
-                test2 { expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that {isTrue() }}
+                test2 { expecting { process.operation() } that { assertion() } }
+                test2 { expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() } }
             }
         }
 
@@ -147,9 +147,9 @@ class JavaExecTest {
         ) { operation ->
             withTempDir(uniqueId) {
                 val process = createCompletingExec()
-                test2 { expecting { process.operation()} that {get { started }.isTrue() }}
-                test2 { expecting { process } that {completesWithIO() }}
-                test2 { expecting { poll { process.successful == true }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() }}
+                test2 { expecting { process.operation() } that { get { started }.isTrue() } }
+                test2 { expecting { process } that { completesWithIO() } }
+                test2 { expecting { poll { process.successful == true }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() } }
             }
         }
 
@@ -269,7 +269,7 @@ class JavaExecTest {
         @Test
         fun `by waiting for`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingExec(0)
-            expectThat(process.waitFor()).isA<ExitState.Success>()
+            expectThat(process.waitFor()).isA<Success>()
         }
 
         @Test

@@ -6,9 +6,9 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.META.DUMP
 import koodies.concurrent.process.merge
+import koodies.exception.dump
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exception.dump
 import koodies.text.LineSeparators.LF
 import java.nio.file.Path
 
