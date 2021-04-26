@@ -24,13 +24,13 @@ class CollectionsKtTest {
 
         @TestFactory
         fun `should drop last elements`() = test(list) {
-            expectThrowing { dropLast(-1) }.that { isFailure().isA<IllegalArgumentException>() }
-            expect { dropLast(0) }.that { containsExactly("first", "second", "third") }
-            expect { dropLast() }.that { containsExactly("first", "second") }
-            expect { dropLast(1) }.that { containsExactly("first", "second") }
-            expect { dropLast(2) }.that { containsExactly("first") }
-            expect { dropLast(3) }.that { isEmpty() }
-            expect { dropLast(4) }.that { isEmpty() }
+            expectThrows<IllegalArgumentException> { dropLast(-1) }
+            expecting { dropLast(0) } that { containsExactly("first", "second", "third") }
+            expecting { dropLast() } that { containsExactly("first", "second") }
+            expecting { dropLast(1) } that { containsExactly("first", "second") }
+            expecting { dropLast(2) } that { containsExactly("first") }
+            expecting { dropLast(3) } that { isEmpty() }
+            expecting { dropLast(4) } that { isEmpty() }
         }
     }
 

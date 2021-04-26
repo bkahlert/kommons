@@ -1,7 +1,7 @@
 package koodies.regex
 
 import koodies.debug.debug
-import koodies.test.DeprecatedDynamicTestsBuilder
+import koodies.test.DynamicTestsWithSubjectBuilder
 import koodies.test.test
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -39,7 +39,7 @@ class RegularExpressionsTest {
                 " ",
                 "   "
             ) {
-                test2 { expecting { Regex(this).isGrouped } that { isFalse() } }
+                expecting { Regex(this).isGrouped } that { isFalse() }
             }
 
             @TestFactory
@@ -47,7 +47,7 @@ class RegularExpressionsTest {
                 "a()",
                 "()b"
             ) {
-                test2 { expecting { Regex(this).isGrouped } that { isFalse() } }
+                expecting { Regex(this).isGrouped } that { isFalse() }
             }
 
             @TestFactory
@@ -57,7 +57,7 @@ class RegularExpressionsTest {
                 "(())()",
                 "(a(b)c)(d)"
             ) {
-                test2 { expecting { Regex(this).isGrouped } that { isFalse() } }
+                expecting { Regex(this).isGrouped } that { isFalse() }
             }
 
             @TestFactory
@@ -68,7 +68,7 @@ class RegularExpressionsTest {
                 "(a())",
                 "(()a)"
             ) {
-                test2 { expecting { Regex(this).isGrouped } that { isTrue() } }
+                expecting { Regex(this).isGrouped } that { isTrue() }
             }
 
             @TestFactory
@@ -79,7 +79,7 @@ class RegularExpressionsTest {
                 "()\\)" to false,
                 "\\((())" to false,
             ) { (expr, expected) ->
-                test2 { expecting { Regex(expr).isGrouped } that { isEqualTo(expected) } }
+                expecting { Regex(expr).isGrouped } that { isEqualTo(expected) }
             }
         }
 
@@ -103,8 +103,8 @@ class RegularExpressionsTest {
                 Regex("(?:abc)"),
                 Regex("(?<name>abc)"),
             ) { regex ->
-                test2 { expecting { group() } that { toStringIsEqualTo(regex.pattern) } }
-                test2 { expecting { grouped } that { toStringIsEqualTo(regex.pattern) } }
+                expecting { group() } that { toStringIsEqualTo(regex.pattern) }
+                expecting { grouped } that { toStringIsEqualTo(regex.pattern) }
             }
         }
     }
@@ -207,7 +207,7 @@ class RegularExpressionsTest {
         @Nested
         inner class IgnoreArgs {
 
-            fun DeprecatedDynamicTestsBuilder<Regex>.testMatchesFields(
+            fun DynamicTestsWithSubjectBuilder<Regex>.testMatchesFields(
                 text: String,
                 receiverPackage: String?,
                 receiverClass: String?,
@@ -215,15 +215,13 @@ class RegularExpressionsTest {
                 returnValuePackage: String?,
                 returnValueClass: String?,
             ) {
-                test2 {
-                    expecting { matchEntire(text) }.that {
-                        isNotNull().and {
-                            get("field receiverPackage") { get("lambdaIreceiverIpkg") }.isEqualTo(receiverPackage)
-                            get("field receiverClass") { get("lambdaIreceiverItype") }.isEqualTo(receiverClass)
-                            get("field parameterList") { get("lambdaIparams") }.isEqualTo(parameterList)
-                            get("field returnValuePackage") { get("lambdaIreturnIpkg") }.isEqualTo(returnValuePackage)
-                            get("field returnValueClass") { get("lambdaIreturnItype") }.isEqualTo(returnValueClass)
-                        }
+                expecting { matchEntire(text) } that {
+                    isNotNull().and {
+                        get("field receiverPackage") { get("lambdaIreceiverIpkg") }.isEqualTo(receiverPackage)
+                        get("field receiverClass") { get("lambdaIreceiverItype") }.isEqualTo(receiverClass)
+                        get("field parameterList") { get("lambdaIparams") }.isEqualTo(parameterList)
+                        get("field returnValuePackage") { get("lambdaIreturnIpkg") }.isEqualTo(returnValuePackage)
+                        get("field returnValueClass") { get("lambdaIreturnItype") }.isEqualTo(returnValueClass)
                     }
                 }
             }

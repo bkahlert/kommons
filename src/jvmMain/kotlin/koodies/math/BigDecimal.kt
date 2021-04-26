@@ -225,39 +225,39 @@ private fun koodies.math.RoundingMode.toJavaMathRoundMode() = when (this) {
     UNNECESSARY -> RoundingMode.UNNECESSARY
 }
 
-    private val Double.scientificFormat: String get() = privateFormatScientific(this)
-    private val BigDecimal.scientificFormat: String get() = privateFormatScientific(this.toDouble())
+private val Double.scientificFormat: String get() = privateFormatScientific(this)
+private val BigDecimal.scientificFormat: String get() = privateFormatScientific(this.toDouble())
 
-    private val rootNegativeExpFormatSymbols = DecimalFormatSymbols(Locale.ROOT).apply { exponentSeparator = "e" }
-    private val rootPositiveExpFormatSymbols = DecimalFormatSymbols(Locale.ROOT).apply { exponentSeparator = "e+" }
+private val rootNegativeExpFormatSymbols = DecimalFormatSymbols(Locale.ROOT).apply { exponentSeparator = "e" }
+private val rootPositiveExpFormatSymbols = DecimalFormatSymbols(Locale.ROOT).apply { exponentSeparator = "e+" }
 
-    private val scientificFormat = ThreadLocal<DecimalFormat>()
-    private fun privateFormatScientific(value: Double): String =
-        scientificFormat.getOrSet {
-            DecimalFormat("0E0", rootNegativeExpFormatSymbols).apply { minimumFractionDigits = 2 }
-        }.apply {
-            decimalFormatSymbols = if (value >= 1 || value <= -1) rootPositiveExpFormatSymbols else rootNegativeExpFormatSymbols
-        }.format(value)
+private val scientificFormat = ThreadLocal<DecimalFormat>()
+private fun privateFormatScientific(value: Double): String =
+    scientificFormat.getOrSet {
+        DecimalFormat("0E0", rootNegativeExpFormatSymbols).apply { minimumFractionDigits = 2 }
+    }.apply {
+        decimalFormatSymbols = if (value >= 1 || value <= -1) rootPositiveExpFormatSymbols else rootNegativeExpFormatSymbols
+    }.format(value)
 
 
-    private val precisionFormats = Array(4) { ThreadLocal<DecimalFormat>() }
-    private fun createFormatForDecimals(decimals: Int) = DecimalFormat("0", rootNegativeExpFormatSymbols).apply {
-        if (decimals > 0) minimumFractionDigits = decimals
-        roundingMode = RoundingMode.HALF_UP
-    }
+private val precisionFormats = Array(4) { ThreadLocal<DecimalFormat>() }
+private fun createFormatForDecimals(decimals: Int) = DecimalFormat("0", rootNegativeExpFormatSymbols).apply {
+    if (decimals > 0) minimumFractionDigits = decimals
+    roundingMode = RoundingMode.HALF_UP
+}
 
-    private fun privateFormatToExactDecimals(value: Double, decimals: Int): String {
-        val format = if (decimals < precisionFormats.size) {
-            precisionFormats[decimals].getOrSet { createFormatForDecimals(decimals) }
-        } else
-            createFormatForDecimals(decimals)
-        return format.format(value)
-    }
+private fun privateFormatToExactDecimals(value: Double, decimals: Int): String {
+    val format = if (decimals < precisionFormats.size) {
+        precisionFormats[decimals].getOrSet { createFormatForDecimals(decimals) }
+    } else
+        createFormatForDecimals(decimals)
+    return format.format(value)
+}
 
-    private fun privateFormatUpToDecimals(value: Double, decimals: Int): String =
-        createFormatForDecimals(0)
-            .apply { maximumFractionDigits = decimals }
-            .format(value)
+private fun privateFormatUpToDecimals(value: Double, decimals: Int): String =
+    createFormatForDecimals(0)
+        .apply { maximumFractionDigits = decimals }
+        .format(value)
 
 public actual fun Double.toScientificString(): String = scientificFormat
 
@@ -269,4 +269,4 @@ public actual fun BigDecimal.toScientificString(): String = scientificFormat
 
 public actual fun BigDecimal.toExactDecimalsString(decimals: Int): String = privateFormatToExactDecimals(this.toDouble(), decimals)
 
-public actual fun BigDecimal.toAtMostDecimalsString(decimals: Int): String =privateFormatUpToDecimals(this.toDouble(), decimals)
+public actual fun BigDecimal.toAtMostDecimalsString(decimals: Int): String = privateFormatUpToDecimals(this.toDouble(), decimals)

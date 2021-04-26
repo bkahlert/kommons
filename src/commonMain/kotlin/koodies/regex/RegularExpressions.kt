@@ -21,9 +21,9 @@ public object RegularExpressions {
     private val SPACE: Regex = Regex("\\s")
     private val SLACK0 = SPACE.repeatUnlimited()
     private val SLACK1 = SPACE.repeatAtLeastOnce()
-    private val ARROW:Regex = (SLACK1 +Regex.fromLiteral("->")+ SLACK1).grouped
-    private val COLON:Regex = (SLACK0 +Regex.fromLiteral(":")+ SLACK0).grouped
-    private val ASSIGNMENT:Regex = (SLACK0 +Regex.fromLiteral("=")+ SLACK0).grouped
+    private val ARROW: Regex = (SLACK1 + Regex.fromLiteral("->") + SLACK1).grouped
+    private val COLON: Regex = (SLACK0 + Regex.fromLiteral(":") + SLACK0).grouped
+    private val ASSIGNMENT: Regex = (SLACK0 + Regex.fromLiteral("=") + SLACK0).grouped
     private val BRACKET_OPEN: Regex = Regex("\\(")
     private val BRACKET_CLOSE: Regex = Regex("\\)")
     private val COMMENT_START: Regex = Regex("/\\*")
@@ -36,14 +36,15 @@ public object RegularExpressions {
     public fun fullyQualifiedClassRegex(groupNamePrefix: String?): Regex {
         val pkg = packageRegex(groupNamePrefix?.let { it + "Ipkg" })
         val className = Regex("[\\w\$ ]+").group(groupNamePrefix?.let { it + "Itype" }) + OPTIONAL_OPTIONALITY
-        val fullyQualified = (pkg + DOT).optional() + className
+        val optionalTypeParameters = Regex("<.*>").optional()
+        val fullyQualified = (pkg + DOT).optional() + className + optionalTypeParameters
         return fullyQualified.grouped
     } // package.Class
 
     public fun typeAliasCommentRegex(groupNamePrefix: String?): Regex {
         val prefix = groupNamePrefix?.let { it + "Ialias" }
         val fullyQualified = fullyQualifiedClassRegex(prefix)
-        return (COMMENT_START +  ASSIGNMENT + fullyQualified + SPACE + COMMENT_END).group(prefix)
+        return (COMMENT_START + ASSIGNMENT + fullyQualified + SPACE + COMMENT_END).group(prefix)
     } // /* = other.Klass */
 
     public fun classRegex(groupNamePrefix: String?): Regex {
@@ -53,7 +54,7 @@ public object RegularExpressions {
         return fullyQualifiedWithTypeAliasComment.grouped
     } // package.Class /* = other.Klass */
 
-    public val paramNameRegex : Regex = Regex("\\w+[\\w0-9]*").grouped
+    public val paramNameRegex: Regex = Regex("\\w+[\\w0-9]*").grouped
 
     /**
      * Regex that more or less matches a parameter. Ideally it would be
@@ -63,15 +64,16 @@ public object RegularExpressions {
      * - `(…) -> package.Type`
      * - `receiver.Type.(…) -> package.Type`
      */
-    public val paramRegex: Regex = (paramNameRegex + COLON).optional()+ run {
+    public val paramRegex: Regex = (paramNameRegex + COLON).optional() + run {
         val optionalReceiver = (classRegex(null) + DOT).optional()
-        val optionalParameterWithArrow = (BRACKET_OPEN+Regex(".*?")+ BRACKET_CLOSE  + ARROW).optional()
+        val optionalParameterWithArrow = (BRACKET_OPEN + Regex(".*?") + BRACKET_CLOSE + ARROW).optional()
         val returnType = classRegex(null).group(null)
         optionalReceiver + optionalParameterWithArrow + returnType
     }
-    public fun paramListRegex(groupName:String?): Regex {
+
+    public fun paramListRegex(groupName: String?): Regex {
         val optionalParams = ((paramRegex + COMMA + SPACE).repeatUnlimited() + paramRegex).optional().group(groupName)
-        return BRACKET_OPEN+ optionalParams +BRACKET_CLOSE
+        return BRACKET_OPEN + optionalParams + BRACKET_CLOSE
     }
 
     public fun lambdaRegex(groupNamePrefix: String?): Regex {
@@ -115,7 +117,7 @@ public operator fun Regex.plus(other: Regex): Regex = Regex("$this$other")
  */
 public fun Regex.group(name: String? = null): Regex = name
     ?.requireValidGroupName()?.run { Regex("(?<$name>$pattern)") }
-    ?: run { if(isGrouped) this else Regex("(?:$pattern)") }
+    ?: run { if (isGrouped) this else Regex("(?:$pattern)") }
 
 /**
  * Returns this regular expression if it [isGrouped] already or
@@ -128,9 +130,11 @@ public val Regex.grouped: Regex get() = group(null)
 /**
  * Returns [this@requireValidGroupName] if it is valid. Otherwise an [IllegalArgumentException] is thrown.
  */
-private fun String.requireValidGroupName() : String = apply{require(all { it in 'a'..'z' || it in 'A'..'Z' }) {
-    "Group name $this must only consist of letters ${"a..z".formattedAs.input} and ${"A..Z".formattedAs.input}."
-}}
+private fun String.requireValidGroupName(): String = apply {
+    require(all { it in 'a'..'z' || it in 'A'..'Z' }) {
+        "Group name $this must only consist of letters ${"a..z".formattedAs.input} and ${"A..Z".formattedAs.input}."
+    }
+}
 
 /**
  * Whether this regular expression is a group—no matter if named, regular or anonymous.

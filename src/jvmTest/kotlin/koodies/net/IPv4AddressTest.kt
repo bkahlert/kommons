@@ -1,10 +1,10 @@
 package koodies.net
 
 import koodies.collections.to
+import koodies.math.toUBytes
 import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
 import koodies.net.IPv4Address.Companion.RFC1918_24block
-import koodies.math.toUBytes
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
@@ -31,7 +31,7 @@ class IPv4AddressTest {
             IPv4Address(ubyteArrayOf(192.toUByte(), 168.toUByte(), 16.toUByte(), 1.toUByte())),
             IPv4Address(3232239617u.toUBytes()),
         ).testEach { ip ->
-            expect { ip }.that { toStringIsEqualTo("192.168.16.1") }
+            expecting { ip } that { toStringIsEqualTo("192.168.16.1") }
         }
 
     @TestFactory
@@ -42,7 +42,7 @@ class IPv4AddressTest {
             { IPv4Address.parse("192.168.16.1.2") },
             { IPv4Address.parse("192.168.16.x") },
         ).testEach { ip ->
-            expectThrowing { ip() }.that { isFailure().isA<IllegalArgumentException>() }
+            expectThrows<IllegalArgumentException> { ip() }
         }
 
     @Nested
@@ -116,9 +116,9 @@ class IPv4AddressTest {
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {
-            expect { range.smallestCommonSubnet.prefixLength }.that { isEqualTo(bitCount) }
-            expect { range.smallestCommonSubnet.hostCount }.that { isEqualTo(hostCount) }
-            expect { range.smallestCommonSubnet.networkAddress }.that { isEqualTo(networkAddress) }
+            expecting { range.smallestCommonSubnet.prefixLength } that { isEqualTo(bitCount) }
+            expecting { range.smallestCommonSubnet.hostCount } that { isEqualTo(hostCount) }
+            expecting { range.smallestCommonSubnet.networkAddress } that { isEqualTo(networkAddress) }
         }
     }
 }

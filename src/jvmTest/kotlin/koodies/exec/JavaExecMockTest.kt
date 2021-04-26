@@ -1,23 +1,18 @@
 package koodies.exec
 
-import koodies.jvm.daemon
+import koodies.concurrent.process.ExecMock.Companion.FAILED_MANAGED_PROCESS
+import koodies.concurrent.process.ExecMock.Companion.PREPARED_MANAGED_PROCESS
+import koodies.concurrent.process.ExecMock.Companion.RUNNING_MANAGED_PROCESS
+import koodies.concurrent.process.ExecMock.Companion.SUCCEEDED_MANAGED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.FAILED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.RUNNING_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.SUCCEEDED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.processMock
 import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
 import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
-import koodies.concurrent.process.ExecMock.Companion.FAILED_MANAGED_PROCESS
-import koodies.concurrent.process.ExecMock.Companion.PREPARED_MANAGED_PROCESS
-import koodies.concurrent.process.ExecMock.Companion.RUNNING_MANAGED_PROCESS
-import koodies.concurrent.process.ExecMock.Companion.SUCCEEDED_MANAGED_PROCESS
 import koodies.concurrent.process.ProcessExitMock
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.Success
-import koodies.exec.Process.ProcessState
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateExit
 import koodies.concurrent.process.ProcessExitMock.Companion.immediateSuccess
-import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.SlowInputStream
 import koodies.concurrent.process.SlowInputStream.Companion.prompt
@@ -25,8 +20,12 @@ import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
 import koodies.concurrent.process.terminationLoggingProcessor
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.Success
+import koodies.exec.Process.ProcessState
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.isEqualToByteWise
+import koodies.jvm.daemon
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.Slow
@@ -76,22 +75,22 @@ class JavaExecMockTest {
             @Execution(CONCURRENT)
             @TestFactory
             fun `should run`() = test({ RUNNING_PROCESS }) {
-                expect { it().isAlive }.that { isTrue() }
-                expect("stays running for 5s") { val p = it(); poll { !p.isAlive }.every(500.milliseconds).forAtMost(5.seconds) }.that { isFalse() }
+                expecting { it().isAlive } that { isTrue() }
+                expecting("stays running for 5s") { val p = it(); poll { !p.isAlive }.every(500.milliseconds).forAtMost(5.seconds) } that { isFalse() }
             }
 
             @Execution(CONCURRENT)
             @TestFactory
             fun `should have completed successfully`() = test({ SUCCEEDED_PROCESS }) {
-                expect { it().isAlive }.that { isFalse() }
-                expect { it().exitValue() }.that { isEqualTo(0) }
+                expecting { it().isAlive } that { isFalse() }
+                expecting { it().exitValue() } that { isEqualTo(0) }
             }
 
             @Execution(CONCURRENT)
             @TestFactory
             fun `should have failed`() = test({ FAILED_PROCESS }) {
-                expect { it().isAlive }.that { isFalse() }
-                expect { it().exitValue() }.that { isEqualTo(-1) }
+                expecting { it().isAlive } that { isFalse() }
+                expecting { it().exitValue() } that { isEqualTo(-1) }
             }
         }
 
@@ -102,33 +101,33 @@ class JavaExecMockTest {
             @Execution(CONCURRENT)
             @TestFactory
             fun `should not run`() = test({ PREPARED_MANAGED_PROCESS }) {
-                expect { it() }.that { notStarted() }
-                expect { it() }.that { hasState<ProcessState.Prepared> { status.contains("not yet started") } }
-                expect("stays prepared for 5s") { val p = it(); poll { p.started }.every(500.milliseconds).forAtMost(5.seconds) }.that { isFalse() }
+                expecting { it() } that { notStarted() }
+                expecting { it() } that { hasState<ProcessState.Prepared> { status.contains("not yet started") } }
+                expecting("stays prepared for 5s") { val p = it(); poll { p.started }.every(500.milliseconds).forAtMost(5.seconds) } that { isFalse() }
             }
 
             @Execution(CONCURRENT)
             @TestFactory
             fun `should run`() = test({ RUNNING_MANAGED_PROCESS }) {
-                expect { it() }.that { started() }
-                expect { it() }.that { hasState<ProcessState.Running> { status.contains("running") } }
-                expect("stays running for 5s") {
+                expecting { it() } that { started() }
+                expecting { it() } that { hasState<ProcessState.Running> { status.contains("running") } }
+                expecting("stays running for 5s") {
                     val p = it(); poll { p.state !is ProcessState.Running }.every(500.milliseconds).forAtMost(5.seconds)
-                }.that { isFalse() }
+                } that { isFalse() }
             }
 
             @Execution(CONCURRENT)
             @TestFactory
             fun `should succeed`() = test({ SUCCEEDED_MANAGED_PROCESS }) {
-                expect { it() }.that { completesSuccessfully() }
-                expect { it() }.that { hasState<Success> { status.contains("terminated successfully") } }
+                expecting { it() } that { completesSuccessfully() }
+                expecting { it() } that { hasState<Success> { status.contains("terminated successfully") } }
             }
 
             @Execution(CONCURRENT)
             @TestFactory
             fun `should fail`() = test({ FAILED_MANAGED_PROCESS }) {
-                expect { it() }.that { fails() }
-                expect { it() }.that { hasState<ExitState.Failure> { status.contains("terminated with exit code") } }
+                expecting { it() } that { fails() }
+                expecting { it() } that { hasState<ExitState.Failure> { status.contains("terminated with exit code") } }
             }
         }
     }
@@ -188,13 +187,13 @@ class JavaExecMockTest {
                 if (available > 0) {
                     val byteArray = ByteArray(available)
                     val read = slowInputStream.read(byteArray, 0, available)
-                    expect { read }.that { isGreaterThan(0) }
+                    expecting { read } that { isGreaterThan(0) }
                     output.append(String(byteArray))
                 }
                 Thread.sleep(10)
             }
-            if (echoOption) expect { output }.that { isEqualToByteWise("Password? $input\r\rCorrect!$LF") }
-            else expect { output }.that { isEqualToByteWise("Password? \rCorrect!$LF") }
+            if (echoOption) expecting { output } that { isEqualToByteWise("Password? $input\r\rCorrect!$LF") }
+            else expecting { output } that { isEqualToByteWise("Password? \rCorrect!$LF") }
         }
 
 
@@ -222,7 +221,7 @@ class JavaExecMockTest {
                     inputStream.available()
                     inputStream.read()
                 }
-                expect { duration }.that { isLessThanOrEqualTo(2.seconds) }
+                expecting { duration } that { isLessThanOrEqualTo(2.seconds) }
             }
         }
     }

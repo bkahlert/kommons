@@ -1,17 +1,13 @@
 package koodies.docker
 
-import koodies.builder.StatelessBuilder.Returning
-import koodies.jvm.thread
 import koodies.io.path.asPath
 import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.Borders.Rounded
 import koodies.text.styling.wrapWithBorder
-import koodies.time.sleep
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
-import kotlin.time.milliseconds
 
 public data class MountOption(val source: HostPath, val target: ContainerPath, val type: String = "bind") :
     AbstractList<String>() {
@@ -31,41 +27,36 @@ public data class MountOption(val source: HostPath, val target: ContainerPath, v
         val relativePath = hostPath.relativeTo(source).asString()
         return target.resolve(relativePath)
     }
-
-    public companion object : Returning<MountOptionContext<MountOption>, MountOption>(object : MountOptionContext<MountOption> {
-        override fun mount(source: HostPath, target: ContainerPath, type: String): MountOption {
-            return MountOption(source, target, type)
-        }
-    })
 }
 
-public interface MountOptionContext<T> {
+@DockerCommandLineDsl
+public abstract class MountOptionContext<T>(
+    protected val buildErrors: MutableList<String>,
+) {
 
     public enum class Type { bind, volume, tmpfs }
-    public data class Mount<T>(
-        val type: String,
-        val source: HostPath,
+    public inner class Mount<T>(
+        public val type: String,
+        public val source: HostPath,
         private val completeCallback: Mount<T>.(ContainerPath) -> T,
     ) {
-        private var incomplete: Boolean = true
+        private val buildError: String = listOf(
+            "Mount ${source.formattedAs.input} of type ${type.formattedAs.input} is missing its ${"target".formattedAs.input}.",
+            "Use the ${"at".formattedAs.warning} method to complete the configuration.",
+        ).wrapWithBorder(Rounded, formatter = { it.formattedAs.warning })
 
         init {
-            thread {
-                50.milliseconds.sleep()
-                if (incomplete) listOf("Mount ${source.formattedAs.input} of type ${type.formattedAs.input} is missing its ${"target".formattedAs.input}.",
-                    "Use the ${"at".formattedAs.warning} method to complete the configuration.").wrapWithBorder(Rounded,
-                    formatter = { it.formattedAs.warning }).also { println(it) }
-            }
+            buildErrors.add(buildError)
         }
 
         public infix fun at(target: String): T = at(target.asContainerPath())
         public infix fun at(target: ContainerPath): T = run {
-            incomplete = false
+            buildErrors.remove(buildError)
             completeCallback(target)
         }
     }
 
-    public fun mount(source: HostPath, target: ContainerPath, type: String = "bind"): T
+    protected abstract fun mount(source: HostPath, target: ContainerPath, type: String = "bind"): T
 
     public infix fun String.mountAt(target: String): T = mount(asHostPath(), target.asContainerPath())
     public infix fun HostPath.mountAt(target: ContainerPath): T = mount(this, target)

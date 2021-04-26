@@ -86,7 +86,7 @@ public sealed class LoggingOptions {
             }
 
             override fun BuildContext.build(): CompactLoggingOptions = ::CompactLoggingOptionsContext {
-                CompactLoggingOptions(::caption.eval(), ::contentFormatter.eval(), ::returnValueFormatter.eval())
+                CompactLoggingOptions(::caption.eval(), ::contentFormatter.eval(), DEFAULT_DECORATION_FORMATTER, ::returnValueFormatter.eval())
             }
         }
     }

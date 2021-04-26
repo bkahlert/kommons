@@ -21,6 +21,7 @@ class NumbersKtTest {
             expecting("unsigned int ") { 0u.isZero } that { isTrue() }
             expecting("long") { 0L.isZero } that { isTrue() }
             expecting("unsigned long") { 0uL.isZero } that { isTrue() }
+            expecting("float") { 0F.isZero } that { isTrue() }
             expecting("big integer constant") { BigIntegerConstants.ZERO.isZero } that { isTrue() }
             expecting("big integer") { 0.toBigInteger().isZero } that { isTrue() }
             expecting("big integer calculated") { (BigIntegerConstants.ONE - BigIntegerConstants.ONE).isZero } that { isTrue() }
@@ -39,6 +40,7 @@ class NumbersKtTest {
             expecting("unsigned int ") { 2u.isZero } that { isFalse() }
             expecting("long") { 2L.isZero } that { isFalse() }
             expecting("unsigned long") { 2uL.isZero } that { isFalse() }
+            expecting("float") { 2F.isZero } that { isFalse() }
             expecting("big integer constant") { BigIntegerConstants.TWO.isZero } that { isFalse() }
             expecting("big integer") { 2.toBigInteger().isZero } that { isFalse() }
             expecting("big integer calculated") { (BigIntegerConstants.ONE + BigIntegerConstants.ONE).isZero } that { isFalse() }

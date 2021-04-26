@@ -1,10 +1,8 @@
 package koodies.docker
 
-import koodies.builder.BuilderTemplate
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.MountOptions.Companion.CollectingMountOptionsContext
+import koodies.Exceptions
+import koodies.builder.Builder
+import koodies.builder.Init
 
 public class MountOptions(private val mountOptions: List<MountOption>) : AbstractList<MountOption>() {
     public constructor(vararg mountOptions: MountOption) : this(mountOptions.toList())
@@ -45,17 +43,18 @@ public class MountOptions(private val mountOptions: List<MountOption>) : Abstrac
         return result
     }
 
-    public companion object : BuilderTemplate<CollectingMountOptionsContext, MountOptions>() {
-        @DockerCommandLineDsl
-        public class CollectingMountOptionsContext(override val captures: CapturesMap) : CapturingContext(), MountOptionContext<Unit> {
-            public val addMount: SkippableCapturingBuilderInterface<MountOptionContext<MountOption>.() -> MountOption, MountOption?> by MountOption
-            override fun mount(source: HostPath, target: ContainerPath, type: String) {
-                addMount using MountOption(source, target, type)
-            }
-        }
+    public companion object : Builder<Init<MountOptionContext<Unit>>, MountOptions> {
 
-        override fun BuildContext.build(): MountOptions = ::CollectingMountOptionsContext {
-            MountOptions(::addMount.evalAll())
+        override fun invoke(init: Init<MountOptionContext<Unit>>): MountOptions {
+            val mounts: MutableList<MountOption> = mutableListOf()
+            val buildErrors: MutableList<String> = mutableListOf()
+            object : MountOptionContext<Unit>(buildErrors) {
+                override fun mount(source: HostPath, target: ContainerPath, type: String): Unit {
+                    mounts.add(MountOption(source, target, type))
+                }
+            }.init()
+            if (buildErrors.isNotEmpty()) throw Exceptions.IAE(buildErrors)
+            return MountOptions(mounts)
         }
     }
 }

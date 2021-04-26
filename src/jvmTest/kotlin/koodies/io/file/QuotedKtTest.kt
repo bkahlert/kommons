@@ -20,7 +20,7 @@ class QuotedKtTest {
         "/my/path/filename" to "\"/my/path/filename\"",
         "/my/path/filename.test" to "\"/my/path/filename.test\"",
     ).testEach("{} -> {}") { (path, expected) ->
-        expect { Path.of(path) }.that { quoted.isEqualTo(expected) }
+        expecting { Path.of(path) } that { quoted.isEqualTo(expected) }
     }
 }
 

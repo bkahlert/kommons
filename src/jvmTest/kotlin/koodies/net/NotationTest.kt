@@ -22,7 +22,7 @@ class NotationTest {
             IPv4Address.RANGE.start to "0.0.0.0",
             IPv4Address.RANGE.endInclusive to "255.255.255.255",
         ) { (ip, conventionalRepresentation) ->
-            expect { ip.conventionalRepresentation }.that { isEqualTo(conventionalRepresentation) }
+            expecting { ip.conventionalRepresentation } that { isEqualTo(conventionalRepresentation) }
         }
     }
 
@@ -37,7 +37,7 @@ class NotationTest {
             IPv6Address.RANGE.start to "0000:0000:0000:0000:0000:0000:0000:0000",
             IPv6Address.RANGE.endInclusive to "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
         ) { (ip, fullRepresentation) ->
-            expect { ip.fullRepresentation }.that { isEqualTo(fullRepresentation) }
+            expecting { ip.fullRepresentation } that { isEqualTo(fullRepresentation) }
         }
 
         @TestFactory
@@ -47,7 +47,7 @@ class NotationTest {
             IPv6Address.RANGE.start to "0:0:0:0:0:0:0:0",
             IPv6Address.RANGE.endInclusive to "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
         ) { (ip, conventionalRepresentation) ->
-            expect { ip.conventionalRepresentation }.that { isEqualTo(conventionalRepresentation) }
+            expecting { ip.conventionalRepresentation } that { isEqualTo(conventionalRepresentation) }
         }
 
         @TestFactory
@@ -57,7 +57,7 @@ class NotationTest {
             IPv6Address.RANGE.start to "::",
             IPv6Address.RANGE.endInclusive to "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
         ) { (ip, compressedRepresentation) ->
-            expect { ip.compressedRepresentation }.that { isEqualTo(compressedRepresentation) }
+            expecting { ip.compressedRepresentation } that { isEqualTo(compressedRepresentation) }
         }
     }
 
@@ -82,7 +82,7 @@ class NotationTest {
             BigIntegerConstants.ZERO to "⌁⌁",
             (BigIntegerConstants.TWO shl (192 - 1)).dec() to "fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv⌁fvvvv"
         ) { (value, conventionalRepresentation) ->
-            expect { unconventionalNotation.format(value) }.that { isEqualTo(conventionalRepresentation) }
+            expecting { unconventionalNotation.format(value) } that { isEqualTo(conventionalRepresentation) }
         }
     }
 }

@@ -29,7 +29,6 @@ import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
@@ -49,12 +48,12 @@ class DockerContainerTest {
 
         @TestFactory
         fun `should throw on illegal name`() = ILLEGAL_NAMES.testEach {
-            expectThrowing { DockerContainer(it) }.that { isFailure().isA<IllegalArgumentException>() }
+            expectThrows<IllegalArgumentException> { DockerContainer(it) }
         }
 
         @TestFactory
         fun `should accept legal name`() = LEGAL_NAMES.testEach {
-            expectThrowing { DockerContainer(it) }.that { isSuccess() }
+            expectCatching { DockerContainer(it) } that { isSuccess() }
         }
     }
 
@@ -68,7 +67,7 @@ class DockerContainerTest {
             "✔︎ exited" to { it.newExitedTestContainer() },
         ).testEach("{}") { (state, provider) ->
             val container = provider(testContainers)
-            expect { container.toString() }.that { matchesCurlyPattern("DockerContainer { name = {}⦀{}state = $state }") }
+            expecting { container.toString() } that { matchesCurlyPattern("DockerContainer { name = {}⦀{}state = $state }") }
         }
     }
 
@@ -100,27 +99,27 @@ class DockerContainerTest {
 
             @TestFactory
             fun `should sanitize illegal name`() = ILLEGAL_NAMES.testEach {
-                expect { DockerContainer.from(it) }.that { name.length.isGreaterThanOrEqualTo(8) }
-                expect { DockerContainer { it.sanitized } }.that { name.length.isGreaterThanOrEqualTo(8) }
+                expecting { DockerContainer.from(it) } that { name.length.isGreaterThanOrEqualTo(8) }
+                expecting { DockerContainer { it.sanitized } } that { name.length.isGreaterThanOrEqualTo(8) }
             }
 
             @TestFactory
             fun `should sanitize legal name`() = LEGAL_NAMES.testEach {
-                expect { DockerContainer.from(it) }.that { name.toStringIsEqualTo(it) }
-                expect { DockerContainer { it.sanitized } }.that { name.toStringIsEqualTo(it) }
+                expecting { DockerContainer.from(it) } that { name.toStringIsEqualTo(it) }
+                expecting { DockerContainer { it.sanitized } } that { name.toStringIsEqualTo(it) }
             }
 
             @TestFactory
             fun `should not append random suffix by default`() = (ILLEGAL_NAMES + LEGAL_NAMES).testEach {
-                expect { DockerContainer.from(it) }.that {
+                expecting { DockerContainer.from(it) } that {
                     name.not { endsWithRandomSuffix() }
                 }
             }
 
             @TestFactory
             fun `should append random suffix if specified`() = (ILLEGAL_NAMES + LEGAL_NAMES).testEach {
-                expect { DockerContainer.from(it, randomSuffix = true) }.that { name.endsWithRandomSuffix() }
-                expect { DockerContainer { it.withRandomSuffix } }.that { name.endsWithRandomSuffix() }
+                expecting { DockerContainer.from(it, randomSuffix = true) } that { name.endsWithRandomSuffix() }
+                expecting { DockerContainer { it.withRandomSuffix } } that { name.endsWithRandomSuffix() }
             }
         }
 

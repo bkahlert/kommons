@@ -28,7 +28,7 @@ class IPv6AddressTest {
             IPv6Address.parse("0:0:0:0:0:ffff:192.168.16.1"),
             IPv6Address(ubyteArrayOfDecimalString("281473913982977")),
         ).testEach { ip ->
-            expect { ip }.that { toStringIsEqualTo("::ffff:c0a8:1001") }
+            expecting { ip } that { toStringIsEqualTo("::ffff:c0a8:1001") }
         }
 
     @TestFactory
@@ -40,7 +40,7 @@ class IPv6AddressTest {
             { IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001:0:0:0") },
             { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
         ).testEach { ip ->
-            expectThrowing { ip() }.that { isFailure().isA<IllegalArgumentException>() }
+            expectThrows<IllegalArgumentException> { ip() }
         }
 
     @Nested
@@ -125,9 +125,9 @@ class IPv6AddressTest {
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {
-            expect { range.smallestCommonSubnet.prefixLength }.that { isEqualTo(bitCount) }
-            expect { range.smallestCommonSubnet.hostCount }.that { isEqualTo(hostCount) }
-            expect { range.smallestCommonSubnet.networkAddress }.that { isEqualTo(networkAddress) }
+            expecting { range.smallestCommonSubnet.prefixLength } that { isEqualTo(bitCount) }
+            expecting { range.smallestCommonSubnet.hostCount } that { isEqualTo(hostCount) }
+            expecting { range.smallestCommonSubnet.networkAddress } that { isEqualTo(networkAddress) }
         }
     }
 }

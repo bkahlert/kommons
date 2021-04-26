@@ -36,11 +36,11 @@ class CapturingContextTest {
 
     @TestFactory
     fun `with no invocations`() = test(CapturesMap().also { TestContext(it) }) {
-        expect { mostRecent(TestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("initial") }
-        expect { mostRecent(TestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
-        expect { mostRecent(TestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo(null) }
-        expect { mostRecent(TestContext::uninitialized) }.that { isNull() }
-        expect { getAll { true } }.that { isEmpty() }
+        expecting { mostRecent(TestContext::initializedWithNonNullable) } that { isA<Deferred<out String>>().evaluatesTo("initial") }
+        expecting { mostRecent(TestContext::initializedWithNullable) } that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
+        expecting { mostRecent(TestContext::initializedWithNull) } that { isA<Deferred<out String?>>().evaluatesTo(null) }
+        expecting { mostRecent(TestContext::uninitialized) } that { isNull() }
+        expecting { getAll { true } } that { isEmpty() }
     }
 
     @TestFactory
@@ -52,11 +52,11 @@ class CapturingContextTest {
             uninitialized("value")
         }
     }) {
-        expect { mostRecent(TestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("value") }
-        expect { mostRecent(TestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-        expect { mostRecent(TestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-        expect { mostRecent(TestContext::uninitialized) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-        expect { getAll { true } }.that {
+        expecting { mostRecent(TestContext::initializedWithNonNullable) } that { isA<Deferred<out String>>().evaluatesTo("value") }
+        expecting { mostRecent(TestContext::initializedWithNullable) } that { isA<Deferred<out String?>>().evaluatesTo("value") }
+        expecting { mostRecent(TestContext::initializedWithNull) } that { isA<Deferred<out String?>>().evaluatesTo("value") }
+        expecting { mostRecent(TestContext::uninitialized) } that { isA<Deferred<out String?>>().evaluatesTo("value") }
+        expecting { getAll { true } } that {
             hasSize(4)
             map { it.evaluate() }.containsExactly("value", "value", "value", "value")
         }
@@ -75,11 +75,11 @@ class CapturingContextTest {
             uninitialized("new value")
         }
     }) {
-        expect { mostRecent(TestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("new value") }
-        expect { mostRecent(TestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-        expect { mostRecent(TestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-        expect { mostRecent(TestContext::uninitialized) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-        expect { getAll { true } }.that {
+        expecting { mostRecent(TestContext::initializedWithNonNullable) } that { isA<Deferred<out String>>().evaluatesTo("new value") }
+        expecting { mostRecent(TestContext::initializedWithNullable) } that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+        expecting { mostRecent(TestContext::initializedWithNull) } that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+        expecting { mostRecent(TestContext::uninitialized) } that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+        expecting { getAll { true } } that {
             hasSize(8)
             map { it.evaluate() }.containsExactly("value", "value", "value", "value", "new value", "new value", "new value", "new value")
         }
@@ -91,7 +91,7 @@ class CapturingContextTest {
             val delegatingToInitializedWithNonNullable: SkippableBuilder<() -> String, String, Unit> by builder<String>() then initializedWithNonNullable
             val delegatingToInitializedWithNullable: SkippableBuilder<() -> String?, String?, Unit> by builder<String?>() then initializedWithNullable
             val delegatingToInitializedWithNull: SkippableBuilder<() -> String?, String?, Unit> by builder<String?>() then initializedWithNull
-            val delegatingToUninitialized: SkippableBuilder<() -> String, String, Unit> by builder<String>() then  uninitialized
+            val delegatingToUninitialized: SkippableBuilder<() -> String, String, Unit> by builder<String>() then uninitialized
         }
 
         @Test
@@ -103,11 +103,11 @@ class CapturingContextTest {
 
         @TestFactory
         fun `with no invocations`() = test(CapturesMap().also { DelegationTestContext(it) }) {
-            expect { mostRecent(DelegationTestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("initial") }
-            expect { mostRecent(DelegationTestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
-            expect { mostRecent(DelegationTestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo(null) }
-            expect { mostRecent(DelegationTestContext::uninitialized) }.that { isNull() }
-            expect { getAll { true } }.that { isEmpty() }
+            expecting { mostRecent(DelegationTestContext::initializedWithNonNullable) } that { isA<Deferred<out String>>().evaluatesTo("initial") }
+            expecting { mostRecent(DelegationTestContext::initializedWithNullable) } that { isA<Deferred<out String?>>().evaluatesTo("nullable") }
+            expecting { mostRecent(DelegationTestContext::initializedWithNull) } that { isA<Deferred<out String?>>().evaluatesTo(null) }
+            expecting { mostRecent(DelegationTestContext::uninitialized) } that { isNull() }
+            expecting { getAll { true } } that { isEmpty() }
         }
 
         @TestFactory
@@ -119,11 +119,11 @@ class CapturingContextTest {
                 delegatingToUninitialized { "value" }
             }
         }) {
-            expect { mostRecent(DelegationTestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("value") }
-            expect { mostRecent(DelegationTestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-            expect { mostRecent(DelegationTestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-            expect { mostRecent(DelegationTestContext::uninitialized) }.that { isA<Deferred<out String?>>().evaluatesTo("value") }
-            expect { getAll { true } }.that {
+            expecting { mostRecent(DelegationTestContext::initializedWithNonNullable) } that { isA<Deferred<out String>>().evaluatesTo("value") }
+            expecting { mostRecent(DelegationTestContext::initializedWithNullable) } that { isA<Deferred<out String?>>().evaluatesTo("value") }
+            expecting { mostRecent(DelegationTestContext::initializedWithNull) } that { isA<Deferred<out String?>>().evaluatesTo("value") }
+            expecting { mostRecent(DelegationTestContext::uninitialized) } that { isA<Deferred<out String?>>().evaluatesTo("value") }
+            expecting { getAll { true } } that {
                 hasSize(4)
                 map { it.evaluate() }.containsExactly("value", "value", "value", "value")
             }
@@ -142,11 +142,11 @@ class CapturingContextTest {
                 delegatingToUninitialized { "new value" }
             }
         }) {
-            expect { mostRecent(DelegationTestContext::initializedWithNonNullable) }.that { isA<Deferred<out String>>().evaluatesTo("new value") }
-            expect { mostRecent(DelegationTestContext::initializedWithNullable) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-            expect { mostRecent(DelegationTestContext::initializedWithNull) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-            expect { mostRecent(DelegationTestContext::uninitialized) }.that { isA<Deferred<out String?>>().evaluatesTo("new value") }
-            expect { getAll { true } }.that {
+            expecting { mostRecent(DelegationTestContext::initializedWithNonNullable) } that { isA<Deferred<out String>>().evaluatesTo("new value") }
+            expecting { mostRecent(DelegationTestContext::initializedWithNullable) } that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+            expecting { mostRecent(DelegationTestContext::initializedWithNull) } that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+            expecting { mostRecent(DelegationTestContext::uninitialized) } that { isA<Deferred<out String?>>().evaluatesTo("new value") }
+            expecting { getAll { true } } that {
                 hasSize(8)
                 map { it.evaluate() }.containsExactly("value", "value", "value", "value", "new value", "new value", "new value", "new value")
             }

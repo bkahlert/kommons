@@ -21,8 +21,8 @@ class IPv4RangeTest {
         " 172.186.78.250..192.168.0.1",
         "172.186.78.250..192.168.0.1 ",
     ) { rangeString: String ->
-        expect { rangeString.toIPv4Range() }.that { range }
-        expect { ip4RangeOf(rangeString) }.that { range }
+        expecting { rangeString.toIPv4Range() } that { range }
+        expecting { ip4RangeOf(rangeString) } that { range }
     }
 
     @TestFactory
@@ -30,7 +30,7 @@ class IPv4RangeTest {
         range,
         IPv4Range.from(ip1, ip2),
     ) {
-        expect { start }.that { isEqualTo(ip1) }
+        expecting { start } that { isEqualTo(ip1) }
     }
 
     @TestFactory
@@ -38,7 +38,7 @@ class IPv4RangeTest {
         range,
         IPv4Range.from(ip1, ip2),
     ) {
-        expect { endInclusive }.that { isEqualTo(ip2) }
+        expecting { endInclusive } that { isEqualTo(ip2) }
     }
 
     @TestFactory
@@ -46,7 +46,6 @@ class IPv4RangeTest {
         range,
         IPv4Range.from(ip1, ip2),
     ) {
-        expect { toString() }.that { isEqualTo("172.186.78.250..192.168.0.1") }
+        expecting { toString() } that { isEqualTo("172.186.78.250..192.168.0.1") }
     }
 }
-

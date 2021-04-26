@@ -1,5 +1,7 @@
 package koodies.runtime
 
+import koodies.text.Semantics.Symbols
+
 /**
  * Whether this program is running an integrated development environment.
  */
@@ -33,7 +35,8 @@ public actual val ansiSupport: AnsiSupport = AnsiSupport.NONE
  * before returning it.
  */
 @Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
-public actual inline fun getCaller(skip: UInt): CallStackElement = TODO()
+public actual inline fun getCaller(skip: UInt): CallStackElement =
+    KotlinCallStackElement()
 
 /**
  * Returns a [CharSequence] that represents the current caller
@@ -43,6 +46,17 @@ public actual inline fun getCaller(skip: UInt): CallStackElement = TODO()
  * one [locator] returned `true`.
  */
 @Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
-public actual inline fun getCaller(crossinline locator: CallStackElement.() -> Boolean): CallStackElement {
-    TODO("Not yet implemented")
+public actual inline fun getCaller(crossinline locator: CallStackElement.() -> Boolean): CallStackElement =
+    KotlinCallStackElement()
+
+public class KotlinCallStackElement : CallStackElement {
+    private val q = Symbols.Unknown
+    override val length: Int = q.length
+    override fun get(index: Int): Char = q[index]
+    override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = q.subSequence(startIndex, endIndex)
+    override val receiver: String? = null
+    override val function: String = q
+    override val file: String? = null
+    override val line: Int = 0
+    override val column: Int? = null
 }

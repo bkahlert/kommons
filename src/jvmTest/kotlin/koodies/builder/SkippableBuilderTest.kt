@@ -4,7 +4,7 @@ import koodies.builder.SkippableBuilderTest.AllVariantsBuilder.Lists
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.callable
-import koodies.test.test
+import koodies.test.tests
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
@@ -52,72 +52,108 @@ class SkippableBuilderTest {
     }
 
     @TestFactory
-    fun `all builder variants can be called using invoke`() = abList.test {
+    fun `all builder variants can be called using invoke`() = tests {
 
-        val built = AllVariantsBuilder().build {
-            expect { explicitBuilderInstance { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { explicitBuilderFunction { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { callableBuilderInstance { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { callableInvokeFunction { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { capturingBuilderInstance { +"a" + "b" } }.that { isEqualTo(Unit) }
-            expect { capturingBuilderInstanceShorthand { +"a" + "b" } }.that { isEqualTo(Unit) }
+        AllVariantsBuilder().build {
+            expecting { explicitBuilderInstance { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { explicitBuilderFunction { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { callableBuilderInstance { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { callableInvokeFunction { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { capturingBuilderInstance { +"a" + "b" } } that { isEqualTo(Unit) }
+            expecting { capturingBuilderInstanceShorthand { +"a" + "b" } } that { isEqualTo(Unit) }
         }
 
-        expect { built }.that { captured(abList) }
+        expecting {
+            AllVariantsBuilder().build {
+                explicitBuilderInstance { +"a" + "b" }
+                explicitBuilderFunction { +"a" + "b" }
+                callableBuilderInstance { +"a" + "b" }
+                callableInvokeFunction { +"a" + "b" }
+                capturingBuilderInstance { +"a" + "b" }
+                capturingBuilderInstanceShorthand { +"a" + "b" }
+            }
+        } that { captured(abList) }
     }
 
     @TestFactory
-    fun `all builder variants can be called using build`() = abList.test {
+    fun `all builder variants can be called using build`() = tests {
 
-        val built = AllVariantsBuilder().build {
-            expect { explicitBuilderInstance.build { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { explicitBuilderFunction.build { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { callableBuilderInstance.build { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { callableInvokeFunction.build { +"a" + "b" } }.that { isEqualTo(abList) }
-            expect { capturingBuilderInstance.build { +"a" + "b" } }.that { isEqualTo(Unit) }
-            expect { capturingBuilderInstanceShorthand.build { +"a" + "b" } }.that { isEqualTo(Unit) }
+        AllVariantsBuilder().build {
+            expecting { explicitBuilderInstance.build { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { explicitBuilderFunction.build { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { callableBuilderInstance.build { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { callableInvokeFunction.build { +"a" + "b" } } that { isEqualTo(abList) }
+            expecting { capturingBuilderInstance.build { +"a" + "b" } } that { isEqualTo(Unit) }
+            expecting { capturingBuilderInstanceShorthand.build { +"a" + "b" } } that { isEqualTo(Unit) }
         }
 
-        expect { built }.that { captured(abList) }
+        expecting {
+            AllVariantsBuilder().build {
+                explicitBuilderInstance.build { +"a" + "b" }
+                explicitBuilderFunction.build { +"a" + "b" }
+                callableBuilderInstance.build { +"a" + "b" }
+                callableInvokeFunction.build { +"a" + "b" }
+                capturingBuilderInstance.build { +"a" + "b" }
+                capturingBuilderInstanceShorthand.build { +"a" + "b" }
+            }
+        } that { captured(abList) }
     }
 
     @TestFactory
-    fun `all builder variants can be skipped with using`() = abList.test {
+    fun `all builder variants can be skipped with using`() = tests {
 
-        val built = AllVariantsBuilder().build {
-            expect { explicitBuilderInstance using abList }.that { isEqualTo(abList) }
-            expect { explicitBuilderFunction using abList }.that { isEqualTo(abList) }
-            expect { callableBuilderInstance using abList }.that { isEqualTo(abList) }
-            expect { callableInvokeFunction using abList }.that { isEqualTo(abList) }
-            expect { capturingBuilderInstance using abList }.that { isEqualTo(Unit) }
-            expect { capturingBuilderInstanceShorthand using abList }.that { isEqualTo(Unit) }
+        AllVariantsBuilder().build {
+            expecting { explicitBuilderInstance using abList } that { isEqualTo(abList) }
+            expecting { explicitBuilderFunction using abList } that { isEqualTo(abList) }
+            expecting { callableBuilderInstance using abList } that { isEqualTo(abList) }
+            expecting { callableInvokeFunction using abList } that { isEqualTo(abList) }
+            expecting { capturingBuilderInstance using abList } that { isEqualTo(Unit) }
+            expecting { capturingBuilderInstanceShorthand using abList } that { isEqualTo(Unit) }
         }
 
-        expect { built }.that { captured(abList) }
+        expecting {
+            AllVariantsBuilder().build {
+                explicitBuilderInstance using abList
+                explicitBuilderFunction using abList
+                callableBuilderInstance using abList
+                callableInvokeFunction using abList
+                capturingBuilderInstance using abList
+                capturingBuilderInstanceShorthand using abList
+            }
+        } that { captured(abList) }
     }
 
 
     @TestFactory
-    fun `all builder variants can be skipped with by`() = abList.test {
+    fun `all builder variants can be skipped with by`() = tests {
 
-        val built = AllVariantsBuilder().build {
-            expect { explicitBuilderInstance by abList }.that { isEqualTo(abList) }
-            expect { explicitBuilderFunction by abList }.that { isEqualTo(abList) }
-            expect { callableBuilderInstance by abList }.that { isEqualTo(abList) }
-            expect { callableInvokeFunction by abList }.that { isEqualTo(abList) }
-            expect { capturingBuilderInstance by abList }.that { isEqualTo(Unit) }
-            expect { capturingBuilderInstanceShorthand by abList }.that { isEqualTo(Unit) }
+        AllVariantsBuilder().build {
+            expecting { explicitBuilderInstance by abList } that { isEqualTo(abList) }
+            expecting { explicitBuilderFunction by abList } that { isEqualTo(abList) }
+            expecting { callableBuilderInstance by abList } that { isEqualTo(abList) }
+            expecting { callableInvokeFunction by abList } that { isEqualTo(abList) }
+            expecting { capturingBuilderInstance by abList } that { isEqualTo(Unit) }
+            expecting { capturingBuilderInstanceShorthand by abList } that { isEqualTo(Unit) }
         }
 
-        expect { built }.that { captured(abList) }
+        expecting {
+            AllVariantsBuilder().build {
+                explicitBuilderInstance by abList
+                explicitBuilderFunction by abList
+                callableBuilderInstance by abList
+                callableInvokeFunction by abList
+                capturingBuilderInstance by abList
+                capturingBuilderInstanceShorthand by abList
+            }
+        } that { captured(abList) }
     }
 
     private fun Assertion.Builder<Lists>.captured(expected: List<String>) = compose("all empty but captured") {
-        get { explicitBuilderInstance }.isEqualTo(emptyList())
-        get { explicitBuilderFunction }.isEqualTo(emptyList())
-        get { callableBuilderInstance }.isEqualTo(emptyList())
-        get { callableInvokeFunction }.isEqualTo(emptyList())
-        get { capturingBuilderInstance }.isEqualTo(expected)
-        get { capturingBuilderInstanceShorthand }.isEqualTo(expected)
+        get("explicitBuilderInstance") { explicitBuilderInstance }.isEqualTo(emptyList())
+        get("explicitBuilderFunction") { explicitBuilderFunction }.isEqualTo(emptyList())
+        get("callableBuilderInstance") { callableBuilderInstance }.isEqualTo(emptyList())
+        get("callableInvokeFunction") { callableInvokeFunction }.isEqualTo(emptyList())
+        get("capturingBuilderInstance") { capturingBuilderInstance }.isEqualTo(expected)
+        get("capturingBuilderInstanceShorthand") { capturingBuilderInstanceShorthand }.isEqualTo(expected)
     }.then { if (allPassed) pass() else fail() }
 }

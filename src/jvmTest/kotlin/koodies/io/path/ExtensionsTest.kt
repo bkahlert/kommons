@@ -96,7 +96,7 @@ class ExtensionsTest {
             Path.of("a/b/c.2") to 5,
             Path.of("a/b.1/c.2") to 7
         ).testEach { (path, expected) ->
-            expect { path.extensionIndex }.that { isEqualTo(expected) }
+            expecting { path.extensionIndex } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -104,7 +104,7 @@ class ExtensionsTest {
             Path.of("a/b/c"),
             Path.of("a/b.1/c")
         ).testEach {
-            expect { it.extensionIndex }.that { isEqualTo(-1) }
+            expecting { it.extensionIndex } that { isEqualTo(-1) }
         }
     }
 
@@ -115,7 +115,7 @@ class ExtensionsTest {
             Path.of("a/b/c.2") to "2",
             Path.of("a/b.1/c.2-1") to "2-1"
         ).testEach { (path, expected) ->
-            expect { path.extensionOrNull }.that { isEqualTo(expected) }
+            expecting { path.extensionOrNull } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -123,7 +123,7 @@ class ExtensionsTest {
             Path.of("a/b/c"),
             Path.of("a/b.1/c")
         ).testEach {
-            expect { it.extensionOrNull }.that { isNull() }
+            expecting { it.extensionOrNull } that { isNull() }
         }
     }
 
@@ -136,7 +136,7 @@ class ExtensionsTest {
             "my/path/filename" to "my/path/filename.test",
             "/my/path/filename" to "/my/path/filename.test",
         ).testEach("{} should be {}") { (path, expected) ->
-            expect { Path.of(path).withExtension("test") }.that { isEqualTo(Path.of(expected)) }
+            expecting { Path.of(path).withExtension("test") } that { isEqualTo(Path.of(expected)) }
         }
 
         @TestFactory
@@ -145,7 +145,7 @@ class ExtensionsTest {
             "my/path/filename.pdf" to "my/path/filename.test",
             "/my/path/filename.pdf" to "/my/path/filename.test",
         ).testEach("{} should be {}") { (path, expected) ->
-            expect { Path.of(path).withExtension("test") }.that { isEqualTo(Path.of(expected)) }
+            expecting { Path.of(path).withExtension("test") } that { isEqualTo(Path.of(expected)) }
         }
     }
 
@@ -159,7 +159,7 @@ class ExtensionsTest {
             "/my/path/filename", "/my/path/filename.test",
             "/my/path/filename.pdf", "/my/path/filename.test",
         ).testEach("{} should be filename.test") {
-            expect { Path.of(it).fileNameWithExtension("test") }.that { isEqualTo("filename.test") }
+            expecting { Path.of(it).fileNameWithExtension("test") } that { isEqualTo("filename.test") }
         }
 
         @TestFactory
@@ -168,7 +168,7 @@ class ExtensionsTest {
             "my/path/filename.pdf", "my/path/filename.test",
             "/my/path/filename.pdf", "/my/path/filename.test",
         ).testEach("{} should be filename.test") {
-            expect { Path.of(it).fileNameWithExtension("test") }.that { isEqualTo("filename.test") }
+            expecting { Path.of(it).fileNameWithExtension("test") } that { isEqualTo("filename.test") }
         }
     }
 
@@ -224,7 +224,7 @@ class ExtensionsTest {
             Path.of("a/b/c.2"),
             Path.of("a/b.1/c.2"),
         ).testEach {
-            expect { it.baseName }.that { isEqualTo(it.fileSystem.getPath("c")) }
+            expecting { it.baseName } that { isEqualTo(it.fileSystem.getPath("c")) }
         }
 
         @TestFactory
@@ -232,7 +232,7 @@ class ExtensionsTest {
             Path.of("a/b/c"),
             Path.of("a/b.1/c"),
         ).testEach {
-            expect { it.baseName }.that { isEqualTo(it.fileName) }
+            expecting { it.baseName } that { isEqualTo(it.fileName) }
         }
     }
 
@@ -243,7 +243,7 @@ class ExtensionsTest {
             Path.of("a/b/c.2") to Path.of("a/b/c"),
             Path.of("a/b.1/c.2") to Path.of("a/b.1/c")
         ).testEach { (path, expected) ->
-            expect { path.basePath }.that { isEqualTo(expected) }
+            expecting { path.basePath } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -251,10 +251,9 @@ class ExtensionsTest {
             Path.of("a/b/c"),
             Path.of("a/b.1/c")
         ).testEach {
-            expect { it.basePath }.that { isSameInstanceAs(it) }
+            expecting { it.basePath } that { isSameInstanceAs(it) }
         }
     }
-
 }
 
 

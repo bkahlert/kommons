@@ -36,9 +36,19 @@ public actual val ansiSupport: AnsiSupport = NONE
  * before returning it.
  */
 @Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
-public actual inline fun getCaller(skip: UInt): CallStackElement {
-    return JsCallStackElement()
-}
+public actual inline fun getCaller(skip: UInt): CallStackElement =
+    JsCallStackElement()
+
+/**
+ * Returns a [CharSequence] that represents the current caller
+ * which is found passing each [CallStackElement] to the specified [locator].
+ *
+ * The actual [CallStackElement] used is the predecessor of the first
+ * one [locator] returned `true`.
+ */
+@Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
+public actual inline fun getCaller(crossinline locator: CallStackElement.() -> Boolean): CallStackElement =
+    JsCallStackElement()
 
 public class JsCallStackElement : CallStackElement {
     private val q = Symbols.Unknown
@@ -50,16 +60,4 @@ public class JsCallStackElement : CallStackElement {
     override val file: String? = null
     override val line: Int = 0
     override val column: Int? = null
-}
-
-/**
- * Returns a [CharSequence] that represents the current caller
- * which is found passing each [CallStackElement] to the specified [locator].
- *
- * The actual [CallStackElement] used is the predecessor of the first
- * one [locator] returned `true`.
- */
-@Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
-public actual inline fun getCaller(crossinline locator: CallStackElement.() -> Boolean): CallStackElement {
-    TODO("Not yet implemented")
 }

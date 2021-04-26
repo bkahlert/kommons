@@ -58,9 +58,9 @@ public open class BuilderFixture<T : Function<*>, R>(public val builder: Builder
     public companion object {
         public inline infix fun <reified T : Function<*>, reified R> Builder<T, R>.fixture(initToResult: Pair<T, R>): BuilderFixture<T, R> {
             val init = initToResult.first
-            val expect = initToResult.second
+            val expected = initToResult.second
             val actual = build(initToResult.first)
-            require(actual == expect) { "Building $init with $this did return\n$actual\nbut the following was expected:\n$expect" }
+            require(actual == expected) { "Building $init with $this did return\n$actual\nbut the following was expected:\n$expected" }
             return BuilderFixture(this, initToResult.first, initToResult.second)
         }
     }

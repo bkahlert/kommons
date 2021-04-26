@@ -441,7 +441,7 @@ class BlockRenderingLoggerKtTest {
                 logLine { "line" }
             }
             delegate?.op()
-            expect { logger }.that {
+            expecting { logger } that {
                 toStringMatchesCurlyPattern(
                     """
                         ╭──╴{}
@@ -466,7 +466,7 @@ class BlockRenderingLoggerKtTest {
                 delegate = this
             }
             delegate?.op()
-            expect { logger }.that {
+            expecting { logger } that {
                 toStringMatchesCurlyPattern(
                     """
                         ╭──╴{}

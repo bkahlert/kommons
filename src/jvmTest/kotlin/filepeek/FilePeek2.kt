@@ -1,11 +1,17 @@
 package filepeek
 
-import koodies.io.path.addExtensions
+import koodies.collections.head
+import koodies.collections.tail
 import koodies.io.path.asPath
-import koodies.io.path.extensionOrNull
-import koodies.text.convertKebabCaseToCamelCase
-import koodies.text.withoutPrefix
+import koodies.io.path.asString
+import koodies.text.LineSeparators.LF
+import koodies.text.joinToCamelCase
+import koodies.text.withSuffix
+import koodies.text.withoutSuffix
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readLines
 
 data class FileInfo(
     val lineNumber: Int,
@@ -15,85 +21,98 @@ data class FileInfo(
 )
 
 private val FS = File.separator
+private fun path(vararg pathElements: String): String = pathElements.joinToString(FS)
+private fun Path.contains(other: Path): Boolean =
+    other.map { it.asString() }.let { otherStrings ->
+        map { it.asString() }.windowed(otherStrings.size).contains(otherStrings)
+    }
 
 class FilePeek2(
-    private val ignoredPackages: List<String> = emptyList(),
-    private val sourceRoots: List<String> = listOf("src${FS}test${FS}kotlin", "src${FS}test${FS}java"),
+    private val stackTraceElement: StackTraceElement,
+    private val classesToSourceMappings: List<Path> = listOf(
+        Path.of("out", "classes"), // IDEA
+        Path.of("build", "classes"), // Gradle
+        Path.of("target", "classes"), // Maven
+    ),
 ) {
+    constructor(
+        callerClassName: String,
+        callerMethodName: String,
+    ) : this(RuntimeException().stackTrace.first { el ->
+        el.className == callerClassName && el.methodName == callerMethodName
+    })
 
-    fun getCallerFileInfo(
-    ): FileInfo {
-        val stackTrace = RuntimeException().stackTrace
+    private val classLoader = javaClass.classLoader
 
-        val callerStackTraceElement = stackTrace.first { el ->
-            ignoredPackages
-                .none { el.className.startsWith(it) }
-        }
-        val className = callerStackTraceElement.className.substringBefore('$')
-        val clazz = javaClass.classLoader.loadClass(className)!!
-        val classFilePath = File(clazz.protectionDomain.codeSource.location.path)
-            .absolutePath
+    fun getCallerFileInfo(): FileInfo {
 
-        val (matchDir, buildDir) = when {
-            classFilePath.contains("${FS}out${FS}") -> "${FS}out${FS}" to "out${FS}test${FS}classes" // running inside IDEA
-            classFilePath.contains("build${FS}classes${FS}java") -> "build${FS}classes${FS}java" to "build${FS}classes${FS}java${FS}test" // gradle 4.x java source
-            classFilePath.contains("build${FS}classes${FS}kotlin") -> "build${FS}classes${FS}kotlin" to "build${FS}classes${FS}kotlin${FS}test" // gradle 4.x kotlin sources
-            classFilePath.contains("target${FS}classes") -> "target${FS}classes" to "target${FS}classes" // maven
-            else -> "build${FS}classes${FS}test" to "build${FS}classes${FS}test" // older gradle
+        val classesDirectory: Path = stackTraceElement.run {
+            val baseClassName = className.substringBefore('$')
+            val baseClass = classLoader.loadClass(baseClassName) ?: error("Error loading base class $baseClassName of $className")
+            Path.of(baseClass.protectionDomain.codeSource.location.toURI())
         }
 
-        val sourceFileCandidates: List<File> = this.sourceRoots
-            .map { sourceRoot ->
-                val replace = classFilePath.replace(buildDir, sourceRoot)
-                val sourceFileWithoutExtension =
-                    replace
-                        .plus(FS + className.replace(".", FS))
+        val buildDir: Path = classesToSourceMappings.firstOrNull { classesDirectory.contains(it) } ?: error("Unknown build directory structure")
+        val sourceDir = classesDirectory.asString().split(buildDir.asString(), limit = 2).run {
+            val sourceRoot = first().asPath().resolve("src")
+            val suffix = last().asPath()
+            val lang = suffix.head.asString()
+            val sourceDir = suffix.map { it.asString() }.tail.joinToCamelCase()
+            sourceRoot.resolve(sourceDir).resolve(lang)
+        }
 
-                File(sourceFileWithoutExtension).parentFile
-                    .resolve(callerStackTraceElement.fileName!!)
-            }.let {
+        val pkg = stackTraceElement.className.split(".").dropLast(1)
+        val fileName = stackTraceElement.fileName ?: error("Unknown filename in $stackTraceElement")
+        val fileNames: List<String> = listOf(fileName, fileName.withoutSuffix(".kt").withSuffix("Kt.kt"))
+        val sourceFileDir = sourceDir.resolve(Path.of(pkg.head, *pkg.tail.toTypedArray()))
+        val sourceFile: Path = fileNames.map { sourceFileDir.resolve(it) }.single { it.exists() }
 
-                val (baseDir, suffix) = classFilePath.split(matchDir).let {
-                    val baseDir = it.first()
-                    val suffixDir = it.last().withoutPrefix(FS).replace(FS, "-").convertKebabCaseToCamelCase()
-                    baseDir to suffixDir
-                }
-                val sourceDir = baseDir.asPath().resolve("src").resolve(suffix).resolve("kotlin")
-                val sourceFileWithoutExtension = sourceDir.resolve(className.replace(".", FS))
-
-                val candidate1 = sourceFileWithoutExtension.addExtensions(callerStackTraceElement.fileName?.asPath()?.extensionOrNull ?: "kt").toFile()
-                if (candidate1.exists()) {
-                    it + candidate1
-                } else {
-                    val candidate2 = sourceFileWithoutExtension.parent.resolve(callerStackTraceElement.fileName!!).toFile()
-                    it + candidate2
-                }
+        val (lines, lineNumber) = sourceFile.readLines().let { lines ->
+            if (stackTraceElement.lineNumber < lines.size) {
+                // looks like not inlined
+                lines.drop(stackTraceElement.lineNumber - 1) to stackTraceElement.lineNumber
+            } else {
+                // obviously inlined since line number > available lines
+                val classNames = stackTraceElement.className.split("$").map { it.substringAfterLast('.') }
+                val relevantLines = classNames.fold(lines) { remainingLines, className ->
+                    remainingLines
+                        .dropWhile { line -> !line.contains(className) }
+                        .findBlock()
+                        .takeUnless { it.isEmpty() } ?: remainingLines
+                }.dropWhile { !it.contains('{') }
+                val fullText = lines.joinToString(LF)
+                val relevantFullText = relevantLines.joinToString(LF)
+                relevantLines to fullText.substringBefore(relevantFullText).lines().size
             }
-        val sourceFile =
-            sourceFileCandidates.singleOrNull(File::exists) ?: throw SourceFileNotFoundException(
-                classFilePath,
-                className,
-                sourceFileCandidates
-            )
-
-        val callerLine = sourceFile.bufferedReader().useLines { lines ->
-            var braceDelta = 0
-            lines.drop(callerStackTraceElement.lineNumber - 1)
-                .takeWhileInclusive { line ->
-                    val openBraces = line.count { it == '{' }
-                    val closeBraces = line.count { it == '}' }
-                    braceDelta += openBraces - closeBraces
-                    braceDelta != 0
-                }.map { it.trim() }.joinToString(separator = "")
         }
+
+        val callerLine: String = lines.findBlock().joinToString(separator = "") { it.trim() }
 
         return FileInfo(
-            callerStackTraceElement.lineNumber,
-            sourceFileName = sourceFile.absolutePath,
+            lineNumber,
+            sourceFileName = sourceFile.asString(),
             line = callerLine.trim(),
-            methodName = callerStackTraceElement.methodName
-
+            methodName = stackTraceElement.methodName
         )
+    }
+}
+
+private fun List<String>.findBlock(): List<String> {
+    var braceDelta = 0
+    return takeWhileInclusive { line ->
+        val openBraces = line.count { it == '{' }
+        val closeBraces = line.count { it == '}' }
+        braceDelta += openBraces - closeBraces
+        braceDelta != 0
+    }
+}
+
+internal fun <T> List<T>.takeWhileInclusive(pred: (T) -> Boolean): List<T> {
+    var shouldContinue = true
+    return takeWhile {
+        val result = shouldContinue
+        shouldContinue = pred(it)
+        result
     }
 }
 
@@ -107,14 +126,15 @@ internal fun <T> Sequence<T>.takeWhileInclusive(pred: (T) -> Boolean): Sequence<
 }
 
 class SourceFileNotFoundException(classFilePath: String, className: String, candidates: List<File>) :
-    java.lang.RuntimeException("did not find source file for class $className loaded from $classFilePath. tried: ${candidates.joinToString { it.path }}")
+    java.lang.RuntimeException("did not find source file for class $className loaded from $classFilePath. tried: ${candidates.joinToString { it.path }}") {
+}
 
 
 class LambdaBody(methodName: String, line: String) {
     val body: String
 
     init {
-        val firstPossibleBracket = line.indexOf(methodName) + methodName.length
+        val firstPossibleBracket = line.indexOf(methodName).takeIf { it >= 0 }?.let { it + methodName.length } ?: 0
         val firstBracket = line.indexOf('{', firstPossibleBracket) + 1
         val subjectEnd = findMatchingClosingBracket(line, firstBracket)
         body = line.substring(firstBracket, subjectEnd).trim()

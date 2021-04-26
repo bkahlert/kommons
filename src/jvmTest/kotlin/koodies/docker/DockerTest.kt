@@ -55,9 +55,9 @@ class DockerTest {
     @DockerRequiring([BusyBox::class])
     @TestFactory
     fun `should provide builder access points`() = test(Docker) {
-//        expect { search(DockerSearchCommandLineBuilderExpectation.init) }.that { o }
-//        expect { start(Docker.DockerStartCommandLineBuilderExpectation.init) }.that { isEqualTo(Docker.DockerStartCommandLineBuilderExpectation.result) }
-        expect { stop(DockerStopCommandLineTest.init) }.that { isEqualTo(DockerStopCommandLineTest.result) }
+//        expecting { search(DockerSearchCommandLineBuilderExpectation.init) } that { o }
+//        expecting { start(Docker.DockerStartCommandLineBuilderExpectation.init) } that { isEqualTo(Docker.DockerStartCommandLineBuilderExpectation.result) }
+        expecting { stop(DockerStopCommandLineTest.init) } that { isEqualTo(DockerStopCommandLineTest.result) }
     }
 
     @DockerRequiring([BusyBox::class])

@@ -11,9 +11,9 @@ import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.text
 import koodies.test.UniqueId
-import koodies.test.test
 import koodies.test.testEach
 import koodies.test.testWithTempDir
+import koodies.test.tests
 import koodies.test.withTempDir
 import koodies.unit.Size
 import koodies.unit.size
@@ -78,7 +78,7 @@ class ClassPathsKtTest {
             "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
             "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
             "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-        ) { expect { useClassPaths(this) { readText() } }.that { all { isEqualTo(text) } } }
+        ) { expecting { useClassPaths(this) { readText() } } that { all { isEqualTo(text) } } }
 
         @Test
         fun `should map read-only root`() {
@@ -145,7 +145,7 @@ class ClassPathsKtTest {
             "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
             "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
             "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-        ) { expect { useClassPath(this) { readText() } }.that { isEqualTo(text) } }
+        ) { expecting { useClassPath(this) { readText() } } that { isEqualTo(text) } }
 
         @Test
         fun `should map read-only root`() {
@@ -202,40 +202,25 @@ class ClassPathsKtTest {
     }
 
     @TestFactory
-    fun `use required class path`() = test {
-        with { Fixture61C285F09D95930D0AE298B00AF09F918B0A }.then {
-            expect { useRequiredClassPath(path) { readText() } }.that { isEqualTo(text) }
-        }
-
-        with { "invalid.file" }.then {
-            expectThrowing { useRequiredClassPath(this) { } }.that { isFailure().isA<NoSuchFileException>() }
-        }
+    fun `use required class path`() = tests {
+        expecting { useRequiredClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { readText() } } that { isEqualTo(text) }
+        expectThrows<NoSuchFileException> { useRequiredClassPath("invalid.file") {} }
     }
 
     @TestFactory
-    fun `read class path`() = test {
-        with { Fixture61C285F09D95930D0AE298B00AF09F918B0A }.then {
-            expect { readClassPathText(path) }.that { isEqualTo(text) }
-            expect { readClassPathBytes(path) }.that { isEqualTo(data) }
-        }
-
-        with { "invalid.file" }.then {
-            expect { readClassPathText(this) }.that { isNull() }
-            expect { readClassPathBytes(this) }.that { isNull() }
-        }
+    fun `read class path`() = tests {
+        expecting { readClassPathText(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(text) }
+        expecting { readClassPathBytes(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(data) }
+        expecting { readClassPathText("invalid.file") } that { isNull() }
+        expecting { readClassPathBytes("invalid.file") } that { isNull() }
     }
 
     @TestFactory
-    fun `require class path`() = test {
-        with { Fixture61C285F09D95930D0AE298B00AF09F918B0A }.then {
-            expect { requireClassPathText(path) }.that { isEqualTo(text) }
-            expect { requireClassPathBytes(path) }.that { isEqualTo(data) }
-        }
-
-        with { "invalid.file" }.then {
-            expectThrowing { requireClassPathText(this) }.that { isFailure().isA<NoSuchFileException>() }
-            expectThrowing { requireClassPathBytes(this) }.that { isFailure().isA<NoSuchFileException>() }
-        }
+    fun `require class path`() = tests {
+        expecting { requireClassPathText(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(text) }
+        expecting { requireClassPathBytes(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(data) }
+        expectThrows<NoSuchFileException> { requireClassPathText("invalid.file") }
+        expectThrows<NoSuchFileException> { requireClassPathBytes("invalid.file") }
     }
 
     @Nested

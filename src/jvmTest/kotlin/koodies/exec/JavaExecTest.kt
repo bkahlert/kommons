@@ -108,8 +108,8 @@ class JavaExecTest {
         ) { (operation, assertion) ->
             withTempDir(uniqueId) {
                 val (process, file) = createLazyFileCreatingProcess()
-                test2 { expecting { process.operation() } that { assertion() } }
-                test2 { expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that { isFalse() } }
+                expecting { process.operation() } that { assertion() }
+                expecting { file } that { 8.seconds.sleep(); not { exists() } }
             }
         }
 
@@ -126,8 +126,8 @@ class JavaExecTest {
         ) { (operation, assertion) ->
             withTempDir(uniqueId) {
                 val (process, file) = createLazyFileCreatingProcess()
-                test2 { expecting { process.operation() } that { assertion() } }
-                test2 { expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() } }
+                expecting { process.operation() } that { assertion() }
+                expecting { poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() }
             }
         }
 
@@ -147,9 +147,9 @@ class JavaExecTest {
         ) { operation ->
             withTempDir(uniqueId) {
                 val process = createCompletingExec()
-                test2 { expecting { process.operation() } that { get { started }.isTrue() } }
-                test2 { expecting { process } that { completesWithIO() } }
-                test2 { expecting { poll { process.successful == true }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() } }
+                expecting { process.operation() } that { get { started }.isTrue() }
+                expecting { process } that { completesWithIO() }
+                expecting { poll { process.successful == true }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() }
             }
         }
 

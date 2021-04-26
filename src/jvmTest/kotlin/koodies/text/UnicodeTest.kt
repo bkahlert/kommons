@@ -28,7 +28,7 @@ class UnicodeTest {
             119594 to Unicode.DivinationSymbols.Tetragrams.Purity.toString(),
         ).testEach("\"{}\" ？⃔ \"{}\"") { (codePoint, expected) ->
             val actual: CodePoint = Unicode[codePoint]
-            expect { actual }.that { toStringIsEqualTo(expected) }
+            expecting { actual } that { toStringIsEqualTo(expected) }
         }
     }
 

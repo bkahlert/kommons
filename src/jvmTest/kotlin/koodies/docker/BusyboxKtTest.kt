@@ -1,9 +1,10 @@
 package koodies.docker
 
 import koodies.concurrent.process.IO
+import koodies.docker.TestImages.BusyBox
 import koodies.exec.Exec
 import koodies.exec.Process.ExitState
-import koodies.docker.TestImages.BusyBox
+import koodies.exec.alive
 import koodies.test.UniqueId
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

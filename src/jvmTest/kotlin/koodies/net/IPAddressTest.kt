@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 
 @Execution(SAME_THREAD)
 class IPAddressTest {
@@ -19,7 +17,7 @@ class IPAddressTest {
     inner class Parse {
 
         @Test
-        internal fun name() {
+        fun name() {
             val ip4 = ip4Of("192.168.16.25")
             val ip6: IPv6Address = ip4.toIPv6Address()
             val range: IPv6Range = ip6.."::ffff:c0a8:1028".toIPv6() // ::ffff:c0a8:1019..::ffff:c0a8:1028
@@ -35,7 +33,7 @@ class IPAddressTest {
                 "192.168.016.1",
                 "192.168.016.001",
             ).testEach { ip ->
-                expect { ip.toIP() }.that { isEqualTo(IPv4Address.parse("192.168.16.1")) }
+                expecting { ip.toIP() } that { isEqualTo(IPv4Address.parse("192.168.16.1")) }
             }
 
         @TestFactory
@@ -45,7 +43,7 @@ class IPAddressTest {
                 "0:0::ffff:192.168.016.001",
                 "0:0:0:0:0:ffff:c0a8:1001",
             ).testEach { ip ->
-                expect { ip.toIP() }.that { isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")) }
+                expecting { ip.toIP() } that { isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")) }
             }
 
         @TestFactory
@@ -56,7 +54,7 @@ class IPAddressTest {
                 { "-0:0:0::ffff:c0a8:1001".toIP() },
                 { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
             ).testEach { ip ->
-                expectThrowing { ip() }.that { isFailure().isA<IllegalArgumentException>() }
+                expectThrows<IllegalArgumentException> { ip() }
             }
     }
 }

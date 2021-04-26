@@ -1,18 +1,16 @@
 package koodies.docker
 
+import koodies.builder.Init
 import koodies.debug.CapturedOutput
 import koodies.docker.MountOptionContext.Type.tmpfs
 import koodies.docker.MountOptionContext.Type.volume
-import koodies.docker.MountOptions.Companion.CollectingMountOptionsContext
 import koodies.test.SystemIoExclusive
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir
-import koodies.time.poll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
@@ -22,11 +20,9 @@ import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import strikt.assertions.isTrue
+import strikt.assertions.isNotNull
 import strikt.assertions.message
 import java.nio.file.Path
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class MountOptionsTest {
@@ -124,15 +120,13 @@ class MountOptionsTest {
         }
 
         @TestFactory
-        fun `should throw on relative target`() = listOf<CollectingMountOptionsContext.() -> Unit>(
+        fun `should throw on relative target`() = testEach<Init<MountOptionContext<Unit>>>(
             { "host-source".asHostPath() mountAt "string-target" },
             { "host-source".asHostPath() mountAt "container-target".asContainerPath() },
             { "string-source" mountAs "string-type" at "string-target" },
             { "string-source" mountAs "string-type" at "container-target".asContainerPath() },
-        ).testEach { mountOperation ->
-            test {
-                expectThrowing { MountOptions { mountOperation() } }.isFailure().isA<IllegalArgumentException>()
-            }
+        ) { mountOperation ->
+            expectThrows<IllegalArgumentException> { MountOptions { mountOperation() } }
         }
 
         @Isolated
@@ -141,16 +135,14 @@ class MountOptionsTest {
 
             @SystemIoExclusive
             @TestFactory
-            fun `should throw on incomplete mounts`(capturedOutput: CapturedOutput) = listOf<CollectingMountOptionsContext.() -> Unit>(
+            fun `should throw on incomplete mounts`(capturedOutput: CapturedOutput) = testEach<Init<MountOptionContext<Unit>>>(
                 { "string-source" mountAs "string-type" },
                 { "host-source".asHostPath() mountAs "string-type" },
                 { "string-source" mountAs volume },
                 { "host-source".asHostPath() mountAs tmpfs },
-            ).testEach { mountOperation ->
-                test {
-                    MountOptions { mountOperation() }
-                    expectThat(poll { capturedOutput.contains("missing") && capturedOutput.contains("complete the configuration") }
-                        .every(100.milliseconds).forAtMost(9.seconds) { fail("No warning due to missing at call logged.") }).isTrue()
+            ) { mountOperation ->
+                expectThrows<IllegalArgumentException> { MountOptions { mountOperation() } } that {
+                    message.isNotNull().contains("complete the configuration")
                 }
             }
         }

@@ -51,7 +51,7 @@ class CommandLineTest {
             CommandLine(mapOf("env1" to "val1"), Locations.Temp, "command", "--flag", "-abc", "-d", "arg"),
         ),
     ) { (commandLine, variants) ->
-        variants.forEach { expect { it }.that { isEqualTo(commandLine) } }
+        variants.forEach { expecting { it } that { isEqualTo(commandLine) } }
     }
 
     @Test

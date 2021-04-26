@@ -5,14 +5,13 @@ import koodies.test.Fixtures.copyTo
 import koodies.test.HtmlFile
 import koodies.test.TextFile
 import koodies.test.UniqueId
-import koodies.test.asA
 import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
@@ -22,7 +21,7 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.reflect.full.memberProperties
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class LocationsTest {
 
     @Nested
@@ -44,10 +43,9 @@ class LocationsTest {
 
     @TestFactory
     fun paths() = Locations::class.memberProperties.testEach {
-        with { it.get(Locations) }.asA<Path> {
-            expect { isAbsolute }.that { isTrue() }
-            expect { exists() }.that { isTrue() }
-        }
+        val path = it.get(Locations) as Path
+        expecting { path.isAbsolute } that { isTrue() }
+        expecting { path.exists() } that { isTrue() }
     }
 
     @Test

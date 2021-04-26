@@ -3,6 +3,7 @@ package koodies.concurrent.process
 import koodies.concurrent.process
 import koodies.concurrent.script
 import koodies.exec.alive
+import koodies.exec.started
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
 import koodies.test.Slow
@@ -14,14 +15,14 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.second
 
-@Execution(CONCURRENT)
+@Execution(SAME_THREAD)
 class IOLogKtTest {
 
     @Nested
@@ -44,7 +45,7 @@ class IOLogKtTest {
             { startedProcess },
             { terminatedProcess },
         ) {
-            expect { it().let { p -> p to p.output() } }.that {
+            expecting { it().let { p -> p to p.output() } } that {
                 first.not { alive }
                 second.isEqualTo("test output 1\ntest output 2")
             }

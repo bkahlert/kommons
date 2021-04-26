@@ -67,7 +67,7 @@ public class CapturesMap {
      * property with the given [propertyName] or `null` if no invocation is stored.
      */
     public inline operator fun <reified R> get(propertyName: String): Deferred<out R?> =
-        mostRecent(propertyName)?.letContent { this@letContent as? R } ?: deferNull()
+        mostRecent(propertyName)?.letContent { this@letContent as R? } ?: deferNull()
 
     /**
      * Returns the [Deferred] evaluation of the most recent invocation of the

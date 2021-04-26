@@ -70,9 +70,7 @@ class SimpleStringKtTest {
                 "koodies.SimpleStringKtTest\$ForKClass\$should return lambda class name\$lambda\$1" to "SimpleStringKtTest.ForKClass.should return lambda class name.lambda.1",
                 "class koodies.docker.DockerProcessTest\$Lifecycle\$IsRunning" to "DockerProcessTest.Lifecycle.IsRunning",
             ) { (classString, expected) ->
-                test2 {
-                    expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
-                }
+                expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
             }
         }
     }
@@ -86,9 +84,7 @@ class SimpleStringKtTest {
             this::class.toSimpleClassName() to "KClassImpl",
             null.toSimpleClassName() to "␀",
         ) { (classString, expected) ->
-            test2 {
-                expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
-            }
+            expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
         }
     }
 
@@ -156,6 +152,13 @@ class SimpleStringKtTest {
         fun `should remove type alias comments2`() {
             expectThat("kotlin.ByteArray /* = java.math.BigInteger */.() -> koodies.math.BigInteger /* = java.math.BigInteger */".toSimpleString()) {
                 isEqualTo("ByteArray.() -> BigInteger")
+            }
+        }
+
+        @Test
+        fun `should remove type parameters`() {
+            expectThat("koodies.docker.MountOptionContext<kotlin.Unit>.() -> kotlin.Unit".toSimpleString()) {
+                isEqualTo("MountOptionContext.() -> Unit")
             }
         }
     }

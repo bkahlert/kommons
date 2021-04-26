@@ -55,7 +55,9 @@ public object LineSeparators : Collection<String> {
     /**
      * [Regex] that matches all line separators.
      */
-    public val SEPARATOR_PATTERN: Regex by lazy { "$CRLF|[${ALL.filter { it != CRLF }.joinToString("")}]".toRegex() }
+    public val SEPARATOR_PATTERN: Regex by lazy {
+        "${CRLF.toLiteralRegex()}|[${ALL.filter { it != CRLF }.map { it.toLiteralRegex() }.joinToString("")}]".toRegex()
+    }
 
     /**
      * [Regex] that matches only string that contain no line separators, e.g. the last line of a multi-line text.

@@ -5,7 +5,6 @@ import koodies.concurrent.script
 import java.nio.file.FileSystems
 import java.nio.file.Path
 
-
 /**
  * A couple of well known locations.
  */

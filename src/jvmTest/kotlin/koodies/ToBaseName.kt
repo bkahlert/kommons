@@ -21,7 +21,7 @@ class BaseNameKtTest {
             "-YZ--ABC" to "XYZ--ABC",
             "1YZ--ABC" to "IYZ--ABC",
         ) { (string, expected) ->
-            expect { string.toBaseName() }.that { isEqualTo(expected) }
+            expecting { string.toBaseName() } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -37,7 +37,7 @@ class BaseNameKtTest {
             "8_ABC123" to "O_ABC123",
             "9_ABC123" to "Y_ABC123",
         ) { (string, expected) ->
-            expect { string.toBaseName() }.that { isEqualTo(expected) }
+            expecting { string.toBaseName() } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -53,7 +53,7 @@ class BaseNameKtTest {
             "8_Abc123" to "o_Abc123",
             "9_Abc123" to "y_Abc123",
         ) { (string, expected) ->
-            expect { string.toBaseName() }.that { isEqualTo(expected) }
+            expecting { string.toBaseName() } that { isEqualTo(expected) }
         }
 
         @Test

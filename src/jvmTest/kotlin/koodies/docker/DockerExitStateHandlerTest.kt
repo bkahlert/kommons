@@ -2,9 +2,6 @@ package koodies.docker
 
 import koodies.collections.to
 import koodies.concurrent.process.IO
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ProcessState.Terminated
-import koodies.exec.status
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotKillContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotRemoveRunningContainer
@@ -15,6 +12,9 @@ import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NoSuchImage
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.PathDoesNotExistInsideTheContainer
 import koodies.docker.DockerExitStateHandler.Failure.UnknownError
 import koodies.docker.DockerExitStateHandler.ParseException
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.status
 import koodies.test.test
 import koodies.test.testEach
 import koodies.text.ANSI.ansiRemoved
@@ -66,10 +66,10 @@ class DockerExitStateHandlerTest {
     ).testEach { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
         val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
 
-        expect("matches ${clazz.simpleName}") { badRequestState::class }.that { isEqualTo(clazz) }
-        expect("status is AFFECTED") { badRequestState.status.ansiRemoved }.that { isEqualTo("AFFECTED") }
-        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
-        expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
+        expecting("matches ${clazz.simpleName}") { badRequestState::class } that { isEqualTo(clazz) }
+        expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
+        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
+        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
     }
 
     @TestFactory
@@ -80,10 +80,10 @@ class DockerExitStateHandlerTest {
         val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
 
         val status = "You cannot remove a running container. Stop the container before attempting removal or force remove."
-        expect("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class }.that { isEqualTo(CannotRemoveRunningContainer::class) }
-        expect("status is AFFECTED") { badRequestState.status.ansiRemoved }.that { isEqualTo(status) }
-        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("${Negative.rightSpaced.ansiRemoved}$status") }
-        expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}$status") }
+        expecting("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class } that { isEqualTo(CannotRemoveRunningContainer::class) }
+        expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo(status) }
+        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.rightSpaced.ansiRemoved}$status") }
+        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}$status") }
     }
 
     @TestFactory
@@ -94,10 +94,10 @@ class DockerExitStateHandlerTest {
 
         val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
 
-        expect("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class }.that { isEqualTo(CannotKillContainer::class) }
-        expect("status is AFFECTED") { badRequestState.status.ansiRemoved }.that { isEqualTo("AFFECTED") }
-        expect("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved }.that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
-        expect("toString() is ${toString()}") { badRequestState }.that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
+        expecting("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class } that { isEqualTo(CannotKillContainer::class) }
+        expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
+        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
+        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
     }
 
     @Test

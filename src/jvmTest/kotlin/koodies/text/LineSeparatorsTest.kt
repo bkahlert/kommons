@@ -28,11 +28,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
+import strikt.assertions.all
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.isEqualTo
@@ -52,9 +52,9 @@ class LineSeparatorsTest {
             "a${CRLF}b",
             "b${CR}a${LF}c",
             "sss$CR",
-        ) { multiLine ->
-            expect { multiLine }.that { isMultiLine() }
-            expect { multiLine }.that { not { isSingleLine() } }
+        ) {
+            asserting { isMultiLine() }
+            asserting { not { isSingleLine() } }
         }
 
         @TestFactory
@@ -62,9 +62,9 @@ class LineSeparatorsTest {
             "",
             "b",
             "bds sd sd sds dac",
-        ) { singleLine ->
-            expect { singleLine }.that { isSingleLine() }
-            expect { singleLine }.that { not { isMultiLine() } }
+        ) {
+            asserting { isSingleLine() }
+            asserting { not { isMultiLine() } }
         }
     }
 
@@ -112,7 +112,7 @@ class LineSeparatorsTest {
         val singleLine = "1"
         val empty = ""
         fun lineTest(input: String, ignoreTrailSep: Boolean, keepDelimiters: Boolean, vararg lines: String) =
-            expect(input.replaceNonPrintableCharacters()) { operation(input, ignoreTrailSep, keepDelimiters) }.that { containsExactly(*lines) }
+            expecting("input: " + input.replaceNonPrintableCharacters()) { operation(input, ignoreTrailSep, keepDelimiters) } that { containsExactly(*lines) }
 
         group("keep trailing line separator + ignore delimiters") {
             lineTest(multiLineTrail, false, false, "1", "2", "3", "")
@@ -142,75 +142,71 @@ class LineSeparatorsTest {
 
     @TestFactory
     fun `each line separator`() = LineSeparators.testEach { lineSeparator ->
-        group(lineSeparator.replaceNonPrintableCharacters()) {
-            expect { this }.that { isEqualTo(lineSeparator) }
+        asserting { isEqualTo(lineSeparator) }
 
-            expect { "line$lineSeparator".trailingLineSeparator }.that { isEqualTo(lineSeparator) }
-            expect { "line${lineSeparator}X".trailingLineSeparator }.that { isNullOrEmpty() }
+        expecting { "line$lineSeparator".trailingLineSeparator } that { isEqualTo(lineSeparator) }
+        expecting { "line${lineSeparator}X".trailingLineSeparator } that { isNullOrEmpty() }
 
-            expect { "line$lineSeparator".hasTrailingLineSeparator }.that { isTrue() }
-            expect { "line${lineSeparator}X".hasTrailingLineSeparator }.that { isFalse() }
+        expecting { "line$lineSeparator".hasTrailingLineSeparator } that { isTrue() }
+        expecting { "line${lineSeparator}X".hasTrailingLineSeparator } that { isFalse() }
 
-            expect { "line$lineSeparator".withoutTrailingLineSeparator }.that { isEqualTo("line") }
-            expect { "line${lineSeparator}X".withoutTrailingLineSeparator }.that { isEqualTo("line${lineSeparator}X") }
+        expecting { "line$lineSeparator".withoutTrailingLineSeparator } that { isEqualTo("line") }
+        expecting { "line${lineSeparator}X".withoutTrailingLineSeparator } that { isEqualTo("line${lineSeparator}X") }
 
-            group("firstLineSeparatorAndLength") {
-                group("should return first line separator if present") {
-                    listOf(
-                        "at the beginning as single line separator" to "${lineSeparator}line",
-                        "in the middle as single line separator" to "li${lineSeparator}ne",
-                        "at the end as single line separator" to "line$lineSeparator",
-                        "at the beginning" to "${lineSeparator}line${LineSeparators.joinToString()}",
-                        "in the middle" to "li${lineSeparator}ne${LineSeparators.joinToString()}",
-                        "at the end" to "line$lineSeparator${LineSeparators.joinToString()}",
-                    ).forEach { (case, text) ->
-                        expect(case) { text.firstLineSeparator }.that { isEqualTo(lineSeparator) }
-                        expect(case) { text.firstLineSeparatorLength }.that { isEqualTo(lineSeparator.length) }
-                    }
-                    expect { "line".firstLineSeparatorLength }.that { isEqualTo(0) }
+        group("firstLineSeparatorAndLength") {
+            group("should return first line separator if present") {
+                listOf(
+                    "at the beginning as single line separator" to "${lineSeparator}line",
+                    "in the middle as single line separator" to "li${lineSeparator}ne",
+                    "at the end as single line separator" to "line$lineSeparator",
+                    "at the beginning" to "${lineSeparator}line${LineSeparators.joinToString()}",
+                    "in the middle" to "li${lineSeparator}ne${LineSeparators.joinToString()}",
+                    "at the end" to "line$lineSeparator${LineSeparators.joinToString()}",
+                ).forEach { (case, text) ->
+                    expecting(case) { text.firstLineSeparator } that { isEqualTo(lineSeparator) }
+                    expecting(case) { text.firstLineSeparatorLength } that { isEqualTo(lineSeparator.length) }
                 }
+                expecting { "line".firstLineSeparatorLength } that { isEqualTo(0) }
             }
+        }
 
-            group(::SEPARATOR_PATTERN.name) {
-                expect("should not match empty string") { SEPARATOR_PATTERN }.that { not { matchEntire("") } }
-                expect("should match itself") { SEPARATOR_PATTERN }.that { matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator) }
-                expect("should not match line$lineSeparator".replaceNonPrintableCharacters()) { SEPARATOR_PATTERN }.that { not { matchEntire("line$lineSeparator") } }
-            }
+        group(::SEPARATOR_PATTERN.name) {
+            expecting("should not match empty string") { SEPARATOR_PATTERN } that { not { matchEntire("") } }
+            expecting("should match itself") { SEPARATOR_PATTERN } that { matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator) }
+            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { SEPARATOR_PATTERN } that { not { matchEntire("line$lineSeparator") } }
+        }
 
-            group(LineSeparators::LAST_LINE_PATTERN.name) {
-                expect("should not match empty string") { LAST_LINE_PATTERN }.that { not { matchEntire("") } }
-                expect("should match line") { LAST_LINE_PATTERN }.that { matchEntire("line").groupValues.containsExactly("line") }
-                expect("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_PATTERN }.that { not { matchEntire("line$lineSeparator") } }
-                expect("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LAST_LINE_PATTERN }.that { not { matchEntire("line$lineSeparator...") } }
-            }
+        group(LineSeparators::LAST_LINE_PATTERN.name) {
+            expecting("should not match empty string") { LAST_LINE_PATTERN } that { not { matchEntire("") } }
+            expecting("should match line") { LAST_LINE_PATTERN } that { matchEntire("line").groupValues.containsExactly("line") }
+            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_PATTERN } that { not { matchEntire("line$lineSeparator") } }
+            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LAST_LINE_PATTERN } that { not { matchEntire("line$lineSeparator...") } }
+        }
 
-            group(LineSeparators::INTERMEDIARY_LINE_PATTERN.name) {
-                expect("should not match empty string") { LineSeparators.INTERMEDIARY_LINE_PATTERN }.that { not { matchEntire("") } }
-                test("should match itself") {
-                    expect { LineSeparators.INTERMEDIARY_LINE_PATTERN }.that {
-                        matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator)
-                    }
-                }
-                expect("should not match line") { LineSeparators.INTERMEDIARY_LINE_PATTERN }.that { not { matchEntire("line") } }
-                expect("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN }.that {
-                    matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
-                }
-                expect("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN }.that {
-                    not { matchEntire("line$lineSeparator...") }
-                }
+        group(LineSeparators::INTERMEDIARY_LINE_PATTERN.name) {
+            expecting("should not match empty string") { LineSeparators.INTERMEDIARY_LINE_PATTERN } that { not { matchEntire("") } }
+            expecting("should match itself") { LineSeparators.INTERMEDIARY_LINE_PATTERN } that {
+                matchEntire(lineSeparator).groupValues.all { isEqualTo(lineSeparator) }
             }
+            expecting("should not match line") { LineSeparators.INTERMEDIARY_LINE_PATTERN } that { not { matchEntire("line") } }
+            expecting("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN } that {
+                matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
+            }
+            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN } that {
+                not { matchEntire("line$lineSeparator...") }
+            }
+        }
 
-            group(LineSeparators::LINE_PATTERN.name) {
-                expect("should not match empty string") { LineSeparators.LINE_PATTERN }.that { not { matchEntire("") } }
-                expect("should match itself") { LineSeparators.LINE_PATTERN }.that {
-                    matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator, lineSeparator)
-                }
-                expect("should match line") { LineSeparators.LINE_PATTERN }.that { matchEntire("line").groupValues.first().isEqualTo("line") }
-                expect("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN }.that {
-                    matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
-                }
-                expect("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN }.that { not { matchEntire("line$lineSeparator...") } }
+        group(LineSeparators::LINE_PATTERN.name) {
+            expecting("should not match empty string") { LineSeparators.LINE_PATTERN } that { not { matchEntire("") } }
+            expecting("should match itself") { LineSeparators.LINE_PATTERN } that {
+                matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator, lineSeparator)
             }
+            expecting("should match line") { LineSeparators.LINE_PATTERN } that { matchEntire("line").groupValues.first().isEqualTo("line") }
+            expecting("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that {
+                matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
+            }
+            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that { not { matchEntire("line$lineSeparator...") } }
         }
     }
 
@@ -234,7 +230,7 @@ class LineSeparatorsTest {
 
     @TestFactory
     fun `each unify each line separator`() = LineSeparators.testEach { lineSeparator ->
-        expect { unify("abc${lineSeparator}def") }.that { isEqualTo("abc${LF}def") }
+        expecting { unify("abc${lineSeparator}def") } that { isEqualTo("abc${LF}def") }
     }
 }
 

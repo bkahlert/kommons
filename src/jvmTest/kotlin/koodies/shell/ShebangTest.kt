@@ -34,7 +34,7 @@ class ShebangTest {
             !"echo 'shebang'"
         }
     }) { scriptFactory ->
-        expect { scriptFactory() }.that { linesAreEqualTo("#!/bin/sh", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/bin/sh", "echo 'shebang'", "") }
     }
 
     @TestFactory
@@ -59,7 +59,7 @@ class ShebangTest {
             !"echo 'shebang'"
         }
     }) { scriptFactory ->
-        expect { scriptFactory() }.that { linesAreEqualTo("#!/my/custom/interpreter", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter", "echo 'shebang'", "") }
     }
 
     @TestFactory
@@ -84,7 +84,7 @@ class ShebangTest {
             shebang(Path.of("/my/custom/interpreter"))
         }
     }) { scriptFactory ->
-        expect { scriptFactory() }.that { linesAreEqualTo("#!/my/custom/interpreter", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter", "echo 'shebang'", "") }
     }
 
     @TestFactory
@@ -117,7 +117,7 @@ class ShebangTest {
             shebang(Path.of("/I/win"))
         }
     }) { scriptFactory ->
-        expect { scriptFactory() }.that { linesAreEqualTo("#!/I/win", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/I/win", "echo 'shebang'", "") }
     }
 }
 

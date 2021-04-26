@@ -50,8 +50,8 @@ class MatchesCurlyPatternKtTest {
             Process(pid={}, exitValue={}) stopped with exit code {}
         """.trimIndent()
 
-        expect { block.matchesCurlyPattern(pattern) }.that { isTrue() }
-        expect { block }.that { matchesCurlyPattern(pattern) }
+        expecting { block.matchesCurlyPattern(pattern) } that { isTrue() }
+        expecting { block } that { matchesCurlyPattern(pattern) }
     }
 
     @Test

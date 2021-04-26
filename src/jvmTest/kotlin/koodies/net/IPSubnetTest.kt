@@ -22,7 +22,7 @@ class IPSubnetTest {
         "abba:4efa:abba:4efa:8000::/65" to "abba:4efa:abba:4efa:8000::..abba:4efa:abba:4efa:ffff:ffff:ffff:ffff",
         "abba:4efa:abba:4efa:abba:4efa:abba:4efa/128" to "abba:4efa:abba:4efa:abba:4efa:abba:4efa..abba:4efa:abba:4efa:abba:4efa:abba:4efa",
     ) { (subnetString, rangeString) ->
-        expect { subnetString.toIPSubnet() }.that { isEqualTo(rangeString.toIPSubnet()) }
-        expect { ipSubnetOf(subnetString) }.that { isEqualTo(ipSubnetOf(rangeString)) }
+        expecting { subnetString.toIPSubnet() } that { isEqualTo(rangeString.toIPSubnet()) }
+        expecting { ipSubnetOf(subnetString) } that { isEqualTo(ipSubnetOf(rangeString)) }
     }
 }

@@ -72,4 +72,4 @@ public expect inline fun getCaller(skip: UInt = 0u): CallStackElement
  * The actual [CallStackElement] used is the predecessor of the first
  * one [locator] returned `true`.
  */
-public expect inline fun getCaller(crossinline locator: CallStackElement.()->Boolean): CallStackElement
+public expect inline fun getCaller(crossinline locator: CallStackElement.() -> Boolean): CallStackElement

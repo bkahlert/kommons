@@ -32,7 +32,7 @@ class ResolveSiblingKtTest {
         1 to "/a/b-x/c",
         2 to "/a-x/b/c",
     ).testEach { (order, expected) ->
-        expect { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.asString() + "-x") } }.that { serializedIsEqualTo(expected) }
+        expecting { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.asString() + "-x") } } that { serializedIsEqualTo(expected) }
     }
 
     @Test

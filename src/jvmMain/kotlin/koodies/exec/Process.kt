@@ -1,8 +1,9 @@
 package koodies.exec
 
 import koodies.concurrent.process.IO
-import koodies.exec.MetaStream
 import koodies.exception.toCompactString
+import koodies.exec.Process.ProcessState.Prepared
+import koodies.exec.Process.ProcessState.Running
 import koodies.exec.Process.ProcessState.Terminated
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators
@@ -140,22 +141,6 @@ public interface Process : ReturnValue {
     }
 
     /**
-     * Returns whether [start] was called.
-     *
-     * Contrary to [alive] this property will never return `false` once [start] was called.
-     */
-    @Deprecated("use state") public val started: Boolean
-
-    /**
-     * Returns whether the program represented by this process
-     * is currently running.
-     *
-     * Contrary to [started] this property reflects the actual running state of
-     * the program represented by this process.
-     */
-    @Deprecated("use state") public val alive: Boolean
-
-    /**
      * Returns the exit code of the program represented by process process once
      * it terminates. If the program has not terminated yet, it throws an
      * [IllegalStateException].
@@ -199,3 +184,24 @@ public interface Process : ReturnValue {
      */
     public fun kill(): Process
 }
+
+/**
+ * Returns whether `this` [Process] was started.
+ *
+ * Contrary to [alive] this property stays `true` even after the process terminated.
+ */
+public val Process.started: Boolean get() = state !is Prepared
+
+/**
+ * Returns whether `this` [Process] [isRunning].
+ *
+ * Contrary to [started] this property stays turns `false` again after the process terminated.
+ */
+public val Process.alive: Boolean get() = state is Running
+
+/**
+ * Returns whether `this` [Process] is running.
+ *
+ * Contrary to [started] this property stays turns `false` again after the process terminated.
+ */
+public val Process.isRunning: Boolean get() = state is Running

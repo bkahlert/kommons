@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.test.string
-import koodies.test.test
+import koodies.test.tests
 import koodies.text.Whitespaces.EM_QUAD
 import koodies.text.Whitespaces.EM_SPACE
 import koodies.text.Whitespaces.EN_QUAD
@@ -75,26 +75,26 @@ class WhitespacesTest {
     }
 
     @TestFactory
-    fun `each whitespace`() = test {
+    fun `each whitespace`() = tests {
         Whitespaces.Dict.forEach { (whitespace, name) ->
-            group(name) {
-                expect("has length") { whitespace.length }.that { isEqualTo(1) }
-                expect("equal to itself") { whitespace.asCodePoint() }.that {
+            name all {
+                expecting("has length") { whitespace.length } that { isEqualTo(1) }
+                expecting("equal to itself") { whitespace.asCodePoint() } that {
                     isNotNull().string.isEqualTo(whitespace)
                 }
 
-                expect("trailing if at end") { "line$whitespace".trailingWhitespaces }.that { isEqualTo(whitespace) }
-                expect("not be trailing if not at end") { "line${whitespace}X".trailingWhitespaces }.that { isEmpty() }
+                expecting("trailing if at end") { "line$whitespace".trailingWhitespaces } that { isEqualTo(whitespace) }
+                expecting("not be trailing if not at end") { "line${whitespace}X".trailingWhitespaces } that { isEmpty() }
 
-                expect("trailing group if left") { "line$whitespace ".trailingWhitespaces }.that { isEqualTo(whitespace + SPACE) }
-                expect("trailing group if right") { "line $whitespace".trailingWhitespaces }.that { isEqualTo(SPACE + whitespace) }
+                expecting("trailing group if left") { "line$whitespace ".trailingWhitespaces } that { isEqualTo(whitespace + SPACE) }
+                expecting("trailing group if right") { "line $whitespace".trailingWhitespaces } that { isEqualTo(SPACE + whitespace) }
 
-                expect("true if trailing") { "line$whitespace".hasTrailingWhitespaces }.that { isTrue() }
-                expect("false if not trailing") { "line${whitespace}X".hasTrailingWhitespaces }.that { isFalse() }
+                expecting("true if trailing") { "line$whitespace".hasTrailingWhitespaces } that { isTrue() }
+                expecting("false if not trailing") { "line${whitespace}X".hasTrailingWhitespaces } that { isFalse() }
 
-                expect("be removed if part of trailing whitespaces") { "line$whitespace".withoutTrailingWhitespaces }.that { isEqualTo("line") }
-                expect("not be removed if not part") { "line${whitespace}X".withoutTrailingWhitespaces }.that { isEqualTo("line${whitespace}X") }
-                expect("be replaced by single space") { unify("abc${whitespace}def") }.that { isEqualTo("abc${SPACE}def") }
+                expecting("be removed if part of trailing whitespaces") { "line$whitespace".withoutTrailingWhitespaces } that { isEqualTo("line") }
+                expecting("not be removed if not part") { "line${whitespace}X".withoutTrailingWhitespaces } that { isEqualTo("line${whitespace}X") }
+                expecting("be replaced by single space") { unify("abc${whitespace}def") } that { isEqualTo("abc${SPACE}def") }
             }
         }
     }

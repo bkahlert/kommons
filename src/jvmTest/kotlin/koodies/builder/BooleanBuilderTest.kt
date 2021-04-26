@@ -21,7 +21,7 @@ class BooleanBuilderTest {
         { BooleanBuilder.using(false) } to false,
         { BooleanBuilder.by(false) } to false,
     ) { (build, expected) ->
-        expect { build() }.that { isEqualTo(expected) }
+        expecting { build() } that { isEqualTo(expected) }
     }
 
     @TestFactory
@@ -36,7 +36,7 @@ class BooleanBuilderTest {
         { BooleanBuilder.OnOff.using(false) } to false,
         { BooleanBuilder.OnOff.by(false) } to false,
     ) { (build, expected) ->
-        expect { build() }.that { isEqualTo(expected) }
+        expecting { build() } that { isEqualTo(expected) }
     }
 
     @TestFactory
@@ -51,6 +51,6 @@ class BooleanBuilderTest {
         { BooleanBuilder.ON_OFF.using(false) } to false,
         { BooleanBuilder.ON_OFF.using(false) } to false,
     ) { (build, expected) ->
-        expect { build() }.that { isEqualTo(expected) }
+        expecting { build() } that { isEqualTo(expected) }
     }
 }

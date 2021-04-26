@@ -4,14 +4,15 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
-import koodies.exec.Process.ExitState.Failure
 import koodies.concurrent.process.Processors
-import koodies.exec.containsDump
-import koodies.exec.hasState
-import koodies.exec.io
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
+import koodies.exec.Process.ExitState.Failure
+import koodies.exec.containsDump
+import koodies.exec.hasState
+import koodies.exec.io
+import koodies.exec.started
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger
@@ -331,7 +332,7 @@ class ExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId){
+    fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         val executable: Executable = CommandLine(this, "echo", "test")
 

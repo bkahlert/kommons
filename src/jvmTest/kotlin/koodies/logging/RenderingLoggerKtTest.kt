@@ -160,7 +160,7 @@ class RenderingLoggerKtTest {
         """.trimIndent(),
     ).testEach("border={}") { (border, expectation) ->
         test {
-            expect {
+            expecting {
                 createLogger(border.name, border).runLogging {
                     logStatus { "outer 1" }
                     logLine { "outer 2" }
@@ -186,7 +186,7 @@ class RenderingLoggerKtTest {
                     logStatus { "outer 4" }
                     "Done"
                 }
-            }.that { toStringMatchesCurlyPattern(expectation) }
+            } that { toStringMatchesCurlyPattern(expectation) }
         }
     }
 
@@ -387,7 +387,7 @@ class RenderingLoggerKtTest {
             }
         }
 
-        expect { logger }.that { toStringMatchesCurlyPattern(expectation) }
+        expecting { logger } that { toStringMatchesCurlyPattern(expectation) }
     }
 
     @Nested
@@ -410,7 +410,7 @@ class RenderingLoggerKtTest {
 
             logger.op()
 
-            expect { out }.that {
+            expecting { out } that {
                 toStringMatchesCurlyPattern("""
                     line
                     ✔︎
@@ -427,7 +427,7 @@ class RenderingLoggerKtTest {
 
             logger.op()
 
-            expect { out }.that {
+            expecting { out } that {
                 toStringMatchesCurlyPattern("""
                     ✔︎
                     ⌛️ {}

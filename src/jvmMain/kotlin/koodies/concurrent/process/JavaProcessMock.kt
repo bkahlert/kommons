@@ -168,8 +168,6 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
 
     private fun startImplicitly(): java.lang.Process = run { start(); javaProcess!! }
 
-    override val started: Boolean get() = javaProcess != null
-    override val alive: Boolean get() = javaProcess?.isAlive == true
     override val exitValue: Int get() = javaProcess?.exitValue() ?: throw IllegalStateException("Process not running.")
     override fun waitFor(): ExitState = exitState ?: onExit.join()
     override fun stop(): Exec = also { javaProcess?.destroy() }
@@ -216,42 +214,38 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
         }
     }
 
-    override val successful: Boolean? get() = kotlin.runCatching { exitValue }.fold({ true }, { null })
+    override val successful: Boolean? get() = kotlin.runCatching { startImplicitly().exitValue() }.fold({ true }, { null })
     override val onExit: CompletableFuture<out ExitState> get() = cachedOnExit
 
     override fun toString(): String {
         val delegateString =
             if (javaProcess != null) "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful.asEmoji}"
             else "not yet started"
-        val string = "${this::class.simpleName ?: "object"}(delegate=$delegateString, started=${started.asEmoji})"
+        val string = "${this::class.simpleName ?: "object"}(delegate=$delegateString, started=${(javaProcess != null).asEmoji})"
         return string.takeUnless { name != null } ?: string.substringBeforeLast(")") + ", name=$name)"
     }
 
     public companion object {
         public val PREPARED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.SUCCEEDED_PROCESS) {
-                override val started: Boolean = false
                 override var state: ProcessState = Prepared()
                 override val onExit: CompletableFuture<out ExitState> get() = completedFuture(Any() as ExitState)
                 override val successful: Boolean? = null
             }
         public val RUNNING_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.RUNNING_PROCESS) {
-                override val started: Boolean = true
                 override var state: ProcessState = Running(12345L)
                 override val onExit: CompletableFuture<out ExitState> get() = completedFuture(Any() as ExitState)
                 override val successful: Boolean? = null
             }
         public val SUCCEEDED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.SUCCEEDED_PROCESS) {
-                override val started: Boolean = true
                 override var state: ProcessState = Success(12345L, listOf(IO.OUT typed "line 1", IO.OUT typed "line 2"))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)
                 override val successful: Boolean = true
             }
         public val FAILED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.FAILED_PROCESS) {
-                override val started: Boolean = true
                 override var state: ProcessState =
                     Failure(42, 12345L, emptyList(), null, listOf(ERR typed "error 1", ERR typed "error 2"))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)

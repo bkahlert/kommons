@@ -1,14 +1,6 @@
 package koodies.docker
 
 import koodies.asString
-import koodies.exec.Exec
-import koodies.exec.Exec.Companion.createDump
-import koodies.exec.Process
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.Fatal
-import koodies.exec.Process.ProcessState
-import koodies.exec.Process.ProcessState.Prepared
-import koodies.exec.ExecTerminationCallback
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
 import koodies.docker.DockerContainer.State.Existent.Dead
@@ -18,6 +10,14 @@ import koodies.docker.DockerContainer.State.Existent.Removing
 import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
+import koodies.exec.Exec
+import koodies.exec.Exec.Companion.createDump
+import koodies.exec.ExecTerminationCallback
+import koodies.exec.Process
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.Fatal
+import koodies.exec.Process.ProcessState
+import koodies.exec.Process.ProcessState.Prepared
 import koodies.text.ANSI.ansiRemoved
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration

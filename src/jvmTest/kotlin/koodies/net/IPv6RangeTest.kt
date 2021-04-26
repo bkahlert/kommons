@@ -21,8 +21,8 @@ class IPv6RangeTest {
         " abba:4efa:abba:4efb:abba:4efb:172.186.78.250..abba:4efa:abba:4efb:abba:4efb:192.168.0.1",
         "abba:4efa:abba:4efb:abba:4efb:172.186.78.250..abba:4efa:abba:4efb:abba:4efb:192.168.0.1 ",
     ) { rangeString: String ->
-        expect { rangeString.toIPv6Range() }.that { range }
-        expect { ip6RangeOf(rangeString) }.that { range }
+        expecting { rangeString.toIPv6Range() } that { range }
+        expecting { ip6RangeOf(rangeString) } that { range }
     }
 
     @TestFactory
@@ -30,7 +30,7 @@ class IPv6RangeTest {
         range,
         IPv6Range.from(ip1, ip2),
     ) {
-        expect { start }.that { isEqualTo(ip1) }
+        expecting { start } that { isEqualTo(ip1) }
     }
 
     @TestFactory
@@ -38,7 +38,7 @@ class IPv6RangeTest {
         range,
         IPv6Range.from(ip1, ip2),
     ) {
-        expect { endInclusive }.that { isEqualTo(ip2) }
+        expecting { endInclusive } that { isEqualTo(ip2) }
     }
 
     @TestFactory
@@ -46,7 +46,6 @@ class IPv6RangeTest {
         range,
         IPv6Range.from(ip1, ip2),
     ) {
-        expect { toString() }.that { isEqualTo("abba:4efa:abba:4efb:abba:4efb:acba:4efa..abba:4efa:abba:4efb:abba:4efb:c0a8:1") }
+        expecting { toString() } that { isEqualTo("abba:4efa:abba:4efb:abba:4efb:acba:4efa..abba:4efa:abba:4efb:abba:4efb:c0a8:1") }
     }
 }
-

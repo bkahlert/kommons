@@ -22,8 +22,8 @@ class IPv6SubnetTest {
         "abba:4efa:abba:4efa:8000::/65" to "abba:4efa:abba:4efa:8000::..abba:4efa:abba:4efa:ffff:ffff:ffff:ffff",
         "abba:4efa:abba:4efa:abba:4efa:abba:4efa/128" to "abba:4efa:abba:4efa:abba:4efa:abba:4efa..abba:4efa:abba:4efa:abba:4efa:abba:4efa",
     ) { (subnetString, rangeString) ->
-        expect { subnetString.toIPv6Subnet() }.that { isEqualTo(rangeString.toIPv6Subnet()) }
-        expect { ip6SubnetOf(subnetString) }.that { isEqualTo(ip6SubnetOf(rangeString)) }
+        expecting { subnetString.toIPv6Subnet() } that { isEqualTo(rangeString.toIPv6Subnet()) }
+        expecting { ip6SubnetOf(subnetString) } that { isEqualTo(ip6SubnetOf(rangeString)) }
     }
 
     @TestFactory
@@ -35,7 +35,7 @@ class IPv6SubnetTest {
         128 to "ffffffffffffffffffffffffffffffff",
     ) { (length, mask) ->
         with { IPv6Subnet.from(ip, length) }.then {
-            expect { this.mask.toString(16) }.that { isEqualTo(mask) }
+            expecting { this.mask.toString(16) } that { isEqualTo(mask) }
         }
     }
 
@@ -48,8 +48,8 @@ class IPv6SubnetTest {
         128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa",
     ) { (length, networkAddress) ->
         with { IPv6Subnet.from(ip, length) }.then {
-            expect { this.start }.that { toStringIsEqualTo(networkAddress) }
-            expect { this.networkAddress }.that { toStringIsEqualTo(networkAddress) }
+            expecting { this.start } that { toStringIsEqualTo(networkAddress) }
+            expecting { this.networkAddress } that { toStringIsEqualTo(networkAddress) }
         }
     }
 
@@ -62,8 +62,8 @@ class IPv6SubnetTest {
         128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa",
     ) { (length, broadcastAddress) ->
         with { IPv6Subnet.from(ip, length) }.then {
-            expect { this.endInclusive }.that { toStringIsEqualTo(broadcastAddress) }
-            expect { this.broadcastAddress }.that { toStringIsEqualTo(broadcastAddress) }
+            expecting { this.endInclusive } that { toStringIsEqualTo(broadcastAddress) }
+            expecting { this.broadcastAddress } that { toStringIsEqualTo(broadcastAddress) }
         }
     }
 
@@ -78,8 +78,8 @@ class IPv6SubnetTest {
         val hostCount = bigIntegerOfDecimalString(hostCountString)
         val usableHostCount = bigIntegerOfDecimalString(usableHostCountString)
         with { IPv6Subnet.from(ip, length) }.then {
-            expect { this.hostCount }.that { isEqualTo(hostCount) }
-            expect { this.usableHostCount }.that { isEqualTo(usableHostCount) }
+            expecting { this.hostCount } that { isEqualTo(hostCount) }
+            expecting { this.usableHostCount } that { isEqualTo(usableHostCount) }
         }
     }
 
@@ -92,8 +92,8 @@ class IPv6SubnetTest {
         128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa" to "abba:4efa:abba:4efa:abba:4efa:abba:4efa",
     ) { (length, firstUsableHost, lastUsableHost) ->
         with { IPv6Subnet.from(ip, length) }.then {
-            expect { this.firstUsableHost }.that { toStringIsEqualTo(firstUsableHost) }
-            expect { this.lastUsableHost }.that { toStringIsEqualTo(lastUsableHost) }
+            expecting { this.firstUsableHost } that { toStringIsEqualTo(firstUsableHost) }
+            expecting { this.lastUsableHost } that { toStringIsEqualTo(lastUsableHost) }
         }
     }
 
@@ -105,7 +105,7 @@ class IPv6SubnetTest {
         65 to "abba:4efa:abba:4efa:8000::/65",
         128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa/128",
     ) { (length, representation) ->
-        expect { IPv6Subnet.from(ip, length) }.that { toStringIsEqualTo(representation) }
+        expecting { IPv6Subnet.from(ip, length) } that { toStringIsEqualTo(representation) }
     }
 
     @TestFactory
@@ -116,6 +116,6 @@ class IPv6SubnetTest {
         65 to "abba:4efa:abba:4efa:8000::/65",
         128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa/128",
     ) { (length, representation) ->
-        expect { ip / length }.that { toStringIsEqualTo(representation) }
+        expecting { ip / length } that { toStringIsEqualTo(representation) }
     }
 }

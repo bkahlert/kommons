@@ -22,8 +22,8 @@ class IPv4SubnetTest {
         "172.186.0.0/17" to "172.186.0.0..172.186.127.255",
         "172.186.78.250/32" to "172.186.78.250..172.186.78.250",
     ) { (subnetString, rangeString) ->
-        expect { subnetString.toIPv4Subnet() }.that { isEqualTo(rangeString.toIPv4Subnet()) }
-        expect { ip4SubnetOf(subnetString) }.that { isEqualTo(ip4SubnetOf(rangeString)) }
+        expecting { subnetString.toIPv4Subnet() } that { isEqualTo(rangeString.toIPv4Subnet()) }
+        expecting { ip4SubnetOf(subnetString) } that { isEqualTo(ip4SubnetOf(rangeString)) }
     }
 
     @TestFactory
@@ -35,7 +35,7 @@ class IPv4SubnetTest {
         32 to "ffffffff",
     ) { (length, mask) ->
         with { IPv4Subnet.from(ip, length) }.then {
-            expect { this.mask.toString(16) }.that { isEqualTo(mask) }
+            expecting { this.mask.toString(16) } that { isEqualTo(mask) }
         }
     }
 
@@ -48,8 +48,8 @@ class IPv4SubnetTest {
         32 to "172.186.78.250",
     ) { (length, networkAddress) ->
         with { IPv4Subnet.from(ip, length) }.then {
-            expect { this.start }.that { toStringIsEqualTo(networkAddress) }
-            expect { this.networkAddress }.that { toStringIsEqualTo(networkAddress) }
+            expecting { this.start } that { toStringIsEqualTo(networkAddress) }
+            expecting { this.networkAddress } that { toStringIsEqualTo(networkAddress) }
         }
     }
 
@@ -62,8 +62,8 @@ class IPv4SubnetTest {
         32 to "172.186.78.250",
     ) { (length, broadcastAddress) ->
         with { IPv4Subnet.from(ip, length) }.then {
-            expect { this.endInclusive }.that { toStringIsEqualTo(broadcastAddress) }
-            expect { this.broadcastAddress }.that { toStringIsEqualTo(broadcastAddress) }
+            expecting { this.endInclusive } that { toStringIsEqualTo(broadcastAddress) }
+            expecting { this.broadcastAddress } that { toStringIsEqualTo(broadcastAddress) }
         }
     }
 
@@ -78,8 +78,8 @@ class IPv4SubnetTest {
         val hostCount = bigIntegerOfDecimalString(hostCountString)
         val usableHostCount = bigIntegerOfDecimalString(usableHostCountString)
         with { IPv4Subnet.from(ip, length) }.then {
-            expect { this.hostCount }.that { isEqualTo(hostCount) }
-            expect { this.usableHostCount }.that { isEqualTo(usableHostCount) }
+            expecting { this.hostCount } that { isEqualTo(hostCount) }
+            expecting { this.usableHostCount } that { isEqualTo(usableHostCount) }
         }
     }
 
@@ -92,8 +92,8 @@ class IPv4SubnetTest {
         32 to "172.186.78.250" to "172.186.78.250",
     ) { (length, firstUsableHost, lastUsableHost) ->
         with { IPv4Subnet.from(ip, length) }.then {
-            expect { this.firstUsableHost }.that { toStringIsEqualTo(firstUsableHost) }
-            expect { this.lastUsableHost }.that { toStringIsEqualTo(lastUsableHost) }
+            expecting { this.firstUsableHost } that { toStringIsEqualTo(firstUsableHost) }
+            expecting { this.lastUsableHost } that { toStringIsEqualTo(lastUsableHost) }
         }
     }
 
@@ -105,7 +105,7 @@ class IPv4SubnetTest {
         17 to "172.186.0.0/17",
         32 to "172.186.78.250/32",
     ) { (length, representation) ->
-        expect { IPv4Subnet.from(ip, length) }.that { toStringIsEqualTo(representation) }
+        expecting { IPv4Subnet.from(ip, length) } that { toStringIsEqualTo(representation) }
     }
 
     @TestFactory
@@ -116,6 +116,6 @@ class IPv4SubnetTest {
         17 to "172.186.0.0/17",
         32 to "172.186.78.250/32",
     ) { (length, representation) ->
-        expect { ip / length }.that { toStringIsEqualTo(representation) }
+        expecting { ip / length } that { toStringIsEqualTo(representation) }
     }
 }

@@ -37,28 +37,28 @@ class ConversionTest {
 
             @TestFactory
             fun `should convert from string representation`() = tests {
-                Constants.TWO_POW_128_BIN_STRING test { expecting { convert.asBinaryString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) } }
-                Constants.TWO_POW_128_DEC_STRING test { expecting { convert.asDecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) } }
-                Constants.TWO_POW_128_HEX_STRING test { expecting { convert.asHexadecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) } }
+                expecting { Constants.TWO_POW_128_BIN_STRING.convert.asBinaryString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) }
+                expecting { Constants.TWO_POW_128_DEC_STRING.convert.asDecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) }
+                expecting { Constants.TWO_POW_128_HEX_STRING.convert.asHexadecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) }
 
-                Constants.TWO_POW_128_PLUS_1_BIN_STRING test { expecting { convert.asBinaryString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) } }
-                Constants.TWO_POW_128_PLUS_1_DEC_STRING test { expecting { convert.asDecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) } }
-                Constants.TWO_POW_128_PLUS_1_HEX_STRING test { expecting { convert.asHexadecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) } }
+                expecting { Constants.TWO_POW_128_PLUS_1_BIN_STRING.convert.asBinaryString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) }
+                expecting { Constants.TWO_POW_128_PLUS_1_DEC_STRING.convert.asDecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) }
+                expecting { Constants.TWO_POW_128_PLUS_1_HEX_STRING.convert.asHexadecimalString.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) }
             }
 
             @TestFactory
             fun `should convert from bytes`() = tests {
-                Constants.TWO_POW_128_BYTES test { expecting { convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) } }
-                Constants.TWO_POW_128_UBYTES test { expecting { convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) } }
+                expecting { Constants.TWO_POW_128_BYTES.convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) }
+                expecting { Constants.TWO_POW_128_UBYTES.convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) }
 
-                Constants.TWO_POW_128_PLUS_1_BYTES test { expecting { convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) } }
-                Constants.TWO_POW_128_PLUS_1_UBYTES test { expecting { convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) } }
+                expecting { Constants.TWO_POW_128_PLUS_1_BYTES.convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) }
+                expecting { Constants.TWO_POW_128_PLUS_1_UBYTES.convert.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) }
             }
 
             @TestFactory
             fun `should convert from big integer`() = tests {
-                bigInt128 test { expecting { convert.asUnsigned.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) } }
-                bigInt129 test { expecting { convert.asUnsigned.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) } }
+                expecting { bigInt128.convert.asUnsigned.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_BYTES) }
+                expecting { bigInt129.convert.asUnsigned.toByteArray() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BYTES) }
             }
         }
 
@@ -67,16 +67,18 @@ class ConversionTest {
 
             @TestFactory
             fun `should convert to string representation`() = tests {
-                Constants.TWO_POW_128_BYTES testAll {
-                    test("bin 2^128") { expecting { convert.toBinaryString() } that { isEqualTo(Constants.TWO_POW_128_BIN_STRING) } }
-                    test("dec 2^128") { expecting { convert.toDecimalString() } that { isEqualTo(Constants.TWO_POW_128_DEC_STRING) } }
-                    test("dec 2^128") { expecting { convert.toUByteArray().toDecimalString() } that { isEqualTo(Constants.TWO_POW_128_DEC_STRING) } }
-                    test("hex 2^128") { expecting { convert.toHexadecimalString() } that { isEqualTo(Constants.TWO_POW_128_HEX_STRING) } }
+                Constants.TWO_POW_128_BYTES all {
+                    expecting("bin 2^128") { Constants.TWO_POW_128_BYTES.convert.toBinaryString() } that { isEqualTo(Constants.TWO_POW_128_BIN_STRING) }
+                    expecting("dec 2^128") { Constants.TWO_POW_128_BYTES.convert.toDecimalString() } that { isEqualTo(Constants.TWO_POW_128_DEC_STRING) }
+                    expecting("dec 2^128") {
+                        Constants.TWO_POW_128_BYTES.convert.toUByteArray().toDecimalString()
+                    } that { isEqualTo(Constants.TWO_POW_128_DEC_STRING) }
+                    expecting("hex 2^128") { Constants.TWO_POW_128_BYTES.convert.toHexadecimalString() } that { isEqualTo(Constants.TWO_POW_128_HEX_STRING) }
                 }
-                Constants.TWO_POW_128_PLUS_1_BYTES testAll {
-                    test("bin 2^128+1") { expecting { convert.toBinaryString() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BIN_STRING) } }
-                    test("dec 2^128+1") { expecting { convert.toDecimalString() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_DEC_STRING) } }
-                    test("hex 2^128+1") { expecting { convert.toHexadecimalString() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_HEX_STRING) } }
+                Constants.TWO_POW_128_PLUS_1_BYTES all {
+                    expecting("bin 2^128+1") { Constants.TWO_POW_128_PLUS_1_BYTES.convert.toBinaryString() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_BIN_STRING) }
+                    expecting("dec 2^128+1") { Constants.TWO_POW_128_PLUS_1_BYTES.convert.toDecimalString() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_DEC_STRING) }
+                    expecting("hex 2^128+1") { Constants.TWO_POW_128_PLUS_1_BYTES.convert.toHexadecimalString() } that { isEqualTo(Constants.TWO_POW_128_PLUS_1_HEX_STRING) }
                 }
             }
 

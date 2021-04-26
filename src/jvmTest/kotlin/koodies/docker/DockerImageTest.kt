@@ -14,10 +14,8 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -36,8 +34,8 @@ class DockerImageTest {
         imageWithTagInit to "repo/name:my-tag",
         imageWithDigestInit to "repo/name@sha256:abc",
     ).testEach { (init, string) ->
-        expect { DockerImage(init) }.that { toStringIsEqualTo(string) }
-        expect { DockerImage.parse(string) }.that { isEqualTo(DockerImage(init)) }
+        expecting { DockerImage(init) } that { toStringIsEqualTo(string) }
+        expecting { DockerImage.parse(string) } that { isEqualTo(DockerImage(init)) }
     }
 
     @TestFactory
@@ -48,51 +46,51 @@ class DockerImageTest {
         "repo_123",
         "repo-123",
     ) {
-        expect { DockerImage { it / it } }.that { toStringIsEqualTo("$it/$it") }
+        expecting { DockerImage { it / it } } that { toStringIsEqualTo("$it/$it") }
     }
 
     @TestFactory
     fun `should throw on illegal repository`() = testEach("", "REPO", "r'e'p'o") { repo ->
-        expectThrowing { DockerImage { repo / "path" } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrows<IllegalArgumentException> { DockerImage { repo / "path" } }
     }
 
     @TestFactory
     fun `should throw on illegal path`() = testEach("", "PATH", "p'a't'h") { path ->
-        expectThrowing { DockerImage { "repo" / path } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrows<IllegalArgumentException> { DockerImage { "repo" / path } }
     }
 
     @TestFactory
     fun `should throw on illegal specifier`() = test("") { specifier ->
-        expectThrowing { DockerImage { "repo" / "path" tag specifier } }.that { isFailure().isA<IllegalArgumentException>() }
-        expectThrowing { DockerImage { "repo" / "path" digest specifier } }.that { isFailure().isA<IllegalArgumentException>() }
+        expectThrows<IllegalArgumentException> { DockerImage { "repo" / "path" tag specifier } }
+        expectThrows<IllegalArgumentException> { DockerImage { "repo" / "path" digest specifier } }
     }
 
     @TestFactory
     fun `should equal`() = test {
-        aspect({ DockerImage.parse("repo/path") }) {
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
+        with { DockerImage.parse("repo/path") } then {
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
 
-            expect { this }.that { not { isEqualTo(DockerImage("repo", listOf("other-path"), null, null)) } }
-            expect { this }.that { not { isEqualTo(DockerImage("other-repo", listOf("path"), null, null)) } }
+            asserting { not { isEqualTo(DockerImage("repo", listOf("other-path"), null, null)) } }
+            asserting { not { isEqualTo(DockerImage("other-repo", listOf("path"), null, null)) } }
         }
-        with { DockerImage.parse("repo/path:tag") }.then {
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
+        with { DockerImage.parse("repo/path:tag") } then {
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
 
-            expect { this }.that { not { isEqualTo(DockerImage("repo", listOf("path"), "other-tag", null)) } }
+            asserting { not { isEqualTo(DockerImage("repo", listOf("path"), "other-tag", null)) } }
         }
-        with { DockerImage.parse("repo/path@digest") }.then {
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
-            expect { this }.that { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
+        with { DockerImage.parse("repo/path@digest") } then {
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
+            asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", "digest")) }
 
-            expect { this }.that { not { isEqualTo(DockerImage("repo", listOf("path"), null, "other-digest")) } }
+            asserting { not { isEqualTo(DockerImage("repo", listOf("path"), null, "other-digest")) } }
         }
     }
 

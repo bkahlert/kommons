@@ -116,6 +116,23 @@ Docker.run {
     Process 67008 terminated with exit code 2. Expected 0.
 ```
 
+### JUnit + Strikt Integration
+
+- self-explaning (even works likely if inlined by looking for matching classes and methods in source file manually)
+- each aspect its own test
+
+#### Before
+
+```kotlin
+TODO
+```
+
+#### After
+
+```kotlin
+TODO
+```
+
 ### Multi-Platform Builder Template
 
 #### Example: Car DSL *[full example](src/commonTest/kotlin/koodies/builder/CarDSL.kt)*

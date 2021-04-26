@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.collections.to
+import koodies.regex.groupValues
 import koodies.regex.matchEntire
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -13,10 +14,12 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
+import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
@@ -30,13 +33,13 @@ class CodePointKtTest {
         "☰" to 0x2630 to ubyteArrayOf(0xE2u, 0x98u, 0xB0u),
         "𝕓" to 0x1D553 to ubyteArrayOf(0xF0u, 0x9Du, 0x95u, 0x93u),
     ) { (char, codePoint, utf8) ->
-        expect { utf8.toByteArray() }.that { isEqualTo(char.encodeToByteArray()) }
+        expecting { utf8.toByteArray() } that { isEqualTo(char.encodeToByteArray()) }
 
-        expect { char.asCodePoint() }.that { isEqualTo(CodePoint(codePoint)) }
+        expecting { char.asCodePoint() } that { isEqualTo(CodePoint(codePoint)) }
 
         listOf("a", "¶", "☰", "𝕓").forEach { other ->
-            expect { "$other$char".asCodePoint() }.that { isNull() }
-            expect { "$char$other".asCodePoint() }.that { isNull() }
+            expecting { "$other$char".asCodePoint() } that { isNull() }
+            expecting { "$char$other".asCodePoint() } that { isNull() }
         }
     }
 
@@ -86,7 +89,7 @@ class CodePointKtTest {
         CodePoint("►") to 1,
         CodePoint("㍙") to 2,
     ) { (codePoint, expectedColumns) ->
-        expect { codePoint.columns }.that { isEqualTo(expectedColumns) }
+        expecting { codePoint.columns } that { isEqualTo(expectedColumns) }
     }
 
     @TestFactory
@@ -143,8 +146,8 @@ class CodePointKtTest {
         Unicode.zeroWidthSpace to "200B",
         "👽" to "01F47D",
     ) { (codePoint, hex) ->
-        expect { CodePoint(codePoint.toString()).toHexadecimalString() }.isEqualTo(hex)
-        expect { CodePoint(codePoint.toString()).toRegex() }.matchEntire(codePoint.toString())
+        expecting { CodePoint(codePoint.toString()).toHexadecimalString() } that { isEqualTo(hex) }
+        expecting { CodePoint(codePoint.toString()).toLiteralRegex() } that { matchEntire(codePoint.toString()) }
     }
 
     @Nested
@@ -186,7 +189,7 @@ class CodePointKtTest {
             '\u205F'.asCodePoint(),
             '\u3000'.asCodePoint(),
         ) {
-            expect { isWhitespace }.that { isTrue() }
+            expecting { isWhitespace } that { isTrue() }
         }
 
         @TestFactory
@@ -195,88 +198,88 @@ class CodePointKtTest {
             '\u200B'.asCodePoint(),//            ZERO_WIDTH_SPACE to "ZER
             '\uFEFF'.asCodePoint(),//            ZERO_WIDTH_NO_BREAK_SPAC
         ) {
-            expect { isZeroWidthWhitespace }.that { isTrue() }
+            expecting { isZeroWidthWhitespace } that { isTrue() }
         }
 
         @TestFactory
         fun `is not whitespace`() = "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".asCodePointSequence().testEach {
-            expect { isWhitespace }.that { isFalse() }
+            expecting { isWhitespace } that { isFalse() }
         }
 
 
         @TestFactory
         fun `is 0-9`() = "0123456789".asCodePointSequence().testEach {
-            expect { is0to9 }.that { isTrue() }
+            expecting { is0to9 } that { isTrue() }
         }
 
         @TestFactory
         fun `is not 0-9`() = "AzΑωष".asCodePointSequence().testEach {
-            expect { is0to9 }.that { isFalse() }
+            expecting { is0to9 } that { isFalse() }
         }
 
 
         @TestFactory
         fun `is A-Z_`() = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".asCodePointSequence().testEach {
-            expect { isAtoZ }.that { isTrue() }
+            expecting { isAtoZ } that { isTrue() }
         }
 
         @TestFactory
         fun `is not A-Z_`() = "abc123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
-            expect { isAtoZ }.that { isFalse() }
+            expecting { isAtoZ } that { isFalse() }
         }
 
 
         @TestFactory
         fun `is a-z`() = "abcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEach {
-            expect { isatoz }.that { isTrue() }
+            expecting { isatoz } that { isTrue() }
         }
 
         @TestFactory
         fun `is not a-z`() = "ABC123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
-            expect { isatoz }.that { isFalse() }
+            expecting { isatoz } that { isFalse() }
         }
 
         @Suppress("SpellCheckingInspection")
         @TestFactory
         fun `is A-z `() = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEach {
-            expect { isAtoz }.that { isTrue() }
+            expecting { isAtoz } that { isTrue() }
         }
 
         @TestFactory
         fun `is not A-z `() = "123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
-            expect { isAtoz }.that { isFalse() }
+            expecting { isAtoz } that { isFalse() }
         }
 
 
         @TestFactory
         fun `is ASCII alphanumeric`() = "Az09".asCodePointSequence().testEach {
-            expect { isAsciiAlphanumeric }.that { isTrue() }
+            expecting { isAsciiAlphanumeric } that { isTrue() }
         }
 
         @TestFactory
         fun `is not ASCII alphanumeric`() = "Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
-            expect { isAsciiAlphanumeric }.that { isFalse() }
+            expecting { isAsciiAlphanumeric } that { isFalse() }
         }
 
 
         @TestFactory
         fun `is alphanumeric`() = "Az09Αωष".asCodePointSequence().testEach {
-            expect { isAlphanumeric }.that { isTrue() }
+            expecting { isAlphanumeric } that { isTrue() }
         }
 
         @TestFactory
         fun `is not alphanumeric`() = "🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
-            expect { isAlphanumeric }.that { isFalse() }
+            expecting { isAlphanumeric } that { isFalse() }
         }
 //
 //        @TestFactory
 //        fun `is emoji`() = "😀💂👰🤶".asCodePointSequence().testEach {
-//            expect { isEmoji }.that { isTrue() }
+//            expecting { isEmoji } that { isTrue() }
 //        }
 //
 //        @TestFactory
 //        fun `is no emoji`() = "Az09Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
-//            expect { isEmoji }.that { isFalse() }
+//            expecting { isEmoji } that { isFalse() }
 //        }
     }
 
@@ -318,6 +321,24 @@ class CodePointKtTest {
         @Test
         fun `should be inverse`() {
             expectThat(("Az09Αω𝌀𝍖" - -1) - 1).isEqualTo("Az09Αω𝌀𝍖")
+        }
+    }
+
+    @Nested
+    inner class ToHexadecimalRegex {
+
+        @Test
+        fun `should convert each code point to its hexadecimal form`() {
+            expectThat("Az09Αω𝌀𝍖षि\n\t\r".toLiteralRegex().pattern)
+                .isEqualTo("\\x{41}\\x{7A}\\x{30}\\x{39}\\x{0391}\\x{03C9}\\x{01D300}\\x{01D356}\\x{0937}\\x{093F}\\x{0A}\\x{09}\\x{0D}")
+        }
+
+        @Test
+        fun `should match same input`() {
+            val input = "Az09Αω𝌀𝍖षि\n\t\r"
+            val regex = input.toLiteralRegex()
+            expectThat(regex.matchEntire(input))
+                .isNotNull().groupValues.containsExactly(input)
         }
     }
 }

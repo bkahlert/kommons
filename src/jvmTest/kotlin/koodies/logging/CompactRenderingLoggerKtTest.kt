@@ -197,7 +197,7 @@ class CompactRenderingLoggerKtTest {
                 logLine { "line" }
             }
             delegate?.op()
-            expect { logger }.that {
+            expecting { logger } that {
                 toStringMatchesCurlyPattern(
                     """
                      ╭──╴{}
@@ -218,7 +218,7 @@ class CompactRenderingLoggerKtTest {
                 delegate = this
             }
             delegate?.op()
-            expect { logger }.that {
+            expecting { logger } that {
                 toStringMatchesCurlyPattern(
                     """
                      ╭──╴{}

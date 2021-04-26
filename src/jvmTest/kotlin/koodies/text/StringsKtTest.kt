@@ -13,9 +13,7 @@ import strikt.api.expectThat
 import strikt.assertions.doesNotContain
 import strikt.assertions.hasLength
 import strikt.assertions.hasSize
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.matches
@@ -62,6 +60,7 @@ class StringsKtTest {
 
     @Nested
     inner class WithPrefixKtTest {
+
         @Test
         fun `should prepend prefix if missing`() {
             expectThat("foo".withPrefix("bar")).isEqualTo("barfoo")
@@ -83,7 +82,7 @@ class StringsKtTest {
 
         @TestFactory
         fun `should add 4 random characters`() = testEach("the-string", "four-char") {
-            expect { it.withRandomSuffix() }.that {
+            expecting { withRandomSuffix() } that {
                 startsWith("$it-")
                 matches(Regex("$it--[0-9a-zA-Z]{4}"))
             }
@@ -91,7 +90,7 @@ class StringsKtTest {
 
         @TestFactory
         fun `should not append to already existing random suffix`() = testEach("the-string", "four-char") {
-            expect { it.withRandomSuffix().withRandomSuffix() }.that {
+            expecting { withRandomSuffix().withRandomSuffix() } that {
                 startsWith("$it-")
                 matches(Regex("$it--[0-9a-zA-Z]{4}"))
                 endsWithRandomSuffix()
@@ -101,6 +100,7 @@ class StringsKtTest {
 
     @Nested
     inner class WithSuffixKtTest {
+
         @Test
         fun `should append suffix if missing`() {
             expectThat("foo".withSuffix("bar")).isEqualTo("foobar")
@@ -119,7 +119,7 @@ class StringsKtTest {
 
     @TestFactory
     fun `wrap multiline`() = test("foo".wrapMultiline("  bar 1\n    bar 2", "  \n    baz 1\n    baz 2\n        ")) {
-        expect { this }.that {
+        asserting {
             isEqualTo("""
             bar 1
               bar 2
@@ -135,8 +135,8 @@ class StringsKtTest {
         "" to null,
         "abc" to "abc",
     ) { (string, expected) ->
-        expect { string.takeIfNotEmpty() }.that { isEqualTo(expected) }
-        expect { (string as CharSequence).takeIfNotEmpty() }.that { isEqualTo(expected) }
+        expecting { string.takeIfNotEmpty() } that { isEqualTo(expected) }
+        expecting { (string as CharSequence).takeIfNotEmpty() } that { isEqualTo(expected) }
     }
 
     @TestFactory
@@ -146,8 +146,8 @@ class StringsKtTest {
         *Whitespaces.map { it to null }.toTypedArray(),
         "abc" to "abc",
     ) { (string, expected) ->
-        expect { string.takeIfNotBlank() }.that { isEqualTo(expected) }
-        expect { (string as CharSequence).takeIfNotBlank() }.that { isEqualTo(expected) }
+        expecting { string.takeIfNotBlank() } that { isEqualTo(expected) }
+        expecting { (string as CharSequence).takeIfNotBlank() } that { isEqualTo(expected) }
     }
 
     @TestFactory
@@ -155,8 +155,8 @@ class StringsKtTest {
         "" to null,
         "abc" to "abc",
     ) { (string, expected) ->
-        expect { string.takeUnlessEmpty() }.that { isEqualTo(expected) }
-        expect { (string as CharSequence).takeUnlessEmpty() }.that { isEqualTo(expected) }
+        expecting { string.takeUnlessEmpty() } that { isEqualTo(expected) }
+        expecting { (string as CharSequence).takeUnlessEmpty() } that { isEqualTo(expected) }
     }
 
     @TestFactory
@@ -166,8 +166,8 @@ class StringsKtTest {
         *Whitespaces.map { it to null }.toTypedArray(),
         "abc" to "abc",
     ) { (string, expected) ->
-        expect { string.takeUnlessBlank() }.that { isEqualTo(expected) }
-        expect { (string as CharSequence).takeUnlessBlank() }.that { isEqualTo(expected) }
+        expecting { string.takeUnlessBlank() } that { isEqualTo(expected) }
+        expecting { (string as CharSequence).takeUnlessBlank() } that { isEqualTo(expected) }
     }
 
     @Nested
@@ -177,33 +177,35 @@ class StringsKtTest {
         @TestFactory
         fun `should map two columns`() = test {
             val transform: (String, String) -> String = { c1, c2 -> "${c1.last()}-${c2.last()}" }
-            expect { "column1\tcolumn2".mapColumns(transform = transform) }.that { isEqualTo("1-2") }
-            expect { "column1\ncolumn2".mapColumns(delimiter = "\n", transform = transform) }.that { isEqualTo("1-2") }
-            expect { "column1\tcolumn2".mapColumns(2, 1, transform = transform) }.that { isEqualTo("2-1") }
-            expectThrowing { "column1\tcolumn2".mapColumns(0, -1, transform = transform) }
-                .isFailure().message.isNotNull().ansiRemoved.isEqualTo("index 0 and index -1 must be greater than or equal to 1")
-            expect { "column1\tcolumn2\tcolumn3".mapColumns(limit = 2, transform = transform) }.that { isEqualTo("1-3") }
-            expectThrowing { "column1\tcolumn2".mapColumns(limit = 1, transform = transform) }.isFailure()
-            expectThrowing { "column1".mapColumns(transform = transform) }.that { isFailure().isA<NoSuchElementException>() }
-            expect { "column1".mapColumnsOrNull(transform = transform) }.that { isNull() }
-            expect { "${1.ansi}\t${2.ansi}".mapColumns(transform = transform) }.that { isEqualTo("1-2") }
-            expect { "${1.ansi}\t${2.ansi}".mapColumns(removeAnsi = false, transform = transform) }.that { isEqualTo("m-m") }
+            expecting { "column1\tcolumn2".mapColumns(transform = transform) } that { isEqualTo("1-2") }
+            expecting { "column1\ncolumn2".mapColumns(delimiter = "\n", transform = transform) } that { isEqualTo("1-2") }
+            expecting { "column1\tcolumn2".mapColumns(2, 1, transform = transform) } that { isEqualTo("2-1") }
+            expectThrows<IllegalArgumentException> {
+                "column1\tcolumn2".mapColumns(0, -1, transform = transform)
+            } that { message.isNotNull().ansiRemoved.isEqualTo("index 0 and index -1 must be greater than or equal to 1") }
+            expecting { "column1\tcolumn2\tcolumn3".mapColumns(limit = 2, transform = transform) } that { isEqualTo("1-3") }
+            expectThrows<IllegalArgumentException> { "column1\tcolumn2".mapColumns(limit = 1, transform = transform) }
+            expectThrows<NoSuchElementException> { "column1".mapColumns(transform = transform) }
+            expecting { "column1".mapColumnsOrNull(transform = transform) } that { isNull() }
+            expecting { "${1.ansi}\t${2.ansi}".mapColumns(transform = transform) } that { isEqualTo("1-2") }
+            expecting { "${1.ansi}\t${2.ansi}".mapColumns(removeAnsi = false, transform = transform) } that { isEqualTo("m-m") }
         }
 
         @TestFactory
         fun `should map three columns`() = test {
             val transform: (String, String, String) -> String = { c1, c2, c3 -> "${c1.last()}-${c2.last()}-${c3.last()}" }
-            expect { "column1\tcolumn2\tcolumn3".mapColumns(transform = transform) }.that { isEqualTo("1-2-3") }
-            expect { "column1\ncolumn2\ncolumn3".mapColumns(delimiter = "\n", transform = transform) }.that { isEqualTo("1-2-3") }
-            expect { "column1\tcolumn2\tcolumn3".mapColumns(3, 1, 2, transform = transform) }.that { isEqualTo("3-1-2") }
-            expectThrowing { "column1\tcolumn2\tcolumn3".mapColumns(0, -1, -2, transform = transform) }
-                .isFailure().message.isNotNull().ansiRemoved.isEqualTo("index 0 and index -1 and index -2 must be greater than or equal to 1")
-            expect { "column1\tcolumn2\tcolumn3\tcolumn4".mapColumns(limit = 3, transform = transform) }.that { isEqualTo("1-2-4") }
-            expectThrowing { "column1\tcolumn2\tcolumn3".mapColumns(limit = 2, transform = transform) }.isFailure()
-            expectThrowing { "column1\tcolumn2".mapColumns(transform = transform) }.that { isFailure().isA<NoSuchElementException>() }
-            expect { "column1\tcolumn2".mapColumnsOrNull(transform = transform) }.that { isNull() }
-            expect { "${1.ansi}\t${2.ansi}\t${3.ansi}".mapColumns(transform = transform) }.that { isEqualTo("1-2-3") }
-            expect { "${1.ansi}\t${2.ansi}\t${3.ansi}".mapColumns(removeAnsi = false, transform = transform) }.that { isEqualTo("m-m-m") }
+            expecting { "column1\tcolumn2\tcolumn3".mapColumns(transform = transform) } that { isEqualTo("1-2-3") }
+            expecting { "column1\ncolumn2\ncolumn3".mapColumns(delimiter = "\n", transform = transform) } that { isEqualTo("1-2-3") }
+            expecting { "column1\tcolumn2\tcolumn3".mapColumns(3, 1, 2, transform = transform) } that { isEqualTo("3-1-2") }
+            expectThrows<IllegalArgumentException> {
+                "column1\tcolumn2\tcolumn3".mapColumns(0, -1, -2, transform = transform)
+            } that { message.isNotNull().ansiRemoved.isEqualTo("index 0 and index -1 and index -2 must be greater than or equal to 1") }
+            expecting { "column1\tcolumn2\tcolumn3\tcolumn4".mapColumns(limit = 3, transform = transform) } that { isEqualTo("1-2-4") }
+            expectThrows<IllegalArgumentException> { "column1\tcolumn2\tcolumn3".mapColumns(limit = 2, transform = transform) }
+            expectThrows<NoSuchElementException> { "column1\tcolumn2".mapColumns(transform = transform) }
+            expecting { "column1\tcolumn2".mapColumnsOrNull(transform = transform) } that { isNull() }
+            expecting { "${1.ansi}\t${2.ansi}\t${3.ansi}".mapColumns(transform = transform) } that { isEqualTo("1-2-3") }
+            expecting { "${1.ansi}\t${2.ansi}\t${3.ansi}".mapColumns(removeAnsi = false, transform = transform) } that { isEqualTo("m-m-m") }
         }
     }
 }

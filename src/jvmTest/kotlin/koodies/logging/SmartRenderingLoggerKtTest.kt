@@ -134,7 +134,7 @@ class SmartRenderingLoggerKtTest {
         val label = border.name
         val logger = InMemoryLogger(caption = "InMemoryLogger", border = SOLID).withUnclosedWarningDisabled
             .apply { logging(caption = "$label caption", border = border) { block() } }
-        expect { logger.toString(fallbackReturnValue = null) }.that { toStringMatchesCurlyPattern(expectation) }
+        expecting { logger.toString(fallbackReturnValue = null) } that { toStringMatchesCurlyPattern(expectation) }
     }
 
     @TestFactory
@@ -387,7 +387,7 @@ class SmartRenderingLoggerKtTest {
                 logLine { "line" }
             }
             delegate?.op()
-            expect { logger }.that {
+            expecting { logger } that {
                 toStringMatchesCurlyPattern("""
                     ╭──╴{}
                     │   
@@ -409,7 +409,7 @@ class SmartRenderingLoggerKtTest {
                 delegate = this
             }
             delegate?.op()
-            expect { logger }.that {
+            expecting { logger } that {
                 toStringMatchesCurlyPattern("""
                     ╭──╴{}
                     │   

@@ -65,21 +65,7 @@ public interface Exec : Process {
     public fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec
 }
 
-
 public typealias ExecTerminationCallback = (Throwable?) -> Unit
-
-// TODO
-///**
-// * Returns whether [start] was called.
-// *
-// * Contrary to [alive] this property will never return `false` once [start] was called.
-// */
-//public val Process.started: Boolean
-//    get() = when (state) {
-//        is Prepared -> false
-//        is Running -> true
-//        is Terminated -> true
-//    }
 
 
 public class MetaStream(vararg listeners: (META) -> Unit) {

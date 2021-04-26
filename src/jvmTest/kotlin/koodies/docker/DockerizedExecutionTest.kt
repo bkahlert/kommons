@@ -6,16 +6,17 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
-import koodies.exec.Process.ExitState.Failure
 import koodies.concurrent.process.Processors
-import koodies.exec.hasState
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.docker.MountOptionContext.Type.bind
+import koodies.exec.Process.ExitState.Failure
 import koodies.exec.containsDump
+import koodies.exec.hasState
 import koodies.exec.io
+import koodies.exec.started
 import koodies.logging.InMemoryLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
@@ -71,7 +72,11 @@ class DockerizedExecutionTest {
 
     @SystemIoExclusive
     @Test
-    fun `should run command line using docker image in receiver and provided logger`(capturedOutput: CapturedOutput, uniqueId: UniqueId, logger: InMemoryLogger) =
+    fun `should run command line using docker image in receiver and provided logger`(
+        capturedOutput: CapturedOutput,
+        uniqueId: UniqueId,
+        logger: InMemoryLogger,
+    ) =
         withTempDir(uniqueId) {
             with(testImage) {
                 (shellExecutable as Executable).execute(logger)

@@ -13,25 +13,25 @@ class ContainsAllKtTest {
 
     @TestFactory
     fun `should return true if all of the others is case-matching substring`() = test(string) {
-        expect { containsAll(listOf("foo ", " bar")) }.that { isTrue() }
-        expect { containsAll("foo ", " bar") }.that { isTrue() }
+        expecting { containsAll(listOf("foo ", " bar")) } that { isTrue() }
+        expecting { containsAll("foo ", " bar") } that { isTrue() }
     }
 
     @TestFactory
     fun `should return true if all of the others is non-case-matching substring but case is ignored`() = test(string) {
-        expect { containsAll(listOf("foo ", "BAR"), ignoreCase = true) }.that { isTrue() }
-        expect { containsAll("foo ", "BAR", ignoreCase = true) }.that { isTrue() }
+        expecting { containsAll(listOf("foo ", "BAR"), ignoreCase = true) } that { isTrue() }
+        expecting { containsAll("foo ", "BAR", ignoreCase = true) } that { isTrue() }
     }
 
     @TestFactory
     fun `should return false if none of the others is no case-matching substring`() = test(string) {
-        expect { containsAll(listOf("baz", "O B", "abc")) }.that { isFalse() }
-        expect { containsAll("baz", "O B", "abc") }.that { isFalse() }
+        expecting { containsAll(listOf("baz", "O B", "abc")) } that { isFalse() }
+        expecting { containsAll("baz", "O B", "abc") } that { isFalse() }
     }
 
     @TestFactory
     fun `should return false if none of the others is substring`() = test(string) {
-        expect { containsAll(listOf("baz", "---", "abc")) }.that { isFalse() }
-        expect { containsAll("baz", "---", "abc") }.that { isFalse() }
+        expecting { containsAll(listOf("baz", "---", "abc")) } that { isFalse() }
+        expecting { containsAll("baz", "---", "abc") } that { isFalse() }
     }
 }

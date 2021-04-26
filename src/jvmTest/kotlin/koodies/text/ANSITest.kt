@@ -52,8 +52,8 @@ class ANSITest {
 
             ) { (ansi, plain) ->
             with { ansi.ansiRemoved }.then {
-                expect { this }.that { isEqualTo(plain) }
-                expect { this }.that { not { containsEscapeSequences() } }
+                expecting { this } that { isEqualTo(plain) }
+                expecting { this } that { not { containsEscapeSequences() } }
             }
         }
     }
@@ -167,7 +167,8 @@ class ANSITest {
 
         @Test
         fun `should colorize foreground and background`() {
-            expectThat("cyan on magenta".ansi.cyan.on.magenta).toStringIsEqualTo((ANSI.Colors.cyan+ANSI.Colors.magenta.bg)("cyan on magenta").toString(), false)
+            expectThat("cyan on magenta".ansi.cyan.on.magenta).toStringIsEqualTo((ANSI.Colors.cyan + ANSI.Colors.magenta.bg)("cyan on magenta").toString(),
+                false)
         }
 
         @Test
@@ -177,7 +178,7 @@ class ANSITest {
 
         @Test
         fun `should colorize each character`() {
-            expectThat("colorized".colorize()).toStringIsEqualTo("colorized").get { filter { it == Unicode.escape }.count() }.isEqualTo(2*9)
+            expectThat("colorized".colorize()).toStringIsEqualTo("colorized").get { filter { it == Unicode.escape }.count() }.isEqualTo(2 * 9)
         }
     }
 

@@ -1,5 +1,6 @@
 package koodies.test
 
+import filepeek.FileInfo
 import filepeek.LambdaBody
 import koodies.Exceptions.ISE
 import koodies.collections.asStream
@@ -9,17 +10,26 @@ import koodies.io.path.readLine
 import koodies.jvm.deleteOnExit
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
+import koodies.runtime.CallStackElement
 import koodies.runtime.getCaller
-import koodies.test.DeprecatedDynamicTestsBuilder.ExpectationBuilder
 import koodies.test.DynamicTestBuilder.InCompleteExpectationBuilder
+import koodies.test.DynamicTestsWithSubjectBuilder.ExpectationBuilder
 import koodies.test.TestFlattener.flatten
-import koodies.test.Tester.aspect
 import koodies.test.Tester.callerSource
+import koodies.test.Tester.findCaller
 import koodies.test.Tester.property
 import koodies.test.Tester.subject
+import koodies.test.Tester.testNameForAssertingCurrent
+import koodies.test.Tester.testNameForAssertingOther
+import koodies.test.Tester.testNameForCatchingProviding
+import koodies.test.Tester.testNameForCatchingTransformation
+import koodies.test.Tester.testNameForExpectingProviding
+import koodies.test.Tester.testNameForExpectingTransformation
+import koodies.test.Tester.testNameForThrowingTransformation
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
+import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
@@ -37,11 +47,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
-import strikt.api.Assertion
 import strikt.api.Assertion.Builder
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -52,14 +60,16 @@ import strikt.assertions.size
 import java.net.URI
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
+import java.util.stream.Stream
 import kotlin.concurrent.withLock
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
-import kotlin.jvm.internal.CallableReference
+import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
 import kotlin.streams.asSequence
+import kotlin.streams.asStream
 import kotlin.system.exitProcess
 import filepeek.FilePeek2 as FilePeek
 
@@ -94,11 +104,80 @@ object Tester {
         return SLF4J.format(testNamePattern ?: fallbackPattern, *args).ansiRemoved
     }
 
-    fun <T, R> String.aspect(subject: T, transform: (T) -> R, testNamePattern: String? = null): String {
-        return "with".property(transform).run {
-            kotlin.runCatching { subject(transform(subject), testNamePattern) }
-                .getOrElse { this + "${Symbols.Error} $it" }
-        }
+    fun <T, R> value(value: T, transform: (T) -> R): String =
+        kotlin.runCatching { transform(value).toCompactString() }.getOrElse { "${Symbols.Error} ${it.toCompactString()}" }
+
+    fun <R> value(provide: () -> R): String =
+        kotlin.runCatching { provide().toCompactString() }.getOrElse { "${Symbols.Error} ${it.toCompactString()}" }
+
+    fun <T> testNameForAssertingCurrent(caller: CallStackElement, subject: T, assertions: Builder<T>.() -> Unit): String {
+        return StringBuilder("❕").apply {
+            append(" ")
+            append(displayNameFor(caller, assertions))
+        }.toString()
+    }
+
+    fun <T> testNameForAssertingOther(caller: CallStackElement, subject: T, assertions: Builder<T>.() -> Unit): String {
+        return StringBuilder("❕").apply {
+            append(" ")
+            append("".subject(subject).trim())
+            append(" ")
+            append(displayNameFor(caller, assertions))
+        }.toString()
+    }
+
+    fun <T, R> testNameForExpectingTransformation(caller: CallStackElement, subject: T, transform: (T) -> R): String {
+        return expectTransform(caller, "❔❕", subject, transform)
+    }
+
+    fun <T, R> testNameForCatchingTransformation(caller: CallStackElement, subject: T, transform: (T) -> R): String {
+        return expectTransform(caller, "❓❗", subject, transform)
+    }
+
+    inline fun <reified E> testNameForThrowingTransformation(caller: CallStackElement): String {
+        return StringBuilder("❗❗").apply {
+            append(" ")
+            append(E::class.simpleName)
+        }.toString()
+    }
+
+    private fun <T, R> expectTransform(caller: CallStackElement, symbol: String, subject: T, transform: (T) -> R): String {
+        return StringBuilder(symbol).apply {
+            append(" ")
+            append(displayNameFor(caller, transform))
+            append(" (")
+            append(value(subject, transform))
+            append(")")
+            val that = getLambdaBodyOrNull(caller, "that")
+            if (that != null) {
+                append(" ")
+                append(that)
+            }
+        }.toString()
+    }
+
+
+    fun <R> testNameForExpectingProviding(caller: CallStackElement, provide: () -> R): String {
+        return expectProvide(caller, "❔❕", provide)
+    }
+
+    fun <R> testNameForCatchingProviding(caller: CallStackElement, provide: () -> R): String {
+        return expectProvide(caller, "❓❗", provide)
+    }
+
+    private fun <R> expectProvide(caller: CallStackElement, symbol: String, provide: () -> R): String {
+        return StringBuilder(symbol).apply {
+            append(" ")
+            append("".subject(displayNameFor(caller, provide)).trim())
+            append(" (")
+            append(value(provide))
+            append(")")
+            val that = getLambdaBodyOrNull(caller, "that")
+            if (that != null) {
+                append(" ")
+                append(that)
+            }
+        }.toString()
     }
 
     /**
@@ -106,8 +185,9 @@ object Tester {
      *
      * The display name is prefixed with `this` string.
      */
-    private fun <T> String.displayNameFallback(subject: T) = when (subject) {
+    private fun <T> String.displayNameFallback(subject: T): Pair<String, Array<String>> = when (subject) {
         is KFunction<*> -> "$this property $`{}`" to arrayOf(subject.name)
+        is Function<*> -> "$this $`{}`" to arrayOf(subject.toSimpleString())
         is KProperty<*> -> "$this property $`{}`" to arrayOf(subject.name)
         is Triple<*, *, *> -> "$this $`{}` to $`{}` to $`{}`" to arrayOf(subject.first.serialized, subject.second.serialized, subject.third.serialized)
         is Pair<*, *> -> "$this $`{}` to $`{}`" to arrayOf(subject.first.serialized, subject.second.serialized)
@@ -120,24 +200,57 @@ object Tester {
 
     /**
      * Attempts to calculate a rich display name for a property
-     * expressed by the specified [function].
+     * expressed by the specified [fn].
      */
-    fun <T, R> String.property(function: T.() -> R): String = when (function) {
-        is KProperty<*> -> "$this value of property ${function.name}"
-        is KFunction<*> -> "$this return value of ${function.name}"
-        is CallableReference -> findCaller().let { (_, callerMethodName) -> "$this value of ${function.getPropertyName(callerMethodName)}" }
-        else -> "$this " + findCaller().let { (callerClassName, callerMethodName) ->
-            getLambdaBodyOrNull(callerClassName, callerMethodName)?.toSimpleString() ?: function.toSimpleString()
+    fun <T, R> String.property(fn: T.() -> R): String = when (fn) {
+        is KProperty<*> -> "$this value of property ${fn.name}"
+        is KFunction<*> -> "$this return value of ${fn.name}"
+        is KCallable<*> -> findCaller().run { "$this value of ${fn.getPropertyName(function)}" }
+        else -> "$this " + findCaller().run {
+            getLambdaBodyOrNull(receiver ?: error("Missing receiver"), function)?.wrap(" ❴ ", " ❵ ") ?: fn.toSimpleString()
+        }
+    }
+
+    /**
+     * Attempts to calculate a rich display name for a property
+     * expressed by the specified [fn].
+     */
+    fun <T, R> displayNameFor(caller: CallStackElement, fn: T.() -> R, fnName: String? = null): String {
+        return when (fn) {
+            is KProperty<*> -> fn.name
+            is KFunction<*> -> fn.name
+            is KCallable<*> -> caller.run { fn.getPropertyName(function) }
+            else -> getLambdaBodyOrNull(caller, fnName) ?: fn.toSimpleString()
+        }
+    }
+
+    /**
+     * Attempts to calculate a rich display name for a property
+     * expressed by the specified [fn].
+     */
+    fun <R> displayNameFor(caller: CallStackElement, fn: () -> R, fnName: String? = null): String {
+        return when (fn) {
+            is KProperty<*> -> fn.name
+            is KFunction<*> -> fn.name
+            is KCallable<*> -> caller.run { fn.getPropertyName(function) }
+            else -> getLambdaBodyOrNull(caller, fnName) ?: fn.toSimpleString()
         }
     }
 
     val callerSource: URI
-        get() = findCaller().let { (callerClassName, callerMethodName) ->
-            filePeek(callerClassName).getCallerFileInfo().run {
+        get() = findCaller().let {
+            FilePeek(it.stackTraceElement).getCallerFileInfo().run {
                 val sourceFile = sourceFileName.asPath()
-                val columnNumber = sourceFile.findMethodCallColumn(lineNumber, callerMethodName)
+                val columnNumber = sourceFile.findMethodCallColumn(lineNumber, it.function)
                 sourceFile.asSourceUri(lineNumber, columnNumber)
             }
+        }
+
+    val CallStackElement.callerSource: URI
+        get() = FilePeek(stackTraceElement).getCallerFileInfo().run {
+            val sourceFile = sourceFileName.asPath()
+            val columnNumber = sourceFile.findMethodCallColumn(lineNumber, function)
+            sourceFile.asSourceUri(lineNumber, columnNumber)
         }
 
     private fun Path.findMethodCallColumn(lineNumber: Int, callerMethodName: String): Int? =
@@ -150,7 +263,7 @@ object Tester {
             URI(toString())
         }
 
-    private fun CallableReference.getPropertyName(callerMethodName: String): String =
+    private fun KCallable<*>.getPropertyName(callerMethodName: String): String =
         "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.decapitalize() } ?: name
 
     /**
@@ -160,20 +273,38 @@ object Tester {
      * with name [callerClassName].
      */
     private fun getLambdaBodyOrNull(callerClassName: String, callerMethodName: String) = kotlin.runCatching {
-        val line = filePeek(callerClassName).getCallerFileInfo().line
-        LambdaBody(callerMethodName, line).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ").wrap(" ❴ ", " ❵ ")
+        val line = filePeek(callerClassName, callerMethodName).line
+        LambdaBody(callerMethodName, line).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ")
     }.getOrNull()
+
+    private fun getLambdaBodyOrNull(
+        callStackElement: CallStackElement,
+        explicitMethodName: String? = null,
+    ) = kotlin.runCatching {
+        val line = FilePeek(callStackElement.stackTraceElement).getCallerFileInfo().line
+        if (explicitMethodName != null) {
+            line.takeIf { it.contains(explicitMethodName) }?.let {
+                LambdaBody(explicitMethodName, it).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ")
+            }
+        } else {
+            LambdaBody(callStackElement.function, line).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ")
+        }
+    }.getOrNull()
+
+    private val CallStackElement.stackTraceElement get() = StackTraceElement(receiver, function, file, line)
 
     /**
      * A lambda that returns a [FilePeek] to access the body of a lambda
      * that was passed as a parameter to a call of a method of a class
      * with the specified name.
      */
-    private val filePeek = object : (String) -> FilePeek {
+    private val filePeek = object : (String, String) -> FileInfo {
         private val lock = ReentrantLock()
-        private val cache: MutableMap<String, FilePeek> = mutableMapOf()
-        override fun invoke(callerClassName: String): FilePeek = lock.withLock {
-            cache.getOrPut(callerClassName) { FilePeek(listOfNotNull("strikt.internal", "strikt.api", "filepeek", enclosingClassName, callerClassName)) }
+        private val cache: MutableMap<Pair<String, String>, FileInfo> = mutableMapOf()
+        override fun invoke(callerClassName: String, callerMethodName: String): FileInfo = lock.withLock {
+            cache.getOrPut(callerClassName to callerMethodName) {
+                FilePeek(callerClassName, callerMethodName).getCallerFileInfo()
+            }
         }
     }
 
@@ -181,9 +312,9 @@ object Tester {
      * Finds the calling class and method name of any member
      * function of this [Tester].
      */
-    private inline fun findCaller(): Pair<String, String> = getCaller {
-        receiver == enclosingClassName
-    }.run { (receiver?: error("Error finding caller: $this")) to function }
+    fun findCaller(): CallStackElement = getCaller {
+        receiver == enclosingClassName || receiver?.matches(Regex(".*DynamicTest.*Builder.*")) == true
+    }
 
     /**
      * Reliably contains the fully qualified name of [Tester].
@@ -194,114 +325,120 @@ object Tester {
         ?: error("unknown name")
 }
 
+class IllegalUsageException(caller: URI?) : IllegalArgumentException(
+    "expecting { … } call was not finished with ${"that { … }".formattedAs.input}".let {
+        caller?.let { uri -> "$it at " + uri.path + ":" + uri.query.takeLastWhile { it.isDigit() } } ?: it
+    }
+)
+
 
 @DslMarker
 annotation class DynamicTestsDsl
 
 /**
  * Creates tests for `this` subject
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  */
 @JvmName("testThis")
 @DynamicTestsDsl
 @Deprecated("replace with tests", ReplaceWith("tests(init)"))
- fun < T> T.test( init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit): List<DynamicNode> =
-    DeprecatedDynamicTestsBuilder.build(this, init)
+fun <T> T.test(init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): List<DynamicNode> =
+    DynamicTestsWithSubjectBuilder.build(this, init)
 
 /**
  * Creates tests for the specified [subject]
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  */
 @DynamicTestsDsl
- fun < T> test(subject: T, init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit): List<DynamicNode> = subject.test(init)
+fun <T> test(subject: T, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): List<DynamicNode> = subject.test(init)
 
 /**
  * Creates one [DynamicContainer] for each instance of `this` collection of subjects
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 @DynamicTestsDsl
- fun < T> Iterable<T>.testEach(
+fun <T> Iterable<T>.testEach(
     containerNamePattern: String? = null,
-     init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit,
+    init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit,
 ): List<DynamicContainer> = toList()
     .also { require(it.isNotEmpty()) { "At least one subject must be provided for testing." } }
-    .run { map { subject -> dynamicContainer("for".subject(subject, containerNamePattern), DeprecatedDynamicTestsBuilder.build(subject, init)) } }
+    .run { map { subject -> dynamicContainer("for".subject(subject, containerNamePattern), DynamicTestsWithSubjectBuilder.build(subject, init)) } }
 
 /**
  * Creates one [DynamicContainer] for each instance of `this` collection of subjects
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 @DynamicTestsDsl
- fun <T> Sequence<T>.testEach(
+fun <T> Sequence<T>.testEach(
     containerNamePattern: String? = null,
- init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit,
+    init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit,
 ): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
 
 /**
  * Creates one [DynamicContainer] for each instance of the specified [subjects]
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 @DynamicTestsDsl
-fun < T> testEach(
+fun <T> testEach(
     vararg subjects: T,
     containerNamePattern: String? = null,
-     init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit,
+    init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit,
 ): List<DynamicContainer> = subjects.toList().testEach(containerNamePattern, init)
 
 /**
  * Creates one [DynamicContainer] for each instance of the specified [subjects]
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 @DynamicTestsDsl
 @JvmName("testArrayAsReceiver")
-fun < T> Array<T>.testEach(
+fun <T> Array<T>.testEach(
     containerNamePattern: String? = null,
- init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit,
+    init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit,
 ): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
 
 /**
  * Creates one [DynamicContainer] for each instance of the specified [subjects]
- * using the specified [DeprecatedDynamicTestsBuilder] based [init].
+ * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
 @DynamicTestsDsl
- fun < K, V> Map<K, V>.testEach(
+fun <K, V> Map<K, V>.testEach(
     containerNamePattern: String? = null,
- init: DeprecatedDynamicTestsBuilder<Pair<K, V>>.(Pair<K, V>) -> Unit,
+    init: DynamicTestsWithSubjectBuilder<Pair<K, V>>.(Pair<K, V>) -> Unit,
 ): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
 
 @DynamicTestsDsl
-fun <T> DeprecatedDynamicTestsBuilder.PropertyTestBuilder<T?>.notNull(block: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit) =
+fun <T> DynamicTestsWithSubjectBuilder.PropertyTestBuilder<T?>.notNull(block: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit) =
     then {
         require(it != null)
         @Suppress("UNCHECKED_CAST")
-        (this as DeprecatedDynamicTestsBuilder<T>).block(it)
+        (this as DynamicTestsWithSubjectBuilder<T>).block(it)
     }
 
 @DynamicTestsDsl
- inline fun <reified T> DeprecatedDynamicTestsBuilder.PropertyTestBuilder<Any?>.asA(crossinline block: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit) =
+inline fun <reified T> DynamicTestsWithSubjectBuilder.PropertyTestBuilder<Any?>.asA(crossinline block: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit) =
     then {
         require(it is T)
         @Suppress("UNCHECKED_CAST")
-        (this as DeprecatedDynamicTestsBuilder<T>).block(it as T)
+        (this as DynamicTestsWithSubjectBuilder<T>).block(it as T)
     }
 
 /**
- * Combines the [ExpectationBuilder.that] with the type assertion [isA].
+ * Combines the [ExpectationBuilder that] with the type assertion [isA].
  */
 @DynamicTestsDsl
 inline fun <reified T> ExpectationBuilder<*>.thatA(crossinline block: Builder<T>.() -> Unit) {
@@ -314,8 +451,7 @@ inline fun <reified T> ExpectationBuilder<*>.thatA(crossinline block: Builder<T>
  * and a fluent transition to [Strikt](https://strikt.io) assertions.
  */
 @DynamicTestsDsl
-// TODO refactor using BuilderTemplate
-interface DeprecatedDynamicTestsBuilder<T> {
+class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNode) -> Unit) {
 
     @DslMarker
     annotation class ExpectationBuilderDsl
@@ -335,146 +471,104 @@ interface DeprecatedDynamicTestsBuilder<T> {
     @DynamicTestsDsl
     interface PropertyTestBuilder<T> {
         @DynamicTestsDsl
-        fun then(block: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit): T
+        infix fun then(block: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): T
     }
 
     /**
      * Builds a [DynamicContainer] using the specified [name] and the
-     * specified [DeprecatedDynamicTestsBuilder] based [init] to build the child nodes.
+     * specified [DynamicTestsWithSubjectBuilder] based [init] to build the child nodes.
      */
     @DynamicTestsDsl
-    fun group(name: String, init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit)
+    fun group(name: String, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit) {
+        callback(dynamicContainer(name, callerSource, build(subject, init).asStream()))
+    }
 
     /**
      * Builds a [DynamicTest] using an automatically derived name and the specified [executable].
      */
     @DynamicTestsDsl
-    @Deprecated("use testv2")
-    fun test(description: String? = null, executable: (T) -> Unit)
+    @Deprecated("use expecting")
+    fun test(description: String? = null, executable: (T) -> Unit) {
+        callback(dynamicTest(description?.takeUnlessBlank() ?: "test".property(executable), callerSource) { executable(subject) })
+    }
 
-    fun test2(description: String? = null, exec: DynamicTestBuilder<T>.(T) -> Unit)
+    infix fun <T> T.asserting(assertions: Builder<T>.() -> Unit) {
+        val caller = findCaller()
+        val test = dynamicTest(testNameForAssertingOther(findCaller(), this, assertions), caller.callerSource) {
+            strikt.api.expectThat(this, assertions)
+        }
+        callback(test)
+    }
 
-    infix fun <X> X.asserting( assertions:Builder<X>.()->Unit)
+    infix fun asserting(assertions: Builder<T>.() -> Unit) {
+        val caller = findCaller()
+        val test = dynamicTest(testNameForAssertingCurrent(findCaller(), subject, assertions), caller.callerSource) {
+            strikt.api.expectThat(subject, assertions)
+        }
+        callback(test)
+    }
 
-    fun asserting( assertions:Builder<T>.()->Unit)
+    fun <R> expecting(description: String? = null, action: T.() -> R): InCompleteExpectationBuilder<R> {
+        var additionalAssertions: (Builder<R>.() -> Unit)? = null
+        val caller = findCaller()
+        val test = dynamicTest(description ?: testNameForExpectingTransformation(caller, subject, action), caller.callerSource) {
+            strikt.api.expectThat(subject).with(action, additionalAssertions ?: throw IllegalUsageException(caller.callerSource))
+        }
+        callback(test)
+        return InCompleteExpectationBuilder { assertions: Builder<R>.() -> Unit ->
+            additionalAssertions = assertions
+        }
+    }
 
-    fun <X> expecting(description: String? = null, action: T.() -> X): InCompleteExpectationBuilder<X>
-// TODO
-//    inline fun <reified X> expectCatching(noinline action: suspend () -> X): InCompleteExpectationBuilder<Result<X>>
-// TODO
-//    inline fun <reified E : Throwable> expectThrows(noinline action: suspend () -> Any?): InCompleteExpectationBuilder<E>
+    fun <R> expectCatching(action: T.() -> R): InCompleteExpectationBuilder<Result<R>> {
+        var additionalAssertions: (Builder<Result<R>>.() -> Unit)? = null
+        val caller = findCaller()
+        val test = dynamicTest(testNameForCatchingTransformation(findCaller(), subject, action), caller.callerSource) {
+            strikt.api.expectCatching { subject.action() }.and(additionalAssertions ?: {})
+        }
+        callback(test)
+        return InCompleteExpectationBuilder { assertions: Builder<Result<R>>.() -> Unit ->
+            additionalAssertions = assertions
+        }
+    }
+
+    inline fun <reified E : Throwable> expectThrows(noinline action: T.() -> Any?): InCompleteExpectationBuilder<E> {
+        var additionalAssertions: (Builder<E>.() -> Unit)? = null
+        val caller = findCaller()
+        val test = dynamicTest(testNameForThrowingTransformation<E>(findCaller()), caller.callerSource) {
+            strikt.api.expectThrows<E> { subject.action() }.and(additionalAssertions ?: {})
+        }
+        callback(test)
+        return InCompleteExpectationBuilder { assertions: Builder<E>.() -> Unit ->
+            additionalAssertions = assertions
+        }
+    }
 
     /**
      * Builds a new test tree testing the aspect returned by [transform].
      */
     @DynamicTestsDsl
-    fun <R> aspect(transform: T.() -> R, init: DeprecatedDynamicTestsBuilder<R>.(R) -> Unit)
-
-    /**
-     * Builds a new test tree testing the aspect returned by [transform].
-     */
-    @DynamicTestsDsl
-    fun <R> with(description: String? = null, transform: T.() -> R): PropertyTestBuilder<R>
+    fun <R> with(description: String? = null, transform: T.() -> R): PropertyTestBuilder<R> {
+        val aspect = subject.transform()
+        val nodes = mutableListOf<DynamicNode>()
+        callback(dynamicContainer(description?.takeUnlessBlank() ?: "with".property(transform).subject(aspect), callerSource, nodes.asStream()))
+        return CallbackCallingPropertyTestBuilder(aspect) { nodes.add(it) }
+    }
 
     /**
      * Returns a builder to specify expectations for the result of [transform] applied
      * to `this` subject.
      */
     @DynamicTestsDsl
-    fun <R> expect(description: String? = null, transform: T.() -> R): ExpectationBuilder<R>
-
-    /**
-     * Builds a builder to specify expectations for the exception thrown when [transform]
-     * is applied to `this` subject.
-     */
-    @DynamicTestsDsl
-    fun <R> expectThrowing(description: String? = null, transform: T.() -> R): ExpectationBuilder<Result<R>>
-
-    /**
-     * Builds a new test tree testing the current subject.
-     */
-    @DynamicTestsDsl
-    @Deprecated("use alternative")
-    fun expect(description: String): ExpectationBuilder<T>
-
-    /**
-     * Builds a new test tree testing the current subject.
-     */
-    @DynamicTestsDsl
-    @Deprecated("use alternative")
-    val expect: ExpectationBuilder<T>
+    @Deprecated("use expecting")
+    fun <R> expect(description: String? = null, transform: T.() -> R): ExpectationBuilder<R> {
+        val aspect = kotlin.runCatching { subject.transform() }
+            .onFailure { println("TEST ${Symbols.Error} Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
+            .getOrThrow()
+        return CallbackCallingExpectationBuilder(description?.takeUnlessBlank() ?: "expect".property(transform).subject(aspect), aspect, callback)
+    }
 
     companion object {
-
-        private class CallbackCallingDeprecatedDynamicTestsBuilder<T>(private val subject: T, private val callback: (DynamicNode) -> Unit) :
-            DeprecatedDynamicTestsBuilder<T> {
-
-            override fun group(name: String, init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit) {
-                callback(dynamicContainer(name, callerSource, build(subject, init).asStream()))
-            }
-
-            override fun test2(description: String?, exec: DynamicTestBuilder<T>.(T) -> Unit) {
-                val test: DynamicTest = DynamicTestBuilder.buildTest(subject, description, exec)
-                callback(test)
-            }
-
-            override infix fun <X> X.asserting( assertions: Builder<X>.()->Unit) {
-                val test = DynamicTestBuilder.buildTest(this, null) { asserting(assertions) }
-                callback(test)
-            }
-
-            override infix fun asserting( assertions: Builder<T>.()->Unit) {
-                val test = DynamicTestBuilder.buildTest(subject, null) { asserting(assertions) }
-                callback(test)
-            }
-
-            override fun <X> expecting(description: String? , action: T.() -> X): InCompleteExpectationBuilder<X> {
-                var additionalAssertions: (Builder<X>.() -> Unit)? = null
-                val test = DynamicTestBuilder.buildTest(subject, description) {
-                    expecting(description) { subject.action() }.apply { additionalAssertions?.also{ that(it) }}
-                }
-                callback(test)
-                return InCompleteExpectationBuilder { assertions: Builder<X>.() -> Unit ->
-                    additionalAssertions=assertions
-                }
-            }
-
-            override fun test(description: String?, executable: (T) -> Unit) {
-                callback(dynamicTest(description?.takeUnlessBlank() ?: "test".property(executable), callerSource) { executable(subject) })
-            }
-
-            override fun <R> expect(description: String?, transform: T.() -> R): ExpectationBuilder<R> {
-                val aspect = kotlin.runCatching { subject.transform() }
-                    .onFailure { println("TEST ${Symbols.Error} Failed to evaluate ${"".subject(subject).property(transform)}: $it") }
-                    .getOrThrow()
-                return CallbackCallingExpectationBuilder(description?.takeUnlessBlank() ?: "expect".property(transform).subject(aspect), aspect, callback)
-            }
-
-            override fun <R> expectThrowing(description: String?, transform: T.() -> R): ExpectationBuilder<Result<R>> {
-                val aspect = kotlin.runCatching { subject.transform() }
-                return CallbackCallingExpectationBuilder(description?.takeUnlessBlank() ?: "expect".property(transform).subject(aspect), aspect, callback)
-            }
-
-            override fun expect(description: String): ExpectationBuilder<T> =
-                CallbackCallingExpectationBuilder(description, subject, callback)
-
-            override val expect: ExpectationBuilder<T>
-                get() = CallbackCallingExpectationBuilder("expect".subject(subject), subject, callback)
-
-            override fun <R> aspect(transform: T.() -> R, init: DeprecatedDynamicTestsBuilder<R>.(R) -> Unit) {
-                val aspect = subject.transform()
-                callback(dynamicContainer("with".property(transform).subject(aspect),
-                    callerSource,
-                    build(aspect, init).asStream()))
-            }
-
-            override fun <R> with(description: String?, transform: T.() -> R): PropertyTestBuilder<R> {
-                val aspect = subject.transform()
-                val nodes = mutableListOf<DynamicNode>()
-                callback(dynamicContainer(description?.takeUnlessBlank() ?: "with".property(transform).subject(aspect), callerSource, nodes.asStream()))
-                return CallbackCallingPropertyTestBuilder(aspect) { nodes.add(it) }
-            }
-        }
 
         private class CallbackCallingExpectationBuilder<T>(
             private val description: String,
@@ -491,8 +585,8 @@ interface DeprecatedDynamicTestsBuilder<T> {
             private val aspect: T,
             private val callback: (DynamicNode) -> Unit,
         ) : PropertyTestBuilder<T> {
-            override fun then(block: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit): T {
-                CallbackCallingDeprecatedDynamicTestsBuilder(aspect, callback).block(aspect)
+            override fun then(block: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): T {
+                DynamicTestsWithSubjectBuilder(aspect, callback).block(aspect)
                 return aspect
             }
         }
@@ -500,9 +594,9 @@ interface DeprecatedDynamicTestsBuilder<T> {
         /**
          * Builds an arbitrary test trees to test all necessary aspect of the specified [subject].
          */
-        fun <T> build(subject: T, init: DeprecatedDynamicTestsBuilder<T>.(T) -> Unit): List<DynamicNode> =
+        fun <T> build(subject: T, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): List<DynamicNode> =
             mutableListOf<DynamicNode>().apply {
-                CallbackCallingDeprecatedDynamicTestsBuilder(subject) { add(it) }.init(subject)
+                DynamicTestsWithSubjectBuilder(subject) { add(it) }.init(subject)
             }.toList()
     }
 }
@@ -513,15 +607,15 @@ interface DeprecatedDynamicTestsBuilder<T> {
  * The surrounding test subject is ignored.
  */
 @Deprecated("replace with subject asserting assertions", ReplaceWith("subject asserting assertions"))
-fun <T> DeprecatedDynamicTestsBuilder<*>.asserting(subject: T, assertions: Builder<T>.()->Unit) {
-    with(subject){
+fun <T> DynamicTestsWithSubjectBuilder<*>.asserting(subject: T, assertions: Builder<T>.() -> Unit) {
+    with(subject) {
         asserting(assertions)
     }
 }
 
 @DynamicTestsDsl
- fun tests( init: DynamicTestsBuilder.() -> Unit): List<DynamicNode> =
-    DynamicTestsBuilder.build(init)
+fun tests(init: DynamicTestsWithoutSubjectBuilder.() -> Unit): List<DynamicNode> =
+    DynamicTestsWithoutSubjectBuilder.build(init)
 
 /**
  * Builder for tests (and test containers) supposed to simply write unit tests
@@ -534,85 +628,74 @@ fun <T> DeprecatedDynamicTestsBuilder<*>.asserting(subject: T, assertions: Build
  * - [expectThrows] is for running [Strikt](https://strikt.io) assertions on the exception thrown by an action
  */
 @DynamicTestsDsl
-// TODO test auto-generated names
-class DynamicTestsBuilder(val tests: MutableList<DynamicNode>, val buildErrors: MutableList<String>) {
+class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>, val buildErrors: MutableList<String>) {
 
-    // TODO
-     fun < T : Any> T.testAll(description: String,  init: DynamicContainerBuilder<T>.(T) -> Unit) {
-        val container = DynamicContainerBuilder.build(this, description, init)
-        tests.add(container)
-    }
-// TODO
-     infix fun < T : Any> T.testAll( init: DynamicContainerBuilder<T>.(T) -> Unit) {
-        val container = DynamicContainerBuilder.build(this, null, init)
+    fun <T : Any> T.all(description: String, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit) {
+        val container = dynamicContainer(description, callerSource, DynamicTestsWithSubjectBuilder.build(this, init).asStream())
         tests.add(container)
     }
 
-     fun < T : Any> T.test(description: String, init: DynamicTestBuilder<T>.(T) -> Unit) {
+    infix fun <T : Any> T.all(init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit) {
+        val container = dynamicContainer("".subject(this), callerSource, DynamicTestsWithSubjectBuilder.build(this, init).asStream())
+        tests.add(container)
+    }
+
+    fun <T : Any> T.test(description: String, init: DynamicTestBuilder<T>.(T) -> Unit) {
         val test = DynamicTestBuilder.buildTest(this, description, init)
         tests.add(test)
     }
 
-     infix fun < T : Any> T.test( init: DynamicTestBuilder<T>.(T) -> Unit) {
+    infix fun <T : Any> T.test(init: DynamicTestBuilder<T>.(T) -> Unit) {
         val test = DynamicTestBuilder.buildTest(this, null, init)
         tests.add(test)
     }
 
-    /**
-     * Evaluates a [block] of assertions over the current test [subject].
-     */
-    fun <T> asserting(description: String, subject: T, assertions: Builder<T>.()->Unit) {
-        val test = DynamicTestBuilder.buildTest(subject, description) { asserting(assertions) }
+    @JvmName("infixAsserting")
+    infix fun <T> T.asserting(assertions: Builder<T>.() -> Unit) {
+        val caller = findCaller()
+        val test = dynamicTest(testNameForAssertingOther(findCaller(), this, assertions), caller.callerSource) {
+            strikt.api.expectThat(this, assertions)
+        }
         tests.add(test)
     }
 
-    /**
-     * Evaluates a [block] of assertions over the current test [subject].
-     */
-    infix fun <T> T.asserting( assertions: Builder<T>.()->Unit) {
-        val test = DynamicTestBuilder.buildTest(this, null) { asserting(assertions) }
+    fun <T> asserting(subject: T, assertions: Builder<T>.() -> Unit) {
+        val caller = findCaller()
+        val test = dynamicTest(testNameForAssertingCurrent(findCaller(), subject, assertions), caller.callerSource) {
+            strikt.api.expectThat(subject, assertions)
+        }
         tests.add(test)
     }
 
-
-    /**
-     * Returns a builder to specify expectations for the result of [transform] applied
-     * to the current test [subject].
-     */
-    fun <T> expecting(description: String? = null, subject: () -> T): InCompleteExpectationBuilder<T> {
-        val errorMessage = "expecting { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
-        return InCompleteExpectationBuilder<T> { assertions: Builder<T>.() -> Unit ->
-            buildErrors.remove(errorMessage)
-            val test = DynamicTestBuilder.buildTest(subject, description) {
-                expecting(description) { this() }.that(assertions)
-            }
-            tests.add(test)
+    fun <R> expecting(description: String? = null, action: () -> R): InCompleteExpectationBuilder<R> {
+        var additionalAssertions: (Builder<R>.() -> Unit)? = null
+        val caller = findCaller()
+        val test = dynamicTest(description ?: testNameForExpectingProviding(caller, action), caller.callerSource) {
+            strikt.api.expectThat(action(), additionalAssertions ?: throw IllegalUsageException(caller.callerSource))
+        }
+        tests.add(test)
+        return InCompleteExpectationBuilder { assertions: Builder<R>.() -> Unit ->
+            additionalAssertions = assertions
         }
     }
 
-    /**
-     * Builds a builder to specify expectations for the [Result] returned
-     * by [action] applied to `this` subject.
-     */
-    inline fun <reified T> expectCatching(noinline action: suspend () -> T): InCompleteExpectationBuilder<Result<T>> {
-        val errorMessage = "expectCatching { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
-        return InCompleteExpectationBuilder { assertions: Assertion.Builder<Result<T>>.() -> Unit ->
-            buildErrors.remove(errorMessage)
-            val test = DynamicTestBuilder.buildTest(action) {
-                expectCatching { subject() }that (assertions)
-            }
-            tests.add(test)
+    fun <R> expectCatching(action: () -> R): InCompleteExpectationBuilder<Result<R>> {
+        var additionalAssertions: (Builder<Result<R>>.() -> Unit)? = null
+        val caller = findCaller()
+        val test = dynamicTest(testNameForCatchingProviding(findCaller(), action), caller.callerSource) {
+            strikt.api.expectCatching { action() }.and(additionalAssertions ?: {})
+        }
+        tests.add(test)
+        return InCompleteExpectationBuilder { assertions: Builder<Result<R>>.() -> Unit ->
+            additionalAssertions = assertions
         }
     }
 
-    /**
-     * Builds a builder to specify expectations for the exception thrown when [action]
-     * is applied to `this` subject.
-     */
-    inline fun <reified E : Throwable> expectThrows(noinline action: suspend () -> Any?): InCompleteExpectationBuilder<E> {
-        var additionalAssertions : (Builder<E>.() -> Unit)? = null
-        val test = DynamicTestBuilder.buildTest(action) {
-            expectThrows<E> { subject() }.apply { additionalAssertions?.also{ that(it) }}
+    inline fun <reified E : Throwable> expectThrows(noinline action: () -> Any?): InCompleteExpectationBuilder<E> {
+        var additionalAssertions: (Builder<E>.() -> Unit)? = null
+        val caller = findCaller()
+        val test = dynamicTest(testNameForThrowingTransformation<E>(findCaller()), caller.callerSource) {
+            strikt.api.expectThrows<E> { action() }.and(additionalAssertions ?: {})
         }
         tests.add(test)
         return InCompleteExpectationBuilder { assertions: Builder<E>.() -> Unit ->
@@ -621,12 +704,12 @@ class DynamicTestsBuilder(val tests: MutableList<DynamicNode>, val buildErrors: 
     }
 
     companion object {
-        inline fun build(init: DynamicTestsBuilder.() -> Unit): List<DynamicNode> {
-                val tests = mutableListOf<DynamicNode>()
-                val buildErrors = mutableListOf<String>()
-                DynamicTestsBuilder(tests, buildErrors).init()
-                    if (buildErrors.isNotEmpty()) throw ISE(buildErrors)
-                return tests
+        inline fun build(init: DynamicTestsWithoutSubjectBuilder.() -> Unit): List<DynamicNode> {
+            val tests = mutableListOf<DynamicNode>()
+            val buildErrors = mutableListOf<String>()
+            DynamicTestsWithoutSubjectBuilder(tests, buildErrors).init()
+            if (buildErrors.isNotEmpty()) throw ISE(buildErrors)
+            return tests
         }
     }
 }
@@ -636,7 +719,7 @@ class DynamicContainerBuilder<T>(val subject: T, val tests: MutableList<DynamicN
 
     /**
      * Builds a [DynamicContainer] using the specified [description] and the
-     * specified [DynamicTestsBuilder] based [init] to build the child nodes.
+     * specified [DynamicTestsWithoutSubjectBuilder] based [init] to build the child nodes.
      */
     fun group(description: String? = null, init: DynamicContainerBuilder<T>.(T) -> Unit): Unit {
         val container = build(subject, description, init)
@@ -656,7 +739,7 @@ class DynamicContainerBuilder<T>(val subject: T, val tests: MutableList<DynamicN
      */
     fun <R> aspect(transform: T.() -> R, init: DynamicContainerBuilder<R>.(R) -> Unit): Unit {
         val aspect = subject.transform()
-        val container = build(aspect, "with".property(transform).aspect(subject, transform), init)
+        val container = build(aspect, "with".property(transform) + testNameForExpectingTransformation(findCaller(), subject, transform), init)
         tests.add(container)
     }
 
@@ -684,25 +767,24 @@ class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>
      * this [that] was never called.
      */
     class InCompleteExpectationBuilder<T>(val assertionBuilderProvider: (Builder<T>.() -> Unit) -> Unit) {
-        infix fun that( assertions: Builder<T>.() -> Unit): Unit {
+        infix fun that(assertions: Builder<T>.() -> Unit): Unit {
             assertionBuilderProvider(assertions)
         }
     }
 
     /**
-     * Evaluates a [block] of assertions over the current test [subject].
-     */
-    fun asserting(block: Builder<T>.() -> Unit): Unit = expectThat(subject, block)
-
-    /**
      * Returns a builder to specify expectations for the result of [transform] applied
      * to the current test [subject].
      */
-     fun < R> expecting(description: String? = null,  transform: T.() -> R): InCompleteExpectationBuilder<R> {
+    fun <R> expecting(description: String? = null, transform: T.() -> R): InCompleteExpectationBuilder<R> {
         val errorMessage = "expecting { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
         return InCompleteExpectationBuilder { assertions: Builder<R>.() -> Unit ->
             buildErrors.remove(errorMessage)
-            expectThat(subject).with(description?.takeUnlessBlank()?: "with".property(transform).aspect(subject, transform), transform, assertions            )
+            expectThat(subject).with(description?.takeUnlessBlank() ?: "with".property(transform) + testNameForExpectingTransformation(findCaller(),
+                subject,
+                transform),
+                transform,
+                assertions)
         }
     }
 
@@ -710,7 +792,7 @@ class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>
      * Builds a builder to specify expectations for the [Result] returned
      * by [action] applied to `this` subject.
      */
-    inline fun <reified R> expectCatching(noinline action: suspend T.() -> R): InCompleteExpectationBuilder<Result<R>> {
+    fun <R> expectCatching(action: suspend T.() -> R): InCompleteExpectationBuilder<Result<R>> {
         val errorMessage = "expectCatching { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
         return InCompleteExpectationBuilder { assertions: Builder<Result<R>>.() -> Unit ->
             buildErrors.remove(errorMessage)
@@ -764,18 +846,17 @@ fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
  * The name for each test is heuristically derived but can also be explicitly specified using [testNamePattern]
  * which supports curly placeholders `{}` like [SLF4J] does.
  */
-inline fun <reified T> Iterable<T>.testWithTempDir(
+fun <T> Iterable<T>.testWithTempDir(
     uniqueId: UniqueId,
     testNamePattern: String? = null,
-    crossinline executable: Path.(T) -> Unit,
-) =
-    testEach(testNamePattern) {
-        test {
-            withTempDir(uniqueId) {
-                executable(it)
-            }
+    executable: Path.(T) -> Unit,
+) = testEach(testNamePattern) {
+    test {
+        withTempDir(uniqueId) {
+            executable(it)
         }
     }
+}
 
 object TestFlattener {
 
@@ -817,7 +898,7 @@ class TesterTest {
         @Test
         fun `should flatten`() {
             val tests = TestsSample().TestingSingleSubject().`as parameter`().flatten()
-            expectThat(tests.toList()).size.isEqualTo(8)
+            expectThat(tests.toList()).size.isEqualTo(19)
         }
     }
 
@@ -825,44 +906,74 @@ class TesterTest {
     inner class TestLabelling {
         private operator fun String.not() = trimIndent()
 
-        private val tests get() = TestsSample().TestingSingleSubject().`as parameter`()
+        private val testsWithSubject = TestsSample().`testing with subject`()
+
+        @Suppress("DANGEROUS_CHARACTERS", "NonAsciiCharacters")
+        @TestFactory
+        fun `↓ ↓ ↓ ↓ ↓ tests with subject | compare here | in test runner output ↓ ↓ ↓ ↓ ↓`() = testsWithSubject
 
         @TestFactory
-        fun `↓ ↓ ↓ ↓ ↓ compare here | in test runner output ↓ ↓ ↓ ↓ ↓`() = tests
+        fun `should label test with subject automatically`(): Stream<DynamicTest> = testsWithSubject.flatten().map { it.displayName }.zip(sequenceOf(
+            !"""
+                ❕ ❮ other ❯ isEqualTo("other")
+            """,
+            !"""
+                ❕ isEqualTo("subject")
+            """,
+            !"""
+                ❔❕ length (7) isGreaterThan(5)
+            """,
+            !"""
+                ❔❕ length (7)
+            """,
+            !"""
+                ❓❗ length (7)
+            """,
+            !"""
+                ❓❗ length (7) isSuccess()
+            """,
+            !"""
+                ❗❗ RuntimeException
+            """,
+            !"""
+                ❗❗ RuntimeException
+            """,
+        )).map { (label, expected) -> dynamicTest("👆 $expected") { expectThat(label).isEqualTo(expected) } }.asStream()
 
-        val ESC = '\u001B'
-        val String.green get() = "$ESC[1;31m$this"
 
-        @Test
-        fun `should label test automatically`() {
-            val displayNames = tests.flatten().map { it.displayName }.toList()
-            expectThat(displayNames).containsExactlyInAnyOrder(
-                !"""
-                    test (String) -> Unit
-                """,
-                !"""
-                    test (String) -> Unit
-                """,
-                !"""
-                    test (String) -> Unit
-                """,
-                !"""
-                    test
-                """,
-                !"""
-                    test (String) -> Unit
-                """,
-                !"""
-                    expect String.() -> Int  ❮ 7 ❯   ❴ isGreaterThan(0) ❵ 
-                """,
-                !"""
-                    expect  ❮ tcejbus ❯   ❴ not { isEqualTo("au … lly named test") } ❵ 
-                """,
-                !"""
-                    expect String.() -> Int  ❮ 7 ❯   ❴ isGreaterThan(0).is … an(10)isEqualTo(7) ❵ 
-                """,
-            )
-        }
+        private val testsWithoutSubject = TestsSample().`testing without subject`()
+
+        @Suppress("DANGEROUS_CHARACTERS", "NonAsciiCharacters")
+        @TestFactory
+        fun `↓ ↓ ↓ ↓ ↓ tests without subject | compare here | in test runner output ↓ ↓ ↓ ↓ ↓`() = testsWithoutSubject
+
+        @TestFactory
+        fun `should label test without subject automatically`(): Stream<DynamicTest> = testsWithoutSubject.flatten().map { it.displayName }.zip(sequenceOf(
+            !"""
+                ❕ ❮ other ❯ isEqualTo("other")
+            """,
+            !"""
+                ❕ isEqualTo("subject")
+            """,
+            !"""
+                ❔❕ ❮ "subject".length ❯ (7) isGreaterThan(5)
+            """,
+            !"""
+                ❔❕ ❮ "subject".length ❯ (7)
+            """,
+            !"""
+                ❓❗ ❮ "subject".length ❯ (7)
+            """,
+            !"""
+                ❓❗ ❮ "subject".length ❯ (7) isSuccess()
+            """,
+            !"""
+                ❗❗ RuntimeException
+            """,
+            !"""
+                ❗❗ RuntimeException
+            """,
+        )).map { (label, expected) -> dynamicTest("👆 $expected") { expectThat(label).isEqualTo(expected) } }.asStream()
     }
 
     @Nested
@@ -872,9 +983,7 @@ class TesterTest {
         fun `should run asserting`() {
             var testDidRun = false
             val tests = test("root") {
-                test2("regular test") {
-                    asserting { testDidRun = true }
-                }
+                asserting { testDidRun = true }
             }
             tests.execute()
             expectThat(testDidRun).isTrue()
@@ -884,9 +993,7 @@ class TesterTest {
         fun `should run evaluating `() {
             var testDidRun = false
             val tests = test("root") {
-                test2("regular test") {
-                    expecting("expectation") { "test" }.that { testDidRun = true }
-                }
+                expecting("expectation") { "test" } that { testDidRun = true }
             }
             tests.execute()
             expectThat(testDidRun).isTrue()
@@ -895,13 +1002,11 @@ class TesterTest {
         @Test
         fun `should throw on incomplete evaluating`() {
             val tests = test("root") {
-                test2("regular test") {
-                    expecting("expectation") { "test" }
-                }
+                expecting("expectation") { "test" }
             }
             expectCatching { tests.execute() }
                 .isFailure()
-                .isA<IllegalStateException>()
+                .isA<IllegalUsageException>()
                 .message.toStringContains("not finished")
         }
 
@@ -909,35 +1014,25 @@ class TesterTest {
         fun `should run expectCatching`() {
             var testDidRun = false
             val tests = test("root") {
-                test2("regular test") {
-                    expectCatching { throw RuntimeException("wrong"); "dummy" }.that { testDidRun = true }
-                }
+                expectCatching { throw RuntimeException("wrong") } that { testDidRun = true }
             }
             tests.execute()
             expectThat(testDidRun).isTrue()
         }
 
         @Test
-        fun `should throw on incomplete expectCatching`() {
+        fun `should not throw on incomplete expectCatching`() {
             val tests = test("root") {
-                test2("regular test") {
-                    expectCatching<Any?> { throw RuntimeException("wrong") }
-                }
+                expectCatching<Any?> { throw RuntimeException("wrong") }
             }
-            expectCatching { tests.execute() }
-                .isFailure()
-                .isA<IllegalStateException>()
-                .message.toStringContains("not finished")
+            expectCatching { tests.execute() }.isSuccess()
         }
 
         @Test
         fun `should run expectThrows`() {
             var testDidRun = false
             val tests = test("root") {
-                test2("regular test") {
-                    expectThrows<RuntimeException> { throw RuntimeException("wrong") }.that { testDidRun = true }
-                    "dummy"
-                }
+                expectThrows<RuntimeException> { throw RuntimeException("wrong") } that { testDidRun = true }
             }
             tests.execute()
             expectThat(testDidRun).isTrue()
@@ -946,10 +1041,7 @@ class TesterTest {
         @Test
         fun `should not throw on evaluating only throwable type`() {
             val tests = test("root") {
-                test2("regular test") {
-                    expectThrows<RuntimeException> { throw RuntimeException("wrong") }
-                    "dummy"
-                }
+                expectThrows<RuntimeException> { throw RuntimeException("wrong") }
             }
             expectCatching { tests.execute() }.isSuccess()
         }

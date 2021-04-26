@@ -14,7 +14,7 @@ import strikt.assertions.containsExactlyInAnyOrder
  *
  * In contrast to [containsExactly] where the order of elements is strictly asserted
  * and [containsExactlyInAnyOrder] where the order of elements is ignored,
- * [containsExactlyInSomeOrder] expect an [Iterable] of groups. While the order
+ * [containsExactlyInSomeOrder] expecting an [Iterable] of groups. While the order
  * of groups is strictly asserted, the elements inside a group can be in any order.
  *
  * @sample [ContainsExactlyInSomeOrderKtTest.PassingAssertion]
@@ -27,7 +27,7 @@ fun <T : Iterable<E>, E> Assertion.Builder<T>.containsExactlyInSomeOrder(init: I
  *
  * In contrast to [containsExactly] where the order of elements is strictly asserted
  * and [containsExactlyInAnyOrder] where the order of elements is ignored,
- * [containsExactlyInSomeOrder] expect an [Iterable] of groups. While the order
+ * [containsExactlyInSomeOrder] expecting an [Iterable] of groups. While the order
  * of groups is strictly asserted, the elements inside a group can be in any order.
  *
  * @sample [ContainsExactlyInSomeOrderKtTest.PassingAssertion]

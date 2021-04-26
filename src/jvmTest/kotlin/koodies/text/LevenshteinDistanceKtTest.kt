@@ -3,7 +3,7 @@ package koodies.text
 import koodies.test.HtmlFile
 import koodies.test.Slow
 import koodies.test.test
-import org.junit.jupiter.api.DynamicTest.dynamicTest
+import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -23,59 +23,54 @@ class LevenshteinDistanceKtTest {
 
     @Suppress("SpellCheckingInspection")
     @TestFactory
-    fun `should calc Levenshtein distance 0`() = listOf(
+    fun `should calc Levenshtein distance 0`() = testEach(
         "h1" to "h1",
         "gil" to "gil",
-    ).map { (from, to) ->
-        dynamicTest("${from.quoted} ↔︎ ${to.quoted}") {
-            expectThat(from).levenshteinDistance(to).isEqualTo(0)
-        }
+    ) { (from, to) ->
+        from asserting { levenshteinDistance(to).isEqualTo(0) }
     }
 
     @Suppress("SpellCheckingInspection")
     @TestFactory
-    fun `should calc Levenshtein distance 1`() = listOf(
+    fun `should calc Levenshtein distance 1`() = testEach(
         "gil" to "gill",
         "waht" to "what",
         "waht" to "wait",
         "Damerau" to "Damreau",
-    ).map { (from, to) ->
-        dynamicTest("${from.quoted} ↔︎ ${to.quoted}") {
-            expectThat(from).levenshteinDistance(to).isEqualTo(1)
-        }
+    ) { (from, to) ->
+        from asserting { levenshteinDistance(to).isEqualTo(1) }
     }
 
     @Suppress("SpellCheckingInspection")
     @TestFactory
-    fun `should calc Levenshtein distance 2`() = listOf(
+    fun `should calc Levenshtein distance 2`() = testEach(
         "ca" to "abc",
         "thaw" to "what",
         "Damerau" to "uameraD",
         "Damerau" to "Daremau",
         "waht" to "whit",
         "what" to "wtah",
-    ).map { (from, to) ->
-        dynamicTest("${from.quoted} ↔︎ ${to.quoted}") {
-            expectThat(from).levenshteinDistance(to).isEqualTo(2)
-        }
+    ) { (from, to) ->
+        from asserting { levenshteinDistance(to).isEqualTo(2) }
     }
 
     @Nested
     inner class Fuzzy {
+
         @TestFactory @Slow
         fun `should calculate fuzzy distance between similar strings`() = test(
             (HtmlFile.text.repeat(200) + "abc") to ("xyz" + HtmlFile.text.repeat(200))
         ) { (a, b) ->
-            expect { a }.that { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
-            expect { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds }.that { isLessThanOrEqualTo(5.seconds) }
+            a asserting { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
+            expecting { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds } that { isLessThanOrEqualTo(5.seconds) }
         }
 
         @TestFactory @Slow
         fun `should calculate fuzzy distance between completely different strings`() = test(
             randomString(1000) to randomString(123)
         ) { (a, b) ->
-            expect { a }.that { fuzzyLevenshteinDistance(b).isGreaterThan(0.85) }
-            expect { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds }.that { isLessThanOrEqualTo(5.seconds) }
+            a asserting { fuzzyLevenshteinDistance(b).isGreaterThan(0.85) }
+            expecting { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds } that { isLessThanOrEqualTo(5.seconds) }
         }
     }
 }
@@ -106,6 +101,3 @@ fun <T : CharSequence> Assertion.Builder<T>.fuzzyLevenshteinDistance(other: Char
                 this.levenshteinDistance(other).toDouble() / maxOf(thisString.length, otherString.length).toDouble()
         }
     }
-
-
-

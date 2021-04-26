@@ -30,7 +30,7 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
     /**
      * Returns this code point as string that can be used to match exactly this code point using a regular expression.
      */
-    public fun toRegex(): Regex = Regex("\\x{${toHexadecimalString()}}")
+    public fun toLiteralRegex(): Regex = Regex("\\x{${toHexadecimalString()}}")
 
     /**
      * Contains the character pointed to and represented by a [String].
@@ -545,4 +545,20 @@ public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence
             CodePoint(codePoint).string.ansi.transform()
         }
     }.joinToString("")
+}
+
+/**
+ * Returns a [Regex] matching exactly `this` char sequence.
+ *
+ * Each char is matched using it's hexadecimal encoding.
+ */
+public fun CharSequence.toLiteralRegex(): Regex {
+    val bytes = toString().encodeToByteArray()
+    var offset = 0
+    return generateSequence {
+        bytes.readCodePoint(offset)?.let { (length, codePoint) ->
+            offset += length
+            CodePoint(codePoint).toLiteralRegex()
+        }
+    }.joinToString("").toRegex()
 }

@@ -2,13 +2,12 @@ package koodies.builder
 
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
-import koodies.test.test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
+import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -113,144 +112,139 @@ class BuilderTemplateTest {
         }
     }
 
-    @TestFactory
-    fun should() = test(CustomBuilder()) {
+    @Test
+    fun `should build`() {
+        val built = CustomBuilder().build {
+            byBuilder { +"value" }
+            byNullableBuilder { +"value" }
 
-        test("build") {
-            expect {
-                CustomBuilder().build {
-                    byBuilder { +"value" }
-                    byNullableBuilder { +"value" }
+            byCapture5(1, 2, 3, 4, 5)
+            byCapture4(1, 2, 3, 4)
+            byCapture3(1, 2, 3)
+            byCapture2(1, 2)
+            byCapture1(1)
+            byCapture0()
+            byNullableCapture5(1, 2, 3, 4, 5)
+            byNullableCapture4(1, 2, 3, 4)
+            byNullableCapture3(1, 2, 3)
+            byNullableCapture2(1, 2)
+            byNullableCapture1(1)
+            byNullableCapture0()
 
-                    byCapture5(1, 2, 3, 4, 5)
-                    byCapture4(1, 2, 3, 4)
-                    byCapture3(1, 2, 3)
-                    byCapture2(1, 2)
-                    byCapture1(1)
-                    byCapture0()
-                    byNullableCapture5(1, 2, 3, 4, 5)
-                    byNullableCapture4(1, 2, 3, 4)
-                    byNullableCapture3(1, 2, 3)
-                    byNullableCapture2(1, 2)
-                    byNullableCapture1(1)
-                    byNullableCapture0()
+            byCapture("value")
+            byNullableCapture("value")
 
-                    byCapture("value")
-                    byNullableCapture("value")
-
-                    bySetter = "value"
-                    byNullableSetter = "value"
-                }
-            }.that {
-                isEqualTo(CustomObject(
-                    byBuilder = listOf("value") to listOf("value"),
-                    byNullableBuilder = listOf("value") to listOf("value"),
-
-                    byCapture5 = "value-13" to "value-13",
-                    byCapture4 = "value-8" to "value-8",
-                    byCapture3 = "value-5" to "value-5",
-                    byCapture2 = "value-3" to "value-3",
-                    byCapture1 = "value-1" to "value-1",
-                    byCapture0 = "value-0" to "value-0",
-                    byNullableCapture5 = "value-13" to "value-13",
-                    byNullableCapture4 = "value-8" to "value-8",
-                    byNullableCapture3 = "value-5" to "value-5",
-                    byNullableCapture2 = "value-3" to "value-3",
-                    byNullableCapture1 = "value-1" to "value-1",
-                    byNullableCapture0 = "value-0" to "value-0",
-
-                    byCapture = "value" to "value",
-                    byNullableCapture = "value" to "value",
-
-                    bySetter = "value" to "value",
-                    byNullableSetter = "value" to "value",
-                ))
-            }
+            bySetter = "value"
+            byNullableSetter = "value"
         }
 
-        test("build without invocations") {
-            expect { CustomBuilder().build { } }.that {
-                isEqualTo(CustomObject(
-                    byBuilder = listOf("default") to listOf("initial"),
-                    byNullableBuilder = listOf("default") to null,
+        expectThat(built).isEqualTo(CustomObject(
+            byBuilder = listOf("value") to listOf("value"),
+            byNullableBuilder = listOf("value") to listOf("value"),
 
-                    byCapture5 = "default-5" to "initial-5",
-                    byCapture4 = "default-4" to "initial-4",
-                    byCapture3 = "default-3" to "initial-3",
-                    byCapture2 = "default-2" to "initial-2",
-                    byCapture1 = "default-1" to "initial-1",
-                    byCapture0 = "default-0" to "initial-0",
-                    byNullableCapture5 = "default-5" to null,
-                    byNullableCapture4 = "default-4" to null,
-                    byNullableCapture3 = "default-3" to null,
-                    byNullableCapture2 = "default-2" to null,
-                    byNullableCapture1 = "default-1" to null,
-                    byNullableCapture0 = "default-0" to null,
+            byCapture5 = "value-15" to "value-15",
+            byCapture4 = "value-10" to "value-10",
+            byCapture3 = "value-6" to "value-6",
+            byCapture2 = "value-3" to "value-3",
+            byCapture1 = "value-1" to "value-1",
+            byCapture0 = "value-0" to "value-0",
+            byNullableCapture5 = "value-15" to "value-15",
+            byNullableCapture4 = "value-10" to "value-10",
+            byNullableCapture3 = "value-6" to "value-6",
+            byNullableCapture2 = "value-3" to "value-3",
+            byNullableCapture1 = "value-1" to "value-1",
+            byNullableCapture0 = "value-0" to "value-0",
 
-                    byCapture = "default" to "initial",
-                    byNullableCapture = "default" to null,
+            byCapture = "value" to "value",
+            byNullableCapture = "value" to "value",
 
-                    bySetter = "default" to "initial",
-                    byNullableSetter = "default" to null,
-                ))
+            bySetter = "value" to "value",
+            byNullableSetter = "value" to "value",
+        ))
+    }
+
+    @Test
+    fun `should build without invocations`() {
+        val built = CustomBuilder().build { }
+
+        expectThat(built).isEqualTo(CustomObject(
+            byBuilder = emptyList<String>() to emptyList(),
+            byNullableBuilder = listOf("default") to null,
+
+            byCapture5 = "initial-5" to "initial-5",
+            byCapture4 = "initial-4" to "initial-4",
+            byCapture3 = "initial-3" to "initial-3",
+            byCapture2 = "initial-2" to "initial-2",
+            byCapture1 = "initial-1" to "initial-1",
+            byCapture0 = "initial-0" to "initial-0",
+            byNullableCapture5 = "default-5" to null,
+            byNullableCapture4 = "default-4" to null,
+            byNullableCapture3 = "default-3" to null,
+            byNullableCapture2 = "default-2" to null,
+            byNullableCapture1 = "default-1" to null,
+            byNullableCapture0 = "default-0" to null,
+
+            byCapture = "initial" to "initial",
+            byNullableCapture = "default" to null,
+
+            bySetter = "initial" to "initial",
+            byNullableSetter = "default" to null,
+        ))
+    }
+
+    @Test
+    fun `should not share state between builds`() {
+        val built = CustomBuilder().run {
+            build {
+                byBuilder { +"value" }
+                byNullableBuilder { +"value" }
+
+                byCapture5(1, 2, 3, 4, 5)
+                byCapture4(1, 2, 3, 4)
+                byCapture3(1, 2, 3)
+                byCapture2(1, 2)
+                byCapture1(1)
+                byCapture0()
+                byNullableCapture5(1, 2, 3, 4, 5)
+                byNullableCapture4(1, 2, 3, 4)
+                byNullableCapture3(1, 2, 3)
+                byNullableCapture2(1, 2)
+                byNullableCapture1(1)
+                byNullableCapture0()
+
+                byCapture("value")
+                byNullableCapture("value")
+
+                bySetter = "value"
+                byNullableSetter = "value"
             }
+
+            build { }
         }
 
-        test("not share state between builds") {
-            expect {
-                CustomBuilder().run {
-                    build {
-                        byBuilder { +"value" }
-                        byNullableBuilder { +"value" }
+        expectThat(built).isEqualTo(CustomObject(
+            byBuilder = emptyList<String>() to emptyList(),
+            byNullableBuilder = listOf("default") to null,
 
-                        byCapture5(1, 2, 3, 4, 5)
-                        byCapture4(1, 2, 3, 4)
-                        byCapture3(1, 2, 3)
-                        byCapture2(1, 2)
-                        byCapture1(1)
-                        byCapture0()
-                        byNullableCapture5(1, 2, 3, 4, 5)
-                        byNullableCapture4(1, 2, 3, 4)
-                        byNullableCapture3(1, 2, 3)
-                        byNullableCapture2(1, 2)
-                        byNullableCapture1(1)
-                        byNullableCapture0()
+            byCapture5 = "initial-5" to "initial-5",
+            byCapture4 = "initial-4" to "initial-4",
+            byCapture3 = "initial-3" to "initial-3",
+            byCapture2 = "initial-2" to "initial-2",
+            byCapture1 = "initial-1" to "initial-1",
+            byCapture0 = "initial-0" to "initial-0",
+            byNullableCapture5 = "default-5" to null,
+            byNullableCapture4 = "default-4" to null,
+            byNullableCapture3 = "default-3" to null,
+            byNullableCapture2 = "default-2" to null,
+            byNullableCapture1 = "default-1" to null,
+            byNullableCapture0 = "default-0" to null,
 
-                        byCapture("value")
-                        byNullableCapture("value")
+            byCapture = "initial" to "initial",
+            byNullableCapture = "default" to null,
 
-                        bySetter = "value"
-                        byNullableSetter = "value"
-                    }
-
-                    build { }
-                }
-            }.that {
-                isEqualTo(CustomObject(
-                    byBuilder = listOf("default") to listOf("initial"),
-                    byNullableBuilder = listOf("default") to null,
-
-                    byCapture5 = "default-5" to "initial-5",
-                    byCapture4 = "default-4" to "initial-4",
-                    byCapture3 = "default-3" to "initial-3",
-                    byCapture2 = "default-2" to "initial-2",
-                    byCapture1 = "default-1" to "initial-1",
-                    byCapture0 = "default-0" to "initial-0",
-                    byNullableCapture5 = "default-5" to null,
-                    byNullableCapture4 = "default-4" to null,
-                    byNullableCapture3 = "default-3" to null,
-                    byNullableCapture2 = "default-2" to null,
-                    byNullableCapture1 = "default-1" to null,
-                    byNullableCapture0 = "default-0" to null,
-
-                    byCapture = "default" to "initial",
-                    byNullableCapture = "default" to null,
-
-                    bySetter = "default" to "initial",
-                    byNullableSetter = "default" to null,
-                ))
-            }
-        }
+            bySetter = "initial" to "initial",
+            byNullableSetter = "default" to null,
+        ))
     }
 
     @Nested

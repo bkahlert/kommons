@@ -80,8 +80,6 @@ public open class JavaExec(
     private fun startImplicitly(): java.lang.Process = run { start(); javaProcess!! }
 
     override val pid: Long by lazy { startImplicitly().pid() }
-    override val started: Boolean get() = javaProcess != null
-    override val alive: Boolean get() = javaProcess?.isAlive == true
     override val exitValue: Int get() = startImplicitly().exitValue() // TODO
     override fun waitFor(): ExitState = exitState ?: onExit.join()
     override fun stop(): Exec = also { startImplicitly().destroy() }
@@ -122,6 +120,8 @@ public open class JavaExec(
             io.flush()
             process
         }.handle { _, throwable ->
+            val exitValue = startImplicitly().exitValue()
+
             when {
 
                 throwable != null -> {
@@ -156,7 +156,7 @@ public open class JavaExec(
             }.also { exitState = it }
         }.thenAlso { term, ex ->
             postTerminationCallbacks.forEach {
-                process.it(term ?: Fatal(ex!!, exitValue, pid, "Unexpected exception in process termination handling.", io.toList()))
+                process.it(term ?: Fatal(ex!!, startImplicitly().exitValue(), pid, "Unexpected exception in process termination handling.", io.toList()))
             }
         }
     }

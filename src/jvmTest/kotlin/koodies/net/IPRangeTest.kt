@@ -35,9 +35,8 @@ class IPRangeTest {
         ) to range6,
     ) { (rangeStrings, range) ->
         rangeStrings.forEach { rangeString ->
-            expect { rangeString.toIPRange() }.that { isEqualTo(range) }
-            expect { ipRangeOf(rangeString) }.that { isEqualTo(range) }
+            expecting { rangeString.toIPRange() } that { isEqualTo(range) }
+            expecting { ipRangeOf(rangeString) } that { isEqualTo(range) }
         }
     }
 }
-

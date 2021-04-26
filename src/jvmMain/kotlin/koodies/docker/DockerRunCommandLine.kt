@@ -4,6 +4,7 @@ import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.BooleanBuilder.OnOff
 import koodies.builder.BooleanBuilder.OnOff.Context
 import koodies.builder.BuilderTemplate
+import koodies.builder.Init
 import koodies.builder.ListBuilder
 import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
@@ -14,7 +15,6 @@ import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
-import koodies.docker.MountOptions.Companion.CollectingMountOptionsContext
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.text.splitAndMap
 import java.nio.file.Path
@@ -182,7 +182,7 @@ public open class DockerRunCommandLine private constructor(
                 public val autoCleanup: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
                 public val interactive: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
                 public val pseudoTerminal: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
-                public val mounts: SkippableCapturingBuilderInterface<CollectingMountOptionsContext.() -> Unit, MountOptions?> by MountOptions
+                public val mounts: SkippableCapturingBuilderInterface<Init<MountOptionContext<Unit>>, MountOptions?> by MountOptions
                 public val custom: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder<String>()
             }
 

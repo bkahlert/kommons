@@ -29,7 +29,7 @@ class RequireAncestorKtTest {
     @TestFactory
     fun `should return ancestor's parent for order n+1`() =
         (0 until path.nameCount - 1).testEach { n ->
-            expect { path.requireAncestor(n + 1) }.that { isEqualTo((path.ancestor(n) ?: fail("missing parent")).parent) }
+            expecting { path.requireAncestor(n + 1) } that { isEqualTo((path.ancestor(n) ?: fail("missing parent")).parent) }
         }
 
     @Test
