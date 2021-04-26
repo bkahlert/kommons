@@ -5,12 +5,12 @@ package koodies.builder
 import koodies.builder.CarDSL.CarBuilder.CarContext
 import koodies.builder.CarDSL.Distance.Companion.DistanceContext
 import koodies.builder.CarDSL.Distance.Companion.DistanceContext.inch
-import koodies.builder.CarDSL.Engine.EngineBuilder.EngineContext
+import koodies.builder.CarDSL.Engine.Companion.EngineContext
 import koodies.builder.CarDSL.EnginePower.Companion.EnginePowerContext
 import koodies.builder.CarDSL.Speed.Companion.SpeedContext
 import koodies.builder.CarDSL.Trait.Exclusive
 import koodies.builder.CarDSL.Trait.TaxExempt
-import koodies.builder.CarDSL.Wheel.WheelBuilder.WheelContext
+import koodies.builder.CarDSL.Wheel.Companion.WheelContext
 import koodies.builder.StatelessBuilder.Returning
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
@@ -117,7 +117,7 @@ class CarDSL {
     }
 
     data class Engine(val power: EnginePower, val maxSpeed: Speed) {
-        companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
+        companion object : BuilderTemplate<EngineContext, Engine>() {
 
             class EngineContext(
                 override val captures: CapturesMap,
@@ -135,7 +135,7 @@ class CarDSL {
     }
 
     data class Wheel(val diameter: Distance = 14.inch) {
-        companion object WheelBuilder : BuilderTemplate<WheelContext, Wheel>() {
+        companion object : BuilderTemplate<WheelContext, Wheel>() {
 
             class WheelContext(
                 override val captures: CapturesMap,

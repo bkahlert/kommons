@@ -1,5 +1,6 @@
 package koodies.concurrent.process
 
+import koodies.exec.CommandLine
 import koodies.io.path.asPath
 import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo

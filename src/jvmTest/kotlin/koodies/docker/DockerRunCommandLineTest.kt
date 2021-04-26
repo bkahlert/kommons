@@ -1,9 +1,9 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.concurrent.process.CommandLine
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.MountOptionContext.Type.bind
+import koodies.exec.CommandLine
 import koodies.io.path.asPath
 import koodies.shell.HereDocBuilder
 import koodies.shell.toHereDoc

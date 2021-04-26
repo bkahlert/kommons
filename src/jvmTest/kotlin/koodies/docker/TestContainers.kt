@@ -3,16 +3,14 @@ package koodies.docker
 import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.collections.synchronizedMapOf
-import koodies.concurrent.process.CommandLine
-import koodies.docker.DockerContainer.Companion
 import koodies.docker.DockerContainer.State.Existent.Exited
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.TestImages.HelloWorld
 import koodies.docker.TestImages.Ubuntu
+import koodies.exec.CommandLine
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.LoggingContext
-import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValues
 import koodies.logging.conditionallyVerboseLogger
@@ -32,8 +30,8 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace
 import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.extension.ParameterContext
-import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 import org.junit.jupiter.api.extension.ParameterResolver
+import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.ResourceLock
 import java.util.concurrent.locks.ReentrantLock

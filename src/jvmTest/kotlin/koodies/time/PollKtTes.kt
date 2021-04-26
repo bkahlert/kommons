@@ -84,7 +84,7 @@ class PollKtTes {
         @Test
         fun `should fail if time is up`() {
             val timePassed = measureTime { 100.milliseconds.poll { false }.forAtMost(1.seconds) {} }
-            expectThat(timePassed).isGreaterThan(800.milliseconds).isLessThan(1200.milliseconds)
+            expectThat(timePassed).isGreaterThan(750.milliseconds).isLessThan(1250.milliseconds)
         }
 
         @Test

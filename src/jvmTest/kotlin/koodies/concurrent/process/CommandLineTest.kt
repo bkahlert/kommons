@@ -1,7 +1,9 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.toExec
+import koodies.exec.CommandLine
 import koodies.exec.Exec
+import koodies.exec.exitCodeOrNull
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.UniqueId
@@ -135,7 +137,7 @@ class CommandLineTest {
                 string.continuationsRemoved.isEqualTo("echo \$HOME")
                 evaluated {
                     not { output.isEqualTo(System.getProperty("user.home")) }
-                    exitState.isEqualTo(0)
+                    exitCodeOrNull.isEqualTo(0)
                 }
             }
         }
@@ -147,7 +149,7 @@ class CommandLineTest {
                 string.continuationsRemoved.isEqualTo("echo \\\$HOME")
                 evaluated {
                     not { output.isEqualTo(System.getProperty("user.home")) }
-                    exitState.isEqualTo(0)
+                    exitCodeOrNull.isEqualTo(0)
                 }
             }
         }
@@ -369,8 +371,8 @@ val Assertion.Builder<Exec>.output
 val Assertion.Builder<IOLog>.out
     get() = get("output of type OUT %s") { filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
 
-val <P : Exec> Assertion.Builder<P>.exitState
-    get() = get("exit value %s") { exitValue }
+val <P : Exec> Assertion.Builder<P>.exitCodeOrNull
+    get() = get("exit value %s") { exitCodeOrNull }
 
 fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String) {
     with(evaluated) {

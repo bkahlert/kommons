@@ -1,7 +1,9 @@
 package koodies.exec
 
+import koodies.Exceptions.ISE
 import koodies.concurrent.process.IO
 import koodies.exception.toCompactString
+import koodies.exec.Process.ExitState
 import koodies.exec.Process.ProcessState.Prepared
 import koodies.exec.Process.ProcessState.Running
 import koodies.exec.Process.ProcessState.Terminated
@@ -141,13 +143,6 @@ public interface Process : ReturnValue {
     }
 
     /**
-     * Returns the exit code of the program represented by process process once
-     * it terminates. If the program has not terminated yet, it throws an
-     * [IllegalStateException].
-     */
-    @Deprecated("use exit state") public val exitValue: Int
-
-    /**
      * Whether the process terminated successfully or failed.
      *
      * `null` is the process has not terminated, yet.
@@ -169,10 +164,17 @@ public interface Process : ReturnValue {
     public fun waitFor(): ExitState = onExit.join()
 
     /**
+     * Returns the exit code of the program represented by process process once
+     * it terminates. If the program has not terminated yet, it throws an
+     * [IllegalStateException].
+     */
+    @Deprecated("use exitCode", ReplaceWith("exitCode", "koodies.exec.exitCode")) public val exitValue: Int get() = exitCode
+
+    /**
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    @Deprecated("use waitFor", ReplaceWith("this.waitFor()")) public fun waitForTermination(): Terminated = onExit.join()
+    @Deprecated("use waitFor", ReplaceWith("waitFor()")) public fun waitForTermination(): Terminated = waitFor()
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.
@@ -205,3 +207,16 @@ public val Process.alive: Boolean get() = state is Running
  * Contrary to [started] this property stays turns `false` again after the process terminated.
  */
 public val Process.isRunning: Boolean get() = state is Running
+
+/**
+ * Returns `this` process's [ExitState.exitCode] if it terminated
+ * or `null` otherwise.
+ */
+public val Process.exitCodeOrNull: Int? get() = also { it.start() }.exitState?.exitCode
+
+/**
+ * Returns `this` process's [ExitState.exitCode].
+ *
+ * Throws an [IllegalStateException] if the process has not terminated.
+ */
+public val Process.exitCode: Int get() = also { it.start() }.exitState?.exitCode ?: throw ISE("Process $pid has not terminated.")

@@ -10,12 +10,20 @@ import kotlin.Char.Companion.MIN_SURROGATE
 import kotlin.Char.Companion.MIN_VALUE
 import kotlin.random.Random
 
+private const val ESCAPED_X = "\\x"
+private fun String.escape() = "$ESCAPED_X{$this}"
+
 /**
  * Representation of a [Unicode code point](http://www.unicode.org/glossary/#code_point)
  *
  * @see <a href="https://www.unicode.org/reports/tr18/">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
  */
-public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint> {
+public inline class CodePoint(
+    /**
+     * Index of this code point in the [Unicode](http://www.unicode.org/) table.
+     */
+    public val codePoint: Int,
+) : Comparable<CodePoint> {
     public constructor(charSequence: CharSequence) : this("$charSequence".also {
         require(it.isValidCodePoint()) { "$it does not represent a single Unicode code point" }
     }.singleCodePoint()!!)
@@ -25,12 +33,12 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
      * e.g. `0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    public fun toHexadecimalString(): String = codePoint.toHexadecimalString(pad = true).toUpperCase()
+    public val hexCode: String get() = codePoint.toHexadecimalString(pad = true).toUpperCase()
 
     /**
      * Returns this code point as string that can be used to match exactly this code point using a regular expression.
      */
-    public fun toLiteralRegex(): Regex = Regex("\\x{${toHexadecimalString()}}")
+    public fun toLiteralRegex(): Regex = hexCode.escape().toRegex()
 
     /**
      * Contains the character pointed to and represented by a [String].
@@ -66,12 +74,15 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
             }
         }.decodeToString()
 
+    /**
+     * String representation of this code point.
+     */
     override fun toString(): String = string
 
     /**
      * Contains the [Char] representing this code point **if** it can be represented by a single [Char].
      *
-     * Otherwise [chars] or [string] must be used.
+     * Otherwise [string] must be used.
      */
     public val char: Char? get() = codePoint.takeIf { it in MIN_VALUE.toInt()..MAX_VALUE.toInt() }?.toChar()
 
@@ -212,6 +223,9 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
          */
         private const val MAX_CODE_POINT: Int = 0X10FFFF
 
+        /**
+         * Returns a random [CodePoint].
+         */
         public fun random(): CodePoint {
             var possibleCodePoint = Random.nextInt(MIN_CODE_POINT, MAX_CODE_POINT)
             while (!possibleCodePoint.isUsableCodePoint()) possibleCodePoint =
@@ -243,7 +257,9 @@ public inline class CodePoint(public val codePoint: Int) : Comparable<CodePoint>
         public fun Int.isUsableCodePoint(): Boolean = isDefined() && !privateUse() && !surrogate()
     }
 
-
+    /**
+     * Returns a [CodePointRange] between `this` and [to].
+     */
     public operator fun rangeTo(to: CodePoint): CodePointRange = CodePointRange(this, to)
 
     @Suppress("KDocMissingDocumentation")

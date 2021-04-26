@@ -155,8 +155,11 @@ public actual fun BigInteger.toBigDecimal(): BigDecimal = BigDecimalConstants.ZE
  */
 public actual fun CharSequence.toBigDecimal(radix: Int): BigDecimal = BigDecimalConstants.ZERO
 
-
+/**
+ * [BigDecimal] constants
+ */
 public actual object BigDecimalConstants {
+
     /**
      * The BigDecimal constant zero.
      */
@@ -165,22 +168,22 @@ public actual object BigDecimalConstants {
     /**
      * The BigDecimal constant one.
      */
-    public actual val ONE: BigDecimal = BigDecimalConstants.ZERO
+    public actual val ONE: BigDecimal = ZERO
 
     /**
      * The BigDecimal constant two.
      */
-    public actual val TWO: BigDecimal = BigDecimalConstants.ZERO
+    public actual val TWO: BigDecimal = ZERO
 
     /**
      * The BigDecimal constant ten.
      */
-    public actual val TEN: BigDecimal = BigDecimalConstants.ZERO
+    public actual val TEN: BigDecimal = ZERO
 
     /**
      * The BigDecimal constant ten.
      */
-    public actual val HUNDRED: BigDecimal = BigDecimalConstants.ZERO
+    public actual val HUNDRED: BigDecimal = ZERO
 }
 
 /**

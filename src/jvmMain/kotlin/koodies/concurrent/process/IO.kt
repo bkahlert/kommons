@@ -5,17 +5,12 @@ import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
+import koodies.exec.CommandLine
 import koodies.exec.Process
 import koodies.logging.ReturnValue
-import koodies.text.AnsiString
-import koodies.text.ANSI.Colors.brightBlue
-import koodies.text.ANSI.Colors.red
-import koodies.text.ANSI.Colors.yellow
 import koodies.text.ANSI.Style
-import koodies.text.ANSI.Style.bold
-import koodies.text.ANSI.Style.dim
-import koodies.text.ANSI.Style.italic
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.AnsiString
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.Semantics.Symbols
@@ -25,7 +20,7 @@ import koodies.time.Now
 import java.nio.file.Path
 
 /**
- * Instances are ANSI formatted output with a certain [Type].
+ * Instances are ANSI formatted output with a certain type.
  */
 public sealed class IO(
     /**
@@ -33,13 +28,13 @@ public sealed class IO(
      */
     public val text: AnsiString,
     /**
-     * Formats a strings to like an output of this [Type].
+     * Formats a strings to like an output of this type.
      */
     private val formatAnsi: (AnsiString) -> String,
-) : AnsiString(text.toString(removeEscapeSequences = false)) { // TODO check if delegation can be used
+) : AnsiString(text.toString(removeEscapeSequences = false)) {
 
     /**
-     * Contains this [text] with the format of it's [type] applied.
+     * Contains this [text] with the format of this type applied.
      */
     public val formatted: String by lazy { formatAnsi(text) }
 
@@ -67,10 +62,30 @@ public sealed class IO(
      * An [IO] that represents information about a [Process].
      */
     public sealed class META(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
+
+        /**
+         * Information that a [Process] is starting.
+         */
         public class STARTING(public val commandLine: CommandLine) : META("Executing ${commandLine.commandLine}")
+
+        /**
+         * Information that a [Path] is a resource used to start a [Process].
+         */
         public class FILE(path: Path) : META("${Symbols.Document} ${path.toUri()}")
+
+        /**
+         * Not further specified information about a [Process].
+         */
         public class TEXT(text: String) : META(text)
+
+        /**
+         * Information about a created [Process] dump.
+         */
         public class DUMP(dump: String) : META(dump.also { require(it.contains("dump")) { "Please use ${TEXT::class.simpleName} for free-form text." } })
+
+        /**
+         * Information about the termination of a [Process].
+         */
         public class TERMINATED(process: Process) : META("Process ${process.pid} terminated successfully at $Now."), ReturnValue by process
 
         public companion object {
@@ -89,7 +104,7 @@ public sealed class IO(
             private val EMPTY: INPUT = INPUT(AnsiString.EMPTY)
 
             /**
-             * Factory to classify different [Type]s of [IO].
+             * Factory to classify different types of [IO].
              */
             public infix fun typed(text: CharSequence): INPUT = if (text.isEmpty()) EMPTY else INPUT(filter(text).asAnsiString())
         }
@@ -110,7 +125,7 @@ public sealed class IO(
             private val EMPTY: OUT = OUT(AnsiString.EMPTY)
 
             /**
-             * Factory to classify different [Type]s of [IO].
+             * Factory to classify different types of [IO].
              */
             public infix fun typed(text: CharSequence): OUT = if (text.isEmpty()) EMPTY else OUT(filter(text).asAnsiString())
         }
@@ -137,7 +152,7 @@ public sealed class IO(
             private val EMPTY: ERR = ERR(AnsiString.EMPTY)
 
             /**
-             * Factory to classify different [Type]s of [IO].
+             * Factory to classify different types of [IO].
              */
             public infix fun typed(text: CharSequence): ERR = if (text.isEmpty()) EMPTY else ERR(filter(text).asAnsiString())
         }

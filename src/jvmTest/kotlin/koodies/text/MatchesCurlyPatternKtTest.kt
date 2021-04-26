@@ -107,8 +107,8 @@ class MatchesCurlyPatternKtTest {
             · test error 2{{}}
         """.trimIndent()) { pattern ->
 
-        test("matching lines") {
-            expectThat("""
+        expecting("matching lines") {
+            """
             ▶ JavaExec(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  …
               est error 2\"; sleep 1"; .isA<Failed>()processTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
@@ -119,11 +119,11 @@ class MatchesCurlyPatternKtTest {
             · test error 2
             Process 98199 terminated successfully at ….
             
-        """.trimIndent()).matchesCurlyPattern(pattern)
-        }
+        """.trimIndent()
+        } that { matchesCurlyPattern(pattern) }
 
-        test("no second line") {
-            expectThat("""
+        expecting("no second line") {
+            """
             ▶ JavaExec(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  … 
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
             · ${Symbols.Document} file:///bin/sh
@@ -132,11 +132,11 @@ class MatchesCurlyPatternKtTest {
             · test error 1
             · test error 2
             
-        """.trimIndent()).matchesCurlyPattern(pattern)
-        }
+        """.trimIndent()
+        } that { matchesCurlyPattern(pattern) }
 
-        test("no additional line at end") {
-            expectThat("""
+        expecting("no additional line at end") {
+            """
             ▶ JavaExec(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  … 
               est error 2\"; sleep 1", .isA<Failed>()processTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
@@ -146,8 +146,8 @@ class MatchesCurlyPatternKtTest {
             · test error 1
             · test error 2
             
-        """.trimIndent()).matchesCurlyPattern(pattern)
-        }
+        """.trimIndent()
+        } that { matchesCurlyPattern(pattern) }
     }
 
     @Test

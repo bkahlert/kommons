@@ -1,15 +1,13 @@
 package koodies.exec
 
 import koodies.concurrent.process
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
-import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.exitState
+import koodies.concurrent.process.exitCodeOrNull
 import koodies.concurrent.process.merge
 import koodies.concurrent.process.output
 import koodies.concurrent.process.process
@@ -46,7 +44,6 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.Assertion
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.api.expect
@@ -119,7 +116,7 @@ class JavaExecTest {
             Pair({ inputStream }, { isNotNull() }),
             Pair({ outputStream }, { isNotNull() }),
             Pair({ errorStream }, { isNotNull() }),
-            Pair({ apply { runCatching { exitValue } } }, { isA<Exec>().evaluated.exitCode.isEqualTo(0) }),
+            Pair({ apply { runCatching { exitCode } } }, { isA<Exec>().evaluated.exitCode.isEqualTo(0) }),
             Pair({ onExit.get() }, { isA<Success>().exitCode.isEqualTo(0) }),
             Pair({ waitFor() }, { not { isA<Prepared>() } }),
             Pair({ waitFor() }, { isA<Success>().exitCode.isEqualTo(0) }),
@@ -233,7 +230,7 @@ class JavaExecTest {
             })
 
             kotlin.runCatching {
-                process.process({ ProcessingModeContext.async }) { io ->
+                process.process({ async }) { io ->
                     if (io !is META && io !is INPUT) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
@@ -307,7 +304,7 @@ class JavaExecTest {
                             exitCode.isGreaterThan(0)
                         }
                         not { alive }.get { this.alive }.isFalse()
-                        exitState.not { isEqualTo(0) }
+                        exitCodeOrNull.not { isEqualTo(0) }
                     }
                 }.also { that(it).isLessThanOrEqualTo(5.seconds) }
             }
@@ -426,7 +423,7 @@ class JavaExecTest {
             fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(42)
                 expectThat(process.waitFor()).isA<Failure>()
-                    .io<IO>().containsDump()
+                    .io().containsDump()
             }
 
             @Test
@@ -465,7 +462,7 @@ class JavaExecTest {
                 val process = createCompletingExec(42)
                 expectThat(process.onExit).wait().isSuccess()
                     .isA<Failure>() and {
-                    status.lines().first().matchesCurlyPattern("Process ${process.pid} terminated with exit code ${process.exitValue}.")
+                    status.lines().first().matchesCurlyPattern("Process ${process.pid} terminated with exit code ${process.exitCode}.")
                     containsDump()
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(42)
@@ -563,10 +560,7 @@ private fun Path.process(
     arguments = listOf("-c", shellScript.buildTo(scriptPath()).asString()),
 ), exitStateHandler, execTerminationCallback)
 
-fun Path.createLoopingExec(
-    execTerminationCallback: ExecTerminationCallback? = null,
-): Exec = process(shellScript = createLoopingScript()
-)
+fun Path.createLoopingExec(): Exec = process(shellScript = createLoopingScript())
 
 fun Path.createCompletingExec(
     exitValue: Int = 0,
@@ -590,7 +584,7 @@ val <T : Exec> Builder<T>.alive: Builder<T>
 
 val <T : Exec> Builder<T>.log get() = get("log %s") { io }
 
-private fun Assertion.Builder<Exec>.completesWithIO() = log.logs(OUT typed "test out", ERR typed "test err")
+private fun Builder<Exec>.completesWithIO() = log.logs(OUT typed "test out", ERR typed "test err")
 
 val <T : Exec> Builder<T>.io: DescribeableBuilder<List<IO>>
     get() = get("logged IO") { io.toList() }
@@ -617,7 +611,6 @@ fun Builder<Sequence<IO>>.logs(vararg io: IO) = logs(io.toList())
 fun Builder<Sequence<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
 fun Builder<Sequence<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
 
-fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, vararg io: IO) = logsWithin(timeFrame, io.toList())
 fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
     assert("logs $io within $timeFrame") { ioLog ->
         when (poll {
@@ -652,7 +645,7 @@ inline val <reified T : Exec> Builder<T>.evaluated: Builder<ExitState>
     get() = get("terminated") { onExit.get() }.isA()
 
 inline fun <reified T : Exec> Builder<T>.completesSuccessfully(): Builder<Success> =
-    evaluated.isA<Success>()
+    evaluated.isA()
 
 inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failure> =
     evaluated.isA<Failure>().assert("unsuccessfully with non-zero exit code") {
@@ -662,16 +655,6 @@ inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failure> =
             else -> fail("completed successfully")
         }
     }
-
-inline fun <reified T : Exec> Builder<T>.fails(expected: Int): Builder<Failure> =
-    evaluated.isA<Failure>().assert("unsuccessfully with exit code $expected") {
-        when (val actual = it.exitCode) {
-            expected -> pass()
-            0 -> fail("completed successfully")
-            else -> fail("completed unsuccessfully with exit code $actual")
-        }
-    }
-
 
 inline fun <reified T : Exec> Builder<T>.started(): Builder<T> =
     assert("have started") {
@@ -689,56 +672,43 @@ inline fun <reified T : Exec> Builder<T>.notStarted(): Builder<T> =
         }
     }
 
-public inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
+inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<out Process> =
     compose("state") {
         get { state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
-public inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
+inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
 ): Builder<out Process> =
     compose("state") {
         get { state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
-public inline val Builder<out Process>.exitState
+inline val Builder<out Process>.exitState
     get() = get("exit state") { exitState }
 
-public inline fun <reified T : Process.ExitState> Builder<out Process>.exitedWith(
-    crossinline statusAssertion: Builder<T>.() -> Unit,
-): Builder<out Process> =
-    compose("exit state") {
-        get { state }.isA<T>().statusAssertion()
-    }.then { if (allPassed) pass() else fail() }
-
-public inline fun <reified T : Process.ExitState> Builder<out Process>.exitedWith(
-): Builder<out Process> =
-    compose("exit state") {
-        get { state }.isA<T>()
-    }.then { if (allPassed) pass() else fail() }
-
-public inline val Builder<out Process.ProcessState>.status
+inline val Builder<out Process.ProcessState>.status
     get(): Builder<String> =
         get("status") { status }
 
-public inline val Builder<Running>.runningPid
+inline val Builder<Running>.runningPid
     get(): Builder<Long> =
         get("pid") { pid }
 
-public inline val <T : Process.ProcessState.Terminated> Builder<T>.pid
+inline val <T : Process.ProcessState.Terminated> Builder<T>.pid
     get(): Builder<Long> =
         get("pid") { pid }
-public inline val <T : Process.ProcessState.Terminated> Builder<T>.exitCode
+inline val <T : Process.ProcessState.Terminated> Builder<T>.exitCode
     get(): Builder<Int> =
         get("exit code") { exitCode }
-public inline val <T : Process.ProcessState.Terminated> Builder<T>.io
+inline val <T : Process.ProcessState.Terminated> Builder<T>.io
     get(): Builder<List<IO>> =
         get("io") { io }
 
 
-public inline val Builder<out Process.ExitState.Failure>.dump: Builder<String?>
+inline val Builder<out Failure>.dump: Builder<String?>
     get(): Builder<String?> = get("dump") { dump }
 
-public inline fun <reified T : IO> Builder<out Process.ProcessState.Terminated>.io() =
+fun Builder<out Process.ProcessState.Terminated>.io() =
     get("IO of specified type") { io.merge(removeEscapeSequences = false) }

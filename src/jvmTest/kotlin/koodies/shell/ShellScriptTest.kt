@@ -3,6 +3,7 @@ package koodies.shell
 import koodies.concurrent.process.merged
 import koodies.concurrent.script
 import koodies.docker.docker
+import koodies.exec.exitCodeOrNull
 import koodies.io.path.Locations
 import koodies.io.path.asPath
 import koodies.io.path.asString
@@ -201,7 +202,7 @@ class ShellScriptTest {
                 shellScript()
             }
             expect {
-                that(process.exitValue).isEqualTo(0)
+                that(process.exitCodeOrNull).isEqualTo(0)
                 that(process.io.merged.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                     .matchesCurlyPattern("""
                         Executing ${asString()}/koodies.process.{}.sh

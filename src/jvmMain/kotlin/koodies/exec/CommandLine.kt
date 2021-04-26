@@ -1,4 +1,4 @@
-package koodies.concurrent.process
+package koodies.exec
 
 import koodies.builder.BuilderTemplate
 import koodies.builder.context.CapturesMap
@@ -6,7 +6,7 @@ import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.MapBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
+import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
 import koodies.shell.ShellExecutable
@@ -209,10 +209,10 @@ public open class CommandLine(
         public fun asShellCommand(commandLineParts: Array<String>): String =
             if (commandLineParts.isEmpty()) ""
             else {
-                val quoteChar='\"'
+                val quoteChar = '\"'
                 val escapedChars = charArrayOf('\"')
                 val quotingTriggers = charArrayOf(' ', '\t')
-                val escapeChar='\\'
+                val escapeChar = '\\'
                 val force = false
                 commandLineParts.joinToString(" ") { part ->
                     quoteAndEscape(part, quoteChar, escapedChars, quotingTriggers, escapeChar, force)

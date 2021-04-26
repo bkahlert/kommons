@@ -5,6 +5,7 @@ import koodies.docker.Docker.run
 import koodies.docker.TestImages.BusyBox
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
+import koodies.test.IdeaWorkaroundTest
 import koodies.test.SystemIoExclusive
 import koodies.test.test
 import org.junit.jupiter.api.Disabled
@@ -17,9 +18,10 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isSuccess
+import strikt.assertions.isTrue
 
-@Disabled
 @Execution(CONCURRENT)
 class DockerTest {
 
@@ -51,6 +53,34 @@ class DockerTest {
         }
     }
 
+    @DockerRequiring @Test
+    fun `should return true if engine is running`() {
+        expectThat(Docker.engineRunning).isTrue()
+    }
+
+    @Nested
+    inner class ContainerRunning {
+
+        @ContainersTest @IdeaWorkaroundTest
+        fun `should return true if container is running`(testContainers: TestContainers) {
+            val container = testContainers.newRunningTestContainer()
+            expectThat(Docker(container.name).isRunning).isTrue()
+        }
+
+        @ContainersTest @IdeaWorkaroundTest
+        fun `should return false if container exited`(testContainers: TestContainers) {
+            val container = testContainers.newExitedTestContainer()
+            expectThat(Docker(container.name).isRunning).isFalse()
+        }
+
+        @ContainersTest @IdeaWorkaroundTest
+        fun `should return false if container does not exist`(testContainers: TestContainers) {
+            val container = testContainers.newNotExistentContainer()
+            expectThat(Docker(container.name).isRunning).isFalse()
+        }
+    }
+
+    @Disabled
     @SystemIoExclusive
     @DockerRequiring([BusyBox::class])
     @TestFactory
@@ -60,6 +90,7 @@ class DockerTest {
         expecting { stop(DockerStopCommandLineTest.init) } that { isEqualTo(DockerStopCommandLineTest.result) }
     }
 
+    @Disabled
     @DockerRequiring([BusyBox::class])
     @Nested
     inner class RunCommand {

@@ -206,7 +206,7 @@ class BlockRenderingLoggerKtTest {
     ).testEach("border={}") { (border, expectation) ->
         val label = border.name
         val logger = InMemoryLogger(caption = "$label caption", border = border).withUnclosedWarningDisabled.apply { block() }
-        test { logger.expectThatLogged().toStringMatchesCurlyPattern(expectation) }
+        asserting { logger.expectThatLogged().toStringMatchesCurlyPattern(expectation) }
     }
 
     @TestFactory

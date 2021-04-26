@@ -1,7 +1,7 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
+import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.text.withRandomSuffix
 import java.nio.file.Path
 

@@ -1,7 +1,6 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.debug.CapturedOutput
 import koodies.docker.MountOptionContext.Type.tmpfs
 import koodies.docker.MountOptionContext.Type.volume
 import koodies.test.SystemIoExclusive
@@ -135,7 +134,7 @@ class MountOptionsTest {
 
             @SystemIoExclusive
             @TestFactory
-            fun `should throw on incomplete mounts`(capturedOutput: CapturedOutput) = testEach<Init<MountOptionContext<Unit>>>(
+            fun `should throw on incomplete mounts`() = testEach<Init<MountOptionContext<Unit>>>(
                 { "string-source" mountAs "string-type" },
                 { "host-source".asHostPath() mountAs "string-type" },
                 { "string-source" mountAs volume },

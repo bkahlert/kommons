@@ -1,7 +1,6 @@
 package koodies.exec
 
 import koodies.collections.synchronizedSetOf
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO.META.FILE
 import koodies.concurrent.process.IO.META.STARTING
 import koodies.concurrent.process.IO.META.TERMINATED
@@ -80,14 +79,11 @@ public open class JavaExec(
     private fun startImplicitly(): java.lang.Process = run { start(); javaProcess!! }
 
     override val pid: Long by lazy { startImplicitly().pid() }
-    override val exitValue: Int get() = startImplicitly().exitValue() // TODO
     override fun waitFor(): ExitState = exitState ?: onExit.join()
     override fun stop(): Exec = also { startImplicitly().destroy() }
     override fun kill(): Exec = also { startImplicitly().destroyForcibly() }
 
     override val workingDirectory: Path get() = commandLine.workingDirectory
-
-    override fun waitForTermination(): ExitState = onExit.join()
 
     override val state: ProcessState get() = exitState ?: run { if (javaProcess == null) Prepared() else Running(pid) }
 
@@ -109,7 +105,7 @@ public open class JavaExec(
     override fun addPreTerminationCallback(callback: Exec.() -> Unit): Exec =
         apply { preTerminationCallbacks.add(callback) }
 
-    protected val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {
+    private val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {
         val process: Exec = this@JavaExec
         val callbackStage: CompletableFuture<Process> = preTerminationCallbacks.mapNotNull {
             runCatching { process.it() }.exceptionOrNull()

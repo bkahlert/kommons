@@ -146,7 +146,7 @@ class CodePointKtTest {
         Unicode.zeroWidthSpace to "200B",
         "👽" to "01F47D",
     ) { (codePoint, hex) ->
-        expecting { CodePoint(codePoint.toString()).toHexadecimalString() } that { isEqualTo(hex) }
+        expecting { CodePoint(codePoint.toString()).hexCode } that { isEqualTo(hex) }
         expecting { CodePoint(codePoint.toString()).toLiteralRegex() } that { matchEntire(codePoint.toString()) }
     }
 

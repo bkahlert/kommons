@@ -92,7 +92,7 @@ class RenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = listOf(
+    fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = testEach(
         SOLID to """
             ╭──╴{}
             │{}
@@ -140,6 +140,7 @@ class RenderingLoggerKtTest {
             ✔︎{}
         """.trimIndent(),
         NONE to """
+            {}
             outer 1                                                                                                       ▮▮
             outer 2
             nested log
@@ -158,36 +159,37 @@ class RenderingLoggerKtTest {
             outer 4                                                                                                       ▮▮
             ✔︎
         """.trimIndent(),
-    ).testEach("border={}") { (border, expectation) ->
-        test {
-            expecting {
-                createLogger(border.name, border).runLogging {
-                    logStatus { "outer 1" }
-                    logLine { "outer 2" }
+    ) { (border, expectation) ->
+        expecting {
+            lateinit var logger: InMemoryLogger
+            createLogger(border.name, border).runLogging {
+                logger = this
+                logStatus { "outer 1" }
+                logLine { "outer 2" }
+                logging("nested log") {
+                    logStatus { "nested 1" }
+                    compactLogging("mini segment") {
+                        logStatus { ERR typed "12345" }
+                        logStatus { META typed "sample" }
+                    }
                     logging("nested log") {
                         logStatus { "nested 1" }
                         compactLogging("mini segment") {
                             logStatus { ERR typed "12345" }
                             logStatus { META typed "sample" }
                         }
-                        logging("nested log") {
-                            logStatus { "nested 1" }
-                            compactLogging("mini segment") {
-                                logStatus { ERR typed "12345" }
-                                logStatus { META typed "sample" }
-                            }
-                            logStatus { "nested 2" }
-                            logStatus { "nested 3" }
-                        }
                         logStatus { "nested 2" }
                         logStatus { "nested 3" }
                     }
-                    logStatus { "outer 3" }
-                    logStatus { "outer 4" }
-                    "Done"
+                    logStatus { "nested 2" }
+                    logStatus { "nested 3" }
                 }
-            } that { toStringMatchesCurlyPattern(expectation) }
-        }
+                logStatus { "outer 3" }
+                logStatus { "outer 4" }
+                "Done"
+            }
+            logger
+        } that { toStringMatchesCurlyPattern(expectation) }
     }
 
     @Suppress("LongLine")

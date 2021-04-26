@@ -104,7 +104,9 @@ public expect fun UByteArray.toBigInteger(): BigInteger
  */
 public expect fun BigInteger.toString(radix: Int = 10): String
 
-
+/**
+ * [BigInteger] constants
+ */
 public expect object BigIntegerConstants {
     /**
      * The BigInteger constant zero.

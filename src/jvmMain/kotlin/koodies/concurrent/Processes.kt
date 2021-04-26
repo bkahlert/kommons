@@ -1,11 +1,11 @@
 package koodies.concurrent
 
-import koodies.concurrent.process.CommandLine
-import koodies.exec.Exec
-import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.ExecTerminationCallback
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
+import koodies.exec.CommandLine
+import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
+import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.Locations
 import koodies.shell.ShellScript
 import java.nio.file.Path

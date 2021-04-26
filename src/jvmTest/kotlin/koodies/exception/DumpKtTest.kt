@@ -6,12 +6,10 @@ import koodies.io.path.randomPath
 import koodies.io.path.writeText
 import koodies.regex.RegularExpressions
 import koodies.regex.findAllValues
-import koodies.terminal.AnsiFormats.bold
 import koodies.test.TextFile
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.randomString
 import org.junit.jupiter.api.Nested
@@ -113,19 +111,18 @@ class DumpKtTest {
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
             expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }.single().hasContent("""
-                ${"ansi".bold()}
+                ${"ansi".ansi.bold}
                 no ansi
             """.trimIndent())
         }
 
         @Test
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".bold() + LF + "no ansi" }).values
+            val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
             expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }.single().hasContent("""
                 ansi
                 no ansi
             """.trimIndent())
         }
     }
-
 }

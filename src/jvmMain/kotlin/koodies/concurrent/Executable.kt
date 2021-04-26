@@ -7,17 +7,17 @@ import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.concurrent.Execution.Options
 import koodies.concurrent.Execution.Options.Companion.OptionsContext
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
-import koodies.exec.Exec
-import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.ExecTerminationCallback
 import koodies.concurrent.process.ProcessingMode
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.loggingProcessor
 import koodies.concurrent.process.process
 import koodies.concurrent.process.terminationLoggingProcessor
+import koodies.exec.CommandLine
+import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
+import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.LoggingOptions
 import koodies.logging.LoggingOptions.BlockLoggingOptions
@@ -44,7 +44,7 @@ public interface Executable {
      * Brief description of that this executable is doing.
      */
     public val summary: String
-    
+
     /**
      * Creates a [CommandLine] that is able to run [Executable].
      */

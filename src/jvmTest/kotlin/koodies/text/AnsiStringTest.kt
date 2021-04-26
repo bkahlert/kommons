@@ -198,23 +198,25 @@ class AnsiStringTest {
             0 to AnsiString(""),
         ) { (length, expected) ->
             group("$expected ...") {
-                test("should have ansiAwareSubSequence(0, $length): \"$expected\"") {
-                    val subject = ansiString.subSequence(0, length)
-                    expectThat(subject).isEqualTo(expected)
-                }
-                test("should have subString(0, $length): \"$expected\"") {
+
+                expecting("should have ansiAwareSubSequence(0, $length): \"$expected\"") {
+                    ansiString.subSequence(0, length)
+                } that { isEqualTo(expected) }
+
+                expecting("should have subString(0, $length): \"$expected\"") {
                     @Suppress("ReplaceSubstringWithTake")
-                    expectThat(ansiString.substring(0, length)).isEqualTo(expected.toString())
+                    ansiString.substring(0, length)
+                } that { isEqualTo(expected.toString()) }
+
+                expecting("should take first $length characters: \"$expected\"") {
+                    ansiString.take(length)
+                } that {
+                    isEqualTo(expected)
                 }
-                test("should take first $length characters: \"$expected\"") {
-                    val subject = ansiString.take(length)
-                    expectThat(subject).isEqualTo(expected)
-                }
-                test("should have length $length") {
-                    val substring = ansiString.subSequence(0, length)
-                    val actualLength = substring.length
-                    expectThat(actualLength).isEqualTo(length)
-                }
+
+                expecting("should have length $length") {
+                    ansiString.subSequence(0, length).length
+                } that { isEqualTo(length) }
             }
         }
 
@@ -228,20 +230,22 @@ class AnsiStringTest {
             25 to AnsiString("$ESC[3;36m$ESC[23;39m"),
         ) { (startIndex, expected) ->
             group("$expected ...") {
-                test("should have ansiAwareSubSequence($startIndex, 25): \"$expected\"") {
-                    expectThat(ansiString.subSequence(startIndex, 25)).isEqualTo(expected)
-                }
-                test("should have substring($startIndex, 25): \"$expected\"") {
-                    expectThat(ansiString.substring(startIndex, 25)).isEqualTo(expected.toString())
-                }
-                test("should drop first $startIndex characters: \"$expected\"") {
-                    expectThat(ansiString.take(25).drop(startIndex)).isEqualTo(expected)
-                }
-                test("should have length ${25 - startIndex}") {
-                    val substring = ansiString.subSequence(startIndex, 25)
-                    val actualLength = substring.length
-                    expectThat(actualLength).isEqualTo(25 - startIndex)
-                }
+
+                expecting("should have ansiAwareSubSequence($startIndex, 25): \"$expected\"") {
+                    ansiString.subSequence(startIndex, 25)
+                } that { isEqualTo(expected) }
+
+                expecting("should have substring($startIndex, 25): \"$expected\"") {
+                    ansiString.substring(startIndex, 25)
+                } that { isEqualTo(expected.toString()) }
+
+                expecting("should drop first $startIndex characters: \"$expected\"") {
+                    ansiString.take(25).drop(startIndex)
+                } that { isEqualTo(expected) }
+
+                expecting("should have length ${25 - startIndex}") {
+                    ansiString.subSequence(startIndex, 25).length
+                } that { isEqualTo(25 - startIndex) }
             }
         }
 

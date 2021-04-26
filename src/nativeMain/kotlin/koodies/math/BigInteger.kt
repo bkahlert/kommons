@@ -1,3 +1,5 @@
+@file:Suppress("RedundantVisibilityModifier")
+
 package koodies.math
 
 /**
@@ -50,10 +52,7 @@ public actual operator fun BigInteger.inc(): BigInteger = BigIntegerConstants.ZE
 public actual operator fun BigInteger.dec(): BigInteger = BigIntegerConstants.ZERO
 
 /** Inverts the bits including the sign bit in this value. */
-public actual inline val BigInteger.invertedValue: BigInteger
-    get() {
-        TODO("Not yet implemented")
-    }
+public actual inline val BigInteger.invertedValue: BigInteger get() = BigIntegerConstants.ZERO
 
 /** Performs a bitwise AND operation between the two values. */
 public actual infix fun BigInteger.and(other: BigInteger): BigInteger = BigIntegerConstants.ZERO
@@ -116,6 +115,9 @@ public actual fun UByteArray.toBigInteger(): BigInteger = BigIntegerConstants.ZE
  */
 public actual fun BigInteger.toString(radix: Int): String = "0"
 
+/**
+ * [BigInteger] constants
+ */
 public actual object BigIntegerConstants {
     /**
      * The BigInteger constant zero.
@@ -125,22 +127,22 @@ public actual object BigIntegerConstants {
     /**
      * The BigInteger constant one.
      */
-    public actual val ONE: BigInteger = BigIntegerConstants.ZERO
+    public actual val ONE: BigInteger = ZERO
 
     /**
      * The BigInteger constant two.
      */
-    public actual val TWO: BigInteger = BigIntegerConstants.ZERO
+    public actual val TWO: BigInteger = ZERO
 
     /**
      * The BigInteger constant ten.
      */
-    public actual val TEN: BigInteger = BigIntegerConstants.ZERO
+    public actual val TEN: BigInteger = ZERO
 
     /**
      * The BigDecimal constant ten.
      */
-    public actual val HUNDRED: BigInteger = BigIntegerConstants.ZERO
+    public actual val HUNDRED: BigInteger = ZERO
 }
 
 /**

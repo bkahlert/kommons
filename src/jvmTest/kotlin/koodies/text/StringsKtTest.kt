@@ -2,6 +2,7 @@ package koodies.text
 
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -175,7 +176,7 @@ class StringsKtTest {
         private val Int.ansi get() = "column$this".ansi.red
 
         @TestFactory
-        fun `should map two columns`() = test {
+        fun `should map two columns`() = tests {
             val transform: (String, String) -> String = { c1, c2 -> "${c1.last()}-${c2.last()}" }
             expecting { "column1\tcolumn2".mapColumns(transform = transform) } that { isEqualTo("1-2") }
             expecting { "column1\ncolumn2".mapColumns(delimiter = "\n", transform = transform) } that { isEqualTo("1-2") }
@@ -192,7 +193,7 @@ class StringsKtTest {
         }
 
         @TestFactory
-        fun `should map three columns`() = test {
+        fun `should map three columns`() = tests {
             val transform: (String, String, String) -> String = { c1, c2, c3 -> "${c1.last()}-${c2.last()}-${c3.last()}" }
             expecting { "column1\tcolumn2\tcolumn3".mapColumns(transform = transform) } that { isEqualTo("1-2-3") }
             expecting { "column1\ncolumn2\ncolumn3".mapColumns(delimiter = "\n", transform = transform) } that { isEqualTo("1-2-3") }

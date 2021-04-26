@@ -3,9 +3,7 @@ package koodies
 import koodies.collections.any
 import koodies.collections.size
 import koodies.concurrent.execute
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
-import koodies.exec.Process.ExitState
 import koodies.concurrent.process.err
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
@@ -14,6 +12,9 @@ import koodies.concurrent.script
 import koodies.debug.CapturedOutput
 import koodies.docker.DockerImage
 import koodies.docker.NONE
+import koodies.exec.CommandLine
+import koodies.exec.Process.ExitState
+import koodies.exec.exitCode
 import koodies.exec.started
 import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
@@ -80,7 +81,7 @@ class ExecutionIntegrationTest {
                     Process {} terminated successfully at {}
                 """.trimIndent())
             }
-            exitValue { isEqualTo(0) }
+            exitCode { isEqualTo(0) }
             successful { isTrue() }
         }
     }
@@ -156,7 +157,7 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun `should handle errors`(consoleOutput: CapturedOutput) {
+    fun `should handle errors`() {
 
         // and if something goes wrong, a failed exit state is returned
         ShellScript {
@@ -179,7 +180,7 @@ class ExecutionIntegrationTest {
                 8
                 7
                 Boom!
-                Process $pid terminated with exit code $exitValue
+                Process $pid terminated with exit code $exitCode
                 📄 file://{}
                 ➜ A dump has been written to:
                   - {}koodies.dump.{}.log (unchanged)
@@ -193,7 +194,7 @@ class ExecutionIntegrationTest {
                   8
                   7
                   Boom!
-                  Process $pid terminated with exit code $exitValue
+                  Process $pid terminated with exit code $exitCode
                 {{}}
             """.trimIndent())
             }

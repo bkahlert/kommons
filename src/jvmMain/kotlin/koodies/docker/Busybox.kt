@@ -1,10 +1,10 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.Processor
 import koodies.docker.DockerImage.ImageContext
+import koodies.exec.CommandLine
+import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.shell.HereDocBuilder.hereDoc
 import koodies.text.withRandomSuffix
 import koodies.toBaseName
@@ -72,4 +72,3 @@ public fun Docker.busybox(
             }
         }
     }
-

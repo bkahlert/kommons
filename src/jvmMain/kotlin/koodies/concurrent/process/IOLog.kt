@@ -151,7 +151,6 @@ public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Uni
     override fun toString(): String = asString(::lock, ::incomplete)
 }
 
-
 /**
  * Filters this [IO] sequence by the specified type.
  *

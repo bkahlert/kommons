@@ -1,7 +1,6 @@
 package koodies.docker
 
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.noopProcessor
@@ -11,6 +10,7 @@ import koodies.concurrent.process.out
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
+import koodies.exec.CommandLine
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ProcessState.Running

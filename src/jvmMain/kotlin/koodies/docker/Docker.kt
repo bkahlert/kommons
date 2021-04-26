@@ -4,17 +4,10 @@ import koodies.CallableProperty
 import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.mapBuild
-import koodies.jvm.daemon
 import koodies.concurrent.execute
-import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.concurrent.process.IO
-import koodies.exec.Exec
-import koodies.exec.ExecTerminationCallback
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.Processors.noopProcessor
-import koodies.concurrent.process.output
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.terminationLoggingProcessor
@@ -22,19 +15,13 @@ import koodies.concurrent.scriptOutputContains
 import koodies.concurrent.toExec
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
+import koodies.exec.CommandLine
+import koodies.exec.CommandLine.Companion.CommandLineContext
+import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
 import koodies.logging.RenderingLogger
-import koodies.math.absoluteValue
-import koodies.math.div
-import koodies.math.toBigDecimal
-import koodies.number.formatToExactDecimals
 import koodies.provideDelegate
-import koodies.unit.Size
-import koodies.unit.UnitPrefix
-import koodies.unit.getSymbol
-import java.math.BigDecimal
-import java.math.RoundingMode.FLOOR
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 
 /**
  * Entrypoint to ease discovery of Docker related features.
@@ -57,12 +44,11 @@ public object Docker {
     public val engineRunning: Boolean get() = !scriptOutputContains("docker info", "error")
 
     /**
-     * Whether a Docker container with the given [name] is running.
-     *
-     * @see DockerContainer
+     * Returns a [DockerContainer] representing a Docker container of the same
+     * (sanitized) name.
      */
-    public fun containerRunning(name: String): Boolean = DockerContainer.from(name).isRunning
-    
+    public operator fun invoke(name: String): DockerContainer = DockerContainer.from(name, randomSuffix = false)
+
 
 //    /**
 //     * Builds a [DockerSearchCommandLine] and executes it.
@@ -140,37 +126,6 @@ public object Docker {
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
     public fun commandLine(image: DockerImage, options: DockerRunCommandLine.Options, commandLine: CommandLine): DockerRunCommandLine =
         DockerRunCommandLine(image, options, commandLine)
-
-    /**
-     * Explicitly stops the Docker container with the given [name] **asynchronously**.
-     */
-    public fun stop(name: String): Unit = stop { containers { +name } }.fireAndForget()
-
-    /**
-     * Explicitly (stops and) removes the Docker container with the given [name] **synchronously**.
-     *
-     * If needed even [forcibly].
-     */
-    public fun remove(name: String, forcibly: Boolean = false): String = remove {
-        options { force using forcibly }
-        containers { +name }
-    }.execute { noopProcessor() }
-        .apply { onExit.orTimeout(8, TimeUnit.SECONDS).get() }
-        .output()
-}
-
-/**
- * Runs this command line in a daemon thread asynchronously and silently.
- *
- * Only if something goes wrong an exception is logged on the console.
- */
-private fun DockerCommandLine.fireAndForget(
-    execTerminationCallback: ExecTerminationCallback? = null,
-) {
-    daemon {
-        toExec(null, execTerminationCallback)
-            .processSilently().apply { waitFor() }
-    }
 }
 
 private fun Path.dockerRunCommandLine(

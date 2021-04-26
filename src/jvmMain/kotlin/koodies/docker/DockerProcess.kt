@@ -50,7 +50,7 @@ public open class DockerProcess private constructor(
             is Exited, is Dead, is Error -> exitState ?: run {
                 val message = "Backed Docker process no more running but no exit state is known."
                 val dump = createDump(message)
-                Fatal(IllegalStateException(dump.ansiRemoved), exitValue, pid, dump, io.toList(), message).also { exitState = it }
+                Fatal(IllegalStateException(dump.ansiRemoved), -1, pid, dump, io.toList(), message).also { exitState = it }
             }
         }
 

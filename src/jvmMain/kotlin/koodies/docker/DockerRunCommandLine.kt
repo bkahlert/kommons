@@ -11,10 +11,10 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
+import koodies.exec.CommandLine
+import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.text.splitAndMap
 import java.nio.file.Path

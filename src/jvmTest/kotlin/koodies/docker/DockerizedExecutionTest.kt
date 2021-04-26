@@ -2,7 +2,6 @@ package koodies.docker
 
 import koodies.concurrent.Executable
 import koodies.concurrent.execute
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
@@ -12,6 +11,7 @@ import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.docker.MountOptionContext.Type.bind
+import koodies.exec.CommandLine
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.containsDump
 import koodies.exec.hasState
@@ -189,6 +189,6 @@ class DockerizedExecutionTest {
     @Test
     fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectCatching { CommandLine(this, "echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
-            .isSuccess().hasState<Failure> { io<IO>().containsDump(containedStrings = emptyArray()) }
+            .isSuccess().hasState<Failure> { io().containsDump(containedStrings = emptyArray()) }
     }
 }

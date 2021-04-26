@@ -1,7 +1,6 @@
 package koodies.exec
 
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.META.DUMP
@@ -13,7 +12,8 @@ import koodies.text.LineSeparators.LF
 import java.nio.file.Path
 
 /**
- * A process that logs its own [IO].
+ * A [Process] with advanced features like
+ * the possibility to access a copy of the process's [IO].
  */
 public interface Exec : Process {
 
@@ -29,7 +29,7 @@ public interface Exec : Process {
             execTerminationCallback = execTerminationCallback)
 
         /**
-         * Dumps the [IO] of [process] individualized with the given [errorMessage]
+         * Dumps the [IO] of `this` [Exec] individualized with the given [errorMessage]
          * to the process's [workingDirectory] and returns the same dump as a string.
          *
          * The given error messages are concatenated with a line break.
@@ -65,19 +65,25 @@ public interface Exec : Process {
     public fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec
 }
 
+/**
+ * A callback that is invoked the moment an [Exec] terminated.
+ */
 public typealias ExecTerminationCallback = (Throwable?) -> Unit
 
-
+/**
+ * In compliance to [Process.outputStream] this type of stream
+ * consists of [META] about a [Process].
+ */
 public class MetaStream(vararg listeners: (META) -> Unit) {
     private val history: MutableList<META> = synchronizedListOf()
     private val listeners: MutableList<(META) -> Unit> = synchronizedListOf(*listeners)
 
-    public fun subscribe(listener: (META) -> Unit): Unit {
+    public fun subscribe(listener: (META) -> Unit) {
         history.forEach { listener(it) }
         listeners.add(listener)
     }
 
-    public fun emit(meta: META): Unit {
+    public fun emit(meta: META) {
         history.add(meta)
         listeners.forEach { it(meta) }
     }

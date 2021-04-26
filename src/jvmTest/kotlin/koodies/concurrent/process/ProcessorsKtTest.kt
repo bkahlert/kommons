@@ -7,6 +7,7 @@ import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.UserInput.enter
+import koodies.exec.CommandLine
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
@@ -59,7 +60,7 @@ class ProcessorsKtTest {
         inner class Interactively {
 
             @Test
-            fun `should process with non-blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId){
+            fun `should process with non-blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val log = mutableListOf<IO>()
                 process(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
@@ -76,7 +77,7 @@ class ProcessorsKtTest {
             }
 
             @Test
-            fun `should process with blocking reader`(uniqueId: UniqueId)  = withTempDir(uniqueId){
+            fun `should process with blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val log = mutableListOf<IO>()
                 process(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }

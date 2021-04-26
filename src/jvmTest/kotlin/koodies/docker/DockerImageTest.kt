@@ -5,6 +5,7 @@ import koodies.logging.expectLogged
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
@@ -66,8 +67,8 @@ class DockerImageTest {
     }
 
     @TestFactory
-    fun `should equal`() = test {
-        with { DockerImage.parse("repo/path") } then {
+    fun `should equal`() = tests {
+        DockerImage.parse("repo/path") all {
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
@@ -76,7 +77,7 @@ class DockerImageTest {
             asserting { not { isEqualTo(DockerImage("repo", listOf("other-path"), null, null)) } }
             asserting { not { isEqualTo(DockerImage("other-repo", listOf("path"), null, null)) } }
         }
-        with { DockerImage.parse("repo/path:tag") } then {
+        DockerImage.parse("repo/path:tag") all {
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
@@ -84,7 +85,7 @@ class DockerImageTest {
 
             asserting { not { isEqualTo(DockerImage("repo", listOf("path"), "other-tag", null)) } }
         }
-        with { DockerImage.parse("repo/path@digest") } then {
+        DockerImage.parse("repo/path@digest") all {
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }

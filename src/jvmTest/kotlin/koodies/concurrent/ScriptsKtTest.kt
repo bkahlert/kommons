@@ -1,13 +1,12 @@
 package koodies.concurrent
 
-import koodies.concurrent.process.IO
+import koodies.concurrent.process.output
+import koodies.debug.CapturedOutput
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.completesSuccessfully
 import koodies.exec.containsDump
 import koodies.exec.hasState
 import koodies.exec.io
-import koodies.concurrent.process.output
-import koodies.debug.CapturedOutput
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.HtmlFile
@@ -75,7 +74,7 @@ class ScriptsKtTest {
 
         @Test
         fun `should have failed state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(script { !"exit -1" }).hasState<Failure> { io<IO>().containsDump() }
+            expectThat(script { !"exit -1" }).hasState<Failure> { io().containsDump() }
         }
     }
 

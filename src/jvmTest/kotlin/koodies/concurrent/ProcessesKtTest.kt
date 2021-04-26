@@ -1,15 +1,15 @@
 package koodies.concurrent
 
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.CommandLine
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.process
+import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.started
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
-import koodies.test.test
+import koodies.test.tests
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
@@ -29,7 +29,7 @@ class ProcessesKtTest {
 
 
     private fun testProcesses(uniqueId: UniqueId, command: String = echoingCommands, block: (Exec) -> Unit): List<DynamicNode> =
-        test {
+        tests {
             test {
                 withTempDir(uniqueId) {
                     val commandLine = CommandLine(

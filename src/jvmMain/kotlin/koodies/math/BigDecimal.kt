@@ -159,7 +159,11 @@ public actual fun BigInteger.toBigDecimal(): BigDecimal = toBigDecimal()
  */
 public actual fun CharSequence.toBigDecimal(radix: Int): BigDecimal = toString().toBigDecimalKotlin()
 
+/**
+ * [BigDecimal] constants
+ */
 public actual object BigDecimalConstants {
+
     /**
      * The BigDecimal constant zero.
      */

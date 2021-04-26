@@ -1,6 +1,5 @@
 package koodies.exec
 
-import koodies.concurrent.process.CommandLine
 import koodies.exec.Executors.runCommandLineAsJavaProcess
 import koodies.exec.Executors.runScriptAsJavaProcess
 import koodies.io.path.asPath

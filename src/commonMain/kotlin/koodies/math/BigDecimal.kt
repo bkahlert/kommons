@@ -149,6 +149,9 @@ public expect fun BigInteger.toBigDecimal(): BigDecimal
  */
 public expect fun CharSequence.toBigDecimal(radix: Int = 10): BigDecimal
 
+/**
+ * [BigDecimal] constants
+ */
 public expect object BigDecimalConstants {
     /**
      * The BigDecimal constant zero.

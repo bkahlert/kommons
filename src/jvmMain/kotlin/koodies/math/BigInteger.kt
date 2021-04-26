@@ -1,12 +1,13 @@
 package koodies.math
 
+import java.math.BigInteger as JavaBigInteger
 import kotlin.text.toBigInteger as toBigIntegerKotlin
 import kotlin.toBigInteger as toBigIntegerKotlin
 
 /**
  * Immutable arbitrary-precision integers.
  */
-public actual typealias BigInteger = java.math.BigInteger
+public actual typealias BigInteger = JavaBigInteger
 
 /**
  * Enables the use of the `+` operator for [BigInteger] instances.
@@ -108,31 +109,34 @@ public actual fun UByteArray.toBigInteger(): BigInteger = BigInteger(toByteArray
  */
 public actual fun BigInteger.toString(radix: Int): String = toString(radix)
 
+/**
+ * [BigInteger] constants
+ */
 public actual object BigIntegerConstants {
     /**
      * The BigInteger constant zero.
      */
-    public actual val ZERO: BigInteger = java.math.BigInteger.ZERO
+    public actual val ZERO: BigInteger = JavaBigInteger.ZERO
 
     /**
      * The BigInteger constant one.
      */
-    public actual val ONE: BigInteger = java.math.BigInteger.ONE
+    public actual val ONE: BigInteger = JavaBigInteger.ONE
 
     /**
      * The BigInteger constant two.
      */
-    public actual val TWO: BigInteger = java.math.BigInteger.TWO
+    public actual val TWO: BigInteger = JavaBigInteger.TWO
 
     /**
      * The BigInteger constant ten.
      */
-    public actual val TEN: BigInteger = java.math.BigInteger.TEN
+    public actual val TEN: BigInteger = JavaBigInteger.TEN
 
     /**
      * The BigDecimal constant ten.
      */
-    public actual val HUNDRED: BigInteger = java.math.BigInteger.TEN * java.math.BigInteger.TEN
+    public actual val HUNDRED: BigInteger = JavaBigInteger.TEN * JavaBigInteger.TEN
 }
 
 /**

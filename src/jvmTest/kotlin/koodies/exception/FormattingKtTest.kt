@@ -1,7 +1,7 @@
 package koodies.exception
 
 import koodies.concurrent.process
-import koodies.concurrent.process.CommandLine
+import koodies.exec.CommandLine
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators

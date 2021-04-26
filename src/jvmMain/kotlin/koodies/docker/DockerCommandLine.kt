@@ -1,11 +1,11 @@
 package koodies.docker
 
 import koodies.builder.BuilderTemplate
-import koodies.concurrent.process.CommandLine
-import koodies.concurrent.process.CommandLine.Companion.CommandLineContext
+import koodies.exec.CommandLine
+import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
-import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.ExecTerminationCallback
+import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.Locations
 import java.nio.file.Path
 
@@ -107,4 +107,3 @@ public open class DockerCommandLine(
         }
     }
 }
-

@@ -1,6 +1,6 @@
 package koodies.shell
 
-import koodies.concurrent.process.CommandLine
+import koodies.exec.CommandLine
 import koodies.exec.scriptPath
 import koodies.io.path.Locations
 import koodies.io.path.asString

@@ -56,9 +56,7 @@ class ReturnValueKtTest {
         kotlin.runCatching { failedReturnValue } to "ϟ return value",
         kotlin.runCatching { throw exception } to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
     ) { (subject, expected) ->
-        test(subject.toSimpleString()) {
-            expectThat(ReturnValue.format(subject)).matchesCurlyPattern(expected)
-        }
+        expecting(subject.toSimpleString()) { ReturnValue.format(subject) } that { matchesCurlyPattern(expected) }
     }
 
     @TestFactory
@@ -68,22 +66,31 @@ class ReturnValueKtTest {
         "string" to "✔︎",
         ExecMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
     ) { (subject, expected) ->
-        test(subject.toSimpleString()) {
-            expectThat(loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
+
+        expecting(subject.toSimpleString()) {
+            loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }
+        } that {
+            matchesCurlyPattern("""
                 ╭──╴{}
                 │   
                 │
                 ╰──╴$expected
                 """.trimIndent())
         }
-        test(subject.toSimpleString()) {
-            expectThat(loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
+
+        expecting(subject.toSimpleString()) {
+            loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }
+        } that {
+            matchesCurlyPattern("""
                 ▶ {}
                 $expected
                 """.trimIndent())
         }
-        test(subject.toSimpleString()) {
-            expectThat(loggerFactory.render(NONE, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
+
+        expecting(subject.toSimpleString()) {
+            loggerFactory.render(NONE, "$subject ➜ $expected") { subject }
+        } that {
+            matchesCurlyPattern("""
                 {}
                 $expected
                 """.trimIndent())
@@ -98,22 +105,31 @@ class ReturnValueKtTest {
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         ExecMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42."
     ) { (subject, expected) ->
-        test(subject.toSimpleString()) {
-            expectThat(loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
+
+        expecting(subject.toSimpleString()) {
+            loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }
+        } that {
+            matchesCurlyPattern("""
                 ╭──╴{}
                 │   
                 ϟ
                 ╰──╴$expected
                 """.trimIndent())
         }
-        test(subject.toSimpleString()) {
-            expectThat(loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
+
+        expecting(subject.toSimpleString()) {
+            loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }
+        } that {
+            matchesCurlyPattern("""
                 ▶ {}
                 ϟ $expected
                 """.trimIndent())
         }
-        test(subject.toSimpleString()) {
-            expectThat(loggerFactory.render(NONE, "$subject ➜ $expected") { subject }).matchesCurlyPattern("""
+
+        expecting(subject.toSimpleString()) {
+            loggerFactory.render(NONE, "$subject ➜ $expected") { subject }
+        } that {
+            matchesCurlyPattern("""
                 {}
                 ϟ $expected
                 """.trimIndent())

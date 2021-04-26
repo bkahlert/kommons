@@ -3,11 +3,11 @@ package koodies.docker
 import koodies.builder.StatelessBuilder
 import koodies.concurrent.Executable
 import koodies.concurrent.execute
-import koodies.concurrent.process.CommandLine
-import koodies.exec.Process.ExitState
 import koodies.concurrent.process.Processor
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
+import koodies.exec.CommandLine
+import koodies.exec.Process.ExitState
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
