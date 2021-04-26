@@ -1,7 +1,5 @@
 package koodies.docker
 
-import koodies.concurrent.Executable
-import koodies.concurrent.execute
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
@@ -12,8 +10,10 @@ import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.docker.MountOptionContext.Type.bind
 import koodies.exec.CommandLine
+import koodies.exec.Executable
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.containsDump
+import koodies.exec.execute
 import koodies.exec.hasState
 import koodies.exec.io
 import koodies.exec.started

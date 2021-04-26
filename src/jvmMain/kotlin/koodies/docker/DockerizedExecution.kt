@@ -5,8 +5,6 @@ import koodies.builder.Init
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.Execution
-import koodies.concurrent.execute
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.loggingProcessor
 import koodies.concurrent.process.process
@@ -15,6 +13,8 @@ import koodies.concurrent.toExec
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
 import koodies.exec.CommandLine
+import koodies.exec.Execution
+import koodies.exec.execute
 import koodies.logging.RenderingLogger
 import koodies.logging.runLogging
 import koodies.shell.ShellExecutable

@@ -4,7 +4,6 @@ import koodies.CallableProperty
 import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.mapBuild
-import koodies.concurrent.execute
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
@@ -19,6 +18,7 @@ import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
+import koodies.exec.execute
 import koodies.logging.RenderingLogger
 import koodies.provideDelegate
 import java.nio.file.Path
@@ -65,21 +65,6 @@ public object Docker {
 
 
     /**
-     * Builds a [DockerStartCommandLine] and executes it.
-     */
-    @Deprecated("no command line builders")
-    public val start: (Init<DockerStartCommandLine.Companion.CommandContext> /* = koodies.docker.DockerStartCommandLine.Companion.StartContext.() -> kotlin.Unit */)
-    -> Exec by DockerStartCommandLine.mapBuild { it.execute { null } }
-
-    /**
-     * Builds a [DockerStartCommandLine] and executes it using `this` [RenderingLogger].
-     */
-    @Deprecated("no command line builders")
-    public val RenderingLogger?.start: Builder<Init<DockerStartCommandLine.Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
-        DockerStartCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
-    }
-
-    /**
      * Builds a [DockerRunCommandLine] and executes it.
      */
     public val run: (Init<Companion.CommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
@@ -91,18 +76,6 @@ public object Docker {
     public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
         DockerRunCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
     }
-
-    /**
-     * Builds a [DockerStopCommandLine].
-     */
-    @Deprecated("no command line builders")
-    public val stop: (Init<DockerStopCommandLine.Companion.CommandContext> /* = koodies.docker.DockerStopCommandLine.Companion.StopContext.() -> kotlin.Unit */) -> DockerStopCommandLine by DockerStopCommandLine
-
-    /**
-     * Builds a [DockerRemoveCommandLine].
-     */
-    @Deprecated("no command line builders")
-    public val remove: (Init<DockerRemoveCommandLine.Companion.CommandContext> /* = koodies.docker.DockerRemoveCommandLine.Companion.RemoveContext.() -> kotlin.Unit */) -> DockerRemoveCommandLine by DockerRemoveCommandLine
 
     /**
      * Micro DSL to build a [DockerImage] in the style of:

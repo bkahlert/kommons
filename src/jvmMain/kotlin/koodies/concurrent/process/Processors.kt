@@ -3,8 +3,6 @@ package koodies.concurrent.process
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
 import koodies.collections.synchronizedSetOf
-import koodies.concurrent.ExecutionDsl
-import koodies.jvm.completableFuture
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
 import koodies.concurrent.process.ProcessingMode.Interactivity
 import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive
@@ -15,7 +13,9 @@ import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.Processors.ioProcessingThreadPool
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.exec.Exec
+import koodies.exec.ExecutionDsl
 import koodies.exec.Process
+import koodies.jvm.completableFuture
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.logReturnValue

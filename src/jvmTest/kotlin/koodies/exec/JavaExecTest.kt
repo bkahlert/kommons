@@ -7,7 +7,6 @@ import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.exitCodeOrNull
 import koodies.concurrent.process.merge
 import koodies.concurrent.process.output
 import koodies.concurrent.process.process
@@ -16,7 +15,10 @@ import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.processSynchronously
 import koodies.concurrent.toExec
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.*
+import koodies.exec.Process.ExitState.ExitStateHandler
+import koodies.exec.Process.ExitState.Failure
+import koodies.exec.Process.ExitState.Fatal
+import koodies.exec.Process.ExitState.Success
 import koodies.exec.Process.ProcessState.Prepared
 import koodies.exec.Process.ProcessState.Running
 import koodies.io.path.asString
@@ -79,12 +81,12 @@ class JavaExecTest {
     inner class Requirements {
 
         // TODO delete check one day when its clear no more callers exist that use API incorrectly
-        // because it's legit to pass heredocs; they simply will not be intepreted
+        // because it's legit to pass heredocs; they simply will not be interpreted
         @Test
         fun `should throw on contained here documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val cmdLine = CommandLine(HereDoc("command", delimiter = "DELIM1").toString(), HereDoc("command", delimiter = "DELIM2").toString())
+            val cmdLine = CommandLine(HereDoc("command", delimiter = "DELIMITER1").toString(), HereDoc("command", delimiter = "DELIMITER2").toString())
             expectCatching { cmdLine.toProcess().start() }.isFailure().isA<IllegalArgumentException>().message
-                .isNotNull().contains("DELIM1").contains("DELIM2")
+                .isNotNull().contains("DELIMITER1").contains("DELIMITER2")
         }
     }
 
@@ -116,7 +118,7 @@ class JavaExecTest {
             Pair({ inputStream }, { isNotNull() }),
             Pair({ outputStream }, { isNotNull() }),
             Pair({ errorStream }, { isNotNull() }),
-            Pair({ apply { runCatching { exitCode } } }, { isA<Exec>().evaluated.exitCode.isEqualTo(0) }),
+            Pair({ apply { runCatching { exitCode } } }, { isA<Exec>().exited.exitCode.isEqualTo(0) }),
             Pair({ onExit.get() }, { isA<Success>().exitCode.isEqualTo(0) }),
             Pair({ waitFor() }, { not { isA<Prepared>() } }),
             Pair({ waitFor() }, { isA<Success>().exitCode.isEqualTo(0) }),
@@ -300,7 +302,7 @@ class JavaExecTest {
                 measureTime {
                     val process = createLoopingExec()
                     that(process) {
-                        destroyOperation.invoke(this).waitedFor.hasState<Failure> {
+                        destroyOperation.invoke(this).joined.hasState<Failure> {
                             exitCode.isGreaterThan(0)
                         }
                         not { alive }.get { this.alive }.isFalse()
@@ -313,13 +315,13 @@ class JavaExecTest {
         @Test
         fun `should provide exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingExec(exitValue = 42)
-            expectThat(process).evaluated.exitCode.isEqualTo(42)
+            expectThat(process).exited.exitCode.isEqualTo(42)
         }
 
         @Test
         fun `should not be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingExec(0)
-            expectThat(process).evaluated.not { get { process }.alive }
+            expectThat(process).exited.not { get { process }.alive }
         }
 
         @Nested
@@ -331,7 +333,7 @@ class JavaExecTest {
                 expect {
                     that(createCompletingExec().addPreTerminationCallback {
                         callbackProcess = this
-                    }).completesSuccessfully()
+                    }).succeeds()
                     100.milliseconds.sleep()
                     expectThat(callbackProcess).isNotNull()
                 }
@@ -360,7 +362,7 @@ class JavaExecTest {
             @Test
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(0)
-                expectThat(process).completesSuccessfully()
+                expectThat(process).succeeds()
                     .io.get { takeLast(2) }.any { contains("terminated successfully") }
             }
 
@@ -370,7 +372,7 @@ class JavaExecTest {
                 expect {
                     that(createCompletingExec(exitValue = 0, execTerminationCallback = {
                         callbackCalled = true
-                    })).completesSuccessfully()
+                    })).succeeds()
                     100.milliseconds.sleep()
                     expectThat(callbackCalled).isTrue()
                 }
@@ -382,7 +384,7 @@ class JavaExecTest {
                 expect {
                     that(createCompletingExec(exitValue = 0).addPostTerminationCallback { _ ->
                         callbackProcess = this
-                    }).completesSuccessfully()
+                    }).succeeds()
                     100.milliseconds.sleep()
                     expectThat(callbackProcess).isNotNull()
                 }
@@ -391,7 +393,7 @@ class JavaExecTest {
             @Test
             fun `should exit with Successful termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = createCompletingExec(0)
-                expectThat(process).completesSuccessfully().and {
+                expectThat(process).succeeds().and {
                     status.matchesCurlyPattern("Process ${process.pid} terminated successfully at {}.")
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
@@ -632,37 +634,11 @@ fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate:
     }
 
 
-inline val <reified T : Process> Builder<T>.waitedFor: Builder<T>
-    get() = get("with waitFor() called") { also { waitFor() } }
-
 inline val <reified T : Process> Builder<T>.stopped: Builder<T>
     get() = get("with stop() called") { stop() }.isA()
 
 inline val <reified T : Process> Builder<T>.killed: Builder<T>
     get() = get("with kill() called") { kill() }.isA()
-
-inline val <reified T : Exec> Builder<T>.evaluated: Builder<ExitState>
-    get() = get("terminated") { onExit.get() }.isA()
-
-inline fun <reified T : Exec> Builder<T>.completesSuccessfully(): Builder<Success> =
-    evaluated.isA()
-
-inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failure> =
-    evaluated.isA<Failure>().assert("unsuccessfully with non-zero exit code") {
-        val actual = it.exitCode
-        when (actual != 0) {
-            true -> pass()
-            else -> fail("completed successfully")
-        }
-    }
-
-inline fun <reified T : Exec> Builder<T>.started(): Builder<T> =
-    assert("have started") {
-        when (it.started) {
-            true -> pass()
-            else -> fail("has not started")
-        }
-    }
 
 inline fun <reified T : Exec> Builder<T>.notStarted(): Builder<T> =
     assert("not have started") {
@@ -685,8 +661,6 @@ inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
         get { state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
-inline val Builder<out Process>.exitState
-    get() = get("exit state") { exitState }
 
 inline val Builder<out Process.ProcessState>.status
     get(): Builder<String> =

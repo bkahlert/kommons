@@ -1,12 +1,10 @@
-package koodies.concurrent
+package koodies.exec
 
 import koodies.builder.BuilderTemplate
 import koodies.builder.Init
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.concurrent.Execution.Options
-import koodies.concurrent.Execution.Options.Companion.OptionsContext
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ProcessingMode
 import koodies.concurrent.process.ProcessingMode.Companion.ProcessingModeContext
@@ -14,9 +12,8 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.loggingProcessor
 import koodies.concurrent.process.process
 import koodies.concurrent.process.terminationLoggingProcessor
-import koodies.exec.CommandLine
-import koodies.exec.Exec
-import koodies.exec.ExecTerminationCallback
+import koodies.exec.Execution.Options
+import koodies.exec.Execution.Options.Companion.OptionsContext
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.LoggingOptions
@@ -35,35 +32,6 @@ import koodies.text.Semantics.Symbols
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 
-/**
- * An executable is something that can be run using the [Exec]
- * return by [toProcess].
- */
-public interface Executable {
-    /**
-     * Brief description of that this executable is doing.
-     */
-    public val summary: String
-
-    /**
-     * Creates a [CommandLine] that is able to run [Executable].
-     */
-    public fun toCommandLine(): CommandLine
-
-    /**
-     * Creates a [Exec] to run this executable.
-     *
-     * @param exitStateHandler if specified, the process's exit state is delegated to it
-     * @param execTerminationCallback if specified, will be called with the process's final exit state
-     */
-    public fun toProcess(
-        exitStateHandler: ExitStateHandler? = null,
-        execTerminationCallback: ExecTerminationCallback? = null,
-    ): Exec
-}
-
-@DslMarker
-public annotation class ExecutionDsl
 
 /**
  * Helper to collect an optional [RenderingLogger], build [Options] and an optional [Processor]
@@ -80,7 +48,7 @@ public class Execution(
 
     private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): Exec =
         with(Options(init)) {
-            val processLogger = loggingOptions.newLogger(parentLogger, executable.summary)
+            val processLogger: RenderingLogger = loggingOptions.newLogger(parentLogger, executable.summary)
             val exec = executable.toProcess(exitStateHandler, execTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
@@ -104,7 +72,7 @@ public class Execution(
         public companion object : BuilderTemplate<OptionsContext, Options>() {
             @ExecutionDsl
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                public val exitStateHandler: SkippableCapturingBuilderInterface<() -> ExitStateHandler?, ExitStateHandler?> by builder<ExitStateHandler?>()
+                public val exitStateHandler: SkippableCapturingBuilderInterface<() -> ExitStateHandler?, ExitStateHandler?> by builder()
                 public val execTerminationCallback: SkippableCapturingBuilderInterface<() -> ExecTerminationCallback, ExecTerminationCallback?> by builder()
 
                 public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions

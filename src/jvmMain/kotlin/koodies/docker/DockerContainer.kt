@@ -2,8 +2,6 @@ package koodies.docker
 
 import koodies.asString
 import koodies.builder.StatelessBuilder
-import koodies.concurrent.execute
-import koodies.exec.Process.ExitState
 import koodies.docker.DockerContainer.Companion.ContainerContext
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
@@ -14,6 +12,8 @@ import koodies.docker.DockerContainer.State.Existent.Removing
 import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
+import koodies.exec.Process.ExitState
+import koodies.exec.execute
 import koodies.io.path.asString
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND

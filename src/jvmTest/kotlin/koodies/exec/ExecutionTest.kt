@@ -1,4 +1,4 @@
-package koodies.concurrent
+package koodies.exec
 
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
@@ -7,13 +7,7 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.merged
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
-import koodies.exec.CommandLine
 import koodies.exec.Process.ExitState.Failure
-import koodies.exec.containsDump
-import koodies.exec.exitCode
-import koodies.exec.hasState
-import koodies.exec.io
-import koodies.exec.started
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger

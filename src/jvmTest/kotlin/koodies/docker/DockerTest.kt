@@ -7,11 +7,9 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.SystemIoExclusive
-import koodies.test.test
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
@@ -78,16 +76,6 @@ class DockerTest {
             val container = testContainers.newNotExistentContainer()
             expectThat(Docker(container.name).isRunning).isFalse()
         }
-    }
-
-    @Disabled
-    @SystemIoExclusive
-    @DockerRequiring([BusyBox::class])
-    @TestFactory
-    fun `should provide builder access points`() = test(Docker) {
-//        expecting { search(DockerSearchCommandLineBuilderExpectation.init) } that { o }
-//        expecting { start(Docker.DockerStartCommandLineBuilderExpectation.init) } that { isEqualTo(Docker.DockerStartCommandLineBuilderExpectation.result) }
-        expecting { stop(DockerStopCommandLineTest.init) } that { isEqualTo(DockerStopCommandLineTest.result) }
     }
 
     @Disabled

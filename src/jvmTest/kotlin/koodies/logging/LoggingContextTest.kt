@@ -1,11 +1,11 @@
 package koodies.logging
 
-import koodies.jvm.completableFuture
 import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.io.ByteArrayOutputStream
-import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.jvm.completableFuture
 import koodies.jvm.currentThread
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.test.SystemIoExclusive
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
+import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
@@ -218,11 +219,11 @@ private val Assertion.Builder<ByteArrayOutputStream>.printed: Assertion.Builder<
 /**
  * Returns an [Assertion.Builder] for all log messages recorded in this [LoggingContext].
  */
-public val LoggingContext.expectLogged
+val LoggingContext.expectLogged: Builder<String>
     get() = expectThat(this).logged
 
 /**
  * Returns an [Assertion.Builder] for all log messages recorded in the asserted [LoggingContext].
  */
-public val Assertion.Builder<LoggingContext>.logged: Assertion.Builder<String>
+val Assertion.Builder<LoggingContext>.logged: Assertion.Builder<String>
     get() = get("record log messages in %s") { logged.ansiRemoved }

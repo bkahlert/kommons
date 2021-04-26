@@ -109,7 +109,7 @@ class JavaExecMockTest {
             @Execution(CONCURRENT)
             @TestFactory
             fun `should run`() = test({ RUNNING_MANAGED_PROCESS }) {
-                expecting { it() } that { started() }
+                expecting { it() } that { starts() }
                 expecting { it() } that { hasState<ProcessState.Running> { status.contains("running") } }
                 expecting("stays running for 5s") {
                     val p = it(); poll { p.state !is ProcessState.Running }.every(500.milliseconds).forAtMost(5.seconds)
@@ -119,7 +119,7 @@ class JavaExecMockTest {
             @Execution(CONCURRENT)
             @TestFactory
             fun `should succeed`() = test({ SUCCEEDED_MANAGED_PROCESS }) {
-                expecting { it() } that { completesSuccessfully() }
+                expecting { it() } that { succeeds() }
                 expecting { it() } that { hasState<Success> { status.contains("terminated successfully") } }
             }
 

@@ -2,7 +2,6 @@ package koodies
 
 import koodies.collections.any
 import koodies.collections.size
-import koodies.concurrent.execute
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.err
 import koodies.concurrent.process.merged
@@ -14,8 +13,8 @@ import koodies.docker.DockerImage
 import koodies.docker.NONE
 import koodies.exec.CommandLine
 import koodies.exec.Process.ExitState
+import koodies.exec.execute
 import koodies.exec.exitCode
-import koodies.exec.started
 import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
@@ -62,18 +61,13 @@ class ExecutionIntegrationTest {
             commandLine { isEqualTo("echo \"Hello, World!\"") }
         }
 
-        // build a process
-        val process = commandLine.toProcess() check {
-            started { isFalse() }
-        }
+        // and execute it
+        commandLine.exec() check {
 
-        // run the process by requesting its output
-        process.output() check {
-            this { isEqualTo("Hello, World!") }
-        }
+            // just OUT
+            io.out.merged.ansiRemoved { isEqualTo("Hello, World!") }
 
-        // all possible context information available
-        process check {
+            // or all IO
             io.merged.ansiRemoved {
                 matchesCurlyPattern("""
                     Executing echo "Hello, World!"
@@ -81,6 +75,8 @@ class ExecutionIntegrationTest {
                     Process {} terminated successfully at {}
                 """.trimIndent())
             }
+
+            // further information
             exitCode { isEqualTo(0) }
             successful { isTrue() }
         }

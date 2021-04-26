@@ -86,12 +86,12 @@ class TestsSample {
         }
 
         @TestFactory
-        fun `as receiver object`() = "foo".test {
+        fun `string subject`() = test("foo") {
             asserting { isEqualTo("foo") }
         }
 
         @TestFactory
-        fun `list as parameter`() = test(listOf("foo", "bar")) {
+        fun `list subject`() = test(listOf("foo", "bar")) {
             expecting { joinToString("+") } that { isEqualTo("foo+bar").get { length }.isEqualTo(7) }
         }
     }
@@ -108,7 +108,6 @@ class TestsSample {
             expectCatching { "nope" } that { isSuccess() }
 
             "foo" asserting { isEqualTo("foo") }
-            asserting("bar") { isEqualTo("bar") }
             expecting { "$this-foo" } that { matchesCurlyPattern("subject {}-foo") }
             expectCatching { error(this) } that { isFailure().isA<IllegalStateException>() }
             expectThrows<IllegalStateException> { error(this) }
@@ -138,12 +137,12 @@ class TestsSample {
         }
 
         @TestFactory
-        fun `as receiver object`() = listOf("foo", "bar").testEach {
+        fun `string subjects`() = testEach("foo", "bar") {
             asserting { hasLength(3) }
         }
 
         @TestFactory
-        fun `lists as parameters`() = testEach(listOf("foo", "bar"), listOf("bar", "baz")) {
+        fun `list subjects`() = testEach(listOf("foo", "bar"), listOf("bar", "baz")) {
             expecting { joinToString("+") } that { hasLength(7).get { this[3] }.isEqualTo('+') }
         }
     }

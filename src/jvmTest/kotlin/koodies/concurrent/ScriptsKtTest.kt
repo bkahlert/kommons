@@ -3,10 +3,11 @@ package koodies.concurrent
 import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.exec.Process.ExitState.Failure
-import koodies.exec.completesSuccessfully
 import koodies.exec.containsDump
 import koodies.exec.hasState
 import koodies.exec.io
+import koodies.exec.output
+import koodies.exec.succeeds
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.HtmlFile
@@ -36,7 +37,7 @@ class ScriptsKtTest {
         @Test
         fun `should run immediately and synchronously`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val passed = measureTime {
-                expectThat(script { !"sleep 1" }).completesSuccessfully()
+                expectThat(script { !"sleep 1" }).succeeds()
             }
             expectThat(passed).isGreaterThan(1.seconds)
         }

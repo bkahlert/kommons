@@ -1,9 +1,9 @@
 package koodies.shell
 
-import koodies.concurrent.Executable
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
+import koodies.exec.Executable
 import koodies.exec.Process.ExitState.ExitStateHandler
 
 /**

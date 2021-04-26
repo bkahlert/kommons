@@ -1,7 +1,7 @@
 package koodies.logging
 
-import koodies.concurrent.execute
 import koodies.exec.Process.ExitState.Failure
+import koodies.exec.execute
 import koodies.exec.hasState
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript

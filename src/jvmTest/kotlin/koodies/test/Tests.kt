@@ -355,21 +355,12 @@ class IllegalUsageException(caller: URI?) : IllegalArgumentException(
 annotation class DynamicTestsDsl
 
 /**
- * Creates tests for `this` subject
- * using the specified [DynamicTestsWithSubjectBuilder] based [init].
- */
-@JvmName("testThis")
-@DynamicTestsDsl
-@Deprecated("replace with tests")
-fun <T> T.test(init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): List<DynamicNode> =
-    DynamicTestsWithSubjectBuilder.build(this, init)
-
-/**
  * Creates tests for the specified [subject]
  * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  */
 @DynamicTestsDsl
-fun <T> test(subject: T, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): List<DynamicNode> = subject.test(init)
+fun <T> test(subject: T, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): List<DynamicNode> =
+    DynamicTestsWithSubjectBuilder.build(subject, init)
 
 /**
  * Creates one [DynamicContainer] for each instance of `this` collection of subjects
@@ -549,31 +540,7 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
         return CallbackCallingPropertyTestBuilder(aspect) { nodes.add(it) }
     }
 
-    /**
-     * Returns a builder to specify expectations for the result of [transform] applied
-     * to `this` subject.
-     */
-    @DynamicTestsDsl
-    @Deprecated("use expecting")
-    fun <R> expect(description: String? = null, transform: T.() -> R): ExpectationBuilder<R> {
-        val aspect = kotlin.runCatching { subject.transform() }
-            .onFailure { println("TEST ${Symbols.Error} Failed to evaluate ${subject.displayName().property(transform)}: $it") }
-            .getOrThrow()
-        return CallbackCallingExpectationBuilder(description?.takeUnlessBlank() ?: "expect".property(transform) + " " + aspect.displayName(), aspect, callback)
-    }
-
     companion object {
-
-        private class CallbackCallingExpectationBuilder<T>(
-            private val description: String,
-            private val subject: T,
-            private val callback: (DynamicNode) -> Unit,
-        ) : ExpectationBuilder<T>, Builder<T> by expectThat(subject) {
-
-            override fun that(block: Builder<T>.() -> Unit) {
-                callback(dynamicTest(description.property(block), callerSource) { block() })
-            }
-        }
 
         private class CallbackCallingPropertyTestBuilder<T>(
             private val aspect: T,

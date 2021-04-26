@@ -109,6 +109,10 @@ object TestLogging {
     }
 }
 
+/**
+ * A logger that—in contrast to [InMemoryLogger]—does not "beautify"
+ * the logged content in any way.
+ */
 class TestLogger(
     private val extensionContext: ExtensionContext,
     parameterContext: ParameterContext,

@@ -133,6 +133,7 @@ class HereDocKtTest {
 
     @Nested
     inner class VarargConstructor {
+
         @Test
         fun `should take unnamed arguments as lines `() {
             val hereDoc = HereDoc("line 1", "line 2")

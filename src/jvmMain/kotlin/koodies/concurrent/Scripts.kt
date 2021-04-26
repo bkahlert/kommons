@@ -1,8 +1,9 @@
 package koodies.concurrent
 
 import koodies.concurrent.process.IO
-import koodies.exec.Exec
 import koodies.concurrent.process.output
+import koodies.exec.Exec
+import koodies.exec.execute
 import koodies.io.path.Locations
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger

@@ -156,29 +156,29 @@ public open class CommandLine(
             /**
              * Specifies the redirects like `2>&1` to be used when running this built command line.
              */
-            public val redirects: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder<String>()
+            public val redirects: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder()
 
             /**
              * Specifies the environment to be exposed to the [Exec] that runs this built
              * command line.
              */
-            public val environment: SkippableCapturingBuilderInterface<MapBuildingContext<String, String>.() -> Unit, Map<String, String>> by mapBuilder<String, String>()
+            public val environment: SkippableCapturingBuilderInterface<MapBuildingContext<String, String>.() -> Unit, Map<String, String>> by mapBuilder()
 
             /**
              * Specifies the working directory of the [Exec] that runs this built
              * command line.
              */
-            public val workingDirectory: SkippableCapturingBuilderInterface<() -> Path, Path?> by builder<Path>()
+            public val workingDirectory: SkippableCapturingBuilderInterface<() -> Path, Path?> by builder()
 
             /**
              * The command to be executed.
              */
-            public val command: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>()
+            public val command: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
 
             /**
              * Specifies the arguments to be passed to [command].
              */
-            public val arguments: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder<String>()
+            public val arguments: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder()
         }
 
         override fun BuildContext.build(): CommandLine = ::CommandLineContext {
@@ -187,7 +187,7 @@ public open class CommandLine(
                 environment = ::environment.evalOrDefault(emptyMap()),
                 workingDirectory = ::workingDirectory.evalOrDefault(Locations.WorkingDirectory),
                 command = ::command.evalOrDefault(""),
-                arguments = ::arguments.evalOrDefault(emptyList<String>()),
+                arguments = ::arguments.evalOrDefault(emptyList()),
             )
         }
 
