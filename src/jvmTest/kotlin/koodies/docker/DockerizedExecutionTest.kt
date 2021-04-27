@@ -3,17 +3,13 @@ package koodies.docker
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.OUT
-import koodies.concurrent.process.Processors
-import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
-import koodies.concurrent.process.output
 import koodies.debug.CapturedOutput
 import koodies.docker.MountOptionContext.Type.bind
 import koodies.exec.CommandLine
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.containsDump
-import koodies.exec.execute
 import koodies.exec.hasState
 import koodies.exec.io
 import koodies.exec.started
@@ -22,14 +18,12 @@ import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
 import koodies.logging.expectThatLogged
 import koodies.requireNotBlank
-import koodies.shell.ShellExecutable
 import koodies.test.HtmlFile
 import koodies.test.SystemIoExclusive
 import koodies.test.UniqueId
 import koodies.test.copyToDirectory
 import koodies.test.toStringContainsAll
 import koodies.test.withTempDir
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -51,14 +45,14 @@ import java.nio.file.Path
 @Execution(SAME_THREAD)
 class DockerizedExecutionTest {
 
-    private val Path.shellExecutable: ShellExecutable get() = CommandLine(this, "printenv")
+    private val Path.executable: Executable get() = CommandLine(this, "printenv")
 
     private val testImage = DockerImage { official("busybox") }
 
     @SystemIoExclusive
     @Test
     fun InMemoryLogger.`should run container without options and log`(capturedOutput: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-        shellExecutable.executeDockerized(testImage, null)
+        executable.executeDockerized(testImage, null)
         expectThatLogged().contains("Executing dockerized")
         expectThat(capturedOutput).isEmpty()
     }
@@ -66,7 +60,7 @@ class DockerizedExecutionTest {
     @SystemIoExclusive
     @Test
     fun `should run command line without options and print`(capturedOutput: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
-        shellExecutable.executeDockerized(testImage, null)
+        executable.executeDockerized(testImage, null)
         expectThat(capturedOutput).contains("Executing dockerized")
     }
 
@@ -79,7 +73,7 @@ class DockerizedExecutionTest {
     ) =
         withTempDir(uniqueId) {
             with(testImage) {
-                (shellExecutable as Executable).execute(logger)
+                executable.exec.dockerized.logging(logger)
             }
             logger.expectThatLogged().contains("Executing dockerized")
             expectThat(capturedOutput).isEmpty()
@@ -89,7 +83,7 @@ class DockerizedExecutionTest {
     @Test
     fun `should run command line with docker image in receiver and default logger`(capturedOutput: CapturedOutput, uniqueId: UniqueId) = withTempDir(uniqueId) {
         with(testImage) {
-            (shellExecutable as CommandLine).execute()
+            (executable as CommandLine).exec()
         }
         BACKGROUND.expectLogged.contains("Executing dockerized")
         expectThat(capturedOutput).isEmpty()
@@ -97,8 +91,8 @@ class DockerizedExecutionTest {
 
     @Test
     fun InMemoryLogger.`should record IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val process: DockerProcess = shellExecutable.executeDockerized(TestImages.Ubuntu, null)
-        expectThat(process.io.merged.ansiRemoved).matchesCurlyPattern("""
+        val process: DockerProcess = executable.executeDockerized(TestImages.Ubuntu, null)
+        expectThat(process.io.ansiRemoved).matchesCurlyPattern("""
                 Executing docker run --name {} --rm -i ${TestImages.Ubuntu} printenv
                 {{}}
                 Process {} terminated successfully at {}
@@ -107,26 +101,26 @@ class DockerizedExecutionTest {
 
     @Test
     fun InMemoryLogger.`should return Docker process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val process: DockerProcess = shellExecutable.executeDockerized(testImage, null)
+        val process: DockerProcess = executable.executeDockerized(testImage, null)
         expectThat(process).isA<DockerProcess>()
     }
 
     @Test
     fun InMemoryLogger.`should run in actual docker container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dockerOutput = shellExecutable.executeDockerized(testImage, null).output().requireNotBlank()
-        val hostOutput = shellExecutable.execute { null }.output().requireNotBlank()
+        val dockerOutput = executable.executeDockerized(testImage, null).io.out.ansiRemoved.requireNotBlank()
+        val hostOutput = executable.exec().io.ansiRemoved.requireNotBlank()
         expectThat(dockerOutput).isNotEqualTo(hostOutput)
     }
 
     @Test
     fun InMemoryLogger.`should start implicitly`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val process: DockerProcess = shellExecutable.executeDockerized(testImage, null)
+        val process: DockerProcess = executable.executeDockerized(testImage, null)
         expectThat(process.started).isTrue()
     }
 
     @Test
     fun InMemoryLogger.`should start`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val process: DockerProcess = shellExecutable.executeDockerized(testImage, null)
+        val process: DockerProcess = executable.executeDockerized(testImage, null)
         process.start()
         expectThat(process.started).isTrue()
     }
@@ -136,7 +130,7 @@ class DockerizedExecutionTest {
 
         @Test
         fun InMemoryLogger.`should apply docker options`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            shellExecutable.executeDockerized(testImage) {
+            executable.executeDockerized(testImage) {
                 dockerOptions { workingDirectory by "/tmp".asContainerPath() }; null
             }
             expectThatLogged().contains("-w /tmp")
@@ -155,14 +149,14 @@ class DockerizedExecutionTest {
                 }
                 null
             }
-            expectThat(process.io.out.merged.ansiRemoved).isEqualTo(HtmlFile.text)
+            expectThat(process.io.out.ansiRemoved).isEqualTo(HtmlFile.text)
             expectLogged.toStringContainsAll(*HtmlFile.text.lines().toTypedArray())
         }
     }
 
     @Test
     fun InMemoryLogger.`should apply execution options`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        shellExecutable.executeDockerized(testImage) {
+        executable.executeDockerized(testImage) {
             executionOptions { summary("docker") }; null
         }
         expectThatLogged().matchesCurlyPattern("""
@@ -187,8 +181,8 @@ class DockerizedExecutionTest {
     }
 
     @Test
-    fun InMemoryLogger.`should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectCatching { CommandLine(this, "echo OUT; >&2 echo ERR").execute { Processors.noopProcessor() } }
+    fun `should not throw on unexpected exit value`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        expectCatching { CommandLine(this, "echo OUT; >&2 echo ERR").exec() }
             .isSuccess().hasState<Failure> { io().containsDump(containedStrings = emptyArray()) }
     }
 }

@@ -3,8 +3,12 @@ package koodies.docker
 import koodies.builder.BuilderTemplate
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
+import koodies.exec.CommandLineRunner
 import koodies.exec.Exec
+import koodies.exec.Executor
+import koodies.exec.JavaExec
 import koodies.io.path.Locations
+import koodies.logging.RenderingLogger
 import java.nio.file.Path
 
 /**
@@ -61,6 +65,9 @@ public open class DockerCommandLine(
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
 
+    override val exec: Executor get() = Executor(this, null, DockerCommandLineRunner)
+    override val <T : RenderingLogger> T?.logging: Executor get() = Executor(this@DockerCommandLine, this, DockerCommandLineRunner)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -75,6 +82,17 @@ public open class DockerCommandLine(
     override fun hashCode(): Int = commandLineParts.contentHashCode()
 
     public companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
+
+        /**
+         * Command line runner with a custom [DockerExitStateHandler].
+         */
+        private val DockerCommandLineRunner = CommandLineRunner { commandLine, execTerminationCallback ->
+            JavaExec(
+                commandLine = commandLine,
+                exitStateHandler = DockerExitStateHandler,
+                execTerminationCallback = execTerminationCallback)
+        }
+
         override fun BuildContext.build(): DockerCommandLine = ::CommandLineContext {
             DockerCommandLine(
                 redirects = ::redirects.eval(),

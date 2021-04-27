@@ -3,11 +3,9 @@ package koodies.exec
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.concurrent.process.process
-import koodies.concurrent.toExec
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.UniqueId
@@ -15,7 +13,6 @@ import koodies.test.string
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
@@ -247,7 +244,7 @@ class CommandLineTest {
     inner class Nesting {
 
         private fun Assertion.Builder<Exec>.outputParsedAsCommandLine(workingDir: Path) =
-            get { CommandLine.parse(io.out.merged.ansiRemoved, workingDir) }
+            get { CommandLine.parse(io.out.ansiRemoved, workingDir) }
 
         @Test
         fun `should produce runnable output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -363,7 +360,7 @@ val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBu
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
     get() = get("evaluated %s") {
-        toExec().process({ sync }, Processors.noopProcessor())
+        JavaExec(this).process({ sync }, Processors.noopProcessor())
     }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =

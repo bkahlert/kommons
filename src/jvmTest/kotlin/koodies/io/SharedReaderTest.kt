@@ -1,7 +1,6 @@
 package koodies.io
 
 import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
-import koodies.debug.trace
 import koodies.exception.dump
 import koodies.io.path.notContainsLineSeparator
 import koodies.io.path.prefixes
@@ -10,7 +9,6 @@ import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.HtmlFile
 import koodies.test.Slow
-import koodies.test.SystemIoExclusive
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.CR

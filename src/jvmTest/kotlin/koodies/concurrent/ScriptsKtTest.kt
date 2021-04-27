@@ -75,7 +75,8 @@ class ScriptsKtTest {
 
         @Test
         fun `should have failed state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(script { !"exit -1" }).hasState<Failure> { io().containsDump() }
+            val subject = script { !"exit -1" }
+            expectThat(subject).hasState<Failure> { io().containsDump() }
         }
     }
 

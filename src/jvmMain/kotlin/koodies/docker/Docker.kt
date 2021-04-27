@@ -18,7 +18,6 @@ import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
-import koodies.exec.execute
 import koodies.logging.RenderingLogger
 import koodies.provideDelegate
 import java.nio.file.Path
@@ -68,13 +67,13 @@ public object Docker {
      * Builds a [DockerRunCommandLine] and executes it.
      */
     public val run: (Init<Companion.CommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
-    -> Exec by DockerRunCommandLine.mapBuild { it.execute { null } }
+    -> Exec by DockerRunCommandLine.mapBuild { it.exec.logging() }
 
     /**
      * Builds a [DockerRunCommandLine] and executes it using `this` [RenderingLogger].
      */
     public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
-        DockerRunCommandLine.mapBuild { with(thisRef) { it.execute { null } } }
+        DockerRunCommandLine.mapBuild { if (thisRef != null) it.exec.logging(thisRef) else it.exec.logging() }
     }
 
     /**

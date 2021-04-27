@@ -6,8 +6,6 @@ import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.merge
-import koodies.concurrent.process.output
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processAsynchronously
 import koodies.concurrent.process.processSilently
@@ -81,7 +79,7 @@ class JavaExecTest {
         @Test
         fun `should throw on contained here documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val cmdLine = CommandLine(HereDoc("command", delimiter = "DELIMITER1").toString(), HereDoc("command", delimiter = "DELIMITER2").toString())
-            expectCatching { cmdLine.toProcess().start() }.isFailure().isA<IllegalArgumentException>().message
+            expectCatching { JavaExec(cmdLine).start() }.isFailure().isA<IllegalArgumentException>().message
                 .isNotNull().contains("DELIMITER1").contains("DELIMITER2")
         }
     }
@@ -135,7 +133,6 @@ class JavaExecTest {
 
         @TestFactory
         fun `should start implicitly and process`(uniqueId: UniqueId) = testEach<Exec.() -> Exec>(
-            { also { output() } },
             { processSilently().apply { 1.seconds.sleep() } },
             { processSynchronously {} },
             { processAsynchronously().apply { 1.seconds.sleep() } },
@@ -185,9 +182,8 @@ class JavaExecTest {
 
         @Test
         fun `should provide IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val process = createLoopingExec().processSilently()
+            val process = createCompletingExec().processSilently().also { it.waitFor() }
             expectThat(process).log.logs(OUT typed "test out", ERR typed "test err")
-            process.kill()
         }
     }
 
@@ -573,14 +569,14 @@ fun Path.createCompletingExec(
 fun Path.createLazyFileCreatingProcess(): Pair<Exec, Path> {
     val nonExistingFile = randomPath(extension = ".txt")
     val fileCreatingCommandLine = CommandLine(emptyMap(), this, "touch", nonExistingFile.asString())
-    return fileCreatingCommandLine.toExec() to nonExistingFile
+    return JavaExec(fileCreatingCommandLine) to nonExistingFile
 }
 
 
 val <T : Exec> Builder<T>.alive: Builder<T>
     get() = assert("is alive") { if (it.alive) pass() else fail("is not alive: ${it.io}") }
 
-val <T : Exec> Builder<T>.log get() = get("log %s") { io }
+val <T : Exec> Builder<T>.log: DescribeableBuilder<List<IO>> get() = get("log %s") { io.toList() }
 
 private fun Builder<Exec>.completesWithIO() = log.logs(OUT typed "test out", ERR typed "test err")
 
@@ -605,11 +601,11 @@ fun Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh"
 }
 
 
-fun Builder<Sequence<IO>>.logs(vararg io: IO) = logs(io.toList())
-fun Builder<Sequence<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
-fun Builder<Sequence<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
+fun Builder<List<IO>>.logs(vararg io: IO) = logs(io.toList())
+fun Builder<List<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
+fun Builder<List<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
 
-fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
+fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
     assert("logs $io within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().containsAll(io)
@@ -619,7 +615,7 @@ fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collec
         }
     }
 
-fun Builder<Sequence<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate: List<IO>.() -> Boolean) =
+fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate: List<IO>.() -> Boolean) =
     assert("logs within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().predicate()
@@ -674,11 +670,11 @@ inline val <T : Process.ProcessState.Terminated> Builder<T>.exitCode
         get("exit code") { exitCode }
 inline val <T : Process.ProcessState.Terminated> Builder<T>.io
     get(): Builder<List<IO>> =
-        get("io") { io }
+        get("io") { io.toList() }
 
 
 inline val Builder<out Failure>.dump: Builder<String?>
     get(): Builder<String?> = get("dump") { dump }
 
 fun Builder<out Process.ProcessState.Terminated>.io() =
-    get("IO of specified type") { io.merge(removeEscapeSequences = false) }
+    get("IO with kept ANSI escape codes") { io.ansiKept }

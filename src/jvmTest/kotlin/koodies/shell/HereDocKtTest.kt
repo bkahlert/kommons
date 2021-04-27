@@ -1,10 +1,8 @@
 package koodies.shell
 
-import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.concurrent.script
 import koodies.test.toStringIsEqualTo
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -55,7 +53,7 @@ class HereDocKtTest {
             fun `should substitute parameters`() {
                 expectThat(script {
                     !"cat $hereDoc"
-                }.io.out.merged.ansiRemoved) {
+                }.io.out.ansiRemoved) {
                     isNotBlank()
                     isNotEqualTo("\$HOME")
                 }
@@ -76,7 +74,7 @@ class HereDocKtTest {
             fun `should not substitute parameters`() {
                 expectThat(script {
                     !"cat $hereDoc"
-                }.io.out.merged.ansiRemoved) {
+                }.io.out.ansiRemoved) {
                     isEqualTo("\$HOME")
                 }
             }

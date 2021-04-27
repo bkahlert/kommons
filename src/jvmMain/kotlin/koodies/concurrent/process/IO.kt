@@ -177,53 +177,77 @@ public sealed class IO(
     }
 }
 
+/**
+ * Read optimized [Sequence] of [IO] that can be used
+ * as a lazily populating sequence of [IO] or
+ * as a means to access all encompassed [IO] merged to
+ * a string—either with [ansiRemoved] or [ansiKept].
+ */
+public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
+
+    /**
+     * Contains all encompassed [IO] merged to a string.
+     *
+     * Eventually existing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
+     *
+     * ***Note:** Accessing this property triggers the construction
+     * of a string representing all encompassed [IO].*
+     *
+     * @see ansiKept
+     */
+    public val ansiRemoved: String by lazy { merge<IO>(removeEscapeSequences = true) }
+
+    /**
+     * Contains all encompassed [IO] merged to a string.
+     *
+     * Eventually existing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are kept.
+     *
+     * ***Note:** Accessing this property triggers the construction
+     * of a string representing all encompassed [IO].*
+     *
+     * @see ansiRemoved
+     */
+    public val ansiKept: String by lazy { merge<IO>(removeEscapeSequences = false) }
+
+    /**
+     * Returns all encompassed [IO] merged to a string.
+     *
+     * Eventually existing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
+     *
+     * ***Note:** Accessing this property triggers the construction
+     * of a string representing all encompassed [IO].*
+     *
+     * @see ansiRemoved
+     * @see ansiKept
+     */
+    override fun toString(): String = ansiRemoved
+
+    public companion object {
+        public val EMPTY: IOSequence<IO> = IOSequence(emptySequence())
+    }
+}
 
 /**
  * Contains a filtered copy only consisting of [META].
  */
-public val Sequence<IO>.meta: Sequence<META> get() = filterIsInstance<META>()
-
-/**
- * Contains a filtered copy only consisting of [META].
- */
-public val Iterable<IO>.meta: Iterable<META> get() = filterIsInstance<META>()
+public val IOSequence<IO>.meta: IOSequence<META> get() = IOSequence(filterIsInstance<META>())
 
 /**
  * Contains a filtered copy only consisting of [INPUT].
  */
-public val Sequence<IO>.input: Sequence<INPUT> get() = filterIsInstance<INPUT>()
-
-/**
- * Contains a filtered copy only consisting of [INPUT].
- */
-public val Iterable<IO>.input: Iterable<INPUT> get() = filterIsInstance<INPUT>()
+public val IOSequence<IO>.input: IOSequence<INPUT> get() = IOSequence(filterIsInstance<INPUT>())
 
 /**
  * Contains a filtered copy only consisting of [OUT].
  */
-public val Sequence<IO>.out: Sequence<OUT> get() = filterIsInstance<OUT>()
-
-/**
- * Contains a filtered copy only consisting of [OUT].
- */
-public val Iterable<IO>.out: Iterable<OUT> get() = filterIsInstance<OUT>()
+public val IOSequence<IO>.out: IOSequence<OUT> get() = IOSequence(filterIsInstance<OUT>())
 
 /**
  * Contains a filtered copy only consisting of [ERR].
  */
-public val Sequence<IO>.err: Sequence<ERR> get() = filterIsInstance<ERR>()
+public val IOSequence<IO>.err: IOSequence<ERR> get() = IOSequence(filterIsInstance<ERR>())
 
 /**
- * Contains a filtered copy only consisting of [ERR].
+ * Contains a filtered copy only consisting of [OUT] and [ERR].
  */
-public val Iterable<IO>.err: Iterable<ERR> get() = filterIsInstance<ERR>()
-
-/**
- * Contains a filtered copy of I/O merged to a string.
- */
-public val Sequence<IO>.merged: String get() = merge<IO>(removeEscapeSequences = false)
-
-/**
- * Contains a filtered copy of I/O merged to a string.
- */
-public val Iterable<IO>.merged: String get() = merge<IO>(removeEscapeSequences = false)
+public val IOSequence<IO>.outAndErr: IOSequence<IO> get() = IOSequence(filter { it is OUT || it is ERR })

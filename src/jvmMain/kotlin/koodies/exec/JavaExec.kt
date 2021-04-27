@@ -1,10 +1,12 @@
 package koodies.exec
 
 import koodies.collections.synchronizedSetOf
+import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.META.FILE
 import koodies.concurrent.process.IO.META.STARTING
 import koodies.concurrent.process.IO.META.TERMINATED
 import koodies.concurrent.process.IOLog
+import koodies.concurrent.process.IOSequence
 import koodies.concurrent.process.ShutdownHookUtils
 import koodies.debug.asEmoji
 import koodies.exception.toCompactString
@@ -18,7 +20,6 @@ import koodies.exec.Process.ProcessState
 import koodies.exec.Process.ProcessState.Prepared
 import koodies.exec.Process.ProcessState.Running
 import koodies.exec.Process.ProcessState.Terminated
-import koodies.io.RedirectingOutputStream
 import koodies.io.TeeInputStream
 import koodies.io.TeeOutputStream
 import koodies.jvm.thenAlso
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
+import koodies.io.RedirectingOutputStream as ReOutputStrean
 
 /**
  * Java-based [Exec] implementation.
@@ -90,16 +92,17 @@ public open class JavaExec(
     override var exitState: ExitState? = null
         protected set
 
-    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(startImplicitly().outputStream, RedirectingOutputStream { io.input + it }) }
-    private val capturingOutputStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().inputStream, RedirectingOutputStream { io.out + it }) }
-    private val capturingErrorStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().errorStream, RedirectingOutputStream { io.err + it }) }
+    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(startImplicitly().outputStream, ReOutputStrean { ioLog.input + it }) }
+    private val capturingOutputStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().inputStream, ReOutputStrean { ioLog.out + it }) }
+    private val capturingErrorStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().errorStream, ReOutputStrean { ioLog.err + it }) }
 
-    final override val metaStream: MetaStream = MetaStream({ io + it })
+    final override val metaStream: MetaStream = MetaStream({ ioLog + it })
     final override val inputStream: OutputStream get() = capturingInputStream
     final override val outputStream: InputStream get() = capturingOutputStream
     final override val errorStream: InputStream get() = capturingErrorStream
 
-    override val io: IOLog by lazy { IOLog() }
+    private val ioLog by lazy { IOLog() }
+    override val io: IOSequence<IO> get() = IOSequence(ioLog)
 
     private val preTerminationCallbacks = synchronizedSetOf<Exec.() -> Unit>()
     override fun addPreTerminationCallback(callback: Exec.() -> Unit): Exec =
@@ -113,7 +116,7 @@ public open class JavaExec(
             ?: CompletableFuture.completedFuture(process)
 
         callbackStage.thenCombine(startImplicitly().onExit()) { _, _ ->
-            io.flush()
+            ioLog.flush()
             process
         }.handle { _, throwable ->
             val exitValue = startImplicitly().exitValue()
@@ -123,17 +126,17 @@ public open class JavaExec(
                 throwable != null -> {
                     val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
                     val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
-                    Fatal(cause, exitValue, pid, dump.ansiRemoved, io.toList())
+                    Fatal(cause, exitValue, pid, dump.ansiRemoved, io)
                 }
 
                 exitStateHandler != null ->
                     kotlin.runCatching {
-                        exitStateHandler.handle(Terminated(pid, exitValue, io.toList()))
+                        exitStateHandler.handle(Terminated(pid, exitValue, io))
                     }.getOrElse { ex ->
                         val message =
                             "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:${LineSeparators.LF}\t" +
                                 ex.message.formattedAs.error
-                        Fatal(ex, exitValue, pid, createDump(message), io.toList(), message)
+                        Fatal(ex, exitValue, pid, createDump(message), io, message)
                     }
 
                 exitValue != 0 -> {
@@ -141,18 +144,18 @@ public open class JavaExec(
                         "Process ${pid.formattedAs.input} terminated with exit code ${exitValue.formattedAs.input}",
                         *commandLine.includedFiles.map { FILE(it).formatted }.toTypedArray()
                     )
-                    Failure(exitValue, pid, commandLine.includedFiles.map { it.toUri() }, dump, io.toList())
+                    Failure(exitValue, pid, commandLine.includedFiles.map { it.toUri() }, dump, io)
                 }
 
                 else -> {
                     metaStream.emit(TERMINATED(process))
-                    Success(pid, io.toList())
+                    Success(pid, io)
                 }
 
             }.also { exitState = it }
         }.thenAlso { term, ex ->
             postTerminationCallbacks.forEach {
-                process.it(term ?: Fatal(ex!!, startImplicitly().exitValue(), pid, "Unexpected exception in process termination handling.", io.toList()))
+                process.it(term ?: Fatal(ex!!, startImplicitly().exitValue(), pid, "Unexpected exception in process termination handling.", io))
             }
         }
     }

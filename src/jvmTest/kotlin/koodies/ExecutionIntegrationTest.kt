@@ -1,10 +1,8 @@
 package koodies
 
-import koodies.collections.any
 import koodies.collections.size
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.err
-import koodies.concurrent.process.merged
 import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.concurrent.script
@@ -12,14 +10,18 @@ import koodies.debug.CapturedOutput
 import koodies.docker.DockerImage
 import koodies.docker.NONE
 import koodies.exec.CommandLine
+import koodies.exec.Executable
 import koodies.exec.Process.ExitState
-import koodies.exec.execute
 import koodies.exec.exitCode
 import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.tempDir
+import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
+import koodies.logging.InMemoryLogger
+import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.expectThatLogged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
 import koodies.test.SystemIoExclusive
@@ -27,10 +29,9 @@ import koodies.test.UniqueId
 import koodies.test.copyTo
 import koodies.test.withTempDir
 import koodies.text.ANSI
+import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.ansiRemoved
-import koodies.text.LineSeparators.lines
 import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
@@ -41,7 +42,6 @@ import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.contains
-import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
@@ -65,10 +65,10 @@ class ExecutionIntegrationTest {
         commandLine.exec() check {
 
             // just OUT
-            io.out.merged.ansiRemoved { isEqualTo("Hello, World!") }
+            io.out.ansiRemoved { isEqualTo("Hello, World!") }
 
             // or all IO
-            io.merged.ansiRemoved {
+            io.ansiRemoved {
                 matchesCurlyPattern("""
                     Executing echo "Hello, World!"
                     Hello, World!
@@ -83,28 +83,26 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun `should script`(consoleOutput: CapturedOutput) {
+    fun `should script`() {
         // simply create a shell script
         val shellScript = ShellScript {
             !"echo 'Hello, World!'"
             !"echo 'Hello, Back!'"
         } check {
             // can be run like a process
-            (toProcess().output().lines()) { containsExactly("Hello, World!", "Hello, Back!") }
+            exec().io.out.ansiRemoved { contains("Hello, World!").contains("Hello, Back!") }
         }
 
         // can also be executed with builder
         var counter = 0
-        shellScript.execute {
-            { io ->
-                if (io is IO.OUT) counter++
-            }
+        shellScript.exec.processing { io ->
+            if (io is IO.OUT) counter++
         } check {
             successful { isTrue() }
         }
 
         counter { isEqualTo(2) }
-        consoleOutput.out { contains("Script(name=null;content=echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
+        BACKGROUND check { logged.contains("Script(name=null;content=echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
     }
 
     @Test
@@ -115,7 +113,7 @@ class ExecutionIntegrationTest {
             !"echo 'Countdown!'"
             (10 downTo 0).forEach { !"echo '$it'" }
             !"echo 'Take Off'"
-        }.execute {
+        }.exec.logging {
             block {
                 val arrow = "->".red()
                 caption { "countdown" }
@@ -123,7 +121,6 @@ class ExecutionIntegrationTest {
                 decorationFormatter { ANSI.Colors.brightRed }
                 border = SOLID
             }
-            null
         }
 
         consoleOutput.out {
@@ -161,12 +158,11 @@ class ExecutionIntegrationTest {
             (10 downTo 7).forEach { !"echo '$it'" }
             !"1>&2 echo 'Boom!'"
             !"exit -1"
-        }.execute {
+        }.exec.logging {
             block { border { NONE } }
-            null
         } check {
             exitState { isA<ExitState.Failure>() }
-            io.merged {
+            io.ansiRemoved {
                 matchesCurlyPattern("""
                 Executing {}
                 📄 file://{}
@@ -201,7 +197,7 @@ class ExecutionIntegrationTest {
     fun `should be simple`() {
         tempDir().apply {
 
-            script { !"cat sample.html" } check { io.err.merged.ansiRemoved { contains("cat: sample.html: No such file or directory") } }
+            script { !"cat sample.html" } check { io.err.ansiRemoved { contains("cat: sample.html: No such file or directory") } }
 
             HtmlFile.copyTo(resolve("sample.html"))
             val process = script { !"cat sample.html" }
@@ -234,20 +230,108 @@ class ExecutionIntegrationTest {
         val commandLine = CommandLine("printenv")
 
         // and run it
-        commandLine.execute { null } check {
+        commandLine.exec() check {
             io.out { size.isGreaterThan(10) }
         }
 
         // How about running it in a container?
         with(DockerImage { official("ubuntu") }) {
-            commandLine.execute { null } check {
-                io.out { any { ansiRemoved.isEqualTo("HOME=/root") } }
+            commandLine.exec.dockerized() check {
+                (io.out.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
             }
         }
     }
 
     @Test
     fun docker() {
+    }
+
+
+    @Test
+    fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+
+        val executable: Executable = CommandLine(this, "echo", "test")
+
+        with(executable) {
+            logging("existing logging context") {
+                exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.brightBlue(it) }; border = SOLID } }
+            }
+        }
+
+        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightMagenta(it) }) {
+            logLine { "abc" }
+            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
+        }
+        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightBlue(it) }) {
+            logLine { "abc" }
+            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
+        }
+        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightMagenta(it) }) {
+            logLine { "abc" }
+            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
+        }
+        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightBlue(it) }) {
+            logLine { "abc" }
+            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
+        }
+
+        expectThatLogged().matchesCurlyPattern("""
+            ╭──╴{}
+            │   
+            │   ╭──╴existing logging context
+            │   │   
+            │   │   ╭──╴command line logging context
+            │   │   │   
+            │   │   │   Executing echo test
+            │   │   │   test
+            │   │   │   Process {} terminated successfully at {}.
+            │   │   │
+            │   │   ╰──╴✔︎
+            │   │
+            │   ╰──╴✔︎
+            │   ╭──╴existing logging context
+            │   │   
+            │   │   abc
+            │   │   ╭──╴command line logging context
+            │   │   │   
+            │   │   │   Executing echo test
+            │   │   │   test
+            │   │   │   Process {} terminated successfully at {}.
+            │   │   │
+            │   │   ╰──╴✔︎
+            │   │
+            │   ╰──╴✔︎
+            │   ╭──╴existing logging context
+            │   │   
+            │   │   abc
+            │   │   ▶ command line logging context
+            │   │   · Executing echo test
+            │   │   · test
+            │   │   · Process {} terminated successfully at {}.
+            │   │   ✔︎
+            │   │
+            │   ╰──╴✔︎
+            │   ▶ existing logging context
+            │   · abc
+            │   · ╭──╴command line logging context
+            │   · │   
+            │   · │   Executing echo test
+            │   · │   test
+            │   · │   Process {} terminated successfully at {}.
+            │   · │
+            │   · ╰──╴✔︎
+            │   ✔︎
+            │   ▶ existing logging context
+            │   · abc
+            │   · ▶ command line logging context
+            │   · · Executing echo test
+            │   · · test
+            │   · · Process {} terminated successfully at {}.
+            │   · ✔︎
+            │   ✔︎
+            │
+            ╰──╴✔︎
+        """.trimIndent())
     }
 }
 

@@ -76,6 +76,7 @@ public actual fun UInt.toBigInteger(): BigInteger = toLong().toBigIntegerKotlin(
 /**
  * Returns the value of this [BigDecimal] number as a [BigInteger].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual fun BigDecimal.toBigInteger(): BigInteger = toBigInteger()
 
 /**
@@ -87,6 +88,7 @@ public actual fun CharSequence.toBigInteger(radix: Int): BigInteger = toString()
 /**
  * Returns the value of this [BigInteger] as a [ByteArray].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual fun BigInteger.toByteArray(): ByteArray = toByteArray()
 
 /**
@@ -107,6 +109,7 @@ public actual fun UByteArray.toBigInteger(): BigInteger = BigInteger(toByteArray
 /**
  * Returns a string representation of this [BigInteger] value in the specified [radix].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual fun BigInteger.toString(radix: Int): String = toString(radix)
 
 /**
@@ -147,6 +150,7 @@ public actual val BigInteger.absoluteValue: BigInteger get() = abs()
 /**
  * Raises this value to the power [n].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual fun BigInteger.pow(n: Int): BigInteger = pow(n)
 
 /**

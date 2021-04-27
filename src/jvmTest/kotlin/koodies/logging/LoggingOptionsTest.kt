@@ -1,7 +1,6 @@
 package koodies.logging
 
 import koodies.exec.Process.ExitState.Failure
-import koodies.exec.execute
 import koodies.exec.hasState
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
@@ -28,14 +27,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     block {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -67,14 +65,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
+                justStart().exec.logging(this) {
                     block {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -98,15 +95,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
-                    processing { async }
+                countDownAndStart().exec.async.logging(this) {
                     block {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -140,15 +135,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
-                    processing { async }
+                justStart().exec.async.logging(this) {
                     block {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -180,12 +173,11 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should compact log`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     compact {
                         caption { "caption" }
                         contentFormatter { formatter }
                     }
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
@@ -198,12 +190,11 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
+                justStart().exec.logging(this) {
                     compact {
                         caption { "caption" }
                         contentFormatter { formatter }
                     }
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
@@ -220,13 +211,11 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should compact log`() {
-                countDownAndStart().execute {
-                    processing { async }
+                countDownAndStart().exec.async.logging(this) {
                     compact {
                         caption { "caption" }
                         contentFormatter { formatter }
                     }
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
@@ -256,13 +245,11 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
-                    processing { async }
+                justStart().exec.async.logging(this) {
                     compact {
                         caption { "caption" }
                         contentFormatter { formatter }
                     }
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
@@ -289,14 +276,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     smart {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -328,14 +314,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
+                justStart().exec.logging(this) {
                     smart {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -360,15 +345,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
-                    processing { async }
+                countDownAndStart().exec.async.logging(this) {
                     smart {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -402,15 +385,13 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
-                    processing { async }
+                justStart().exec.async.logging(this) {
                     smart {
                         caption { "caption" }
                         contentFormatter { fromScratch { random } }
                         decorationFormatter { fromScratch { brightYellow } }
                         border = SOLID
                     }
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -440,9 +421,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     summary("caption")
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -455,9 +435,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
+                justStart().exec.logging(this) {
                     summary("caption")
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -474,10 +453,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
-                    processing { async }
+                countDownAndStart().exec.async.logging(this) {
                     summary("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -504,10 +481,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
-                    processing { async }
+                justStart().exec.async.logging(this) {
                     summary("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -530,9 +505,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     noDetails("caption")
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -545,9 +519,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
+                justStart().exec.logging(this) {
                     noDetails("caption")
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -564,10 +537,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().execute {
-                    processing { async }
+                countDownAndStart().exec.async.logging(this) {
                     noDetails("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -581,10 +552,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should format immediate result`() {
-                justStart().execute {
-                    processing { async }
+                justStart().exec.async.logging(this) {
                     noDetails("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
@@ -606,18 +575,16 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should be empty if no error occurs`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     errorsOnly("caption")
-                    null
                 }
                 expectThatLogged().isEmpty()
             }
 
             @Test
             fun InMemoryLogger.`should display ERR`() {
-                countDownAndBoom().execute {
+                countDownAndBoom().exec.logging(this) {
                     errorsOnly("caption")
-                    null
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
@@ -636,9 +603,8 @@ class LoggingOptionsTest {
             @Test
             fun InMemoryLogger.`should display failed`() {
                 expectThat(
-                    countDownAndBoom().execute {
+                    countDownAndBoom().exec.logging(this) {
                         errorsOnly("caption")
-                        null
                     })
                     .hasState<Failure>()
                 expectThatLogged().matchesCurlyPattern("""
@@ -657,9 +623,8 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should hide regular result`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.logging(this) {
                     errorsOnly("caption")
-                    null
                 }
                 expectThatLogged().isEmpty()
             }
@@ -670,20 +635,16 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should be empty if no error occurs`() {
-                countDownAndStart().execute {
-                    processing { async }
+                countDownAndStart().exec.async.logging(this) {
                     errorsOnly("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().isEmpty()
             }
 
             @Test
             fun InMemoryLogger.`should display ERR`() {
-                countDownAndBoom().execute {
-                    processing { async }
+                countDownAndBoom().exec.async.logging(this) {
                     errorsOnly("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
@@ -701,10 +662,8 @@ class LoggingOptionsTest {
             @Test
             fun InMemoryLogger.`should display failed`() {
                 expectThat(
-                    countDownAndBoom().execute {
-                        processing { async }
+                    countDownAndBoom().exec.async.logging(this) {
                         errorsOnly("caption")
-                        null
                     }.waitFor())
                     .isA<Failure>()
                 expectThatLogged().matchesCurlyPattern("""
@@ -722,19 +681,16 @@ class LoggingOptionsTest {
 
             @Test
             fun InMemoryLogger.`should hide regular result`() {
-                countDownAndStart().execute {
+                countDownAndStart().exec.async.logging(this) {
                     errorsOnly("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().isEmpty()
             }
 
             @Test
             fun InMemoryLogger.`should hide incomplete`() {
-                justStart().execute {
-                    processing { async }
+                justStart().exec.async.logging(this) {
                     errorsOnly("caption")
-                    null
                 }.waitFor()
                 expectThatLogged().isEmpty()
             }

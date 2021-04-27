@@ -187,6 +187,7 @@ public expect val BigDecimal.absoluteValue: BigDecimal
 /**
  * Raises this value to the power [n].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect fun BigDecimal.pow(n: Int): BigDecimal
 
 /**

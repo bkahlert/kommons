@@ -4,13 +4,19 @@ import koodies.builder.BuilderTemplate
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
+import koodies.concurrent.process.IO
 import koodies.logging.FixedWidthRenderingLogger.Border
+import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
 import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLoggingOptionsContext
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
 import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics.Symbols
+import koodies.text.TruncationStrategy.MIDDLE
+import koodies.text.truncate
 
 /**
  * Options that define how a [RenderingLogger] renders log messages.
@@ -143,6 +149,64 @@ public sealed class LoggingOptions {
             public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
             public val compact: SkippableCapturingBuilderInterface<CompactLoggingOptionsContext.() -> Unit, CompactLoggingOptions?> by CompactLoggingOptions
             public val smart: SkippableCapturingBuilderInterface<SmartLoggingOptionsContext.() -> Unit, SmartLoggingOptions?> by SmartLoggingOptions
+
+            /**
+             * Formats the output in a compact fashion with each message generically shortened using the following rules:
+             * - remove meta messages
+             * - messages containing a colon (e.g. `first: second`) are reduced to the part after the colon (e.g. `second`)
+             * - if the reduced message is still longer than the given [maxMessageLength], the message is truncated
+             *
+             * Example output: `Pulling busybox ➜ latest ➜ library/busybox ➜ sha256:ce2…af390a2ac ➜ busybox:latest ➜ latest ✔`
+             */
+            public fun summary(caption: String, maxMessageLength: Int = 20) {
+                compact {
+                    this.caption by caption
+                    contentFormatter {
+                        Formatter {
+                            it.takeUnless { it is IO.META }?.ansiRemoved?.run {
+                                val step = substringAfter(":").trim().run {
+                                    takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
+                                }
+                                Symbols.PointNext + " $step"
+                            } ?: ""
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Formats the output by hiding all details, that is, only the caption and an eventual occurring exception is displayed.
+             *
+             * Example output: `Listing images ✔`
+             */
+            public fun noDetails(caption: String) {
+                compact {
+                    this.caption by caption
+                    contentFormatter by { "" }
+                }
+            }
+
+            /**
+             * Filters all IO but errors.
+             *
+             * Example output: `ϟ Process 64207 terminated with exit code 255.`
+             */
+            public fun errorsOnly(caption: String) {
+                val none = object : ReturnValue {
+                    override val successful: Boolean = true
+                    override val symbol: String = ""
+                    override val textRepresentation: String? = null
+                }
+                block {
+                    this.caption { "" }
+                    border = NONE
+                    contentFormatter by Formatter {
+                        (it as? IO.ERR)?.let { err -> "$caption: $err" } ?: ""
+                    }
+                    decorationFormatter by Formatter { "" }
+                    returnValueFormatter { { if (it.successful == false) it else none } }
+                }
+            }
         }
 
         override fun BuildContext.build(): LoggingOptions = ::LoggingOptionsContext {

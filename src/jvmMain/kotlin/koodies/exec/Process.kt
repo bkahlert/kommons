@@ -2,6 +2,7 @@ package koodies.exec
 
 import koodies.Exceptions.ISE
 import koodies.concurrent.process.IO
+import koodies.concurrent.process.IOSequence
 import koodies.exception.toCompactString
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ProcessState.Prepared
@@ -88,7 +89,7 @@ public interface Process : ReturnValue {
         public open class Terminated(
             public val pid: Long,
             public val exitCode: Int,
-            public val io: List<IO>,
+            public val io: IOSequence<IO>,
             status: String = "Process $pid terminated with exit code $exitCode.",
         ) : ProcessState(status, exitCode == 0)
     }
@@ -97,7 +98,7 @@ public interface Process : ReturnValue {
 
     public val exitState: ExitState?
 
-    public sealed class ExitState(exitCode: Int, pid: Long, io: List<IO>, status: String) :
+    public sealed class ExitState(exitCode: Int, pid: Long, io: IOSequence<IO>, status: String) :
         Terminated(pid, exitCode, io, status), ReturnValue {
 
         public fun interface ExitStateHandler {
@@ -106,7 +107,7 @@ public interface Process : ReturnValue {
 
         public open class Success(
             pid: Long,
-            io: List<IO>,
+            io: IOSequence<IO>,
             status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
         ) : ExitState(0, pid, io, status)
 
@@ -115,7 +116,7 @@ public interface Process : ReturnValue {
             pid: Long,
             private val relevantFiles: List<URI> = emptyList(),
             public val dump: String? = null,
-            io: List<IO> = emptyList(),
+            io: IOSequence<IO> = IOSequence.EMPTY,
             status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
         ) : ExitState(exitCode, pid, io, status) {
             override val textRepresentation: String? get() = toString()
@@ -137,7 +138,7 @@ public interface Process : ReturnValue {
             exitCode: Int,
             pid: Long,
             public val dump: String,
-            io: List<IO>,
+            io: IOSequence<IO>,
             status: String = "Process ${pid.formattedAs.input} fatally failed with ${exception.toCompactString()}",
         ) : ExitState(exitCode, pid, io, status)
     }

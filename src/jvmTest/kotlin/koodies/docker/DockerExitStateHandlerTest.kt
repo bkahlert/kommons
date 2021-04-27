@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.collections.to
 import koodies.concurrent.process.IO
+import koodies.concurrent.process.IOSequence
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotKillContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotRemoveRunningContainer
@@ -54,7 +55,7 @@ public inline fun <reified T : Any, V> associateSealedSubclasses(valueSelector: 
 @Execution(SAME_THREAD)
 class DockerExitStateHandlerTest {
 
-    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, listOf(IO.ERR typed errorMessage))
+    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(sequenceOf(IO.ERR typed errorMessage)))
 
     @TestFactory
     fun `should match bad request error message`() = listOf(

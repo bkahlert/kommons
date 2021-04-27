@@ -4,7 +4,6 @@ import koodies.exec.CommandLine
 import koodies.io.path.asPath
 import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
 import koodies.text.containsEscapeSequences
@@ -183,42 +182,52 @@ class IOTest {
 
         @Test
         fun `should filter meta`() {
-            expectThat(IO_LIST.meta).containsExactly(IO_LIST.subList(0, 5))
+            expectThat(IO_LIST.meta.toList()).containsExactly(IO_LIST.toList().subList(0, 5))
         }
 
         @Test
         fun `should filter in`() {
-            expectThat(IO_LIST.input).containsExactly(IO_LIST.subList(5, 6))
+            expectThat(IO_LIST.input.toList()).containsExactly(IO_LIST.toList().subList(5, 6))
         }
 
         @Test
         fun `should filter out`() {
-            expectThat(IO_LIST.out).containsExactly(IO_LIST.subList(6, 7))
+            expectThat(IO_LIST.out.toList()).containsExactly(IO_LIST.toList().subList(6, 7))
         }
 
         @Test
         fun `should filter err`() {
-            expectThat(IO_LIST.err).containsExactly(IO_LIST.subList(7, 8))
+            expectThat(IO_LIST.err.toList()).containsExactly(IO_LIST.toList().subList(7, 8))
         }
 
         @Test
-        fun `should keep ansi escape codes when merging`() {
-            expectThat(IO_LIST.merged).containsEscapeSequences()
+        fun `should filter out and err`() {
+            expectThat(IO_LIST.outAndErr.toList()).containsExactly(IO_LIST.toList().subList(6, 8))
+        }
+
+        @Test
+        fun `should remove ansi escape codes`() {
+            expectThat(IO_LIST.ansiRemoved).not { containsEscapeSequences() }
+        }
+
+        @Test
+        fun `should keep ansi escape codes`() {
+            expectThat(IO_LIST.ansiKept).containsEscapeSequences()
         }
 
         @Test
         fun `should merge multiple types`() {
-            expectThat(IO_LIST.drop(2).take(2).merged.ansiRemoved).isEqualTo("text${LF}dump")
+            expectThat(IO_LIST.drop(2).take(2).merge<IO>(removeEscapeSequences = true)).isEqualTo("text${LF}dump")
         }
 
         @Test
         fun `should merge single type`() {
-            expectThat(IO_LIST.out.merged.ansiRemoved).isEqualTo("out")
+            expectThat(IO_LIST.out.ansiRemoved).isEqualTo("out")
         }
     }
 
     companion object {
-        val IO_LIST = listOf(
+        val IO_LIST: IOSequence<IO> = IOSequence(sequenceOf(
             IO.META.STARTING(CommandLine("command", "arg")),
             IO.META typed "file".asPath(),
             IO.META.TEXT("text"),
@@ -227,6 +236,6 @@ class IOTest {
             IO.INPUT typed "in",
             IO.OUT typed "out",
             IO.ERR(RuntimeException("err")),
-        )
+        ))
     }
 }

@@ -71,6 +71,7 @@ public expect fun UInt.toBigInteger(): BigInteger
 /**
  * Returns the value of this [BigDecimal] number as a [BigInteger].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect fun BigDecimal.toBigInteger(): BigInteger
 
 /**
@@ -82,6 +83,7 @@ public expect fun CharSequence.toBigInteger(radix: Int = 10): BigInteger
 /**
  * Returns the value of this [BigInteger] as a [ByteArray].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect fun BigInteger.toByteArray(): ByteArray
 
 /**
@@ -102,6 +104,7 @@ public expect fun UByteArray.toBigInteger(): BigInteger
 /**
  * Returns a string representation of this [BigInteger] value in the specified [radix].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect fun BigInteger.toString(radix: Int = 10): String
 
 /**
@@ -142,6 +145,7 @@ public expect val BigInteger.absoluteValue: BigInteger
 /**
  * Raises this value to the power [n].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect fun BigInteger.pow(n: Int): BigInteger
 
 /**

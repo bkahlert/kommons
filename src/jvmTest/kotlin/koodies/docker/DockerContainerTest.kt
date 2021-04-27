@@ -126,6 +126,7 @@ class DockerContainerTest {
         @Nested
         inner class PathBased {
 
+            @Suppress("SpellCheckingInspection")
             @Test
             fun `should sanitize illegal path`() {
                 val path = Path.of("~file202")
@@ -135,27 +136,27 @@ class DockerContainerTest {
 
             @Test
             fun `should sanitize legal path`() {
-                val path = Path.of("2020-08-20-raspios-buster-armhf-lite.img")
-                expectThat(DockerContainer.from(path, randomSuffix = false)) { name.toStringIsEqualTo("2020-08-20-raspios-buster-armhf-lite.img") }
-                expectThat(DockerContainer { path.sanitized }) { name.toStringIsEqualTo("2020-08-20-raspios-buster-armhf-lite.img") }
+                val path = Path.of("2020-08-20-img-lite.img")
+                expectThat(DockerContainer.from(path, randomSuffix = false)) { name.toStringIsEqualTo("2020-08-20-img-lite.img") }
+                expectThat(DockerContainer { path.sanitized }) { name.toStringIsEqualTo("2020-08-20-img-lite.img") }
             }
 
             @Test
             fun `should only use filename`() {
-                val path = Path.of("dir/2020-08-20-raspios-buster-armhf-lite.img")
+                val path = Path.of("dir/2020-08-20-img-lite.img")
                 expectThat(DockerContainer.from(path)) { name.not { contains("dir") } }
                 expectThat(DockerContainer { path.withRandomSuffix }) { name.not { contains("dir") } }
             }
 
             @Test
             fun `should append random suffix by default`() {
-                expectThat(DockerContainer.from(Path.of("2020-08-20-raspios-buster-armhf-lite.img"))) { name.endsWithRandomSuffix() }
-                expectThat(DockerContainer { Path.of("2020-08-20-raspios-buster-armhf-lite.img").withRandomSuffix }) { name.endsWithRandomSuffix() }
+                expectThat(DockerContainer.from(Path.of("2020-08-20-img-lite.img"))) { name.endsWithRandomSuffix() }
+                expectThat(DockerContainer { Path.of("2020-08-20-img-lite.img").withRandomSuffix }) { name.endsWithRandomSuffix() }
             }
 
             @TestFactory
             fun `should not append random suffix if specified`() {
-                expectThat(DockerContainer.from(Path.of("2020-08-20-raspios-buster-armhf-lite.img"), randomSuffix = false)) {
+                expectThat(DockerContainer.from(Path.of("2020-08-20-img-lite.img"), randomSuffix = false)) {
                     name.not { endsWithRandomSuffix() }
                 }
             }
@@ -438,18 +439,18 @@ class DockerContainerTest {
     }
 }
 
-public inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<DockerContainer> =
+inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<DockerContainer> =
     compose("status") {
         get { state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
-public inline fun <reified T : State> Builder<DockerContainer>.hasState(
+inline fun <reified T : State> Builder<DockerContainer>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<DockerContainer> =
     compose("status") {
         get { state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
-public val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }
+val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }
 
-public val Builder<Exited>.exitCode get(): Builder<Int?> = get("exit code") { exitCode }
+val Builder<Exited>.exitCode get(): Builder<Int?> = get("exit code") { exitCode }

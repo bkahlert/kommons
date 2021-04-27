@@ -7,7 +7,6 @@ import koodies.concurrent.process.output
 import koodies.debug.trace
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options
-import koodies.exec.execute
 import koodies.test.BuilderFixture
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
@@ -40,7 +39,7 @@ class DockerSearchCommandLineTest {
             }
             term { "busybox" }
         }
-        val o = with(dockerSearchCommandLine) { execute { null }.output() }
+        val o = with(dockerSearchCommandLine) { exec().io.ansiRemoved }
         o.lines().map { repo ->
             val size = 100
             val page = 1

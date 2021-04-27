@@ -15,7 +15,6 @@ import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.O
 import koodies.exec.CommandLine
 import koodies.exec.Executable
 import koodies.exec.Execution
-import koodies.exec.execute
 import koodies.logging.RenderingLogger
 import koodies.logging.runLogging
 import koodies.text.Semantics.formattedAs
@@ -24,7 +23,7 @@ import koodies.toBaseName
 
 /**
  * Helper to collect an optional [RenderingLogger], build [DockerRunCommandLineExecutionOptions] and an optional [Processor]
- * to [execute] the given [DockerRunCommandLine].
+ * to [exec] the given [DockerRunCommandLine].
  */
 public class DockerizedExecution(
     private val parentLogger: RenderingLogger?,

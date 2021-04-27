@@ -1,13 +1,12 @@
 package koodies.docker
 
 import koodies.builder.StatelessBuilder
-import koodies.concurrent.process.Processor
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
 import koodies.exec.CommandLine
-import koodies.exec.Executable
+import koodies.exec.DockerExecutor
+import koodies.exec.Executor
 import koodies.exec.Process.ExitState
-import koodies.exec.execute
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
@@ -78,15 +77,12 @@ public open class DockerImage(
      * Lists locally available instances this image.
      */
     public fun list(ignoreIntermediateImages: Boolean = true): List<DockerImage> =
-        with(BACKGROUND) {
-            DockerImageListCommandLine {
-                options { all by !ignoreIntermediateImages }
-                image by this@DockerImage
-            }.execute {
-                summary("Listing ${this@DockerImage.formattedAs.input} images")
-                null
-            }.parseImages()
-        }
+        DockerImageListCommandLine {
+            options { all by !ignoreIntermediateImages }
+            image by this@DockerImage
+        }.exec.logging(BACKGROUND) {
+            summary("Listing ${this@DockerImage.formattedAs.input} images")
+        }.parseImages()
 
     /**
      * Checks if this image is pulled.
@@ -99,9 +95,8 @@ public open class DockerImage(
     public val RenderingLogger.isPulled: Boolean
         get() = DockerImageListCommandLine {
             image by this@DockerImage
-        }.execute {
+        }.exec.logging(this) {
             summary("Checking if ${this@DockerImage.formattedAs.input} is pulled")
-            null
         }.parseImages().isNotEmpty()
 
     /**
@@ -111,15 +106,12 @@ public open class DockerImage(
      * Enabled [allTags] to download all tagged images in the repository.
      */
     public fun pull(allTags: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
-        with(logger) {
-            DockerImagePullCommandLine {
-                options { this.allTags by allTags }
-                image by this@DockerImage
-            }.execute {
-                summary("Pulling ${this@DockerImage.formattedAs.input}")
-                null
-            }.waitFor()
-        }
+        DockerImagePullCommandLine {
+            options { this.allTags by allTags }
+            image by this@DockerImage
+        }.exec.logging(logger) {
+            summary("Pulling ${this@DockerImage.formattedAs.input}")
+        }.waitFor()
 
     /**
      * Removes this image from the locally stored images.
@@ -127,51 +119,18 @@ public open class DockerImage(
      * If [force] is specified, a force removal is triggered.
      */
     public fun remove(force: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
-        with(logger) {
-            DockerImageRemoveCommandLine {
-                options { this.force by force }
-                image by this@DockerImage
-            }.execute {
-                noDetails("Removing ${this@DockerImage.formattedAs.input}")
-                null
-            }.waitFor()
-        }
+        DockerImageRemoveCommandLine {
+            options { this.force by force }
+            image by this@DockerImage
+        }.exec.logging(logger) {
+            noDetails("Removing ${this@DockerImage.formattedAs.input}")
+        }.waitFor()
 
     /**
      * Runs `this` [CommandLine] using this image and the
      * [DockerRunCommandLine.Options] built with the given [OptionsContext] [init].
      */
-    public fun CommandLine.execute(
-        logger: RenderingLogger? = BACKGROUND,
-        init: (OptionsContext.() -> Processor<DockerProcess>?)? = null,
-    ): DockerProcess {
-        return DockerizedExecution(logger, this@DockerImage, this).executeWithOptionalProcessor(init)
-    }
-
-    /**
-     * Runs `this` [CommandLine] using the
-     * given [DockerImage] and the
-     * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
-     * and prints the [DockerCommandLine]'s execution to [System.out].
-     */
-    public fun Executable.execute(
-        logger: RenderingLogger? = BACKGROUND,
-        init: (OptionsContext.() -> Processor<DockerProcess>?)? = null,
-    ): DockerProcess {
-        return DockerizedExecution(logger, this@DockerImage, toCommandLine()).executeWithOptionalProcessor(init)
-    }
-
-    /**
-     * Runs `this` [CommandLine] using the
-     * given [DockerImage] and the
-     * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
-     * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
-     */
-    public val RenderingLogger?.execute: Executable.(DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
-        get() = { image, optionsInit ->
-            DockerizedExecution(this@execute, image, this.toCommandLine()).executeWithOptionalProcessor(optionsInit)
-        }
-
+    public val Executor.dockerized: DockerExecutor get() = DockerExecutor(this, this@DockerImage)
 
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {
@@ -268,14 +227,11 @@ public open class DockerImage(
          * Lists locally available instances this image.
          */
         public fun list(ignoreIntermediateImages: Boolean = true, logger: FixedWidthRenderingLogger = BACKGROUND): List<DockerImage> =
-            with(logger) {
-                DockerImageListCommandLine {
-                    options { all by !ignoreIntermediateImages }
-                }.execute {
-                    noDetails("Listing images")
-                    null
-                }.parseImages()
-            }
+            DockerImageListCommandLine {
+                options { all by !ignoreIntermediateImages }
+            }.exec.logging(logger) {
+                noDetails("Listing images")
+            }.parseImages()
     }
 }
 

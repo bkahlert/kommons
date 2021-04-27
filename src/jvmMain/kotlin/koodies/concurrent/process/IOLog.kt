@@ -101,22 +101,34 @@ public class IOLog : Sequence<IO> {
     }
 }
 
+/**
+ * Utility that assembles [IO] by continuously accumulating bytes
+ * and that calls the specified [lineCompletedCallback] every time
+ * a string terminated by a [LineSeparators] was re-constructed.
+ *
+ * Bytes are provided using [plus].
+ */
 public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Unit) {
 
     private val lock = ReentrantLock()
 
     /**
-     * Contains not yet fully logged I/O, that is, data not yet terminated by one of the [LineSeparators].
+     * Contains not yet fully assembled [IO], that is, not yet terminated
+     * by one of the [LineSeparators].
      */
     private val incomplete: ByteArrayOutputStream = ByteArrayOutputStream()
 
+    /**
+     * Amount of [IO] bytes not yet fully assembled, that is, not yet terminated
+     * by one of the [LineSeparators].
+     */
     public val incompleteBytes: Size get() = incomplete.size().bytes
 
     /**
      * Takes the given [bytes] and attempts to re-construct complete text lines
      * based on already stored bytes.
      */
-    public operator fun plus(bytes: ByteArray): Unit {
+    public operator fun plus(bytes: ByteArray) {
         lock.withLock {
             incomplete.write(bytes)
             while (true) {
@@ -140,7 +152,12 @@ public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Uni
         return readCompleteLines
     }
 
-    public fun flush(): Unit {
+    /**
+     * Clears currently [incomplete] [IO] by invoking [lineCompletedCallback]
+     * (and thus pretending the provided string was originally terminated
+     * by one of the [LineSeparators]).
+     */
+    public fun flush() {
         lock.withLock {
             val remainder = incomplete.toString(Charsets.UTF_8)
             incomplete.reset()
@@ -161,15 +178,6 @@ public inline fun <reified T : IO> Sequence<IO>.merge(removeEscapeSequences: Boo
     filterIsInstance<T>().joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
 
 /**
- * Filters this [IO] sequence using the given filter.
- *
- * By default [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
- * Set [removeEscapeSequences] to `false` to keep escapes codes.
- */
-public inline fun <reified T : IO> Iterable<T>.merge(removeEscapeSequences: Boolean = true, noinline filter: (T) -> Boolean = { true }): String =
-    filter(filter).joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
-
-/**
  * Convenience method to get the output of a process.
  *
  * - If the process was not started, it will be started.
@@ -178,6 +186,7 @@ public inline fun <reified T : IO> Iterable<T>.merge(removeEscapeSequences: Bool
  *
  * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
  */
+@Deprecated("use io.out")
 public fun Exec.output(): String = run {
     process({ sync }, Processors.noopProcessor())
     io.merge<IO.OUT>()
@@ -194,19 +203,6 @@ public fun Exec.output(): String = run {
  *
  * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
  */
+@Deprecated("use io.out")
 public fun <T> Exec.output(transform: String.() -> T?): List<T> =
     output().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }
-
-/**
- * Convenience method to get the errors of a process.
- */
-public fun Exec.errors(): String = run {
-    process({ sync }, Processors.noopProcessor())
-    io.merge<IO.ERR>()
-}
-
-/**
- * Convenience method to get the errors of a process.
- */
-public fun <T> Exec.errors(transform: String.() -> T?): List<T> =
-    errors().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }

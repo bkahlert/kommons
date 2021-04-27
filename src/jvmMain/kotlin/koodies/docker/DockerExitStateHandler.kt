@@ -2,16 +2,14 @@ package koodies.docker
 
 import koodies.collections.head
 import koodies.collections.tail
-import koodies.concurrent.process.IO.ERR
-import koodies.concurrent.process.IO.OUT
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.Process.ProcessState.Terminated
 import koodies.concurrent.process.err
-import koodies.concurrent.process.merge
+import koodies.concurrent.process.outAndErr
 import koodies.debug.asEmoji
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.UnknownError
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.ExitStateHandler
+import koodies.exec.Process.ProcessState.Terminated
 import koodies.lowerSentenceCaseName
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
@@ -31,7 +29,7 @@ public object DockerExitStateHandler : ExitStateHandler {
     override fun handle(terminated: Terminated): ExitState = kotlin.runCatching {
         if (terminated.exitCode == 0) handleSuccess(terminated)
         else handleFailure(terminated)
-    }.getOrElse { cause -> throw ParseException(terminated.io.merge { it is OUT || it is ERR }, cause) }
+    }.getOrElse { cause -> throw ParseException(terminated.io.outAndErr.ansiKept, cause) }
 
     private fun handleSuccess(terminated: Terminated) = Success(terminated, "🐳 💭 ${true.asEmoji}")
 

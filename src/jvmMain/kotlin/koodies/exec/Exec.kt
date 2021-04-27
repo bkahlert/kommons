@@ -4,7 +4,7 @@ import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.META.DUMP
-import koodies.concurrent.process.merge
+import koodies.concurrent.process.IOSequence
 import koodies.exception.dump
 import koodies.exec.Process.ExitState
 import koodies.text.LineSeparators.LF
@@ -26,14 +26,14 @@ public interface Exec : Process {
          */
         public fun Exec.createDump(vararg errorMessage: String): String {
             metaStream.emit(META typed errorMessage.joinToString(LF))
-            return workingDirectory.dump(null) { io.merge<IO>(removeEscapeSequences = false) }.also { dump -> metaStream.emit(DUMP(dump)) }
+            return workingDirectory.dump(null) { io.ansiKept }.also { dump -> metaStream.emit(DUMP(dump)) }
         }
     }
 
     /**
      * Contains the so far logged I/O of this process.
      */
-    public val io: Sequence<IO>
+    public val io: IOSequence<IO>
 
     /**
      * The working directory of this process.

@@ -183,7 +183,8 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
     override var exitState: ExitState? = null
         protected set
 
-    override val io: IOLog by lazy { IOLog() }
+    private val ioLog: IOLog by lazy { IOLog() }
+    override val io: IOSequence<IO> get() = IOSequence(ioLog)
     override val metaStream: MetaStream = MetaStream()
     override val inputStream: OutputStream by lazy {
         TeeOutputStream(
@@ -209,7 +210,7 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
         val p = start()
         preTerminationCallbacks.runCatching { p }.exceptionOrNull()
         processMock.onExit().thenApply {
-            Success(12345L, io.toList()).also { state = it }
+            Success(12345L, io).also { state = it }
                 .also { term -> postTerminationCallbacks.forEach { p.it(term) } }
         }
     }
@@ -240,14 +241,14 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
             }
         public val SUCCEEDED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.SUCCEEDED_PROCESS) {
-                override var state: ProcessState = Success(12345L, listOf(IO.OUT typed "line 1", IO.OUT typed "line 2"))
+                override var state: ProcessState = Success(12345L, IOSequence(sequenceOf(IO.OUT typed "line 1", IO.OUT typed "line 2")))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)
                 override val successful: Boolean = true
             }
         public val FAILED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.FAILED_PROCESS) {
                 override var state: ProcessState =
-                    Failure(42, 12345L, emptyList(), null, listOf(ERR typed "error 1", ERR typed "error 2"))
+                    Failure(42, 12345L, emptyList(), null, IOSequence(sequenceOf(ERR typed "error 1", ERR typed "error 2")))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)
                 override val successful: Boolean? = false
             }

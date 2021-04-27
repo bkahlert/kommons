@@ -2,13 +2,11 @@ package koodies.exec
 
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
+import koodies.concurrent.process.out
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
-import koodies.exec.ExitStateHandlerTest.Companion.expectThatProcessAppliesExitStateHandler
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.Process.ExitState.Success
-import koodies.exec.Process.ProcessState.Terminated
 import koodies.io.path.Locations
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
@@ -16,6 +14,7 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.logging.expectLogged
+import koodies.shell.ShellScript
 import koodies.test.DynamicTestsWithSubjectBuilder
 import koodies.test.Smoke
 import koodies.test.output.TestLogger
@@ -44,8 +43,37 @@ import strikt.assertions.isTrue
 class ExecutorTest {
 
     private val succeedingExecutable = CommandLine(mapOf("TEST_PROP" to "TEST_VALUE"), Locations.Temp, "printenv")
-    private val failingExecutable = CommandLine("exit", "42")
-    
+    private val failingExecutable = CommandLine(Locations.Temp, "exit", "42")
+
+    @Smoke @Nested
+    inner class Executables {
+
+        @Test
+        fun `should exec command line`() {
+            expectThat(CommandLine(Locations.Temp, "echo", "Hello, Command Line!").exec().io.out.ansiRemoved)
+                .isEqualTo("Hello, Command Line!")
+        }
+
+        @Test
+        fun `should exec shell script`() {
+            expectThat(ShellScript { !"echo 'Hello, Shell Script!'" }.exec().io.out.ansiRemoved)
+                .isEqualTo("Hello, Shell Script!")
+        }
+
+
+        @Test
+        fun `should exec command line dockerized`() {
+            expectThat(CommandLine(Locations.Temp, "echo", "Hello, Docker Command Line!").exec().io.out.ansiRemoved)
+                .isEqualTo("Hello, Docker Command Line!")
+        }
+
+        @Test
+        fun `should exec shell script dockerized`() {
+            expectThat(ShellScript { !"echo 'Hello, Docker Shell Script!'" }.exec().io.out.ansiRemoved)
+                .isEqualTo("Hello, Docker Shell Script!")
+        }
+    }
+
     @Nested
     inner class ExecSync {
 
@@ -60,7 +88,6 @@ class ExecutorTest {
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesExitStateHandler { succeedingExecutable.exec(exitStateHandler = it) }
                 expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec(execTerminationCallback = it) }
             }
 
@@ -72,7 +99,6 @@ class ExecutorTest {
                 expectThatProcess { fails() }
                 expectThatProcess { logsFailedIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesExitStateHandler { failingExecutable.exec(exitStateHandler = it) }
                 expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec(execTerminationCallback = it) }
             }
         }
@@ -88,7 +114,6 @@ class ExecutorTest {
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesExitStateHandler { succeedingExecutable.exec.logging(exitStateHandler = it) }
                 expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec.logging(execTerminationCallback = it) }
             }
 
@@ -100,7 +125,6 @@ class ExecutorTest {
                 expectThatProcess { fails() }
                 expectThatProcess { logsFailedIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesExitStateHandler { failingExecutable.exec.logging(exitStateHandler = it) }
                 expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec.logging(execTerminationCallback = it) }
             }
 
@@ -142,7 +166,6 @@ class ExecutorTest {
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesExitStateHandler { succeedingExecutable.exec.processing(exitStateHandler = it) {} }
                 expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec.processing(execTerminationCallback = it) {} }
             }
 
@@ -154,7 +177,6 @@ class ExecutorTest {
                 expectThatProcess { fails() }
                 expectThatProcess { logsFailedIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesExitStateHandler { failingExecutable.exec.processing(exitStateHandler = it) {} }
                 expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec.processing(execTerminationCallback = it) {} }
             }
 
@@ -214,7 +236,6 @@ class ExecutorTest {
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesExitStateHandler { succeedingExecutable.exec.async(exitStateHandler = it).apply { waitFor() } }
                 expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec.async(execTerminationCallback = it).apply { waitFor() } }
             }
 
@@ -226,7 +247,6 @@ class ExecutorTest {
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.logsFailedIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesExitStateHandler { failingExecutable.exec.async(exitStateHandler = it).apply { waitFor() } }
                 expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec.async(execTerminationCallback = it).apply { waitFor() } }
             }
         }
@@ -242,7 +262,6 @@ class ExecutorTest {
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesExitStateHandler { succeedingExecutable.exec.async.logging(exitStateHandler = it).apply { waitFor() } }
                 expectThatProcessAppliesTerminationCallback(null) {
                     succeedingExecutable.exec.async.logging(execTerminationCallback = it).apply { waitFor() }
                 }
@@ -256,7 +275,6 @@ class ExecutorTest {
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.logsFailedIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesExitStateHandler { failingExecutable.exec.async.logging(exitStateHandler = it).apply { waitFor() } }
                 expectThatProcessAppliesTerminationCallback(null) {
                     failingExecutable.exec.async.logging(execTerminationCallback = it).apply { waitFor() }
                 }
@@ -300,7 +318,6 @@ class ExecutorTest {
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesExitStateHandler { succeedingExecutable.exec.async.processing(exitStateHandler = it) {}.apply { waitFor() } }
                 expectThatProcessAppliesTerminationCallback(null) {
                     succeedingExecutable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
                 }
@@ -314,7 +331,6 @@ class ExecutorTest {
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.logsFailedIO() }
 //                    expectThatProcess { runsAsynchronously() } // too fast
-                expectThatProcessAppliesExitStateHandler { failingExecutable.exec.async.processing(exitStateHandler = it) {}.apply { waitFor() } }
                 expectThatProcessAppliesTerminationCallback(null) {
                     failingExecutable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
                 }
@@ -366,21 +382,6 @@ class ExecutorTest {
             CommandLine("cat").exec.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { io -> processed.add(io) }
                 .apply { waitFor() }
             expectThat(processed).contains(IO.OUT typed "Hello Cat!")
-        }
-    }
-}
-
-private class ExitStateHandlerTest : ExitStateHandler {
-    override fun handle(terminated: Terminated): ExitState = Success(123L, terminated.io)
-
-    companion object {
-        fun DynamicTestsWithSubjectBuilder<*>.expectThatProcessAppliesExitStateHandler(
-            exec: (ExitStateHandler) -> Exec,
-        ) {
-            val exitStateHandler = ExitStateHandlerTest()
-            val exitState = exec(exitStateHandler).exitState
-            expecting { exitState } that { isA<Success>() }
-            expecting { exitState } that { isNotNull().pid.isEqualTo(123L) }
         }
     }
 }

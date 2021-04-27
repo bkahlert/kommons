@@ -2,11 +2,10 @@ package koodies.docker
 
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
+import koodies.concurrent.process.IO.OUT
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.merged
-import koodies.concurrent.process.out
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
@@ -23,8 +22,6 @@ import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.withTempDir
-import koodies.text.ANSI.ansiRemoved
-import koodies.text.containsAll
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
 import koodies.times
@@ -59,7 +56,7 @@ class DockerProcessTest {
     fun `should start docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dockerProcess = createProcess(uniqueId, "echo", "test")
         dockerProcess.waitForOutputOrFail(
-            "Process terminated without logging: ${dockerProcess.io.merged}.",
+            "Process terminated without logging: ${dockerProcess.io.ansiRemoved}.",
             "Did not log \"test\" output within 8 seconds.") {
             any { it is IO.OUT && it.unformatted == "test" }
         }
@@ -72,7 +69,7 @@ class DockerProcessTest {
         fun `should start docker and pass arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dockerProcess = createProcess(uniqueId, "echo", "test")
             dockerProcess.waitForOutputOrFail(
-                "Process terminated without logging: ${dockerProcess.io.merged}.",
+                "Process terminated without logging: ${dockerProcess.io.ansiRemoved}.",
                 "Did not log \"test\" output within 8 seconds.") {
                 any { it is IO.OUT && it.unformatted == "test" }
             }
@@ -92,7 +89,7 @@ class DockerProcessTest {
             }
 
             dockerProcess.waitForOutputOrFail("Did not log self-induced \"test\" output within 8 seconds.") {
-                out.merged.ansiRemoved.containsAll("test 1", "test 2")
+                filterIsInstance<OUT>().contains(OUT typed "test 1") and contains(OUT typed "test 2")
             }
         }
 
@@ -101,7 +98,7 @@ class DockerProcessTest {
             val dockerProcess = createProcess(uniqueId, "echo", "Hello\nWorld")
 
             dockerProcess.waitForOutputOrFail("Did not log any output within 8 seconds.") {
-                out.merged.ansiRemoved.containsAll("Hello", "World")
+                filterIsInstance<OUT>().contains(OUT typed "Hello") and contains(OUT typed "World")
             }
         }
 
@@ -120,12 +117,11 @@ class DockerProcessTest {
             }
 
             dockerProcess.waitForOutputOrFail("Did not log self-produced \"test\" output within 8 seconds.") {
-                out.merged.ansiRemoved.containsAll(
-                    IO.OUT typed "test 1",
-                    IO.OUT typed "test 2",
-                    IO.OUT typed "test 4",
-                    IO.OUT typed "test 8",
-                )
+                filterIsInstance<OUT>()
+                    .contains(OUT typed "test 1")
+                    .and(contains(OUT typed "test 2"))
+                    .and(contains(OUT typed "test 4"))
+                    .and(contains(OUT typed "test 8"))
             }
         }
 
@@ -208,7 +204,7 @@ class DockerProcessTest {
             val dockerProcess = createProcess(uniqueId, "echo", "was alive")
 
             dockerProcess.apply {
-                expectThat(io.merged.ansiRemoved).contains("was alive")
+                expectThat(io.ansiRemoved).contains("was alive")
                 expectThat(container).hasState<DockerContainer.State.NotExistent>()
             }
         }

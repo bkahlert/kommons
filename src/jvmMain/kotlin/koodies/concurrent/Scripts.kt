@@ -3,7 +3,6 @@ package koodies.concurrent
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.output
 import koodies.exec.Exec
-import koodies.exec.execute
 import koodies.io.path.Locations
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
@@ -17,10 +16,11 @@ import java.nio.file.Path
  * The output of this script will be logged by the specified [logger]
  * which prints all [IO] to the console if `null`.
  *
- * Though [execute] is recommended, for simple IO processing, [output] can be used.
+ * Though [exec] is recommended, for simple IO processing, [output] can be used.
  */
+@Deprecated("use exec")
 public fun script(
-    logger: RenderingLogger? = MutedRenderingLogger(),
+    logger: RenderingLogger = MutedRenderingLogger(),
     shellScript: ShellScript.() -> Unit,
 ): Exec = Locations.Temp.script(logger, shellScript)
 
@@ -32,15 +32,17 @@ public fun script(
  *
  * Though [execute] is recommended, for simple IO processing, [output] can be used.
  */
+@Deprecated("use exec")
 public fun Path.script(
-    logger: RenderingLogger? = MutedRenderingLogger(),
+    logger: RenderingLogger = MutedRenderingLogger(),
     shellScript: ShellScript.() -> Unit,
-): Exec = with(logger) { shellScript.build().toCommandLine(this@script).execute { null } }
+): Exec = shellScript.build().toCommandLine(this@script).exec.logging(logger)
 
 /**
  * Convenience function to tests if the output of the specified [command]
  * contains the specified [substring] (case-**in**sensitive by default,
  * that is ignoring the case).
  */
+@Deprecated("use exec")
 public fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean =
     script { !command }.output().contains(substring, ignoreCase = !caseSensitive)

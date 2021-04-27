@@ -5,6 +5,7 @@ import koodies.regex.namedGroups
 import koodies.runtime.AnsiSupport
 import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.ansiSupport
+import koodies.runtime.isDebugging
 import koodies.runtime.isDeveloping
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.ColoredText
@@ -25,7 +26,7 @@ import kotlin.text.contains as containsNonAnsiAware
 
 public object ANSI {
 
-    private val level by lazy { ansiSupport }
+    private val level by lazy { if (isDebugging) NONE else ansiSupport }
 
     /**
      * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.

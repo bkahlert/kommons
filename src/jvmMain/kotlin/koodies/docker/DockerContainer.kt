@@ -13,7 +13,6 @@ import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
 import koodies.exec.Process.ExitState
-import koodies.exec.execute
 import koodies.io.path.asString
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
@@ -107,43 +106,43 @@ public class DockerContainer(public val name: String) {
      * @param attach whether to attach STDOUT/STDERR and forward signals
      * @param interactive whether to attach this container's STDIN
      */
-    public fun start(attach: Boolean = true, interactive: Boolean = false): ExitState = with(BACKGROUND) {
+    public fun start(attach: Boolean = true, interactive: Boolean = false): ExitState =
         DockerStartCommandLine {
             options { this.attach by attach; this.interactive by interactive }
             containers by listOf(this@DockerContainer.name)
-        }.execute {
+        }.exec.logging(BACKGROUND) {
             noDetails("Starting ${this@DockerContainer.name.formattedAs.input}")
-            null
         }.waitFor()
-    }
 
     /**
      * Stops this container with the optionally specified [timeout] (default: 5 seconds).
      */
-    public fun stop(timeout: Duration? = 5.seconds, async: Boolean = false): ExitState = with(BACKGROUND) {
+    public fun stop(timeout: Duration? = 5.seconds, async: Boolean = false): ExitState =
         DockerStopCommandLine {
             options { this.timeout by timeout }
             containers by listOf(this@DockerContainer.name)
-        }.execute {
-            if (async) processing { this.async }
+        }.exec.apply {
+            if (async) {
+                mode { this.async }
+            }
+        }.logging(BACKGROUND) {
             noDetails("Stopping ${this@DockerContainer.name.formattedAs.input}")
-            null
         }.waitFor()
-    }
 
     /**
      * Kills this container with the optionally specified [signal] (default: KILL).
      */
-    public fun kill(signal: String? = null, async: Boolean = false): ExitState = with(BACKGROUND) {
+    public fun kill(signal: String? = null, async: Boolean = false): ExitState =
         DockerKillCommandLine {
             options { this.signal by signal }
             containers by listOf(this@DockerContainer.name)
-        }.execute {
-            if (async) processing { this.async }
+        }.exec.apply {
+            if (async) {
+                mode { this.async }
+            }
+        }.logging(BACKGROUND) {
             noDetails("Killing ${this@DockerContainer.name.formattedAs.input}")
-            null
         }.waitFor()
-    }
 
     /**
      * Removes this container.
@@ -152,18 +151,16 @@ public class DockerContainer(public val name: String) {
      * @param link remove the specified link associated with the container
      * @param volumes remove anonymous volumes associated with the container
      */
-    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
-        with(logger) {
-            val dockerRemoveCommandLine = DockerRemoveCommandLine {
-                options { this.force by force; this.link by link; this.volumes by volumes }
-                this.containers by listOf(name)
-            }
-            val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
-            dockerRemoveCommandLine.execute {
-                noDetails("Removing$forcefully $name")
-                null
-            }.waitFor()
+    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState {
+        val dockerRemoveCommandLine = DockerRemoveCommandLine {
+            options { this.force by force; this.link by link; this.volumes by volumes }
+            this.containers by listOf(name)
         }
+        val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
+        return dockerRemoveCommandLine.exec.logging(logger) {
+            noDetails("Removing$forcefully $name")
+        }.waitFor()
+    }
 
     override fun toString(): String = asString {
         ::name.name to name
@@ -181,49 +178,39 @@ public class DockerContainer(public val name: String) {
         return true
     }
 
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-
+    override fun hashCode(): Int = name.hashCode()
 
     public companion object : StatelessBuilder.Returning<ContainerContext, DockerContainer>(ContainerContext) {
 
         private fun queryState(container: DockerContainer, logger: RenderingLogger = BACKGROUND): State =
-            with(logger) {
-                DockerPsCommandLine {
-                    options { all by true; container.run { exactName(name) } }
-                }.execute {
-                    noDetails("Checking status of ${container.name.formattedAs.input}")
-                    null
-                }.parse.columns(3) { (_, state, status) ->
-                    when (state.capitalize()) {
-                        Created::class.simpleName -> Created(status)
-                        Restarting::class.simpleName -> Restarting(status)
-                        Running::class.simpleName -> Running(status)
-                        Removing::class.simpleName -> Removing(status)
-                        Paused::class.simpleName -> Paused(status)
-                        Exited::class.simpleName -> Exited(status)
-                        Dead::class.simpleName -> Dead(status)
-                        else -> Error(-1, "Unknown status $state: $status")
-                    }
-                }.map { singleOrNull() ?: NotExistent }.or { error(it) }
-            }
+            DockerPsCommandLine {
+                options { all by true; container.run { exactName(name) } }
+            }.exec.logging(logger) {
+                noDetails("Checking status of ${container.name.formattedAs.input}")
+            }.parse.columns(3) { (_, state, status) ->
+                when (state.capitalize()) {
+                    Created::class.simpleName -> Created(status)
+                    Restarting::class.simpleName -> Restarting(status)
+                    Running::class.simpleName -> Running(status)
+                    Removing::class.simpleName -> Removing(status)
+                    Paused::class.simpleName -> Paused(status)
+                    Exited::class.simpleName -> Exited(status)
+                    Dead::class.simpleName -> Dead(status)
+                    else -> Error(-1, "Unknown status $state: $status")
+                }
+            }.map { singleOrNull() ?: NotExistent }.or { error(it) }
 
         /**
          * Lists locally available instances this containers.
          */
         public fun list(logger: FixedWidthRenderingLogger = BACKGROUND): List<DockerContainer> =
-            with(logger) {
-                DockerPsCommandLine {
-                    options { all by true }
-                }.execute {
-                    noDetails("Listing ${"all".formattedAs.input} containers")
-                    null
-                }.parse.columns(3) { (name, _, _) ->
-                    DockerContainer(name)
-                }.or { error(it) }
-            }
-
+            DockerPsCommandLine {
+                options { all by true }
+            }.exec.logging(logger) {
+                noDetails("Listing ${"all".formattedAs.input} containers")
+            }.parse.columns(3) { (name, _, _) ->
+                DockerContainer(name)
+            }.or { error(it) }
 
         /**
          * Starts the given [containers].
@@ -231,14 +218,13 @@ public class DockerContainer(public val name: String) {
          * @param attach whether to attach STDOUT/STDERR and forward signals
          * @param interactive whether to attach this container's STDIN
          */
-        public fun start(vararg containers: DockerContainer, attach: Boolean = true, interactive: Boolean = false): ExitState = with(BACKGROUND) {
+        public fun start(vararg containers: DockerContainer, attach: Boolean = true, interactive: Boolean = false): ExitState {
             val names: List<String> = containers.map { it.name }
-            DockerStartCommandLine {
+            return DockerStartCommandLine {
                 options { this.attach by attach; this.interactive by interactive }
                 this.containers by names
-            }.execute {
+            }.exec.logging(BACKGROUND) {
                 noDetails("Starting ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
-                null
             }.waitFor()
         }
 
@@ -246,29 +232,26 @@ public class DockerContainer(public val name: String) {
         /**
          * Stops the given [containers] with the optionally specified [timeout] (default: 5 seconds).
          */
-        public fun stop(vararg containers: DockerContainer, timeout: Duration = 5.seconds): ExitState = with(BACKGROUND) {
+        public fun stop(vararg containers: DockerContainer, timeout: Duration = 5.seconds): ExitState {
             val names: List<String> = containers.map { it.name }
-            DockerStopCommandLine {
+            return DockerStopCommandLine {
                 options { this.timeout by timeout }
                 this.containers by names
-            }.execute {
+            }.exec.logging(BACKGROUND) {
                 noDetails("Stopping ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
-                null
             }.waitFor()
         }
 
         /**
          * Kills the given [containers] with the optionally specified [signal] (default: KILL).
          */
-        public fun kill(vararg containers: DockerContainer, signal: String? = null, async: Boolean = false): ExitState = with(BACKGROUND) {
+        public fun kill(vararg containers: DockerContainer, signal: String? = null, async: Boolean = false): ExitState {
             val names: List<String> = containers.map { it.name }
-            DockerKillCommandLine {
+            return DockerKillCommandLine {
                 options { this.signal by signal }
                 this.containers by names
-            }.execute {
-                if (async) processing { this.async }
+            }.exec.apply { if (async) mode { this.async } }.logging(BACKGROUND) {
                 noDetails("Killing ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
-                null
             }.waitFor()
         }
 
@@ -279,19 +262,17 @@ public class DockerContainer(public val name: String) {
          * @param link remove the specified link associated with the container
          * @param volumes remove anonymous volumes associated with the container
          */
-        public fun remove(vararg containers: DockerContainer, force: Boolean = false, link: Boolean = false, volumes: Boolean = false): ExitState =
-            with(BACKGROUND) {
-                val names: List<String> = containers.map { it.name }
-                val dockerRemoveCommandLine = DockerRemoveCommandLine {
-                    options { this.force by force; this.link by link; this.volumes by volumes }
-                    this.containers by containers.map { it.name }
-                }
-                val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
-                dockerRemoveCommandLine.execute {
-                    noDetails("Removing$forcefully ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
-                    null
-                }.waitFor()
+        public fun remove(vararg containers: DockerContainer, force: Boolean = false, link: Boolean = false, volumes: Boolean = false): ExitState {
+            val names: List<String> = containers.map { it.name }
+            val dockerRemoveCommandLine = DockerRemoveCommandLine {
+                options { this.force by force; this.link by link; this.volumes by volumes }
+                this.containers by containers.map { it.name }
             }
+            val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
+            return dockerRemoveCommandLine.exec.logging(BACKGROUND) {
+                noDetails("Removing$forcefully ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}")
+            }.waitFor()
+        }
 
         /**
          * Builder to provide DSL elements to create instances of [DockerImage].
