@@ -5,6 +5,7 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.process
 import koodies.exec.CommandLine
 import koodies.exec.Exec
+import koodies.exec.JavaExec
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.started
 import koodies.shell.ShellScript
@@ -37,7 +38,7 @@ class ProcessesKtTest {
                         workingDirectory = this,
                         "/bin/sh", "-c", command,
                     )
-                    process(commandLine).let(block)
+                    JavaExec(commandLine, null, null).let(block)
                 }
             }
             test {

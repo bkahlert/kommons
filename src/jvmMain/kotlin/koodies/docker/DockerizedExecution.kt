@@ -13,11 +13,11 @@ import koodies.concurrent.toExec
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
 import koodies.exec.CommandLine
+import koodies.exec.Executable
 import koodies.exec.Execution
 import koodies.exec.execute
 import koodies.logging.RenderingLogger
 import koodies.logging.runLogging
-import koodies.shell.ShellExecutable
 import koodies.text.Semantics.formattedAs
 import koodies.text.withRandomSuffix
 import koodies.toBaseName
@@ -84,7 +84,7 @@ public class DockerizedExecution(
  * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
  * and prints the [DockerCommandLine]'s execution to [System.out].
  */
-public val ShellExecutable.executeDockerized: (DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
+public val Executable.executeDockerized: (DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
     get() = { image, optionsInit ->
         DockerizedExecution(null, image, this.toCommandLine()).executeWithOptionalProcessor(optionsInit)
     }
@@ -95,7 +95,7 @@ public val ShellExecutable.executeDockerized: (DockerImage, (OptionsContext.() -
  * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
  * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
  */
-public val RenderingLogger?.executeDockerized: ShellExecutable.(DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
+public val RenderingLogger?.executeDockerized: Executable.(DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
     get() = { image, optionsInit ->
         DockerizedExecution(this@executeDockerized, image, this.toCommandLine()).executeWithOptionalProcessor(optionsInit)
     }

@@ -2,9 +2,9 @@ package koodies.concurrent
 
 import koodies.docker.DockerProcess
 import koodies.docker.DockerRunCommandLine
-import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
+import koodies.exec.JavaExec
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.Locations
 import koodies.shell.ShellScript
@@ -16,28 +16,6 @@ import java.nio.file.Path
 public fun DockerRunCommandLine.toExec(execTerminationCallback: ExecTerminationCallback?): DockerProcess =
     // TODO implement in DockerRunCommandLine
     DockerProcess.from(this, execTerminationCallback)
-
-/**
- * Creates a [Exec] that executes this command line.
- */
-public fun CommandLine.toExec(
-    exitStateHandle: ExitStateHandler? = null,
-    execTerminationCallback: ExecTerminationCallback? = null,
-): Exec =
-    toProcess(exitStateHandle, execTerminationCallback)
-
-/**
- * Creates a [Exec] from the specified [commandLine].
- *
- * If provided, the [execTerminationCallback] will be called on process
- * termination and before other [Exec.onExit] registered listeners
- * get called.
- */
-public fun process(
-    commandLine: CommandLine,
-    exitStateHandler: ExitStateHandler? = null,
-    execTerminationCallback: ExecTerminationCallback? = null,
-): Exec = commandLine.toExec(exitStateHandler, execTerminationCallback)
 
 /**
  * Creates a [Exec] from the specified [shellScript]
@@ -55,5 +33,5 @@ public fun process(
     execTerminationCallback: ExecTerminationCallback? = null,
 ): Exec {
     val commandLine = shellScript.toCommandLine(workingDirectory, environment)
-    return process(commandLine, exitStateHandler, execTerminationCallback)
+    return JavaExec(commandLine, exitStateHandler, execTerminationCallback)
 }

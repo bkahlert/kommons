@@ -1,13 +1,13 @@
 package koodies.concurrent.process
 
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process
 import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
 import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
 import koodies.concurrent.process.UserInput.enter
 import koodies.exec.CommandLine
+import koodies.exec.JavaExec
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
@@ -35,7 +35,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with no input`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("echo", "Hello World!"), null).process(ProcessingMode(Sync, NonInteractive(null))) { io -> log.add(io) }
+                JavaExec(CommandLine("echo", "Hello World!")).process(ProcessingMode(Sync, NonInteractive(null))) { io -> log.add(io) }
                 expectThat(log)
                     .with({ size }) { isEqualTo(3) }
                     .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -46,7 +46,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                process(CommandLine("cat"), null).process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
+                JavaExec(CommandLine("cat")).process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                 expectThat(log)
                     .with({ size }) { isEqualTo(3) }
                     .with({ get(0) }) { isA<IO.META.STARTING>() }
@@ -62,7 +62,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with non-blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val log = mutableListOf<IO>()
-                process(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
+                JavaExec(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""))
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
@@ -79,7 +79,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val log = mutableListOf<IO>()
-                process(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
+                JavaExec(CommandLine(this, "/bin/sh", "-c", "read input; echo \"\$input you, too\""))
                     .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
@@ -108,7 +108,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("echo", "Hello World!"), null)
+                    JavaExec(CommandLine("echo", "Hello World!"))
                         .process(ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
@@ -121,7 +121,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("cat"), null)
+                    JavaExec(CommandLine("cat"))
                         .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
@@ -138,7 +138,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val timePassed = measureTime {
-                        process(CommandLine("sleep", "10"), null).process(ProcessingMode(Async, NonInteractive(null))) { }
+                        JavaExec(CommandLine("sleep", "10")).process(ProcessingMode(Async, NonInteractive(null))) { }
                     }
                     expectThat(timePassed).isLessThan(250.milliseconds)
                 }
@@ -146,7 +146,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        process(CommandLine("cat"), null).process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
+                        JavaExec(CommandLine("cat")).process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
                     expectThat(timePassed).isLessThan(250.milliseconds)
                 }
@@ -163,7 +163,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with non-blocking reader`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
+                    JavaExec(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""))
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
@@ -180,7 +180,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with blocking reader`() {
                     val log = synchronizedListOf<IO>()
-                    process(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""), null)
+                    JavaExec(CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\""))
                         .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
@@ -201,7 +201,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with non-blocking reader`() {
                     val timePassed = measureTime {
-                        process(CommandLine("sleep", "10"), null)
+                        JavaExec(CommandLine("sleep", "10"))
                             .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                             .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { }
                     }
@@ -211,7 +211,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with blocking reader`() {
                     val timePassed = measureTime {
-                        process(CommandLine("sleep", "10"), null)
+                        JavaExec(CommandLine("sleep", "10"))
                             .also { it.enter("Hello Back!", delay = 0.milliseconds) }
                             .process(ProcessingMode(Async, Interactive(nonBlocking = false))) {}
                     }

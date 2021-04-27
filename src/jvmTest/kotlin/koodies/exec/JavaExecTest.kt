@@ -1,6 +1,5 @@
 package koodies.exec
 
-import koodies.concurrent.process
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.INPUT
@@ -13,7 +12,6 @@ import koodies.concurrent.process.process
 import koodies.concurrent.process.processAsynchronously
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.processSynchronously
-import koodies.concurrent.toExec
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ExitState.Failure
@@ -56,7 +54,6 @@ import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThanOrEqualTo
@@ -66,7 +63,6 @@ import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration
@@ -554,7 +550,7 @@ private fun Path.process(
     shellScript: ShellScript,
     exitStateHandler: ExitStateHandler? = null,
     execTerminationCallback: ExecTerminationCallback? = null,
-) = process(CommandLine(
+) = JavaExec(CommandLine(
     redirects = emptyList(),
     environment = emptyMap(),
     workingDirectory = this,

@@ -9,7 +9,6 @@ import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.io.path.Locations
 import koodies.io.path.asPath
-import koodies.shell.ShellExecutable
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
@@ -49,7 +48,7 @@ public open class CommandLine(
      * The arguments to be passed to [command].
      */
     public val arguments: List<String>,
-) : ShellExecutable {
+) : Executable {
 
     public constructor(
         redirects: List<String>,

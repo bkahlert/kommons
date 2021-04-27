@@ -37,6 +37,7 @@ import koodies.text.truncate
  * Helper to collect an optional [RenderingLogger], build [Options] and an optional [Processor]
  * to [execute] the given [CommandLine].
  */
+@Deprecated("delete")
 public class Execution(
     private val parentLogger: RenderingLogger?,
     private val executable: Executable,
@@ -49,7 +50,7 @@ public class Execution(
     private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): Exec =
         with(Options(init)) {
             val processLogger: RenderingLogger = loggingOptions.newLogger(parentLogger, executable.summary)
-            val exec = executable.toProcess(exitStateHandler, execTerminationCallback)
+            val exec = CommandLineRunner().toProcess(executable.toCommandLine(), exitStateHandler, execTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
                     exec.process(processingMode, processor = processor ?: loggingProcessor(processLogger))

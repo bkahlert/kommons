@@ -7,7 +7,6 @@ import koodies.concurrent.process.IO.META.DUMP
 import koodies.concurrent.process.merge
 import koodies.exception.dump
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.text.LineSeparators.LF
 import java.nio.file.Path
 
@@ -18,15 +17,6 @@ import java.nio.file.Path
 public interface Exec : Process {
 
     public companion object {
-
-        public fun from(
-            commandLine: CommandLine,
-            exitStateHandler: ExitStateHandler? = null,
-            execTerminationCallback: ExecTerminationCallback? = null,
-        ): Exec = JavaExec(
-            commandLine = commandLine,
-            exitStateHandler = exitStateHandler,
-            execTerminationCallback = execTerminationCallback)
 
         /**
          * Dumps the [IO] of `this` [Exec] individualized with the given [errorMessage]

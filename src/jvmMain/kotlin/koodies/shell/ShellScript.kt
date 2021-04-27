@@ -1,6 +1,7 @@
 package koodies.shell
 
 import koodies.exec.CommandLine
+import koodies.exec.Executable
 import koodies.exec.scriptPath
 import koodies.io.path.Locations
 import koodies.io.path.asString
@@ -26,7 +27,7 @@ import kotlin.io.path.notExists
 public annotation class ShellScriptMarker
 
 @ShellScriptMarker
-public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String>, ShellExecutable {
+public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String>, Executable {
 
     private val lines: MutableList<String> = mutableListOf()
 
@@ -180,18 +181,24 @@ public class ShellScript(public val name: String? = null, content: String? = nul
     public override val summary: String
         get() = "Script(name=$name;content=${build().lines(ignoreTrailingSeparator = true).joinToString(";").truncate(150, MIDDLE, " … ")}})"
 
-
-    override fun toCommandLine(): CommandLine = toCommandLine(emptyMap())
+    override fun toCommandLine(): CommandLine {
+        val environment = emptyMap<String, String>()
+        val path = Locations.WorkingDirectory
+        val scriptFile = sanitize(path).buildTo(path.scriptPath())
+        return CommandLine(environment, path, scriptFile.asString())
+    }
 
     /**
      * Creates a [CommandLine] from `this` [ShellScript] by saving to [Locations.Temp].
      */
+    @Deprecated("use exec")
     public fun toCommandLine(environment: Map<String, String>): CommandLine =
         toCommandLine(Locations.Temp, environment)
 
     /**
      * Creates a [CommandLine] from `this` [ShellScript] by saving to `this` [Path].
      */
+    @Deprecated("use exec")
     public fun toCommandLine(path: Path, environment: Map<String, String> = emptyMap()): CommandLine {
         val scriptFile = sanitize(path).buildTo(path.scriptPath())
         return CommandLine(environment, path, scriptFile.asString())

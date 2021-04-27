@@ -45,6 +45,7 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Execution(CONCURRENT)
+@Deprecated("delete")
 class ExecutionTest {
 
     private val echoingCommands =

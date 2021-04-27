@@ -13,6 +13,7 @@ import koodies.docker.DockerContainer.State.NotExistent
 import koodies.exec.Exec
 import koodies.exec.Exec.Companion.createDump
 import koodies.exec.ExecTerminationCallback
+import koodies.exec.JavaExec
 import koodies.exec.Process
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Fatal
@@ -37,7 +38,10 @@ public open class DockerProcess private constructor(
             execTerminationCallback: ExecTerminationCallback? = null,
         ): DockerProcess = DockerProcess(
             container = dockerRunCommandLine.options.name ?: error("Docker container name missing."),
-            exec = Exec.from(dockerRunCommandLine, null, execTerminationCallback))
+            exec = JavaExec(
+                commandLine = dockerRunCommandLine,
+                exitStateHandler = null,
+                execTerminationCallback = execTerminationCallback))
     }
 
     override var exitState: ExitState? = null

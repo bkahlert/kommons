@@ -158,7 +158,7 @@ public open class DockerImage(
         logger: RenderingLogger? = BACKGROUND,
         init: (OptionsContext.() -> Processor<DockerProcess>?)? = null,
     ): DockerProcess {
-        return DockerizedExecution(logger, this@DockerImage, this.toCommandLine()).executeWithOptionalProcessor(init)
+        return DockerizedExecution(logger, this@DockerImage, toCommandLine()).executeWithOptionalProcessor(init)
     }
 
     /**

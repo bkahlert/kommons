@@ -24,6 +24,8 @@ public class Executor(
     public val executable: Executable,
     private var parentLogger: RenderingLogger?,
 ) {
+    // TODO setter for environemnt
+    // TODO setter for WorkingDirectory
 
     private var loggingOptions: LoggingOptions? = parentLogger?.let { SmartLoggingOptions() }
     private var processingMode = ProcessingMode { sync }
@@ -32,6 +34,9 @@ public class Executor(
     /**
      * Executes the [executable] with the current configuration,
      * and the optional [ExitStateHandler] and [ExecTerminationCallback].
+     *
+     * @param exitStateHandler if specified, the process's exit state is delegated to it
+     * @param execTerminationCallback if specified, will be called with the process's final exit state
      */
     public operator fun invoke(
         exitStateHandler: ExitStateHandler? = null,
@@ -41,6 +46,9 @@ public class Executor(
     /**
      * Executes the [executable] with the current configuration,
      * and the optional [ExitStateHandler] and [ExecTerminationCallback].
+     *
+     * @param exitStateHandler if specified, the process's exit state is delegated to it
+     * @param execTerminationCallback if specified, will be called with the process's final exit state
      */
     public fun exec(
         exitStateHandler: ExitStateHandler? = null,
@@ -51,7 +59,9 @@ public class Executor(
             ?.newLogger(parentLogger, executable.summary)
             ?: MutedRenderingLogger()
 
-        val exec = executable.toProcess(exitStateHandler, execTerminationCallback)
+        val commandLine = executable.toCommandLine()
+        val commandLineRunner: CommandLineRunner = CommandLineRunner()
+        val exec = commandLineRunner.toProcess(commandLine, exitStateHandler, execTerminationCallback)
 
         when (processingMode.synchronicity) {
             Sync -> processLogger.runLogging {
@@ -114,6 +124,7 @@ public annotation class ExecutionDsl
  */
 @ExecutionDsl
 public interface Executable {
+
     /**
      * Brief description of that this executable is doing.
      */
@@ -124,6 +135,15 @@ public interface Executable {
      */
     public fun toCommandLine(): CommandLine
 
+    public val exec: Executor get() = Executor(this, null)
+    public val <T : RenderingLogger> T?.logging: Executor get() = Executor(this@Executable, this)
+}
+
+//TODO do the same for scripts
+// TODO do the same for dockerized
+
+public class CommandLineRunner {
+
     /**
      * Creates a [Exec] to run this executable.
      *
@@ -131,10 +151,11 @@ public interface Executable {
      * @param execTerminationCallback if specified, will be called with the process's final exit state
      */
     public fun toProcess(
+        commandLine: CommandLine,
         exitStateHandler: ExitStateHandler? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-    ): Exec
-
-    public val exec: Executor get() = Executor(this, null)
-    public val <T : RenderingLogger> T?.logging: Executor get() = Executor(this@Executable, this)
+    ): Exec = JavaExec(
+        commandLine = commandLine,
+        exitStateHandler = exitStateHandler,
+        execTerminationCallback = execTerminationCallback)
 }

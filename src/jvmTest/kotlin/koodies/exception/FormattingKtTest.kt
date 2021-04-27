@@ -1,7 +1,7 @@
 package koodies.exception
 
-import koodies.concurrent.process
 import koodies.exec.CommandLine
+import koodies.exec.JavaExec
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -95,7 +95,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(process(CommandLine("exit", "42"))).toCompactString()) {
+                expectThat(Result.success(JavaExec(CommandLine("exit", "42"), null, null)).toCompactString()) {
                     ansiRemoved.isEqualTo("Process has not yet started.")
                     isSingleLine()
                 }
