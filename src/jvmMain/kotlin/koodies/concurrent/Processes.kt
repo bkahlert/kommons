@@ -1,7 +1,5 @@
 package koodies.concurrent
 
-import koodies.docker.DockerProcess
-import koodies.docker.DockerRunCommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.JavaExec
@@ -9,13 +7,6 @@ import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.Locations
 import koodies.shell.ShellScript
 import java.nio.file.Path
-
-/**
- * Creates a [DockerProcess] that executes this command line.
- */
-public fun DockerRunCommandLine.toExec(execTerminationCallback: ExecTerminationCallback?): DockerProcess =
-    // TODO implement in DockerRunCommandLine
-    DockerProcess.from(this, execTerminationCallback)
 
 /**
  * Creates a [Exec] from the specified [shellScript]

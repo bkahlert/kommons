@@ -65,8 +65,24 @@ public interface Process : ReturnValue {
      */
     public fun start(): Process
 
+    /**
+     * Representation of the state of a [Process].
+     *
+     * The types are distinguished (which may have more differentiated specializations):
+     * - [Prepared] for not yet started processes
+     * - [Running] for already started and not yet terminated processes
+     * - [Terminated] for started and no more running processes
+     */
     public sealed class ProcessState(
+        /**
+         * Textual representation of this state.
+         */
         public val status: String,
+        /**
+         * Whether this state represents a successful or failed state.
+         *
+         * Can be `null` if currently unknown (i.e. while running).
+         */
         public override val successful: Boolean?,
     ) : ReturnValue {
         override fun toString(): String = status
@@ -77,44 +93,96 @@ public interface Process : ReturnValue {
                 false -> status
             }
 
+        /**
+         * State of a process that has not started, yet.
+         */
         public class Prepared(
             status: String = "Process has not yet started.",
         ) : ProcessState(status, null)
 
+        /**
+         * State of a process that already started but not terminated, yet.
+         */
         public class Running(
+            /**
+             * PID of the running process.
+             */
             public val pid: Long,
             status: String = "Process $pid is running.",
         ) : ProcessState(status, null)
 
+        /**
+         * State of a process that started and is no longer running.
+         */
         public open class Terminated(
+            /**
+             * PID of the terminated process at the time is was still running.
+             */
             public val pid: Long,
+            /**
+             * Code the terminated process exited with.
+             */
             public val exitCode: Int,
+            /**
+             * All [IO] that was logged while the process was running.
+             */
             public val io: IOSequence<IO>,
             status: String = "Process $pid terminated with exit code $exitCode.",
         ) : ProcessState(status, exitCode == 0)
     }
 
+    /**
+     * The current state of this process.
+     */
     public val state: ProcessState
 
+    /**
+     * The state this process exited with. Only set, if [state] is [ProcessState.Terminated].
+     */
     public val exitState: ExitState?
 
+    /**
+     * Representation of the exit state of a [ProcessState.Terminated] [Process].
+     *
+     * The types are distinguished (which may have more differentiated specializations):
+     * - [Prepared] for not yet started processes
+     * - [Running] for already started and not yet terminated processes
+     * - [Terminated] for started and no more running processes
+     */
     public sealed class ExitState(exitCode: Int, pid: Long, io: IOSequence<IO>, status: String) :
         Terminated(pid, exitCode, io, status), ReturnValue {
 
+        /**
+         * Implementors are used to delegate the creation of the [ExitState] to.
+         */
         public fun interface ExitStateHandler {
+            /**
+             * Returns the [ExitState] of a [Process] based on the
+             * given [terminated] [ProcessState].
+             */
             public fun handle(terminated: Terminated): ExitState
         }
 
+        /**
+         * State of a process that [Terminated] successfully.
+         */
         public open class Success(
             pid: Long,
             io: IOSequence<IO>,
             status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
         ) : ExitState(0, pid, io, status)
 
+        /**
+         * State of a process that [Terminated] erroneously.
+         */
         public open class Failure(
             exitCode: Int,
             pid: Long,
             private val relevantFiles: List<URI> = emptyList(),
+
+            /**
+             * Detailed information about the circumstances of a process's failed termination.
+             */
             public val dump: String? = null,
             io: IOSequence<IO> = IOSequence.EMPTY,
             status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
@@ -133,10 +201,19 @@ public interface Process : ReturnValue {
                 }.toString()
         }
 
+        /**
+         * State of a process that [Terminated] with a technical [exception].
+         */
         public open class Fatal(
+            /**
+             * Unexpected exception that lead to a process's termination.
+             */
             public val exception: Throwable,
             exitCode: Int,
             pid: Long,
+            /**
+             * Detailed information about the circumstances of a process's unexpected termination.
+             */
             public val dump: String,
             io: IOSequence<IO>,
             status: String = "Process ${pid.formattedAs.input} fatally failed with ${exception.toCompactString()}",

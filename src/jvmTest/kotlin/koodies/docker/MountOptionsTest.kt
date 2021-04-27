@@ -3,7 +3,7 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.docker.MountOptionContext.Type.tmpfs
 import koodies.docker.MountOptionContext.Type.volume
-import koodies.test.SystemIoExclusive
+import koodies.test.SystemIOExclusive
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir
@@ -20,6 +20,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
+import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.message
 import java.nio.file.Path
 
@@ -57,7 +58,6 @@ class MountOptionsTest {
         }
     }
 
-
     @Nested
     inner class MapToContainerPath {
 
@@ -78,6 +78,37 @@ class MountOptionsTest {
             expectCatching { mountOptions.mapToContainerPath("/different/root".asHostPath()) }
                 .isFailure().isA<IllegalArgumentException>()
                 .message.isEqualTo("/different/root is not mapped by any of $this/host/root1, $this/host/root2, $this/host/root3, $this/host/root1")
+        }
+    }
+
+    @Nested
+    inner class Plus {
+
+        private val mountOptions = MountOptions(
+            MountOption(
+                source = "host-source".asHostPath(),
+                target = "/container-target".asContainerPath(),
+            )
+        )
+
+        private val mountOption = MountOption(
+            source = "new-host-source".asHostPath(),
+            target = "/new-container-target".asContainerPath(),
+        )
+
+        @Test
+        fun `should return new instance`() {
+            expectThat(mountOptions + mountOption).isNotSameInstanceAs(mountOptions)
+        }
+
+        @Test
+        fun `should contain existing elements`() {
+            expectThat(mountOptions + mountOption).contains(mountOptions)
+        }
+
+        @Test
+        fun `should contain new element`() {
+            expectThat(mountOptions + mountOption).contains(listOf(mountOption))
         }
     }
 
@@ -132,7 +163,7 @@ class MountOptionsTest {
         @Nested
         inner class IncompleteMounts {
 
-            @SystemIoExclusive
+            @SystemIOExclusive
             @TestFactory
             fun `should throw on incomplete mounts`() = testEach<Init<MountOptionContext<Unit>>>(
                 { "string-source" mountAs "string-type" },

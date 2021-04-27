@@ -6,21 +6,27 @@ import koodies.concurrent.process.err
 import koodies.concurrent.process.outAndErr
 import koodies.debug.asEmoji
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
+import koodies.docker.DockerExitStateHandler.Failure.ConnectivityProblem
 import koodies.docker.DockerExitStateHandler.Failure.UnknownError
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ProcessState.Terminated
 import koodies.lowerSentenceCaseName
 import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.containsAll
 import koodies.text.rightSpaced
 import koodies.text.spaced
 import koodies.text.splitPascalCase
+import koodies.text.takeUnlessBlank
 import kotlin.reflect.KClass
 import kotlin.text.RegexOption.IGNORE_CASE
 
+/**
+ * Exit state handler that handles Docker processes.
+ */
 public object DockerExitStateHandler : ExitStateHandler {
 
     // TODO sealed interface so DaemonParser does no longer have to handle ExitState.Failure
@@ -38,6 +44,10 @@ public object DockerExitStateHandler : ExitStateHandler {
 
     private fun handleFailure(terminated: Terminated): Failure {
         val errorMessage = terminated.io.err.first().ansiRemoved
+        if (errorMessage.containsAll("connect", "Docker", "daemon", ignoreCase = true)) {
+            return ConnectivityProblem(errorMessage, terminated)
+        }
+
         val (error, message) = errorMessage.split(messageSplitRegex, limit = 2)
 
         if (!errorPrologue.matches(error)) throw ParseException(errorMessage)
@@ -67,18 +77,30 @@ public object DockerExitStateHandler : ExitStateHandler {
             messageParts.head.formattedAs.error + messageParts.tail.joinToString("") { ": $it" }
         }) {
 
+        override val successful: Boolean = false
+
+        public class ConnectivityProblem(
+            errorMessage: String,
+            terminated: Terminated,
+        ) : DockerExitStateHandler.Failure(terminated,
+            status = errorMessage.substringAfterLast(".").trim().formattedAs.warning
+        ) {
+            override val symbol: String = Symbols.Negative
+            override val textRepresentation: String get() = this::class.lowerSentenceCaseName.formattedAs.error + Semantics.FieldDelimiters.FIELD.spaced + status
+            override fun format(): String = textRepresentation
+            override fun toString(): String = textRepresentation
+        }
+
         public sealed class BadRequest(
             terminated: Terminated,
             public val statusCode: Int,
             status: String,
         ) : DockerExitStateHandler.Failure(terminated, status = status) {
 
-            override val successful: Boolean = false
             override val symbol: String = Symbols.Negative
             override val textRepresentation: String? get() = this::class.lowerSentenceCaseName.formattedAs.error
             override fun format(): String = textRepresentation + symbol.spaced + status
             override fun toString(): String = symbol.rightSpaced + textRepresentation
-
 
             public class NoSuchContainer(terminated: Terminated, status: String) : BadRequest(terminated, 404, status)
 
@@ -117,7 +139,6 @@ public object DockerExitStateHandler : ExitStateHandler {
                 }
             }
 
-
             public companion object {
                 // ThisIsAClassName -> This is a class name
                 protected inline val <reified T : KClass<*>> T.expectedErrorMessage: String?
@@ -153,6 +174,8 @@ public object DockerExitStateHandler : ExitStateHandler {
             errorMessage: String,
             terminated: Terminated,
         ) : DockerExitStateHandler.Failure(terminated, state = "Unknown error from Docker daemon", status = errorMessage.formattedAs.error) {
+            override val symbol: String = Symbols.Error
+            override fun format(): String = textRepresentation?.takeUnlessBlank()?.let { "$symbol $it" } ?: symbol
             override fun toString(): String = status
         }
     }

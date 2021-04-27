@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="DockerExecTest" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
+        <module name="koodies.jvmTest"/>
+        <option name="PACKAGE_NAME" value="koodies.docker"/>
+        <option name="MAIN_CLASS_NAME" value="koodies.docker.DockerExecTest"/>
+        <option name="METHOD_NAME" value=""/>
+        <option name="TEST_OBJECT" value="class"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>

@@ -7,6 +7,7 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
@@ -44,19 +45,19 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Execution(CONCURRENT)
-class DockerProcessTest {
+class DockerExecTest {
 
     @DockerRequiring([BusyBox::class]) @Test
     fun `should override toString`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dockerProcess = createProcess(uniqueId, "echo", "test")
-        expectThat(dockerProcess).toStringMatchesCurlyPattern("DockerProcess { container = {} exec = {} }")
+        val dockerExec = createExec(uniqueId, "echo", "test")
+        expectThat(dockerExec).toStringMatchesCurlyPattern("DockerExec { container = {} exec = {} }")
     }
 
     @DockerRequiring([BusyBox::class]) @Test
     fun `should start docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dockerProcess = createProcess(uniqueId, "echo", "test")
-        dockerProcess.waitForOutputOrFail(
-            "Process terminated without logging: ${dockerProcess.io.ansiRemoved}.",
+        val dockerExec = createExec(uniqueId, "echo", "test")
+        dockerExec.waitForOutputOrFail(
+            "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
             "Did not log \"test\" output within 8 seconds.") {
             any { it is IO.OUT && it.unformatted == "test" }
         }
@@ -67,9 +68,9 @@ class DockerProcessTest {
 
         @DockerRequiring([BusyBox::class]) @Test
         fun `should start docker and pass arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerProcess = createProcess(uniqueId, "echo", "test")
-            dockerProcess.waitForOutputOrFail(
-                "Process terminated without logging: ${dockerProcess.io.ansiRemoved}.",
+            val dockerExec = createExec(uniqueId, "echo", "test")
+            dockerExec.waitForOutputOrFail(
+                "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
                 "Did not log \"test\" output within 8 seconds.") {
                 any { it is IO.OUT && it.unformatted == "test" }
             }
@@ -78,7 +79,7 @@ class DockerProcessTest {
         @DockerRequiring([BusyBox::class]) @Test
         fun `should start docker and process input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             var entered = false
-            val dockerProcess = createProcess(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
+            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
                 if (it !is IO.META) {
                     if (!entered) {
                         entered = true
@@ -88,16 +89,16 @@ class DockerProcessTest {
                 }
             }
 
-            dockerProcess.waitForOutputOrFail("Did not log self-induced \"test\" output within 8 seconds.") {
+            dockerExec.waitForOutputOrFail("Did not log self-induced \"test\" output within 8 seconds.") {
                 filterIsInstance<OUT>().contains(OUT typed "test 1") and contains(OUT typed "test 2")
             }
         }
 
         @DockerRequiring([BusyBox::class]) @Test
         fun `should start docker and process output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerProcess = createProcess(uniqueId, "echo", "Hello\nWorld")
+            val dockerExec = createExec(uniqueId, "echo", "Hello\nWorld")
 
-            dockerProcess.waitForOutputOrFail("Did not log any output within 8 seconds.") {
+            dockerExec.waitForOutputOrFail("Did not log any output within 8 seconds.") {
                 filterIsInstance<OUT>().contains(OUT typed "Hello") and contains(OUT typed "World")
             }
         }
@@ -105,7 +106,7 @@ class DockerProcessTest {
         @DockerRequiring([BusyBox::class]) @Smoke @Test
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             var times = 0
-            val dockerProcess = createProcess(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
+            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
                 if (it !is IO.META) {
                     if (times < 3) {
                         times++
@@ -116,7 +117,7 @@ class DockerProcessTest {
                 }
             }
 
-            dockerProcess.waitForOutputOrFail("Did not log self-produced \"test\" output within 8 seconds.") {
+            dockerExec.waitForOutputOrFail("Did not log self-produced \"test\" output within 8 seconds.") {
                 filterIsInstance<OUT>()
                     .contains(OUT typed "test 1")
                     .and(contains(OUT typed "test 2"))
@@ -133,13 +134,10 @@ class DockerProcessTest {
                 command: String,
                 vararg args: String,
                 callback: ExecTerminationCallback? = null,
-            ): DockerProcess {
-                val dockerRunCommandLine = DockerRunCommandLine(
-                    image = BusyBox,
-                    options = DockerRunCommandLine.Options(name = DockerContainer(uniqueId.simplified)),
-                    commandLine = CommandLine(this, command, *args))
-                return DockerProcess.from(dockerRunCommandLine, callback)
-            }
+            ): DockerExec = DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(DockerRunCommandLine(
+                image = BusyBox,
+                options = Options(name = DockerContainer(uniqueId.simplified)),
+                commandLine = CommandLine(this, command, *args)), callback)
 
             @DockerRequiring([BusyBox::class]) @Test
             fun `should return false on not yet started container container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -195,15 +193,15 @@ class DockerProcessTest {
 
         @DockerRequiring([BusyBox::class]) @Test
         fun `should have failed state on non 0 exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerProcess = createProcess(uniqueId, "invalid")
-            expectThat(dockerProcess).hasState<ExitState.Failure> { exitCode.isEqualTo(127) }
+            val dockerExec = createExec(uniqueId, "invalid")
+            expectThat(dockerExec).hasState<ExitState.Failure> { exitCode.isEqualTo(127) }
         }
 
         @Slow @DockerRequiring([BusyBox::class]) @Test
         fun `should remove docker container after completion`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerProcess = createProcess(uniqueId, "echo", "was alive")
+            val dockerExec = createExec(uniqueId, "echo", "was alive")
 
-            dockerProcess.apply {
+            dockerExec.apply {
                 expectThat(io.ansiRemoved).contains("was alive")
                 expectThat(container).hasState<DockerContainer.State.NotExistent>()
             }
@@ -214,7 +212,7 @@ class DockerProcessTest {
     fun `should not produce incorrect empty lines`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         var killed = false
         val output = synchronizedListOf<IO>()
-        createProcess(uniqueId, "/bin/sh", "-c", """
+        createExec(uniqueId, "/bin/sh", "-c", """
                 while true; do
                 ${20.times { "echo \"looping\"" }.joinToString("; ")}
                 sleep 1
@@ -234,21 +232,21 @@ class DockerProcessTest {
 }
 
 
-private fun Path.createProcess(
+private fun Path.createExec(
     uniqueId: UniqueId,
     command: String,
     vararg args: String,
-    processor: Processor<DockerProcess> = noopProcessor(),
-): DockerProcess =
+    processor: Processor<DockerExec> = noopProcessor(),
+): DockerExec =
     docker({
         image by Ubuntu
         options { name { uniqueId.simplified } }
-        commandLine by CommandLine(this@createProcess, command, *args)
+        commandLine by CommandLine(this@createExec, command, *args)
     }, processor = processor)
 
-private fun DockerProcess.waitForCondition(
+private fun DockerExec.waitForCondition(
     errorMessage: String,
-    test: DockerProcess.() -> Boolean,
+    test: DockerExec.() -> Boolean,
 ) {
     poll {
         test()
@@ -257,7 +255,7 @@ private fun DockerProcess.waitForCondition(
     }
 }
 
-private fun DockerProcess.waitForOutputOrFail(
+private fun DockerExec.waitForOutputOrFail(
     errorMessage: String,
     stillRunningErrorMessage: String = errorMessage,
     test: List<IO>.() -> Boolean,

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.parallel.Resources
 @ExtendWith(OutputCaptureExtension::class)
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class SystemIoExclusive
+annotation class SystemIOExclusive
 
 /**
  * Declares a requirement on [System.out] and [System.err].
@@ -40,4 +40,4 @@ annotation class SystemIoExclusive
 @ExtendWith(OutputCaptureExtension::class)
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class SystemIoRead
+annotation class SystemIORead

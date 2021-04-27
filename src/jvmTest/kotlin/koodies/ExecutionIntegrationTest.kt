@@ -24,7 +24,7 @@ import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectThatLogged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
-import koodies.test.SystemIoExclusive
+import koodies.test.SystemIOExclusive
 import koodies.test.UniqueId
 import koodies.test.copyTo
 import koodies.test.withTempDir
@@ -50,7 +50,7 @@ import strikt.assertions.isTrue
 import kotlin.io.path.exists
 
 @Execution(SAME_THREAD) // TODO update readme.md
-@SystemIoExclusive
+@SystemIOExclusive
 class ExecutionIntegrationTest {
 
     @Test

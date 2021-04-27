@@ -4,7 +4,7 @@ import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
-import koodies.test.SystemIoRead
+import koodies.test.SystemIORead
 import koodies.test.toStringContains
 import koodies.text.ANSI.ansiRemoved
 import org.junit.jupiter.api.Test
@@ -27,7 +27,7 @@ class DebugTest {
         expectThat(AnnotationSupport.findAnnotation(InternalDebug::class.java, Isolated::class.java).orElse(null)).isNotNull()
     }
 
-    @SystemIoRead
+    @SystemIORead
     @Test
     fun InMemoryLogger.`should not automatically log to console without @Debug`(output: CapturedOutput) {
         logLine { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }

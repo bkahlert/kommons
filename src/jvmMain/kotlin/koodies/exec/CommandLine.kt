@@ -146,6 +146,7 @@ public open class CommandLine(
 
 
     public companion object : BuilderTemplate<CommandLineContext, CommandLine>() {
+
         /**
          * Context to build a [CommandLine].
          */

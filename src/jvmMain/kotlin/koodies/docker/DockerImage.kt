@@ -2,9 +2,7 @@ package koodies.docker
 
 import koodies.builder.StatelessBuilder
 import koodies.docker.DockerImage.ImageContext
-import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
-import koodies.exec.CommandLine
-import koodies.exec.DockerExecutor
+import koodies.exec.Exec
 import koodies.exec.Executor
 import koodies.exec.Process.ExitState
 import koodies.logging.FixedWidthRenderingLogger
@@ -127,10 +125,10 @@ public open class DockerImage(
         }.waitFor()
 
     /**
-     * Runs `this` [CommandLine] using this image and the
-     * [DockerRunCommandLine.Options] built with the given [OptionsContext] [init].
+     * Returns an [Executor] that runs `this` executor's [Executor.executable]
+     * using the `this` [DockerImage].
      */
-    public val Executor.dockerized: DockerExecutor get() = DockerExecutor(this, this@DockerImage)
+    public val Executor<Exec>.dockerized: Executor<DockerExec> get() = dockerized(this@DockerImage)
 
     override fun toString(): String = repoAndPath.joinToString("/") + specifier
     override fun equals(other: Any?): Boolean {

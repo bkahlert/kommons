@@ -11,7 +11,7 @@ import koodies.exec.succeeds
 import koodies.io.path.Locations
 import koodies.io.path.asString
 import koodies.test.HtmlFile
-import koodies.test.SystemIoRead
+import koodies.test.SystemIORead
 import koodies.test.UniqueId
 import koodies.test.copyToDirectory
 import koodies.test.withTempDir
@@ -66,7 +66,7 @@ class ScriptsKtTest {
             expectThat(script.output()).isEqualTo(HtmlFile.text)
         }
 
-        @SystemIoRead
+        @SystemIORead
         @Test
         fun `should not print to console`(uniqueId: UniqueId, capturedOutput: CapturedOutput) = withTempDir(uniqueId) {
             script { !"echo 'test'" }

@@ -11,7 +11,6 @@ import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.terminationLoggingProcessor
 import koodies.concurrent.scriptOutputContains
-import koodies.concurrent.toExec
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
 import koodies.exec.CommandLine
@@ -132,9 +131,9 @@ public fun Path.docker(
     optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
     vararg arguments: String,
     execTerminationCallback: ExecTerminationCallback? = null,
-): DockerProcess =
-    dockerRunCommandLine(imageInit, optionsInit, arguments)
-        .toExec(execTerminationCallback)
+): DockerExec =
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(dockerRunCommandLine(imageInit, optionsInit, arguments),
+        execTerminationCallback)
         .processSilently().apply { waitFor() }
 
 /**
@@ -144,7 +143,7 @@ public fun Path.docker(
  * - specified [arguments]
  * in `this` [Path].
  *
- * The output of the [DockerProcess] will be processed by the specified [processor].
+ * The output of the [DockerExec] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
  * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
@@ -159,16 +158,16 @@ public fun Path.docker(
     vararg arguments: String,
     execTerminationCallback: ExecTerminationCallback? = null,
     processor: Processor<Exec>?,
-): DockerProcess =
-    dockerRunCommandLine(imageInit, optionsInit, arguments)
-        .toExec(execTerminationCallback)
+): DockerExec =
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(dockerRunCommandLine(imageInit, optionsInit, arguments),
+        execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
 /**
  * Runs a Docker process using the [DockerRunCommandLine] built by the
  * specified [init].
  *
- * The output of the [DockerProcess] will be processed by the specified [processor].
+ * The output of the [DockerExec] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
  * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
@@ -180,10 +179,10 @@ public fun Path.docker(
 public fun docker(
     init: Init<Companion.CommandContext>,
     execTerminationCallback: ExecTerminationCallback? = null,
-    processor: Processor<DockerProcess>?,
-): DockerProcess =
-    DockerRunCommandLine(init)
-        .toExec(execTerminationCallback)
+    processor: Processor<DockerExec>?,
+): DockerExec =
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(DockerRunCommandLine(init),
+        execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
 
@@ -191,7 +190,7 @@ public fun docker(
  * Runs a Docker process using the [DockerRunCommandLine] built by the
  * specified [init].
  *
- * The output of the [DockerProcess] will be processed by the specified [processor].
+ * The output of the [DockerExec] will be processed by the specified [processor].
  * You can use one of the provided [Processors] or implement one on your own, e.g.
  * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
  * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
@@ -201,10 +200,10 @@ public fun docker(
  * get called.
  */
 public fun docker(
-    processor: Processor<DockerProcess>?,
+    processor: Processor<DockerExec>?,
     execTerminationCallback: ExecTerminationCallback? = null,
     init: Init<Companion.CommandContext>,
-): DockerProcess =
-    DockerRunCommandLine(init)
-        .toExec(execTerminationCallback)
+): DockerExec =
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(DockerRunCommandLine(init),
+        execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }

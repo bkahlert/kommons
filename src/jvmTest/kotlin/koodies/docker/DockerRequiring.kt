@@ -11,7 +11,6 @@ import koodies.test.testName
 import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import koodies.text.quoted
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -30,7 +29,7 @@ import kotlin.reflect.KClass
  *
  * The [Timeout] is automatically increased to 2 minutes.
  */
-@Slow @Tag("docker")
+@Slow
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Extensions(

@@ -20,7 +20,7 @@ public open class ArrayBuilder<E> private constructor(public val transform: List
     Builder<Init<ListBuildingContext<E>>, Array<E>> {
 
     /**
-     * A context to collection all elements added by means
+     * A context to collect all elements added by means
      * of the [ListBuildingContext].
      */
     protected class BackedListBuildingContext<E>(

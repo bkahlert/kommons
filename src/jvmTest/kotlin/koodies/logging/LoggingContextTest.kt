@@ -6,7 +6,7 @@ import koodies.io.ByteArrayOutputStream
 import koodies.jvm.completableFuture
 import koodies.jvm.currentThread
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.test.SystemIoExclusive
+import koodies.test.SystemIOExclusive
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI
@@ -195,7 +195,7 @@ class LoggingContextTest {
     @Nested
     inner class Global {
 
-        @SystemIoExclusive
+        @SystemIOExclusive
         @Test
         fun `should prefix log messages with IO erase marker`(capturedOutput: CapturedOutput) {
             with(BACKGROUND) {

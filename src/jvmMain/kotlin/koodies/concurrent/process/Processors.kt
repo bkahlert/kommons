@@ -31,9 +31,9 @@ import java.util.concurrent.Executors
 import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
- * A function that processes the [IO] of a [Process].
+ * A function that processes the [IO] of an [Exec].
  */
-public typealias Processor<P> = P.(IO) -> Unit
+public typealias Processor<E> = E.(IO) -> Unit
 
 /**
  * All about processing processes.
@@ -41,24 +41,24 @@ public typealias Processor<P> = P.(IO) -> Unit
 public object Processors {
 
     /**
-     * Thread pool used for processing the [IO] of [Process].
+     * Thread pool used for processing the [IO] of [Exec].
      */
     public var ioProcessingThreadPool: ExecutorService = Executors.newCachedThreadPool()
 
     /**
      * A [Processor] that prints the encountered [IO] using the specified [logger].
      */
-    public fun <P : Process> loggingProcessor(logger: RenderingLogger): Processor<P> = { io ->
+    public fun <E : Exec> loggingProcessor(logger: RenderingLogger): Processor<E> = { io ->
         logger.logLine { io }
     }
 
     /**
      * A [Processor] that does nothing with the [IO].
      *
-     * This processor is suited if the process's input and output streams
+     * This processor is suited if the [Exec]'s input and output streams
      * should just be completely consumed—with the side effect of getting logged.
      */
-    public fun <P : Process> noopProcessor(): Processor<P> = { }
+    public fun <E : Exec> noopProcessor(): Processor<E> = { }
 }
 
 /**
@@ -66,12 +66,10 @@ public object Processors {
  *
  * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
-public fun <P : Process> P.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<P> {
-    (this as? Exec)?.addPostTerminationCallback { terminated ->
-        if (async) {
-            logger.logReturnValue(terminated)
-        }
-    } ?: error("process can't be attached to")
+public fun <E : Exec> E.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<E> {
+    addPostTerminationCallback { terminated ->
+        if (async) logger.logReturnValue(terminated)
+    }
     return Processors.loggingProcessor(logger)
 }
 
@@ -79,15 +77,15 @@ public fun <P : Process> P.terminationLoggingProcessor(logger: RenderingLogger =
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */
-public inline fun <reified P : Exec> P.processSilently(): P =
+public inline fun <reified E : Exec> E.processSilently(): E =
     process({ async }, noopProcessor())
 
-private val asynchronouslyProcessed: MutableSet<Process> = synchronizedSetOf()
+private val asynchronouslyProcessed: MutableSet<Exec> = synchronizedSetOf()
 
 /**
- * Contains if `this` process is or was asynchronously processed.
+ * Contains if `this` [Exec] is or was asynchronously processed.
  */
-public var Process.async: Boolean
+public var Exec.async: Boolean
     get() = this in asynchronouslyProcessed
     private set(value) {
         if (value) asynchronouslyProcessed.add(this) else asynchronouslyProcessed.remove(this)
@@ -110,7 +108,7 @@ public data class ProcessingMode(val synchronicity: Synchronicity, val interacti
             }
         }
 
-        public class NonInteractive(public val processInputStream: InputStream?) : Interactivity()
+        public class NonInteractive(public val execInputStream: InputStream?) : Interactivity()
     }
 
     public companion object : StatelessBuilder.Returning<ProcessingModeContext, ProcessingMode>(ProcessingModeContext) {
@@ -124,62 +122,58 @@ public data class ProcessingMode(val synchronicity: Synchronicity, val interacti
 }
 
 /**
- * Attaches to the [Process.inputStream] and [Process.errorStream]
- * of the specified [Process] and passed all [IO] to the specified [processor].
+ * Attaches to the [Exec.outputStream] and [Exec.errorStream]
+ * of the specified [Exec] and passed all [IO] to the specified [processor].
  *
  * If no [processor] is specified, the output and the error stream will be
  * printed to the console.
- *
- *
  */
-public fun <P : Exec> P.process(
+public fun <E : Exec> E.process(
     mode: ProcessingModeContext.() -> ProcessingMode,
-    processor: Processor<P>,
-): P = process(ProcessingMode(mode), processor)
+    processor: Processor<E>,
+): E = process(ProcessingMode(mode), processor)
 
 /**
- * Attaches to the [Process.inputStream] and [Process.errorStream]
- * of the specified [Process] and passed all [IO] to the specified [processor].
+ * Attaches to the [Exec.outputStream] and [Exec.errorStream]
+ * of the specified [Exec] and passed all [IO] to the specified [processor].
  *
  * If no [processor] is specified, the output and the error stream will be
  * printed to the console.
- *
- *
  */
-public fun <P : Exec> P.process(
+public fun <E : Exec> E.process(
     mode: ProcessingMode = ProcessingMode(Sync, NonInteractive(null)),
-    processor: Processor<P>,
-): P = when (mode.synchronicity) {
+    processor: Processor<E>,
+): E = when (mode.synchronicity) {
     Sync -> processSynchronously(mode.interactivity, processor)
     Async -> processAsynchronously(mode.interactivity, processor)
 }
 
 
 /**
- * Attaches to the [Process.inputStream] and [Process.errorStream]
- * of the specified [Process] and passed all [IO] to the specified [processor].
+ * Attaches to the [Exec.outputStream] and [Exec.errorStream]
+ * of the specified [Exec] and passed all [IO] to the specified [processor].
  *
  * If no [processor] is specified, the output and the error stream will be
  * printed to the console.
  *
  * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
-public fun <P : Exec> P.processAsynchronously(
+public fun <E : Exec> E.processAsynchronously(
     interactivity: Interactivity = NonInteractive(null),
-    processor: Processor<P> = noopProcessor(),
-): P = apply {
+    processor: Processor<E> = noopProcessor(),
+): E = apply {
 
     async = true
     metaStream.subscribe { processor(this, it) }
 
-    val (processInputStream: InputStream?, nonBlockingReader) = when (interactivity) {
+    val (execInputStream: InputStream?, nonBlockingReader) = when (interactivity) {
         is Interactive -> InputStream.nullInputStream() to interactivity.nonBlocking
-        is NonInteractive -> interactivity.processInputStream to false
+        is NonInteractive -> interactivity.execInputStream to false
     }
 
-    val inputProvider = if (processInputStream != null) {
+    val inputProvider = if (execInputStream != null) {
         ioProcessingThreadPool.completableFuture {
-            processInputStream.use {
+            execInputStream.use {
                 var bytesCopied: Long = 0
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 var bytes = it.read(buffer)
@@ -236,8 +230,8 @@ public fun <P : Exec> P.processSynchronously(
         NonBlockingLineReader(errorStream) { line -> processor(this, IO.ERR typed line) },
     )
 
-    if (interactivity is NonInteractive && interactivity.processInputStream != null) {
-        interactivity.processInputStream.copyTo(inputStream)
+    if (interactivity is NonInteractive && interactivity.execInputStream != null) {
+        interactivity.execInputStream.copyTo(inputStream)
         inputStream.close()
     }
     while (readers.any { !it.done }) {

@@ -7,7 +7,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger.Companion.NO_RETURN_VALUE
 import koodies.logging.InMemoryLogger.Companion.SUCCESSFUL_RETURN_VALUE
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.test.SystemIoExclusive
+import koodies.test.SystemIOExclusive
 import koodies.test.output.TestLogger
 import koodies.test.toStringContainsAll
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
@@ -31,7 +31,7 @@ class InMemoryLoggerTest {
     private fun logger(outputStream: ByteArrayOutputStream? = null, init: InMemoryLogger.() -> Unit = {}): InMemoryLogger =
         InMemoryLogger("caption", SOLID, outputStream = outputStream).withUnclosedWarningDisabled.apply(init)
 
-    @SystemIoExclusive
+    @SystemIOExclusive
     @Test
     fun `should log using OutputStream`(capturedOutput: CapturedOutput) {
         val outputStream = ByteArrayOutputStream()

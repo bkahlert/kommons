@@ -14,7 +14,7 @@ import kotlin.experimental.ExperimentalTypeInference
 public open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
 
     /**
-     * A context to collection all elements added by means
+     * A context to collect all elements added by means
      * of the [ListBuildingContext].
      */
     protected class BackedListBuildingContext<E>(

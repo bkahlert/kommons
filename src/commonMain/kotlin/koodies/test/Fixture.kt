@@ -38,7 +38,11 @@ public open class BinaryFixture(override val name: String, override val data: By
 }
 
 
-public open class BuilderFixture<T : Function<*>, R>(public val builder: Builder<T, R>, public val init: T, public val result: R) : Fixture {
+public open class BuilderFixture<T : Function<*>, R>(
+    public val builder: Builder<T, R>,
+    public val init: T,
+    public val result: R,
+) : Fixture {
     override val name: String = "builder-fixture_${builder::class.simpleName}"
     override val data: ByteArray by lazy {
         asString {

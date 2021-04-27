@@ -52,6 +52,7 @@ import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThanOrEqualTo
@@ -61,6 +62,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration

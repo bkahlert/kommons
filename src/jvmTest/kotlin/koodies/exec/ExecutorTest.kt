@@ -3,6 +3,10 @@ package koodies.exec
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.out
+import koodies.docker.DockerImage.ImageContext.official
+import koodies.docker.TestImages.Ubuntu
+import koodies.docker.dockerized
+import koodies.docker.exec
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Failure
@@ -50,26 +54,50 @@ class ExecutorTest {
 
         @Test
         fun `should exec command line`() {
-            expectThat(CommandLine(Locations.Temp, "echo", "Hello, Command Line!").exec().io.out.ansiRemoved)
+            val exec = CommandLine(Locations.Temp, "echo", "Hello, Command Line!").exec()
+            expectThat(exec.io.out.ansiRemoved)
                 .isEqualTo("Hello, Command Line!")
         }
 
         @Test
         fun `should exec shell script`() {
-            expectThat(ShellScript { !"echo 'Hello, Shell Script!'" }.exec().io.out.ansiRemoved)
+            val exec = ShellScript { !"echo 'Hello, Shell Script!'" }.exec()
+            expectThat(exec.io.out.ansiRemoved)
                 .isEqualTo("Hello, Shell Script!")
         }
 
 
         @Test
         fun `should exec command line dockerized`() {
-            expectThat(CommandLine(Locations.Temp, "echo", "Hello, Docker Command Line!").exec().io.out.ansiRemoved)
+            val exec = CommandLine(Locations.Temp, "echo", "Hello, Docker Command Line!").exec.dockerized(Ubuntu).exec()
+            expectThat(exec.io.out.ansiRemoved)
+                .isEqualTo("Hello, Docker Command Line!")
+        }
+
+        @Test
+        fun `should exec command line dockerized2`() {
+            val exec = ShellScript {
+                shebang
+                !"echo 'Hello, Docker Shell Script!'"
+            }.exec.dockerized { official("ubuntu") }.logging()
+            expectThat(exec.io.out.ansiRemoved)
+                .isEqualTo("Hello, Docker Shell Script!")
+        }
+
+        @Test
+        fun `should exec command line dockerized3`() {
+            val exec = with(Ubuntu) { CommandLine(Locations.Temp, "echo", "Hello, Docker Command Line!").exec.dockerized() }
+            expectThat(exec.io.out.ansiRemoved)
                 .isEqualTo("Hello, Docker Command Line!")
         }
 
         @Test
         fun `should exec shell script dockerized`() {
-            expectThat(ShellScript { !"echo 'Hello, Docker Shell Script!'" }.exec().io.out.ansiRemoved)
+            val exec = ShellScript {
+                shebang
+                !"echo 'Hello, Docker Shell Script!'"
+            }.exec.dockerized(Ubuntu).exec()
+            expectThat(exec.io.out.ansiRemoved)
                 .isEqualTo("Hello, Docker Shell Script!")
         }
     }
@@ -143,7 +171,7 @@ class ExecutorTest {
 
             @Test
             fun TestLogger.`should log to receiver logger if available`() {
-                with(succeedingExecutable) { logging.exec() }
+                with(succeedingExecutable) { logging() }
                 expectLogged.logsSuccessfulIO()
             }
 
@@ -295,7 +323,7 @@ class ExecutorTest {
 
             @Test
             fun TestLogger.`should log to receiver logger if available`() {
-                with(succeedingExecutable) { logging.async.exec().apply { waitFor() } }
+                with(succeedingExecutable) { logging.async().apply { waitFor() } }
                 expectLogged.logsSuccessfulIO("⌛️ ")
             }
 

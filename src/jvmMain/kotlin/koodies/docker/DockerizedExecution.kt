@@ -9,7 +9,6 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.loggingProcessor
 import koodies.concurrent.process.process
 import koodies.concurrent.process.terminationLoggingProcessor
-import koodies.concurrent.toExec
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerizedExecution.DockerizedExecutionOptions.Companion.OptionsContext
 import koodies.exec.CommandLine
@@ -30,26 +29,26 @@ public class DockerizedExecution(
     private val image: DockerImage,
     private val commandLine: CommandLine,
 ) {
-    private var processor: Processor<DockerProcess>? = null
+    private var processor: Processor<DockerExec>? = null
 
-    public fun executeWithOptionalProcessor(init: (OptionsContext.() -> Processor<DockerProcess>?)?): DockerProcess =
+    public fun executeWithOptionalProcessor(init: (OptionsContext.() -> Processor<DockerExec>?)?): DockerExec =
         executeWithOptionallyStoredProcessor { init?.let { processor = it() } }
 
-    private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): DockerProcess {
+    private fun executeWithOptionallyStoredProcessor(init: Init<OptionsContext>): DockerExec {
         val options = DockerizedExecutionOptions(init)
         val dockerOptions = options.dockerOptions.withDefaultName(commandLine.summary.toBaseName().withRandomSuffix())
         val dockerRunCommandLine = DockerRunCommandLine(image, dockerOptions, commandLine)
 
         return with(options.executionOptions) {
             val processLogger = loggingOptions.newLogger(parentLogger, "Executing dockerized with ${image.formattedAs.input}: ${commandLine.summary}")
-            val dockerProcess = dockerRunCommandLine.toExec(execTerminationCallback)
+            val dockerExec = DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(dockerRunCommandLine, execTerminationCallback)
             if (processingMode.isSync) {
                 processLogger.runLogging {
-                    dockerProcess.process(processingMode, processor = processor ?: loggingProcessor(processLogger))
+                    dockerExec.process(processingMode, processor = processor ?: loggingProcessor(processLogger))
                 }
             } else {
-                processLogger.logResult { Result.success(dockerProcess) }
-                dockerProcess.process(processingMode, processor = processor ?: dockerProcess.terminationLoggingProcessor(processLogger))
+                processLogger.logResult { Result.success(dockerExec) }
+                dockerExec.process(processingMode, processor = processor ?: dockerExec.terminationLoggingProcessor(processLogger))
             }
         }
     }
@@ -83,7 +82,7 @@ public class DockerizedExecution(
  * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
  * and prints the [DockerCommandLine]'s execution to [System.out].
  */
-public val Executable.executeDockerized: (DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
+public val Executable.executeDockerized: (DockerImage, (OptionsContext.() -> Processor<DockerExec>?)?) -> DockerExec
     get() = { image, optionsInit ->
         DockerizedExecution(null, image, this.toCommandLine()).executeWithOptionalProcessor(optionsInit)
     }
@@ -94,7 +93,7 @@ public val Executable.executeDockerized: (DockerImage, (OptionsContext.() -> Pro
  * [DockerRunCommandLine.Options] built with the given [OptionsContext] [Init].
  * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
  */
-public val RenderingLogger?.executeDockerized: Executable.(DockerImage, (OptionsContext.() -> Processor<DockerProcess>?)?) -> DockerProcess
+public val RenderingLogger?.executeDockerized: Executable.(DockerImage, (OptionsContext.() -> Processor<DockerExec>?)?) -> DockerExec
     get() = { image, optionsInit ->
         DockerizedExecution(this@executeDockerized, image, this.toCommandLine()).executeWithOptionalProcessor(optionsInit)
     }

@@ -26,6 +26,13 @@ public class MountOptions(private val mountOptions: List<MountOption>) : Abstrac
         return mappedContainerPaths.first()
     }
 
+    /**
+     * Returns [MountOptions] containing all [mountOptions] of the original
+     * [MountOptions] and then the given [mountOption].
+     */
+    public operator fun plus(mountOption: MountOption): MountOptions =
+        MountOptions(mountOptions.plusElement(mountOption))
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

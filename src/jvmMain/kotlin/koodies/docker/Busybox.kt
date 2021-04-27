@@ -15,9 +15,9 @@ import koodies.toBaseName
  */
 public fun Docker.busybox(
     name: String = "busybox".withRandomSuffix(),
-    processor: Processor<DockerProcess>?,
+    processor: Processor<DockerExec>?,
     init: Init<CommandLineContext>,
-): DockerProcess =
+): DockerExec =
     docker({
         image { official("busybox") }
         options { name { name } }
@@ -31,8 +31,8 @@ public fun Docker.busybox(
 public fun Docker.busybox(
     name: String = "busybox".withRandomSuffix(),
     vararg lines: String,
-    processor: Processor<DockerProcess>?,
-): DockerProcess =
+    processor: Processor<DockerExec>?,
+): DockerExec =
     busybox(name, processor) {
         if (lines.isNotEmpty()) {
             arguments {
@@ -47,9 +47,9 @@ public fun Docker.busybox(
  */
 public fun Docker.busybox(
     image: ImageContext.() -> DockerImage = { official("busybox") },
-    processor: Processor<DockerProcess>?,
+    processor: Processor<DockerExec>?,
     init: Init<CommandLineContext>,
-): DockerProcess =
+): DockerExec =
     docker({
         images(image)
         options { name { CommandLine(init).summary.toBaseName() } }
@@ -63,8 +63,8 @@ public fun Docker.busybox(
 public fun Docker.busybox(
     image: ImageContext.() -> DockerImage,
     vararg lines: String,
-    processor: Processor<DockerProcess>? = null,
-): DockerProcess =
+    processor: Processor<DockerExec>? = null,
+): DockerExec =
     busybox(image, processor) {
         if (lines.isNotEmpty()) {
             arguments {

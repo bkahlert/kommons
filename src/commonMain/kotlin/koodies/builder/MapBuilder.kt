@@ -15,7 +15,7 @@ import kotlin.experimental.ExperimentalTypeInference
 public open class MapBuilder<K, V> : Builder<Init<MapBuildingContext<K, V>>, Map<K, V>> {
 
     /**
-     * A context to collection all elements added by means
+     * A context to collect all elements added by means
      * of the [ListBuildingContext].
      */
     protected class BackedMapBuildingContext<K, V>(

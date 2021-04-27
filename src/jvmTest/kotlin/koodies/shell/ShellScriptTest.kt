@@ -251,7 +251,7 @@ class ShellScriptTest {
             --name \
             container-name \
             --rm \
-            -i \
+            --interactive \
             --mount \
             type=bind,source=/a/b,target=/c/d \
             --mount \
@@ -306,7 +306,7 @@ class ShellScriptTest {
             --name \
             container-name \
             --rm \
-            -i \
+            --interactive \
             image/name
 
         """.trimIndent())

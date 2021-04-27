@@ -6,7 +6,7 @@ import koodies.docker.TestImages.BusyBox
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.IdeaWorkaroundTest
-import koodies.test.SystemIoExclusive
+import koodies.test.SystemIOExclusive
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -45,7 +45,7 @@ class DockerTest {
             expectThat(Docker.containers { "docker-container".sanitized }).isEqualTo(DockerContainer("docker-container"))
         }
 
-        @Test
+        @DockerRequiring @Test
         fun `should provide commands`() {
             expectCatching { Docker.containers.list() }.isSuccess()
         }
@@ -83,7 +83,7 @@ class DockerTest {
     @Nested
     inner class RunCommand {
 
-        @SystemIoExclusive
+        @SystemIOExclusive
         @Test
         fun `should run`() {
             val process = Docker.run {

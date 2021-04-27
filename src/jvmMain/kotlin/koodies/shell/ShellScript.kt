@@ -184,7 +184,7 @@ public class ShellScript(public val name: String? = null, content: String? = nul
     override fun toCommandLine(): CommandLine {
         val environment = emptyMap<String, String>()
         val path = Locations.WorkingDirectory
-        val scriptFile = sanitize(path).buildTo(path.scriptPath())
+        val scriptFile = buildTo(path.scriptPath())
         return CommandLine(environment, path, scriptFile.asString())
     }
 

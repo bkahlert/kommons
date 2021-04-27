@@ -22,13 +22,13 @@ class BusyboxKtTest { // TODO generalize to docker run command
     @DockerRequiring([BusyBox::class]) @Test
     fun `should start busybox`(uniqueId: UniqueId) {
         val processed = mutableListOf<IO>()
-        val dockerProcess: Exec = Docker.busybox(uniqueId.simplified, "echo busybox") { io ->
+        val dockerExec: Exec = Docker.busybox(uniqueId.simplified, "echo busybox") { io ->
             processed.add(io)
         }
 
         expect {
-            that(dockerProcess.waitFor()).isA<ExitState.Success>()
-            that(dockerProcess.alive).isFalse()
+            that(dockerExec.waitFor()).isA<ExitState.Success>()
+            that(dockerExec.alive).isFalse()
             that(processed.filterIsInstance<IO.OUT>()).containsExactly(IO.OUT typed "busybox")
         }
     }

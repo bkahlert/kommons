@@ -7,6 +7,7 @@ import koodies.concurrent.process.IO.META.DUMP
 import koodies.concurrent.process.IOSequence
 import koodies.exception.dump
 import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.text.LineSeparators.LF
 import java.nio.file.Path
 
@@ -53,6 +54,33 @@ public interface Exec : Process {
      * to be called after the process termination is handled.
      */
     public fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec
+}
+
+/**
+ * Factory capable of creating an [Exec] from a [CommandLine].
+ */
+public fun interface ExecFactory<out E : Exec> {
+
+    /**
+     * Creates a [Exec] to run this executable with the specified [execTerminationCallback]
+     * that is called the moment the [Exec] terminated—no matter if the [Exec] succeeds or fails.
+     */
+    public fun toProcess(commandLine: CommandLine, execTerminationCallback: ExecTerminationCallback?): E
+
+    public companion object {
+
+        /**
+         * Factory for [Exec] instances based on [Process].
+         */
+        public val NATIVE: ExecFactory<Exec> = native(null)
+
+        /**
+         * Returns a factory for [Exec] instances based on [Process]
+         * with the optionally specified [exitStateHandler].
+         */
+        public fun native(exitStateHandler: ExitStateHandler?): ExecFactory<JavaExec> =
+            ExecFactory { commandLine, execTerminationCallback -> JavaExec(commandLine, exitStateHandler, execTerminationCallback) }
+    }
 }
 
 /**

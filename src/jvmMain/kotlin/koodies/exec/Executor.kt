@@ -11,8 +11,6 @@ import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
 import koodies.concurrent.process.process
 import koodies.concurrent.process.terminationLoggingProcessor
-import koodies.docker.DockerImage
-import koodies.docker.DockerProcess
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.LoggingOptions
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
@@ -21,19 +19,63 @@ import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.runLogging
 
-public class DockerExecutor(executor: Executor, dockerImage: DockerImage) : Executor(executor.executable, executor.parentLogger, CommandLineRunner) {
-    public operator fun invoke(): DockerProcess = TODO()
-}
+/**
+ * An executor allows to execute an [executable]
+ * in three ways:
+ * 1. [invoke] just executes the [executable] with no special handling.
+ * 2. [logging] executes the [executable] and logs the execution with the configured [logger].
+ * 3. [processing] executes the [executable] by passing the [Exec]'s [IO] to the configured [processor].
+ */
+public data class Executor<E : Exec>(
 
-public open class Executor(
+    /**
+     * Instance of what will be executed as soon as [invoke]
+     * is called.
+     */
     public val executable: Executable,
-    public var parentLogger: RenderingLogger?, // TODO make private again
 
-    private val commandLineRunner: CommandLineRunner,
+    /**
+     * Factory responsible to provide an [Exec] of type [E]
+     * that executes the [executable].
+     */
+    public val execFactory: ExecFactory<E>,
+
+    /**
+     * Logger used to log the execution of [executable]
+     * (default: `null`; no logging).
+     */
+    public val logger: RenderingLogger? = null,
+
+    /**
+     * Caption used if the execution is [logging]
+     * (default: [Executable.summary]; only applies if a [logger] is set).
+     */
+    public val caption: String = executable.summary,
+
+    /**
+     * Options applied if the execution is [logging]
+     * (default: [SmartLoggingOptions]; only applies if a [logger] is set).
+     */
+    public val loggingOptions: LoggingOptions? = logger?.let { SmartLoggingOptions() },
+
+    /**
+     * Mode that defines if the execution will be synchronous
+     * or asynchronous including mode-specific options, such as if the
+     * [Exec]'s [IO] is to be processed non-blocking
+     * (default: synchronous execution).
+     */
+    public val processingMode: ProcessingMode = ProcessingMode { sync },
+
+    /**
+     * Processor used to interactively handle the [Exec]'s [IO]
+     * (default: no specific handling; the [IO] is only processed to be made available
+     * by [Exec.io]).
+     */
+    public val processor: Processor<Exec>? = null,
 ) {
-    private var loggingOptions: LoggingOptions? = parentLogger?.let { SmartLoggingOptions() }
-    private var processingMode = ProcessingMode { sync }
-    private var processor: Processor<Exec>? = null
+    @Suppress("UNCHECKED_CAST")
+    public fun <T : E> with(execFactory: ExecFactory<T>): Executor<T> =
+        copy(execFactory = execFactory) as Executor<T>
 
 
     // TODO setter for environemnt
@@ -43,24 +85,17 @@ public open class Executor(
      * Executes the [executable] with the current configuration,
      * and the optional [ExecTerminationCallback].
      *
-     * @param execTerminationCallback if specified, will be called with the process's final exit state
+     * If set, [execTerminationCallback] will be called the moment the
+     * [Exec] terminates—independent of whether [Exec] succeeds or fails.
      */
-    public operator fun invoke(execTerminationCallback: ExecTerminationCallback? = null): Exec = exec(execTerminationCallback)
-
-    /**
-     * Executes the [executable] with the current configuration,
-     * and the optional [ExecTerminationCallback].
-     *
-     * @param execTerminationCallback if specified, will be called with the process's final exit state
-     */
-    public fun exec(execTerminationCallback: ExecTerminationCallback? = null): Exec {
+    public operator fun invoke(execTerminationCallback: ExecTerminationCallback? = null): E {
 
         val processLogger: RenderingLogger = loggingOptions
-            ?.newLogger(parentLogger, executable.summary)
+            ?.newLogger(logger, caption)
             ?: MutedRenderingLogger()
 
-        val commandLine = executable.toCommandLine()
-        val exec = commandLineRunner.toProcess(commandLine, execTerminationCallback)
+        val commandLine: CommandLine = executable.toCommandLine()
+        val exec: E = execFactory.toProcess(commandLine, execTerminationCallback)
 
         when (processingMode.synchronicity) {
             Sync -> processLogger.runLogging {
@@ -81,14 +116,13 @@ public open class Executor(
      * and the optional [ExecTerminationCallback].
      */
     public fun logging(
-        parentLogger: RenderingLogger = this.parentLogger ?: BACKGROUND,
+        parentLogger: RenderingLogger = this.logger ?: BACKGROUND,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptionsInit: Init<LoggingOptionsContext> = { smart },
-    ): Exec {
-        this.parentLogger = parentLogger
-        loggingOptions = LoggingOptions.build(loggingOptionsInit)
-        return exec(execTerminationCallback)
-    }
+    ): E = copy(
+        logger = parentLogger,
+        loggingOptions = LoggingOptions.build(loggingOptionsInit),
+    ).invoke(execTerminationCallback)
 
     /**
      * Executes the [executable] by processing all [IO] using the given [processor],
@@ -96,28 +130,28 @@ public open class Executor(
      * and the optional [ExecTerminationCallback].
      */
     public fun processing(
-        parentLogger: RenderingLogger = this.parentLogger ?: BACKGROUND,
+        parentLogger: RenderingLogger = this.logger ?: BACKGROUND,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptionsInit: Init<LoggingOptionsContext> = { smart },
         processor: Processor<Exec>,
-    ): Exec {
-        this.parentLogger = parentLogger
-        loggingOptions = LoggingOptions.build(loggingOptionsInit)
-        this.processor = processor
-        return exec(execTerminationCallback)
-    }
+    ): E = copy(
+        logger = parentLogger,
+        loggingOptions = LoggingOptions.build(loggingOptionsInit),
+        processor = processor
+    ).invoke(execTerminationCallback)
 
-    public val async: Executor get() = also { processingMode = ProcessingMode { async } }
-    public fun mode(processingModeInit: ProcessingModeContext.() -> ProcessingMode): Executor =
-        also { processingMode = ProcessingMode(processingModeInit) }
+    public val async: Executor<E> get() = copy(processingMode = ProcessingMode { async })
+    public fun mode(processingModeInit: ProcessingModeContext.() -> ProcessingMode): Executor<E> =
+        copy(processingMode = ProcessingMode(processingModeInit))
 }
 
 @DslMarker
 public annotation class ExecutionDsl
 
 /**
- * An executable is something that can be run using the [Exec]
- * return by [toProcess].
+ * An executable is something that can be executed
+ * using [exec] or any of the various options
+ * provided by [Exec].
  */
 @ExecutionDsl
 public interface Executable {
@@ -132,28 +166,6 @@ public interface Executable {
      */
     public fun toCommandLine(): CommandLine
 
-    public val exec: Executor get() = Executor(this, null, CommandLineRunner)
-    public val <T : RenderingLogger> T?.logging: Executor get() = Executor(this@Executable, this, CommandLineRunner)
-}
-
-//TODO do the same for scripts
-// TODO do the same for dockerized
-
-public fun interface CommandLineRunner {
-
-    /**
-     * Creates an [Exec] to run this executable.
-     */
-    public fun toProcess(commandLine: CommandLine): Exec = toProcess(commandLine, null)
-
-    /**
-     * Creates a [Exec] to run this executable with the specified [execTerminationCallback]
-     * that is called the moment the [Exec] terminated—no matter if the [Exec] succeeds or fails.
-     */
-    public fun toProcess(commandLine: CommandLine, execTerminationCallback: ExecTerminationCallback?): Exec
-
-    public companion object : CommandLineRunner {
-        override fun toProcess(commandLine: CommandLine, execTerminationCallback: ExecTerminationCallback?): Exec =
-            JavaExec(commandLine, null, execTerminationCallback)
-    }
+    public val exec: Executor<Exec> get() = Executor(this, ExecFactory.NATIVE, null)
+    public val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@Executable, ExecFactory.NATIVE, this)
 }

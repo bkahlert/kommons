@@ -178,7 +178,7 @@ class IOTest {
     }
 
     @Nested
-    inner class IoProperties {
+    inner class IOProperties {
 
         @Test
         fun `should filter meta`() {

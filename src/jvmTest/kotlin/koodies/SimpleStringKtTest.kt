@@ -68,7 +68,7 @@ class SimpleStringKtTest {
                 "koodies.SimpleStringKtTest\$Companion" to "SimpleStringKtTest.Companion",
                 "koodies.SimpleStringKtTest\$ForKClass\$should return anonymous class name\$1" to "SimpleStringKtTest.ForKClass.should return anonymous class name.1",
                 "koodies.SimpleStringKtTest\$ForKClass\$should return lambda class name\$lambda\$1" to "SimpleStringKtTest.ForKClass.should return lambda class name.lambda.1",
-                "class koodies.docker.DockerProcessTest\$Lifecycle\$IsRunning" to "DockerProcessTest.Lifecycle.IsRunning",
+                "class koodies.docker.DockerExecTest\$Lifecycle\$IsRunning" to "DockerExecTest.Lifecycle.IsRunning",
             ) { (classString, expected) ->
                 expecting { classString.toSimpleString().ansiRemoved } that { isEqualTo(expected) }
             }

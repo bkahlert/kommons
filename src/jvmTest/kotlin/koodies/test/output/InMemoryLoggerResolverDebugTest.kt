@@ -5,7 +5,7 @@ import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.Debug
-import koodies.test.SystemIoExclusive
+import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class InMemoryLoggerResolverDebugTest {
     @Nested
     inner class SuccessTests {
 
-        @SystemIoExclusive
+        @SystemIOExclusive
         @Debug(includeInReport = false)
         @Test
         fun InMemoryLogger.`should log to console automatically with @Debug`(output: CapturedOutput) {
@@ -37,7 +37,7 @@ class InMemoryLoggerResolverDebugTest {
     @Nested
     inner class FailureTests {
 
-        @SystemIoExclusive
+        @SystemIOExclusive
         @Debug(includeInReport = false)
         @Test
         fun InMemoryLogger.`should log to console automatically with @Debug`(output: CapturedOutput) {

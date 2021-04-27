@@ -14,7 +14,7 @@ import kotlin.experimental.ExperimentalTypeInference
 public open class ListBuilder<E> : Builder<Init<ListBuildingContext<E>>, List<E>> {
 
     /**
-     * A context to collection all elements added by means
+     * A context to collect all elements added by means
      * of the [ListBuildingContext].
      */
     protected class BackedListBuildingContext<E>(

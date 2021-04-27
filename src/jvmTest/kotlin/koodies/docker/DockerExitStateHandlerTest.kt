@@ -11,6 +11,7 @@ import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NameAlreadyInUse
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NoSuchContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NoSuchImage
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.PathDoesNotExistInsideTheContainer
+import koodies.docker.DockerExitStateHandler.Failure.ConnectivityProblem
 import koodies.docker.DockerExitStateHandler.Failure.UnknownError
 import koodies.docker.DockerExitStateHandler.ParseException
 import koodies.exec.Process.ExitState
@@ -18,7 +19,9 @@ import koodies.exec.Process.ProcessState.Terminated
 import koodies.exec.status
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics
 import koodies.text.Semantics.Symbols.Negative
 import koodies.text.Semantics.formattedAs
 import koodies.text.ansiRemoved
@@ -56,6 +59,20 @@ public inline fun <reified T : Any, V> associateSealedSubclasses(valueSelector: 
 class DockerExitStateHandlerTest {
 
     private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(sequenceOf(IO.ERR typed errorMessage)))
+
+    @TestFactory
+    fun `should match docker engine not running error message`() = tests {
+        val errorMessage = "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
+        val connectivityProblemState = DockerExitStateHandler.handle(getTerminated(errorMessage))
+
+        val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
+
+        expecting { connectivityProblemState } that { isA<ConnectivityProblem>() }
+        expecting { connectivityProblemState.status.ansiRemoved } that { isEqualTo("Is the docker daemon running?") }
+        expecting { connectivityProblemState.textRepresentation!!.ansiRemoved } that { isEqualTo("connectivity problem${delimiter}Is the docker daemon running?") }
+        expecting { connectivityProblemState.format().ansiRemoved } that { isEqualTo("connectivity problem${delimiter}Is the docker daemon running?") }
+        expecting { connectivityProblemState } that { toStringMatchesCurlyPattern("connectivity problem${delimiter}Is the docker daemon running?") }
+    }
 
     @TestFactory
     fun `should match bad request error message`() = listOf(

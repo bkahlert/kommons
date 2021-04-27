@@ -7,6 +7,7 @@ import koodies.io.path.asString
 import koodies.io.path.randomPath
 import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.shell.HereDoc
+import koodies.shell.ShellScript
 import koodies.text.LineSeparators
 import org.codehaus.plexus.util.cli.Commandline
 import org.codehaus.plexus.util.cli.shell.Shell
@@ -86,12 +87,17 @@ private object Executors {
  * Otherwise the command line is taken as is and executes using the VM's
  * [ProcessBuilder].
  */
-public fun CommandLine.toJavaProcess(): JavaProcess {
-    val scriptFile: Path? = kotlin.runCatching { command.asPath() }.getOrNull()?.takeIf { it.isScriptFile }
-    return scriptFile
+public fun CommandLine.toJavaProcess(): JavaProcess =
+    asScriptFileOrNull()
         ?.runScriptAsJavaProcess(environment, workingDirectory)
         ?: runCommandLineAsJavaProcess()
-}
+
+/**
+ * If this [CommandLine] is pointing to a [ShellScript] file,
+ * this function will return its [Path] and `null` otherwise.
+ */
+public fun CommandLine.asScriptFileOrNull(): Path? =
+    kotlin.runCatching { command.asPath() }.getOrNull()?.takeIf { it.isScriptFile }
 
 /**
  * Returns a random path to a shell script file in `this` directory.

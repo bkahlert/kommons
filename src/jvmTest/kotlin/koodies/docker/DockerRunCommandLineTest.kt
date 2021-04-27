@@ -2,6 +2,7 @@ package koodies.docker
 
 import koodies.builder.Init
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.MountOptionContext.Type.bind
 import koodies.exec.CommandLine
 import koodies.io.path.asPath
@@ -16,7 +17,10 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
+import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isNull
+import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
 
 @Execution(CONCURRENT)
@@ -47,7 +51,7 @@ class DockerRunCommandLineTest {
 
     @Test
     fun `should set interactive as default`() {
-        expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("-i")
+        expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("--interactive")
     }
 
     @Test
@@ -70,8 +74,8 @@ class DockerRunCommandLineTest {
                 -w \
                 /c \
                 --rm \
-                -i \
-                -t \
+                --interactive \
+                --tty \
                 --mount \
                 type=bind,source=/a/b,target=/c/d \
                 --mount \
@@ -80,7 +84,7 @@ class DockerRunCommandLineTest {
                 custom2 \
                 repo/name:tag \
                 work \
-                /etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/ \
+                /etc/dnf/dnf.conf:s/check=1/check=0/ \
                 -arg1 \
                 --argument \
                 2 \
@@ -119,6 +123,26 @@ class DockerRunCommandLineTest {
                 arg=g/h \
                 arg=i
                 """.trimIndent())
+    }
+
+    @Nested
+    inner class FallbackName {
+
+        @Test
+        fun `should return same options if name is set`() {
+            val options = Options { name { "container-name" } }
+            expectThat(options.withFallbackName("fallback-name"))
+                .isSameInstanceAs(options)
+                .get { name }.isNotNull().get { name }.isEqualTo("container-name")
+        }
+
+        @Test
+        fun `should return new options with fallback name if name is not set`() {
+            val options = Options {}
+            expectThat(options.withFallbackName("fallback-name"))
+                .isNotSameInstanceAs(options)
+                .get { name }.isNotNull().get { name }.isEqualTo("fallback-name")
+        }
     }
 
     @Nested
@@ -198,8 +222,8 @@ class DockerRunCommandLineTest {
             guestCommandLine(guestWorkingDir)
         )
 
-        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): DockerRunCommandLine.Options =
-            DockerRunCommandLine.Options(
+        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): Options =
+            Options(
                 name = DockerContainer.from("container-name"),
                 workingDirectory = optionsWorkingDir?.asContainerPath(),
                 mounts = MountOptions(
@@ -252,7 +276,7 @@ class DockerRunCommandLineTest {
                 workingDirectory { "/a".asHostPath() }
                 command { "work" }
                 arguments {
-                    +"/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/"
+                    +"/etc/dnf/dnf.conf:s/check=1/check=0/"
                     +"-arg1"
                     +"--argument" + "2"
                     +HereDocBuilder.hereDoc(label = "HEREDOC") {
@@ -270,7 +294,7 @@ class DockerRunCommandLineTest {
         },
         DockerRunCommandLine(
             DockerImage { "repo" / "name" tag "tag" },
-            DockerRunCommandLine.Options(
+            Options(
                 detached = true,
                 name = DockerContainer.from("container-name"),
                 publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
@@ -291,7 +315,7 @@ class DockerRunCommandLineTest {
                 workingDirectory = Path.of("/a"),
                 command = "work",
                 arguments = listOf(
-                    "/etc/dnf/dnf.conf:s/gpgcheck=1/gpgcheck=0/",
+                    "/etc/dnf/dnf.conf:s/check=1/check=0/",
                     "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
                     "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
                     "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",

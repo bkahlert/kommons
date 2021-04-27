@@ -3,10 +3,11 @@ package koodies.docker
 import koodies.builder.BuilderTemplate
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
-import koodies.exec.CommandLineRunner
 import koodies.exec.Exec
+import koodies.exec.ExecFactory
 import koodies.exec.Executor
 import koodies.exec.JavaExec
+import koodies.exec.Process
 import koodies.io.path.Locations
 import koodies.logging.RenderingLogger
 import java.nio.file.Path
@@ -65,8 +66,8 @@ public open class DockerCommandLine(
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
 
-    override val exec: Executor get() = Executor(this, null, DockerCommandLineRunner)
-    override val <T : RenderingLogger> T?.logging: Executor get() = Executor(this@DockerCommandLine, this, DockerCommandLineRunner)
+    override val exec: Executor<Exec> get() = Executor(this, NATIVE_DOCKER_CLI, null)
+    override val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@DockerCommandLine, NATIVE_DOCKER_CLI, this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -84,13 +85,11 @@ public open class DockerCommandLine(
     public companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
 
         /**
-         * Command line runner with a custom [DockerExitStateHandler].
+         * Factory for [Exec] instances based on [Process]
+         * with a specialized [DockerExitStateHandler].
          */
-        private val DockerCommandLineRunner = CommandLineRunner { commandLine, execTerminationCallback ->
-            JavaExec(
-                commandLine = commandLine,
-                exitStateHandler = DockerExitStateHandler,
-                execTerminationCallback = execTerminationCallback)
+        private val NATIVE_DOCKER_CLI = ExecFactory<Exec> { commandLine, execTerminationCallback ->
+            JavaExec(commandLine, DockerExitStateHandler, execTerminationCallback)
         }
 
         override fun BuildContext.build(): DockerCommandLine = ::CommandLineContext {

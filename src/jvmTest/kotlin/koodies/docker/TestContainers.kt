@@ -20,7 +20,6 @@ import koodies.test.UniqueId.Companion.id
 import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -92,8 +91,8 @@ object TestImages {
  * @see TestContainers
  * @see TestContainersProvider
  */
-@Slow @Tag("docker")
-@TestFactory
+@Slow
+@DockerRequiring @TestFactory
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Extensions(
@@ -111,8 +110,8 @@ annotation class ContainersTestFactory(
  * @see TestContainers
  * @see TestContainersProvider
  */
-@Slow @Tag("docker")
-@Test
+@Slow
+@DockerRequiring @Test
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Extensions(
@@ -288,8 +287,8 @@ class TestContainers(
  * @see TestImage
  * @see TestImageProvider
  */
-@Slow @Tag("docker")
-@TestFactory
+@Slow
+@DockerRequiring @TestFactory
 @ResourceLock(TestImageProvider.RESOURCE)
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
@@ -305,8 +304,8 @@ annotation class ImageTestFactory(
  * @see TestImage
  * @see TestImageProvider
  */
-@Slow @Tag("docker")
-@Test
+@Slow
+@DockerRequiring @Test
 @ResourceLock(TestImageProvider.RESOURCE)
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
