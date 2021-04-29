@@ -40,7 +40,6 @@ import kotlin.io.path.extension
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
 
-@Execution(SAME_THREAD)
 class RenderingLoggerKtTest {
 
     @Test

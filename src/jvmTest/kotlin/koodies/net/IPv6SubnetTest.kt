@@ -1,15 +1,12 @@
 package koodies.net
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.math.bigIntegerOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class IPv6SubnetTest {
 
     private val ip = IPv6Address.parse("abba:4efa:abba:4efa:abba:4efa:abba:4efa")
@@ -69,11 +66,11 @@ class IPv6SubnetTest {
 
     @TestFactory
     fun `should have usable host count`() = testEach(
-        0 to "340282366920938463463374607431768211456" to "340282366920938463463374607431768211454",
-        63 to "36893488147419103232" to "36893488147419103230",
-        64 to "18446744073709551616" to "18446744073709551614",
-        65 to "9223372036854775808" to "9223372036854775806",
-        128 to "1" to "1",
+        0 to "340282366920938463463374607431768211456" too "340282366920938463463374607431768211454",
+        63 to "36893488147419103232" too "36893488147419103230",
+        64 to "18446744073709551616" too "18446744073709551614",
+        65 to "9223372036854775808" too "9223372036854775806",
+        128 to "1" too "1",
     ) { (length, hostCountString, usableHostCountString) ->
         val hostCount = bigIntegerOfDecimalString(hostCountString)
         val usableHostCount = bigIntegerOfDecimalString(usableHostCountString)
@@ -85,11 +82,11 @@ class IPv6SubnetTest {
 
     @TestFactory
     fun `should have first and usable host`() = testEach(
-        0 to "::1" to "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe",
-        63 to "abba:4efa:abba:4efa:::1" to "abba:4efa:abba:4efb:ffff:ffff:ffff:fffe",
-        64 to "abba:4efa:abba:4efa:::1" to "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
-        65 to "abba:4efa:abba:4efa:8000:::1" to "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
-        128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa" to "abba:4efa:abba:4efa:abba:4efa:abba:4efa",
+        0 to "::1" too "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe",
+        63 to "abba:4efa:abba:4efa:::1" too "abba:4efa:abba:4efb:ffff:ffff:ffff:fffe",
+        64 to "abba:4efa:abba:4efa:::1" too "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
+        65 to "abba:4efa:abba:4efa:8000:::1" too "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
+        128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa" too "abba:4efa:abba:4efa:abba:4efa:abba:4efa",
     ) { (length, firstUsableHost, lastUsableHost) ->
         with { IPv6Subnet.from(ip, length) }.then {
             expecting { this.firstUsableHost } that { toStringIsEqualTo(firstUsableHost) }

@@ -37,12 +37,3 @@ public fun Path.script(
     logger: RenderingLogger = MutedRenderingLogger(),
     shellScript: ShellScript.() -> Unit,
 ): Exec = shellScript.build().toCommandLine(this@script).exec.logging(logger)
-
-/**
- * Convenience function to tests if the output of the specified [command]
- * contains the specified [substring] (case-**in**sensitive by default,
- * that is ignoring the case).
- */
-@Deprecated("use exec")
-public fun scriptOutputContains(command: String, substring: String, caseSensitive: Boolean = false): Boolean =
-    script { !command }.output().contains(substring, ignoreCase = !caseSensitive)

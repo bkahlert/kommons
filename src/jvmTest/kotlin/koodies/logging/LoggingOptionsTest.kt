@@ -10,13 +10,10 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 
-@Execution(SAME_THREAD)
 class LoggingOptionsTest {
 
     @Nested

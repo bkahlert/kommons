@@ -1,7 +1,7 @@
 package koodies.docker
 
 import koodies.asString
-import koodies.builder.build
+import koodies.builder.Init
 import koodies.docker.DockerContainer.State.Error
 import koodies.docker.DockerContainer.State.Existent.Created
 import koodies.docker.DockerContainer.State.Existent.Dead
@@ -11,8 +11,9 @@ import koodies.docker.DockerContainer.State.Existent.Removing
 import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
-import koodies.docker.DockerImage.ImageContext
+import koodies.docker.DockerExitStateHandler.Failure
 import koodies.docker.DockerRunCommandLine.Options
+import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Exec.Companion.createDump
@@ -57,7 +58,13 @@ public open class DockerExec private constructor(
         }
 
     override val onExit: CompletableFuture<out ExitState> by lazy {
-        exec.onExit.apply { thenAccept { run { exitState = it } } }
+        exec.onExit.apply {
+            thenAccept {
+                exitState = kotlin.runCatching { DockerExitStateHandler.handle(it) }.getOrNull()
+                    ?.takeIf { it is Failure.ConnectivityProblem }
+                    ?: it
+            }
+        }
     }
 
     override fun start(): DockerExec = also { exec.start() }
@@ -93,10 +100,8 @@ public open class DockerExec private constructor(
          */
         public val NATIVE_DOCKER_EXEC_WRAPPED: ExecFactory<DockerExec> =
             ExecFactory { commandLine, execTerminationCallback ->
-                DockerExec(
-                    container = DockerContainer.from(commandLine.dockerFallbackName),
-                    exec = JavaExec(commandLine, null, execTerminationCallback),
-                )
+                val exec = JavaExec(commandLine, null, execTerminationCallback)
+                DockerExec(DockerContainer.from(commandLine.dockerFallbackName), exec)
             }
     }
 }
@@ -113,24 +118,39 @@ public fun Executor<DockerExec>.exec(execTerminationCallback: ExecTerminationCal
 
 /**
  * Returns an [Executor] that runs `this` executor's [Executor.executable]
- * using the [DockerImage] built by [imageInit].
+ * using the [DockerImage] built by [image]
+ * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executor.executable]).
  */
-public fun Executor<Exec>.dockerized(imageInit: (ImageContext) -> DockerImage): Executor<DockerExec> =
-    dockerize(DockerImage.build(imageInit))
+public fun Executor<Exec>.dockerized(options: Options = Options(), image: DockerImageInit): Executor<DockerExec> =
+    dockerize(DockerImage(image), options)
 
 /**
  * Returns an [Executor] that runs `this` executor's [Executor.executable]
- * using the specified [image].
+ * using the [DockerImage] built by [image]
+ * and the [Options] built by [options].
  */
-public fun Executor<Exec>.dockerized(image: DockerImage): Executor<DockerExec> =
-    dockerize(image)
+public fun Executor<Exec>.dockerized(image: DockerImageInit, options: Init<OptionsContext>): Executor<DockerExec> =
+    dockerize(DockerImage(image), Options(options))
 
-// TODO builder methods for options
-// TODO delete DockerizedExectuion
+/**
+ * Returns an [Executor] that runs `this` executor's [Executor.executable]
+ * using the specified [image]
+ * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executor.executable]).
+ */
+public fun Executor<Exec>.dockerized(image: DockerImage, options: Options = Options()): Executor<DockerExec> =
+    dockerize(image, options)
+
+/**
+ * Returns an [Executor] that runs `this` executor's [Executor.executable]
+ * using the specified [image]
+ * and the [Options] built by [options].
+ */
+public fun Executor<Exec>.dockerized(image: DockerImage, options: Init<OptionsContext>): Executor<DockerExec> =
+    dockerize(image, Options(options))
 
 private fun Executor<Exec>.dockerize(
     image: DockerImage,
-    options: Options = Options(),
+    options: Options,
 ): Executor<DockerExec> {
     val commandLine = executable.toCommandLine()
     val scriptFile = commandLine.asScriptFileOrNull()
@@ -167,7 +187,9 @@ private fun Options.withMappedScriptFile(scriptFile: Path): Options {
 }
 
 private val CommandLine.dockerFallbackName: String
-    get() = summary.toBaseName().withRandomSuffix()
+    get() = (this as? DockerRunCommandLine)
+        ?.let { it.options.name?.name }
+        ?: summary.toBaseName().withRandomSuffix()
 
 private fun Options.withFallbackName(commandLine: CommandLine): Options {
     return withFallbackName(commandLine.dockerFallbackName)

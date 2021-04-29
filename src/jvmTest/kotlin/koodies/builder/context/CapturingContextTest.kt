@@ -6,8 +6,6 @@ import koodies.test.test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.assertions.containsExactly
 import strikt.assertions.hasSize
@@ -17,7 +15,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNull
 import strikt.assertions.map
 
-@Execution(SAME_THREAD)
 class CapturingContextTest {
 
     open inner class TestContext(override val captures: CapturesMap) : CapturingContext() {

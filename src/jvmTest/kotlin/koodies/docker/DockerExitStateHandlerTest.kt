@@ -1,6 +1,6 @@
 package koodies.docker
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IOSequence
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
@@ -30,8 +30,6 @@ import koodies.text.spaced
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion.Builder
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -55,10 +53,9 @@ import kotlin.reflect.KClass
 public inline fun <reified T : Any, V> associateSealedSubclasses(valueSelector: (KClass<out T>) -> V): Map<KClass<out T>, V> =
     T::class.sealedSubclasses.associateWith(valueSelector)
 
-@Execution(SAME_THREAD)
 class DockerExitStateHandlerTest {
 
-    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(sequenceOf(IO.ERR typed errorMessage)))
+    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(IO.ERR typed errorMessage))
 
     @TestFactory
     fun `should match docker engine not running error message`() = tests {
@@ -74,13 +71,27 @@ class DockerExitStateHandlerTest {
         expecting { connectivityProblemState } that { toStringMatchesCurlyPattern("connectivity problem${delimiter}Is the docker daemon running?") }
     }
 
+    @Test
+    fun `should match out errors`() {
+        val errorMessage = "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
+        val exitState = DockerExitStateHandler.handle(Terminated(12345L, 42, IOSequence(
+            IO.OUT typed "out",
+            IO.OUT typed "error: $errorMessage",
+            IO.ERR typed "error: err",
+        )))
+
+        val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
+
+        expectThat(exitState).toStringMatchesCurlyPattern("connectivity problem${delimiter}Is the docker daemon running?")
+    }
+
     @TestFactory
     fun `should match bad request error message`() = listOf(
-        NoSuchContainer::class to "Error: No such container: AFFECTED" to "no such container",
-        NoSuchImage::class to "Error: No such image: AFFECTED" to "no such image",
-        PathDoesNotExistInsideTheContainer::class to "Error: Path does not exist inside the container: AFFECTED" to "path does not exist inside the container",
-        NameAlreadyInUse::class to "Error: Name already in use: AFFECTED" to "name already in use",
-        Conflict::class to "Error: Conflict: AFFECTED" to "conflict"
+        NoSuchContainer::class to "Error: No such container: AFFECTED" too "no such container",
+        NoSuchImage::class to "Error: No such image: AFFECTED" too "no such image",
+        PathDoesNotExistInsideTheContainer::class to "Error: Path does not exist inside the container: AFFECTED" too "path does not exist inside the container",
+        NameAlreadyInUse::class to "Error: Name already in use: AFFECTED" too "name already in use",
+        Conflict::class to "Error: Conflict: AFFECTED" too "conflict"
     ).testEach { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
         val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
 

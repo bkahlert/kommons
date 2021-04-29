@@ -1,32 +1,49 @@
 package koodies.docker
 
+import koodies.builder.Init
 import koodies.builder.StatelessBuilder
+import koodies.collections.head
+import koodies.collections.tail
+import koodies.docker.DockerExitStateHandler.Failure
+import koodies.docker.DockerImage.Companion.parse
 import koodies.docker.DockerImage.ImageContext
+import koodies.docker.DockerRunCommandLine.Options
+import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.Exec
 import koodies.exec.Executor
 import koodies.exec.Process.ExitState
+import koodies.exec.parse
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
+import koodies.or
 import koodies.requireSaneInput
 import koodies.text.Semantics.formattedAs
+import koodies.text.takeUnlessBlank
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
- * a non-empty list of [path] elements and an optional [specifier]
- * than can either be a tag `@tag` or a digest `@hash`.
+ * a list of [path] elements and an optional [specifier]
+ * than can either be a [tag] `@tag` or a [digest] `@hash`.
  *
  * Examples:
  * - `DockerImage { "bkahlert" / "libguestfs" }`
  * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
  * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+ *
+ * Parseable strings are allowed as well:
+ * - `DockerImage { "bkahlert/libguestfs" }`
+ * - `DockerImage { "bkahlert/libguestfs:latest" }`
+ * - `DockerImage { "bkahlert/libguestfs@sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
  */
 @Suppress("SpellCheckingInspection")
 public open class DockerImage(
+
     /**
      * The repository name
      */
     public val repository: String,
+
     /**
      * Non-empty list of path elements
      */
@@ -41,7 +58,8 @@ public open class DockerImage(
      * Optional digest.
      */
     public val digest: String? = null,
-) {
+
+    ) : CharSequence {
 
     private val repoAndPath = listOf(repository, *path.toTypedArray())
 
@@ -126,11 +144,33 @@ public open class DockerImage(
 
     /**
      * Returns an [Executor] that runs `this` executor's [Executor.executable]
-     * using the `this` [DockerImage].
+     * using `this` [DockerImage]
+     * and default options [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executor.executable].
      */
-    public val Executor<Exec>.dockerized: Executor<DockerExec> get() = dockerized(this@DockerImage)
+    public val Executor<Exec>.dockerized: Executor<DockerExec>
+        get() = dockerized(this@DockerImage)
 
-    override fun toString(): String = repoAndPath.joinToString("/") + specifier
+    /**
+     * Returns an [Executor] that runs `this` executor's [Executor.executable]
+     * using `this` [DockerImage]
+     * and the specified [options].
+     */
+    public fun Executor<Exec>.dockerized(options: Options): Executor<DockerExec> =
+        dockerized(this@DockerImage, options)
+
+    /**
+     * Returns an [Executor] that runs `this` executor's [Executor.executable]
+     * using `this` [DockerImage]
+     * and the [Options] built by [options].
+     */
+    public fun Executor<Exec>.dockerized(options: Init<OptionsContext>): Executor<DockerExec> =
+        dockerized(this@DockerImage, Options(options))
+
+    private val string by lazy { repoAndPath.joinToString("/") + specifier }
+    override val length: Int = string.length
+    override fun get(index: Int): Char = string[index]
+    override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = string.subSequence(startIndex, endIndex)
+    override fun toString(): String = string
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DockerImage) return false
@@ -154,11 +194,6 @@ public open class DockerImage(
      */
     @DockerCommandLineDsl
     public object ImageContext {
-
-        /**
-         * Describes an official [DockerImage](https://docs.docker.com/docker-hub/official_images/).
-         */
-        public fun official(repository: String): RepositoryWithPath = RepositoryWithPath(repository, emptyList())
 
         /**
          * Adds a [path] element to `this` repository.
@@ -194,10 +229,18 @@ public open class DockerImage(
      * - `DockerImage { "bkahlert" / "libguestfs" }`
      * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
      * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     *
+     * If only a string is provided it will be parsed accordingly:
+     * - `DockerImage { "bkahlert/libguestfs" }`
+     * - `DockerImage { "bkahlert/libguestfs:latest" }`
+     * - `DockerImage { "bkahlert/libguestfs@sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
      */
     @Suppress("SpellCheckingInspection")
     public companion object :
-        StatelessBuilder.PostProcessing<ImageContext, DockerImage, DockerImage>(ImageContext, { DockerImage(repository, path, tag, digest) }) {
+        StatelessBuilder.PostProcessing<ImageContext, CharSequence, DockerImage>(ImageContext, {
+            if (this is DockerImage) DockerImage(repository, path, tag, digest)
+            else parse(toString())
+        }) {
 
         /**
          * Pattern that the [repository] and all [path] elements match.
@@ -233,4 +276,18 @@ public open class DockerImage(
     }
 }
 
-public typealias DockerImageInit = ImageContext.() -> DockerImage
+/**
+ * Type of the argument supported by [DockerImage] builder.
+ *
+ * @see DockerImage.Companion
+ */
+public typealias DockerImageInit = ImageContext.() -> CharSequence
+
+private fun Exec.parseImages(): List<DockerImage> {
+    return parse.columns<DockerImage, Failure>(3) { (repoAndPath, tag, digest) ->
+        val (repository, path) = repoAndPath.split("/").let { it.head to it.tail }
+        repository.takeUnlessBlank()?.let { repo ->
+            DockerImage(repo, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())
+        }
+    } or { emptyList() }
+}

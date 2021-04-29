@@ -4,18 +4,16 @@ import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.META.FILE
 import koodies.concurrent.process.IO.META.STARTING
-import koodies.concurrent.process.IO.META.TERMINATED
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.IOSequence
 import koodies.concurrent.process.ShutdownHookUtils
 import koodies.debug.asEmoji
 import koodies.exception.toCompactString
 import koodies.exec.Exec.Companion.createDump
+import koodies.exec.Exec.Companion.fallbackExitStateHandler
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.Process.ExitState.Failure
 import koodies.exec.Process.ExitState.Fatal
-import koodies.exec.Process.ExitState.Success
 import koodies.exec.Process.ProcessState
 import koodies.exec.Process.ProcessState.Prepared
 import koodies.exec.Process.ProcessState.Running
@@ -121,38 +119,29 @@ public open class JavaExec(
         }.handle { _, throwable ->
             val exitValue = startImplicitly().exitValue()
 
-            when {
-
-                throwable != null -> {
+            run {
+                if (throwable != null) {
                     val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
                     val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
-                    Fatal(cause, exitValue, pid, dump.ansiRemoved, io)
-                }
 
-                exitStateHandler != null ->
+                    Fatal(cause, exitValue, pid, dump.ansiRemoved, io)
+                } else {
                     kotlin.runCatching {
-                        exitStateHandler.handle(Terminated(pid, exitValue, io))
+                        val exitStateHandler = exitStateHandler ?: fallbackExitStateHandler(commandLine.includedFiles)
+                        val terminated = Terminated(pid, exitValue, io)
+
+                        exitStateHandler.handle(terminated)
                     }.getOrElse { ex ->
                         val message =
                             "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:${LineSeparators.LF}\t" +
                                 ex.message.formattedAs.error
+
                         Fatal(ex, exitValue, pid, createDump(message), io, message)
                     }
-
-                exitValue != 0 -> {
-                    val dump = createDump(
-                        "Process ${pid.formattedAs.input} terminated with exit code ${exitValue.formattedAs.input}",
-                        *commandLine.includedFiles.map { FILE(it).formatted }.toTypedArray()
-                    )
-                    Failure(exitValue, pid, commandLine.includedFiles.map { it.toUri() }, dump, io)
-                }
-
-                else -> {
-                    metaStream.emit(TERMINATED(process))
-                    Success(pid, io)
                 }
 
             }.also { exitState = it }
+
         }.thenAlso { term, ex ->
             postTerminationCallbacks.forEach {
                 process.it(term ?: Fatal(ex!!, startImplicitly().exitValue(), pid, "Unexpected exception in process termination handling.", io))

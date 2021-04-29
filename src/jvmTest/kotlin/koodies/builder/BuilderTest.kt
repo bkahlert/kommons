@@ -2,12 +2,9 @@ package koodies.builder
 
 import koodies.test.test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class BuilderTest {
 
     private class CustomContext(private val list: MutableList<String>) {

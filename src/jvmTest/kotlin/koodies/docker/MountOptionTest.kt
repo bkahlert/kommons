@@ -4,8 +4,6 @@ import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -14,7 +12,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.message
 import java.nio.file.Path
 
-@Execution(SAME_THREAD)
 class MountOptionTest {
 
     private val Path.mountOption get() = MountOption(source = resolve("host/container"), target = "/mount/host".asContainerPath())

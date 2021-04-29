@@ -1,25 +1,22 @@
 package koodies.text
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class CasesKtTest {
 
     @TestFactory
     fun camelCase() = testEach(
-        "" to "" to listOf(""),
-        "foo" to "foo" to listOf("foo"),
-        "foo-bar" to "fooBar" to listOf("foo", "bar"),
-        "foo-bar-baz" to "fooBarBaz" to listOf("foo", "bar", "baz"),
-        "a-foo-bar-baz" to "aFooBarBaz" to listOf("a", "foo", "bar", "baz"),
-        "test%123" to "test%123" to listOf("test%123"),
+        "" to "" too listOf(""),
+        "foo" to "foo" too listOf("foo"),
+        "foo-bar" to "fooBar" too listOf("foo", "bar"),
+        "foo-bar-baz" to "fooBarBaz" too listOf("foo", "bar", "baz"),
+        "a-foo-bar-baz" to "aFooBarBaz" too listOf("a", "foo", "bar", "baz"),
+        "test%123" to "test%123" too listOf("test%123"),
     ) { (kebabCase, camelCase, parts) ->
         expecting("should convert ${kebabCase.quoted} to ${camelCase.quoted}") { kebabCase.convertKebabCaseToCamelCase() } that { isEqualTo(camelCase) }
         expecting("should convert ${camelCase.quoted} to ${kebabCase.quoted}") { camelCase.convertCamelCaseToKebabCase() } that { isEqualTo(kebabCase) }
@@ -56,12 +53,12 @@ class CasesKtTest {
 
     @TestFactory
     fun screamingSnakeCase() = listOf(
-        "" to "" to listOf(""),
-        "foo" to "FOO" to listOf("foo"),
-        "foo-bar" to "FOO_BAR" to listOf("foo", "bar"),
-        "foo-bar-baz" to "FOO_BAR_BAZ" to listOf("foo", "bar", "baz"),
-        "a-foo-bar-baz" to "A_FOO_BAR_BAZ" to listOf("a", "foo", "bar", "baz"),
-        "test%123" to "TEST%123" to listOf("test%123"),
+        "" to "" too listOf(""),
+        "foo" to "FOO" too listOf("foo"),
+        "foo-bar" to "FOO_BAR" too listOf("foo", "bar"),
+        "foo-bar-baz" to "FOO_BAR_BAZ" too listOf("foo", "bar", "baz"),
+        "a-foo-bar-baz" to "A_FOO_BAR_BAZ" too listOf("a", "foo", "bar", "baz"),
+        "test%123" to "TEST%123" too listOf("test%123"),
     ).testEach { (kebabCase, screamingSnakeCase, parts) ->
         expecting("should convert \"$kebabCase\" to \"$screamingSnakeCase\"") { kebabCase.convertKebabCaseToScreamingSnakeCase() } that {
             isEqualTo(screamingSnakeCase)

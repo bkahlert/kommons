@@ -227,7 +227,7 @@ class IOTest {
     }
 
     companion object {
-        val IO_LIST: IOSequence<IO> = IOSequence(sequenceOf(
+        val IO_LIST: IOSequence<IO> = IOSequence(
             IO.META.STARTING(CommandLine("command", "arg")),
             IO.META typed "file".asPath(),
             IO.META.TEXT("text"),
@@ -236,6 +236,6 @@ class IOTest {
             IO.INPUT typed "in",
             IO.OUT typed "out",
             IO.ERR(RuntimeException("err")),
-        ))
+        )
     }
 }

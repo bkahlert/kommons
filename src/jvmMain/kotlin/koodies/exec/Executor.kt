@@ -166,6 +166,20 @@ public interface Executable {
      */
     public fun toCommandLine(): CommandLine
 
+    /**
+     * Executor that allows to execute this [Executable]
+     * in three ways:
+     * 1. [Executor.invoke] just executes this [Executable] with no special handling.
+     * 2. [Executor.logging] executes the [Executable] and logs the execution with the configured [Executor.logger].
+     * 3. [Executor.processing] executes the [Executable] by passing the [Exec]'s [IO] to the configured [Executor.processor].
+     */
     public val exec: Executor<Exec> get() = Executor(this, ExecFactory.NATIVE, null)
+
+    /**
+     * Executor that allows to execute this [Executable] [Executor.logging]
+     * using `this` [RenderingLogger].
+     *
+     * @see exec
+     */
     public val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@Executable, ExecFactory.NATIVE, this)
 }

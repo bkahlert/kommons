@@ -7,28 +7,41 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.SystemIOExclusive
+import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 
-@Execution(CONCURRENT)
 class DockerTest {
+
+    @Nested
+    inner class InfoProperty {
+
+        @DockerRequiring @Test
+        fun `should return info for existing key`() {
+            expectThat(Docker.info["server.server-version"]).toStringMatchesCurlyPattern("{}.{}.{}")
+        }
+
+        @DockerRequiring @Test
+        fun `should return null for unknown key`() {
+            expectThat(Docker.info["unknown.key"]).isNull()
+        }
+    }
 
     @Nested
     inner class ImageProperty {
 
         @Test
         fun `should build instances`() {
-            expectThat(Docker.images { official("hello-world") }).isEqualTo(TestImages.HelloWorld)
+            expectThat(Docker.images { "hello-world" }).isEqualTo(TestImages.HelloWorld)
         }
 
         @Test
@@ -87,7 +100,7 @@ class DockerTest {
         @Test
         fun `should run`() {
             val process = Docker.run {
-                image { official("busybox") }
+                image { "busybox" }
                 commandLine {
                     command { "echo" }
                     arguments { +"test" }
@@ -99,7 +112,7 @@ class DockerTest {
         @Test
         fun InMemoryLogger.`should use existing logger`() {
             run {
-                image { official("busybox") }
+                image { "busybox" }
                 commandLine {
                     command { "echo" }
                     arguments { +"test" }

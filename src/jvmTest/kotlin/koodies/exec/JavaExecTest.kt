@@ -5,6 +5,7 @@ import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.IO.INPUT
 import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.IOSequence
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processAsynchronously
@@ -584,6 +585,15 @@ private fun Builder<Exec>.completesWithIO() = log.logs(OUT typed "test out", ERR
 
 val <T : Exec> Builder<T>.io: DescribeableBuilder<List<IO>>
     get() = get("logged IO") { io.toList() }
+
+val Builder<List<IO>>.out: DescribeableBuilder<List<OUT>>
+    get() = get("out") { filterIsInstance<OUT>() }
+
+val Builder<List<IO>>.err: DescribeableBuilder<List<ERR>>
+    get() = get("err") { filterIsInstance<ERR>() }
+
+val Builder<out List<IO>>.ansiRemoved: DescribeableBuilder<String>
+    get() = get("ANSI escape codes removed") { IOSequence(this).ansiRemoved }
 
 @JvmName("failureContainsDump")
 fun <T : Failure> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =

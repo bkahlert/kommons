@@ -1,5 +1,7 @@
 package koodies.test
 
+import koodies.jvm.ancestor
+import koodies.jvm.ancestors
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestTemplate
@@ -26,7 +28,22 @@ val ExtensionContext.testName: String
 /**
  * The container of this test method.
  */
-val ExtensionContext.ancestor get() = testMethod.orElse(null)?.declaringClass
+val ExtensionContext.ancestor: Class<*>?
+    get() = when (val el = element.orElse(null)) {
+        is Method -> el.ancestor
+        is Class<*> -> el.ancestor
+        else -> null
+    }
+
+/**
+ * Contains the ancestors, that is this test's parent container, the parent's parent container, ... up to the root.
+ */
+val ExtensionContext.ancestors: List<Class<*>>
+    get() = when (val el = element.orElse(null)) {
+        is Method -> el.ancestors.drop(1).map { it as Class<*> }
+        is Class<*> -> el.ancestors.drop(1)
+        else -> emptyList()
+    }
 
 /**
  * Contains the ancestor's tests.
@@ -39,19 +56,6 @@ val ExtensionContext.allTests: List<Method>
         } ?: emptyList()
     }
 
-/**
- * Contains the ancestors, that is this test's parent container, the parent's parent container, ... up to the root.
- */
-val ExtensionContext.ancestors: List<Class<*>>
-    get() {
-        var ancestor = ancestor
-        val containerClasses: MutableList<Class<*>> = mutableListOf()
-        while (ancestor != null) {
-            containerClasses.add(ancestor)
-            ancestor = ancestor.declaringClass
-        }
-        return containerClasses
-    }
 
 /**
  * Contains the ancestors, that is this test's parent container, the parent's parent container, ... up to the root.
@@ -69,4 +73,3 @@ val Optional<Method>?.isTest get() = this?.orElse(null).isTest
  * Whether this [Method] is a [Test].
  */
 val Method?.isTest get() = isA<Test>() || isA<TestFactory>() || isA<TestTemplate>()
-

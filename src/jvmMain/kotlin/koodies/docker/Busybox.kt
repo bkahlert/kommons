@@ -19,7 +19,7 @@ public fun Docker.busybox(
     init: Init<CommandLineContext>,
 ): DockerExec =
     docker({
-        image { official("busybox") }
+        image { "busybox" }
         options { name { name } }
         commandLine(init)
     }, processor = processor)
@@ -46,7 +46,7 @@ public fun Docker.busybox(
  * with [name] as the name of the container.
  */
 public fun Docker.busybox(
-    image: ImageContext.() -> DockerImage = { official("busybox") },
+    image: DockerImageInit = { "busybox" },
     processor: Processor<DockerExec>?,
     init: Init<CommandLineContext>,
 ): DockerExec =

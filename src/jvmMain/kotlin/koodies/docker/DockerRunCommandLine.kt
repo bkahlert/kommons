@@ -421,7 +421,7 @@ public open class DockerRunCommandLine private constructor(
              * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#extended-description"
              * >Docker run: Extended Description</a>
              */
-            public val image: SkippableCapturingBuilderInterface<DockerImage.ImageContext.() -> DockerImage, DockerImage?> by DockerImage
+            public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
 
             /**
              * The options used to run the [DockerRunCommandLine].

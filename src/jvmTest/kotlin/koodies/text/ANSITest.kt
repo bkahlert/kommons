@@ -14,14 +14,11 @@ import koodies.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class ANSITest {
 
     private val italicCyan = Style.italic + ANSI.Colors.cyan

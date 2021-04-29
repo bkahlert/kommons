@@ -22,9 +22,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
-import strikt.assertions.isTrue
 import kotlin.time.measureTime
 import kotlin.time.seconds
 
@@ -77,30 +75,6 @@ class ScriptsKtTest {
         fun `should have failed state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val subject = script { !"exit -1" }
             expectThat(subject).hasState<Failure> { io().containsDump() }
-        }
-    }
-
-    @Nested
-    inner class ScriptOutputContains {
-
-        @Test
-        fun `should assert present string`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(scriptOutputContains("echo 'this is a test'", "Test", caseSensitive = false)).isTrue()
-        }
-
-        @Test
-        fun `should assert missing string`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(scriptOutputContains("echo 'this is a test'", "Missing", caseSensitive = false)).isFalse()
-        }
-
-        @Test
-        fun `should assert present string case-sensitive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(scriptOutputContains("echo 'this is a test'", "test", caseSensitive = true)).isTrue()
-        }
-
-        @Test
-        fun `should assert missing string case-sensitive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(scriptOutputContains("echo 'this is a test'", "Test", caseSensitive = true)).isFalse()
         }
     }
 }

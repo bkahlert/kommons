@@ -1,6 +1,6 @@
 package koodies.net
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.math.toUBytes
 import koodies.net.IPv4Address.Companion.RFC1918_16block
 import koodies.net.IPv4Address.Companion.RFC1918_20block
@@ -10,8 +10,6 @@ import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -19,7 +17,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
-@Execution(SAME_THREAD)
 class IPv4AddressTest {
 
     @TestFactory
@@ -110,9 +107,9 @@ class IPv4AddressTest {
 
     @TestFactory
     fun `should contain RFC1918 blocks`() = listOf(
-        RFC1918_24block to (8 to "16777216".toBigInteger(10) to IPv4Address.parse("10.0.0.0")),
-        RFC1918_20block to (12 to "1048576".toBigInteger(10) to IPv4Address.parse("172.16.0.0")),
-        RFC1918_16block to (16 to "65536".toBigInteger(10) to IPv4Address.parse("192.168.0.0")),
+        RFC1918_24block to (8 to "16777216".toBigInteger(10) too IPv4Address.parse("10.0.0.0")),
+        RFC1918_20block to (12 to "1048576".toBigInteger(10) too IPv4Address.parse("172.16.0.0")),
+        RFC1918_16block to (16 to "65536".toBigInteger(10) too IPv4Address.parse("192.168.0.0")),
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {

@@ -2,11 +2,8 @@ package koodies.net
 
 import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class IPv4RangeTest {
 
     private val ip1 = IPv4Address.parse("172.186.78.250")

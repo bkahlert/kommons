@@ -2,11 +2,8 @@ package koodies.builder
 
 import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class BooleanBuilderTest {
 
     @TestFactory

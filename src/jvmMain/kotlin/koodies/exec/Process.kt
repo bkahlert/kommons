@@ -156,6 +156,7 @@ public interface Process : ReturnValue {
          * Implementors are used to delegate the creation of the [ExitState] to.
          */
         public fun interface ExitStateHandler {
+
             /**
              * Returns the [ExitState] of a [Process] based on the
              * given [terminated] [ProcessState].

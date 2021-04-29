@@ -40,6 +40,14 @@ public open class InMemoryLogger(
     private fun assemble(lineSkip: Int, vararg additionalLines: String): String =
         captured.drop(lineSkip).plus(additionalLines).joinToString(LF)
 
+    /**
+     * Clears the captured strings.
+     */
+    public fun clear(): Unit {
+        captured.clear()
+        open = true
+    }
+
     override fun toString(): String = toString(NO_RETURN_VALUE, false)
     public fun toString(
         fallbackReturnValue: ReturnValue? = null,

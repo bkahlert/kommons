@@ -184,6 +184,8 @@ public sealed class IO(
  * a string—either with [ansiRemoved] or [ansiKept].
  */
 public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
+    public constructor(io: Iterable<T>) : this(io.asSequence())
+    public constructor(vararg io: T) : this(io.asSequence())
 
     /**
      * Contains all encompassed [IO] merged to a string.

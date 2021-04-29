@@ -7,11 +7,8 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode.Emojis.variationSelector15
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class SemanticsTest {
 
     @Nested

@@ -156,7 +156,7 @@ public sealed class Either<A, B> {
  * the encapsulated instance [B] transformed to an instance of [A]
  * using the given [transform].
  */
-public inline fun <reified A, reified B> Either<A, B>.or(transform: (B) -> A): A =
+public inline infix fun <reified A, reified B> Either<A, B>.or(transform: (B) -> A): A =
     when (this) {
         is Left -> left
         is Right -> transform(right)

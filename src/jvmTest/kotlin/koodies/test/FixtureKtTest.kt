@@ -2,15 +2,12 @@ package koodies.test
 
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import java.io.IOException
 
-@Execution(SAME_THREAD)
 class FixtureKtTest {
 
     @TestFactory

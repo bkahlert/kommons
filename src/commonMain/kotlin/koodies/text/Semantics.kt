@@ -24,7 +24,7 @@ public object Semantics {
         public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
         public val Document: String = Unicode.Emojis.pageFacingUp.toString()
         public val Null: String = "␀".formattedAs.warning
-        public val Unknown:String = "❓"
+        public val Unknown: String = "❓"
     }
 
     /**
@@ -89,11 +89,20 @@ public object Semantics {
     }
 
     public object FieldDelimiters {
+        /**
+         * Delimiter to delimit units.
+         */
         public val UNIT: String = ".".formattedAs.meta
+
+        /**
+         * Delimiter to delimit fields.
+         * @see Unicode.tripleVerticalBarDelimiter
+         */
         public val FIELD: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
     }
 
     public object BlockDelimiters {
+        public val TEXT: Pair<String, String> = "〝" to "〞"
         public val UNIT: Pair<String, String> = "⟨" to "⟩"
         public val BLOCK: Pair<String, String> = "{" to "}"
         public val INTROSPECTION: Pair<String, String> = "❬" to "❭"

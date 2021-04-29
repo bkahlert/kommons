@@ -1,14 +1,12 @@
 package koodies.net
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.math.ubyteArrayOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -16,7 +14,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
-@Execution(SAME_THREAD)
 class IPv6AddressTest {
 
     @TestFactory
@@ -119,9 +116,9 @@ class IPv6AddressTest {
 
     @TestFactory
     fun `should contain range`() = listOf(
-        IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE.inc() to IPv6Address.RANGE.start),
-        DefaultIPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount to IPv6Address.parse("::ffff:0:0")),
-        Nat64IPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount to IPv6Address.parse("64:ff9b::")),
+        IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE.inc() too IPv6Address.RANGE.start),
+        DefaultIPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount too IPv6Address.parse("::ffff:0:0")),
+        Nat64IPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount too IPv6Address.parse("64:ff9b::")),
     ).testEach { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {

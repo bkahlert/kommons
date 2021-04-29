@@ -4,15 +4,12 @@ import koodies.concurrent.process.IO.META
 import koodies.concurrent.process.IO.META.FILE
 import koodies.io.path.Locations
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 
-@Execution(SAME_THREAD)
 class MetaStreamTest {
 
     private class Listener : (META) -> Unit {

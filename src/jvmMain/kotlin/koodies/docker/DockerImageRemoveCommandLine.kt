@@ -9,7 +9,6 @@ import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerImageRemoveCommandLine.Options.Companion.OptionsContext
 
 /**
@@ -58,7 +57,7 @@ public open class DockerImageRemoveCommandLine(
         @DockerCommandLineDsl
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
-            public val image: SkippableCapturingBuilderInterface<ImageContext.() -> DockerImage, DockerImage?> by DockerImage
+            public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
         }
 
         override fun BuildContext.build(): DockerImageRemoveCommandLine = Companion::CommandContext {
@@ -66,36 +65,3 @@ public open class DockerImageRemoveCommandLine(
         }
     }
 }
-//
-///**
-// * Removes `this` [DockerImage] from the locally stored images using the
-// * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
-// * and prints the [DockerCommandLine]'s execution to [System.out].
-// */
-//public val DockerImage.removeImage: (Init<OptionsContext>) -> Exec
-//    get() = {
-//        DockerImageRemoveCommandLine {
-//            options(it)
-//            image by this@removeImage
-//        }.execute {
-//            summary("Removing ${this@removeImage.formattedAs.input}")
-//            null
-//        }
-//    }
-//
-///**
-// * Removes `this` [DockerImage] from the locally stored images using the
-// * [DockerImageRemoveCommandLine.Options] built with the given [OptionsContext] [Init].
-// * and logs the [DockerCommandLine]'s execution using `this` [RenderingLogger].
-// */
-//public val RenderingLogger?.removeImage: DockerImage.(Init<OptionsContext>) -> Exec
-//    get() = {
-//        val thisImage = this
-//        DockerImageRemoveCommandLine {
-//            options(it)
-//            image by thisImage
-//        }.execute {
-//            summary("Removing ${thisImage.formattedAs.input}")
-//            null
-//        }.also { it.parseImages() }
-//    }

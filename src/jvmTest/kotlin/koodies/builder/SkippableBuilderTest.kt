@@ -6,12 +6,9 @@ import koodies.builder.context.CapturingContext
 import koodies.callable
 import koodies.test.tests
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class SkippableBuilderTest {
 
     companion object {

@@ -6,9 +6,7 @@ import koodies.concurrent.process.err
 import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.concurrent.script
-import koodies.debug.CapturedOutput
 import koodies.docker.DockerImage
-import koodies.docker.NONE
 import koodies.exec.CommandLine
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState
@@ -17,10 +15,12 @@ import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.tempDir
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.expectLogged
 import koodies.logging.expectThatLogged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
@@ -36,8 +36,6 @@ import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
@@ -49,7 +47,7 @@ import strikt.assertions.isGreaterThan
 import strikt.assertions.isTrue
 import kotlin.io.path.exists
 
-@Execution(SAME_THREAD) // TODO update readme.md
+// TODO update readme.md
 @SystemIOExclusive
 class ExecutionIntegrationTest {
 
@@ -106,7 +104,7 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun `should output`(consoleOutput: CapturedOutput) {
+    fun `should output`() {
 
         // if output is too boring, you can customize it
         ShellScript {
@@ -123,8 +121,9 @@ class ExecutionIntegrationTest {
             }
         }
 
-        consoleOutput.out {
-            matchesCurlyPattern("""
+        BACKGROUND check {
+            expectLogged.toStringMatchesCurlyPattern("""
+                {{}}
                 ╭──╴countdown
                 │   
                 │   -> Executing {}
@@ -159,7 +158,7 @@ class ExecutionIntegrationTest {
             !"1>&2 echo 'Boom!'"
             !"exit -1"
         }.exec.logging {
-            block { border { NONE } }
+            block { border { Border.NONE } }
         } check {
             exitState { isA<ExitState.Failure>() }
             io.ansiRemoved {
@@ -235,7 +234,7 @@ class ExecutionIntegrationTest {
         }
 
         // How about running it in a container?
-        with(DockerImage { official("ubuntu") }) {
+        with(DockerImage { "ubuntu" }) {
             commandLine.exec.dockerized() check {
                 (io.out.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
             }

@@ -4,8 +4,6 @@ import koodies.test.tests
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -15,7 +13,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
 import strikt.assertions.message
 
-@Execution(SAME_THREAD)
 class FnKtTest {
 
     @Nested

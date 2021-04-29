@@ -2,14 +2,14 @@ package koodies.jvm
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.api.fail
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import java.util.Optional
+import kotlin.reflect.jvm.javaMethod
 
-@Execution(SAME_THREAD)
 class JvmExtensionsKtTest {
 
     @Nested
@@ -35,7 +35,7 @@ class JvmExtensionsKtTest {
 
         @Nested
         inner class ANullableOptional {
-             
+
             @Test
             fun `should unwrap present value`() {
                 @Suppress("RedundantNullableReturnType")
@@ -58,6 +58,46 @@ class JvmExtensionsKtTest {
                 val unwrapped: String? = optional.orNull()
                 expectThat(unwrapped).isNull()
             }
+        }
+    }
+
+    @Nested
+    inner class Ancestors {
+
+        @Test
+        fun `should resolve class ancestor`() {
+            class InnerTestClass
+            expectThat(InnerTestClass::class.java.ancestor).isEqualTo(
+                Ancestors::class.java
+            )
+        }
+
+        @Test
+        fun `should resolve class ancestors`() {
+            class InnerTestClass
+            expectThat(InnerTestClass::class.java.ancestors).containsExactly(
+                InnerTestClass::class.java,
+                Ancestors::class.java,
+                JvmExtensionsKtTest::class.java,
+            )
+        }
+
+        @Test
+        fun `should resolve method ancestor`() {
+            val method = ::`should resolve method ancestor`.javaMethod ?: fail("Error getting Java method.")
+            expectThat(method.ancestor).isEqualTo(
+                Ancestors::class.java,
+            )
+        }
+
+        @Test
+        fun `should resolve method ancestors`() {
+            val method = ::`should resolve method ancestors`.javaMethod ?: fail("Error getting Java method.")
+            expectThat(method.ancestors).containsExactly(
+                method,
+                Ancestors::class.java,
+                JvmExtensionsKtTest::class.java,
+            )
         }
     }
 }

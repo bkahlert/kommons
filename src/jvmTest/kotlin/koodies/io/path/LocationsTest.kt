@@ -10,8 +10,6 @@ import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
@@ -21,7 +19,6 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.reflect.full.memberProperties
 
-@Execution(SAME_THREAD)
 class LocationsTest {
 
     @Nested

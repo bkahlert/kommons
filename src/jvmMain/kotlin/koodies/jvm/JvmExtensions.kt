@@ -7,6 +7,7 @@ import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.runtime.onExit
+import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import java.nio.file.Path
 import java.security.AccessControlException
@@ -23,6 +24,27 @@ import kotlin.time.minutes
  * If a value [Optional.isPresent], returns the value. Otherwise returns `null`.
  */
 public fun <T> Optional<T>?.orNull(): T? = this?.orElse(null)
+
+/**
+ * Enclosing class of `this` class, if any. `null` otherwise.
+ */
+public val Class<*>.ancestor: Class<*>? get() = enclosingClass
+
+/**
+ * All ancestors of `this` class, **including this class itself** (≙ ancestor of zeroth degree).
+ */
+public val Class<*>.ancestors: List<Class<*>> get() = generateSequence(this) { it.ancestor }.toList()
+
+/**
+ * Declaring class of `this` method.
+ */
+public val Method.ancestor: Class<*> get() = declaringClass
+
+/**
+ * All ancestors of `this` method, that is, this method itself (≙ ancestor of zeroth degree),
+ * its declaring class and the declaring class's ancestors.
+ */
+public val Method.ancestors: List<AnnotatedElement> get() = listOf(this, *ancestor.ancestors.toList().toTypedArray())
 
 
 /**

@@ -13,10 +13,7 @@ import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 
-@Execution(SAME_THREAD)
 class SmartRenderingLoggerKtTest {
 
     @Test

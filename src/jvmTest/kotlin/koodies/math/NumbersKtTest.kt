@@ -3,12 +3,9 @@ package koodies.math
 import koodies.test.tests
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-@Execution(SAME_THREAD)
 class NumbersKtTest {
 
     @Nested

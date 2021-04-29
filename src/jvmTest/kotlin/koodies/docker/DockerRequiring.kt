@@ -1,6 +1,5 @@
 package koodies.docker
 
-import koodies.collections.synchronizedMapOf
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.DockerContainer.State.Existent.Running
@@ -21,6 +20,10 @@ import org.junit.jupiter.api.extension.ExecutionCondition
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.Extensions
+import kotlin.annotation.AnnotationRetention.RUNTIME
+import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
+import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.reflect.KClass
 
 /**
@@ -30,8 +33,8 @@ import kotlin.reflect.KClass
  * The [Timeout] is automatically increased to 2 minutes.
  */
 @Slow
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Retention(RUNTIME)
+@Target(ANNOTATION_CLASS, CLASS, FUNCTION)
 @Extensions(
     ExtendWith(DockerRunningCondition::class),
     ExtendWith(TestContainerCheck::class)
@@ -105,10 +108,5 @@ class DockerRunningCondition : ExecutionCondition {
         context.testName.let { testName ->
             if (dockerUpAndRunning) enabled("Test ${testName.quoted} enabled because Docker is found running.")
             else disabled("Test ${testName.quoted} enabled because Docker is found running.")
-                .also { skipped[context.element] = testName }
         }
-
-    companion object {
-        var skipped: MutableMap<Any, String> = synchronizedMapOf()
-    }
 }

@@ -16,15 +16,12 @@ import koodies.test.tests
 import koodies.transform.convert
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.assertions.contentEquals
 import strikt.assertions.isEqualTo
 import kotlin.Byte.Companion.MAX_VALUE
 import kotlin.Byte.Companion.MIN_VALUE
 
-@Execution(SAME_THREAD)
 class BytesKtTest {
 
     private val bytes = listOf<Byte>(0x00, 0x7f, -0x80, -0x01)

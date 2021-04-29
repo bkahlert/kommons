@@ -1,14 +1,11 @@
 package koodies.shell
 
 import koodies.concurrent.process.out
-import koodies.concurrent.script
 import koodies.test.toStringIsEqualTo
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
@@ -16,7 +13,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotBlank
 import strikt.assertions.isNotEqualTo
 
-@Execution(CONCURRENT)
 class HereDocKtTest {
 
     @Test
@@ -51,9 +47,9 @@ class HereDocKtTest {
 
             @Test
             fun `should substitute parameters`() {
-                expectThat(script {
+                expectThat(ShellScript {
                     !"cat $hereDoc"
-                }.io.out.ansiRemoved) {
+                }.exec().io.out.ansiRemoved) {
                     isNotBlank()
                     isNotEqualTo("\$HOME")
                 }
@@ -72,9 +68,9 @@ class HereDocKtTest {
 
             @Test
             fun `should not substitute parameters`() {
-                expectThat(script {
+                expectThat(ShellScript {
                     !"cat $hereDoc"
-                }.io.out.ansiRemoved) {
+                }.exec().io.out.ansiRemoved) {
                     isEqualTo("\$HOME")
                 }
             }

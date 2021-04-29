@@ -3,6 +3,7 @@ package koodies.docker
 import koodies.collections.head
 import koodies.collections.tail
 import koodies.concurrent.process.err
+import koodies.concurrent.process.out
 import koodies.concurrent.process.outAndErr
 import koodies.debug.asEmoji
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
@@ -21,6 +22,7 @@ import koodies.text.rightSpaced
 import koodies.text.spaced
 import koodies.text.splitPascalCase
 import koodies.text.takeUnlessBlank
+import koodies.text.withoutSuffix
 import kotlin.reflect.KClass
 import kotlin.text.RegexOption.IGNORE_CASE
 
@@ -43,9 +45,14 @@ public object DockerExitStateHandler : ExitStateHandler {
     private val errorPrologue = Regex("Error(?:\\s+.*?\\s+daemon)?", IGNORE_CASE)
 
     private fun handleFailure(terminated: Terminated): Failure {
-        val errorMessage = terminated.io.err.first().ansiRemoved
+        val errorMessage = terminated.io.run {
+            out.lastOrNull()
+                ?.takeIf { it.startsWith("error:", ignoreCase = true) }
+                ?: err.first()
+        }.ansiRemoved
+        
         if (errorMessage.containsAll("connect", "Docker", "daemon", ignoreCase = true)) {
-            return ConnectivityProblem(errorMessage, terminated)
+            return ConnectivityProblem(errorMessage.withoutSuffix("."), terminated)
         }
 
         val (error, message) = errorMessage.split(messageSplitRegex, limit = 2)

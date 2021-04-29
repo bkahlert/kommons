@@ -25,7 +25,7 @@ class DockerImagePullCommandLineTest {
             options {
                 allTags { yes }
             }
-            image { official("busybox") }
+            image { "busybox" }
         },
         DockerImagePullCommandLine(
             options = Options(allTags = true),

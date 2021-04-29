@@ -24,9 +24,10 @@ import koodies.test.Tester.property
 import koodies.test.Tester.throwingDisplayName
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
+import koodies.text.Semantics.BlockDelimiters.TEXT
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.TruncationStrategy
+import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
@@ -41,8 +42,6 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion.Builder
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -190,9 +189,10 @@ object Tester {
         StringBuilder(symbol).apply {
             append(" ")
             append(this@displayName.displayName(transform))
-            append(" (")
-            append(valueOf(subject, transform))
-            append(")")
+            append(" ")
+            append(TEXT.first)
+            append(valueOf(subject, transform).ansiRemoved.truncate(20, MIDDLE))
+            append(TEXT.second)
             val that = getLambdaBodyOrNull(this@displayName, "that")
             if (that != null) {
                 append(" ")
@@ -220,9 +220,10 @@ object Tester {
         StringBuilder(symbol).apply {
             append(" ")
             append(this@displayName.displayName(provide, null).displayName())
-            append(" (")
-            append(valueOf(provide))
-            append(")")
+            append(" ")
+            append(TEXT.first)
+            append(valueOf(provide).ansiRemoved.truncate(20, MIDDLE))
+            append(TEXT.second)
             val that = getLambdaBodyOrNull(this@displayName, "that")
             if (that != null) {
                 append(" ")
@@ -293,7 +294,7 @@ object Tester {
      */
     private fun getLambdaBodyOrNull(callerClassName: String, callerMethodName: String) = kotlin.runCatching {
         val line = filePeek(callerClassName, callerMethodName).line
-        LambdaBody(callerMethodName, line).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ")
+        LambdaBody(callerMethodName, line).body.trim().truncate(40, MIDDLE, " … ")
     }.getOrNull()
 
     private fun getLambdaBodyOrNull(
@@ -303,10 +304,10 @@ object Tester {
         val line = FilePeek(callStackElement.stackTraceElement).getCallerFileInfo().line
         if (explicitMethodName != null) {
             line.takeIf { it.contains(explicitMethodName) }?.let {
-                LambdaBody(explicitMethodName, it).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ")
+                LambdaBody(explicitMethodName, it).body.trim().truncate(40, MIDDLE, " … ")
             }
         } else {
-            LambdaBody(callStackElement.function, line).body.trim().truncate(40, TruncationStrategy.MIDDLE, " … ")
+            LambdaBody(callStackElement.function, line).body.trim().truncate(40, MIDDLE, " … ")
         }
     }.getOrNull()
 
@@ -327,10 +328,6 @@ object Tester {
         }
     }
 
-    /**
-     * Finds the calling class and method name of any member
-     * function of this [Tester].
-     */
     fun findCaller(): CallStackElement = getCaller {
         receiver == enclosingClassName || receiver?.matches(Regex(".*DynamicTest.*Builder.*")) == true
     }
@@ -375,7 +372,9 @@ fun <T> Iterable<T>.testEach(
     init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit,
 ): List<DynamicContainer> = toList()
     .also { require(it.isNotEmpty()) { "At least one subject must be provided for testing." } }
-    .run { map { subject -> dynamicContainer("for ${subject.displayName(containerNamePattern)}", DynamicTestsWithSubjectBuilder.build(subject, init)) } }
+    .run {
+        map { subject -> dynamicContainer("for ${subject.displayName(containerNamePattern)}", DynamicTestsWithSubjectBuilder.build(subject, init)) }
+    }
 
 /**
  * Creates one [DynamicContainer] for each instance of `this` collection of subjects
@@ -803,7 +802,6 @@ fun DynamicTest.execute() {
     executable.execute()
 }
 
-@Execution(SAME_THREAD)
 class TesterTest {
 
     @Nested
@@ -835,16 +833,16 @@ class TesterTest {
                 ❕ isEqualTo("subject")
             """,
             !"""
-                ❔ length (7) isGreaterThan(5)
+                ❔ length 〝7〞 isGreaterThan(5)
             """,
             !"""
-                ❔ length (7)
+                ❔ length 〝7〞
             """,
             !"""
-                ❓ length (7)
+                ❓ length 〝7〞
             """,
             !"""
-                ❓ length (7) isSuccess()
+                ❓ length 〝7〞 isSuccess()
             """,
             !"""
                 ❗ RuntimeException
@@ -870,16 +868,16 @@ class TesterTest {
                 ❕ isEqualTo("subject")
             """,
             !"""
-                ❔ ❮ "subject".length ❯ (7) isGreaterThan(5)
+                ❔ ❮ "subject".length ❯ 〝7〞 isGreaterThan(5)
             """,
             !"""
-                ❔ ❮ "subject".length ❯ (7)
+                ❔ ❮ "subject".length ❯ 〝7〞
             """,
             !"""
-                ❓ ❮ "subject".length ❯ (7)
+                ❓ ❮ "subject".length ❯ 〝7〞
             """,
             !"""
-                ❓ ❮ "subject".length ❯ (7) isSuccess()
+                ❓ ❮ "subject".length ❯ 〝7〞 isSuccess()
             """,
             !"""
                 ❗ RuntimeException

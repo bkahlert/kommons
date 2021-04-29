@@ -7,11 +7,8 @@ import koodies.test.tests
 import koodies.text.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class CallablesTest {
 
     @TestFactory

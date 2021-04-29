@@ -8,15 +8,12 @@ import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 import kotlin.io.path.appendText
 
-@Execution(SAME_THREAD)
 class SizeTest {
 
     @Test
@@ -95,7 +92,7 @@ class SizeTest {
             0.Kibi.bytes to "0 B",
             0.bytes to "0 B",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString<BinaryPrefix>() } that { isEqualTo(expected)            }
+            expecting { size.toString<BinaryPrefix>() } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -151,8 +148,8 @@ class SizeTest {
             42.zepto.bytes to "42 zB",
             42.yocto.bytes to "42 yB",
         ) { (size: Size, expected: String) ->
-          expecting{  size.toString<DecimalPrefix>() } that { isEqualTo(expected) }
-              expecting{  (-size).toString<DecimalPrefix>()} that { isEqualTo("-$expected") }
+            expecting { size.toString<DecimalPrefix>() } that { isEqualTo(expected) }
+            expecting { (-size).toString<DecimalPrefix>() } that { isEqualTo("-$expected") }
         }
 
         @TestFactory
@@ -185,7 +182,7 @@ class SizeTest {
             0.kilo.bytes to "0 B",
             0.bytes to "0 B",
         ) { (size: Size, expected: String) ->
-            expecting { "$size" } that { isEqualTo(expected)}
+            expecting { "$size" } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -263,8 +260,8 @@ class SizeTest {
             42.deca.bytes to 42.bytes * decFactor / 100,
             42.bytes to 42.bytes,
         ) { (decimalSize: Size, binarySize: Size) ->
-            expecting{ decimalSize } that {isEqualTo(binarySize)}
-            expecting{ decimalSize.bytes } that {isEqualTo(binarySize.bytes)}
+            expecting { decimalSize } that { isEqualTo(binarySize) }
+            expecting { decimalSize.bytes } that { isEqualTo(binarySize.bytes) }
         }
     }
 

@@ -19,6 +19,7 @@ public object RegularExpressions {
     private val DOT: Regex = Regex("\\.")
     private val COMMA: Regex = Regex(",")
     private val SPACE: Regex = Regex("\\s")
+    public val SPACES: Regex = SPACE.repeatAtLeastOnce()
     private val SLACK0 = SPACE.repeatUnlimited()
     private val SLACK1 = SPACE.repeatAtLeastOnce()
     private val ARROW: Regex = (SLACK1 + Regex.fromLiteral("->") + SLACK1).grouped

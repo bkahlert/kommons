@@ -1,6 +1,6 @@
 package koodies.text
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.regex.groupValues
 import koodies.regex.matchEntire
 import koodies.test.testEach
@@ -10,8 +10,6 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -23,15 +21,14 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
-@Execution(SAME_THREAD)
 class CodePointKtTest {
 
     @TestFactory
     fun `should read code points`() = testEach(
-        "a" to 0x61 to ubyteArrayOf(0x61u),
-        "¶" to 0xB6 to ubyteArrayOf(0xC2u, 0xB6u),
-        "☰" to 0x2630 to ubyteArrayOf(0xE2u, 0x98u, 0xB0u),
-        "𝕓" to 0x1D553 to ubyteArrayOf(0xF0u, 0x9Du, 0x95u, 0x93u),
+        "a" to 0x61 too ubyteArrayOf(0x61u),
+        "¶" to 0xB6 too ubyteArrayOf(0xC2u, 0xB6u),
+        "☰" to 0x2630 too ubyteArrayOf(0xE2u, 0x98u, 0xB0u),
+        "𝕓" to 0x1D553 too ubyteArrayOf(0xF0u, 0x9Du, 0x95u, 0x93u),
     ) { (char, codePoint, utf8) ->
         expecting { utf8.toByteArray() } that { isEqualTo(char.encodeToByteArray()) }
 

@@ -1,15 +1,12 @@
 package koodies.net
 
-import koodies.collections.to
+import koodies.collections.too
 import koodies.math.bigIntegerOfDecimalString
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class IPv4SubnetTest {
 
     private val ip = IPv4Address.parse("172.186.78.250")
@@ -69,11 +66,11 @@ class IPv4SubnetTest {
 
     @TestFactory
     fun `should have usable host count`() = testEach(
-        0 to "4294967296" to "4294967294",
-        15 to "131072" to "131070",
-        16 to "65536" to "65534",
-        17 to "32768" to "32766",
-        32 to "1" to "1",
+        0 to "4294967296" too "4294967294",
+        15 to "131072" too "131070",
+        16 to "65536" too "65534",
+        17 to "32768" too "32766",
+        32 to "1" too "1",
     ) { (length, hostCountString, usableHostCountString) ->
         val hostCount = bigIntegerOfDecimalString(hostCountString)
         val usableHostCount = bigIntegerOfDecimalString(usableHostCountString)
@@ -85,11 +82,11 @@ class IPv4SubnetTest {
 
     @TestFactory
     fun `should have first and usable host`() = testEach(
-        0 to "0.0.0.1" to "255.255.255.254",
-        15 to "172.186.0.1" to "172.187.255.254",
-        16 to "172.186.0.1" to "172.186.255.254",
-        17 to "172.186.0.1" to "172.186.127.254",
-        32 to "172.186.78.250" to "172.186.78.250",
+        0 to "0.0.0.1" too "255.255.255.254",
+        15 to "172.186.0.1" too "172.187.255.254",
+        16 to "172.186.0.1" too "172.186.255.254",
+        17 to "172.186.0.1" too "172.186.127.254",
+        32 to "172.186.78.250" too "172.186.78.250",
     ) { (length, firstUsableHost, lastUsableHost) ->
         with { IPv4Subnet.from(ip, length) }.then {
             expecting { this.firstUsableHost } that { toStringIsEqualTo(firstUsableHost) }

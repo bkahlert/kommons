@@ -4,13 +4,10 @@ import koodies.test.testEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.hasLength
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class BaseNameKtTest {
 
     @Nested

@@ -2,12 +2,9 @@ package koodies.math
 
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(SAME_THREAD)
 class FormattingKtTest {
 
     @TestFactory

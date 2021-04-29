@@ -8,8 +8,6 @@ import koodies.builder.context.CapturesMapTest.BuilderClass.Context
 import koodies.test.test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
@@ -17,7 +15,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.map
 
-@Execution(SAME_THREAD)
 class CapturesMapTest {
 
     private object BuilderClass : Builder<Context.() -> Unit, String> {

@@ -4,15 +4,12 @@ import koodies.net.DefaultIPv4toIPv6Mapping.toIPv4Address
 import koodies.net.DefaultIPv4toIPv6Mapping.toIPv6Address
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
-@Execution(SAME_THREAD)
 class DefaultIPv4toIPv6MappingTest {
     private val ipv4 = IPv4Address.parse("192.168.16.1")
     private val ipv6 = IPv6Address.parse("::ffff:192.168.16.1")

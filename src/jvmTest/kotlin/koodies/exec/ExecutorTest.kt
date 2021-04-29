@@ -3,10 +3,6 @@ package koodies.exec
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
 import koodies.concurrent.process.out
-import koodies.docker.DockerImage.ImageContext.official
-import koodies.docker.TestImages.Ubuntu
-import koodies.docker.dockerized
-import koodies.docker.exec
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Failure
@@ -31,9 +27,6 @@ import koodies.text.withoutPrefix
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -43,10 +36,9 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
-@Execution(SAME_THREAD)
 class ExecutorTest {
 
-    private val succeedingExecutable = CommandLine(mapOf("TEST_PROP" to "TEST_VALUE"), Locations.Temp, "printenv")
+    private val succeedingExecutable = CommandLine(mapOf("TEST_PROP" to "TEST_VALUE"), Locations.Temp, "printenv", "TEST_PROP")
     private val failingExecutable = CommandLine(Locations.Temp, "exit", "42")
 
     @Smoke @Nested
@@ -61,44 +53,15 @@ class ExecutorTest {
 
         @Test
         fun `should exec shell script`() {
-            val exec = ShellScript { !"echo 'Hello, Shell Script!'" }.exec()
+            val exec = ShellScript { !"echo 'Hello, Shell Script!' | cat" }.exec()
             expectThat(exec.io.out.ansiRemoved)
                 .isEqualTo("Hello, Shell Script!")
         }
 
-
         @Test
-        fun `should exec command line dockerized`() {
-            val exec = CommandLine(Locations.Temp, "echo", "Hello, Docker Command Line!").exec.dockerized(Ubuntu).exec()
-            expectThat(exec.io.out.ansiRemoved)
-                .isEqualTo("Hello, Docker Command Line!")
-        }
-
-        @Test
-        fun `should exec command line dockerized2`() {
-            val exec = ShellScript {
-                shebang
-                !"echo 'Hello, Docker Shell Script!'"
-            }.exec.dockerized { official("ubuntu") }.logging()
-            expectThat(exec.io.out.ansiRemoved)
-                .isEqualTo("Hello, Docker Shell Script!")
-        }
-
-        @Test
-        fun `should exec command line dockerized3`() {
-            val exec = with(Ubuntu) { CommandLine(Locations.Temp, "echo", "Hello, Docker Command Line!").exec.dockerized() }
-            expectThat(exec.io.out.ansiRemoved)
-                .isEqualTo("Hello, Docker Command Line!")
-        }
-
-        @Test
-        fun `should exec shell script dockerized`() {
-            val exec = ShellScript {
-                shebang
-                !"echo 'Hello, Docker Shell Script!'"
-            }.exec.dockerized(Ubuntu).exec()
-            expectThat(exec.io.out.ansiRemoved)
-                .isEqualTo("Hello, Docker Shell Script!")
+        fun InMemoryLogger.`should add missing shebang`() {
+            val exec = ShellScript { !"cat $0" }.exec.logging(this)
+            expectThat(exec.io.out.ansiRemoved).isEqualTo("#!/bin/sh\ncat \$0")
         }
     }
 
@@ -164,7 +127,7 @@ class ExecutorTest {
 
             @TestFactory
             fun `should log to specified logger if specified`() = tests {
-                fun logger() = InMemoryLogger(border = NONE)
+                fun logger() = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
                 logger().also { succeedingExecutable.exec.logging(it) } asserting { logsSuccessfulIO() }
                 logger().also { failingExecutable.exec.logging(it) } asserting { logsFailedIO() }
             }
@@ -211,7 +174,7 @@ class ExecutorTest {
             @Test
             fun TestLogger.`should only log success`() {
                 succeedingExecutable.exec.processing(parentLogger = this) {}
-                expectLogged.isEqualTo("printenv ✔︎")
+                expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
             }
 
             @Test
@@ -223,7 +186,7 @@ class ExecutorTest {
             @Test
             fun TestLogger.`should log to receiver logger if available`() {
                 with(succeedingExecutable) { logging.processing {} }
-                expectLogged.isEqualTo("printenv ✔︎")
+                expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
             }
 
             @Test
@@ -244,12 +207,11 @@ class ExecutorTest {
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
                 succeedingExecutable.exec.processing { io -> processed.add(io) }
-                expectThat(processed).contains(IO.OUT typed "TEST_PROP=TEST_VALUE")
+                expectThat(processed).contains(IO.OUT typed "TEST_VALUE")
             }
         }
     }
 
-    @Execution(CONCURRENT)
     @Nested
     inner class ExecAsync {
 
@@ -316,7 +278,7 @@ class ExecutorTest {
 
             @TestFactory
             fun `should log to specified logger if specified`() = tests {
-                fun logger() = InMemoryLogger(border = NONE)
+                fun logger() = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
                 logger().also { succeedingExecutable.exec.async.logging(it).apply { waitFor() } } asserting { logsSuccessfulIO("⌛️ ", 3) }
                 logger().also { failingExecutable.exec.async.logging(it).apply { waitFor() } } asserting { logsFailedIO("⌛️ ", 3) }
             }
@@ -367,7 +329,7 @@ class ExecutorTest {
             @TestFactory
             fun TestLogger.`should only log async computation`() = tests {
                 succeedingExecutable.exec.async.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
-                    expectLogged.contains("▶ printenv$LF⌛️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF⌛️ async computation")
                 }
                 failingExecutable.exec.async.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
                     expectLogged.contains("▶ exit 42$LF⌛️ async computation")
@@ -379,7 +341,7 @@ class ExecutorTest {
                 with(succeedingExecutable) {
                     logging.async.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
-                    expectLogged.contains("▶ printenv$LF⌛️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF⌛️ async computation")
                 }
                 with(failingExecutable) {
                     logging.async.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
@@ -400,7 +362,7 @@ class ExecutorTest {
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
                 succeedingExecutable.exec.async.processing { io -> processed.add(io) }.apply { waitFor() }
-                expectThat(processed).contains(IO.OUT typed "TEST_PROP=TEST_VALUE")
+                expectThat(processed).contains(IO.OUT typed "TEST_VALUE")
             }
         }
 
@@ -471,10 +433,8 @@ private fun Builder<String>.logsSuccessfulIO(ignorePrefix: String = "· "): Buil
     logsIO(ignorePrefix, "{{}}$LF$successfulIO$LF{{}}")
 
 val successfulIO = """
-    Executing printenv
-    {{}}
-    TEST_PROP=TEST_VALUE
-    {{}}
+    Executing printenv TEST_PROP
+    TEST_VALUE
     Process {} terminated successfully at {}
 """.trimIndent()
 

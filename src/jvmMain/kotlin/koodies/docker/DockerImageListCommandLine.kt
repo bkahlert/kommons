@@ -9,7 +9,6 @@ import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerImageListCommandLine.Options.Companion.OptionsContext
 
 /**
@@ -61,7 +60,7 @@ public open class DockerImageListCommandLine(
         @DockerCommandLineDsl
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
-            public val image: SkippableCapturingBuilderInterface<ImageContext.() -> DockerImage, DockerImage?> by DockerImage
+            public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
         }
 
         override fun BuildContext.build(): DockerImageListCommandLine = Companion::CommandContext {

@@ -148,6 +148,10 @@ public class ShellScript(public val name: String? = null, content: String? = nul
         lines += "rm -- \"\$0\""
     }
 
+    /**
+     * Returns a new script instance with an eventually missing [shebang]
+     * added and if set, an invocation of [changeDirectoryOrExit].
+     */
     public fun sanitize(workingDirectory: Path? = null): ShellScript {
         var linesKept = lines.dropWhile { it.isShebang() || it.isBlank() }
         if (workingDirectory != null && linesKept.firstOrNull()?.startsWith("cd ") == true) linesKept = linesKept.drop(1)
@@ -184,7 +188,7 @@ public class ShellScript(public val name: String? = null, content: String? = nul
     override fun toCommandLine(): CommandLine {
         val environment = emptyMap<String, String>()
         val path = Locations.WorkingDirectory
-        val scriptFile = buildTo(path.scriptPath())
+        val scriptFile = sanitize().buildTo(path.scriptPath())
         return CommandLine(environment, path, scriptFile.asString())
     }
 

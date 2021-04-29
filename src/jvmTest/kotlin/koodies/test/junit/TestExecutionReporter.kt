@@ -1,11 +1,11 @@
 package koodies.test.junit
 
-import koodies.docker.DockerRunningCondition
+import koodies.docker.Docker
+import koodies.docker.DockerRequiring
 import koodies.test.Debug
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
 import koodies.test.withAnnotation
-import koodies.test.withoutAnnotation
 import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
@@ -42,35 +42,22 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
     override fun testPlanExecutionFinished(testPlan: TestPlan) {
         val timeNeeded = (System.currentTimeMillis() - startTimestamp).milliseconds
         checkDebug(testPlan)
-        checkSkippedDockerTests()
+        checkSkippedDockerTests(testPlan)
 
         if (failedTestsCount == 0) {
             val allTestClasses = testPlan.allContainerJavaClasses
-            val notAnnotatedTestClasses = testPlan.allContainerJavaClasses.withoutAnnotation<Execution>()
-            val nonConcurrentTestClasses = testPlan.allContainerJavaClasses.withAnnotation<Execution> { it.value != CONCURRENT }
+            val concurrentTestClasses = testPlan.allContainerJavaClasses.withAnnotation<Execution> { it.value == CONCURRENT }
 
-            if (notAnnotatedTestClasses.isEmpty()) {
-                val quantity =
-                    if (nonConcurrentTestClasses.isEmpty()) "All" else "${allTestClasses.size - nonConcurrentTestClasses.size}/${allTestClasses.size}"
-                listOf(
-                    "Done. All tests passed within ${timeNeeded.formattedAs.debug}.".ansi.bold,
-                    "$quantity test containers run concurrently."
-                )
-                    .joinToString(LF)
-                    .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { green })
-                    .also { println(it) }
-            } else {
-                listOf(
-                    "Done. All tests passed within ${timeNeeded.formattedAs.warning}".ansi.bold,
-                    "",
-                    "Non-concurrent test classes: ".ansi.bold.done + format(nonConcurrentTestClasses),
-                    "",
-                    "Missing @Execution annotation: ".ansi.bold.done + format(notAnnotatedTestClasses),
-                )
-                    .joinToString(LF)
-                    .draw.border.double(padding = 2, margin = 1, fromScratch { yellow })
-                    .also { println(it) }
-            }
+            val quantity = "All".takeUnless { concurrentTestClasses.size < allTestClasses.size }
+                ?: "${concurrentTestClasses.size}/${allTestClasses.size}"
+
+            listOf(
+                "Done. All tests passed within ${timeNeeded.formattedAs.debug}.".ansi.bold,
+                "$quantity test containers run concurrently."
+            )
+                .joinToString(LF)
+                .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { green })
+                .also { println(it) }
         } else {
             listOf(
                 "Done. BUT $failedTestsCount tests failed!".ansi.bold,
@@ -82,7 +69,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
     }
 
     private fun checkDebug(testPlan: TestPlan) {
-        val debugAnnotatedMethods = testPlan.allTestJavaMethods.withAnnotation<Debug> { debug -> debug.includeInReport }
+        val debugAnnotatedMethods = testPlan.allTestJavaMethods.withAnnotation<Debug>(ancestorsIgnored = false) { debug -> debug.includeInReport }
         if (debugAnnotatedMethods.isNotEmpty()) {
             listOf(
                 "${Debug::class.simpleName} in use!".formattedAs.warning,
@@ -95,10 +82,12 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
         }
     }
 
-    private fun checkSkippedDockerTests() {
-        val skipped = DockerRunningCondition.skipped
+    private fun checkSkippedDockerTests(testPlan: TestPlan) {
+        if (Docker.engineRunning) return
+
+        val skipped = testPlan.allTestJavaMethods.withAnnotation<DockerRequiring>(ancestorsIgnored = false)
         if (skipped.isNotEmpty()) {
-            val groupBy = skipped.keys.groupBy { testElement: Any ->
+            val groupBy = skipped.groupBy { testElement: Any ->
                 val container = (testElement as? Method)?.declaringClass ?: testElement
                 container.toSimpleString().ansiRemoved.split(".")[0]
             }.map { (group, elements) -> "$group: ${elements.size}" }

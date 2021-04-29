@@ -12,7 +12,9 @@ import koodies.docker.DockerContainer.State.Existent.Removing
 import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
+import koodies.docker.DockerExitStateHandler.Failure
 import koodies.exec.Process.ExitState
+import koodies.exec.parse
 import koodies.io.path.asString
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
@@ -187,7 +189,7 @@ public class DockerContainer(public val name: String) {
                 options { all by true; container.run { exactName(name) } }
             }.exec.logging(logger) {
                 noDetails("Checking status of ${container.name.formattedAs.input}")
-            }.parse.columns(3) { (_, state, status) ->
+            }.parse.columns<State, Failure>(3) { (_, state, status) ->
                 when (state.capitalize()) {
                     Created::class.simpleName -> Created(status)
                     Restarting::class.simpleName -> Restarting(status)
@@ -198,7 +200,7 @@ public class DockerContainer(public val name: String) {
                     Dead::class.simpleName -> Dead(status)
                     else -> Error(-1, "Unknown status $state: $status")
                 }
-            }.map { singleOrNull() ?: NotExistent }.or { error(it) }
+            }.map { singleOrNull() ?: NotExistent } or { error(it) }
 
         /**
          * Lists locally available instances this containers.
@@ -208,9 +210,9 @@ public class DockerContainer(public val name: String) {
                 options { all by true }
             }.exec.logging(logger) {
                 noDetails("Listing ${"all".formattedAs.input} containers")
-            }.parse.columns(3) { (name, _, _) ->
+            }.parse.columns<DockerContainer, Failure>(3) { (name, _, _) ->
                 DockerContainer(name)
-            }.or { error(it) }
+            } or { error(it) }
 
         /**
          * Starts the given [containers].

@@ -10,21 +10,78 @@ import koodies.concurrent.process.Processors
 import koodies.concurrent.process.process
 import koodies.concurrent.process.processSilently
 import koodies.concurrent.process.terminationLoggingProcessor
-import koodies.concurrent.scriptOutputContains
+import koodies.docker.DockerExitStateHandler.Failure
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
+import koodies.exec.parse
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
+import koodies.map
+import koodies.or
 import koodies.provideDelegate
+import koodies.regex.RegularExpressions
+import koodies.text.Semantics
+import koodies.text.Semantics.formattedAs
+import koodies.text.joinToKebabCase
 import java.nio.file.Path
 
 /**
  * Entrypoint to ease discovery of Docker related features.
  */
 public object Docker {
+
+    /**
+     * System wide information regarding the Docker installation.
+     */
+    public object info {
+
+        /**
+         * Returns the information identified by the given [keys].
+         *
+         * The [keys] can either be an array of keys,
+         * or a single string consisting of `.` separated keys.
+         *
+         * Each key is expected to be in `kebab-case`.
+         *
+         * Examples:
+         * - `info["server.server-version"]`
+         * - `info["server", "server-version"]`
+         */
+        public operator fun get(vararg keys: String): String? = BACKGROUND.get(*keys)
+
+        /**
+         * Returns the information identified by the given [keys].
+         *
+         * The [keys] can either be an array of keys,
+         * or a single string consisting of `.` separated keys.
+         *
+         * Each key is expected to be in `kebab-case`.
+         *
+         * Examples:
+         * - `info["server.server-version"]`
+         * - `info["server", "server-version"]`
+         */
+        public operator fun RenderingLogger.get(vararg keys: String): String? =
+            with(keys.flatMap { it.split(".") }.map { it.unify() }.toMutableList()) {
+                DockerInfoCommandLine {}.exec.logging(this@get) {
+                    noDetails("Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}")
+                }.parse.columns<String, Failure>(1) { (line) ->
+                    if (isNotEmpty() && line.substringBefore(":").unify() == first()) {
+                        removeAt(0)
+                        if (isEmpty()) line.substringAfter(":").trim()
+                        else null
+                    } else {
+                        null
+                    }
+                }.map { singleOrNull() } or { null }
+            }
+
+        private fun String.unify() = toLowerCase().split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()
+    }
 
     /**
      * Entry point for [DockerImage] related features like pulling images.
@@ -39,7 +96,7 @@ public object Docker {
     /**
      * Whether the Docker engine itself is running.
      */
-    public val engineRunning: Boolean get() = !scriptOutputContains("docker info", "error")
+    public val engineRunning: Boolean get() = DockerInfoCommandLine {}.exec().successful == true
 
     /**
      * Returns a [DockerContainer] representing a Docker container of the same

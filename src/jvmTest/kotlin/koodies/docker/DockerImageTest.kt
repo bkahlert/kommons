@@ -3,7 +3,6 @@ package koodies.docker
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectLogged
 import koodies.test.IdeaWorkaroundTest
-import koodies.test.test
 import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.toStringIsEqualTo
@@ -24,7 +23,7 @@ import strikt.assertions.isTrue
 class DockerImageTest {
 
     private val imageInit: DockerImageInit = { "repo" / "name" }
-    private val officialImageInit: DockerImageInit = { official("repo") }
+    private val officialImageInit: DockerImageInit = { "repo" }
     private val imageWithTagInit: DockerImageInit = { "repo" / "name" tag "my-tag" }
     private val imageWithDigestInit: DockerImageInit = { "repo" / "name" digest "sha256:abc" }
 
@@ -37,6 +36,7 @@ class DockerImageTest {
     ).testEach { (init, string) ->
         expecting { DockerImage(init) } that { toStringIsEqualTo(string) }
         expecting { DockerImage.parse(string) } that { isEqualTo(DockerImage(init)) }
+        expecting { DockerImage { string } } that { isEqualTo(DockerImage(init)) }
     }
 
     @TestFactory
@@ -48,27 +48,33 @@ class DockerImageTest {
         "repo-123",
     ) {
         expecting { DockerImage { it / it } } that { toStringIsEqualTo("$it/$it") }
+        expecting { DockerImage { it } } that { toStringIsEqualTo(it) }
     }
 
     @TestFactory
     fun `should throw on illegal repository`() = testEach("", "REPO", "r'e'p'o") { repo ->
         expectThrows<IllegalArgumentException> { DockerImage { repo / "path" } }
+        expectThrows<IllegalArgumentException> { DockerImage { "$repo/path" } }
     }
 
     @TestFactory
     fun `should throw on illegal path`() = testEach("", "PATH", "p'a't'h") { path ->
         expectThrows<IllegalArgumentException> { DockerImage { "repo" / path } }
+        expectThrows<IllegalArgumentException> { DockerImage { "repo/$path" } }
     }
 
     @TestFactory
-    fun `should throw on illegal specifier`() = test("") { specifier ->
+    fun `should throw on illegal specifier`() = testEach("") { specifier ->
         expectThrows<IllegalArgumentException> { DockerImage { "repo" / "path" tag specifier } }
         expectThrows<IllegalArgumentException> { DockerImage { "repo" / "path" digest specifier } }
+        expectThrows<IllegalArgumentException> { DockerImage { "repo/path:$specifier" } }
+        expectThrows<IllegalArgumentException> { DockerImage { "repo/path@$specifier" } }
     }
 
     @TestFactory
     fun `should equal`() = tests {
-        DockerImage.parse("repo/path") all {
+        DockerImage { "repo/path" } all {
+            asserting { isEqualTo(DockerImage.parse("repo/path")) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
@@ -77,7 +83,8 @@ class DockerImageTest {
             asserting { not { isEqualTo(DockerImage("repo", listOf("other-path"), null, null)) } }
             asserting { not { isEqualTo(DockerImage("other-repo", listOf("path"), null, null)) } }
         }
-        DockerImage.parse("repo/path:tag") all {
+        DockerImage { "repo/path:tag" } all {
+            asserting { isEqualTo(DockerImage.parse("repo/path:tag")) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }
@@ -85,7 +92,8 @@ class DockerImageTest {
 
             asserting { not { isEqualTo(DockerImage("repo", listOf("path"), "other-tag", null)) } }
         }
-        DockerImage.parse("repo/path@digest") all {
+        DockerImage { "repo/path@digest" } all {
+            asserting { isEqualTo(DockerImage.parse("repo/path@digest")) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), "tag", null)) }
             asserting { isEqualTo(DockerImage("repo", listOf("path"), null, "digest")) }

@@ -14,8 +14,6 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -23,7 +21,6 @@ import strikt.assertions.isLessThan
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
-@Execution(SAME_THREAD)
 class ProcessorsKtTest {
 
     @Nested

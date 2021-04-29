@@ -68,6 +68,14 @@ class InMemoryLoggerTest {
         """.trimIndent())
     }
 
+    @Test
+    fun `should be clearable`() {
+        val logger = InMemoryLogger("test", DOTTED).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
+        logger.clear()
+        logger.logLine { "single logged line" }
+        logger.expectThatLogged(closeIfOpen = false).isEqualTo("· single logged line")
+    }
+
     @Nested
     inner class ToString {
 
