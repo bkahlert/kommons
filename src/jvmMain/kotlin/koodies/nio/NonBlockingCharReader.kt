@@ -41,15 +41,15 @@ public class NonBlockingCharReader(
                     -1
                 }.getOrThrow()) {
                 -1 -> {
-                    logLine { IO.META typed "EOF" }
+                    logLine { IO.Meta typed "EOF" }
                     -1
                 }
                 -2 -> {
-                    logLine { IO.META typed "TIMEOUT" }
+                    logLine { IO.Meta typed "TIMEOUT" }
                     0
                 }
                 else -> {
-                    logLine { IO.META typed "SUCCESSFULLY READ ${read.debug}" }
+                    logLine { IO.Meta typed "SUCCESSFULLY READ ${read.debug}" }
                     buffer[off] = read.toChar()
                     1
                 }

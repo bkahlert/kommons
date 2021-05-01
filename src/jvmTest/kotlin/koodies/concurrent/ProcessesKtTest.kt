@@ -38,7 +38,7 @@ class ProcessesKtTest {
                         workingDirectory = this,
                         "/bin/sh", "-c", command,
                     )
-                    JavaExec(commandLine, null, null).let(block)
+                    JavaExec(commandLine.redirects.isNotEmpty(), commandLine.environment, commandLine.workingDirectory, commandLine, null, null).let(block)
                 }
             }
             test {
@@ -70,10 +70,10 @@ class ProcessesKtTest {
         process.process { io -> processed.add(io) }.waitFor()
 
         expectThat(processed).contains(
-            IO.OUT typed "test output env",
-            IO.ERR typed "test error 1",
-            IO.OUT typed "test output 2",
-            IO.ERR typed "test error 2",
+            IO.Output typed "test output env",
+            IO.Error typed "test error 1",
+            IO.Output typed "test output 2",
+            IO.Error typed "test error 2",
         )
     }
 

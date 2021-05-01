@@ -2,10 +2,8 @@ package koodies
 
 import koodies.collections.size
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.err
-import koodies.concurrent.process.out
+import koodies.concurrent.process.error
 import koodies.concurrent.process.output
-import koodies.concurrent.script
 import koodies.docker.DockerImage
 import koodies.exec.CommandLine
 import koodies.exec.Executable
@@ -45,6 +43,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isTrue
+import strikt.assertions.length
 import kotlin.io.path.exists
 
 // TODO update readme.md
@@ -63,7 +62,7 @@ class ExecutionIntegrationTest {
         commandLine.exec() check {
 
             // just OUT
-            io.out.ansiRemoved { isEqualTo("Hello, World!") }
+            io.output.ansiRemoved { isEqualTo("Hello, World!") }
 
             // or all IO
             io.ansiRemoved {
@@ -88,13 +87,13 @@ class ExecutionIntegrationTest {
             !"echo 'Hello, Back!'"
         } check {
             // can be run like a process
-            exec().io.out.ansiRemoved { contains("Hello, World!").contains("Hello, Back!") }
+            exec().io.output.ansiRemoved { contains("Hello, World!").contains("Hello, Back!") }
         }
 
         // can also be executed with builder
         var counter = 0
         shellScript.exec.processing { io ->
-            if (io is IO.OUT) counter++
+            if (io is IO.Output) counter++
         } check {
             successful { isTrue() }
         }
@@ -196,17 +195,16 @@ class ExecutionIntegrationTest {
     fun `should be simple`() {
         tempDir().apply {
 
-            script { !"cat sample.html" } check { io.err.ansiRemoved { contains("cat: sample.html: No such file or directory") } }
-
-            HtmlFile.copyTo(resolve("sample.html"))
-            val process = script { !"cat sample.html" }
-
-            val content = process.output()
-            content check {
-                length { isEqualTo(HtmlFile.text.length) }
+            ShellScript { !"cat sample.html" }.exec(this) check {
+                io.error.ansiRemoved { contains("cat: sample.html: No such file or directory") }
             }
 
-            ls().map { it.fileName } check {
+            HtmlFile.copyTo(resolve("sample.html"))
+            ShellScript { !"cat sample.html" }.exec(this) check {
+                io.output.ansiRemoved { length.isEqualTo(HtmlFile.text.length) }
+            }
+
+            this.ls().map { it.fileName } check {
                 size { isEqualTo(6) }
                 this {
                     any { toStringMatchesCurlyPattern("koodies.dump.{}.log") }
@@ -230,13 +228,13 @@ class ExecutionIntegrationTest {
 
         // and run it
         commandLine.exec() check {
-            io.out { size.isGreaterThan(10) }
+            io.output { size.isGreaterThan(10) }
         }
 
         // How about running it in a container?
         with(DockerImage { "ubuntu" }) {
             commandLine.exec.dockerized() check {
-                (io.out.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
+                (io.output.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
             }
         }
     }

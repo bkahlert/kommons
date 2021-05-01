@@ -3,10 +3,10 @@ package koodies.logging
 import koodies.asString
 import koodies.concurrent.process.IO
 import koodies.regex.RegularExpressions
-import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.TruncationStrategy.MIDDLE
@@ -147,7 +147,7 @@ public abstract class FixedWidthRenderingLogger(
         }
     }
 
-    public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.OUT typed "" }): Unit =
+    public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.Output typed "" }): Unit =
         logStatus(statuses.toList(), block)
 
     protected fun CharSequence.wrapNonUriLines(length: Int): CharSequence {

@@ -99,22 +99,23 @@ public open class DockerExec private constructor(
          * Factory for [DockerExec].
          */
         public val NATIVE_DOCKER_EXEC_WRAPPED: ExecFactory<DockerExec> =
-            ExecFactory { commandLine, execTerminationCallback ->
-                val exec = JavaExec(commandLine, null, execTerminationCallback)
+            ExecFactory { redirectErrorStream, environment, workingDirectory, commandLine, execTerminationCallback ->
+                val exec = JavaExec(redirectErrorStream, environment, workingDirectory, commandLine, null, execTerminationCallback)
                 DockerExec(DockerContainer.from(commandLine.dockerFallbackName), exec)
             }
     }
 }
 
 /**
- * Executes the [Executor.executable] with the current configuration,
- * and the optional [ExecTerminationCallback].
+ * Executes the [Executor.executable] with the current configuration.
  *
- * If set, [execTerminationCallback] will be called the moment the
- * [Exec] terminates—independent of whether [Exec] succeeds or fails.
+ * @param workingDirectory the working directory to be used during execution
+ * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
  */
-public fun Executor<DockerExec>.exec(execTerminationCallback: ExecTerminationCallback? = null): DockerExec =
-    invoke(execTerminationCallback)
+public fun Executor<DockerExec>.exec(
+    workingDirectory: Path? = null,
+    execTerminationCallback: ExecTerminationCallback? = null,
+): DockerExec = invoke(workingDirectory, execTerminationCallback)
 
 /**
  * Returns an [Executor] that runs `this` executor's [Executor.executable]

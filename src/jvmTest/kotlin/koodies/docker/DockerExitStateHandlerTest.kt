@@ -55,7 +55,7 @@ public inline fun <reified T : Any, V> associateSealedSubclasses(valueSelector: 
 
 class DockerExitStateHandlerTest {
 
-    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(IO.ERR typed errorMessage))
+    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(IO.Error typed errorMessage))
 
     @TestFactory
     fun `should match docker engine not running error message`() = tests {
@@ -75,9 +75,9 @@ class DockerExitStateHandlerTest {
     fun `should match out errors`() {
         val errorMessage = "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
         val exitState = DockerExitStateHandler.handle(Terminated(12345L, 42, IOSequence(
-            IO.OUT typed "out",
-            IO.OUT typed "error: $errorMessage",
-            IO.ERR typed "error: err",
+            IO.Output typed "out",
+            IO.Output typed "error: $errorMessage",
+            IO.Error typed "error: err",
         )))
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved

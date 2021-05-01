@@ -8,12 +8,12 @@ import koodies.regex.value
 import koodies.test.testEach
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
-import koodies.text.LineSeparators.LAST_LINE_PATTERN
+import koodies.text.LineSeparators.LAST_LINE_REGEX
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.LS
 import koodies.text.LineSeparators.NEL
 import koodies.text.LineSeparators.PS
-import koodies.text.LineSeparators.SEPARATOR_PATTERN
+import koodies.text.LineSeparators.REGEX
 import koodies.text.LineSeparators.firstLineSeparator
 import koodies.text.LineSeparators.firstLineSeparatorLength
 import koodies.text.LineSeparators.hasTrailingLineSeparator
@@ -80,7 +80,7 @@ class LineSeparatorsTest {
 
         @Test
         fun `should iterate all line break names in order`() {
-            expectThat(LineSeparators.Dict.keys.joinToString(" ") { "($it)" }).isEqualTo(
+            expectThat(LineSeparators.Names.values.joinToString(" ") { "($it)" }).isEqualTo(
                 "(CARRIAGE RETURN + LINE FEED) " +
                     "(LINE FEED) " +
                     "(CARRIAGE RETURN) " +
@@ -91,7 +91,7 @@ class LineSeparatorsTest {
 
         @Test
         fun `should iterate all line breaks in order`() {
-            expectThat(LineSeparators.Dict.values.joinToString(" ") { "($it)" }).isEqualTo("($CRLF) ($LF) ($CR) ($LS) ($PS) ($NEL)")
+            expectThat(LineSeparators.Names.keys.joinToString(" ") { "($it)" }).isEqualTo("($CRLF) ($LF) ($CR) ($LS) ($PS) ($NEL)")
         }
     }
 
@@ -167,17 +167,17 @@ class LineSeparatorsTest {
             }
         }
 
-        group(::SEPARATOR_PATTERN.name) {
-            expecting("should not match empty string") { SEPARATOR_PATTERN } that { not { matchEntire("") } }
-            expecting("should match itself") { SEPARATOR_PATTERN } that { matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator) }
-            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { SEPARATOR_PATTERN } that { not { matchEntire("line$lineSeparator") } }
+        group(::REGEX.name) {
+            expecting("should not match empty string") { REGEX } that { not { matchEntire("") } }
+            expecting("should match itself") { REGEX } that { matchEntire(lineSeparator).groupValues.containsExactly(lineSeparator) }
+            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { REGEX } that { not { matchEntire("line$lineSeparator") } }
         }
 
-        group(LineSeparators::LAST_LINE_PATTERN.name) {
-            expecting("should not match empty string") { LAST_LINE_PATTERN } that { not { matchEntire("") } }
-            expecting("should match line") { LAST_LINE_PATTERN } that { matchEntire("line").groupValues.containsExactly("line") }
-            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_PATTERN } that { not { matchEntire("line$lineSeparator") } }
-            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LAST_LINE_PATTERN } that { not { matchEntire("line$lineSeparator...") } }
+        group(LineSeparators::LAST_LINE_REGEX.name) {
+            expecting("should not match empty string") { LAST_LINE_REGEX } that { not { matchEntire("") } }
+            expecting("should match line") { LAST_LINE_REGEX } that { matchEntire("line").groupValues.containsExactly("line") }
+            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator") } }
+            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator...") } }
         }
 
         group(LineSeparators::INTERMEDIARY_LINE_PATTERN.name) {

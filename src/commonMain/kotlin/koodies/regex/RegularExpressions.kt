@@ -16,6 +16,7 @@ public object RegularExpressions {
     public val screamingSnakeCaseRegex: Regex = Regex("(?<leftChar>[A-Z0-9]?)_(?<rightChar>[A-Z0-9])")
     public val kebabCaseRegex: Regex = Regex("(?<leftChar>[a-z0-9]?)-(?<rightChar>[a-z0-9])")
 
+    public val DOLLAR: Regex = Regex("$")
     private val DOT: Regex = Regex("\\.")
     private val COMMA: Regex = Regex(",")
     private val SPACE: Regex = Regex("\\s")
@@ -168,6 +169,11 @@ public fun Regex.repeat(min: Int? = 0, max: Int? = null): Regex {
     val maxString = max?.toString() ?: ""
     return Regex("$grouped{$minString,$maxString}")
 }
+
+/**
+ * Returns a [Regex] consisting of `this` and the [other] regex concatenated with `|`.
+ */
+public infix fun Regex.or(other: Regex): Regex = Regex("$this|$other")
 
 /**
  * Returns a non capturing group with no name matching [pattern].

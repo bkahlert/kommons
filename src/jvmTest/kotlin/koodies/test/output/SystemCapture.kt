@@ -27,11 +27,11 @@ open class SystemCapture {
     }
 
     private fun captureOut(string: String) {
-        lock.withLock { capturedStrings.add(IO.OUT typed string) }
+        lock.withLock { capturedStrings.add(IO.Output typed string) }
     }
 
     private fun captureErr(string: String) {
-        lock.withLock { capturedStrings.add(IO.ERR typed string) }
+        lock.withLock { capturedStrings.add(IO.Error typed string) }
     }
 
     public fun useCapturedStrings(transform: (IO) -> Unit) {

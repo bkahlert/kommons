@@ -29,7 +29,7 @@ class IOTest {
         inner class Starting {
 
             private val commandLine = CommandLine("command", "arg")
-            private val meta = IO.META.STARTING(commandLine)
+            private val meta = IO.Meta.Starting(commandLine)
 
             @Test
             fun `should have original text`() {
@@ -46,7 +46,7 @@ class IOTest {
         inner class File {
 
             private val file = "file".asPath()
-            private val meta = IO.META typed file
+            private val meta = IO.Meta typed file
 
             @Test
             fun `should have original text`() {
@@ -63,7 +63,7 @@ class IOTest {
         inner class Text {
 
             private val text = "text"
-            private val meta = IO.META.TEXT(text)
+            private val meta = IO.Meta.Text(text)
 
             @Test
             fun `should have original text`() {
@@ -77,7 +77,7 @@ class IOTest {
 
             @Test
             fun `should throw on blank`() {
-                expectCatching { IO.META typed "    " }.isFailure()
+                expectCatching { IO.Meta typed "    " }.isFailure()
             }
         }
 
@@ -85,7 +85,7 @@ class IOTest {
         inner class Dump {
 
             private val dump = "dump"
-            private val meta = IO.META.DUMP(dump)
+            private val meta = IO.Meta.Dump(dump)
 
             @Test
             fun `should have original text`() {
@@ -99,7 +99,7 @@ class IOTest {
 
             @Test
             fun `should throw on non-dump`() {
-                expectCatching { IO.META.DUMP("whatever") }.isFailure()
+                expectCatching { IO.Meta.Dump("whatever") }.isFailure()
             }
         }
 
@@ -107,7 +107,7 @@ class IOTest {
         inner class Terminated {
 
             private val process = ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })
-            private val meta = IO.META.TERMINATED(process)
+            private val meta = IO.Meta.Terminated(process)
 
             @Test
             fun `should have original text`() {
@@ -124,7 +124,7 @@ class IOTest {
     @Nested
     inner class In {
 
-        private val `in` = IO.INPUT typed "in"
+        private val `in` = IO.Input typed "in"
 
         @Test
         fun `should have original text`() {
@@ -140,7 +140,7 @@ class IOTest {
     @Nested
     inner class Out {
 
-        private val out = IO.OUT typed "out"
+        private val out = IO.Output typed "out"
 
         @Test
         fun `should have original text`() {
@@ -156,7 +156,7 @@ class IOTest {
     @Nested
     inner class Err {
 
-        private val err = IO.ERR(RuntimeException("err"))
+        private val err = IO.Error(RuntimeException("err"))
 
         @Test
         fun `should have plain stacktrace`() {
@@ -192,17 +192,17 @@ class IOTest {
 
         @Test
         fun `should filter out`() {
-            expectThat(IO_LIST.out.toList()).containsExactly(IO_LIST.toList().subList(6, 7))
+            expectThat(IO_LIST.output.toList()).containsExactly(IO_LIST.toList().subList(6, 7))
         }
 
         @Test
         fun `should filter err`() {
-            expectThat(IO_LIST.err.toList()).containsExactly(IO_LIST.toList().subList(7, 8))
+            expectThat(IO_LIST.error.toList()).containsExactly(IO_LIST.toList().subList(7, 8))
         }
 
         @Test
         fun `should filter out and err`() {
-            expectThat(IO_LIST.outAndErr.toList()).containsExactly(IO_LIST.toList().subList(6, 8))
+            expectThat(IO_LIST.outputAndError.toList()).containsExactly(IO_LIST.toList().subList(6, 8))
         }
 
         @Test
@@ -222,20 +222,20 @@ class IOTest {
 
         @Test
         fun `should merge single type`() {
-            expectThat(IO_LIST.out.ansiRemoved).isEqualTo("out")
+            expectThat(IO_LIST.output.ansiRemoved).isEqualTo("out")
         }
     }
 
     companion object {
         val IO_LIST: IOSequence<IO> = IOSequence(
-            IO.META.STARTING(CommandLine("command", "arg")),
-            IO.META typed "file".asPath(),
-            IO.META.TEXT("text"),
-            IO.META.DUMP("dump"),
-            IO.META.TERMINATED(ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })),
-            IO.INPUT typed "in",
-            IO.OUT typed "out",
-            IO.ERR(RuntimeException("err")),
+            IO.Meta.Starting(CommandLine("command", "arg")),
+            IO.Meta typed "file".asPath(),
+            IO.Meta.Text("text"),
+            IO.Meta.Dump("dump"),
+            IO.Meta.Terminated(ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })),
+            IO.Input typed "in",
+            IO.Output typed "out",
+            IO.Error(RuntimeException("err")),
         )
     }
 }

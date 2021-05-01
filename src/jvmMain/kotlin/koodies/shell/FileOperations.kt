@@ -15,11 +15,11 @@ public class FileOperations(private val shellScript: ShellScript, private val pa
         .joinToString(prefix = "(", separator = "|", postfix = ")?")
 
     /**
-     * Removes the line matching [line], whereas [line] is only lines with a line separator
-     * or the end of the file are matched.
+     * Removes the all lines matching the specified [line] terminated by one of the [LineSeparators]
+     * or the end of the file.
      */
     public fun removeLine(line: String, backupExtension: String = ".bak"): FileOperations {
-        shellScript.line("perl -i$backupExtension -pe 's/$line(\\R|$)//' ${path.quoted}")
+        shellScript.line("perl -i$backupExtension -pe 's/$line(?:\\R|$)//smg' ${path.quoted}")
         return this
     }
 

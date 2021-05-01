@@ -2,7 +2,7 @@ package koodies.exec
 
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
-import koodies.concurrent.process.out
+import koodies.concurrent.process.output
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Failure
@@ -47,21 +47,21 @@ class ExecutorTest {
         @Test
         fun `should exec command line`() {
             val exec = CommandLine(Locations.Temp, "echo", "Hello, Command Line!").exec()
-            expectThat(exec.io.out.ansiRemoved)
+            expectThat(exec.io.output.ansiRemoved)
                 .isEqualTo("Hello, Command Line!")
         }
 
         @Test
         fun `should exec shell script`() {
             val exec = ShellScript { !"echo 'Hello, Shell Script!' | cat" }.exec()
-            expectThat(exec.io.out.ansiRemoved)
+            expectThat(exec.io.output.ansiRemoved)
                 .isEqualTo("Hello, Shell Script!")
         }
 
         @Test
         fun InMemoryLogger.`should add missing shebang`() {
             val exec = ShellScript { !"cat $0" }.exec.logging(this)
-            expectThat(exec.io.out.ansiRemoved).isEqualTo("#!/bin/sh\ncat \$0")
+            expectThat(exec.io.output.ansiRemoved).isEqualTo("#!/bin/sh\ncat \$0")
         }
     }
 
@@ -207,7 +207,7 @@ class ExecutorTest {
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
                 succeedingExecutable.exec.processing { io -> processed.add(io) }
-                expectThat(processed).contains(IO.OUT typed "TEST_VALUE")
+                expectThat(processed).contains(IO.Output typed "TEST_VALUE")
             }
         }
     }
@@ -362,7 +362,7 @@ class ExecutorTest {
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
                 succeedingExecutable.exec.async.processing { io -> processed.add(io) }.apply { waitFor() }
-                expectThat(processed).contains(IO.OUT typed "TEST_VALUE")
+                expectThat(processed).contains(IO.Output typed "TEST_VALUE")
             }
         }
 
@@ -371,7 +371,7 @@ class ExecutorTest {
             val processed = mutableListOf<IO>()
             CommandLine("cat").exec.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { io -> processed.add(io) }
                 .apply { waitFor() }
-            expectThat(processed).contains(IO.OUT typed "Hello Cat!")
+            expectThat(processed).contains(IO.Output typed "Hello Cat!")
         }
     }
 }

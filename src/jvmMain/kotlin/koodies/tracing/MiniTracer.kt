@@ -31,7 +31,7 @@ public fun <R> MiniTracer?.microTrace3(f: KFunction3<*, *, *, R>, block: MicroTr
 
 
 public class RenderingLoggerBasedMiniTracer(private val renderingLogger: RenderingLogger) : MiniTracer {
-    public override fun trace(input: String): Unit = renderingLogger.logLine { IO.META typed input }
+    public override fun trace(input: String): Unit = renderingLogger.logLine { IO.Meta typed input }
     public override fun <R> microTrace(f: String, block: MicroTracer.() -> R): R {
         val simpleMicroTracer = SimpleMicroTracer(f)
         val returnValue: R = simpleMicroTracer.run(block)

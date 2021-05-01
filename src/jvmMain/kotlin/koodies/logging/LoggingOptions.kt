@@ -163,7 +163,7 @@ public sealed class LoggingOptions {
                     this.caption by caption
                     contentFormatter {
                         Formatter {
-                            it.takeUnless { it is IO.META }?.ansiRemoved?.run {
+                            it.takeUnless { it is IO.Meta }?.ansiRemoved?.run {
                                 val step = substringAfter(":").trim().run {
                                     takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
                                 }
@@ -201,7 +201,7 @@ public sealed class LoggingOptions {
                     this.caption { "" }
                     border = NONE
                     contentFormatter by Formatter {
-                        (it as? IO.ERR)?.let { err -> "$caption: $err" } ?: ""
+                        (it as? IO.Error)?.let { err -> "$caption: $err" } ?: ""
                     }
                     decorationFormatter by Formatter { "" }
                     returnValueFormatter { { if (it.successful == false) it else none } }

@@ -1,6 +1,6 @@
 package koodies.shell
 
-import koodies.concurrent.process.out
+import koodies.concurrent.process.output
 import koodies.test.toStringIsEqualTo
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
@@ -49,7 +49,7 @@ class HereDocKtTest {
             fun `should substitute parameters`() {
                 expectThat(ShellScript {
                     !"cat $hereDoc"
-                }.exec().io.out.ansiRemoved) {
+                }.exec().io.output.ansiRemoved) {
                     isNotBlank()
                     isNotEqualTo("\$HOME")
                 }
@@ -70,7 +70,7 @@ class HereDocKtTest {
             fun `should not substitute parameters`() {
                 expectThat(ShellScript {
                     !"cat $hereDoc"
-                }.exec().io.out.ansiRemoved) {
+                }.exec().io.output.ansiRemoved) {
                     isEqualTo("\$HOME")
                 }
             }

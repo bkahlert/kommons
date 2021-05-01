@@ -1,7 +1,6 @@
 package koodies.exec
 
-import koodies.concurrent.process.IO.META
-import koodies.concurrent.process.IO.META.FILE
+import koodies.concurrent.process.IO.Meta
 import koodies.io.path.Locations
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -12,14 +11,14 @@ import strikt.assertions.isSuccess
 
 class MetaStreamTest {
 
-    private class Listener : (META) -> Unit {
-        public var message: META? = null
-        override fun invoke(message: META) {
+    private class Listener : (Meta) -> Unit {
+        var message: Meta? = null
+        override fun invoke(message: Meta) {
             this.message = message
         }
     }
 
-    private val message = FILE(Locations.Temp)
+    private val message = Meta.File(Locations.Temp)
 
     @Test
     fun `should subscribe`() {

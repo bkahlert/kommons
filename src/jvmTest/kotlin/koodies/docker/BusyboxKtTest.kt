@@ -29,7 +29,7 @@ class BusyboxKtTest { // TODO generalize to docker run command
         expect {
             that(dockerExec.waitFor()).isA<ExitState.Success>()
             that(dockerExec.alive).isFalse()
-            that(processed.filterIsInstance<IO.OUT>()).containsExactly(IO.OUT typed "busybox")
+            that(processed.filterIsInstance<IO.Output>()).containsExactly(IO.Output typed "busybox")
         }
     }
 }

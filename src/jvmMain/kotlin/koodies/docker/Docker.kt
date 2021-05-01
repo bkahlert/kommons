@@ -216,7 +216,7 @@ public fun Path.docker(
     execTerminationCallback: ExecTerminationCallback? = null,
     processor: Processor<Exec>?,
 ): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(dockerRunCommandLine(imageInit, optionsInit, arguments),
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), this, dockerRunCommandLine(imageInit, optionsInit, arguments),
         execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
@@ -238,7 +238,7 @@ public fun docker(
     execTerminationCallback: ExecTerminationCallback? = null,
     processor: Processor<DockerExec>?,
 ): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(DockerRunCommandLine(init),
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), null, DockerRunCommandLine(init),
         execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
 
@@ -261,6 +261,6 @@ public fun docker(
     execTerminationCallback: ExecTerminationCallback? = null,
     init: Init<Companion.CommandContext>,
 ): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(DockerRunCommandLine(init),
+    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), null, DockerRunCommandLine(init),
         execTerminationCallback)
         .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }

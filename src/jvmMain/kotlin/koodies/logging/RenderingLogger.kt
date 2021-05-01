@@ -244,7 +244,7 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     caption: CharSequence,
     crossinline block: RenderingLogger.() -> R,
 ): R = CompactRenderingLogger(caption, null, null, null, log = { logText { it } }).runLogging {
-    logLine { IO.META typed "Logging to" }
+    logLine { IO.Meta typed "Logging to" }
     logLine { "${Symbols.Document} ${path.toUri()}" }
     path.bufferedWriter().use { ansiLog ->
         path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->

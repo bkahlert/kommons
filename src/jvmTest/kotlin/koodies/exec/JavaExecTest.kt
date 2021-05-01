@@ -1,10 +1,10 @@
 package koodies.exec
 
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.ERR
-import koodies.concurrent.process.IO.INPUT
-import koodies.concurrent.process.IO.META
-import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.IO.Error
+import koodies.concurrent.process.IO.Input
+import koodies.concurrent.process.IO.Meta
+import koodies.concurrent.process.IO.Output
 import koodies.concurrent.process.IOSequence
 import koodies.concurrent.process.UserInput.enter
 import koodies.concurrent.process.process
@@ -48,12 +48,12 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThanOrEqualTo
@@ -82,8 +82,8 @@ class JavaExecTest {
         @Test
         fun `should throw on contained here documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val cmdLine = CommandLine(HereDoc("command", delimiter = "DELIMITER1").toString(), HereDoc("command", delimiter = "DELIMITER2").toString())
-            expectCatching { JavaExec(cmdLine).start() }.isFailure().isA<IllegalArgumentException>().message
-                .isNotNull().contains("DELIMITER1").contains("DELIMITER2")
+            expectThrows<IllegalArgumentException> { JavaExec(false, cmdLine.environment, cmdLine.workingDirectory, cmdLine).start() }
+                .message.isNotNull().contains("DELIMITER1").contains("DELIMITER2")
         }
     }
 
@@ -186,7 +186,7 @@ class JavaExecTest {
         @Test
         fun `should provide IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val process = createCompletingExec().processSilently().also { it.waitFor() }
-            expectThat(process).log.logs(OUT typed "test out", ERR typed "test err")
+            expectThat(process).log.logs(Output typed "test out", Error typed "test err")
         }
     }
 
@@ -228,7 +228,7 @@ class JavaExecTest {
 
             kotlin.runCatching {
                 process.process({ async }) { io ->
-                    if (io !is META && io !is INPUT) {
+                    if (io !is Meta && io !is Input) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
                     }
@@ -240,10 +240,10 @@ class JavaExecTest {
                 process.waitFor()
                 expectThat(process) {
                     killed.io.get("logged %s") { toList() }.contains(
-                        OUT typed "test out",
-                        ERR typed "test err",
-                        INPUT typed "just read ${OUT typed "test out"}",
-                        INPUT typed "just read ${ERR typed "test err"}",
+                        Output typed "test out",
+                        Error typed "test err",
+                        Input typed "just read ${Output typed "test out"}",
+                        Input typed "just read ${Error typed "test err"}",
                     )
                 }
             }.onFailure {
@@ -549,13 +549,7 @@ private fun Path.process(
     shellScript: ShellScript,
     exitStateHandler: ExitStateHandler? = null,
     execTerminationCallback: ExecTerminationCallback? = null,
-) = JavaExec(CommandLine(
-    redirects = emptyList(),
-    environment = emptyMap(),
-    workingDirectory = this,
-    command = "/bin/sh",
-    arguments = listOf("-c", shellScript.buildTo(scriptPath()).asString()),
-), exitStateHandler, execTerminationCallback)
+) = JavaExec(false, emptyMap(), this, CommandLine("/bin/sh", "-c", shellScript.buildTo(scriptPath()).asString()), exitStateHandler, execTerminationCallback)
 
 fun Path.createLoopingExec(): Exec = process(shellScript = createLoopingScript())
 
@@ -571,8 +565,8 @@ fun Path.createCompletingExec(
 
 fun Path.createLazyFileCreatingProcess(): Pair<Exec, Path> {
     val nonExistingFile = randomPath(extension = ".txt")
-    val fileCreatingCommandLine = CommandLine(emptyMap(), this, "touch", nonExistingFile.asString())
-    return JavaExec(fileCreatingCommandLine) to nonExistingFile
+    val fileCreatingCommandLine = CommandLine("touch", nonExistingFile.asString())
+    return JavaExec(false, emptyMap(), this, fileCreatingCommandLine) to nonExistingFile
 }
 
 
@@ -581,16 +575,16 @@ val <T : Exec> Builder<T>.alive: Builder<T>
 
 val <T : Exec> Builder<T>.log: DescribeableBuilder<List<IO>> get() = get("log %s") { io.toList() }
 
-private fun Builder<Exec>.completesWithIO() = log.logs(OUT typed "test out", ERR typed "test err")
+private fun Builder<Exec>.completesWithIO() = log.logs(Output typed "test out", Error typed "test err")
 
 val <T : Exec> Builder<T>.io: DescribeableBuilder<List<IO>>
     get() = get("logged IO") { io.toList() }
 
-val Builder<List<IO>>.out: DescribeableBuilder<List<OUT>>
-    get() = get("out") { filterIsInstance<OUT>() }
+val Builder<List<IO>>.output: DescribeableBuilder<List<Output>>
+    get() = get("out") { filterIsInstance<Output>() }
 
-val Builder<List<IO>>.err: DescribeableBuilder<List<ERR>>
-    get() = get("err") { filterIsInstance<ERR>() }
+val Builder<List<IO>>.error: DescribeableBuilder<List<Error>>
+    get() = get("err") { filterIsInstance<Error>() }
 
 val Builder<out List<IO>>.ansiRemoved: DescribeableBuilder<String>
     get() = get("ANSI escape codes removed") { IOSequence(this).ansiRemoved }

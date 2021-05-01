@@ -2,8 +2,8 @@ package koodies.exec
 
 import koodies.collections.synchronizedSetOf
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.META.FILE
-import koodies.concurrent.process.IO.META.STARTING
+import koodies.concurrent.process.IO.Meta.File
+import koodies.concurrent.process.IO.Meta.Starting
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.IOSequence
 import koodies.concurrent.process.ShutdownHookUtils
@@ -34,16 +34,47 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
-import koodies.io.RedirectingOutputStream as ReOutputStrean
+import koodies.io.RedirectingOutputStream as ReOutputStream
 
 /**
  * Java-based [Exec] implementation.
  */
 public open class JavaExec(
-    protected val commandLine: CommandLine,
-    protected val exitStateHandler: ExitStateHandler? = null,
+
+    /**
+     * Whether standard error is redirected to standard output during execution.
+     */
+    private val redirectErrorStream: Boolean,
+
+    /**
+     * The environment to be exposed to the [Exec] during execution.
+     */
+    protected val environment: Map<String, String>,
+
+    /**
+     * The working directory to be used during execution.
+     */
+    public override val workingDirectory: Path?,
+
+    /**
+     * The command and its arguments to execute.
+     */
+    public val commandLine: CommandLine,
+
+    /**
+     * If set, the creation of the [ExitState] is delegated to it.
+     */
+    private val exitStateHandler: ExitStateHandler? = null,
+
+    /**
+     * Called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
+     */
     protected val execTerminationCallback: ExecTerminationCallback? = {},
-    protected val destroyOnShutdown: Boolean = true,
+
+    /**
+     * Whether to kill this [Exec] if it's still running during VM shutdown.
+     */
+    private val destroyOnShutdown: Boolean = true,
 ) : Exec {
     public companion object;
 
@@ -54,9 +85,9 @@ public open class JavaExec(
         return startLock.withLock {
             if (javaProcess != null) return this
             kotlin.runCatching {
-                javaProcess = commandLine.toJavaProcess().apply {
-                    metaStream.emit(STARTING(commandLine))
-                    commandLine.includedFiles.forEach { metaStream.emit(FILE(it)) }
+                javaProcess = commandLine.toJavaProcess(redirectErrorStream, environment, workingDirectory).apply {
+                    metaStream.emit(Starting(commandLine))
+                    commandLine.includedFiles.forEach { metaStream.emit(File(it)) }
 
                     if (destroyOnShutdown) {
                         val shutdownHook = thread(start = false, name = "shutdown hook for $this", contextClassLoader = null) { destroy() }
@@ -83,16 +114,14 @@ public open class JavaExec(
     override fun stop(): Exec = also { startImplicitly().destroy() }
     override fun kill(): Exec = also { startImplicitly().destroyForcibly() }
 
-    override val workingDirectory: Path get() = commandLine.workingDirectory
-
     override val state: ProcessState get() = exitState ?: run { if (javaProcess == null) Prepared() else Running(pid) }
 
     override var exitState: ExitState? = null
         protected set
 
-    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(startImplicitly().outputStream, ReOutputStrean { ioLog.input + it }) }
-    private val capturingOutputStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().inputStream, ReOutputStrean { ioLog.out + it }) }
-    private val capturingErrorStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().errorStream, ReOutputStrean { ioLog.err + it }) }
+    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(startImplicitly().outputStream, ReOutputStream { ioLog.input + it }) }
+    private val capturingOutputStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().inputStream, ReOutputStream { ioLog.output + it }) }
+    private val capturingErrorStream: InputStream by lazy { start(); TeeInputStream(startImplicitly().errorStream, ReOutputStream { ioLog.error + it }) }
 
     final override val metaStream: MetaStream = MetaStream({ ioLog + it })
     final override val inputStream: OutputStream get() = capturingInputStream
@@ -127,7 +156,7 @@ public open class JavaExec(
                     Fatal(cause, exitValue, pid, dump.ansiRemoved, io)
                 } else {
                     kotlin.runCatching {
-                        val exitStateHandler = exitStateHandler ?: fallbackExitStateHandler(commandLine.includedFiles)
+                        val exitStateHandler = exitStateHandler ?: fallbackExitStateHandler()
                         val terminated = Terminated(pid, exitValue, io)
 
                         exitStateHandler.handle(terminated)

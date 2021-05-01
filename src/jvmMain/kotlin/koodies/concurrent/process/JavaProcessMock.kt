@@ -1,6 +1,5 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.process.IO.ERR
 import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.debug.asEmoji
 import koodies.debug.debug
@@ -175,7 +174,7 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
 
     public var logger: RenderingLogger = processMock.logger
 
-    override val workingDirectory: Path = Locations.Temp
+    override val workingDirectory: Path? = Locations.Temp
 
     override var state: ProcessState = Prepared()
         protected set
@@ -241,14 +240,14 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
             }
         public val SUCCEEDED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.SUCCEEDED_PROCESS) {
-                override var state: ProcessState = Success(12345L, IOSequence(sequenceOf(IO.OUT typed "line 1", IO.OUT typed "line 2")))
+                override var state: ProcessState = Success(12345L, IOSequence(sequenceOf(IO.Output typed "line 1", IO.Output typed "line 2")))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)
                 override val successful: Boolean = true
             }
         public val FAILED_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.FAILED_PROCESS) {
                 override var state: ProcessState =
-                    Failure(42, 12345L, emptyList(), null, IOSequence(sequenceOf(ERR typed "error 1", ERR typed "error 2")))
+                    Failure(42, 12345L, emptyList(), null, IOSequence(sequenceOf(IO.Error typed "error 1", IO.Error typed "error 2")))
                 override val onExit: CompletableFuture<out ExitState> = completedFuture(state as ExitState)
                 override val successful: Boolean? = false
             }

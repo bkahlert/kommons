@@ -1,7 +1,6 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO.ERR
-import koodies.concurrent.process.IO.META
+import koodies.concurrent.process.IO
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
@@ -168,14 +167,14 @@ class RenderingLoggerKtTest {
                 logging("nested log") {
                     logStatus { "nested 1" }
                     compactLogging("mini segment") {
-                        logStatus { ERR typed "12345" }
-                        logStatus { META typed "sample" }
+                        logStatus { IO.Error typed "12345" }
+                        logStatus { IO.Meta typed "sample" }
                     }
                     logging("nested log") {
                         logStatus { "nested 1" }
                         compactLogging("mini segment") {
-                            logStatus { ERR typed "12345" }
-                            logStatus { META typed "sample" }
+                            logStatus { IO.Error typed "12345" }
+                            logStatus { IO.Meta typed "sample" }
                         }
                         logStatus { "nested 2" }
                         logStatus { "nested 3" }

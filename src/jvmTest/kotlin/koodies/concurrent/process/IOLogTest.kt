@@ -1,6 +1,6 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.process.IO.META
+import koodies.concurrent.process.IO.Meta
 import koodies.exec.CommandLine
 import koodies.io.path.asString
 import koodies.io.path.text
@@ -46,7 +46,7 @@ class IOLogTest {
         daemon {
             var i = 0
             while (!stop) {
-                ioLog + (META typed "being busy $i times")
+                ioLog + (Meta typed "being busy $i times")
                 10.milliseconds.sleep()
                 i++
             }
@@ -56,7 +56,7 @@ class IOLogTest {
 
         expectThat(ioLog.toList()) {
             isNotEmpty()
-            contains(IO.META typed "being busy 0 times")
+            contains(IO.Meta typed "being busy 0 times")
         }
         stop = true
     }
@@ -65,7 +65,7 @@ class IOLogTest {
     internal fun `should provide filtered access`() {
         val ioLog = createIOLog()
 
-        expectThat(ioLog.merge<IO.OUT>()).isEqualTo("""
+        expectThat(ioLog.merge<IO.Output>()).isEqualTo("""
             processing
             awaiting input: 
         """.trimIndent())
@@ -128,10 +128,10 @@ class IOLogTest {
 }
 
 fun createIOLog(): IOLog = IOLog().apply {
-    this + IO.META.STARTING(CommandLine("command", "arg"))
-    out + "processing$LF".toByteArray()
-    out + "awaiting input: $LF".toByteArray()
+    this + IO.Meta.Starting(CommandLine("command", "arg"))
+    output + "processing$LF".toByteArray()
+    output + "awaiting input: $LF".toByteArray()
     input + "cancel$LF".toByteArray()
-    err + "invalid input$LF".toByteArray()
-    err + "an abnormal error has occurred (errno 99)$LF".toByteArray()
+    error + "invalid input$LF".toByteArray()
+    error + "an abnormal error has occurred (errno 99)$LF".toByteArray()
 }

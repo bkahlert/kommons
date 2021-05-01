@@ -3,6 +3,9 @@ package koodies.concurrent
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.output
 import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
+import koodies.exec.JavaExec
+import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.Locations
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
@@ -11,18 +14,24 @@ import koodies.shell.ShellScript.Companion.build
 import java.nio.file.Path
 
 /**
- * Runs the specified [shellScript] in [Locations.Temp].
+ * Creates a [Exec] from the specified [shellScript]
+ * with the specified [workingDirectory] and the specified [environment].
  *
- * The output of this script will be logged by the specified [logger]
- * which prints all [IO] to the console if `null`.
- *
- * Though [exec] is recommended, for simple IO processing, [output] can be used.
+ * If provided, the [execTerminationCallback] will be called on process
+ * termination and before other [Exec.onExit] registered listeners
+ * get called.
  */
-@Deprecated("use exec")
-public fun script(
-    logger: RenderingLogger = MutedRenderingLogger(),
-    shellScript: ShellScript.() -> Unit,
-): Exec = Locations.Temp.script(logger, shellScript)
+@Deprecated("delete")
+public fun process(
+    shellScript: ShellScript,
+    environment: Map<String, String> = emptyMap(),
+    workingDirectory: Path = Locations.Temp,
+    exitStateHandler: ExitStateHandler? = null,
+    execTerminationCallback: ExecTerminationCallback? = null,
+): Exec {
+    val commandLine = shellScript.toCommandLine(workingDirectory, environment)
+    return JavaExec(false, environment, workingDirectory, commandLine, exitStateHandler, execTerminationCallback)
+}
 
 /**
  * Runs the specified [shellScript] in `this` [Path].

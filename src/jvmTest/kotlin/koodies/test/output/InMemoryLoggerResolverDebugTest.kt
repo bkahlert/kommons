@@ -27,7 +27,7 @@ class InMemoryLoggerResolverDebugTest {
         @Debug(includeInReport = false)
         @Test
         fun InMemoryLogger.`should log to console automatically with @Debug`(output: CapturedOutput) {
-            logLine { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+            logLine { IO.Output typed "☎Σ⊂⊂(☉ω☉∩)" }
 
             expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
             expectThat(output.ansiRemoved).contains("☎Σ⊂⊂(☉ω☉∩)")
@@ -41,7 +41,7 @@ class InMemoryLoggerResolverDebugTest {
         @Debug(includeInReport = false)
         @Test
         fun InMemoryLogger.`should log to console automatically with @Debug`(output: CapturedOutput) {
-            logLine { IO.OUT typed "(*｀へ´*)" }
+            logLine { IO.Output typed "(*｀へ´*)" }
 
             expectCatching { logResult { Result.failure<Any>(IllegalStateException("test")) } }
                 .isFailure().isA<IllegalStateException>()

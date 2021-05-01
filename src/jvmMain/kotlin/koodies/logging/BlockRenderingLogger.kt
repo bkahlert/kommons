@@ -3,9 +3,9 @@ package koodies.logging
 import koodies.asString
 import koodies.concurrent.process.IO
 import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.Semantics.Symbols.Computation
 import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
@@ -79,7 +79,7 @@ public open class BlockRenderingLogger(
 
     override fun logException(block: () -> Throwable): Unit = block().let {
         render(true) {
-            val message = IO.ERR(it).formatted
+            val message = IO.Error(it).formatted
             if (closed) message
             else message.prefixLinesWith(prefix, ignoreTrailingSeparator = false)
         }

@@ -1,5 +1,9 @@
 package koodies.text
 
+import koodies.regex.or
+import koodies.text.LineSeparators.lineSequence
+import koodies.text.LineSeparators.lines
+
 /**
  * Collection of line separators themselves and various corresponding methods
  * like [lines] or [lineSequence]
@@ -55,14 +59,14 @@ public object LineSeparators : Collection<String> {
     /**
      * [Regex] that matches all line separators.
      */
-    public val SEPARATOR_PATTERN: Regex by lazy {
-        "${CRLF.toLiteralRegex()}|[${ALL.filter { it != CRLF }.map { it.toLiteralRegex() }.joinToString("")}]".toRegex()
+    public val REGEX: Regex by lazy {
+        CRLF.toLiteralRegex() or "[${ALL.filter { it != CRLF }.map { it.toLiteralRegex() }.joinToString("")}]".toRegex()
     }
 
     /**
-     * [Regex] that matches only string that contain no line separators, e.g. the last line of a multi-line text.
+     * [Regex] that matches only strings that contain no line separators, e.g. the last line of a multi-line text.
      */
-    public val LAST_LINE_PATTERN: Regex by lazy { ".+$".toRegex() }
+    public val LAST_LINE_REGEX: Regex by lazy { ".+$".toRegex() }
 
     private val ALL by lazy { arrayOf(CRLF, LF, CR, LS, PS, NEL) }
 

@@ -3,7 +3,6 @@ package koodies.exec
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IOLog
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.out
 import koodies.concurrent.process.output
 import koodies.concurrent.process.process
 import koodies.io.path.Locations
@@ -244,7 +243,7 @@ class CommandLineTest {
     inner class Nesting {
 
         private fun Assertion.Builder<Exec>.outputParsedAsCommandLine(workingDir: Path) =
-            get { CommandLine.parse(io.out.ansiRemoved, workingDir) }
+            get { CommandLine.parse(io.output.ansiRemoved, workingDir) }
 
         @Test
         fun `should produce runnable output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -360,7 +359,7 @@ val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBu
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
     get() = get("evaluated %s") {
-        JavaExec(this).process({ sync }, Processors.noopProcessor())
+        JavaExec(redirects.isNotEmpty(), environment, workingDirectory, this).process({ sync }, Processors.noopProcessor())
     }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =
@@ -370,7 +369,7 @@ val Assertion.Builder<Exec>.output
     get() = get("output %s") { output() }
 
 val Assertion.Builder<IOLog>.out
-    get() = get("output of type OUT %s") { filterIsInstance<IO.OUT>().joinToString(LineSeparators.LF) }
+    get() = get("output of type OUT %s") { filterIsInstance<IO.Output>().joinToString(LineSeparators.LF) }
 
 val <P : Exec> Assertion.Builder<P>.exitCodeOrNull
     get() = get("exit value %s") { exitCodeOrNull }

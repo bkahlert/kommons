@@ -4,11 +4,11 @@ import koodies.exec.Executors.runCommandLineAsJavaProcess
 import koodies.exec.Executors.runScriptAsJavaProcess
 import koodies.io.path.asPath
 import koodies.io.path.asString
+import koodies.io.path.deleteRecursively
 import koodies.io.path.randomPath
 import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.shell.HereDoc
 import koodies.shell.ShellScript
-import koodies.text.LineSeparators
 import org.codehaus.plexus.util.cli.Commandline
 import org.codehaus.plexus.util.cli.shell.Shell
 import java.io.File
@@ -16,6 +16,7 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
+import kotlin.io.path.readText
 import kotlin.time.days
 import java.lang.Process as JavaProcess
 
@@ -28,49 +29,75 @@ private object Executors {
         deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, 3.days, keepAtMost = 100)
     }
 
-    fun requireValidWorkingDirectory(workingDirectory: Path): File =
-        workingDirectory.toAbsolutePath().run {
+    fun requireValidWorkingDirectory(workingDirectory: Path?): File? =
+        workingDirectory?.toAbsolutePath()?.run {
             require(exists()) { "Working directory $this does not exist." }
             require(isDirectory()) { "Working directory $this is no directory." }
             toFile()
         }
 
-    fun Path.runScriptAsJavaProcess(environment: Map<String, String>, workingDirectory: Path): JavaProcess {
+    fun Path.runScriptAsJavaProcess(
+        redirectErrorStream: Boolean,
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+    ): JavaProcess {
+        require(isScriptFile) { "$this must be a script file." }
+        val script: String = (readText() + "pwd\n").also { deleteRecursively() }
+
+        val directory: File? = requireValidWorkingDirectory(workingDirectory)
+
+        val shell = Commandline().shell
+        val shellCommandLine: Array<String> = arrayOf(shell.shellCommand, *shell.shellArgsList.toTypedArray(), script)
+        return ProcessBuilder(*shellCommandLine).let { pb ->
+            pb.redirectErrorStream(redirectErrorStream)
+            pb.environment().putAll(environment)
+            directory?.also { pb.directory(it) }
+            pb.start()
+        }
+    }
+
+    fun Path.runScriptAsJavaProcess2(
+        redirectErrorStream: Boolean,
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+    ): JavaProcess {
         require(isScriptFile) { "$this must be a script file." }
         val scriptFile: String = asString()
 
-        val directory: File = requireValidWorkingDirectory(workingDirectory)
+        val directory: File? = requireValidWorkingDirectory(workingDirectory)
 
         val shell = Commandline().shell
         val shellCommandLine = shell.getShellCommandLine(arrayOf(scriptFile))
 
         return ProcessBuilder(shellCommandLine).let { pb ->
+            pb.redirectErrorStream(redirectErrorStream)
             pb.environment().putAll(environment)
-            pb.directory(directory)
+            directory?.also { pb.directory(it) }
             pb.start()
         }
     }
 
-    fun CommandLine.runCommandLineAsJavaProcess(): JavaProcess {
+    fun CommandLine.runCommandLineAsJavaProcess(
+        redirectErrorStream: Boolean,
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+    ): JavaProcess {
 
-        require(redirects.isEmpty()) {
-            "Redirects are only supported for shell scripts.${LineSeparators.LF}" +
-                "Convert your command line first to a script file and execute that one."
-        }
         val hereDocDelimiters = HereDoc.findAllDelimiters(CommandLine.asShellCommand(commandLineParts))
         require(hereDocDelimiters.isEmpty()) {
             "The command line contained here documents ($hereDocDelimiters) which " +
                 "will not be escaped and are not what you intended to do."
         }
 
-        val directory: File = requireValidWorkingDirectory(workingDirectory)
+        val directory: File? = requireValidWorkingDirectory(workingDirectory)
 
         val shell = Commandline().shell
         val shellCommandLine = shell.getShellCommandLine(commandLineParts)
 
         return ProcessBuilder(shellCommandLine).let { pb ->
+            pb.redirectErrorStream(redirectErrorStream)
             pb.environment().putAll(environment)
-            pb.directory(directory)
+            directory?.also { pb.directory(it) }
             pb.start()
         }
     }
@@ -86,11 +113,18 @@ private object Executors {
  *
  * Otherwise the command line is taken as is and executes using the VM's
  * [ProcessBuilder].
+ *
+ * @param redirectErrorStream whether standard error is redirected to standard output during execution
+ * @param environment the environment to be exposed to the [Exec] during execution
+ * @param workingDirectory the working directory to be used during execution
  */
-public fun CommandLine.toJavaProcess(): JavaProcess =
-    asScriptFileOrNull()
-        ?.runScriptAsJavaProcess(environment, workingDirectory)
-        ?: runCommandLineAsJavaProcess()
+public fun CommandLine.toJavaProcess(
+    redirectErrorStream: Boolean,
+    environment: Map<String, String>,
+    workingDirectory: Path?,
+): JavaProcess = asScriptFileOrNull()
+    ?.runScriptAsJavaProcess(redirectErrorStream, environment, workingDirectory)
+    ?: runCommandLineAsJavaProcess(redirectErrorStream || redirects.isNotEmpty(), environment + this.environment, workingDirectory ?: this.workingDirectory)
 
 /**
  * If this [CommandLine] is pointing to a [ShellScript] file,

@@ -67,12 +67,12 @@ public class NonBlockingReader(
         ) {
 
             var latestReadMoment = calculateLatestReadMoment()
-            logLine { IO.META typed "Starting to read line for at most $timeout" }
+            logLine { IO.Meta typed "Starting to read line for at most $timeout" }
             while (true) {
                 val read: Int = reader?.read(charArray, 0, this@logging)!!
 
                 if (read == -1) {
-                    logLine { IO.META typed "InputStream Depleted. Closing. Unfinished Line: ${unfinishedLine.quoted}" }
+                    logLine { IO.Meta typed "InputStream Depleted. Closing. Unfinished Line: ${unfinishedLine.quoted}" }
                     close()
                     return@logging if (unfinishedLine.isEmpty()) {
                         lastReadLineDueTimeout = false
@@ -85,7 +85,7 @@ public class NonBlockingReader(
                         lastReadLine!!.withoutTrailingLineSeparator
                     }
                 }
-                logLine { IO.META typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milliseconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
+                logLine { IO.Meta typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milliseconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
                 if (read == 1) {
 
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF
@@ -95,7 +95,7 @@ public class NonBlockingReader(
                         lastReadLine = "$unfinishedLine"
                         unfinishedLine.clear()
                         unfinishedLine.append(charArray)
-                        logLine { IO.META typed "Line Completed: ${lastReadLine.quoted}" }
+                        logLine { IO.Meta typed "Line Completed: ${lastReadLine.quoted}" }
                         if (!lineAlreadyRead) {
                             return@logging lastReadLine!!.withoutTrailingLineSeparator
                         }
@@ -107,7 +107,7 @@ public class NonBlockingReader(
                 }
 
                 if (currentTimeMillis() >= latestReadMoment && !(blockOnEmptyLine && unfinishedLine.isEmpty())) {
-                    logLine { IO.META typed "${Now.emoji} Timed out. Returning ${unfinishedLine.quoted}" }
+                    logLine { IO.Meta typed "${Now.emoji} Timed out. Returning ${unfinishedLine.quoted}" }
                     // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                     lastReadLineDueTimeout = true
                     lastReadLine = "$unfinishedLine"

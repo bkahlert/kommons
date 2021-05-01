@@ -41,11 +41,6 @@ class ScriptsKtTest {
         }
 
         @Test
-        fun `should run in temp by default`() {
-            expectThat(script { !"pwd" }.output()).isEqualTo(Locations.Temp.asString())
-        }
-
-        @Test
         fun `should run in receiver path if present`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val receiverPath = this
             require(receiverPath != Locations.Temp) { "test must not run in temp" }

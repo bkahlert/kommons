@@ -2,9 +2,9 @@ package koodies.docker
 
 import koodies.collections.head
 import koodies.collections.tail
-import koodies.concurrent.process.err
-import koodies.concurrent.process.out
-import koodies.concurrent.process.outAndErr
+import koodies.concurrent.process.error
+import koodies.concurrent.process.output
+import koodies.concurrent.process.outputAndError
 import koodies.debug.asEmoji
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.ConnectivityProblem
@@ -37,7 +37,7 @@ public object DockerExitStateHandler : ExitStateHandler {
     override fun handle(terminated: Terminated): ExitState = kotlin.runCatching {
         if (terminated.exitCode == 0) handleSuccess(terminated)
         else handleFailure(terminated)
-    }.getOrElse { cause -> throw ParseException(terminated.io.outAndErr.ansiKept, cause) }
+    }.getOrElse { cause -> throw ParseException(terminated.io.outputAndError.ansiKept, cause) }
 
     private fun handleSuccess(terminated: Terminated) = Success(terminated, "🐳 💭 ${true.asEmoji}")
 
@@ -46,11 +46,11 @@ public object DockerExitStateHandler : ExitStateHandler {
 
     private fun handleFailure(terminated: Terminated): Failure {
         val errorMessage = terminated.io.run {
-            out.lastOrNull()
+            output.lastOrNull()
                 ?.takeIf { it.startsWith("error:", ignoreCase = true) }
-                ?: err.first()
+                ?: error.first()
         }.ansiRemoved
-        
+
         if (errorMessage.containsAll("connect", "Docker", "daemon", ignoreCase = true)) {
             return ConnectivityProblem(errorMessage.withoutSuffix("."), terminated)
         }

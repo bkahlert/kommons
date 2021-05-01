@@ -9,7 +9,7 @@ class MicroLoggerTest {
     @Test
     fun InMemoryLogger.`should micro log`() {
         MicroLogger("🤠", null, null, null, { logText { it } }).runLogging {
-            logStatus { IO.OUT typed "ABC" }
+            logStatus { IO.Output typed "ABC" }
             logLine { "" }
             logLine { "123" }
             "abc"
@@ -30,7 +30,7 @@ class MicroLoggerTest {
         compactLogging("caption") {
             logLine { "something" }
             compactLogging("🤠") {
-                logStatus { IO.OUT typed "ABC" }
+                logStatus { IO.Output typed "ABC" }
                 logLine { "" }
                 logLine { "123" }
                 "abc"

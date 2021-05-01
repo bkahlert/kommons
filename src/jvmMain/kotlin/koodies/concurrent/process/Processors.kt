@@ -191,13 +191,13 @@ public fun <E : Exec> E.processAsynchronously(
 
     val outputConsumer = ioProcessingThreadPool.completableFuture {
         outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
-            processor(this, IO.OUT typed line)
+            processor(this, IO.Output typed line)
         }
     }.FatallyThrow("stdout")
 
     val errorConsumer = ioProcessingThreadPool.completableFuture {
         errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
-            processor(this, IO.ERR typed line)
+            processor(this, IO.Error typed line)
         }
     }.FatallyThrow("stderr")
 
@@ -226,8 +226,8 @@ public fun <P : Exec> P.processSynchronously(
     metaStream.subscribe { processor(this, it) }
 
     val readers = listOf(
-        NonBlockingLineReader(outputStream) { line -> processor(this, IO.OUT typed line) },
-        NonBlockingLineReader(errorStream) { line -> processor(this, IO.ERR typed line) },
+        NonBlockingLineReader(outputStream) { line -> processor(this, IO.Output typed line) },
+        NonBlockingLineReader(errorStream) { line -> processor(this, IO.Error typed line) },
     )
 
     if (interactivity is NonInteractive && interactivity.execInputStream != null) {

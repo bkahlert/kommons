@@ -1,10 +1,10 @@
 package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.Companion.ERASE_MARKER
-import koodies.concurrent.process.IO.ERR
-import koodies.concurrent.process.IO.INPUT
-import koodies.concurrent.process.IO.META
-import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.IO.Error
+import koodies.concurrent.process.IO.Input
+import koodies.concurrent.process.IO.Meta
+import koodies.concurrent.process.IO.Output
 import koodies.exec.CommandLine
 import koodies.exec.Process
 import koodies.logging.ReturnValue
@@ -61,76 +61,76 @@ public sealed class IO(
     /**
      * An [IO] that represents information about a [Process].
      */
-    public sealed class META(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
+    public sealed class Meta(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
 
         /**
          * Information that a [Process] is starting.
          */
-        public class STARTING(public val commandLine: CommandLine) : META("Executing ${commandLine.commandLine}")
+        public class Starting(public val commandLine: CommandLine) : Meta("Executing ${commandLine.commandLine}")
 
         /**
          * Information that a [Path] is a resource used to start a [Process].
          */
-        public class FILE(path: Path) : META("${Symbols.Document} ${path.toUri()}")
+        public class File(path: Path) : Meta("${Symbols.Document} ${path.toUri()}")
 
         /**
          * Not further specified information about a [Process].
          */
-        public class TEXT(text: String) : META(text)
+        public class Text(text: String) : Meta(text)
 
         /**
          * Information about a created [Process] dump.
          */
-        public class DUMP(dump: String) : META(dump.also { require(it.contains("dump")) { "Please use ${TEXT::class.simpleName} for free-form text." } })
+        public class Dump(dump: String) : Meta(dump.also { require(it.contains("dump")) { "Please use ${Text::class.simpleName} for free-form text." } })
 
         /**
          * Information about the termination of a [Process].
          */
-        public class TERMINATED(process: Process) : META("Process ${process.pid} terminated successfully at $Now."), ReturnValue by process
+        public class Terminated(process: Process) : Meta("Process ${process.pid} terminated successfully at $Now."), ReturnValue by process
 
         public companion object {
-            public infix fun typed(file: Path): FILE = FILE(file)
+            public infix fun typed(file: Path): File = File(file)
 
-            public infix fun typed(text: CharSequence): TEXT =
-                filter(text).toString().takeIf { it.isNotBlank() }?.let { TEXT(it) } ?: error("Non-blank string required.")
+            public infix fun typed(text: CharSequence): Text =
+                filter(text).toString().takeIf { it.isNotBlank() }?.let { Text(it) } ?: error("Non-blank string required.")
         }
     }
 
     /**
      * An [IO] (of another process) serving as an input.
      */
-    public class INPUT(text: AnsiString) : IO(text, { text.mapLines { it.ansi.brightBlue.dim.italic.done } }) {
+    public class Input(text: AnsiString) : IO(text, { text.mapLines { it.ansi.brightBlue.dim.italic.done } }) {
         public companion object {
-            private val EMPTY: INPUT = INPUT(AnsiString.EMPTY)
+            private val EMPTY: Input = Input(AnsiString.EMPTY)
 
             /**
              * Factory to classify different types of [IO].
              */
-            public infix fun typed(text: CharSequence): INPUT = if (text.isEmpty()) EMPTY else INPUT(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): Input = if (text.isEmpty()) EMPTY else Input(filter(text).asAnsiString())
         }
 
-        private val lines: List<INPUT> by lazy { text.lines().map { INPUT typed it }.toList() }
+        private val lines: List<Input> by lazy { text.lines().map { Input typed it }.toList() }
 
         /**
          * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
          */
-        public fun lines(): List<INPUT> = lines
+        public fun lines(): List<Input> = lines
     }
 
     /**
-     * An [IO] that is neither [META], [INPUT] nor [ERR].
+     * An [IO] that is neither [Meta], [Input] nor [Error].
      */
-    public class OUT(text: AnsiString) : IO(text, { text.mapLines { it.ansi.yellow } }) {
+    public class Output(text: AnsiString) : IO(text, { text.mapLines { it.ansi.yellow } }) {
         public companion object {
-            private val EMPTY: OUT = OUT(AnsiString.EMPTY)
+            private val EMPTY: Output = Output(AnsiString.EMPTY)
 
             /**
              * Factory to classify different types of [IO].
              */
-            public infix fun typed(text: CharSequence): OUT = if (text.isEmpty()) EMPTY else OUT(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): Output = if (text.isEmpty()) EMPTY else Output(filter(text).asAnsiString())
         }
 
-        private val lines by lazy { text.lines().map { OUT typed it }.toList() }
+        private val lines by lazy { text.lines().map { Output typed it }.toList() }
 
         /**
          * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
@@ -141,7 +141,7 @@ public sealed class IO(
     /**
      * An [IO] that represents an error.
      */
-    public class ERR(text: AnsiString) : IO(text, { text.mapLines { it.ansi.red.bold } }) {
+    public class Error(text: AnsiString) : IO(text, { text.mapLines { it.ansi.red.bold } }) {
 
         /**
          * Creates a new error IO from the given [exception].
@@ -149,12 +149,12 @@ public sealed class IO(
         public constructor(exception: Throwable) : this(exception.stackTraceToString().asAnsiString())
 
         public companion object {
-            private val EMPTY: ERR = ERR(AnsiString.EMPTY)
+            private val EMPTY: Error = Error(AnsiString.EMPTY)
 
             /**
              * Factory to classify different types of [IO].
              */
-            public infix fun typed(text: CharSequence): ERR = if (text.isEmpty()) EMPTY else ERR(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): Error = if (text.isEmpty()) EMPTY else Error(filter(text).asAnsiString())
         }
     }
 
@@ -230,26 +230,26 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
 }
 
 /**
- * Contains a filtered copy only consisting of [META].
+ * Contains a filtered copy only consisting of [Meta].
  */
-public val IOSequence<IO>.meta: IOSequence<META> get() = IOSequence(filterIsInstance<META>())
+public val IOSequence<IO>.meta: IOSequence<Meta> get() = IOSequence(filterIsInstance<Meta>())
 
 /**
- * Contains a filtered copy only consisting of [INPUT].
+ * Contains a filtered copy only consisting of [Input].
  */
-public val IOSequence<IO>.input: IOSequence<INPUT> get() = IOSequence(filterIsInstance<INPUT>())
+public val IOSequence<IO>.input: IOSequence<Input> get() = IOSequence(filterIsInstance<Input>())
 
 /**
- * Contains a filtered copy only consisting of [OUT].
+ * Contains a filtered copy only consisting of [Output].
  */
-public val IOSequence<IO>.out: IOSequence<OUT> get() = IOSequence(filterIsInstance<OUT>())
+public val IOSequence<IO>.output: IOSequence<Output> get() = IOSequence(filterIsInstance<Output>())
 
 /**
- * Contains a filtered copy only consisting of [ERR].
+ * Contains a filtered copy only consisting of [Error].
  */
-public val IOSequence<IO>.err: IOSequence<ERR> get() = IOSequence(filterIsInstance<ERR>())
+public val IOSequence<IO>.error: IOSequence<Error> get() = IOSequence(filterIsInstance<Error>())
 
 /**
- * Contains a filtered copy only consisting of [OUT] and [ERR].
+ * Contains a filtered copy only consisting of [Output] and [Error].
  */
-public val IOSequence<IO>.outAndErr: IOSequence<IO> get() = IOSequence(filter { it is OUT || it is ERR })
+public val IOSequence<IO>.outputAndError: IOSequence<IO> get() = IOSequence(filter { it is Output || it is Error })

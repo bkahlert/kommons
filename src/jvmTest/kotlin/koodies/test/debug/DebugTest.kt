@@ -30,7 +30,7 @@ class DebugTest {
     @SystemIORead
     @Test
     fun InMemoryLogger.`should not automatically log to console without @Debug`(output: CapturedOutput) {
-        logLine { IO.OUT typed "☎Σ⊂⊂(☉ω☉∩)" }
+        logLine { IO.Output typed "☎Σ⊂⊂(☉ω☉∩)" }
         logResult { Result.success(Unit) }
 
         expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
@@ -39,7 +39,7 @@ class DebugTest {
 
     @Test
     fun InMemoryLogger.`should not catch exceptions`() {
-        logLine { IO.OUT typed "(*｀へ´*)" }
+        logLine { IO.Output typed "(*｀へ´*)" }
 
         expectCatching { logResult<Any> { Result.failure(IllegalStateException("test")) } }
             .isFailure().isA<IllegalStateException>()

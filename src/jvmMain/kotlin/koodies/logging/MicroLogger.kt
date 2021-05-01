@@ -61,7 +61,7 @@ public class MicroLogger(
         (status?.let { "$message $status" } ?: message)?.let { render(true) { it } }
     }
 
-    public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.OUT typed "" }): Unit =
+    public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.Output typed "" }): Unit =
         logStatus(statuses.toList(), block)
 
     override fun <R> logResult(block: () -> Result<R>): R {

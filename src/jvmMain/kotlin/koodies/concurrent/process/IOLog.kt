@@ -40,37 +40,37 @@ public class IOLog : Sequence<IO> {
     /**
      * Adds the specified [META] [IO] to this log.
      */
-    public operator fun plus(meta: IO.META) {
+    public operator fun plus(meta: IO.Meta) {
         lock.withLock { log.add(meta) }
     }
 
     /**
-     * Assembles [IO.INPUT] chunks and adds successfully reconstructed ones
+     * Assembles [IO.Input] chunks and adds successfully reconstructed ones
      * to this log.
      */
     public val input: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.INPUT typed it) }
+            lines.forEach { log.add(IO.Input typed it) }
         }
     }
 
     /**
-     * Assembles [IO.OUT] chunks and adds successfully reconstructed ones
+     * Assembles [IO.Output] chunks and adds successfully reconstructed ones
      * to this log.
      */
-    public val out: IOAssembler = IOAssembler { lines ->
+    public val output: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.OUT typed it) }
+            lines.forEach { log.add(IO.Output typed it) }
         }
     }
 
     /**
-     * Assembles [IO.ERR] chunks and adds successfully reconstructed ones
+     * Assembles [IO.Error] chunks and adds successfully reconstructed ones
      * to this log.
      */
-    public val err: IOAssembler = IOAssembler { lines ->
+    public val error: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.ERR typed it) }
+            lines.forEach { log.add(IO.Error typed it) }
         }
     }
 
@@ -80,8 +80,8 @@ public class IOLog : Sequence<IO> {
      */
     public fun flush(): Unit {
         input.flush()
-        out.flush()
-        err.flush()
+        output.flush()
+        error.flush()
     }
 
     /**
@@ -96,8 +96,8 @@ public class IOLog : Sequence<IO> {
 
     override fun toString(): String = asString {
         Symbols.OK to joinToString { it.truncate() }
-        "OUT" to out.incompleteBytes
-        "ERR" to err.incompleteBytes
+        "OUT" to output.incompleteBytes
+        "ERR" to error.incompleteBytes
     }
 }
 
@@ -184,12 +184,12 @@ public inline fun <reified T : IO> Sequence<IO>.merge(removeEscapeSequences: Boo
  * - If the process is running, this method blocks until the process terminated.
  * - If the process already terminated, the recorded IO is returned.
  *
- * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
+ * If nothing terribly goes wrong, all IO of type [IO.Output] is returned.
  */
 @Deprecated("use io.out")
 public fun Exec.output(): String = run {
     process({ sync }, Processors.noopProcessor())
-    io.merge<IO.OUT>()
+    io.merge<IO.Output>()
 }
 
 /**
@@ -201,7 +201,7 @@ public fun Exec.output(): String = run {
  * - If the process is running, this method blocks until the process terminated.
  * - If the process already terminated, the recorded IO is returned.
  *
- * If nothing terribly goes wrong, all IO of type [IO.OUT] is returned.
+ * If nothing terribly goes wrong, all IO of type [IO.Output] is returned.
  */
 @Deprecated("use io.out")
 public fun <T> Exec.output(transform: String.() -> T?): List<T> =

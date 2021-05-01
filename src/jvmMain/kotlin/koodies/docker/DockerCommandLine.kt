@@ -66,8 +66,8 @@ public open class DockerCommandLine(
         vararg arguments: String,
     ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
 
-    override val exec: Executor<Exec> get() = Executor(this, NATIVE_DOCKER_CLI, null)
-    override val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@DockerCommandLine, NATIVE_DOCKER_CLI, this)
+    override val exec: Executor<Exec> get() = Executor(this, NATIVE_DOCKER_CLI)
+    override val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@DockerCommandLine, NATIVE_DOCKER_CLI, logger = this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -88,8 +88,8 @@ public open class DockerCommandLine(
          * Factory for [Exec] instances based on [Process]
          * with a specialized [DockerExitStateHandler].
          */
-        private val NATIVE_DOCKER_CLI = ExecFactory<Exec> { commandLine, execTerminationCallback ->
-            JavaExec(commandLine, DockerExitStateHandler, execTerminationCallback)
+        private val NATIVE_DOCKER_CLI = ExecFactory<Exec> { redirectErrorStream, environment, workingDirectory, commandLine, execTerminationCallback ->
+            JavaExec(redirectErrorStream, environment, workingDirectory, commandLine, DockerExitStateHandler, execTerminationCallback)
         }
 
         override fun BuildContext.build(): DockerCommandLine = ::CommandLineContext {

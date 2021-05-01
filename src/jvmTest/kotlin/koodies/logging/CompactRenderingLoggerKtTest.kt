@@ -151,14 +151,14 @@ class CompactRenderingLoggerKtTest {
             logLine { "something" }
             compactLogging("single") {
                 compactLogging {
-                    logStatus { IO.OUT typed "ABC" }
+                    logStatus { IO.Output typed "ABC" }
                     logLine { "" }
                     logLine { "123" }
                     "abc"
                 }
                 logLine { "456" }
                 compactLogging {
-                    logStatus { IO.OUT typed "XYZ" }
+                    logStatus { IO.Output typed "XYZ" }
                     logLine { "" }
                     logLine { "789" }
                 }

@@ -95,7 +95,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(JavaExec(CommandLine("exit", "42"), null, null)).toCompactString()) {
+                expectThat(Result.success(JavaExec(false, emptyMap(), this, CommandLine("exit", "42"), null, null)).toCompactString()) {
                     ansiRemoved.isEqualTo("Process has not yet started.")
                     isSingleLine()
                 }

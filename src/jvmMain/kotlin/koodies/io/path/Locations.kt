@@ -1,7 +1,11 @@
 package koodies.io.path
 
-import koodies.concurrent.process.output
-import koodies.concurrent.script
+import koodies.exec.Process.ExitState.Failure
+import koodies.exec.parse
+import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.or
+import koodies.shell.ShellScript
+import koodies.text.Semantics.formattedAs
 import java.nio.file.FileSystems
 import java.nio.file.Path
 
@@ -20,9 +24,11 @@ public object Locations {
      * Resolves [glob] using the system's `ls` command line tool.
      */
     public fun Path.ls(glob: String = ""): List<Path> =
-        kotlin.runCatching {
-            script { !"ls $glob" }.output { resolve(this) }
-        }.getOrDefault(emptyList())
+        ShellScript { !"ls $glob" }.exec.logging(BACKGROUND, this) {
+            errorsOnly("${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}")
+        }.parse.columns<Path, Failure>(1) {
+            resolve(it[0])
+        } or { emptyList() }
 
     /**
      * Working directory, that is, the directory in which this binary can be found.

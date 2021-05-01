@@ -1,6 +1,8 @@
 package koodies.test.output
 
 import koodies.concurrent.process.IO
+import koodies.concurrent.process.IO.Error
+import koodies.concurrent.process.IO.Output
 import koodies.debug.CapturedOutput
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -12,11 +14,11 @@ class OutputCapture : CapturedOutput {
     fun push() = lock.withLock { systemCaptures.addLast(SystemCapture()) }
     fun pop() = lock.withLock { systemCaptures.removeLast().release() }
 
-    public val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
+    val isCapturing: Boolean get() = systemCaptures.isNotEmpty()
 
     override val all: String get() = getFilteredCapture<IO>()
-    override val out: String get() = getFilteredCapture<IO.OUT>()
-    override val err: String get() = getFilteredCapture<IO.ERR>()
+    override val out: String get() = getFilteredCapture<Output>()
+    override val err: String get() = getFilteredCapture<Error>()
 
     /**
      * Resets the current capture session, clearing its captured output.

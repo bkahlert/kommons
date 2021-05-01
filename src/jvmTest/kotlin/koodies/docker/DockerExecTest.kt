@@ -3,11 +3,11 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.OUT
+import koodies.concurrent.process.IO.Output
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors.noopProcessor
 import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.out
+import koodies.concurrent.process.output
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
@@ -26,7 +26,7 @@ import koodies.exec.exitCode
 import koodies.exec.exitState
 import koodies.exec.hasState
 import koodies.exec.io
-import koodies.exec.out
+import koodies.exec.output
 import koodies.exec.started
 import koodies.io.path.Locations
 import koodies.io.path.deleteRecursively
@@ -83,7 +83,7 @@ class DockerExecTest {
         dockerExec.waitForOutputOrFail(
             "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
             "Did not log \"test\" output within 8 seconds.") {
-            any { it is OUT && it.unformatted == "test" }
+            any { it is Output && it.unformatted == "test" }
         }
     }
 
@@ -96,7 +96,7 @@ class DockerExecTest {
             dockerExec.waitForOutputOrFail(
                 "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
                 "Did not log \"test\" output within 8 seconds.") {
-                any { it is OUT && it.unformatted == "test" }
+                any { it is Output && it.unformatted == "test" }
             }
         }
 
@@ -104,7 +104,7 @@ class DockerExecTest {
         fun `should start docker and process input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             var entered = false
             val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
-                if (it !is IO.META) {
+                if (it !is IO.Meta) {
                     if (!entered) {
                         entered = true
                         enter("test 2")
@@ -114,7 +114,7 @@ class DockerExecTest {
             }
 
             dockerExec.waitForOutputOrFail("Did not log self-induced \"test\" output within 8 seconds.") {
-                filterIsInstance<OUT>().contains(OUT typed "test 1") and contains(OUT typed "test 2")
+                filterIsInstance<Output>().contains(Output typed "test 1") and contains(Output typed "test 2")
             }
         }
 
@@ -123,7 +123,7 @@ class DockerExecTest {
             val dockerExec = createExec(uniqueId, "echo", "Hello\nWorld")
 
             dockerExec.waitForOutputOrFail("Did not log any output within 8 seconds.") {
-                filterIsInstance<OUT>().contains(OUT typed "Hello") and contains(OUT typed "World")
+                filterIsInstance<Output>().contains(Output typed "Hello") and contains(Output typed "World")
             }
         }
 
@@ -131,7 +131,7 @@ class DockerExecTest {
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             var times = 0
             val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
-                if (it !is IO.META) {
+                if (it !is IO.Meta) {
                     if (times < 3) {
                         times++
                         enter("test ${it.unformatted.last().toString().toInt() * 2}")
@@ -142,11 +142,11 @@ class DockerExecTest {
             }
 
             dockerExec.waitForOutputOrFail("Did not log self-produced \"test\" output within 8 seconds.") {
-                filterIsInstance<OUT>()
-                    .contains(OUT typed "test 1")
-                    .and(contains(OUT typed "test 2"))
-                    .and(contains(OUT typed "test 4"))
-                    .and(contains(OUT typed "test 8"))
+                filterIsInstance<Output>()
+                    .contains(Output typed "test 1")
+                    .and(contains(Output typed "test 2"))
+                    .and(contains(Output typed "test 4"))
+                    .and(contains(Output typed "test 8"))
             }
         }
 
@@ -158,7 +158,7 @@ class DockerExecTest {
                 command: String,
                 vararg args: String,
                 callback: ExecTerminationCallback? = null,
-            ): DockerExec = DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(DockerRunCommandLine(
+            ): DockerExec = DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), this, DockerRunCommandLine(
                 image = BusyBox,
                 options = Options(name = DockerContainer(uniqueId.simplified)),
                 commandLine = CommandLine(this, command, *args)), callback)
@@ -242,7 +242,7 @@ class DockerExecTest {
                 sleep 1
                 done
             """.trimIndent()) {
-            if (it !is IO.META) {
+            if (it !is IO.Meta) {
                 output.add(it)
                 if (output.size > 100 && !killed) {
                     killed = true
@@ -262,7 +262,7 @@ class DockerExecTest {
         @Smoke @Test
         fun InMemoryLogger.`should exec command line`() {
             val exec = CommandLine(Locations.Temp, "printenv", "HOME").exec.dockerized(Ubuntu).logging(this)
-            expectThat(exec.io.out.ansiRemoved).isEqualTo("/root")
+            expectThat(exec.io.output.ansiRemoved).isEqualTo("/root")
         }
 
         @Smoke @Test
@@ -271,7 +271,7 @@ class DockerExecTest {
                 shebang
                 !"printenv | grep HOME"
             }.exec.dockerized(Ubuntu).logging(this)
-            expectThat(exec.io.out.ansiRemoved).isEqualTo("HOME=/root")
+            expectThat(exec.io.output.ansiRemoved).isEqualTo("HOME=/root")
         }
 
         @Test
@@ -289,9 +289,9 @@ class DockerExecTest {
         @Test
         fun InMemoryLogger.`should add apply command line provided env`() {
             val exec = CommandLine(mapOf("TEST_PROP" to "TEST_VALUE"), Locations.Temp, "printenv", "TEST_PROP").exec.dockerized(Ubuntu).logging(this)
-            expectThat(exec.io.out.ansiRemoved).isEqualTo("TEST_VALUE")
+            expectThat(exec.io.output.ansiRemoved).isEqualTo("TEST_VALUE")
         }
-        
+
         @TestFactory
         fun `should exec using specified image`() = testEach<Executable.() -> DockerExec>(
             { exec.dockerized(Ubuntu)() },
@@ -306,7 +306,7 @@ class DockerExecTest {
             expecting {
                 CommandLine(Locations.Temp, "printenv", "HOME").execVariant()
             } that {
-                io.contains(OUT typed "/root")
+                io.contains(Output typed "/root")
             }
         }
 
@@ -341,7 +341,7 @@ class DockerExecTest {
                     CommandLine(Locations.Temp, "printenv", "HOME").execVariant(it)
                 }
             } that {
-                contains(OUT typed "/root")
+                contains(Output typed "/root")
             }
         }
 
@@ -423,7 +423,7 @@ class DockerExecTest {
                 expecting {
                     CommandLine("cat", "host/${HtmlFile.name}").execVariant()
                 } that {
-                    io.out.ansiRemoved.isEqualTo(HtmlFile.text)
+                    io.output.ansiRemoved.isEqualTo(HtmlFile.text)
                 }
             }
         }
