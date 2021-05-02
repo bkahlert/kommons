@@ -28,3 +28,19 @@ public fun tempFile(base: String = "", extension: String = ""): Path {
         setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
     }
 }
+
+/**
+ * Creates a temporary directory inside `this` temporary directory.
+ *
+ * The permissions POSIX are set to `700`.
+ */
+public fun Path.tempDir(base: String = "", extension: String = ""): Path =
+    requireTempSubPath().randomDirectory(base, extension)
+
+/**
+ * Creates a temporary file inside `this` temporary directory.
+ *
+ * The permissions POSIX are set to `700`.
+ */
+public fun Path.tempFile(base: String = "", extension: String = ""): Path =
+    requireTempSubPath().randomFile(base, extension)

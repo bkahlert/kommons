@@ -273,7 +273,7 @@ class RenderingLoggerKtTest {
                 get { last { it.isNotBlank() } }.ansiRemoved.endsWith("✔︎")
             }
 
-            val noAnsiLog = ansiLog.withExtension("no-ansi.${ansiLog.extension}")
+            val noAnsiLog = ansiLog.withExtension("ansi-removed.${ansiLog.extension}")
             that(noAnsiLog.readLines().filter { it.isNotBlank() }) {
                 first().isEqualTo("▶ caption")
                 get { last { it.isNotBlank() } }.endsWith("✔︎")
@@ -414,7 +414,7 @@ class RenderingLoggerKtTest {
                 toStringMatchesCurlyPattern("""
                     line
                     ✔︎
-                    ⌛️ {}
+                    ⏳️ {}
                 """.trimIndent())
             }
         }
@@ -430,7 +430,7 @@ class RenderingLoggerKtTest {
             expecting { out } that {
                 toStringMatchesCurlyPattern("""
                     ✔︎
-                    ⌛️ {}
+                    ⏳️ {}
                 """.trimIndent())
             }
         }
@@ -448,10 +448,10 @@ class RenderingLoggerKtTest {
                 .endsWith(LineSeparators.LF)
                 .matchesCurlyPattern("""
                     ✔︎
-                    ⌛️ line 1
-                    ⌛️ line 2
-                    ⌛️ text 1
-                    ⌛️ text 2
+                    ⏳️ line 1
+                    ⏳️ line 2
+                    ⏳️ text 1
+                    ⏳️ text 2
                 """.trimIndent())
         }
     }

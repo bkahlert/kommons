@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import koodies.test.testEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -18,7 +18,7 @@ class ResolveSiblingKtTest {
 
     @Test
     fun `should resolve sibling path`() {
-        expectThat(Path.of("/a/b/c").resolveSibling { resolveSibling(fileName.asString() + "-x") }).serializedIsEqualTo("/a/b-x/c")
+        expectThat(Path.of("/a/b/c").resolveSibling { resolveSibling(fileName.pathString + "-x") }).serializedIsEqualTo("/a/b-x/c")
     }
 
     @Test
@@ -32,7 +32,7 @@ class ResolveSiblingKtTest {
         1 to "/a/b-x/c",
         2 to "/a-x/b/c",
     ).testEach { (order, expected) ->
-        expecting { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.asString() + "-x") } } that { serializedIsEqualTo(expected) }
+        expecting { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.pathString + "-x") } } that { serializedIsEqualTo(expected) }
     }
 
     @Test
@@ -48,8 +48,8 @@ class ResolveSiblingKtTest {
 
 fun <T : Path> Assertion.Builder<T>.isSiblingOf(expected: Path, order: Int = 1) =
     assert("is sibling of order $order") { actual ->
-        val actualNames = actual.map { name -> name.asString() }.toList()
-        val otherNames = expected.map { name -> name.asString() }.toList()
+        val actualNames = actual.map { name -> name.pathString }.toList()
+        val otherNames = expected.map { name -> name.pathString }.toList()
         val actualIndex = actualNames.size - order - 1
         val otherIndex = otherNames.size - order - 1
         val missing = (actualIndex - otherNames.size + 1)

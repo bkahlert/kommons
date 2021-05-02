@@ -66,7 +66,7 @@ public sealed class IO(
         /**
          * Information that a [Process] is starting.
          */
-        public class Starting(public val commandLine: CommandLine) : Meta("Executing ${commandLine.commandLine}")
+        public class Starting(public val commandLine: CommandLine) : Meta("Executing ${commandLine.summary}")
 
         /**
          * Information that a [Path] is a resource used to start a [Process].

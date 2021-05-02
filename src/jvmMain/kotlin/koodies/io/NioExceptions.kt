@@ -1,6 +1,6 @@
 package koodies.io
 
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystemException
@@ -14,7 +14,7 @@ import java.nio.file.Path
  * with this path.
  */
 public fun Path.noDirectory(): NotDirectoryException =
-    NotDirectoryException(asString())
+    NotDirectoryException(pathString)
 
 /**
  * Constructs an instance of [DirectoryNotEmptyException]
@@ -22,14 +22,14 @@ public fun Path.noDirectory(): NotDirectoryException =
  */
 @JvmName("receiverDirectoryNotEmpty")
 public fun Path.directoryNotEmpty(): DirectoryNotEmptyException =
-    DirectoryNotEmptyException(this.asString())
+    DirectoryNotEmptyException(this.pathString)
 
 /**
  * Constructs an instance of [DirectoryNotEmptyException]
  * with [path] as the not empty directory.
  */
 public fun directoryNotEmpty(path: Path): DirectoryNotEmptyException =
-    DirectoryNotEmptyException(path.asString())
+    DirectoryNotEmptyException(path.pathString)
 
 /**
  * Constructs an instance of [FileAlreadyExistsException]
@@ -43,21 +43,21 @@ public fun fileAlreadyExists(reason: String? = null): FileAlreadyExistsException
  * with [path] as the already existing file and an optional [reason].
  */
 public fun fileAlreadyExists(path: Path, reason: String? = null): FileAlreadyExistsException =
-    FileAlreadyExistsException(path.asString(), null, reason)
+    FileAlreadyExistsException(path.pathString, null, reason)
 
 /**
  * Constructs an instance of [FileAlreadyExistsException]
  * with [source] and [target]  path and an optional [reason].
  */
 public fun fileAlreadyExists(source: Path, target: Path, reason: String? = null): FileAlreadyExistsException =
-    FileAlreadyExistsException(source.asString(), target.asString(), reason)
+    FileAlreadyExistsException(source.pathString, target.pathString, reason)
 
 /**
  * Constructs an instance of [FileSystemException]
  * with this path.
  */
 public fun Path.fileSystemException(): FileSystemException =
-    FileSystemException(this.asString())
+    FileSystemException(this.pathString)
 
 /**
  * Constructs an instance of [FileSystemException]
@@ -71,21 +71,21 @@ public fun fileSystemException(reason: String? = null): FileSystemException =
  * with [path] as the affected path and an optional [reason].
  */
 public fun fileSystemException(path: Path, reason: String? = null): FileSystemException =
-    FileSystemException(path.asString(), null, reason)
+    FileSystemException(path.pathString, null, reason)
 
 /**
  * Constructs an instance of [FileSystemException]
  * with [source] and [target] as the affected paths and an optional [reason].
  */
 public fun fileSystemException(source: Path, target: Path, reason: String? = null): FileSystemException =
-    FileSystemException(source.asString(), target.asString(), reason)
+    FileSystemException(source.pathString, target.pathString, reason)
 
 /**
  * Constructs an instance of [NoSuchFileException]
  * with this path.
  */
 public fun Path.noSuchFile(): NoSuchFileException =
-    NoSuchFileException(this.asString())
+    NoSuchFileException(this.pathString)
 
 /**
  * Constructs an instance of [NoSuchFileException]
@@ -99,11 +99,11 @@ public fun noSuchFile(reason: String? = null): NoSuchFileException =
  * with [path] as the missing path and an optional [reason].
  */
 public fun noSuchFile(path: Path, reason: String? = null): NoSuchFileException =
-    NoSuchFileException(path.asString(), null, reason)
+    NoSuchFileException(path.pathString, null, reason)
 
 /**
  * Constructs an instance of [NoSuchFileException]
  * with [source] and [target] as the missing paths and an optional [reason].
  */
 public fun noSuchFile(source: Path, target: Path, reason: String? = null): NoSuchFileException =
-    NoSuchFileException(source.asString(), target.asString(), reason)
+    NoSuchFileException(source.pathString, target.pathString, reason)

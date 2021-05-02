@@ -6,6 +6,7 @@ import koodies.io.path.appendLine
 import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.io.path.requireTempSubPath
 import koodies.runtime.onExit
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
@@ -96,7 +97,7 @@ private val onExitHandlers: MutableList<() -> Unit> = object : MutableList<() ->
     val lock = ReentrantLock()
 
     init {
-        val log = Locations.Temp.resolve("koodies.onexit.log").delete()
+        val log = Locations.Temp.resolve("com.bkahlert.koodies/.onexit.log").delete()
 
         onExit {
             val copy = lock.withLock { toList() }
@@ -118,7 +119,7 @@ private val onExitHandlers: MutableList<() -> Unit> = object : MutableList<() ->
 }
 
 /**
- * Runs this [OnExitHandler] on exit.
+ * Runs the [handler] on exit.
  */
 public fun <T : () -> Unit> runOnExit(handler: T): T = handler.apply { onExitHandlers.add(this) }
 
@@ -148,12 +149,16 @@ public fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): () -> Unit =
  *
  * Files matching these criteria are deleted during shutdown.
  */
-public fun deleteOldTempFilesOnExit(prefix: String, suffix: String, minAge: Duration = 10.minutes, keepAtMost: Int = 100) {
-    if (prefix.length == 6 || prefix.endsWith(".tmp")) {
-        println("")
-    }
+public fun deleteOldTempFilesOnExit(
+    prefix: String,
+    suffix: String,
+    minAge: Duration = 10.minutes,
+    keepAtMost: Int = 100,
+    tempDir: Path = Locations.Temp,
+) {
+    tempDir.requireTempSubPath()
     deleteOnExit {
-        allTempFiles { allFiles ->
+        allTempFiles(tempDir) { allFiles ->
             val relevantFiles = allFiles
                 .sortedBy { file -> file.age }
                 .filter { it.fileNameStartsWith(prefix) && it.fileNameEndsWith(suffix) }
@@ -164,7 +169,7 @@ public fun deleteOldTempFilesOnExit(prefix: String, suffix: String, minAge: Dura
 
             relevantFiles.minus(keep)
         }
-        tempFiles {
+        tempFiles(tempDir) {
             fileNameStartsWith(prefix) && fileNameEndsWith(suffix) && age >= minAge
         }
     }
@@ -174,6 +179,7 @@ public fun deleteOldTempFilesOnExit(prefix: String, suffix: String, minAge: Dura
  * Builder to specify which files to delete on shutdown.
  */
 public class OnExitDeletionBuilder(private val jobs: MutableList<() -> Unit>) {
+
     /**
      * Returns whether this file's name starts with the specified [prefix].
      */
@@ -188,13 +194,15 @@ public class OnExitDeletionBuilder(private val jobs: MutableList<() -> Unit>) {
      * Registers a lambda that is called during shutdown and
      * which deletes all files that pass the specified [filter].
      */
-    public fun tempFiles(filter: Path.() -> Boolean) {
-        jobs.add {
-            Locations.Temp.listDirectoryEntriesRecursively()
-                .filter { it.exists() }
-                .filter { it.isRegularFile() }
-                .filter(filter)
-                .forEach { it.deleteRecursively() }
+    public fun tempFiles(tempDir: Path = Locations.Temp, filter: Path.() -> Boolean) {
+        tempDir.requireTempSubPath().run {
+            jobs.add {
+                listDirectoryEntriesRecursively()
+                    .filter { it.exists() }
+                    .filter { it.isRegularFile() }
+                    .filter(filter)
+                    .forEach { it.deleteRecursively() }
+            }
         }
     }
 
@@ -202,12 +210,14 @@ public class OnExitDeletionBuilder(private val jobs: MutableList<() -> Unit>) {
      * Registers a lambda that is called during shutdown and
      * which deletes all returned files..
      */
-    public fun allTempFiles(filter: (List<Path>) -> List<Path>) {
-        jobs.add {
-            Locations.Temp.listDirectoryEntriesRecursively()
-                .filter { it.exists() }
-                .let(filter)
-                .forEach { it.delete() }
+    public fun allTempFiles(tempDir: Path = Locations.Temp, filter: (List<Path>) -> List<Path>) {
+        tempDir.requireTempSubPath().run {
+            jobs.add {
+                requireTempSubPath().listDirectoryEntriesRecursively()
+                    .filter { it.exists() }
+                    .let(filter)
+                    .forEach { it.delete() }
+            }
         }
     }
 }

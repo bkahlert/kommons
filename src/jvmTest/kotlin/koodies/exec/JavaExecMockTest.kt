@@ -1,7 +1,6 @@
 package koodies.exec
 
 import koodies.concurrent.process.ExecMock.Companion.FAILED_MANAGED_PROCESS
-import koodies.concurrent.process.ExecMock.Companion.PREPARED_MANAGED_PROCESS
 import koodies.concurrent.process.ExecMock.Companion.RUNNING_MANAGED_PROCESS
 import koodies.concurrent.process.ExecMock.Companion.SUCCEEDED_MANAGED_PROCESS
 import koodies.concurrent.process.JavaProcessMock.Companion.FAILED_PROCESS
@@ -64,29 +63,24 @@ import kotlin.time.seconds
 @Execution(CONCURRENT)
 class JavaExecMockTest {
 
-    @Execution(CONCURRENT)
     @Nested
     inner class ProcessMockFixtures {
 
-        @Execution(CONCURRENT)
         @Nested
         inner class ProcessMocks {
 
-            @Execution(CONCURRENT)
             @TestFactory
             fun `should run`() = test({ RUNNING_PROCESS }) {
                 expecting { it().isAlive } that { isTrue() }
                 expecting("stays running for 5s") { val p = it(); poll { !p.isAlive }.every(500.milliseconds).forAtMost(5.seconds) } that { isFalse() }
             }
 
-            @Execution(CONCURRENT)
             @TestFactory
             fun `should have completed successfully`() = test({ SUCCEEDED_PROCESS }) {
                 expecting { it().isAlive } that { isFalse() }
                 expecting { it().exitValue() } that { isEqualTo(0) }
             }
 
-            @Execution(CONCURRENT)
             @TestFactory
             fun `should have failed`() = test({ FAILED_PROCESS }) {
                 expecting { it().isAlive } that { isFalse() }
@@ -94,19 +88,9 @@ class JavaExecMockTest {
             }
         }
 
-        @Execution(CONCURRENT)
         @Nested
         inner class ExecMocks {
 
-            @Execution(CONCURRENT)
-            @TestFactory
-            fun `should not run`() = test({ PREPARED_MANAGED_PROCESS }) {
-                expecting { it() } that { notStarted() }
-                expecting { it() } that { hasState<ProcessState.Prepared> { status.contains("not yet started") } }
-                expecting("stays prepared for 5s") { val p = it(); poll { p.started }.every(500.milliseconds).forAtMost(5.seconds) } that { isFalse() }
-            }
-
-            @Execution(CONCURRENT)
             @TestFactory
             fun `should run`() = test({ RUNNING_MANAGED_PROCESS }) {
                 expecting { it() } that { starts() }
@@ -116,14 +100,12 @@ class JavaExecMockTest {
                 } that { isFalse() }
             }
 
-            @Execution(CONCURRENT)
             @TestFactory
             fun `should succeed`() = test({ SUCCEEDED_MANAGED_PROCESS }) {
                 expecting { it() } that { succeeds() }
                 expecting { it() } that { hasState<Success> { status.contains("terminated successfully") } }
             }
 
-            @Execution(CONCURRENT)
             @TestFactory
             fun `should fail`() = test({ FAILED_MANAGED_PROCESS }) {
                 expecting { it() } that { fails() }

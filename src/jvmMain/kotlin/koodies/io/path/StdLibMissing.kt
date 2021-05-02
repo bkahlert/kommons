@@ -171,11 +171,16 @@ public fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Ch
 public fun Path.appendLines(lines: Sequence<CharSequence>, charset: Charset = Charsets.UTF_8): Path =
     Files.write(this, lines.asIterable(), charset, *DEFAULT_APPEND_OPTIONS)
 
+/**
+ * String representation of this path that does **not** rely on [toString].
+ */
+@Deprecated("use pathString", replaceWith = ReplaceWith("this.pathString", "koodies.io.path.pathString"))
+public fun Path.asString(): String = pathString
 
 /**
  * String representation of this path that does **not** rely on [toString].
  */
-public fun Path.asString(): String = "${resolve("")}"
+public val Path.pathString: String get() = "${resolve("")}"
 
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {

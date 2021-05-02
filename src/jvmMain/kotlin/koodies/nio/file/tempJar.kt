@@ -10,7 +10,7 @@ import java.util.jar.JarOutputStream
  *
  * @see asNewJarFileSystem
  */
-public fun tempJar(base: String = "", extension: String = ".jar"): Path =
+public fun Path.tempJar(base: String = "", extension: String = ".jar"): Path =
     tempFile(base, extension).apply {
         JarOutputStream(bufferedOutputStream()).use { }
     }

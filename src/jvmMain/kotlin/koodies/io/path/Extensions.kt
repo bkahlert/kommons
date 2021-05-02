@@ -11,18 +11,18 @@ public class Extensions(private val path: Path) : List<String> by path.fileNameP
 
     public fun add(extensions: String, vararg more: String): Path {
         val normalized = normalizedExtensionString(extensions, *more)
-        return path.resolveSibling(path.fileName.asString() + normalized)
+        return path.resolveSibling(path.fileName.pathString + normalized)
     }
 
     public fun remove(extensions: String, vararg more: String): Path {
         val normalized = normalizedExtensionString(extensions, *more)
-        require(path.fileName.asString().endsWith(normalized))
-        return path.resolveSibling(path.fileName.asString().withoutSuffix(normalized))
+        require(path.fileName.pathString.endsWith(normalized))
+        return path.resolveSibling(path.fileName.pathString.withoutSuffix(normalized))
     }
 
     public fun hasExtension(extensions: String, vararg more: String): Boolean {
         val normalized = normalizedExtensionString(extensions, *more)
-        return path.fileName.asString().endsWith(normalized)
+        return path.fileName.pathString.endsWith(normalized)
     }
 
     /**
@@ -43,7 +43,7 @@ public class Extensions(private val path: Path) : List<String> by path.fileNameP
         normalizedExtensionString(this)
 }
 
-private val Path.fileNameParts: List<String> get() = fileName.asString().split(".")
+private val Path.fileNameParts: List<String> get() = fileName.pathString.split(".")
 private val Path.fileBaseName: String get() = fileNameParts.head
 
 
@@ -65,7 +65,7 @@ public val Path.baseName: Path
 public val Path.basePath: Path
     get() {
         return fileName.extensionIndex.let { extensionIndex ->
-            if (extensionIndex >= 0) resolveSibling(fileName.asString().take(extensionIndex))
+            if (extensionIndex >= 0) resolveSibling(fileName.pathString.take(extensionIndex))
             else this
         }
     }
@@ -76,7 +76,7 @@ public val Path.basePath: Path
  * [asString] path.
  */
 public val Path.extensionIndex: Int
-    get() = asString().lastIndexOf(".").takeIf { fileName.asString().contains(".") } ?: -1
+    get() = pathString.lastIndexOf(".").takeIf { fileName.pathString.contains(".") } ?: -1
 
 /**
  * Returns the extension of the file described by this [Path].

@@ -4,15 +4,15 @@ import koodies.CallableProperty
 import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.mapBuild
+import koodies.collections.head
+import koodies.collections.tail
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.Processor
 import koodies.concurrent.process.Processors
-import koodies.concurrent.process.process
-import koodies.concurrent.process.processSilently
-import koodies.concurrent.process.terminationLoggingProcessor
 import koodies.docker.DockerExitStateHandler.Failure
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
@@ -144,30 +144,16 @@ public object Docker {
 //    public fun image(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun options(init: Init<DockerRunCommandLine.Options.Companion.OptionsContext>): DockerRunCommandLine.Options =
-        DockerRunCommandLine.Options(init)
+    public fun options(init: Init<Options.Companion.OptionsContext>): Options =
+        Options(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
     public fun commandLine(init: Init<CommandLineContext>): CommandLine =
         CommandLine(init)
 
     @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun commandLine(image: DockerImage, options: DockerRunCommandLine.Options, commandLine: CommandLine): DockerRunCommandLine =
+    public fun commandLine(image: DockerImage, options: Options, commandLine: CommandLine): DockerRunCommandLine =
         DockerRunCommandLine(image, options, commandLine)
-}
-
-private fun Path.dockerRunCommandLine(
-    imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
-    arguments: Array<out String>,
-) = DockerRunCommandLine {
-    image(imageInit)
-    options(optionsInit)
-    commandLine {
-        workingDirectory { this@dockerRunCommandLine }
-        command { "" }
-        arguments { addAll(arguments) }
-    }
 }
 
 /* ALL DOCKER METHODS BELOW ALWAYS START THE PROCESS AND AND PROCESS IT ASYNCHRONOUSLY */
@@ -185,13 +171,15 @@ private fun Path.dockerRunCommandLine(
  */
 public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
+    optionsInit: Init<Options.Companion.OptionsContext>,
     vararg arguments: String,
     execTerminationCallback: ExecTerminationCallback? = null,
-): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(dockerRunCommandLine(imageInit, optionsInit, arguments),
-        execTerminationCallback)
-        .processSilently().apply { waitFor() }
+): DockerExec {
+    val dockerRunCommandLine = DockerRunCommandLine(DockerImage(imageInit), Options(optionsInit), arguments.takeIf { it.isNotEmpty() }?.let {
+        CommandLine(it.toList().head, it.toList().tail)
+    })
+    return dockerRunCommandLine.exec.logging(workingDirectory = this, execTerminationCallback = execTerminationCallback)
+}
 
 /**
  * Runs a Docker process using the
@@ -211,14 +199,20 @@ public fun Path.docker(
  */
 public fun Path.docker(
     imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<DockerRunCommandLine.Options.Companion.OptionsContext>,
+    optionsInit: Init<Options.Companion.OptionsContext>,
     vararg arguments: String,
     execTerminationCallback: ExecTerminationCallback? = null,
     processor: Processor<Exec>?,
-): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), this, dockerRunCommandLine(imageInit, optionsInit, arguments),
-        execTerminationCallback)
-        .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
+): DockerExec {
+    val dockerRunCommandLine = DockerRunCommandLine(DockerImage(imageInit), Options(optionsInit), arguments.takeIf { it.isNotEmpty() }?.let {
+        CommandLine(it.toList().head, it.toList().tail)
+    })
+    return if (processor != null) {
+        dockerRunCommandLine.exec.processing(workingDirectory = this, execTerminationCallback = execTerminationCallback, processor = processor)
+    } else {
+        dockerRunCommandLine.exec.logging(workingDirectory = this)
+    }
+}
 
 /**
  * Runs a Docker process using the [DockerRunCommandLine] built by the
@@ -238,9 +232,8 @@ public fun docker(
     execTerminationCallback: ExecTerminationCallback? = null,
     processor: Processor<DockerExec>?,
 ): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), null, DockerRunCommandLine(init),
-        execTerminationCallback)
-        .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
+    if (processor != null) DockerRunCommandLine(init).exec.processing(execTerminationCallback = execTerminationCallback, processor = processor)
+    else DockerRunCommandLine(init).exec.logging()
 
 
 /**
@@ -261,6 +254,5 @@ public fun docker(
     execTerminationCallback: ExecTerminationCallback? = null,
     init: Init<Companion.CommandContext>,
 ): DockerExec =
-    DockerExec.NATIVE_DOCKER_EXEC_WRAPPED.toProcess(false, emptyMap(), null, DockerRunCommandLine(init),
-        execTerminationCallback)
-        .let { it.process({ sync }, processor ?: it.terminationLoggingProcessor()) }
+    if (processor != null) DockerRunCommandLine(init).exec.processing(execTerminationCallback = execTerminationCallback, processor = processor)
+    else DockerRunCommandLine(init).exec.logging()

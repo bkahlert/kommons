@@ -8,6 +8,7 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.Process.ExitState.Success
 import koodies.io.path.Locations
+import koodies.io.path.pathString
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger
@@ -22,6 +23,7 @@ import koodies.test.test
 import koodies.test.tests
 import koodies.text.LineSeparators.LF
 import koodies.text.mapLines
+import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.text.withoutPrefix
 import org.junit.jupiter.api.Nested
@@ -38,15 +40,16 @@ import strikt.assertions.isTrue
 
 class ExecutorTest {
 
-    private val succeedingExecutable = CommandLine(mapOf("TEST_PROP" to "TEST_VALUE"), Locations.Temp, "printenv", "TEST_PROP")
-    private val failingExecutable = CommandLine(Locations.Temp, "exit", "42")
+    private val executable = CommandLine("printenv", "TEST_PROP")
+
+    private inline val Executor<out Exec>.testProp: Executor<out Exec> get() = env("TEST_PROP", "TEST_VALUE")
 
     @Smoke @Nested
     inner class Executables {
 
         @Test
         fun `should exec command line`() {
-            val exec = CommandLine(Locations.Temp, "echo", "Hello, Command Line!").exec()
+            val exec = CommandLine("echo", "Hello, Command Line!").exec()
             expectThat(exec.io.output.ansiRemoved)
                 .isEqualTo("Hello, Command Line!")
         }
@@ -59,9 +62,17 @@ class ExecutorTest {
         }
 
         @Test
-        fun InMemoryLogger.`should add missing shebang`() {
-            val exec = ShellScript { !"cat $0" }.exec.logging(this)
-            expectThat(exec.io.output.ansiRemoved).isEqualTo("#!/bin/sh\ncat \$0")
+        fun `should exec using specified environment`() {
+            val random = randomString()
+            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(Locations.Temp)
+            expectThat(exec.io.output.ansiRemoved).isEqualTo(random)
+        }
+
+        @Test
+        fun `should exec using specified working directory`() {
+            val exec = CommandLine("pwd").exec(Locations.Temp)
+            val tempPaths = setOf(Locations.Temp.pathString, Locations.Temp.toRealPath().pathString)
+            expectThat(tempPaths).contains(exec.io.output.ansiRemoved)
         }
     }
 
@@ -73,24 +84,24 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                succeedingExecutable.exec()
+                executable.exec.testProp.logging()
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec(execTerminationCallback = it) }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec(execTerminationCallback = it) }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                failingExecutable.exec()
+                executable.exec()
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
                 expectThatProcess { logsFailedIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec(execTerminationCallback = it) }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec(execTerminationCallback = it) }
             }
         }
 
@@ -99,49 +110,49 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                succeedingExecutable.exec.logging()
+                executable.exec.testProp.logging()
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec.logging(execTerminationCallback = it) }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec.testProp.logging(execTerminationCallback = it) }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                failingExecutable.exec.logging()
+                executable.exec.logging()
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
                 expectThatProcess { logsFailedIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec.logging(execTerminationCallback = it) }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec.logging(execTerminationCallback = it) }
             }
 
             @TestFactory
             fun `should log to background by default`() = tests {
-                succeedingExecutable.exec.logging() asserting { BACKGROUND.expectLogged.logsSuccessfulIO() }
-                failingExecutable.exec.logging() asserting { BACKGROUND.expectLogged.logsFailedIO() }
+                executable.exec.testProp.logging() asserting { BACKGROUND.expectLogged.logsSuccessfulIO() }
+                executable.exec.logging() asserting { BACKGROUND.expectLogged.logsFailedIO() }
             }
 
             @TestFactory
             fun `should log to specified logger if specified`() = tests {
                 fun logger() = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                logger().also { succeedingExecutable.exec.logging(it) } asserting { logsSuccessfulIO() }
-                logger().also { failingExecutable.exec.logging(it) } asserting { logsFailedIO() }
+                logger().also { executable.exec.testProp.logging(it) } asserting { logsSuccessfulIO() }
+                logger().also { executable.exec.logging(it) } asserting { logsFailedIO() }
             }
 
             @Test
             fun TestLogger.`should log to receiver logger if available`() {
-                with(succeedingExecutable) { logging() }
+                with(executable) { logging.testProp() }
                 expectLogged.logsSuccessfulIO()
             }
 
             @Test
             fun `should apply custom logging options`() {
                 val logger = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                succeedingExecutable.exec.logging(logger) { block { caption { "custom caption" }; border = SOLID } }
+                executable.exec.testProp.logging(logger) { block { caption { "custom caption" }; border = SOLID } }
                 logger.expectLogged.contains("╭──╴custom caption")
             }
         }
@@ -151,54 +162,54 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                succeedingExecutable.exec.processing { }
+                executable.exec.testProp.processing { }
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec.processing(execTerminationCallback = it) {} }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec.testProp.processing(execTerminationCallback = it) {} }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                failingExecutable.exec.processing { }
+                executable.exec.processing { }
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
                 expectThatProcess { logsFailedIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec.processing(execTerminationCallback = it) {} }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec.processing(execTerminationCallback = it) {} }
             }
 
             @Test
             fun TestLogger.`should only log success`() {
-                succeedingExecutable.exec.processing(parentLogger = this) {}
+                executable.exec.testProp.processing(parentLogger = this) {}
                 expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
             }
 
             @Test
             fun TestLogger.`should log dump on failure`() {
-                failingExecutable.exec.processing(parentLogger = this) {}
+                executable.exec.processing(parentLogger = this) {}
                 expectLogged.containsDump(*emptyArray())
             }
 
             @Test
             fun TestLogger.`should log to receiver logger if available`() {
-                with(succeedingExecutable) { logging.processing {} }
+                with(executable) { logging.testProp.processing {} }
                 expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
             }
 
             @Test
             fun TestLogger.`should dump to receiver logger if available`() {
-                with(failingExecutable) { logging.processing {} }
+                with(executable) { logging.processing {} }
                 expectLogged.containsDump(*emptyArray())
             }
 
             @Test
             fun `should apply custom logging options`() {
                 val logger = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                succeedingExecutable.exec.processing(parentLogger = logger,
+                executable.exec.testProp.processing(parentLogger = logger,
                     loggingOptionsInit = { block { caption { "custom caption" }; border = SOLID } }) {}
                 logger.expectLogged.contains("╭──╴custom caption")
             }
@@ -206,7 +217,7 @@ class ExecutorTest {
             @Test
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
-                succeedingExecutable.exec.processing { io -> processed.add(io) }
+                executable.exec.testProp.processing { io -> processed.add(io) }
                 expectThat(processed).contains(IO.Output typed "TEST_VALUE")
             }
         }
@@ -220,24 +231,24 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                succeedingExecutable.exec.async()
+                executable.exec.testProp.async()
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { succeedingExecutable.exec.async(execTerminationCallback = it).apply { waitFor() } }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec.testProp.async(execTerminationCallback = it).apply { waitFor() } }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                failingExecutable.exec.async()
+                executable.exec.async()
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.logsFailedIO() }
                 expectThatProcess { runsAsynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { failingExecutable.exec.async(execTerminationCallback = it).apply { waitFor() } }
+                expectThatProcessAppliesTerminationCallback(null) { executable.exec.async(execTerminationCallback = it).apply { waitFor() } }
             }
         }
 
@@ -246,53 +257,53 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                succeedingExecutable.exec.async.logging()
+                executable.exec.async.testProp.logging()
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
                 expectThatProcess { runsAsynchronously() }
                 expectThatProcessAppliesTerminationCallback(null) {
-                    succeedingExecutable.exec.async.logging(execTerminationCallback = it).apply { waitFor() }
+                    executable.exec.async.testProp.logging(execTerminationCallback = it).apply { waitFor() }
                 }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                failingExecutable.exec.async.logging()
+                executable.exec.async.logging()
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.logsFailedIO() }
                 expectThatProcess { runsAsynchronously() }
                 expectThatProcessAppliesTerminationCallback(null) {
-                    failingExecutable.exec.async.logging(execTerminationCallback = it).apply { waitFor() }
+                    executable.exec.async.logging(execTerminationCallback = it).apply { waitFor() }
                 }
             }
 
             @TestFactory
             fun `should log to background by default`() = tests {
-                succeedingExecutable.exec.async.logging().apply { waitFor() } asserting { BACKGROUND.expectLogged.logsSuccessfulIO("⌛️ ") }
-                failingExecutable.exec.async.logging().apply { waitFor() } asserting { BACKGROUND.expectLogged.logsFailedIO("⌛️ ") }
+                executable.exec.async.testProp.logging().apply { waitFor() } asserting { BACKGROUND.expectLogged.logsSuccessfulIO("⏳️ ") }
+                executable.exec.async.logging().apply { waitFor() } asserting { BACKGROUND.expectLogged.logsFailedIO("⏳️ ") }
             }
 
             @TestFactory
             fun `should log to specified logger if specified`() = tests {
                 fun logger() = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                logger().also { succeedingExecutable.exec.async.logging(it).apply { waitFor() } } asserting { logsSuccessfulIO("⌛️ ", 3) }
-                logger().also { failingExecutable.exec.async.logging(it).apply { waitFor() } } asserting { logsFailedIO("⌛️ ", 3) }
+                logger().also { executable.exec.testProp.async.logging(it).apply { waitFor() } } asserting { logsSuccessfulIO("⏳️ ", 3) }
+                logger().also { executable.exec.async.logging(it).apply { waitFor() } } asserting { logsFailedIO("⏳️ ", 3) }
             }
 
             @Test
             fun TestLogger.`should log to receiver logger if available`() {
-                with(succeedingExecutable) { logging.async().apply { waitFor() } }
-                expectLogged.logsSuccessfulIO("⌛️ ")
+                with(executable) { logging.testProp.async().apply { waitFor() } }
+                expectLogged.logsSuccessfulIO("⏳️ ")
             }
 
             @Test
             fun `should apply custom logging options`() {
                 val logger = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                succeedingExecutable.exec.async.logging(logger) { block { caption { "custom caption" }; border = SOLID } }.apply { waitFor() }
+                executable.exec.async.testProp.logging(logger) { block { caption { "custom caption" }; border = SOLID } }.apply { waitFor() }
                 logger.expectLogged.contains("╭──╴custom caption")
             }
         }
@@ -302,58 +313,58 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                succeedingExecutable.exec.async.processing { }
+                executable.exec.testProp.async.processing { }
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
                 expectThatProcess { runsAsynchronously() }
                 expectThatProcessAppliesTerminationCallback(null) {
-                    succeedingExecutable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
+                    executable.exec.async.testProp.processing(execTerminationCallback = it) {}.apply { waitFor() }
                 }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                failingExecutable.exec.processing { }
+                executable.exec.processing { }
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.logsFailedIO() }
 //                    expectThatProcess { runsAsynchronously() } // too fast
                 expectThatProcessAppliesTerminationCallback(null) {
-                    failingExecutable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
+                    executable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
                 }
             }
 
             @TestFactory
             fun TestLogger.`should only log async computation`() = tests {
-                succeedingExecutable.exec.async.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
-                    expectLogged.contains("▶ printenv TEST_PROP$LF⌛️ async computation")
+                executable.exec.async.testProp.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
+                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
-                failingExecutable.exec.async.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
-                    expectLogged.contains("▶ exit 42$LF⌛️ async computation")
+                executable.exec.async.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
+                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
             }
 
             @TestFactory
             fun TestLogger.`should only to receiver logger if available`() = tests {
-                with(succeedingExecutable) {
-                    logging.async.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
+                with(executable) {
+                    logging.async.testProp.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
-                    expectLogged.contains("▶ printenv TEST_PROP$LF⌛️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
-                with(failingExecutable) {
+                with(executable) {
                     logging.async.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
-                    expectLogged.contains("▶ exit 42$LF⌛️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
             }
 
             @Test
             fun `should apply custom logging options`() {
                 val logger = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                succeedingExecutable.exec.async.processing(parentLogger = logger,
+                executable.exec.async.testProp.processing(parentLogger = logger,
                     loggingOptionsInit = { block { caption { "custom caption" }; border = SOLID } }) {}.apply { waitFor() }
                 logger.expectLogged.contains("╭──╴custom caption")
             }
@@ -361,7 +372,7 @@ class ExecutorTest {
             @Test
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
-                succeedingExecutable.exec.async.processing { io -> processed.add(io) }.apply { waitFor() }
+                executable.exec.async.testProp.processing { io -> processed.add(io) }.apply { waitFor() }
                 expectThat(processed).contains(IO.Output typed "TEST_VALUE")
             }
         }
@@ -369,7 +380,7 @@ class ExecutorTest {
         @Smoke @Test
         fun `should apply custom processing options`() {
             val processed = mutableListOf<IO>()
-            CommandLine("cat").exec.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { io -> processed.add(io) }
+            CommandLine("cat").exec.testProp.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { io -> processed.add(io) }
                 .apply { waitFor() }
             expectThat(processed).contains(IO.Output typed "Hello Cat!")
         }
@@ -403,10 +414,12 @@ private fun DynamicTestsWithSubjectBuilder<() -> Exec>.expectThatProcess(asserti
 
 inline fun <reified T : Exec> Builder<T>.starts(): Builder<T> =
     assert("has started") {
-        when (it.started) {
-            true -> pass()
-            else -> fail("has not started")
-        }
+        kotlin.runCatching { it.pid }.fold({
+            if (it != 0L) pass()
+            else fail(it, "non-ß PID expected")
+        }, {
+            fail(cause = it)
+        })
     }
 
 inline val <reified T : Exec> Builder<T>.exited: Builder<ExitState> get() = get("exited") { onExit.get() }.isA()
@@ -458,8 +471,8 @@ private fun Builder<String>.logsFailedIO(ignorePrefix: String = "· "): Builder<
     logsIO(ignorePrefix, "{{}}$LF$failedIO$LF{{}}") and { containsDump(containedStrings = emptyArray()) }
 
 val failedIO = """
-    Executing exit 42
-    Process {} terminated with exit code 42
+    Executing printenv TEST_PROP
+    Process {} terminated with exit code 1
     {{}}
 """.trimIndent()
 

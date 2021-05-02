@@ -360,13 +360,13 @@ class BlockRenderingLoggerKtTest {
             │{}
             ╵
             ╵
-            ⌛️
+            ⏳️
         """.trimIndent(), """
             ▶ DOTTED caption
-            ⌛️
+            ⏳️
         """.trimIndent(), """
             NONE caption
-            ⌛️
+            ⏳️
         """.trimIndent()) {
         logResult {
             Result.success(InMemoryLogger.NO_RETURN_VALUE)
@@ -380,18 +380,18 @@ class BlockRenderingLoggerKtTest {
             │{}
             │{}
             ╰──╴✔︎
-            ⌛️ ✔︎
-            ⌛️ ✔︎
+            ⏳️ ✔︎
+            ⏳️ ✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
             ✔︎
-            ⌛️ ✔︎
-            ⌛️ ✔︎
+            ⏳️ ✔︎
+            ⏳️ ✔︎
         """.trimIndent(), """
             NONE caption
             ✔︎
-            ⌛️ ✔︎
-            ⌛️ ✔︎
+            ⏳️ ✔︎
+            ⏳️ ✔︎
         """.trimIndent()) {
         logResult()
         logResult()
@@ -448,7 +448,7 @@ class BlockRenderingLoggerKtTest {
                         │   │   line
                         │   │
                         │   ╰──╴✔︎
-                        │   ⌛️ {}
+                        │   ⏳️ {}
                         {{}}
                     """.trimIndent()
                 )
@@ -472,7 +472,7 @@ class BlockRenderingLoggerKtTest {
                         │   │   
                         │   │
                         │   ╰──╴✔︎
-                        │   ⌛️ {}
+                        │   ⏳️ {}
                         {{}}
                     """.trimIndent()
                 )

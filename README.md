@@ -69,7 +69,7 @@ println(process.io)
 ```
 
 ```shell
-Executing /some/where/koodies.process.bka.sh
+Executing /some/where/koodies.exec.bka.sh
 Hello World!
 Process 1234 terminated successfully at 2021-05-15T14:30:00Z.
 ```
@@ -107,7 +107,7 @@ Docker.run {
 ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(Exec.kt:126)
   ➜ A dump has been written to:
     - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.log (unchanged)
-    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.no-ansi.log (ANSI escape/control sequences removed)
+    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.ansi-removed.log (ANSI escape/control sequences removed)
   ➜ The last 6 lines are:
     🐳 docker attach "download-latest-bkahlert_koodies"
     Executing docker run --name download-latest-bkahlert_koodies --rm -i --mount type=bind,source=/var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T,target=/tmp zero88/ghrd --regex bkahlert/koodies

@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import java.nio.file.Path
 
 /**
@@ -21,7 +21,7 @@ private object Samples {
 
     fun resolveSibling() {
         val path = Path.of("a/b/c")
-        val sibling = path.resolveSibling { resolveSibling(fileName.asString() + "-x") }
+        val sibling = path.resolveSibling { resolveSibling(fileName.pathString + "-x") }
         println(sibling) // Path.of("/a/b-x/c")
     }
 }

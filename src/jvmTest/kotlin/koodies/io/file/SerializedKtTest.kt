@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -43,7 +43,7 @@ class SerializedKtTest {
                         expectThat(customPath).serializedIsEqualTo(path)
                     },
                     dynamicTest("should have get equal path from serialized path") {
-                        expectThat(Paths.get(customPath.asString())).isEqualTo(Paths.get(path))
+                        expectThat(Paths.get(customPath.pathString)).isEqualTo(Paths.get(path))
                     },
                 )
             }),
@@ -53,7 +53,7 @@ class SerializedKtTest {
 
 fun <T : Path> Assertion.Builder<T>.serializedIsEqualTo(path: String) =
     assert("equals $path") {
-        val actual = it.asString()
+        val actual = it.pathString
         if (actual == path) pass()
         else fail()
     }

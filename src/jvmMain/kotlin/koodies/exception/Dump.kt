@@ -1,9 +1,11 @@
 package koodies.exception
 
+import koodies.io.path.Locations
+import koodies.io.path.isSubPathOf
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension
 import koodies.io.path.writeText
-import koodies.jvm.*
+import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
@@ -11,13 +13,16 @@ import koodies.text.withSuffix
 import java.io.IOException
 import java.nio.file.Path
 import kotlin.time.days
+import kotlin.time.minutes
 
 private object Dump {
+    val dumpDir = Locations.Temp.resolve("com.bkahlert.koodies")
     const val dumpPrefix = "koodies.dump."
     const val dumpSuffix = ".log"
 
     init {
-        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 5.days, keepAtMost = 200)
+        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 5.days, keepAtMost = 100, dumpDir)
+        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 10.minutes, keepAtMost = 5)
     }
 }
 
@@ -33,7 +38,7 @@ private val dumpInitWorkaround = "$Dump"
  */
 public fun Path.dump(
     errorMessage: String?,
-    file: Path = randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    file: Path = (takeUnless { it.isSubPathOf(Locations.Temp) } ?: Dump.dumpDir).randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
     data: () -> String,
 ): String = runCatching {
     var dumped: String? = null
@@ -83,7 +88,7 @@ public fun persistDump(
 ): Map<String, Path> = runCatching {
     data().run {
         mapOf("unchanged" to path.withExtension("log").writeText(this),
-            "ANSI escape/control sequences removed" to path.withExtension("no-ansi.log").writeText(ansiRemoved))
+            "ANSI escape/control sequences removed" to path.withExtension("ansi-removed.log").writeText(ansiRemoved))
     }
 }.getOrElse {
     if (it is IOException) throw it

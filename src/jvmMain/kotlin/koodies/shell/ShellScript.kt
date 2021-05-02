@@ -1,10 +1,9 @@
 package koodies.shell
 
 import koodies.exec.CommandLine
+import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
 import koodies.exec.Executable
-import koodies.exec.scriptPath
-import koodies.io.path.Locations
-import koodies.io.path.asString
 import koodies.io.path.executable
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
@@ -19,15 +18,18 @@ import koodies.text.truncate
 import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
 import koodies.toBaseName
+import org.codehaus.plexus.util.cli.Commandline
 import java.nio.file.Path
 import kotlin.io.path.createFile
+import kotlin.io.path.exists
+import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
 
 @DslMarker
 public annotation class ShellScriptMarker
 
 @ShellScriptMarker
-public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String>, Executable {
+public class ShellScript(public val name: String? = null, content: String? = null) : Iterable<String>, Executable<Exec> {
 
     private val lines: MutableList<String> = mutableListOf()
 
@@ -47,7 +49,7 @@ public class ShellScript(public val name: String? = null, content: String? = nul
     public val shebang: Shebang get() = Shebang(lines)
 
     public fun changeDirectoryOrExit(directory: Path, @Suppress("UNUSED_PARAMETER") errorCode: Int = -1) {
-        lines.add("cd \"$directory\" || exit -1")
+        lines.add("cd \"$directory\" || exit 1")
     }
 
     public operator fun String.not() {
@@ -90,6 +92,13 @@ public class ShellScript(public val name: String? = null, content: String? = nul
     }
 
     /**
+     * Builds a [command] call.
+     */
+    public operator fun Executable<*>.not() {
+        this@ShellScript.command(this.toCommandLine(emptyMap(), null))
+    }
+
+    /**
      * Initializes a [FileOperations] builder for the file specified by [path] and
      * the optional [init] applied to it.
      */
@@ -113,14 +122,14 @@ public class ShellScript(public val name: String? = null, content: String? = nul
             """,
             """
                 $delimiter
-                ) > "$fileName"
-                if [ -f "$fileName" ]; then
-                  chmod 755 "$fileName"
+                ) > "./$fileName"
+                if [ -f "./$fileName" ]; then
+                  chmod 755 "./$fileName"
                   "./$fileName"
                   wait
-                  rm "$fileName"
+                  rm "./$fileName"
                 else
-                  echo "Error creating \"$fileName\""
+                  echo "Error creating ""$fileName"
                 fi
             """,
         ))
@@ -183,30 +192,23 @@ public class ShellScript(public val name: String? = null, content: String? = nul
     }
 
     public override val summary: String
-        get() = "Script(name=$name;content=${build().lines(ignoreTrailingSeparator = true).joinToString(";").truncate(150, MIDDLE, " … ")}})"
+        get() = (name?.let { "${it.quoted}: " } ?: "").let {
+            "Script($it${build().lines(ignoreTrailingSeparator = true).joinToString(";").truncate(150, MIDDLE, " … ")}})"
+        }
 
-    override fun toCommandLine(): CommandLine {
-        val environment = emptyMap<String, String>()
-        val path = Locations.WorkingDirectory
-        val scriptFile = sanitize().buildTo(path.scriptPath())
-        return CommandLine(environment, path, scriptFile.asString())
+    override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?): CommandLine {
+        val script: String = sanitize().build()
+        val shell = Commandline().shell
+        return CommandLine(shell.shellCommand, *shell.shellArgsList.toTypedArray(), script)
     }
 
-    /**
-     * Creates a [CommandLine] from `this` [ShellScript] by saving to [Locations.Temp].
-     */
-    @Deprecated("use exec")
-    public fun toCommandLine(environment: Map<String, String>): CommandLine =
-        toCommandLine(Locations.Temp, environment)
-
-    /**
-     * Creates a [CommandLine] from `this` [ShellScript] by saving to `this` [Path].
-     */
-    @Deprecated("use exec")
-    public fun toCommandLine(path: Path, environment: Map<String, String> = emptyMap()): CommandLine {
-        val scriptFile = sanitize(path).buildTo(path.scriptPath())
-        return CommandLine(environment, path, scriptFile.asString())
-    }
+    override fun toExec(
+        redirectErrorStream: Boolean,
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+        execTerminationCallback: ExecTerminationCallback?,
+    ): Exec = toCommandLine(environment, workingDirectory)
+        .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 
     override fun toString(): String = summary
     override fun equals(other: Any?): Boolean {
@@ -246,5 +248,27 @@ public class ShellScript(public val name: String? = null, content: String? = nul
          * If [name] is `null` an empty string is returned.
          */
         public fun bannerEchoingCommand(name: String?): String = name?.takeIf { it.isNotBlank() }?.let { "echo ${banner(name).quoted}$LF" } ?: ""
+
+        /**
+         * Whether this byte array starts with `0x23 0x21` (`!#`).
+         */
+        public val ByteArray.isScript: Boolean
+            get() = size >= 2 && get(0) == 0x23.toByte() && get(1) == 0x21.toByte()
+
+        /**
+         * Whether this character sequence starts with bytes `0x23 0x21` (`!#`)
+         */
+        public val CharSequence.isScript: Boolean
+            get() = length >= 2 && get(0) == '#' && get(1) == '!'
+
+        /**
+         * Whether this file exists and starts with bytes `0x23 0x21` (`!#`)
+         */
+        public val Path.isScript: Boolean
+            get() = takeIf { it.exists() }?.run {
+                inputStream().run {
+                    read() == 0x23 && read() == 0x21
+                }
+            } ?: false
     }
 }

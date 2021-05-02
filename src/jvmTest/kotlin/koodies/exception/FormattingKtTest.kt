@@ -1,7 +1,6 @@
 package koodies.exception
 
 import koodies.exec.CommandLine
-import koodies.exec.JavaExec
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.matches
 import strikt.assertions.startsWith
 import java.nio.file.Path
 
@@ -25,7 +25,7 @@ class FormattingKtTest {
     private val runtimeException = RuntimeException("Something happened$LF" +
         " ➜ A dump has been written to:$LF" +
         "   - file:///var/folders/.../file.log (unchanged)$LF" +
-        "   - file:///var/folders/.../file.no-ansi.log (ANSI escape/control sequences removed)$LF" +
+        "   - file:///var/folders/.../file.ansi-removed.log (ANSI escape/control sequences removed)$LF" +
         " ➜ The last lines are:$LF" +
         "    raspberry$LF" +
         "    Login incorrect$LF" +
@@ -95,8 +95,8 @@ class FormattingKtTest {
 
             @Test
             fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(JavaExec(false, emptyMap(), this, CommandLine("exit", "42"), null, null)).toCompactString()) {
-                    ansiRemoved.isEqualTo("Process has not yet started.")
+                expectThat(Result.success(CommandLine("exit", "42").toExec(false, emptyMap(), this, null)).toCompactString()) {
+                    ansiRemoved.matches("Process.*\\d+.*\\.".toRegex())
                     isSingleLine()
                 }
             }

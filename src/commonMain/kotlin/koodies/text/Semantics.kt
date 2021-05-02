@@ -19,7 +19,7 @@ public object Semantics {
     public object Symbols {
         public val OK: String = Unicode.Emojis.heavyCheckMark.textVariant.formattedAs.success
         public val Negative: String = Unicode.BoxDrawings.HeavyHorizontal.formattedAs.error
-        public val Computation: String = Unicode.Emojis.hourglass.emojiVariant.formattedAs.progress
+        public val Computation: String = Unicode.Emojis.hourglassWithFlowingSand.emojiVariant.formattedAs.progress
         public val Error: String = Unicode.greekSmallLetterKoppa.toString().formattedAs.error
         public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
         public val Document: String = Unicode.Emojis.pageFacingUp.toString()

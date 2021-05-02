@@ -1,6 +1,6 @@
 package koodies.shell
 
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import java.nio.file.Path
 
 public class Shebang(private val contents: MutableList<String>) {
@@ -18,7 +18,7 @@ public class Shebang(private val contents: MutableList<String>) {
     }
 
     public operator fun invoke(interpreter: String = "/bin/sh"): Shebang = also { it.interpreter = interpreter }.updateContents()
-    public operator fun invoke(interpreter: Path): Shebang = invoke(interpreter.asString())
+    public operator fun invoke(interpreter: Path): Shebang = invoke(interpreter.pathString)
     public operator fun not(): Unit = run { updateContents() }
 }
 

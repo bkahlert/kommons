@@ -1,49 +1,50 @@
 package koodies.shell
 
-import koodies.concurrent.script
-import koodies.docker.docker
+import koodies.docker.DockerRunCommandLine
+import koodies.docker.DockerStopCommandLine
 import koodies.exec.exitCodeOrNull
 import koodies.io.path.Locations
 import koodies.io.path.asPath
-import koodies.io.path.asString
 import koodies.io.path.hasContent
+import koodies.io.path.pathString
 import koodies.io.path.randomFile
-import koodies.io.path.single
+import koodies.io.path.writeBytes
 import koodies.logging.InMemoryLogger
 import koodies.shell.HereDocBuilder.hereDoc
+import koodies.shell.ShellScript.Companion.isScript
 import koodies.test.Smoke
 import koodies.test.UniqueId
+import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
-import koodies.text.Semantics.Symbols
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
+import koodies.text.toByteArray
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.TestFactory
+import strikt.api.Assertion.Builder
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.java.exists
 import strikt.java.isExecutable
 import java.nio.file.Path
-import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.exists
+import kotlin.io.path.inputStream
 import koodies.text.Unicode.escape as ESC
 
-@Execution(CONCURRENT)
 class ShellScriptTest {
 
     private fun shellScript() = ShellScript("Test").apply {
         shebang
         changeDirectoryOrExit(Path.of("/some/where"))
         !"""
-                echo "Hello World!"
-                echo "Bye!"
-            """.trimIndent()
+            echo "Hello World!"
+            echo "Bye!"
+        """.trimIndent()
         exit(42)
     }
 
@@ -52,7 +53,7 @@ class ShellScriptTest {
         expectThat(shellScript().build()).isEqualTo("""
             #!/bin/sh
             echo "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m $ESC[96mTEST$ESC[39m"
-            cd "/some/where" || exit -1
+            cd "/some/where" || exit 1
             echo "Hello World!"
             echo "Bye!"
             exit 42
@@ -67,7 +68,7 @@ class ShellScriptTest {
         expectThat(file).hasContent("""
             #!/bin/sh
             echo "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m $ESC[96mTEST$ESC[39m"
-            cd "/some/where" || exit -1
+            cd "/some/where" || exit 1
             echo "Hello World!"
             echo "Bye!"
             exit 42
@@ -91,7 +92,7 @@ class ShellScriptTest {
         expectThat(sanitized.build()).matchesCurlyPattern("""
             #!/bin/sh
             echo "░░░░░░░ CUSTOM NAME"
-            cd "{}" || exit -1
+            cd "{}" || exit 1
             echo "Hello World!"
 
             echo "Bye!"
@@ -178,14 +179,14 @@ class ShellScriptTest {
                 sleep 1
                 echo "test" > file.txt
                 EMBEDDED-SCRIPT-{}
-                ) > "embedded-script-_.sh"
-                if [ -f "embedded-script-_.sh" ]; then
-                  chmod 755 "embedded-script-_.sh"
+                ) > "./embedded-script-_.sh"
+                if [ -f "./embedded-script-_.sh" ]; then
+                  chmod 755 "./embedded-script-_.sh"
                   "./embedded-script-_.sh"
                   wait
-                  rm "embedded-script-_.sh"
+                  rm "./embedded-script-_.sh"
                 else
-                  echo "Error creating \"embedded-script-_.sh\""
+                  echo "Error creating ""embedded-script-_.sh"
                 fi
                 echo "finished to run embedded script"
                 echo $(pwd)
@@ -194,21 +195,20 @@ class ShellScriptTest {
 
         @Smoke @Test
         fun InMemoryLogger.`should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val logger = this@`should preserve functionality`
-            val process = script(logger = logger) {
+            val exec = ShellScript {
                 changeDirectoryOrExit(this@withTempDir)
                 shellScript()
-            }
+            }.exec.logging(this@`should preserve functionality`)
+
             expect {
-                that(process.exitCodeOrNull).isEqualTo(0)
-                that(process.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
+                that(exec.exitCodeOrNull).isEqualTo(0)
+                that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                     .matchesCurlyPattern("""
-                        Executing ${asString()}/koodies.process.{}.sh
-                        ${Symbols.Document} file://${asString()}/koodies.process.{}.sh
+                        Executing {}
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝
                         finished to run embedded script
-                        ${asString()}
+                        $pathString
                     """.trimIndent())
                 that(resolve("dir/file.txt")) {
                     exists()
@@ -224,7 +224,7 @@ class ShellScriptTest {
         fun `should build valid docker run`() {
             expectThat(ShellScript {
                 `#!`
-                docker.run {
+                !DockerRunCommandLine {
                     image { "image" / "name" }
                     options {
                         name { "container-name" }
@@ -272,7 +272,7 @@ class ShellScriptTest {
         fun `should build valid docker stop`() {
             expectThat(ShellScript {
                 `#!`
-                docker.stop {
+                !DockerStopCommandLine {
                     containers { +"busybox" + "guestfish" }
                     options { time by 42 }
                 }
@@ -284,30 +284,6 @@ class ShellScriptTest {
             42 \
             busybox \
             guestfish
-
-        """.trimIndent())
-        }
-
-        @Test
-        fun `should build allow redirection`() {
-            expectThat(ShellScript().apply {
-                shebang
-                docker.run {
-                    image { "image" / "name" }
-                    options { name { "container-name" } }
-                    commandLine {
-                        redirects { +"2>&1" }
-                    }
-                }
-            }.build()).isEqualTo("""
-            #!/bin/sh
-            docker \
-            run \
-            --name \
-            container-name \
-            --rm \
-            --interactive \
-            image/name
 
         """.trimIndent())
         }
@@ -323,7 +299,7 @@ class ShellScriptTest {
         @Test
         fun `should have an optional name`() {
             val sh = ShellScript("test") { !"exit 0" }
-            expectThat(sh).toStringContains("Script(name=test")
+            expectThat(sh).toStringContains("Script(\"test\": ")
         }
 
         @Test
@@ -395,18 +371,55 @@ class ShellScriptTest {
 
         @Test
         fun InMemoryLogger.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            script(logger = this@`should not remove itself by default`) { }
-            expectThat(this) {
-                get { listDirectoryEntries() }.single { fileName.endsWith(".sh") }
-            }
+            val script = ShellScript {}.buildTo(resolve("script.sh"))
+            ShellScript { !script.pathString }.exec.logging(this@`should not remove itself by default`)
+            expectThat(resolve("script.sh")).exists()
         }
 
         @Test
         fun InMemoryLogger.`should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            script(logger = this@`should remove itself`) { deleteSelf() }
-            expectThat(this) {
-                get { listDirectoryEntries() }.isEmpty()
-            }
+            val script = ShellScript { deleteSelf() }.buildTo(resolve("script.sh"))
+            ShellScript { !script.pathString }.exec.logging(this@`should remove itself`)
+            expectThat(resolve("script.sh")).not { exists() }
+        }
+    }
+
+    @TestFactory
+    fun `should check if is script`(uniqueId: UniqueId) = tests {
+        withTempDir(uniqueId) {
+            expecting { "#!".toByteArray() } that { isScript() }
+            expecting { "#".toByteArray() } that { not { isScript() } }
+            expecting { "foo".toByteArray() } that { not { isScript() } }
+
+            expecting { "#!" } that { isScript() }
+            expecting { "#" } that { not { isScript() } }
+            expecting { "foo" } that { not { isScript() } }
+
+            expecting { randomFile().writeBytes("#!".toByteArray()) } that { isScript() }
+            expecting { randomFile().writeBytes("#".toByteArray()) } that { not { isScript() } }
+            expecting { randomFile().writeBytes("foo".toByteArray()) } that { not { isScript() } }
+            expecting { resolve("does-not-exist") } that { not { isScript() } }
         }
     }
 }
+
+fun Builder<ByteArray>.isScript(): Builder<ByteArray> =
+    assert("is script") {
+        if (it.isScript) pass()
+        else fail("starts with ${it.take(2)}")
+    }
+
+@JvmName("charSequenceIsScript")
+inline fun <reified T : CharSequence> Builder<T>.isScript() =
+    assert("is script") {
+        if (it.isScript) pass()
+        else fail("starts with ${it.take(2)}")
+    }
+
+@JvmName("fileIsScript")
+inline fun <reified T : Path> Builder<T>.isScript() =
+    assert("is script") {
+        if (it.isScript) pass()
+        else if (!it.exists()) fail("does not exist")
+        else fail("starts with ${it.inputStream().readNBytes(2)}")
+    }

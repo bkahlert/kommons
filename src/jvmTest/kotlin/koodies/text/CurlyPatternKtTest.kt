@@ -18,7 +18,7 @@ import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isTrue
 
-class MatchesCurlyPatternKtTest {
+class CurlyPatternKtTest {
 
     @Test
     fun `should match matching single line string`() {
@@ -71,10 +71,10 @@ class MatchesCurlyPatternKtTest {
     @Test
     fun `should not match non-matching multi line string2`() {
         expectThat("""
-            ▶ JavaExec(delegate=Process(pid=27252, exitValue="not exited"), noErrors=✅, started=false, commandLine=/var/folders/hh/739sq9w1 … /koodies.process.o50.sh, .isA<Failed>()processTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
+            ▶ JavaExec(delegate=Process(pid=27252, exitValue="not exited"), noErrors=✅, started=false, commandLine=/var/folders/hh/739sq9w1 … /koodies.exec.o50.sh, .isA<Failed>()execTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
             · Executing /var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_consol
-            · e_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
-            · ${Symbols.Document} file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_console_by_default-CapturedOutput-UniqueId/koodies.process.o50.sh
+            · e_by_default-CapturedOutput-UniqueId/koodies.exec.o50.sh
+            · ${Symbols.Document} file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/koodies12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_console_by_default-CapturedOutput-UniqueId/koodies.exec.o50.sh
             · test output 1
             · test output 2
             · test error 1
@@ -107,7 +107,7 @@ class MatchesCurlyPatternKtTest {
         expecting("matching lines") {
             """
             ▶ JavaExec(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  …
-              est error 2\"; sleep 1"; .isA<Failed>()processTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
+              est error 2\"; sleep 1"; .isA<Failed>()execTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
             · ${Symbols.Document} file:///bin/sh
             · test output 1
@@ -135,7 +135,7 @@ class MatchesCurlyPatternKtTest {
         expecting("no additional line at end") {
             """
             ▶ JavaExec(delegate=Process(pid=98199, exitValue="not exited"), noErrors=✅, started=false, commandLine=/bin/sh -c "echo \"test  … 
-              est error 2\"; sleep 1", .isA<Failed>()processTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
+              est error 2\"; sleep 1", .isA<Failed>()execTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
             · Executing /bin/sh -c "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
             · ${Symbols.Document} file:///bin/sh
             · test output 1

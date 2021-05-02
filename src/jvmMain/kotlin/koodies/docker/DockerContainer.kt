@@ -15,7 +15,7 @@ import koodies.docker.DockerContainer.State.NotExistent
 import koodies.docker.DockerExitStateHandler.Failure
 import koodies.exec.Process.ExitState
 import koodies.exec.parse
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
@@ -365,6 +365,6 @@ public class DockerContainer(public val name: String) {
          * and adds a [randomSuffix] to it by default.
          */
         public fun from(path: Path, randomSuffix: Boolean = true): DockerContainer =
-            from(path.fileName.asString(), randomSuffix)
+            from(path.fileName.pathString, randomSuffix)
     }
 }

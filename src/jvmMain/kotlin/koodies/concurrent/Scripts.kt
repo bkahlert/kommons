@@ -4,8 +4,6 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.output
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
-import koodies.exec.JavaExec
-import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.Locations
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
@@ -26,11 +24,9 @@ public fun process(
     shellScript: ShellScript,
     environment: Map<String, String> = emptyMap(),
     workingDirectory: Path = Locations.Temp,
-    exitStateHandler: ExitStateHandler? = null,
     execTerminationCallback: ExecTerminationCallback? = null,
 ): Exec {
-    val commandLine = shellScript.toCommandLine(workingDirectory, environment)
-    return JavaExec(false, environment, workingDirectory, commandLine, exitStateHandler, execTerminationCallback)
+    return shellScript.toExec(false, environment, workingDirectory, execTerminationCallback)
 }
 
 /**
@@ -45,4 +41,4 @@ public fun process(
 public fun Path.script(
     logger: RenderingLogger = MutedRenderingLogger(),
     shellScript: ShellScript.() -> Unit,
-): Exec = shellScript.build().toCommandLine(this@script).exec.logging(logger)
+): Exec = shellScript.build().exec.logging(logger, this)

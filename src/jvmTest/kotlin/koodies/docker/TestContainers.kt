@@ -213,11 +213,11 @@ class TestContainers(
         commandLine: CommandLine,
     ): DockerContainer {
         val container = DockerContainer.from(name = uniqueId.simplified, randomSuffix = true).also { provisioned.add(it) }
-        commandLine.exec.dockerized(this@TestContainers.image) {
+        commandLine.dockerized(this@TestContainers.image) {
             name by container.name
             this.autoCleanup by false
             detached { on }
-        }.logging(logger) {
+        }.exec.logging(logger) {
             noDetails("running ${commandLine.summary}")
         }
         return container

@@ -23,9 +23,9 @@ public object RegularExpressions {
     public val SPACES: Regex = SPACE.repeatAtLeastOnce()
     private val SLACK0 = SPACE.repeatUnlimited()
     private val SLACK1 = SPACE.repeatAtLeastOnce()
-    private val ARROW: Regex = (SLACK1 + Regex.fromLiteral("->") + SLACK1).grouped
-    private val COLON: Regex = (SLACK0 + Regex.fromLiteral(":") + SLACK0).grouped
-    private val ASSIGNMENT: Regex = (SLACK0 + Regex.fromLiteral("=") + SLACK0).grouped
+    private val ARROW: Regex = (SLACK1 + "->" + SLACK1).grouped
+    private val COLON: Regex = (SLACK0 + ":" + SLACK0).grouped
+    private val ASSIGNMENT: Regex = (SLACK0 + "=" + SLACK0).grouped
     private val BRACKET_OPEN: Regex = Regex("\\(")
     private val BRACKET_CLOSE: Regex = Regex("\\)")
     private val COMMENT_START: Regex = Regex("/\\*")
@@ -102,10 +102,14 @@ public fun Regex.optional(): Regex = Regex("$grouped?")
 /**
  * Returns a [Regex] that matches this regex followed by the
  * specified [other] regex.
- *
- * Example: `abc` becomes `(?:abc)?`
  */
 public operator fun Regex.plus(other: Regex): Regex = Regex("$this$other")
+
+/**
+ * Returns a [Regex] that matches this regex followed by the
+ * specified [literal].
+ */
+public operator fun Regex.plus(literal: String): Regex = this + Regex(literal)
 
 /**
  * Returns a [Regex] that groups this [Regex].

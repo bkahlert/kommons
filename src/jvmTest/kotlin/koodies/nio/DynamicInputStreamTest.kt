@@ -40,7 +40,7 @@ class DynamicInputStreamTest {
     fun `should read as long as stream is not closed`() {
         val inputStream = DynamicInputStream()
         inputStream.yield("Hello World!".toByteArray())
-        thread { 2.seconds.sleep { inputStream.close() } }
+        thread { 2.1.seconds.sleep { inputStream.close() } }
 
         var bytes: ByteArray
         val duration: Duration = measureTime {

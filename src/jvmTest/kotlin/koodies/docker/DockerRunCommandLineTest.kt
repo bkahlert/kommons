@@ -1,29 +1,62 @@
 package koodies.docker
 
 import koodies.builder.Init
+import koodies.concurrent.process.IO
+import koodies.concurrent.process.IO.Output
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options
+import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.docker.MountOptionContext.Type.bind
+import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
+import koodies.exec.Exec
+import koodies.exec.Executable
+import koodies.exec.Process.ExitState
+import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.ansiRemoved
+import koodies.exec.commandLine
+import koodies.exec.exitCode
+import koodies.exec.exitState
+import koodies.exec.hasState
+import koodies.exec.io
+import koodies.exec.output
 import koodies.io.path.asPath
+import koodies.io.path.deleteRecursively
+import koodies.io.path.pathString
+import koodies.io.path.tempDir
+import koodies.logging.InMemoryLogger
+import koodies.logging.expectLogged
+import koodies.runtime.onExit
 import koodies.shell.HereDocBuilder
+import koodies.shell.ShellScript
 import koodies.shell.toHereDoc
 import koodies.test.BuilderFixture
+import koodies.test.HtmlFile
+import koodies.test.Slow
+import koodies.test.Smoke
+import koodies.test.copyTo
+import koodies.test.copyToDirectory
+import koodies.test.output.TestLogger
+import koodies.test.test
+import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
+import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThanOrEqualTo
+import strikt.assertions.isLessThan
 import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
-import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
-import java.nio.file.Path
+import kotlin.time.measureTime
+import kotlin.time.seconds
 
-@Execution(CONCURRENT)
+@Slow
 class DockerRunCommandLineTest {
 
     @Test
@@ -37,32 +70,25 @@ class DockerRunCommandLineTest {
         val commandBuiltWithNoBuilders = DockerRunCommandLine { image by dockerImage }
         val commandBuiltWithEmptyBuilders = DockerRunCommandLine {
             image by dockerImage
-            options { }
+            options { name by commandBuiltWithNoBuilders.options.name?.name }
             commandLine { }
         }
 
         expectThat(commandBuiltWithNoBuilders).isEqualTo(commandBuiltWithEmptyBuilders)
     }
 
-    @Test
-    fun `should set auto cleanup as default`() {
-        expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("--rm")
-    }
-
-    @Test
-    fun `should set interactive as default`() {
-        expectThat(DockerRunCommandLine { image by dockerImage }.arguments).contains("--interactive")
-    }
+    @TestFactory
+    fun `should set have auto cleanup and interactive options on by default`() =
+        test(DockerRunCommandLine { image by dockerImage }.toCommandLine(emptyMap(), null).arguments) {
+            asserting { contains("--rm") }
+            asserting { contains("--interactive") }
+        }
 
     @Test
     fun `should build valid docker run`() {
         expectThat(result).toStringIsEqualTo("""
                 docker \
                 run \
-                --env \
-                key1=value1 \
-                --env \
-                "KEY2=VALUE 2" \
                 -d \
                 --name \
                 container-name \
@@ -92,15 +118,15 @@ class DockerRunCommandLineTest {
                 heredoc 1
                 -heredoc-line-2
                 HEREDOC" \
-                /c/d/c \
+                /a/b/c \
                 /c/d/e \
-                /h/h \
-                /h/h \
+                /e/f/../g/h \
+                /e/g/h \
                 /h/i \
-                arg=/c/d/c \
+                arg=/a/b/c \
                 arg=/c/d/e \
-                arg=/h/h \
-                arg=/h/h \
+                arg=/e/f/../g/h \
+                arg=/e/g/h \
                 arg=/h/i \
                 a/b/c \
                 c/d/e \
@@ -112,12 +138,12 @@ class DockerRunCommandLineTest {
                 arg=e/f/../g/h \
                 arg=e/g/h \
                 arg=h/i \
-                d/c \
+                b/c \
                 d/e \
                 f/../g/h \
                 g/h \
                 i \
-                arg=d/c \
+                arg=b/c \
                 arg=d/e \
                 arg=f/../g/h \
                 arg=g/h \
@@ -145,87 +171,149 @@ class DockerRunCommandLineTest {
         }
     }
 
+    @DockerRequiring
+    @Nested
+    inner class DockerizedExecutor {
+
+        @Smoke @TestFactory
+        fun InMemoryLogger.`should exec dockerized`() = testEach(
+            CommandLine("printenv", "HOME"),
+            ShellScript {
+                shebang
+                !"printenv | grep HOME | perl -pe 's/.*?HOME=//'"
+            },
+        ) { executable ->
+            expecting { executable.dockerized(Ubuntu).exec.logging(this@`should exec dockerized`) } that {
+                io.output.ansiRemoved.isEqualTo("/root")
+            }
+        }
+
+        @TestFactory
+        fun InMemoryLogger.`should have success state on exit code 0`() = testEach(
+            CommandLine("ls", "/root"),
+            ShellScript {
+                shebang
+                !CommandLine("ls", "/root")
+            },
+        ) { executable ->
+            expecting { executable.dockerized(Ubuntu).exec.logging(this@`should have success state on exit code 0`) } that {
+                exitState.isA<ExitState.Success>().exitCode.isEqualTo(0)
+            }
+        }
+
+        @TestFactory
+        fun InMemoryLogger.`should have failure state on exit code other than 0`() = testEach(
+            CommandLine("ls", "invalid"),
+            ShellScript {
+                shebang
+                !CommandLine("ls", "invalid")
+            },
+        ) { executable ->
+            expecting { executable.dockerized(Ubuntu).exec.logging(this@`should have failure state on exit code other than 0`) } that {
+                exitState.isA<ExitState.Failure>().exitCode.isEqualTo(2)
+            }
+        }
+
+        @TestFactory
+        fun InMemoryLogger.`should apply env`() = testEach(
+            CommandLine("printenv", "TEST_PROP"),
+            ShellScript {
+                shebang
+                !CommandLine("printenv", "TEST_PROP")
+            },
+        ) { executable ->
+            expecting { executable.dockerized(Ubuntu).exec.env("TEST_PROP", "TEST_VALUE").logging(this@`should apply env`) } that {
+                io.output.ansiRemoved.isEqualTo("TEST_VALUE")
+            }
+        }
+    }
+
     @Nested
     inner class WorkingDirectory {
 
         @Nested
-        inner class DockerOptionSpecified {
+        inner class WorkingDirectoryMapping {
 
-            @Test
-            fun `should ignore guest command line`() {
-                val dockerCommandLine = dockerCommandLine(
-                    optionsWorkingDir = "/a",
-                    guestWorkingDir = "/some/where",
-                    "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h")
-                expectThat(dockerCommandLine.options.workingDirectory).isEqualTo("/a".asContainerPath())
-            }
+            private val tempDir = tempDir().also { onExit { it.deleteRecursively() } }
+            private val workDir = tempDir.resolve("work")
+            private val htmlFile = workDir.resolve("files/sample.html").also { HtmlFile.copyTo(it) }
 
-            @Test
-            fun `should take as is - even if re-mappable`() {
-                val dockerCommandLine = dockerCommandLine(
-                    optionsWorkingDir = "/a/b/1",
-                    guestWorkingDir = "/some/where",
-                    "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h")
-                expectThat(dockerCommandLine.options.workingDirectory).isEqualTo("/a/b/1".asContainerPath())
-            }
+            private val commandLine = CommandLine("cat", htmlFile.pathString)
 
-            @Test
-            fun `should use re-use guest working dir`() {
-                val dockerCommandLine = dockerCommandLine(
-                    optionsWorkingDir = "/a",
-                    guestWorkingDir = "/some/where",
-                    "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h")
-                expectThat(dockerCommandLine.workingDirectory).isEqualTo("/some/where".asPath())
+            @TestFactory
+            fun InMemoryLogger.`should apply working directory`() = testEach(
+                commandLine,
+                ShellScript { !commandLine },
+            ) { executable ->
+                expecting {
+                    executable.dockerized(Ubuntu) {
+                        mounts {
+                            tempDir mountAt "/host"
+                        }
+                    }.exec.logging(this@`should apply working directory`, workDir)
+                } that {
+                    commandLine.toStringMatchesCurlyPattern("""
+                        {{}}
+                        cat \
+                        /host/work/files/sample.html{}
+                    """.trimIndent())
+                    io.output.ansiRemoved.isEqualTo(HtmlFile.text)
+                }
             }
         }
 
         @Nested
-        inner class NoDockerOptionSpecified {
+        inner class SpecifiedWorkingDirectoryOption {
+
+            @Test
+            fun `should apply working directory option`() {
+                val dockerCommandLine = dockerRunCommandLine("/a").toCommandLine("/some/where")
+
+                expectThat(dockerCommandLine.shellCommand)
+                    .isEqualTo("$d -w /a $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+            }
+
+            @Test
+            fun `should take as is - even if re-mappable`() {
+                val dockerCommandLine = dockerRunCommandLine("/a/b/1").toCommandLine("/some/where")
+                expectThat(dockerCommandLine.shellCommand)
+                    .isEqualTo("$d -w /a/b/1 $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+            }
+        }
+
+        @Nested
+        inner class NotSpecifiedWorkingDirectoryOption {
 
             @Test
             fun `should use guest working dir if re-mappable`() {
-                val dockerCommandLine = dockerCommandLine(
-                    optionsWorkingDir = null,
-                    guestWorkingDir = "/a/b/1",
-                    "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h")
-                expectThat(dockerCommandLine.options.workingDirectory).isEqualTo("/c/d/1".asContainerPath())
+                val dockerCommandLine = dockerRunCommandLine().toCommandLine("/a/b/1")
+                expectThat(dockerCommandLine.shellCommand)
+                    .isEqualTo("$d $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
             }
 
             @Test
             fun `should ignore guest working dir if not re-mappable`() {
-                val dockerCommandLine = dockerCommandLine(
-                    optionsWorkingDir = null,
-                    guestWorkingDir = "/some/where",
-                    "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h")
-                expectThat(dockerCommandLine.options.workingDirectory).isNull()
-            }
-
-            @Test
-            fun `should use re-use guest working dir`() {
-                val dockerCommandLine = dockerCommandLine(
-                    optionsWorkingDir = null,
-                    guestWorkingDir = "/some/where",
-                    "/a/b" to "/c/d",
-                    "/e/f/../g" to "//h")
-                expectThat(dockerCommandLine.workingDirectory).isEqualTo("/some/where".asPath())
+                val dockerCommandLine = dockerRunCommandLine().toCommandLine("/some/where")
+                expectThat(dockerCommandLine.shellCommand)
+                    .isEqualTo("$d $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
             }
         }
 
-        private fun dockerCommandLine(optionsWorkingDir: String?, guestWorkingDir: String, vararg mounts: Pair<String, String>) = DockerRunCommandLine(
+        private val d = "docker run --name container-name"
+        private val ri = "--rm --interactive"
+        private val m = "--mount type=bind,source"
+        private val args = "repo/name:tag command -arg1 --argument"
+
+        private fun dockerRunCommandLine(workingDirectoryOption: String? = null) = DockerRunCommandLine(
             DockerImage { "repo" / "name" tag "tag" },
-            dockerOptions(optionsWorkingDir, *mounts),
-            guestCommandLine(guestWorkingDir)
+            dockerOptions(workingDirectoryOption, "/a/b" to "/c/d", "/e/f/../g" to "//h"),
+            CommandLine("command", "-arg1", "--argument", "/a/b/1")
         )
 
-        private fun dockerOptions(optionsWorkingDir: String?, vararg mounts: Pair<String, String>): Options =
+        private fun dockerOptions(workingDirectoryOption: String?, vararg mounts: Pair<String, String>): Options =
             Options(
                 name = DockerContainer.from("container-name"),
-                workingDirectory = optionsWorkingDir?.asContainerPath(),
+                workingDirectory = workingDirectoryOption?.asContainerPath(),
                 mounts = MountOptions(
                     *mounts.map {
                         MountOption(source = it.first.asHostPath(), target = it.second.asContainerPath())
@@ -233,13 +321,111 @@ class DockerRunCommandLineTest {
                 ),
             )
 
-        private fun guestCommandLine(guestWorkingDir: String) = CommandLine(
-            redirects = emptyList(),
-            environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
-            workingDirectory = guestWorkingDir.asPath(),
-            command = "work",
-            arguments = listOf("-arg1", "--argument"),
-        )
+        private fun DockerRunCommandLine.toCommandLine(hostWorkDir: String) =
+            toCommandLine(emptyMap(), hostWorkDir.asPath())
+    }
+
+    @TestFactory
+    fun `should exec using specified image`() = testEach<Executable<Exec>.() -> DockerExec>(
+        { dockerized(Ubuntu).exec() },
+        { dockerized { "ubuntu" }.exec() },
+        { with(Ubuntu) { dockerized.exec() } },
+    ) { execVariant ->
+        expecting {
+            CommandLine("printenv", "HOME").execVariant()
+        } that {
+            io.contains(Output typed "/root")
+        }
+    }
+
+    @TestFactory
+    fun TestLogger.`should exec logging using specified image`() = testEach<Executable<Exec>.() -> DockerExec>(
+        { dockerized(Ubuntu).exec.logging(this@`should exec logging using specified image`) },
+        { dockerized { "ubuntu" }.exec.logging(this@`should exec logging using specified image`) },
+        { with(Ubuntu) { dockerized.exec.logging(this@`should exec logging using specified image`) } },
+        { with(Ubuntu) { with(dockerized) { logging() } } },
+    ) { execVariant ->
+        expecting {
+            clear()
+            CommandLine("printenv", "HOME").execVariant()
+        } that {
+            expectLogged.toStringMatchesCurlyPattern("""
+                · Executing {}
+                · /root
+                · Process {} terminated {}
+                ✔︎
+            """.trimIndent())
+        }
+    }
+
+    @TestFactory
+    fun `should exec processing using specified image`() = testEach<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
+        { dockerized(Ubuntu).exec.processing { io -> it.add(io) } },
+        { dockerized { "ubuntu" }.exec.processing { io -> it.add(io) } },
+        { with(Ubuntu) { dockerized.exec.processing { io -> it.add(io) } } },
+    ) { execVariant ->
+        expecting {
+            mutableListOf<IO>().also {
+                CommandLine("printenv", "HOME").execVariant(it)
+            }
+        } that {
+            contains(Output typed "/root")
+        }
+    }
+
+    @TestFactory
+    fun `should exec synchronously`() = testEach<Executable<Exec>.() -> DockerExec>(
+        { dockerized(Ubuntu).exec() },
+        { dockerized { "ubuntu" }.exec() },
+        { with(Ubuntu) { dockerized.exec() } },
+    ) { execVariant ->
+        var exec: DockerExec? = null
+        expecting { measureTime { exec = CommandLine("sleep", "2").execVariant() } } that { isGreaterThanOrEqualTo(2.seconds) }
+        { exec } asserting { get { invoke() }.isNotNull().hasState<Terminated>() }
+    }
+
+    @TestFactory
+    fun `should exec asynchronously`() = testEach<Executable<Exec>.() -> DockerExec>(
+        { dockerized(Ubuntu).exec.async() },
+        { dockerized { "ubuntu" }.exec.async() },
+        { with(Ubuntu) { dockerized.exec.async() } },
+    ) { execVariant ->
+        expecting { measureTime { CommandLine("sleep", "2").execVariant() } } that { isLessThan(2.seconds) }
+    }
+
+    @Nested
+    inner class WithOptions {
+
+        private val tempDir = tempDir()
+            .also { HtmlFile.copyToDirectory(it) }
+            .also { onExit { it.deleteRecursively() } }
+
+        private val optionsInit: Init<OptionsContext> = {
+            workingDirectory { "/tmp".asContainerPath() }
+            mounts {
+                tempDir mountAs bind at "/tmp/host"
+            }
+        }
+
+        private val options = Options(optionsInit)
+
+        @TestFactory
+        fun `should exec using specified options`() = testEach<Executable<Exec>.() -> DockerExec>(
+            { dockerized(Ubuntu, options).exec() },
+            { dockerized(Ubuntu) { optionsInit() }.exec() },
+
+            { dockerized(options) { "ubuntu" }.exec() },
+            { dockerized({ "ubuntu" }) { optionsInit() }.exec() },
+
+            { with(Ubuntu) { dockerized(options).exec() } },
+            { with(Ubuntu) { dockerized { optionsInit() } }.exec() },
+        ) { execVariant ->
+            expecting {
+                CommandLine("cat", "host/${HtmlFile.name}").execVariant()
+            } that {
+                io.output.ansiRemoved.isEqualTo(HtmlFile.text)
+            }
+        }
     }
 
     companion object : BuilderFixture<Init<CommandContext>, DockerRunCommandLine>(
@@ -268,12 +454,6 @@ class DockerRunCommandLineTest {
                 }
             }
             commandLine {
-                redirects {}
-                environment {
-                    "key1" to "value1"
-                    "KEY2" to "VALUE 2"
-                }
-                workingDirectory { "/a".asHostPath() }
                 command { "work" }
                 arguments {
                     +"/etc/dnf/dnf.conf:s/check=1/check=0/"
@@ -310,20 +490,15 @@ class DockerRunCommandLineTest {
                 custom = listOf("custom1", "custom2")
             ),
             CommandLine(
-                redirects = emptyList(),
-                environment = mapOf("key1" to "value1", "KEY2" to "VALUE 2"),
-                workingDirectory = Path.of("/a"),
-                command = "work",
-                arguments = listOf(
-                    "/etc/dnf/dnf.conf:s/check=1/check=0/",
-                    "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
-                    "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
-                    "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
-                    "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
-                    "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
-                    "b/c", "d/e", "f/../g/h", "g/h", "i",
-                    "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
-                ),
+                "work",
+                "/etc/dnf/dnf.conf:s/check=1/check=0/",
+                "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
+                "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
+                "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
+                "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
+                "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
+                "b/c", "d/e", "f/../g/h", "g/h", "i",
+                "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
             ),
         ),
     ) {

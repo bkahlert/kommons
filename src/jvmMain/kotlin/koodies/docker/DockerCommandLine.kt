@@ -3,33 +3,12 @@ package koodies.docker
 import koodies.builder.BuilderTemplate
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
-import koodies.exec.Exec
-import koodies.exec.ExecFactory
-import koodies.exec.Executor
-import koodies.exec.JavaExec
-import koodies.exec.Process
-import koodies.io.path.Locations
-import koodies.logging.RenderingLogger
-import java.nio.file.Path
+import koodies.exec.Process.ExitState.ExitStateHandler
 
 /**
  * A docker command as it can be run in a shell.
  */
 public open class DockerCommandLine(
-    /**
-     * Redirects like `2>&1` to be used when running this command line.
-     */
-    redirects: List<String>,
-    /**
-     * The environment to be exposed to the [Exec] that runs this
-     * docker command line.
-     */
-    environment: Map<String, String>,
-    /**
-     * The working directory of the [Exec] that runs this
-     * docker command line.
-     */
-    workingDirectory: Path,
     /**
      * The docker command to be executed.
      */
@@ -38,36 +17,11 @@ public open class DockerCommandLine(
      * The arguments to be passed to [dockerCommand].
      */
     arguments: List<String>,
-) : CommandLine(redirects, environment, workingDirectory, "docker", listOf(dockerCommand, *arguments.toTypedArray())) {
+) : CommandLine("docker", listOf(dockerCommand, *arguments.toTypedArray())) {
 
-    public constructor(
-        redirects: List<String>,
-        environment: Map<String, String>,
-        workingDirectory: Path,
-        dockerCommand: String,
-        vararg arguments: String,
-    ) : this(redirects, environment, workingDirectory, dockerCommand, arguments.toList())
+    public constructor(dockerCommand: String, vararg arguments: String) : this(dockerCommand, arguments.toList())
 
-    public constructor(
-        environment: Map<String, String>,
-        workingDirectory: Path,
-        dockerCommand: String,
-        vararg arguments: String,
-    ) : this(emptyList(), environment, workingDirectory, dockerCommand, arguments.toList())
-
-    public constructor(
-        workingDirectory: Path,
-        dockerCommand: String,
-        vararg arguments: String,
-    ) : this(emptyList(), emptyMap(), workingDirectory, dockerCommand, arguments.toList())
-
-    public constructor(
-        dockerCommand: String,
-        vararg arguments: String,
-    ) : this(emptyList(), emptyMap(), Locations.WorkingDirectory, dockerCommand, arguments.toList())
-
-    override val exec: Executor<Exec> get() = Executor(this, NATIVE_DOCKER_CLI)
-    override val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@DockerCommandLine, NATIVE_DOCKER_CLI, logger = this)
+    override val exitStateHandler: ExitStateHandler? = DockerExitStateHandler
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -84,22 +38,8 @@ public open class DockerCommandLine(
 
     public companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
 
-        /**
-         * Factory for [Exec] instances based on [Process]
-         * with a specialized [DockerExitStateHandler].
-         */
-        private val NATIVE_DOCKER_CLI = ExecFactory<Exec> { redirectErrorStream, environment, workingDirectory, commandLine, execTerminationCallback ->
-            JavaExec(redirectErrorStream, environment, workingDirectory, commandLine, DockerExitStateHandler, execTerminationCallback)
-        }
-
         override fun BuildContext.build(): DockerCommandLine = ::CommandLineContext {
-            DockerCommandLine(
-                redirects = ::redirects.eval(),
-                environment = ::environment.eval(),
-                workingDirectory = ::workingDirectory.evalOrDefault { Locations.WorkingDirectory },
-                dockerCommand = ::command.eval(),
-                arguments = ::arguments.eval<List<String>>()
-            )
+            DockerCommandLine(::command.eval(), ::arguments.eval<List<String>>())
         }
     }
 }

@@ -1,9 +1,8 @@
 package koodies.concurrent.process
 
-import koodies.concurrent.process
 import koodies.concurrent.script
 import koodies.exec.alive
-import koodies.exec.started
+import koodies.io.path.Locations.Temp
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
 import koodies.test.Slow
@@ -28,17 +27,14 @@ class IOLogKtTest {
         private val echoingCommands =
             "echo \"test output 1\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; sleep 1; >&2 echo \"test error 2\""
 
-        private val notStartedProcess
-            get() = process(ShellScript { !echoingCommands }).also { require(!it.started) { "Process started" } }
         private val startedProcess
-            get() = notStartedProcess.processSynchronously(processor = {}).also { require(it.started) { "Process not started" } }
+            get() = ShellScript { !echoingCommands }.toExec(false, emptyMap(), Temp, null).processSynchronously(processor = {})
         private val terminatedProcess
             get() = startedProcess.processSynchronously(processor = {}).also { require(it.successful != null) { "Process not terminated" } }
 
         @Slow
         @TestFactory
-        fun `should get OUT`() = testEach(
-            { notStartedProcess },
+        fun `should get output`() = testEach(
             { startedProcess },
             { terminatedProcess },
         ) {

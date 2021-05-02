@@ -35,7 +35,7 @@ class TraversingKtTest {
     fun `should accept operation as last argument`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         directoryWithTwoFiles()
 
-        val listing = traverse("", { asString() }) { lines, file ->
+        val listing = traverse("", { pathString }) { lines, file ->
             lines + file + LF
         }
 

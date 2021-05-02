@@ -7,25 +7,161 @@ import koodies.collections.synchronizedListOf
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.IO.Meta
 import koodies.concurrent.process.IO.Meta.Dump
-import koodies.concurrent.process.IO.Meta.File
 import koodies.concurrent.process.IO.Meta.Starting
 import koodies.concurrent.process.IO.Meta.Terminated
 import koodies.concurrent.process.IO.Output
 import koodies.concurrent.process.IOSequence
+import koodies.concurrent.process.ProcessingMode
+import koodies.docker.Docker
 import koodies.exception.dump
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.Process.ExitState.Fatal
 import koodies.exec.Process.ExitState.Success
+import koodies.exec.Process.ProcessState
 import koodies.io.path.Locations
+import koodies.logging.RenderingLogger
+import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
 import java.nio.file.Path
 
 /**
- * A [Process] with advanced features like
- * the possibility to access a copy of the process's [IO].
+ * # Exec: Feature-Rich [Process] Execution
+ *
+ * ## Background
+ * [Java's Development Kit](https://docs.oracle.com/en/java/javase/index.html) allows developers to execute native OS processes
+ * using the [Runtime.exec] since its first release. As of Java 1.5/5.0 the newly introduced [ProcessBuilder] rendered
+ * process handling easier; as did subsequent features additions like [ProcessHandle].
+ *
+ * [Apache Commons Exec](https://commons.apache.org/proper/commons-exec/) was somewhat a breakthrough as it took away one of the biggest
+ * challenges programmers have with processes—reading their standard output and error. Furthermore Apache Commons Exec supports parameter
+ * substitution and helps coping with concurrency (e.g. [DefaultExecutor](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/DefaultExecutor.html),
+ * [ExecuteWatchdog](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/ExecuteWatchdog.html)).
+ * Yet, a couple of everyday tasks are still not easily achievable.
+ *
+ * [ZT Process Executor](https://github.com/zeroturnaround/zt-exec) is a process executor that makes a lot of things better. It has meta logging, which greatly
+ * helps at debugging and provides "one-liners" (that are rather "one-line-ishs" because of line length and exception handling boilerplate):
+ * ```java
+ *      String output;
+ *      boolean success = false;
+ *      try {
+ *          output = new ProcessExecutor().command("java", "-version")
+ *                        .readOutput(true).exitValues(3)
+ *                        .execute().outputUTF8();
+ *          success = true;
+ *      } catch (InvalidExitValueException e) {
+ *          System.out.println("Process exited with " + e.getExitValue());
+ *          output = e.getResult().outputUTF8();
+ *      }
+ * ```
+ *
+ * Unfortunately when it comes to script, no simple solutions seem to exist at all. Also libraries taking advantage of Kotlin features are not known.
+ *
+ * **This is where *Koodies Exec* jumps in.**
+ * The following snippet provides the same functionality as the code from:
+ * ```kotlin
+ *      val exec = CommandLine("java", "-version").exec()
+ *           .apply { if(exitState is Failure) println(exitCode) }
+ *      val (output, success) = exec.io.out to exec.successful
+ * ```
+ *
+ * Or:
+ * ```kotlin
+ *      // 🕝 asynchronously
+ *      CommandLine(…).exec.async()
+ *
+ *      // 📝 logging
+ *      CommandLine(…).exec.logging()
+ *
+ *      // 🧠 processing / interactively
+ *      CommandLine(…).exec.processing{ io -> … }
+ *
+ *      // 🐚 run shell scripts with same API (exec, exec.logging, exec.processing)
+ *      ShellScript {
+ *        !"curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
+ *      }.exec()
+ *
+ *      // 🐳 dockerized, e.g. if a command line tool is missing
+ *      ShellScript {
+ *        !"curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
+ *      }.dockerized { "dwdraju" / "alpine-curl-jq" }.exec()
+ * ```
+ *
+ * ## Features
+ *
+ * ### Simplified API
+ * [koodies.exec.Process] interface for
+ * 1) easier mocking and
+ * 2) and a simplified API
+ *
+ * ### I/O Handling
+ * The input and output of a wrapped process is typed with sub-classes of the sealed [IO] class:
+ * - [IO.Meta] (process life-cycle messages)
+ * - [IO.Input] (all data sent to the process)
+ * - [IO.Output] (standard output) and
+ * - [IO.Error] (standard error)
+ *
+ * I/O can be accessed:
+ * - always using the [io] property and
+ * - after termination also using [exitState] (Each exit state is accompanied with a copy of all recorded [IO].)
+ *
+ * ### State Handling
+ * Wrapped processes have a runtime [state] and an [exitState].
+ *
+ * States are modelled with sealed classes:
+ * - [ProcessState.Running]
+ * - [ProcessState.Terminated]
+ *      - [ExitState.Success]
+ *      - [ExitState.Failure]
+ *      - [ExitState.Fatal]
+ *
+ * By default all non-`0` exit codes are considered failed.
+ * Failed and fatal exit states contain a [dump] of the form
+ * (and in case of [Executor.logging] is also automatically printed):
+ * ```
+ *      Process {PID} terminated with exit code {exit code}
+ *      📄 file://urls-to-file(s)-found-in-command-to-easily-access-it/them
+ *      ➜ A dump has been written to:
+ *      - {working dir}/koodies.dump.{}.log
+ *      - {working dir}/koodies.dump.{}.ansi-removed.log
+ *      ➜ The last 10 lines are:
+ *      {…}
+ *      3
+ *      2
+ *      1
+ *      Boom!
+ * ```
+ *
+ * Additionally, in the rare case of an actual exception, it is contained in [ExitState.Fatal]
+ * and also included in the just described dump.
+ *
+ * That design already covers a lot of use cases. Even if other exit codes don't represent
+ * an erroneous state, nothing must be done, as the caller is not forced to handle exceptions with
+ * verbose try-catch constructs.
+ *
+ * For fine-grained control, such as domain-specific exit states,
+ * the exit state computation can be delegated to an [ExitStateHandler].
+ *
+ * Optionally an [ExecTerminationCallback] can be set to be notified the moment the wrapped process terminates
+ * (with the eventually occurred problem is passed as an argument).
+ *
+ * Last but not least, processes still running when the VM shuts down are attempted
+ * to be stopped. This behaviour can be deactivated for each created process.
+ *
+ * ## Executables: Command Line and Shell Script
+ *
+ * - [CommandLine] represents a **single** command and optional arguments
+ * - [ShellScript] represents what most users would expect to be executable until confronted with reality
+ *
+ * Command lines and shell scripts can be executed using the same simple API
+ * with no known limitations (provided, a shell is installed at all):
+ * - [synchronously][ProcessingMode.Synchronicity.Sync]
+ * - [asynchronously][ProcessingMode.Synchronicity.Async]
+ * - [logging][RenderingLogger]
+ * - [interactively][ProcessingMode.Interactivity]
+ * - [dockerized][Docker]
  */
 public interface Exec : Process {
 
@@ -41,11 +177,8 @@ public interface Exec : Process {
                 metaStream.emit(Terminated(this))
                 Success(terminated.pid, terminated.io)
             } else {
-                val relevantFiles = (this as? JavaExec)?.commandLine?.includedFiles ?: emptyList()
-                val dump = createDump(
-                    "Process ${terminated.pid.formattedAs.input} terminated with exit code ${terminated.exitCode.formattedAs.input}",
-                    *relevantFiles.map { File(it).formatted }.toTypedArray(),
-                )
+                val relevantFiles = commandLine.includedFiles
+                val dump = createDump("Process ${terminated.pid.formattedAs.input} terminated with exit code ${terminated.exitCode.formattedAs.input}")
                 Failure(terminated.exitCode, terminated.pid, relevantFiles.map { it.toUri() }, dump, terminated.io)
             }
         }
@@ -72,7 +205,10 @@ public interface Exec : Process {
      */
     public val workingDirectory: Path?
 
-    override fun start(): Exec
+    /**
+     * The command its arguments executed.
+     */
+    public val commandLine: CommandLine
 
     /**
      * Registers the given [callback] in a thread-safe manner
@@ -85,39 +221,6 @@ public interface Exec : Process {
      * to be called after the process termination is handled.
      */
     public fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec
-}
-
-/**
- * Factory capable of creating an [Exec] from a [CommandLine].
- */
-public fun interface ExecFactory<out E : Exec> {
-
-    /**
-     * Creates a [Exec] to run this executable.
-     *
-     * @param redirectErrorStream whether standard error is redirected to standard output during execution
-     * @param environment the environment to be exposed to the [Exec] during execution
-     * @param workingDirectory the working directory to be used during execution
-     * @param commandLine the command and its arguments to execute
-     * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
-     */
-    public fun toProcess(
-        redirectErrorStream: Boolean,
-        environment: Map<String, String>,
-        workingDirectory: Path?,
-        commandLine: CommandLine,
-        execTerminationCallback: ExecTerminationCallback?,
-    ): E
-
-    public companion object {
-
-        /**
-         * Factory for [Exec] instances based on [Process].
-         */
-        public val NATIVE: ExecFactory<Exec> = ExecFactory { redirectErrorStream, environment, workingDirectory, commandLine, execTerminationCallback ->
-            JavaExec(redirectErrorStream, environment, workingDirectory, commandLine, null, execTerminationCallback)
-        }
-    }
 }
 
 /**

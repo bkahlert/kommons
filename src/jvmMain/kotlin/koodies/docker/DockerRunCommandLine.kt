@@ -16,15 +16,24 @@ import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
+import koodies.exec.Exec
+import koodies.exec.ExecTerminationCallback
+import koodies.exec.Executable
 import koodies.io.file.resolveBetweenFileSystems
+import koodies.io.path.asPath
+import koodies.io.path.pathString
+import koodies.shell.ShellScript.Companion.isScript
 import koodies.text.splitAndMap
+import koodies.text.takeUnlessBlank
+import koodies.text.withRandomSuffix
+import koodies.toBaseName
 import java.nio.file.Path
 
 /**
  * [DockerCommandLine] that runs a command specified by its [redirects], [environment], [workingDirectory],
  * [command] and [arguments] using the specified [image] using the specified [options]
  */
-public open class DockerRunCommandLine private constructor(
+public class DockerRunCommandLine(
 
     /**
      * The image used to run the [DockerRunCommandLine].
@@ -41,34 +50,66 @@ public open class DockerRunCommandLine private constructor(
      * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
      * >Docker run: Options</a>
      */
-    public val options: Options,
-    redirects: List<String>,
-    environment: Map<String, String>,
-    workingDirectory: Path,
-    command: String,
-    arguments: List<String>,
-) : DockerCommandLine(
-    redirects = redirects,
-    environment = environment,
-    workingDirectory = workingDirectory,
-    dockerCommand = "run",
-    arguments = buildList {
-        environment.addAll { listOf("--env", "$key=$value") }
-        addAll(options)
-        add(image.toString())
-        if (command.isNotBlank() && options.entryPoint == null) add(command)
-        addAll(options.remapPathsInArguments(workingDirectory, arguments))
-    },
-) {
-    public constructor(image: DockerImage, options: Options = Options(), commandLine: CommandLine) : this(
-        image = image,
-        options = options.withFallbackWorkingDirectory(commandLine.workingDirectory),
-        redirects = commandLine.redirects,
-        environment = commandLine.environment,
-        workingDirectory = commandLine.workingDirectory,
-        command = commandLine.command,
-        arguments = commandLine.arguments,
-    )
+    options: Options = Options(),
+
+    public val runCommandLine: CommandLine? = null,
+) : Executable<DockerExec> {
+
+    private val fallbackName = (runCommandLine ?: CommandLine("")).summary.toBaseName().withRandomSuffix()
+    public val options: Options = options.withFallbackName(fallbackName)
+
+    private val rawCommandLine by lazy { toCommandLine(emptyMap(), null) }
+    override val summary: String by lazy { rawCommandLine.summary }
+
+    override fun toCommandLine(
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+    ): CommandLine =
+        CommandLine("docker", buildList {
+            add("run")
+
+            environment.forEach { (key, value) ->
+                add("--env")
+                add("$key=$value")
+            }
+
+            val wdFixedOptions = options
+            addAll(wdFixedOptions)
+
+            add(image.toString())
+
+            if (runCommandLine != null) {
+                runCommandLine.command.takeUnlessBlank()?.also { if (options.entryPoint == null) add(it) }
+                val wdFixedArguments = workingDirectory?.let { wdFixedOptions.remapPathsInArguments(it, runCommandLine.arguments) } ?: runCommandLine.arguments
+                addAll(wdFixedArguments)
+            }
+        })
+
+    override fun toExec(
+        redirectErrorStream: Boolean,
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+        execTerminationCallback: ExecTerminationCallback?,
+    ): DockerExec {
+        val commandLine = toCommandLine(environment, workingDirectory)
+        val container = options.name ?: error("Missing name in $options; at least would have expected $fallbackName")
+        return DockerExec(container, commandLine.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback))
+    }
+
+    override fun toString(): String = rawCommandLine.toString()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DockerRunCommandLine
+
+        if (rawCommandLine != other.rawCommandLine) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int = rawCommandLine.hashCode()
 
     /**
      * The options used to run the [DockerRunCommandLine].
@@ -205,8 +246,8 @@ public open class DockerRunCommandLine private constructor(
         custom.forEach { add(it) }
     }) {
         /**
-         * Checks if this strings represents a path accessible by one of the [MountOptions]
-         * of the specified [Options] and if so, returns the mapped [ContainerPath].
+         * Checks if [hostPath] represents a path accessible by one of the [mounts]
+         * and if so, returns the mapped [ContainerPath].
          */
         public fun mapToContainerPathOrNull(hostPath: HostPath): ContainerPath? =
             kotlin.runCatching { mounts.mapToContainerPath(hostPath) }.getOrNull()
@@ -215,25 +256,39 @@ public open class DockerRunCommandLine private constructor(
          * Tries to find all paths found inside [arguments] and remaps all those
          * that are still accessible through the specified [mounts].
          *
-         * Relative paths are resolved using the [argumentsWorkingDirectory] and if specified
+         * Relative paths are resolved using the [hostWorkingDirectory] and if specified
          * mapped backed to a relative [ContainerPath] using [Options.workingDirectory].
          *
          * Arguments not containing paths are left unchanged.
          *
          * Arguments of the form `a=b` get mapped with key and value treated separately.
          */
-        public fun remapPathsInArguments(argumentsWorkingDirectory: Path, arguments: List<String>): List<String> = arguments.map { arg ->
+        public fun remapPathsInArguments(hostWorkingDirectory: Path, arguments: List<String>): List<String> = arguments.map { arg ->
             if (arg.count { it == '=' } > 1) return@map arg
             arg.splitAndMap("=") {
-                val originalPath = asHostPath() // e.g. /a/b resp. b
-                val absoluteOriginalPath = argumentsWorkingDirectory.resolveBetweenFileSystems(originalPath) // e.g. /a/b resp. /a/b (if pwd=/a)
-                mapToContainerPathOrNull(absoluteOriginalPath)?.let { mappedPath ->   // e.g. /c/d
-                    workingDirectory
-                        ?.takeIf { !originalPath.isAbsolute }
-                        ?.let { mappedPath.relativeTo(it) } // e.g. b (if container pwd=/c)
-                        ?: mappedPath.asString() // e.g. /c/d
-                } ?: this
+                if (isScript) {
+                    val pathString = hostWorkingDirectory.pathString
+                    val prefix = Regex.escape(pathString).toRegex()
+                    prefix.replace(this) {
+                        remapArgumentAsPath(hostWorkingDirectory, it.value.asPath()) ?: this
+                    }
+                } else {
+                    val argAsPath = asHostPath() // e.g. /a/b resp. b
+                    if (!argAsPath.isAbsolute) return@splitAndMap this // skip -arg
+                    remapArgumentAsPath(hostWorkingDirectory, argAsPath) ?: this
+                }
             }
+        }
+
+        private fun remapArgumentAsPath(hostWorkingDirectory: Path, argAsPath: HostPath): String? {
+            val argAsAbsPath = hostWorkingDirectory.resolveBetweenFileSystems(argAsPath) // e.g. /a/b resp. /a/b (if pwd=/a)
+            val mapped = mapToContainerPathOrNull(argAsAbsPath)?.let { mappedPath ->   // e.g. /c/d
+                workingDirectory
+                    ?.takeIf { !argAsPath.isAbsolute }
+                    ?.let { mappedPath.relativeTo(it) } // e.g. b (if container pwd=/c)
+                    ?: mappedPath.asString() // e.g. /c/d
+            }
+            return mapped
         }
 
         /**
@@ -247,7 +302,7 @@ public open class DockerRunCommandLine private constructor(
         /**
          * Returns [Options] consisting of all currently set options and
          * the unchanged [workingDirectory] if it's already set or the specified
-         * [fallbackWorkingDirectory] otherwise.
+         * [fallbackWorkingDirectory] mapped using [mapToContainerPathOrNull].
          */
         public fun withFallbackWorkingDirectory(fallbackWorkingDirectory: HostPath): Options =
             takeUnless { it.workingDirectory == null } ?: run {
@@ -447,3 +502,35 @@ public open class DockerRunCommandLine private constructor(
         }
     }
 }
+
+/**
+ * Returns a [DockerRunCommandLine] that runs `this` [Executable]
+ * using the [DockerImage] built by [image]
+ * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.summary]).
+ */
+public fun Executable<Exec>.dockerized(options: Options = Options(), image: DockerImageInit): DockerRunCommandLine =
+    DockerRunCommandLine(DockerImage(image), options, toCommandLine(emptyMap(), null))
+
+/**
+ * Returns a [DockerRunCommandLine] that runs `this` [Executable]
+ * using the [DockerImage] built by [image]
+ * and the [Options] built by [options].
+ */
+public fun Executable<Exec>.dockerized(image: DockerImageInit, options: Init<OptionsContext>): DockerRunCommandLine =
+    DockerRunCommandLine(DockerImage(image), Options(options), toCommandLine(emptyMap(), null))
+
+/**
+ * Returns a [DockerRunCommandLine] that runs `this` [Executable]
+ * using the specified [image]
+ * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.summary]).
+ */
+public fun Executable<Exec>.dockerized(image: DockerImage, options: Options = Options()): DockerRunCommandLine =
+    DockerRunCommandLine(image, options, toCommandLine(emptyMap(), null))
+
+/**
+ * Returns a [DockerRunCommandLine] that runs `this` [Executable]
+ * using the specified [image]
+ * and the [Options] built by [options].
+ */
+public fun Executable<Exec>.dockerized(image: DockerImage, options: Init<OptionsContext>): DockerRunCommandLine =
+    DockerRunCommandLine(image, Options(options), toCommandLine(emptyMap(), null))

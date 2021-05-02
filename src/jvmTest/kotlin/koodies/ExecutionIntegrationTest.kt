@@ -4,12 +4,12 @@ import koodies.collections.size
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.error
 import koodies.concurrent.process.output
-import koodies.docker.DockerImage
+import koodies.docker.dockerized
 import koodies.exec.CommandLine
+import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState
 import koodies.exec.exitCode
-import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.tempDir
@@ -22,7 +22,6 @@ import koodies.logging.expectLogged
 import koodies.logging.expectThatLogged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
-import koodies.test.SystemIOExclusive
 import koodies.test.UniqueId
 import koodies.test.copyTo
 import koodies.test.withTempDir
@@ -34,6 +33,7 @@ import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
@@ -47,15 +47,15 @@ import strikt.assertions.length
 import kotlin.io.path.exists
 
 // TODO update readme.md
-@SystemIOExclusive
+// TODO check exec class docs
+@Isolated
 class ExecutionIntegrationTest {
 
     @Test
     fun `should process`() {
         // simply create a command line
         val commandLine = CommandLine("echo", "Hello, World!") check {
-            workingDirectory { isEqualTo(Locations.WorkingDirectory) }
-            commandLine { isEqualTo("echo \"Hello, World!\"") }
+            shellCommand { isEqualTo("echo \"Hello, World!\"") }
         }
 
         // and execute it
@@ -126,7 +126,6 @@ class ExecutionIntegrationTest {
                 ╭──╴countdown
                 │   
                 │   -> Executing {}
-                │   -> {}
                 │   -> Countdown!
                 │   -> 10
                 │   -> 9
@@ -143,6 +142,7 @@ class ExecutionIntegrationTest {
                 │   -> Process {} terminated successfully at {}
                 │
                 ╰──╴✔︎
+                {{}}
             """.trimIndent())
         }
     }
@@ -155,7 +155,7 @@ class ExecutionIntegrationTest {
             !"echo 'Countdown!'"
             (10 downTo 7).forEach { !"echo '$it'" }
             !"1>&2 echo 'Boom!'"
-            !"exit -1"
+            !"exit 1"
         }.exec.logging {
             block { border { Border.NONE } }
         } check {
@@ -163,7 +163,6 @@ class ExecutionIntegrationTest {
             io.ansiRemoved {
                 matchesCurlyPattern("""
                 Executing {}
-                📄 file://{}
                 Countdown!
                 10
                 9
@@ -171,13 +170,11 @@ class ExecutionIntegrationTest {
                 7
                 Boom!
                 Process $pid terminated with exit code $exitCode
-                📄 file://{}
                 ➜ A dump has been written to:
                   - {}koodies.dump.{}.log (unchanged)
-                  - {}koodies.dump.{}.no-ansi.log (ANSI escape/control sequences removed)
-                ➜ The last 10 lines are:
+                  - {}koodies.dump.{}.ansi-removed.log (ANSI escape/control sequences removed)
+                ➜ The last 8 lines are:
                   Executing {}
-                  📄 file://{}
                   Countdown!
                   10
                   9
@@ -185,7 +182,6 @@ class ExecutionIntegrationTest {
                   7
                   Boom!
                   Process $pid terminated with exit code $exitCode
-                {{}}
             """.trimIndent())
             }
         }
@@ -205,11 +201,8 @@ class ExecutionIntegrationTest {
             }
 
             this.ls().map { it.fileName } check {
-                size { isEqualTo(6) }
+                size { isEqualTo(1) }
                 this {
-                    any { toStringMatchesCurlyPattern("koodies.dump.{}.log") }
-                    any { toStringMatchesCurlyPattern("koodies.dump.{}.no-ansi.log") }
-                    any { toStringMatchesCurlyPattern("koodies.process.{}.sh") }
                     any { toStringMatchesCurlyPattern("sample.html") }
                 }
             }
@@ -232,10 +225,8 @@ class ExecutionIntegrationTest {
         }
 
         // How about running it in a container?
-        with(DockerImage { "ubuntu" }) {
-            commandLine.exec.dockerized() check {
-                (io.output.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
-            }
+        commandLine.dockerized { "ubuntu" }.exec() check {
+            (io.output.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
         }
     }
 
@@ -247,7 +238,7 @@ class ExecutionIntegrationTest {
     @Test
     fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
-        val executable: Executable = CommandLine(this, "echo", "test")
+        val executable: Executable<Exec> = CommandLine("echo", "test")
 
         with(executable) {
             logging("existing logging context") {

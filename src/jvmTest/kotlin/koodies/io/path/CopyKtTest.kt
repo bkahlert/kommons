@@ -3,7 +3,7 @@ package koodies.io.path
 import koodies.io.compress.TarArchiver.tar
 import koodies.io.file.isSiblingOf
 import koodies.io.file.lastModified
-import koodies.jvm.*
+import koodies.jvm.deleteOnExit
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.UniqueId
@@ -12,8 +12,6 @@ import koodies.test.withTempDir
 import koodies.time.minus
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectCatching
@@ -35,7 +33,6 @@ import kotlin.io.path.readBytes
 import kotlin.time.days
 import kotlin.time.seconds
 
-@Execution(CONCURRENT)
 class CopyKtTest {
 
     @Nested

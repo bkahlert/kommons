@@ -1,7 +1,7 @@
 package koodies.exception
 
-import koodies.io.path.asString
 import koodies.io.path.hasContent
+import koodies.io.path.pathString
 import koodies.io.path.randomPath
 import koodies.io.path.writeText
 import koodies.regex.RegularExpressions
@@ -110,7 +110,7 @@ class DumpKtTest {
         @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
-            expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }.single().hasContent("""
+            expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }.single().hasContent("""
                 ${"ansi".ansi.bold}
                 no ansi
             """.trimIndent())
@@ -119,7 +119,7 @@ class DumpKtTest {
         @Test
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
-            expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }.single().hasContent("""
+            expectThat(dumps).filter { it.pathString.endsWith("ansi-removed.log") }.single().hasContent("""
                 ansi
                 no ansi
             """.trimIndent())

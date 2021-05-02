@@ -393,7 +393,7 @@ class SmartRenderingLoggerKtTest {
                     │   │   line
                     │   │
                     │   ╰──╴✔︎
-                    │   ⌛️ {}
+                    │   ⏳️ {}
                     {{}}""".trimIndent())
             }
         }
@@ -411,7 +411,7 @@ class SmartRenderingLoggerKtTest {
                     ╭──╴{}
                     │   
                     │   test ✔︎
-                    │   ⌛️ {}
+                    │   ⏳️ {}
                     {{}}""".trimIndent())
             }
         }

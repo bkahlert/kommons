@@ -8,12 +8,12 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 public val cloneFileSupport: Boolean by lazy {
-    val file: Path = tempFile().apply {
+    val file: Path = Locations.Temp.resolve("com.bkahlert.koodies").tempFile().apply {
         writeText("cloneFile test")
         deleteOnExit(this)
     }
     val clone = deleteOnExit(file.resolveSibling("cloned"))
-    Runtime.getRuntime()?.exec(arrayOf("cp", "-c", file.asString(), clone.asString()))
+    Runtime.getRuntime()?.exec(arrayOf("cp", "-c", file.pathString, clone.pathString))
         ?.waitFor()
         ?.let { exitValue ->
             exitValue == 0 && clone.exists() && clone.readText() == "cloneFile test"
@@ -28,7 +28,7 @@ public val cloneFileSupport: Boolean by lazy {
 public fun Path.cloneTo(target: Path): Path {
     return if (cloneFileSupport) {
         if (target.exists()) throw fileAlreadyExists(this, target)
-        Runtime.getRuntime()?.exec(arrayOf("cp", "-c", asString(), target.asString()))?.waitFor()?.let { exitValue ->
+        Runtime.getRuntime()?.exec(arrayOf("cp", "-c", pathString, target.pathString))?.waitFor()?.let { exitValue ->
             check(exitValue == 0) { "Cloning failed with $exitValue" }
             target
         } ?: throw IllegalStateException("Error executing file cloning")
@@ -36,4 +36,3 @@ public fun Path.cloneTo(target: Path): Path {
         copyTo(target)
     }
 }
-

@@ -247,7 +247,7 @@ public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
     logLine { IO.Meta typed "Logging to" }
     logLine { "${Symbols.Document} ${path.toUri()}" }
     path.bufferedWriter().use { ansiLog ->
-        path.withExtension("no-ansi.${path.extension}").bufferedWriter().use { noAnsiLog ->
+        path.withExtension("ansi-removed.${path.extension}").bufferedWriter().use { noAnsiLog ->
             BlockRenderingLogger(caption.toString(), log = {
                 ansiLog.appendLine(it)
                 noAnsiLog.appendLine(it.ansiRemoved)

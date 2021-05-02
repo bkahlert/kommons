@@ -183,7 +183,7 @@ public fun Path.copyToDirectory(
  * E.g. `/a/b/c`'s 2 order duplication can be found at `/a/b-random/c`.
  */
 public fun Path.duplicate(order: Int = 1, suffix: String = "".withRandomSuffix(), vararg options: LinkOption): Path {
-    val sibling = resolveSibling(order) { resolveSibling(fileName.asString() + suffix) }
+    val sibling = resolveSibling(order) { resolveSibling(fileName.pathString + suffix) }
     return copyTo(sibling, options = options)
 }
 

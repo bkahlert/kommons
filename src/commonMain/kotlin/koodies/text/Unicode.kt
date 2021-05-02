@@ -305,6 +305,11 @@ public object Unicode {
         public val hourglass: Emoji = Emoji('⌛')
 
         /**
+         * [HOURGLASS WITH FLOWING SAND](https://codepoints.net/U+23F3) ⏳️ ⏳︎
+         */
+        public val hourglassWithFlowingSand: Emoji = Emoji('⏳')
+
+        /**
          * [BALLOT BOX](https://codepoints.net/U+2610) ☐️ ☐︎
          */
         public val ballotBox: Emoji = Emoji('☐')

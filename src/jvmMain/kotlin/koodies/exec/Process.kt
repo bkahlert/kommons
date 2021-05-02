@@ -5,7 +5,6 @@ import koodies.concurrent.process.IO
 import koodies.concurrent.process.IOSequence
 import koodies.exception.toCompactString
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ProcessState.Prepared
 import koodies.exec.Process.ProcessState.Running
 import koodies.exec.Process.ProcessState.Terminated
 import koodies.logging.ReturnValue
@@ -16,7 +15,10 @@ import koodies.time.Now
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
+import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 
 /**
  * Platform independent representation of a running program.
@@ -61,11 +63,6 @@ public interface Process : ReturnValue {
     public val pid: Long
 
     /**
-     * Starts the program represented by this process.
-     */
-    public fun start(): Process
-
-    /**
      * Representation of the state of a [Process].
      *
      * The types are distinguished (which may have more differentiated specializations):
@@ -92,13 +89,6 @@ public interface Process : ReturnValue {
                 null -> "async computation"
                 false -> status
             }
-
-        /**
-         * State of a process that has not started, yet.
-         */
-        public class Prepared(
-            status: String = "Process has not yet started.",
-        ) : ProcessState(status, null)
 
         /**
          * State of a process that already started but not terminated, yet.
@@ -267,13 +257,6 @@ public interface Process : ReturnValue {
 }
 
 /**
- * Returns whether `this` [Process] was started.
- *
- * Contrary to [alive] this property stays `true` even after the process terminated.
- */
-public val Process.started: Boolean get() = state !is Prepared
-
-/**
  * Returns whether `this` [Process] [isRunning].
  *
  * Contrary to [started] this property stays turns `false` again after the process terminated.
@@ -291,11 +274,47 @@ public val Process.isRunning: Boolean get() = state is Running
  * Returns `this` process's [ExitState.exitCode] if it terminated
  * or `null` otherwise.
  */
-public val Process.exitCodeOrNull: Int? get() = also { it.start() }.exitState?.exitCode
+public val Process.exitCodeOrNull: Int? get() = exitState?.exitCode
 
 /**
  * Returns `this` process's [ExitState.exitCode].
  *
  * Throws an [IllegalStateException] if the process has not terminated.
  */
-public val Process.exitCode: Int get() = also { it.start() }.exitState?.exitCode ?: throw ISE("Process $pid has not terminated.")
+public val Process.exitCode: Int get() = exitState?.exitCode ?: throw ISE("Process $pid has not terminated.")
+
+
+// PROCESS BUILDER EXTENSIONS
+
+/**
+ * Whether built [Process] instances redirect their standard error to standard output.
+ */
+public var ProcessBuilder.redirectErrorStream: Boolean
+    get() = redirectErrorStream()
+    set(value) {
+        redirectErrorStream(value)
+    }
+
+/**
+ * This process builder's environment;
+ * used by built [Process] instances as their environment.
+ */
+public val ProcessBuilder.environment: MutableMap<String, String>
+    get() = environment()
+
+/**
+ * This process builder's working directory;
+ * used by built [Process] instances as their working directory.
+ *
+ * If not working directory is set, the working directory of the current
+ * Java process is used (usually the directory named by the system property `user.dir`).
+ */
+public var ProcessBuilder.workingDirectory: Path?
+    get() = directory()?.toPath()
+    set(value) {
+        value?.toAbsolutePath()?.run {
+            require(exists()) { "Working directory $this does not exist." }
+            require(isDirectory()) { "Working directory $this is no directory." }
+            directory(toFile())
+        }
+    }

@@ -42,7 +42,7 @@ public fun Path.requireExists(vararg options: LinkOption) {
  * Throws if this [Path] does exist.
  */
 public fun Path.requireExistsNot(vararg options: LinkOption) {
-    if (exists(*options)) throw FileAlreadyExistsException(asString())
+    if (exists(*options)) throw FileAlreadyExistsException(pathString)
 }
 
 /**

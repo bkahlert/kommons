@@ -1,6 +1,6 @@
 package koodies.shell
 
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.mapCodePoints
@@ -8,7 +8,7 @@ import koodies.text.quoted
 import java.nio.file.Path
 
 public class FileOperations(private val shellScript: ShellScript, private val path: String) {
-    public constructor(shellScript: ShellScript, path: Path) : this(shellScript, path.asString())
+    public constructor(shellScript: ShellScript, path: Path) : this(shellScript, path.pathString)
 
     private val optionalLineSeparator = LineSeparators
         .map { lineSeparator -> lineSeparator.mapCodePoints { codePoint -> "N{U+" + codePoint.hexCode + "}" }.joinToString("") }

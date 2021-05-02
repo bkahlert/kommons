@@ -96,7 +96,7 @@ class InMemoryLoggerResolverNoDebugTest {
                     │   line
                     ╵
                     ╵
-                    ⌛️
+                    ⏳️
                 """.trimIndent())
             }
         }

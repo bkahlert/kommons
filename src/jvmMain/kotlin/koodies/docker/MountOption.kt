@@ -1,8 +1,8 @@
 package koodies.docker
 
 import koodies.io.path.asPath
-import koodies.io.path.asString
 import koodies.io.path.isSubPathOf
+import koodies.io.path.pathString
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.Borders.Rounded
 import koodies.text.styling.wrapWithBorder
@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 
 public data class MountOption(val source: HostPath, val target: ContainerPath, val type: String = "bind") :
     AbstractList<String>() {
-    private val list = listOf("--mount", "type=$type,source=${source.asString()},target=${target.asString()}")
+    private val list = listOf("--mount", "type=$type,source=${source.pathString},target=${target.asString()}")
 
     override val size: Int = list.size
     override fun get(index: Int): String = list[index]
@@ -24,7 +24,7 @@ public data class MountOption(val source: HostPath, val target: ContainerPath, v
 
     public fun mapToContainerPath(hostPath: HostPath): ContainerPath {
         require(hostPath.isSubPathOf(source)) { "$hostPath is not mapped by $source" }
-        val relativePath = hostPath.relativeTo(source).asString()
+        val relativePath = hostPath.relativeTo(source).pathString
         return target.resolve(relativePath)
     }
 }
@@ -76,7 +76,7 @@ public inline class ContainerPath(private val containerPath: Path) {
         }
 
     public fun relativeTo(baseContainerPath: ContainerPath): String =
-        absolutePath.relativeTo(baseContainerPath.absolutePath).asString()
+        absolutePath.relativeTo(baseContainerPath.absolutePath).pathString
 
     public fun isSubPathOf(baseContainerPath: ContainerPath): Boolean =
         absolutePath.isSubPathOf(baseContainerPath.absolutePath)
@@ -90,7 +90,7 @@ public inline class ContainerPath(private val containerPath: Path) {
     public fun mapToHostPath(mountOptions: MountOptions): HostPath /* = java.nio.file.Path */ =
         mountOptions.mapToHostPath(this)
 
-    public fun asString(): String = absolutePath.asString()
+    public fun asString(): String = absolutePath.pathString
 
     override fun toString(): String = asString()
 }

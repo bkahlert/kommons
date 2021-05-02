@@ -2,9 +2,9 @@ package koodies.test
 
 import koodies.io.file.quoted
 import koodies.io.noSuchFile
-import koodies.io.path.asString
 import koodies.io.path.copyTo
 import koodies.io.path.copyToDirectory
+import koodies.io.path.pathString
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeBytes
 import koodies.io.useClassPath
@@ -25,7 +25,7 @@ import kotlin.io.path.readBytes
  * @see ClassPathFileFixture
  */
 public open class ClassPathFixture(public val path: String) : Fixture {
-    override val name: String by lazy { Path.of(path).fileName.asString() }
+    override val name: String by lazy { Path.of(path).fileName.pathString }
     override val data: ByteArray by lazy { useClassPath(path) { readBytes() } ?: throw noSuchFile(path) }
 }
 
@@ -58,7 +58,7 @@ public open class ClassPathFileFixture(path: String) : ClassPathFixture(path) {
 
 public fun Fixture.copyTo(target: Path): Path = when (this) {
     is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyTo(target))
-    else -> target.writeBytes(data)
+    else -> target.withDirectoriesCreated().writeBytes(data)
 } ?: error("Error copying ${name.quoted} to ${target.quoted}")
 
 public fun Fixture.copyToDirectory(target: Path): Path = when (this) {

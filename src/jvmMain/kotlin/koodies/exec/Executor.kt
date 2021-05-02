@@ -33,41 +33,35 @@ public data class Executor<E : Exec>(
      * Instance of what will be executed as soon as [invoke]
      * is called.
      */
-    public val executable: Executable,
-
-    /**
-     * Factory responsible to provide an [Exec] of type [E]
-     * that executes the [executable].
-     */
-    public val execFactory: ExecFactory<E>,
+    protected val executable: Executable<E>,
 
     /**
      * Whether standard error is redirected to standard output during execution.
      */
-    public val redirectErrorStream: Boolean = false,
+    private val redirectErrorStream: Boolean = false,
 
     /**
      * The environment to be exposed to the [Exec] during execution.
      */
-    public val environment: Map<String, String> = emptyMap(),
+    private val environment: Map<String, String> = emptyMap(),
 
     /**
      * Logger used to log the execution of [executable]
      * (default: `null`; no logging).
      */
-    public val logger: RenderingLogger? = null,
+    private val logger: RenderingLogger? = null,
 
     /**
      * Caption used if the execution is [logging]
      * (default: [Executable.summary]; only applies if a [logger] is set).
      */
-    public val caption: String = executable.summary,
+    private val caption: String = executable.summary,
 
     /**
      * Options applied if the execution is [logging]
      * (default: [SmartLoggingOptions]; only applies if a [logger] is set).
      */
-    public val loggingOptions: LoggingOptions? = logger?.let { SmartLoggingOptions() },
+    private val loggingOptions: LoggingOptions? = logger?.let { SmartLoggingOptions() },
 
     /**
      * Mode that defines if the execution will be synchronous
@@ -75,18 +69,18 @@ public data class Executor<E : Exec>(
      * [Exec]'s [IO] is to be processed non-blocking
      * (default: synchronous execution).
      */
-    public val processingMode: ProcessingMode = ProcessingMode { sync },
+    private val processingMode: ProcessingMode = ProcessingMode { sync },
 
     /**
      * Processor used to interactively handle the [Exec]'s [IO]
      * (default: no specific handling; the [IO] is only processed to be made available
      * by [Exec.io]).
      */
-    public val processor: Processor<Exec>? = null,
+    private val processor: Processor<E>? = null,
 ) {
-    @Suppress("UNCHECKED_CAST")
-    public fun <T : E> with(execFactory: ExecFactory<T>): Executor<T> =
-        copy(execFactory = execFactory) as Executor<T>
+
+    public fun env(key: String, value: String): Executor<E> =
+        copy(environment = environment.plus(key to value))
 
     /**
      * Executes the [executable] with the current configuration.
@@ -103,8 +97,7 @@ public data class Executor<E : Exec>(
             ?.newLogger(logger, caption)
             ?: MutedRenderingLogger()
 
-        val commandLine: CommandLine = executable.toCommandLine()
-        val exec: E = execFactory.toProcess(redirectErrorStream, environment, workingDirectory, commandLine, execTerminationCallback)
+        val exec: E = executable.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 
         when (processingMode.synchronicity) {
             Sync -> processLogger.runLogging {
@@ -120,19 +113,19 @@ public data class Executor<E : Exec>(
     }
 
     /**
-     * Executes the [executable] by logging all [IO] using the given [parentLogger],
+     * Executes the [executable] by logging all [IO] using the given [logger],
      * the [LoggingOptions] built by means of the optional [loggingOptions].
      *
      * @param workingDirectory the working directory to be used during execution
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
      */
     public fun logging(
-        parentLogger: RenderingLogger = this.logger ?: BACKGROUND,
+        logger: RenderingLogger = this.logger ?: BACKGROUND,
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptions: Init<LoggingOptionsContext> = { smart },
     ): E = copy(
-        logger = parentLogger,
+        logger = logger,
         loggingOptions = LoggingOptions.build(loggingOptions),
     ).invoke(workingDirectory, execTerminationCallback)
 
@@ -148,7 +141,7 @@ public data class Executor<E : Exec>(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptionsInit: Init<LoggingOptionsContext> = { smart },
-        processor: Processor<Exec>,
+        processor: Processor<E>,
     ): E = copy(
         logger = parentLogger,
         loggingOptions = LoggingOptions.build(loggingOptionsInit),
@@ -179,7 +172,7 @@ public annotation class ExecutionDsl
  * provided by [Exec].
  */
 @ExecutionDsl
-public interface Executable {
+public interface Executable<out E : Exec> {
 
     /**
      * Brief description of that this executable is doing.
@@ -187,9 +180,30 @@ public interface Executable {
     public val summary: String
 
     /**
-     * Creates a [CommandLine] that is able to run [Executable].
+     * Creates a [CommandLine] to run this executable.
+     *
+     * @param environment the environment to be exposed to the [Exec] during execution
+     * @param workingDirectory the working directory to be used during execution
      */
-    public fun toCommandLine(): CommandLine
+    public fun toCommandLine(
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+    ): CommandLine
+
+    /**
+     * Creates a [Exec] to run this executable.
+     *
+     * @param redirectErrorStream whether standard error is redirected to standard output during execution
+     * @param environment the environment to be exposed to the [Exec] during execution
+     * @param workingDirectory the working directory to be used during execution
+     * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
+     */
+    public fun toExec(
+        redirectErrorStream: Boolean,
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+        execTerminationCallback: ExecTerminationCallback?,
+    ): E
 
     /**
      * Executor that allows to execute this [Executable]
@@ -198,7 +212,7 @@ public interface Executable {
      * 2. [Executor.logging] executes the [Executable] and logs the execution with the configured [Executor.logger].
      * 3. [Executor.processing] executes the [Executable] by passing the [Exec]'s [IO] to the configured [Executor.processor].
      */
-    public val exec: Executor<Exec> get() = Executor(this, ExecFactory.NATIVE)
+    public val exec: Executor<out E> get() = Executor(this)
 
     /**
      * Executor that allows to execute this [Executable] [Executor.logging]
@@ -206,5 +220,5 @@ public interface Executable {
      *
      * @see exec
      */
-    public val <T : RenderingLogger> T?.logging: Executor<Exec> get() = Executor(this@Executable, ExecFactory.NATIVE, logger = this)
+    public val <T : RenderingLogger> T?.logging: Executor<out E> get() = Executor(this@Executable, logger = this)
 }

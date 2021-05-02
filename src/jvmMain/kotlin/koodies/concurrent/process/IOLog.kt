@@ -90,9 +90,9 @@ public class IOLog : Sequence<IO> {
     public fun dump(): String = merge<IO>(removeEscapeSequences = false)
 
     /**
-     * Dumps the logged I/O log in the specified [directory] using the name scheme `koodies.process.{PID}.{RANDOM}.log".
+     * Dumps the logged I/O log in the specified [directory] using the name scheme `koodies.exec.{PID}.{RANDOM}.log".
      */
-    public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.process.$pid.log")) { dump() }
+    public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("koodies.exec.$pid.log")) { dump() }
 
     override fun toString(): String = asString {
         Symbols.OK to joinToString { it.truncate() }

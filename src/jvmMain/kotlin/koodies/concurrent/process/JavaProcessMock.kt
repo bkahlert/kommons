@@ -3,13 +3,13 @@ package koodies.concurrent.process
 import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.debug.asEmoji
 import koodies.debug.debug
+import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.MetaStream
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.Process.ExitState.Success
 import koodies.exec.Process.ProcessState
-import koodies.exec.Process.ProcessState.Prepared
 import koodies.exec.Process.ProcessState.Running
 import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
@@ -20,6 +20,7 @@ import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.Semantics.Symbols
 import koodies.text.takeUnlessEmpty
 import koodies.time.Now
 import koodies.time.sleep
@@ -32,8 +33,6 @@ import java.io.OutputStream
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.milliseconds
@@ -150,33 +149,22 @@ public open class JavaProcessMock(
     public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
 }
 
+@Deprecated("use Exec")
 public open class ExecMock(public val processMock: JavaProcessMock, public val name: String? = null) : Exec {
 
-    override val pid: Long by lazy { startImplicitly().pid() }
-    private var javaProcess: java.lang.Process? = null
-    private val startLock = ReentrantLock()
-    override fun start(): Exec {
-        if (javaProcess != null) return this
-        startLock.withLock {
-            if (javaProcess != null) return this
-            javaProcess = processMock
-            state = Running(12345L)
-        }
-        return this
-    }
+    private var javaProcess: java.lang.Process = processMock
+    override val pid: Long get() = javaProcess.pid()
 
-    private fun startImplicitly(): java.lang.Process = run { start(); javaProcess!! }
-
-    override val exitValue: Int get() = javaProcess?.exitValue() ?: throw IllegalStateException("Process not running.")
     override fun waitFor(): ExitState = exitState ?: onExit.join()
-    override fun stop(): Exec = also { javaProcess?.destroy() }
-    override fun kill(): Exec = also { javaProcess?.destroyForcibly() }
+    override fun stop(): Exec = also { javaProcess.destroy() }
+    override fun kill(): Exec = also { javaProcess.destroyForcibly() }
 
     public var logger: RenderingLogger = processMock.logger
 
     override val workingDirectory: Path? = Locations.Temp
+    override val commandLine: CommandLine = CommandLine("echo", "just a mock")
 
-    override var state: ProcessState = Prepared()
+    override var state: ProcessState = Running(12345L)
         protected set
 
     override var exitState: ExitState? = null
@@ -193,11 +181,11 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
                 // therefore we delay here
                 1.milliseconds.sleep { io.input + it }
             },
-            startImplicitly().outputStream,
+            javaProcess.outputStream,
         )
     }
-    override val outputStream: InputStream by lazy { startImplicitly().inputStream }
-    override val errorStream: InputStream by lazy { startImplicitly().errorStream }
+    override val outputStream: InputStream by lazy { javaProcess.inputStream }
+    override val errorStream: InputStream by lazy { javaProcess.errorStream }
 
     private val preTerminationCallbacks = mutableListOf<Exec.() -> Unit>()
     override fun addPreTerminationCallback(callback: Exec.() -> Unit): Exec = also { preTerminationCallbacks.add(callback) }
@@ -206,32 +194,23 @@ public open class ExecMock(public val processMock: JavaProcessMock, public val n
     override fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec = also { postTerminationCallbacks.add(callback) }
 
     private val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {
-        val p = start()
-        preTerminationCallbacks.runCatching { p }.exceptionOrNull()
+        preTerminationCallbacks.runCatching { this }.exceptionOrNull()
         processMock.onExit().thenApply {
             Success(12345L, io).also { state = it }
-                .also { term -> postTerminationCallbacks.forEach { p.it(term) } }
+                .also { term -> postTerminationCallbacks.forEach { it(term) } }
         }
     }
 
-    override val successful: Boolean? get() = kotlin.runCatching { startImplicitly().exitValue() }.fold({ true }, { null })
+    override val successful: Boolean? get() = kotlin.runCatching { javaProcess.exitValue() }.fold({ true }, { null })
     override val onExit: CompletableFuture<out ExitState> get() = cachedOnExit
 
     override fun toString(): String {
-        val delegateString =
-            if (javaProcess != null) "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful.asEmoji}"
-            else "not yet started"
-        val string = "${this::class.simpleName ?: "object"}(delegate=$delegateString, started=${(javaProcess != null).asEmoji})"
+        val delegateString = "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Symbols.Computation}"
+        val string = "${this::class.simpleName ?: "object"}(delegate=$delegateString)".substringBeforeLast(")")
         return string.takeUnless { name != null } ?: string.substringBeforeLast(")") + ", name=$name)"
     }
 
     public companion object {
-        public val PREPARED_MANAGED_PROCESS: ExecMock
-            get() = object : ExecMock(JavaProcessMock.SUCCEEDED_PROCESS) {
-                override var state: ProcessState = Prepared()
-                override val onExit: CompletableFuture<out ExitState> get() = completedFuture(Any() as ExitState)
-                override val successful: Boolean? = null
-            }
         public val RUNNING_MANAGED_PROCESS: ExecMock
             get() = object : ExecMock(JavaProcessMock.RUNNING_PROCESS) {
                 override var state: ProcessState = Running(12345L)

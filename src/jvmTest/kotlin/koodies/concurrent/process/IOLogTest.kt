@@ -2,7 +2,7 @@ package koodies.concurrent.process
 
 import koodies.concurrent.process.IO.Meta
 import koodies.exec.CommandLine
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import koodies.io.path.text
 import koodies.io.path.writeText
 import koodies.jvm.daemon
@@ -87,7 +87,7 @@ class IOLogTest {
 
         @Test
         fun `should throw if IO could not be dumped`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val logPath = resolve("koodies.process.123.log").writeText("already exists")
+            val logPath = resolve("koodies.exec.123.log").writeText("already exists")
             logPath.toFile().setReadOnly()
             expectCatching { ioLog.dump(this, 123) }.isFailure().isA<IOException>()
             logPath.toFile().setWritable(true)
@@ -96,7 +96,7 @@ class IOLogTest {
         @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
-            expectThat(dumps).filter { !it.asString().endsWith("no-ansi.log") }
+            expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }
                 .single().text
                 .containsEscapeSequences()
                 .toStringIsEqualTo("""
@@ -112,7 +112,7 @@ class IOLogTest {
         @Test
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
-            expectThat(dumps).filter { it.asString().endsWith("no-ansi.log") }
+            expectThat(dumps).filter { it.pathString.endsWith("ansi-removed.log") }
                 .single().text
                 .not { containsEscapeSequences() }
                 .toStringIsEqualTo("""

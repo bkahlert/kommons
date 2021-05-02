@@ -10,7 +10,7 @@ import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.Exec
-import koodies.exec.Executor
+import koodies.exec.Executable
 import koodies.exec.Process.ExitState
 import koodies.exec.parse
 import koodies.logging.FixedWidthRenderingLogger
@@ -143,27 +143,27 @@ public open class DockerImage(
         }.waitFor()
 
     /**
-     * Returns an [Executor] that runs `this` executor's [Executor.executable]
+     * Returns a [DockerRunCommandLine] that runs `this` [Executable]
      * using `this` [DockerImage]
-     * and default options [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executor.executable].
+     * and default options [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executable.summary].
      */
-    public val Executor<Exec>.dockerized: Executor<DockerExec>
+    public val Executable<Exec>.dockerized: DockerRunCommandLine
         get() = dockerized(this@DockerImage)
 
     /**
-     * Returns an [Executor] that runs `this` executor's [Executor.executable]
+     * Returns a [DockerRunCommandLine] that runs `this` [Executable]
      * using `this` [DockerImage]
      * and the specified [options].
      */
-    public fun Executor<Exec>.dockerized(options: Options): Executor<DockerExec> =
+    public fun Executable<Exec>.dockerized(options: Options): DockerRunCommandLine =
         dockerized(this@DockerImage, options)
 
     /**
-     * Returns an [Executor] that runs `this` executor's [Executor.executable]
+     * Returns a [DockerRunCommandLine] that runs `this` [Executable]
      * using `this` [DockerImage]
      * and the [Options] built by [options].
      */
-    public fun Executor<Exec>.dockerized(options: Init<OptionsContext>): Executor<DockerExec> =
+    public fun Executable<Exec>.dockerized(options: Init<OptionsContext>): DockerRunCommandLine =
         dockerized(this@DockerImage, Options(options))
 
     private val string by lazy { repoAndPath.joinToString("/") + specifier }
