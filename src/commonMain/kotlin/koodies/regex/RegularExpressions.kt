@@ -117,7 +117,7 @@ public operator fun Regex.plus(literal: String): Regex = this + Regex(literal)
  * If a [name] is specified, a named group (e.g. `(?<name>abc)` is returned.
  *
  * If no [name] is specified **and** `this` regex is not already grouped,
- * an anonymous group (e.g. `(?:abc)`) is returned.
+ * an anonymous/non-capturing group (e.g. `(?:abc)`) is returned.
  *
  * In other words: No unnecessary brackets are added.
  */

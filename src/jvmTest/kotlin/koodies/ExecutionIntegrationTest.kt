@@ -25,7 +25,6 @@ import koodies.test.HtmlFile
 import koodies.test.UniqueId
 import koodies.test.copyTo
 import koodies.test.withTempDir
-import koodies.text.ANSI
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
@@ -115,7 +114,7 @@ class ExecutionIntegrationTest {
                 val arrow = "->".red()
                 caption { "countdown" }
                 contentFormatter { Formatter { "$arrow $it" } }
-                decorationFormatter { ANSI.Colors.brightRed }
+                decorationFormatter { Colors.brightRed }
                 border = SOLID
             }
         }
@@ -124,7 +123,7 @@ class ExecutionIntegrationTest {
             expectLogged.toStringMatchesCurlyPattern("""
                 {{}}
                 ╭──╴countdown
-                │   
+                │
                 │   -> Executing {}
                 │   -> Countdown!
                 │   -> 10

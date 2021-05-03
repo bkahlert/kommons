@@ -16,13 +16,16 @@ import koodies.text.LineSeparators.PS
 import koodies.text.LineSeparators.REGEX
 import koodies.text.LineSeparators.firstLineSeparator
 import koodies.text.LineSeparators.firstLineSeparatorLength
+import koodies.text.LineSeparators.hasLeadingLineSeparator
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.isMultiline
+import koodies.text.LineSeparators.leadingLineSeparator
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.trailingLineSeparator
 import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withTrailingLineSeparator
+import koodies.text.LineSeparators.withoutLeadingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -141,6 +144,17 @@ class LineSeparatorsTest {
     fun `each line separator`() = LineSeparators.testEach { lineSeparator ->
         asserting { isEqualTo(lineSeparator) }
 
+
+        expecting { "${lineSeparator}line".leadingLineSeparator } that { isEqualTo(lineSeparator) }
+        expecting { "X${lineSeparator}line".leadingLineSeparator } that { isNullOrEmpty() }
+
+        expecting { "${lineSeparator}line".hasLeadingLineSeparator } that { isTrue() }
+        expecting { "X${lineSeparator}line".hasLeadingLineSeparator } that { isFalse() }
+
+        expecting { "${lineSeparator}line".withoutLeadingLineSeparator } that { isEqualTo("line") }
+        expecting { "X${lineSeparator}line".withoutLeadingLineSeparator } that { isEqualTo("X${lineSeparator}line") }
+
+
         expecting { "line$lineSeparator".trailingLineSeparator } that { isEqualTo(lineSeparator) }
         expecting { "line${lineSeparator}X".trailingLineSeparator } that { isNullOrEmpty() }
 
@@ -149,6 +163,7 @@ class LineSeparatorsTest {
 
         expecting { "line$lineSeparator".withoutTrailingLineSeparator } that { isEqualTo("line") }
         expecting { "line${lineSeparator}X".withoutTrailingLineSeparator } that { isEqualTo("line${lineSeparator}X") }
+
 
         group("firstLineSeparatorAndLength") {
             group("should return first line separator if present") {

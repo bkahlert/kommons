@@ -131,9 +131,25 @@ public object LineSeparators : Collection<String> {
         fold(charSequence.toString()) { acc, sep -> acc.replace(sep, LF) }
 
     /**
+     * If this [CharSequence] starts with one of the [LineSeparators] this property includes it.
+     */
+    public val CharSequence.leadingLineSeparator: String? get() :String? = ALL.firstOrNull { startsWith(it) }
+
+    /**
+     * If this [CharSequence] starts with one of the [LineSeparators] this property is `true`.
+     */
+    public val CharSequence.hasLeadingLineSeparator: Boolean get() = leadingLineSeparator != null
+
+    /**
+     * If this [String] starts with one of the [LineSeparators] this property contains this [String] without it.
+     */
+    public val String.withoutLeadingLineSeparator: String
+        get() = (this as CharSequence).leadingLineSeparator?.let { lineBreak -> removePrefix(lineBreak) } ?: this
+
+    /**
      * If this [CharSequence] ends with one of the [LineSeparators] this property includes it.
      */
-    public val CharSequence.trailingLineSeparator: String? get() :String? = ALL.firstOrNull { this.endsWith(it) }
+    public val CharSequence.trailingLineSeparator: String? get() :String? = ALL.firstOrNull { endsWith(it) }
 
     /**
      * If this [CharSequence] ends with one of the [LineSeparators] this property is `true`.

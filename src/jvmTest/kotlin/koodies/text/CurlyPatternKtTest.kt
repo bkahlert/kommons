@@ -176,6 +176,68 @@ class CurlyPatternKtTest {
     fun `should unify whitespace`() {
         expectThat("A B C").toStringMatchesCurlyPattern("A {} C")
     }
+
+    @TestFactory
+    fun `should match leading line breaks with multi-line placeholder`() = test("""
+            a
+            b
+            c
+        """.trimIndent()) {
+
+        asserting {
+            matchesCurlyPattern("""
+                                    {{}}a
+                                    b
+                                    c
+                                """.trimIndent())
+        }
+
+        asserting {
+            matchesCurlyPattern("""
+                                    {{}}
+                                    a
+                                    b
+                                    c
+                                """.trimIndent())
+        }
+    }
+
+    @TestFactory
+    fun `should match trailing line breaks with multi-line placeholder`() = test("""
+            a
+            b
+            c
+        """.trimIndent()) {
+
+        asserting {
+            matchesCurlyPattern("""
+                                    a
+                                    b
+                                    c{{}}
+                                """.trimIndent())
+        }
+
+        asserting {
+            matchesCurlyPattern("""
+                                    a
+                                    b
+                                    c
+                                    {{}}
+                                """.trimIndent())
+        }
+    }
+
+    @Test
+    fun `should right trim spaces on each line`() {
+        // first line has trailing whitespaces
+        expectThat("""
+            │   
+            │
+        """.trimIndent()).matchesCurlyPattern("""
+                    │
+                    │   
+                """.trimIndent()) // second line has trailing whitespaces
+    }
 }
 
 fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
@@ -183,6 +245,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     removeTrailingBreak: Boolean = true,
     removeEscapeSequences: Boolean = true,
     unifyWhitespaces: Boolean = true,
+    trimEnd: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
     ignoreTrailingLines: Boolean = false,
 ): Assertion.Builder<T> = assert(if (curlyPattern.isMultiline) "matches curly pattern\n$curlyPattern" else "matches curly pattern $curlyPattern") { actual ->
@@ -191,6 +254,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
         removeTrailingBreak to { s: String -> s.withoutTrailingLineSeparator },
         removeEscapeSequences to { s: String -> s.ansiRemoved },
         unifyWhitespaces to { s: String -> Whitespaces.unify(s) },
+        trimEnd to { s: String -> s.mapLines { it.trimEnd() } },
         trimmed to { s: String -> s.trim() },
     )
     var processedActual = preprocessor("$actual")
@@ -224,7 +288,11 @@ fun <T> Assertion.Builder<T>.toStringMatchesCurlyPattern(
     removeEscapeSequences: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
     ignoreTrailingLines: Boolean = false,
-): Assertion.Builder<String> = get { toString() }.matchesCurlyPattern(expected, removeTrailingBreak, removeEscapeSequences, trimmed, ignoreTrailingLines)
+): Assertion.Builder<String> = get { toString() }.matchesCurlyPattern(expected,
+    removeTrailingBreak,
+    removeEscapeSequences,
+    trimmed,
+    trimmed = ignoreTrailingLines)
 
 private fun String.highlightTooManyLinesTo(other: String): String {
     val lines = lines()

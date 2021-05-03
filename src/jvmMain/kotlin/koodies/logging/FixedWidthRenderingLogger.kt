@@ -40,17 +40,15 @@ public abstract class FixedWidthRenderingLogger(
         SOLID {
             override fun prefix(formatter: Formatter?): String = formatter.invoke("│").toString() + "   "
 
-            override fun header(caption: String, formatter: Formatter?): String {
-                val prefix = prefix(formatter)
-                return koodies.builder.buildList {
+            override fun header(caption: String, formatter: Formatter?): String =
+                koodies.builder.buildList {
                     val captionLines = caption.asAnsiString().lines()
                     +(formatter("╭──╴").toString() + formatter(captionLines.first()).ansi.bold)
                     captionLines.drop(1).forEach {
                         +"${prefix(formatter)}${formatter(it).ansi.bold}"
                     }
-                    +prefix
+                    +formatter.invoke("│").toString()
                 }.joinToString(LF)
-            }
 
             override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String {
                 val formatted = resultValueFormatter(returnValue)

@@ -3,7 +3,7 @@ package filepeek
 import koodies.collections.head
 import koodies.collections.tail
 import koodies.io.path.asPath
-import koodies.io.path.asString
+import koodies.io.path.pathString
 import koodies.text.LineSeparators.LF
 import koodies.text.joinToCamelCase
 import koodies.text.withSuffix
@@ -21,10 +21,10 @@ data class FileInfo(
 )
 
 private val FS = File.separator
-private fun path(vararg pathElements: String): String = pathElements.joinToString(FS)
+private fun path(vararg pathElements: String): String = pathElements.joinToString(FS) // TODO delete
 private fun Path.contains(other: Path): Boolean =
-    other.map { it.asString() }.let { otherStrings ->
-        map { it.asString() }.windowed(otherStrings.size).contains(otherStrings)
+    other.map { it.pathString }.let { otherStrings ->
+        map { it.pathString }.windowed(otherStrings.size).contains(otherStrings)
     }
 
 class FilePeek2(
@@ -53,11 +53,11 @@ class FilePeek2(
         }
 
         val buildDir: Path = classesToSourceMappings.firstOrNull { classesDirectory.contains(it) } ?: error("Unknown build directory structure")
-        val sourceDir = classesDirectory.asString().split(buildDir.asString(), limit = 2).run {
+        val sourceDir = classesDirectory.pathString.split(buildDir.pathString, limit = 2).run {
             val sourceRoot = first().asPath().resolve("src")
             val suffix = last().asPath()
-            val lang = suffix.head.asString()
-            val sourceDir = suffix.map { it.asString() }.tail.joinToCamelCase()
+            val lang = suffix.head.pathString
+            val sourceDir = suffix.map { it.pathString }.tail.joinToCamelCase()
             sourceRoot.resolve(sourceDir).resolve(lang)
         }
 
@@ -90,7 +90,7 @@ class FilePeek2(
 
         return FileInfo(
             lineNumber,
-            sourceFileName = sourceFile.asString(),
+            sourceFileName = sourceFile.pathString,
             line = callerLine.trim(),
             methodName = stackTraceElement.methodName
         )
