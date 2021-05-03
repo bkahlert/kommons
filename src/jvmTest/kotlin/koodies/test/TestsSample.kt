@@ -3,8 +3,6 @@ package koodies.test
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.assertions.contains
 import strikt.assertions.hasLength
 import strikt.assertions.isA
@@ -28,7 +26,6 @@ class TestsSample {
         expecting { length } that { isGreaterThan(5) }
         expecting { length }
             .that { isGreaterThan(5) }
-        expectCatching { length }
         expectCatching { length } that { isSuccess() }
         expectThrows<RuntimeException> { throw RuntimeException() }
         expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
@@ -42,7 +39,6 @@ class TestsSample {
         expecting { "subject".length } that { isGreaterThan(5) }
         expecting { "subject".length }
             .that { isGreaterThan(5) }
-        expectCatching { "subject".length }
         expectCatching { "subject".length } that { isSuccess() }
         expectThrows<RuntimeException> { throw RuntimeException() }
         expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
@@ -68,7 +64,6 @@ class TestsSample {
 
                 asserting { isEqualTo("subject") }
                 expecting { length } that { isGreaterThan(5) }
-                expectCatching { length }
                 expectCatching { length } that { isSuccess() }
                 expectThrows<RuntimeException> { throw RuntimeException() }
                 expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
@@ -78,7 +73,6 @@ class TestsSample {
 
                 asserting { isEqualTo("tcejbus") }
                 expecting { length } that { isGreaterThan(5) }
-                expectCatching { length }
                 expectCatching { length } that { isSuccess() }
                 expectThrows<RuntimeException> { throw RuntimeException() }
                 expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }

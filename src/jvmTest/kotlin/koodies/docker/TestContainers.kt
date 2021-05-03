@@ -17,6 +17,7 @@ import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.UniqueId.Companion.id
+import koodies.test.store
 import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
@@ -25,8 +26,6 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace
-import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
@@ -143,9 +142,8 @@ class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), Af
 
     override fun afterEach(context: ExtensionContext) = context.load()?.release() ?: Unit
 
-    private fun ExtensionContext.load(): TestContainers? = store().get(element, TestContainers::class.java)
-    private fun ExtensionContext.save(testContainers: TestContainers): Unit = store().put(element, testContainers)
-    private fun ExtensionContext.store(): Store = getStore(Namespace.create(ContainersTestExtension::class.java))
+    private fun ExtensionContext.load(): TestContainers? = store<ContainersTestExtension>().get(element, TestContainers::class.java)
+    private fun ExtensionContext.save(testContainers: TestContainers): Unit = store<ContainersTestExtension>().put(element, testContainers)
 }
 
 /**

@@ -21,6 +21,7 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
+import koodies.text.quoted
 import koodies.text.toByteArray
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -60,6 +61,15 @@ class ShellScriptTest {
             exit 42
 
         """.trimIndent())
+    }
+
+    @Test
+    fun `should build trim indent content`() {
+        expectThat(ShellScript {
+            """
+            echo "👈 no padding"
+            """
+        }.build()).isEqualTo("echo ${"👈 no padding".quoted}$LF")
     }
 
     @TestFactory

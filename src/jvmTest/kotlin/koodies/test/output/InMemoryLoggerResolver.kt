@@ -13,14 +13,13 @@ import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
 import koodies.runtime.onExit
 import koodies.test.Verbosity.Companion.isVerbose
+import koodies.test.store
 import koodies.test.testName
 import koodies.text.ANSI.Formatter
 import koodies.text.styling.wrapWithBorder
 import koodies.unit.bytes
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace.create
-import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 import java.io.OutputStream
@@ -134,7 +133,7 @@ class TestLogger(
      * Stores a reference to `this` logger in the given [extensionContext].
      */
     private fun saveTo(extensionContext: ExtensionContext): TestLogger =
-        also { extensionContext.store().put(extensionContext.element, this) }
+        also { extensionContext.store<InMemoryLoggerResolver>().put(extensionContext.element, this) }
 
     @Suppress("UNCHECKED_CAST")
     override fun <R> logResult(block: () -> Result<R>): R =
@@ -153,11 +152,10 @@ class TestLogger(
 }
 
 /**
- * Returns a [ExtensionContext.Store] with a [InMemoryLoggerResolver] namespace.
+ * Logs an eventually stored test result.
  */
-private fun ExtensionContext.store(): Store = getStore(create(InMemoryLoggerResolver::class.java))
 fun ExtensionContext.logTestResult() {
-    store().get(element, TestLogger::class.java)?.logTestResult(this)
+    store<InMemoryLoggerResolver>().get(element, TestLogger::class.java)?.logTestResult(this)
 }
 
 /**
@@ -165,7 +163,7 @@ fun ExtensionContext.logTestResult() {
  * is the case if an [InMemoryLogger] was requested by specifying
  * a test parameter of that type—or `null` otherwise.
  */
-val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store().get(element, TestLogger::class.java)
+val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store<InMemoryLoggerResolver>().get(element, TestLogger::class.java)
 
 /**
  * Logs the given [block] in a new span with the active test logger if any.
