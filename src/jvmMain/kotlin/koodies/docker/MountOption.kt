@@ -29,7 +29,7 @@ public data class MountOption(val source: HostPath, val target: ContainerPath, v
     }
 }
 
-@DockerCommandLineDsl
+
 public abstract class MountOptionContext<T>(
     protected val buildErrors: MutableList<String>,
 ) {

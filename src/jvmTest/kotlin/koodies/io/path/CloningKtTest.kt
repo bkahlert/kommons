@@ -6,8 +6,6 @@ import koodies.text.withRandomSuffix
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -15,7 +13,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
-
 
 class CloningKtTest {
 

@@ -38,7 +38,7 @@ public open class DockerImagePullCommandLine(
         if (allTags) add("--all-tags")
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            @DockerCommandLineDsl
+            
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * 	Download all tagged images in the repository
@@ -56,7 +56,7 @@ public open class DockerImagePullCommandLine(
         /**
          * Context for building a [DockerImagePullCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
             public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage

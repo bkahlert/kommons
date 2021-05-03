@@ -36,7 +36,7 @@ public open class DockerImageRemoveCommandLine(
         if (force) add("--force")
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * Force removal of the image
@@ -54,7 +54,7 @@ public open class DockerImageRemoveCommandLine(
         /**
          * Context for building a [DockerImagePullCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
             public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage

@@ -54,7 +54,7 @@ public open class DockerSearchCommandLine(
             /**
              * Context for building [Options].
              */
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
@@ -101,7 +101,7 @@ public open class DockerSearchCommandLine(
         /**
          * Context for building a [DockerSearchCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
 
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options

@@ -39,7 +39,7 @@ public open class DockerImageListCommandLine(
         if (all) add("--all")
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * Show all images (default hides intermediate images)
@@ -57,7 +57,7 @@ public open class DockerImageListCommandLine(
         /**
          * Context for building a [DockerImageListCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
             public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage

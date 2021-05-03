@@ -279,7 +279,7 @@ public class DockerContainer(public val name: String) {
         /**
          * Builder to provide DSL elements to create instances of [DockerImage].
          */
-        @DockerCommandLineDsl
+
         public object ContainerContext {
 
             /**

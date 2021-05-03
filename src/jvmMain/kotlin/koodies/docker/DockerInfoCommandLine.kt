@@ -34,7 +34,7 @@ public open class DockerInfoCommandLine(
         }
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
@@ -53,7 +53,7 @@ public open class DockerInfoCommandLine(
         /**
          * Context for building a [DockerInfoCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
         }

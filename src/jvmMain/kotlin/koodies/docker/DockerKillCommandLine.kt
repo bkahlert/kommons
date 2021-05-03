@@ -40,7 +40,7 @@ public open class DockerKillCommandLine(
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
 
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
@@ -59,7 +59,7 @@ public open class DockerKillCommandLine(
         /**
          * Context for building a [DockerKillCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
             public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder<String>()

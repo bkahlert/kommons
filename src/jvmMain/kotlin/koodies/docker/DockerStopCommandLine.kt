@@ -40,7 +40,7 @@ public open class DockerStopCommandLine(
         time?.also { +"--time" + "$time" }
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
@@ -67,7 +67,7 @@ public open class DockerStopCommandLine(
         /**
          * Context for building a [DockerStopCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
             public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder<String>()

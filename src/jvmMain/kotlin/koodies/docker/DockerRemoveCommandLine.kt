@@ -50,7 +50,7 @@ public open class DockerRemoveCommandLine(
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
 
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * 	Force the removal of a running container (uses SIGKILL)
@@ -78,7 +78,7 @@ public open class DockerRemoveCommandLine(
         /**
          * Context for building a [DockerRemoveCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
             public val containers: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder<String>()

@@ -22,9 +22,6 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
 
-@DslMarker
-public annotation class CommandLineDsl
-
 /**
  * A command as it can be run in a shell.
  */
@@ -151,7 +148,6 @@ public open class CommandLine(
         /**
          * Context to build a [CommandLine].
          */
-        @CommandLineDsl
         public class CommandLineContext(override val captures: CapturesMap) : CapturingContext() {
 
             /**

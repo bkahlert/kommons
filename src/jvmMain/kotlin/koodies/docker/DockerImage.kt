@@ -192,7 +192,7 @@ public open class DockerImage(
     /**
      * Builder to provide DSL elements to create instances of [DockerImage].
      */
-    @DockerCommandLineDsl
+
     public object ImageContext {
 
         /**

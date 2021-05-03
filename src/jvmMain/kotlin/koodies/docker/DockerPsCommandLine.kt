@@ -44,7 +44,7 @@ public open class DockerPsCommandLine(
         filters.forEach { (key, value) -> add("--filter"); add("$key=$value") }
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
                  * Show all containers (default shows just running)
@@ -72,7 +72,7 @@ public open class DockerPsCommandLine(
         /**
          * Context for building a [DockerPsCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
         }

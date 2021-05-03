@@ -315,7 +315,7 @@ public class DockerRunCommandLine(
             /**
              * Context to build [Options].
              */
-            @DockerCommandLineDsl
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
@@ -467,7 +467,7 @@ public class DockerRunCommandLine(
         /**
          * Context to build a [DockerRunCommandLine].
          */
-        @DockerCommandLineDsl
+
         public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
 
             /**
