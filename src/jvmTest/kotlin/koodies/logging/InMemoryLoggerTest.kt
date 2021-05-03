@@ -25,7 +25,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.startsWith
 
-@Execution(CONCURRENT)
+
 class InMemoryLoggerTest {
 
     private fun logger(outputStream: ByteArrayOutputStream? = null, init: InMemoryLogger.() -> Unit = {}): InMemoryLogger =
@@ -124,7 +124,7 @@ class InMemoryLoggerTest {
 
                 expectThat(logger.toString()).isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │   line
                     ╵
                     ╵
@@ -138,7 +138,7 @@ class InMemoryLoggerTest {
 
                 expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE)).isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │   line
                     │
                     ╰──╴✔︎
@@ -155,7 +155,7 @@ class InMemoryLoggerTest {
 
                 expectThat(logger.toString()).isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -167,7 +167,7 @@ class InMemoryLoggerTest {
 
                 expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE)).isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -212,7 +212,7 @@ class InMemoryLoggerTest {
 
                 openLogger.expectThatLogged().isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │   line
                     │
                     ╰──╴✔︎
@@ -225,7 +225,7 @@ class InMemoryLoggerTest {
 
                 openLogger.expectThatLogged(closeIfOpen = false).isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │   line
                 """.trimIndent())
             }
@@ -240,7 +240,7 @@ class InMemoryLoggerTest {
 
                 closedLogger.expectThatLogged().isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -252,7 +252,7 @@ class InMemoryLoggerTest {
 
                 closedLogger.expectThatLogged(closeIfOpen = false).isEqualTo("""
                     ╭──╴caption
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())

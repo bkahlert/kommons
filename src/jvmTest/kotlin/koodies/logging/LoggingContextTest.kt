@@ -87,7 +87,7 @@ class LoggingContextTest {
         root.logging("test") { logLine { "line" }; 42 }
         expectThat(out).printed.toStringMatchesCurlyPattern("""
             ╭──╴test
-            │   
+            │
             │   line
             │
             ╰──╴✔︎
@@ -101,17 +101,17 @@ class LoggingContextTest {
         root.logging("test 3") { logLine { "line 3" }; 42 }
         expectThat(root).logged.matchesCurlyPattern("""
             ╭──╴test 1
-            │   
+            │
             │   line 1
             │
             ╰──╴✔︎
             ╭──╴test 2
-            │   
+            │
             │   line 2
             │
             ╰──╴✔︎
             ╭──╴test 3
-            │   
+            │
             │   line 3
             │
             ╰──╴✔︎
@@ -123,7 +123,7 @@ class LoggingContextTest {
         root.logging("test") { logLine { "line" }; 42 }
         expectThat(root.mostRecent).logged.matchesCurlyPattern("""
             ╭──╴test
-            │   
+            │
             │   line
             │
             ╰──╴✔︎
@@ -166,7 +166,7 @@ class LoggingContextTest {
         expectThat(out).printed.matchesCurlyPattern("""
             {{}}
             ╭──╴test
-            │   
+            │
             │   exclusive 10
             │   exclusive 11
             │   exclusive 12
@@ -174,7 +174,7 @@ class LoggingContextTest {
             │   exclusive 14
             │   exclusive 15
             │   ╭──╴exclusive child
-            │   │   
+            │   │
             │   │   exclusive child 15
             │   │   exclusive child 16
             │   │   exclusive child 17

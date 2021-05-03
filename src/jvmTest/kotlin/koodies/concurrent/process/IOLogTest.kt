@@ -36,7 +36,7 @@ import java.nio.file.Path
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
-@Execution(CONCURRENT)
+
 class IOLogTest {
 
     @Test

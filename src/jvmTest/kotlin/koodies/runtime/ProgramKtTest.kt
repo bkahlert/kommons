@@ -18,7 +18,7 @@ import java.nio.file.Path
 import kotlin.io.path.writeText
 
 @Isolated
-@Execution(CONCURRENT)
+
 class ProgramKtTest {
 
     @Nested

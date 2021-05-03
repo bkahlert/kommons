@@ -16,7 +16,7 @@ import strikt.assertions.isA
 import strikt.assertions.isFalse
 
 @Disabled
-@Execution(CONCURRENT)
+
 class BusyboxKtTest { // TODO generalize to docker run command
 
     @DockerRequiring([BusyBox::class]) @Test

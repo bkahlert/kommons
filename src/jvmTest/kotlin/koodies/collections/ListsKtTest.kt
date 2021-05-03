@@ -2,8 +2,6 @@ package koodies.collections
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -13,7 +11,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-@Execution(ExecutionMode.CONCURRENT)
 class ListsKtTest {
 
     @Nested

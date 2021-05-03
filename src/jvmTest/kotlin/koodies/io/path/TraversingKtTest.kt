@@ -16,7 +16,7 @@ import strikt.assertions.isEqualTo
 import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 
-@Execution(CONCURRENT)
+
 class TraversingKtTest {
 
     @Test

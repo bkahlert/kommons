@@ -19,7 +19,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
-@Execution(CONCURRENT)
+
 class IOTest {
 
     @Nested

@@ -8,7 +8,7 @@ import strikt.api.expectThat
 import strikt.java.exists
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class SameFileKtTest {
     @Test
     fun `should always return same path`() {

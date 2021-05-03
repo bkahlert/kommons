@@ -12,7 +12,7 @@ import strikt.assertions.isNotNull
 import strikt.java.exists
 import strikt.java.parent
 
-@Execution(CONCURRENT)
+
 class PathKtTest {
 
     @Nested

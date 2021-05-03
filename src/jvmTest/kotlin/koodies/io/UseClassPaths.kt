@@ -48,7 +48,7 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 
-@Execution(CONCURRENT)
+
 class ClassPathsKtTest {
 
     @Nested

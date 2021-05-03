@@ -17,7 +17,7 @@ class MicroLoggerTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   (🤠 ABC ˃ 123 ˃ ✔︎)
             │
             ╰──╴✔︎
@@ -40,7 +40,7 @@ class MicroLoggerTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   caption something (🤠 ABC ˃ 123 ˃ ✔︎) something ✔︎
             │
             ╰──╴✔︎

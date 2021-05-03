@@ -18,7 +18,7 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
 
-@Execution(CONCURRENT)
+
 class RequireKtTest {
 
     @Nested

@@ -11,7 +11,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class RequireAncestorKtTest {
 
     private val path = Path.of("a/b/c")

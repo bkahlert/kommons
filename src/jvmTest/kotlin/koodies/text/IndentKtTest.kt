@@ -8,7 +8,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class IndentKtTest {
     @Test
     fun `should return indent`() {

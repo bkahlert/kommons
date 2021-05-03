@@ -34,9 +34,9 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   │   Executing {}
                     │   │   Countdown!
                     │   │   10
@@ -71,9 +71,9 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   │   Executing {}
                     │   │   Take Off
                     │   │   Process {} terminated successfully at {}
@@ -100,9 +100,9 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   ╵
                     │   ╵
                     │   ⏳️ async computation
@@ -139,9 +139,9 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   ╵
                     │   ╵
                     │   ⏳️ async computation
@@ -174,7 +174,7 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
-                        │   
+                        │
                         │   caption Executing {} Countdown! 10 9 8 7 6 5 4 3 2 1 0 Take Off Process {} terminated successfully at {} ✔︎
                         │
                         ╰──╴✔︎
@@ -191,7 +191,7 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
-                        │   
+                        │
                         │   caption Executing {} Take Off Process {} terminated successfully at {} ✔︎
                         │
                         ╰──╴✔︎
@@ -212,7 +212,7 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
-                        │   
+                        │
                         │   caption ⏳️ async computation
                         │   ⏳️ Executing {}
                         │   ⏳️ Countdown!
@@ -245,7 +245,7 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                         ╭──╴{}
-                        │   
+                        │
                         │   caption ⏳️ async computation
                         │   ⏳️ Executing {}
                         │   ⏳️ Take Off
@@ -277,9 +277,9 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   │   Executing {}
                     │   │   Countdown!
                     │   │   10
@@ -314,9 +314,9 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   │   Executing {}
                     │   │   Take Off
                     │   │   Process {} terminated successfully at {}
@@ -344,9 +344,9 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   ╵
                     │   ╵
                     │   ⏳️ async computation
@@ -383,9 +383,9 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴caption
-                    │   │   
+                    │   │
                     │   ╵
                     │   ╵
                     │   ⏳️ async computation
@@ -413,7 +413,7 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ➜ Countdown! ➜ 10 ➜ 9 ➜ 8 ➜ 7 ➜ 6 ➜ 5 ➜ 4 ➜ 3 ➜ 2 ➜ 1 ➜ 0 ➜ Take Off ✔︎
                     │
                     ╰──╴✔︎
@@ -427,7 +427,7 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ➜ Take Off ✔︎
                     │
                     ╰──╴✔︎
@@ -445,7 +445,7 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ⏳️ async computation
                     │   ⏳️ ➜ Countdown!
                     │   ⏳️ ➜ 10
@@ -473,7 +473,7 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ⏳️ async computation
                     │   ⏳️ ➜ Take Off
                     │   ⏳️ ✔︎
@@ -497,7 +497,7 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ✔︎
                     │
                     ╰──╴✔︎
@@ -511,7 +511,7 @@ class LoggingOptionsTest {
                 }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ✔︎
                     │
                     ╰──╴✔︎
@@ -529,7 +529,7 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ⏳️ async computation
                     │   ⏳️ ✔︎
                     │
@@ -544,7 +544,7 @@ class LoggingOptionsTest {
                 }.waitFor()
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   caption ⏳️ async computation
                     │   ⏳️ ✔︎
                     │

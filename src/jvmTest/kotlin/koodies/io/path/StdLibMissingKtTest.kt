@@ -28,7 +28,7 @@ import java.nio.file.NotDirectoryException
 import kotlin.io.path.createDirectory
 import kotlin.io.path.isSymbolicLink
 
-@Execution(CONCURRENT)
+
 class StdLibMissingKtTest {
 
     @Nested

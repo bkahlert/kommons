@@ -10,7 +10,7 @@ import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-@Execution(CONCURRENT)
+
 class CharRangesTest {
 
     @TestFactory

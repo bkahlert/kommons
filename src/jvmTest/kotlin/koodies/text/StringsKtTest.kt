@@ -7,8 +7,6 @@ import koodies.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.doesNotContain
@@ -21,7 +19,7 @@ import strikt.assertions.matches
 import strikt.assertions.message
 import strikt.assertions.startsWith
 
-@Execution(CONCURRENT)
+
 class StringsKtTest {
 
     @Nested

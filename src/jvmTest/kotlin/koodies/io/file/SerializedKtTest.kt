@@ -12,7 +12,7 @@ import strikt.assertions.isEqualTo
 import java.nio.file.Path
 import java.nio.file.Paths
 
-@Execution(CONCURRENT)
+
 class SerializedKtTest {
 
     @TestFactory

@@ -22,7 +22,7 @@ import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
 @Isolated // time critical
-@Execution(CONCURRENT)
+
 class ThreadsKtTest {
 
     @Nested

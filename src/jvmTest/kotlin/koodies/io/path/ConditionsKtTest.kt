@@ -17,7 +17,7 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class ConditionsKtTest {
 
     @Nested
@@ -129,4 +129,3 @@ fun <T : Path> Assertion.Builder<T>.isNotEmpty() =
             else -> fail("was empty")
         }
     }
-

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-@Execution(CONCURRENT)
+
 class ContainsAllKtTest {
     val string = "foo bar"
 

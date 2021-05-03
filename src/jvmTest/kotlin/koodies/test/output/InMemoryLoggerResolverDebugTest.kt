@@ -17,7 +17,7 @@ import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 
-@Execution(CONCURRENT)
+
 class InMemoryLoggerResolverDebugTest {
 
     @Nested

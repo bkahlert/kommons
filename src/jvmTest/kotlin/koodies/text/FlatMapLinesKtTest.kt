@@ -7,7 +7,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 internal class FlatMapLinesKtTest {
 
     val transform = { s: CharSequence -> listOf("$s" + s.reversed(), "${s.reversed()}" + "$s") }
@@ -43,4 +43,3 @@ internal class FlatMapLinesKtTest {
         expectThat(LF.flatMapLines(ignoreTrailingSeparator = false) { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY")
     }
 }
-

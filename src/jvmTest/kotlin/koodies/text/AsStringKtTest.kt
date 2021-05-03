@@ -6,7 +6,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class AsStringKtTest {
     @Test
     fun `should produce same byte string as toString`() {

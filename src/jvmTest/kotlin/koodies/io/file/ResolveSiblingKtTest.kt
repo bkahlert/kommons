@@ -13,7 +13,7 @@ import strikt.assertions.isA
 import strikt.assertions.isFailure
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class ResolveSiblingKtTest {
 
     @Test

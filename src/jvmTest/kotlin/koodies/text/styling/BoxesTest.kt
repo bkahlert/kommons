@@ -8,17 +8,15 @@ import koodies.text.Unicode.NBSP
 import koodies.text.matchesCurlyPattern
 import koodies.text.repeat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 
-@Execution(CONCURRENT)
+
 class BoxesTest {
     @Test
     fun @receiver:Columns(150) InMemoryLogger.`should render FAIL`() {
         logLine { Boxes.FAIL.toString() }
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴BoxesTest ➜ should render FAIL{}
-            │   
+            │
             │   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
             │   ████▌▄▌▄▐▐▌█████
             │   ████▌▄▌▄▐▐▌▀████
@@ -34,7 +32,7 @@ class BoxesTest {
         val pad = NBSP.repeat(9)
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴BoxesTest ➜ should render sphere box{}
-            │   
+            │
             │     █ ▉▕▊▕▋▕▌▕▍▕▎▕▏ ▏  ▏                ▕  ▕  ▏▕▎▕▍▕▌▕▋▕▊▕▉ █
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ${pad}SPHERICAL${pad}$NBSP  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ long ... l ... i ... n ... e  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
@@ -53,7 +51,7 @@ class BoxesTest {
         val pad = NBSP.repeat(3)
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴BoxesTest ➜ should render single line sphere box{}
-            │   
+            │
             │    ▕  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  ${pad}SINGLE LINE SPHERICAL${pad}$NBSP  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ▕  
             │    ▕  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  long ... l ... i ... n ... e  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ▕  
             │
@@ -70,7 +68,7 @@ class BoxesTest {
         val pad = NBSP.repeat(8)
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴BoxesTest ➜ should render wide pillars{}
-            │   
+            │
             │   █ █ ▉▕▉ ▊▕▊▕▋ ▋▕▌ ▌ ▍▕▎ ▍ ▎▕▏ ▏ ${pad}WIDE PILLARS$pad  ▏ ▏▕▎ ▍ ▎▕▍ ▌ ▌▕▋ ▋▕▊▕▊ ▉▕▉ █ █
             │   █ █ ▉▕▉ ▊▕▊▕▋ ▋▕▌ ▌ ▍▕▎ ▍ ▎▕▏ ▏ long ... l ... i ... n ... e  ▏ ▏▕▎ ▍ ▎▕▍ ▌ ▌▕▋ ▋▕▊▕▊ ▉▕▉ █ █
             │
@@ -87,7 +85,7 @@ class BoxesTest {
         val pad = NBSP.repeat(10)
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴BoxesTest ➜ should render pillars{}
-            │   
+            │
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ ${pad}PILLARS${pad}$NBSP  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
             │   █ ▉ ▊ ▋ ▌ ▍ ▎ ▏ long ... l ... i ... n ... e  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █
             │

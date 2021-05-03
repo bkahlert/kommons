@@ -21,7 +21,7 @@ class SmartRenderingLoggerKtTest {
         logging("caption") { }
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   caption ✔︎
             │
             ╰──╴✔︎
@@ -33,9 +33,9 @@ class SmartRenderingLoggerKtTest {
         logging("caption") { logText { "text" } }
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   ╭──╴caption
-            │   │   
+            │   │
             │   │   text
             │   │
             │   ╰──╴✔︎
@@ -55,9 +55,9 @@ class SmartRenderingLoggerKtTest {
 
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
-                │   
+                │
                 │   ╭──╴caption
-                │   │   
+                │   │
                 │   │   line
                 │   │   text {} ▮▮
                 │   │
@@ -83,13 +83,13 @@ class SmartRenderingLoggerKtTest {
 
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
-                │   
+                │
                 │   ╭──╴caption
-                │   │   
+                │   │
                 │   │   outer 1
                 │   │   outer 2
                 │   │   ╭──╴nested
-                │   │   │   
+                │   │   │
                 │   │   │   nested 1
                 │   │   │   nested 2
                 │   │   │   nested 3
@@ -138,11 +138,11 @@ class SmartRenderingLoggerKtTest {
     fun `should log captionX`() = borderTest(
         """
             ╭──╴InMemoryLogger
-            │   
+            │
             │   SOLID caption ✔︎
         """.trimIndent(), """
             ╭──╴InMemoryLogger
-            │   
+            │
             │   DOTTED caption ✔︎
         """.trimIndent()) { }
 
@@ -150,15 +150,15 @@ class SmartRenderingLoggerKtTest {
     fun `should log textX`() = borderTest(
         """
             ╭──╴InMemoryLogger
-            │   
+            │
             │   ╭──╴SOLID caption
-            │   │   
+            │   │
             │   │   text
             │   │
             │   ╰──╴✔︎
         """.trimIndent(), """
             ╭──╴InMemoryLogger
-            │   
+            │
             │   ▶ DOTTED caption
             │   · text
             │   ✔︎
@@ -170,15 +170,15 @@ class SmartRenderingLoggerKtTest {
     fun `should log lineX`() = borderTest(
         """
             ╭──╴InMemoryLogger
-            │   
+            │
             │   ╭──╴SOLID caption
-            │   │   
+            │   │
             │   │   line
             │   │
             │   ╰──╴✔︎
         """.trimIndent(), """
             ╭──╴InMemoryLogger
-            │   
+            │
             │   ▶ DOTTED caption
             │   · line
             │   ✔︎
@@ -204,7 +204,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   SOLID ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -215,7 +215,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   DOTTED ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -226,7 +226,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   NONE ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -241,9 +241,9 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴SOLID
-                    │   │   
+                    │   │
                     │   │   line
                     │   ϟ
                     │   ╰──╴RuntimeException: exception{}
@@ -256,7 +256,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ▶ DOTTED
                     │   · line
                     │   ϟ RuntimeException: exception{}
@@ -269,7 +269,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   NONE
                     │   line
                     │   ϟ RuntimeException: exception{}
@@ -298,7 +298,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   SOLID ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -309,7 +309,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   DOTTED ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -320,7 +320,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   NONE ϟ RuntimeException: exception{}
                 """.trimIndent())
             }
@@ -335,9 +335,9 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴SOLID
-                    │   │   
+                    │   │
                     │   │   line
                     │   ϟ
                     │   ╰──╴RuntimeException: exception{}
@@ -350,7 +350,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ▶ DOTTED
                     │   · line
                     │   ϟ RuntimeException: exception{}
@@ -363,7 +363,7 @@ class SmartRenderingLoggerKtTest {
 
                 expectThatLogged(closeIfOpen = false).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   NONE
                     │   line
                     │   ϟ RuntimeException: exception{}
@@ -387,9 +387,9 @@ class SmartRenderingLoggerKtTest {
             expecting { logger } that {
                 toStringMatchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ╭──╴test
-                    │   │   
+                    │   │
                     │   │   line
                     │   │
                     │   ╰──╴✔︎
@@ -409,7 +409,7 @@ class SmartRenderingLoggerKtTest {
             expecting { logger } that {
                 toStringMatchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   test ✔︎
                     │   ⏳️ {}
                     {{}}""".trimIndent())

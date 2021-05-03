@@ -10,7 +10,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.contains
 
-@Execution(CONCURRENT)
+
 @ExtendWith(OutputCaptureExtension::class)
 class CarDSLTest {
 

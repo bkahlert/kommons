@@ -13,7 +13,7 @@ import strikt.assertions.isLessThan
 import java.nio.file.attribute.FileTime
 import kotlin.time.minutes
 
-@Execution(CONCURRENT)
+
 class LastModifiedKtTest {
 
     @Test

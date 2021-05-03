@@ -6,15 +6,13 @@ import koodies.time.DateTimeFormatters.ISO8601_INSTANT
 import koodies.time.DateTimeFormatters.ISO8601_LOCAL_DATE
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 import java.time.Instant
 import java.time.LocalDate
 
-@Execution(CONCURRENT)
+
 class DateTimeFormattersTest {
 
     val instant: Instant = Instant.parse("2021-11-09T00:08:02.123456789Z")
@@ -93,5 +91,3 @@ class DateTimeFormattersTest {
         }
     }
 }
-
-

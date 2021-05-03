@@ -9,7 +9,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 
-@Execution(CONCURRENT)
+
 class MemoryReclaimableByteArrayIOStreamTest {
     @Test
     fun `should support accessing bytes by index`() {

@@ -17,7 +17,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class ExtensionsTest {
 
     @Nested

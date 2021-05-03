@@ -11,7 +11,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import kotlin.time.seconds
 
-@Execution(CONCURRENT)
+
 class DockerStopCommandLineTest {
 
     @Test

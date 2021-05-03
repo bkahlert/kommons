@@ -8,7 +8,7 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 
-@Execution(CONCURRENT)
+
 class HasMatchingLineKtTest {
 
     @Test

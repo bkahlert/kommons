@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -49,10 +47,10 @@ class RenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │{}
+            │
             │   ｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ
             │   ☎Σ⊂⊂(☉ω☉∩)                                            {}                                      ▮▮
-            │{}
+            │
             ╰──╴✔︎{}
         """.trimIndent())
     }
@@ -72,19 +70,19 @@ class RenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │{}
+            │
             │   outer 1                                               {}                                      ▮▮
             │   outer 2                                               {}                                      ▮▮
             │   ╭──╴nested log
-            │   │{}
+            │   │
             │   │   nested 1                                          {}                                      ▮▮
             │   │   nested 2                                          {}                                      ▮▮
             │   │   nested 3                                          {}                                      ▮▮
-            │   │{}
+            │   │
             │   ╰──╴✔︎{}
             │   outer 3                                               {}                                      ▮▮
             │   outer 4                                               {}                                      ▮▮
-            │{}
+            │
             ╰──╴✔︎{}
         """.trimIndent())
     }
@@ -93,28 +91,28 @@ class RenderingLoggerKtTest {
     fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = testEach(
         SOLID to """
             ╭──╴{}
-            │{}
+            │
             │   outer 1                                               {}                                      ▮▮
             │   outer 2{}
             │   ╭──╴nested log
-            │   │{}
+            │   │
             │   │   nested 1                                          {}                                      ▮▮
             │   │   mini segment 12345 sample ✔︎
             │   │   ╭──╴nested log
-            │   │   │{}
+            │   │   │
             │   │   │   nested 1                                      {}                                      ▮▮
             │   │   │   mini segment 12345 sample ✔︎
             │   │   │   nested 2                                      {}                                      ▮▮
             │   │   │   nested 3                                      {}                                      ▮▮
-            │   │   │{}
+            │   │   │
             │   │   ╰──╴✔︎{}
             │   │   nested 2                                          {}                                      ▮▮
             │   │   nested 3                                          {}                                      ▮▮
-            │   │{}
+            │   │
             │   ╰──╴✔︎{}
             │   outer 3                                               {}                                      ▮▮
             │   outer 4                                               {}                                      ▮▮
-            │{}
+            │
             ╰──╴✔︎{}
         """.trimIndent(),
         DOTTED to """
@@ -221,11 +219,11 @@ class RenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │{}
+            │
             │   outer 1                                               {}                                      ▮▮
             │   outer 2                                               {}                                      ▮▮
             │   ╭──╴nested log
-            │   │{}
+            │   │
             │   │   nested 1                                          {}                                      ▮▮
             │   ϟ{}
             │   ╰──╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
@@ -260,11 +258,11 @@ class RenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │{}
+            │
             │   before
             │   caption Logging to ${Symbols.Document} ${ansiLog.toUri()} ✔︎
             │   after
-            │{}
+            │
             ╰──╴✔︎{}
         """.trimIndent())
         expect {
@@ -355,15 +353,14 @@ class RenderingLoggerKtTest {
         }
     }
 
-    @Execution(SAME_THREAD)
     @TestFactory
     fun `should render multi-line caption`() = listOf(
         SOLID to """
             ╭──╴{}
-            │   
+            │
             │   ╭──╴line #1
             │   │   line #2
-            │   │   
+            │   │
             │   │   logged line
             │   │
             │   ╰──╴✔︎
@@ -372,7 +369,7 @@ class RenderingLoggerKtTest {
         """.trimIndent(),
         DOTTED to """
             ╭──╴{}
-            │   
+            │
             │   ▶ line #1
             │   ▷ line #2
             │   · logged line

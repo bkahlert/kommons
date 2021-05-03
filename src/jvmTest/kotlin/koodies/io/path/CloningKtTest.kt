@@ -16,7 +16,7 @@ import strikt.assertions.isFailure
 import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
 
-@Execution(CONCURRENT)
+
 class CloningKtTest {
 
     @EnabledOnOs(OS.LINUX, OS.MAC)

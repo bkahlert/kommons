@@ -7,7 +7,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNullOrBlank
 
-@Execution(CONCURRENT)
+
 class MatchingSuffixKtTest {
 
     @Test

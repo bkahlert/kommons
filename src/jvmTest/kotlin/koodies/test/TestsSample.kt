@@ -17,7 +17,7 @@ import strikt.assertions.isNullOrEmpty
 import strikt.assertions.isSuccess
 import strikt.assertions.message
 
-@Execution(CONCURRENT)
+
 class TestsSample {
 
     @TestFactory

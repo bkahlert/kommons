@@ -69,7 +69,7 @@ class ReturnValueKtTest {
         } that {
             matchesCurlyPattern("""
                 ╭──╴{}
-                │   
+                │
                 │
                 ╰──╴$expected
                 """.trimIndent())
@@ -108,7 +108,7 @@ class ReturnValueKtTest {
         } that {
             matchesCurlyPattern("""
                 ╭──╴{}
-                │   
+                │
                 ϟ
                 ╰──╴$expected
                 """.trimIndent())

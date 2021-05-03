@@ -8,7 +8,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import kotlin.io.path.readText
 
-@Execution(CONCURRENT)
+
 class ReadTextKtTest {
 
     @TestFactory

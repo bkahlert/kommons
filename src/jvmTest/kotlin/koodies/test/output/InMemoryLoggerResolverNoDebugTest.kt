@@ -80,7 +80,7 @@ class InMemoryLoggerResolverNoDebugTest {
                 logLine { "line" }
                 expectThat(toString()).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   line
                     │
                     ╰──╴✔︎
@@ -92,7 +92,7 @@ class InMemoryLoggerResolverNoDebugTest {
                 logLine { "line" }
                 expectThat(toString(fallbackReturnValue = InMemoryLogger.NO_RETURN_VALUE)).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   line
                     ╵
                     ╵
@@ -110,7 +110,7 @@ class InMemoryLoggerResolverNoDebugTest {
 
                 expectThat(toString()).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -122,7 +122,7 @@ class InMemoryLoggerResolverNoDebugTest {
 
                 expectThat(toString(fallbackReturnValue = InMemoryLogger.NO_RETURN_VALUE)).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())
@@ -135,7 +135,7 @@ class InMemoryLoggerResolverNoDebugTest {
 
                 expectThat(toString()).matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │
                     ╰──╴✔︎
                 """.trimIndent())

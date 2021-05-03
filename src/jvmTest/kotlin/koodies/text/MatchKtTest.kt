@@ -7,7 +7,7 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
-@Execution(CONCURRENT)
+
 class MatchKtTest {
 
     @Test

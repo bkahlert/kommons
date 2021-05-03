@@ -9,7 +9,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 
-@Execution(CONCURRENT)
+
 class ResultsKtTest {
 
     @Nested

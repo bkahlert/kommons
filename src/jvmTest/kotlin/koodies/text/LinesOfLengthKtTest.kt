@@ -14,7 +14,7 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import koodies.text.Unicode.escape as ESC
 
-@Execution(CONCURRENT)
+
 class LinesOfLengthKtTest {
 
     @Nested

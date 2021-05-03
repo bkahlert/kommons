@@ -7,7 +7,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNullOrBlank
 
-@Execution(CONCURRENT)
+
 class MatchingPrefixKtTest {
 
     @Test
@@ -20,4 +20,3 @@ class MatchingPrefixKtTest {
         expectThat("Prompt!".matchingPrefix("pt!".trimMargin(), "def")).isNullOrBlank()
     }
 }
-

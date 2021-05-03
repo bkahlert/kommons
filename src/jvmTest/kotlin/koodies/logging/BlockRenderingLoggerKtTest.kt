@@ -25,9 +25,9 @@ class BlockRenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   ╭──╴caption
-            │   │   
+            │   │
             │   │   line
             │   │   text {} ▮▮
             │   │
@@ -53,13 +53,13 @@ class BlockRenderingLoggerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   ╭──╴caption
-            │   │   
+            │   │
             │   │   outer 1
             │   │   outer 2
             │   │   ╭──╴nested
-            │   │   │   
+            │   │   │
             │   │   │   nested 1
             │   │   │   nested 2
             │   │   │   nested 3
@@ -100,7 +100,7 @@ class BlockRenderingLoggerKtTest {
             logLine { "X".repeat(totalColumns + 1) }
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
-                │   
+                │
                 │   ${"X".repeat(totalColumns)}
                 │   X
                 │
@@ -113,7 +113,7 @@ class BlockRenderingLoggerKtTest {
             logText { "X".repeat(totalColumns + 100) }
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
-                │   
+                │
                 │   ${"X".repeat(totalColumns + 100)}
                 │
                 ╰──╴✔︎
@@ -128,7 +128,7 @@ class BlockRenderingLoggerKtTest {
                 logStatus { "X".repeat(20 + 1) }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   ${"X".repeat(20)}          ▮▮
                     │   X                             
                     │
@@ -141,7 +141,7 @@ class BlockRenderingLoggerKtTest {
                 logStatus("X".repeat(50)) { "X" }
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   X                             ◀◀ XXXXXXXXXXXXXXXXXXX…XXXXXXXXXXXXXXXXXXXXX
                     │
                     ╰──╴✔︎
@@ -163,7 +163,7 @@ class BlockRenderingLoggerKtTest {
 
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   $uri
                     │   $text$uri
                     │   $uri$text
@@ -184,7 +184,7 @@ class BlockRenderingLoggerKtTest {
 
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
-                    │   
+                    │
                     │   $uri▮▮
                     │   $text$uri▮▮
                     │   $uri$text▮▮
@@ -213,9 +213,9 @@ class BlockRenderingLoggerKtTest {
     fun `should log caption on first log`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
+            │
             │   line
-            │{}
+            │
             ╰──╴✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
@@ -233,9 +233,9 @@ class BlockRenderingLoggerKtTest {
     fun `should log text`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
+            │
             │   text
-            │{}
+            │
             ╰──╴✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
@@ -253,9 +253,9 @@ class BlockRenderingLoggerKtTest {
     fun `should log line`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
+            │
             │   line
-            │{}
+            │
             ╰──╴✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
@@ -279,7 +279,7 @@ class BlockRenderingLoggerKtTest {
             expectThatLogged().matchesCurlyPattern(
                 """
                     ╭──╴{}
-                    │{}
+                    │
                     │   java.lang.RuntimeException: exception
                     │   	at koodies.logging.{}
                     {{}}
@@ -320,9 +320,9 @@ class BlockRenderingLoggerKtTest {
     fun `should log status`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
+            │
             │   line {} ◀◀ status
-            │{}
+            │
             ╰──╴✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
@@ -340,8 +340,8 @@ class BlockRenderingLoggerKtTest {
     fun `should log result`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
-            │{}
+            │
+            │
             ╰──╴✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
@@ -357,7 +357,7 @@ class BlockRenderingLoggerKtTest {
     fun `should log incomplete result`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
+            │
             ╵
             ╵
             ⏳️
@@ -377,8 +377,8 @@ class BlockRenderingLoggerKtTest {
     fun `should log multiple results`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
-            │{}
+            │
+            │
             ╰──╴✔︎
             ⏳️ ✔︎
             ⏳️ ✔︎
@@ -402,11 +402,11 @@ class BlockRenderingLoggerKtTest {
     fun `should log multiple entries`() = borderTest(
         """
             ╭──╴SOLID caption
-            │{}
+            │
             │   text
             │   line
             │   line {} ◀◀ status
-            │{}
+            │
             ╰──╴✔︎
         """.trimIndent(), """
             ▶ DOTTED caption
@@ -442,9 +442,9 @@ class BlockRenderingLoggerKtTest {
                 toStringMatchesCurlyPattern(
                     """
                         ╭──╴{}
-                        │   
+                        │
                         │   ╭──╴test
-                        │   │   
+                        │   │
                         │   │   line
                         │   │
                         │   ╰──╴✔︎
@@ -467,9 +467,9 @@ class BlockRenderingLoggerKtTest {
                 toStringMatchesCurlyPattern(
                     """
                         ╭──╴{}
-                        │   
+                        │
                         │   ╭──╴test
-                        │   │   
+                        │   │
                         │   │
                         │   ╰──╴✔︎
                         │   ⏳️ {}

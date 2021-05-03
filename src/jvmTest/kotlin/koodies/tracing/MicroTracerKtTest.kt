@@ -4,10 +4,8 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 
-@Execution(CONCURRENT)
+
 class MicroTracerKtTest {
 
     @Test
@@ -24,7 +22,7 @@ class MicroTracerKtTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   segment @ (🤠 a ˃  ˃ b c) @ {}
             │
             ╰──╴✔︎

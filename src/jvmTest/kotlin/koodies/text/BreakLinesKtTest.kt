@@ -6,7 +6,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class BreakLinesKtTest {
     @Test
     fun `should break do nothing on single short line`() {

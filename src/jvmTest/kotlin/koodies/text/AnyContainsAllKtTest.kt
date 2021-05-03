@@ -7,7 +7,7 @@ import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-@Execution(CONCURRENT)
+
 class AnyContainsAllKtTest {
 
     val stringList = listOf("foo bar", "BAR BAZ")
@@ -32,4 +32,3 @@ class AnyContainsAllKtTest {
         expectThat(stringList.anyContainsAll(listOf("@@@", "---", "!!!"))).isFalse()
     }
 }
-

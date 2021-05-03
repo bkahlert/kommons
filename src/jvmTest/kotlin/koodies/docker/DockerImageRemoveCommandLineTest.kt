@@ -12,7 +12,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 
-@Execution(CONCURRENT)
+
 class DockerImageRemoveCommandLineTest {
 
     @Test

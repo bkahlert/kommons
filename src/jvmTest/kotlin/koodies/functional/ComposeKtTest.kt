@@ -6,7 +6,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class ComposeKtTest {
 
     fun a(arg: String): String = "${arg.length}"

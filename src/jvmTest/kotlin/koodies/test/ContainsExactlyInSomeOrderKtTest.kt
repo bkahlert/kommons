@@ -12,7 +12,7 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 
-@Execution(CONCURRENT)
+
 class ContainsExactlyInSomeOrderKtTest {
 
     val list: List<String> = listOf("1", "2.a", "2.b", "3")

@@ -24,7 +24,7 @@ import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.message
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class MountOptionsTest {
 
     private val Path.mountOptions

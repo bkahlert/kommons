@@ -17,7 +17,7 @@ import strikt.assertions.matches
 import strikt.assertions.startsWith
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class FormattingKtTest {
 
     private val emptyException = RuntimeException()

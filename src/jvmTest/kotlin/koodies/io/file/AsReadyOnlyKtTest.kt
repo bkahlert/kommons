@@ -1,133 +1,47 @@
 package koodies.io.file
 
-import koodies.io.path.bufferedInputStream
 import koodies.io.path.copyTo
 import koodies.io.path.delete
-import koodies.io.path.executable
 import koodies.io.path.hasContent
 import koodies.io.path.randomFile
-import koodies.io.path.randomPath
 import koodies.io.path.writeText
-import koodies.jvm.deleteOnExit
 import koodies.test.UniqueId
+import koodies.test.tests
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
-import org.junit.jupiter.api.DynamicContainer
-import org.junit.jupiter.api.DynamicContainer.dynamicContainer
-import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.Assertion
-import strikt.api.expectCatching
-import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
-import java.nio.file.Files
+import strikt.java.exists
+import strikt.java.isExecutable
+import strikt.java.isReadable
 import java.nio.file.Path
 import java.nio.file.ReadOnlyFileSystemException
-import kotlin.io.path.exists
-import kotlin.io.path.isReadable
-import kotlin.io.path.isWritable
 import kotlin.io.path.moveTo
 import kotlin.io.path.outputStream
+import kotlin.io.path.readText
 
-@Execution(CONCURRENT)
 class AsReadyOnlyKtTest {
 
-    @TestFactory
-    fun `should allow`(uniqueId: UniqueId) = listOf(
-        allowedFileOperation(
-            "readable", uniqueId,
-            { isReadable() },
-            { Files.isReadable(this) },
-        ) { isTrue() },
-
-        allowedFileOperation(
-            "writable", uniqueId,
-            { isWritable() },
-            { Files.isWritable(this) },
-        ) { isFalse() },
-
-        allowedFileOperation(
-            "executable", uniqueId,
-            { executable },
-            { Files.isExecutable(this) },
-        ) { },
-
-        allowedFileOperation(
-            "exists", uniqueId,
-            { exists() },
-            { Files.exists(this) },
-        ) { isTrue() },
-
-        allowedFileOperation(
-            "copy", uniqueId,
-            { copyTo(deleteOnExit(sameFile("$fileName"))) },
-            { deleteOnExit(sameFile("$fileName")).also { Files.copy(this, it) } },
-        ) { get { sameFile("$fileName") }.hasContent("line #1\nline #2$LF") },
-
-        allowedFileOperation(
-            "buffered reading", uniqueId,
-            { bufferedInputStream().bufferedReader().readText() },
-            { Files.newBufferedReader(this).readText() },
-        ) { isEqualTo("line #1\nline #2$LF") },
-    )
+    private fun Path.readOnlyFile() = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
 
     @TestFactory
-    fun `should disallow`(uniqueId: UniqueId) = listOf(
-
-        disallowedFileOperation(
-            "move", uniqueId,
-            { withTempDir(uniqueId) { moveTo(randomPath()) } },
-            { withTempDir(uniqueId) { Files.move(this, randomPath()) } },
-        ) { isA<java.nio.file.FileSystemException>() },
-
-        disallowedFileOperation(
-            "any type of output stream", uniqueId,
-            { outputStream() },
-            { Files.newBufferedWriter(this) },
-        ) { isA<ReadOnlyFileSystemException>() },
-
-        disallowedFileOperation(
-            "delete", uniqueId,
-            { delete() },
-            { Files.delete(this) },
-        ) { isA<ReadOnlyFileSystemException>() },
-    )
-}
-
-internal inline fun <reified T> allowedFileOperation(
-    name: String,
-    uniqueId: UniqueId,
-    vararg variants: Path.() -> T,
-    crossinline validator: Assertion.Builder<T>.() -> Unit,
-): DynamicContainer {
-    return dynamicContainer("call to $name", variants.map { variant ->
-        dynamicTest("$variant") {
-            withTempDir(uniqueId) {
-                val tempFile = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
-                expectThat(variant(tempFile)).validator()
-            }
+    fun `should allow`(uniqueId: UniqueId) = tests {
+        withTempDir(uniqueId) {
+            readOnlyFile() asserting { isReadable() }
+            readOnlyFile() asserting { not { isWritable() } }
+            readOnlyFile() asserting { isExecutable() }
+            readOnlyFile() asserting { exists() }
+            expecting { readOnlyFile().copyTo(resolveSibling("copy-$fileName")) } that { hasContent("line #1\nline #2$LF") }
+            expecting { readOnlyFile().readText() } that { isEqualTo("line #1\nline #2$LF") }
         }
-    })
-}
+    }
 
-internal inline fun disallowedFileOperation(
-    name: String,
-    uniqueId: UniqueId,
-    vararg variants: Path.() -> Unit,
-    crossinline validator: Assertion.Builder<Throwable>.() -> Unit,
-): DynamicContainer {
-    return dynamicContainer("call to $name", variants.map { variant ->
-        dynamicTest("$variant") {
-            withTempDir(uniqueId) {
-                val tempFile = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
-                expectCatching { variant(tempFile) }.isFailure().validator()
-            }
+    @TestFactory
+    fun `should disallow`(uniqueId: UniqueId) = tests {
+        withTempDir(uniqueId) {
+            expectThrows<ReadOnlyFileSystemException> { readOnlyFile().moveTo(resolveSibling("moved-$fileName")) }
+            expectThrows<ReadOnlyFileSystemException> { readOnlyFile().outputStream() }
+            expectThrows<ReadOnlyFileSystemException> { readOnlyFile().delete() }
         }
-    })
+    }
 }

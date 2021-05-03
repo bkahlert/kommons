@@ -9,7 +9,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThanOrEqualTo
 
-@Execution(CONCURRENT)
+
 class DecodeToValidStringKtTest {
 
     @Nested

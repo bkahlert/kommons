@@ -6,7 +6,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectThat
 
-@Execution(CONCURRENT)
+
 class ContainsAnyKtTest {
     val string = "foo bar"
 

@@ -8,7 +8,7 @@ import strikt.api.Assertion
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class QuotedKtTest {
 
     @TestFactory

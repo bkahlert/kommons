@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
 import strikt.api.expectThat
@@ -16,7 +16,7 @@ import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Isolated
-@Execution(ExecutionMode.CONCURRENT)
+@Execution(CONCURRENT)
 class ConcurrentTest {
 
     private enum class Tests { TEST1, TEST2, TEST3 }

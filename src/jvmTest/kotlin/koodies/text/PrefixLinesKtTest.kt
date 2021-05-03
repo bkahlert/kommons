@@ -2,12 +2,10 @@ package koodies.text
 
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class PrefixLinesKtTest {
     @Test
     fun `should add prefix to each line`() {

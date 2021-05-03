@@ -13,7 +13,7 @@ import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import kotlin.time.minutes
 
-@Execution(CONCURRENT)
+
 class CreatedKtTest {
 
     @Test
@@ -32,4 +32,3 @@ class CreatedKtTest {
             .isGreaterThan(Now.minus(21.minutes).toFileTime())
     }
 }
-

@@ -9,7 +9,7 @@ import strikt.api.Assertion
 import strikt.assertions.containsExactly
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class ShebangTest {
 
     @TestFactory

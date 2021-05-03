@@ -3,8 +3,6 @@ package koodies.time
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -20,7 +18,7 @@ import kotlin.time.minutes
 import kotlin.time.nanoseconds
 import kotlin.time.seconds
 
-@Execution(CONCURRENT)
+
 class PlusKtTest {
 
     @TestFactory
@@ -59,4 +57,3 @@ class PlusKtTest {
         }
     }
 }
-

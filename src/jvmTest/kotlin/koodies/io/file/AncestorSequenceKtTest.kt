@@ -10,7 +10,7 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
+
 class AncestorSequenceKtTest {
 
     private val path = Path.of("a/b/c")

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Execution(CONCURRENT)
+
 class JoinToStringKtTest {
     @Test
     fun `should join byte arrays to string`() {

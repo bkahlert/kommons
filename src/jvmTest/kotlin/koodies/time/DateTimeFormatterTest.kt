@@ -2,14 +2,12 @@ package koodies.time
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@Execution(CONCURRENT)
+
 class DateTimeFormatterTest {
     val localDate = LocalDate.parse("2010-09-20")
 

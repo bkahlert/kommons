@@ -19,7 +19,7 @@ import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 
-@Execution(CONCURRENT)
+
 class DebugTest {
 
     @Test

@@ -27,7 +27,7 @@ import strikt.assertions.isTrue
 import java.util.logging.LogManager
 
 @Isolated
-@Execution(CONCURRENT)
+
 class DebugSkipTest {
 
     private var skipTestsRun = false
@@ -70,7 +70,7 @@ class DebugSkipTest {
 
 
     @TestMethodOrder(OrderAnnotation::class)
-    @Execution(CONCURRENT)
+
     class HiddenSkipTests : PostDiscoveryFilter {
         companion object {
             var hidden = true

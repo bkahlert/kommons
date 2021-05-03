@@ -9,7 +9,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 
-@Execution(CONCURRENT)
+
 class MimeTypeKtTest {
 
     @Test

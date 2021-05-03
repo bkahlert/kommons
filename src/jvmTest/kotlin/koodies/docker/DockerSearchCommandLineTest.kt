@@ -16,7 +16,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 @Disabled
-@Execution(CONCURRENT)
+
 class DockerSearchCommandLineTest {
 
     @Test

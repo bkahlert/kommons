@@ -5,6 +5,7 @@ import koodies.regex.group
 import koodies.regex.groupValues
 import koodies.regex.matchEntire
 import koodies.regex.value
+import koodies.test.Slow
 import koodies.test.testEach
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
@@ -140,7 +141,7 @@ class LineSeparatorsTest {
         }
     }
 
-    @TestFactory
+    @Slow @TestFactory
     fun `each line separator`() = LineSeparators.testEach { lineSeparator ->
         asserting { isEqualTo(lineSeparator) }
 

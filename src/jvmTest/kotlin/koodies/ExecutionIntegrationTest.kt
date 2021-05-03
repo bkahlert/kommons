@@ -264,11 +264,11 @@ class ExecutionIntegrationTest {
 
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
-            │   
+            │
             │   ╭──╴existing logging context
-            │   │   
+            │   │
             │   │   ╭──╴command line logging context
-            │   │   │   
+            │   │   │
             │   │   │   Executing echo test
             │   │   │   test
             │   │   │   Process {} terminated successfully at {}.
@@ -277,10 +277,10 @@ class ExecutionIntegrationTest {
             │   │
             │   ╰──╴✔︎
             │   ╭──╴existing logging context
-            │   │   
+            │   │
             │   │   abc
             │   │   ╭──╴command line logging context
-            │   │   │   
+            │   │   │
             │   │   │   Executing echo test
             │   │   │   test
             │   │   │   Process {} terminated successfully at {}.
@@ -289,7 +289,7 @@ class ExecutionIntegrationTest {
             │   │
             │   ╰──╴✔︎
             │   ╭──╴existing logging context
-            │   │   
+            │   │
             │   │   abc
             │   │   ▶ command line logging context
             │   │   · Executing echo test
@@ -301,7 +301,7 @@ class ExecutionIntegrationTest {
             │   ▶ existing logging context
             │   · abc
             │   · ╭──╴command line logging context
-            │   · │   
+            │   · │
             │   · │   Executing echo test
             │   · │   test
             │   · │   Process {} terminated successfully at {}.
