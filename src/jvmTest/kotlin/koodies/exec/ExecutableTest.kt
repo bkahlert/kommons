@@ -24,7 +24,6 @@ class ExecutableTest {
     private val echoingCommands =
         "echo \"test output ${'$'}TEST\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
 
-
     private fun testProcesses(uniqueId: UniqueId, command: String = echoingCommands, block: (Exec) -> Unit): List<DynamicNode> =
         tests {
             test {
@@ -69,7 +68,7 @@ class ExecutableTest {
 
         @Test
         fun `should add missing shebang`() {
-            val exec = ShellScript { }.toExec(false, emptyMap(), null, null)
+            val exec = ShellScript().toExec(false, emptyMap(), null, null)
             expectThat(exec).isA<JavaExec>().get { commandLine.shellCommand }.contains("#!/bin/sh")
         }
     }

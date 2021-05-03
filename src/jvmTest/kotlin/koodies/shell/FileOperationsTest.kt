@@ -35,7 +35,7 @@ class FileOperationsTest {
         fun InMemoryLoggerFactory.`should remove intermediary line`(uniqueId: UniqueId) = LineSeparators.testWithTempDir(uniqueId) { lineSeparator ->
             val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
             val fixture = file(lineSeparator)
-            ShellScript { file(fixture).removeLine("line 2") }.exec.logging(logger)
+            ShellScript { file(fixture) { removeLine("line 2") } }.exec.logging(logger)
             if (lineSeparator !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
                 expectThat(fixture).hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line")
             }
@@ -45,7 +45,7 @@ class FileOperationsTest {
         fun InMemoryLoggerFactory.`should remove last line`(uniqueId: UniqueId) = LineSeparators.testWithTempDir(uniqueId) { lineSeparator ->
             val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
             val fixture = file(lineSeparator)
-            ShellScript { file(fixture).removeLine("last line") }.exec.logging(logger)
+            ShellScript { file(fixture) { removeLine("last line") } }.exec.logging(logger)
             expectThat(fixture).hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator")
         }
     }
@@ -65,7 +65,7 @@ class FileOperationsTest {
         fun InMemoryLogger.`should append single-line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val logger = this@`should append single-line`
             val fixture = file()
-            ShellScript { file(fixture).appendLine("line 3") }.exec.logging(logger)
+            ShellScript { file(fixture) { appendLine("line 3") } }.exec.logging(logger)
             expectThat(fixture).hasContent("line 1\nline 2\nline 3$LF")
         }
 
@@ -73,7 +73,7 @@ class FileOperationsTest {
         fun InMemoryLogger.`should append multi-line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val logger = this@`should append multi-line`
             val fixture = file()
-            ShellScript { file(fixture).appendLine("line 3\nline 4") }.exec.logging(logger)
+            ShellScript { file(fixture) { appendLine("line 3\nline 4") } }.exec.logging(logger)
             expectThat(fixture).hasContent("line 1\nline 2\nline 3\nline 4$LF")
         }
 
@@ -81,7 +81,7 @@ class FileOperationsTest {
         fun InMemoryLogger.`should not append on already existing line separator`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val logger = this@`should not append on already existing line separator`
             val fixture = file()
-            ShellScript { file(fixture).appendLine("line 3\r") }.exec.logging(logger)
+            ShellScript { file(fixture) { appendLine("line 3\r") } }.exec.logging(logger)
             expectThat(fixture).hasContent("line 1\nline 2\nline 3$LF")
         }
     }

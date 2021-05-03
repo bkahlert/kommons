@@ -8,7 +8,7 @@ import koodies.io.path.Locations
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
-import koodies.shell.ShellScript.Companion.build
+import koodies.shell.ShellScript.ScriptContext
 import java.nio.file.Path
 
 /**
@@ -40,5 +40,5 @@ public fun process(
 @Deprecated("use exec")
 public fun Path.script(
     logger: RenderingLogger = MutedRenderingLogger(),
-    shellScript: ShellScript.() -> Unit,
-): Exec = shellScript.build().exec.logging(logger, this)
+    shellScript: ScriptContext.() -> Unit,
+): Exec = ShellScript { shellScript(); "" }.exec.logging(logger, this)

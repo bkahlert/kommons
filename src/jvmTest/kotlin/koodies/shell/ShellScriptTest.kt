@@ -12,6 +12,7 @@ import koodies.io.path.writeBytes
 import koodies.logging.InMemoryLogger
 import koodies.shell.HereDocBuilder.hereDoc
 import koodies.shell.ShellScript.Companion.isScript
+import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.tests
@@ -34,11 +35,11 @@ import strikt.java.isExecutable
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
-import koodies.text.Unicode.escape as ESC
+import koodies.text.Unicode.escape as e
 
 class ShellScriptTest {
 
-    private fun shellScript() = ShellScript("Test").apply {
+    private fun shellScript() = ShellScript("Test") {
         shebang
         changeDirectoryOrExit(Path.of("/some/where"))
         !"""
@@ -52,7 +53,7 @@ class ShellScriptTest {
     fun `should build valid script`() {
         expectThat(shellScript().build()).isEqualTo("""
             #!/bin/sh
-            echo "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m $ESC[96mTEST$ESC[39m"
+            echo "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m"
             cd "/some/where" || exit 1
             echo "Hello World!"
             echo "Bye!"
@@ -61,13 +62,35 @@ class ShellScriptTest {
         """.trimIndent())
     }
 
+    @TestFactory
+    fun `should build with simple string`() = tests {
+        expecting {
+            ShellScript { "printenv HOME" }.build()
+        } that {
+            isEqualTo("""
+                      printenv HOME
+                      
+                      """.trimIndent())
+        }
+
+        expecting {
+            ShellScript { shebang; "printenv HOME" }.build()
+        } that {
+            isEqualTo("""
+                      #!/bin/sh
+                      printenv HOME
+                      
+                      """.trimIndent())
+        }
+    }
+
     @Test
     fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
         shellScript().buildTo(file)
         expectThat(file).hasContent("""
             #!/bin/sh
-            echo "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m $ESC[96mTEST$ESC[39m"
+            echo "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m"
             cd "/some/where" || exit 1
             echo "Hello World!"
             echo "Bye!"
@@ -149,6 +172,7 @@ class ShellScriptTest {
 
     @Nested
     inner class Embed {
+
         private fun getEmbeddedShellScript() = ShellScript("embedded script 📝") {
             shebang
             !"""mkdir "dir""""
@@ -157,12 +181,13 @@ class ShellScriptTest {
             !"""echo "test" > file.txt"""
         }
 
-        private fun ShellScript.shellScript() {
+        private fun ScriptContext.shellScript(): String {
             shebang
             !"""echo "about to run embedded script""""
             embed(getEmbeddedShellScript())
             !"""echo "finished to run embedded script""""
             !"""echo $(pwd)"""
+            return ""
         }
 
         @Test
@@ -223,7 +248,7 @@ class ShellScriptTest {
         @Test
         fun `should build valid docker run`() {
             expectThat(ShellScript {
-                `#!`
+                shebang
                 !DockerRunCommandLine {
                     image { "image" / "name" }
                     options {
@@ -271,7 +296,7 @@ class ShellScriptTest {
         @Test
         fun `should build valid docker stop`() {
             expectThat(ShellScript {
-                `#!`
+                shebang
                 !DockerStopCommandLine {
                     containers { +"busybox" + "guestfish" }
                     options { time by 42 }
@@ -291,10 +316,10 @@ class ShellScriptTest {
 
     @Nested
     inner class Name {
-        private val testBanner = "$ESC[90;40m░$ESC[39;49m$ESC[96;46m░$ESC[39;49m" +
-            "$ESC[94;44m░$ESC[39;49m$ESC[92;42m░$ESC[39;49m$ESC[93;43m░" +
-            "$ESC[39;49m$ESC[95;45m░$ESC[39;49m$ESC[91;41m░$ESC[39;49m " +
-            "$ESC[96mTEST$ESC[39m"
+        private val testBanner = "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m" +
+            "$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░" +
+            "$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m " +
+            "$e[96mTEST$e[39m"
 
         @Test
         fun `should have an optional name`() {
@@ -371,7 +396,7 @@ class ShellScriptTest {
 
         @Test
         fun InMemoryLogger.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val script = ShellScript {}.buildTo(resolve("script.sh"))
+            val script = ShellScript().buildTo(resolve("script.sh"))
             ShellScript { !script.pathString }.exec.logging(this@`should not remove itself by default`)
             expectThat(resolve("script.sh")).exists()
         }
