@@ -31,17 +31,17 @@ public open class DockerImagePullCommandLine(
 
     public open class Options(
         /**
-         * 	Download all tagged images in the repository
+         * Download all tagged images in the repository
          */
         public val allTags: Boolean = false,
     ) : List<String> by (buildList {
         if (allTags) add("--all-tags")
     }) {
         public companion object : BuilderTemplate<OptionsContext, Options>() {
-            
+
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
-                 * 	Download all tagged images in the repository
+                 * Download all tagged images in the repository
                  */
                 public val allTags: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
             }

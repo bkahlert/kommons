@@ -29,7 +29,7 @@ public open class DockerKillCommandLine(
 ) {
     public open class Options(
         /**
-         * 	Signal to send to the container (default: KILL)
+         * Signal to send to the container (default: KILL)
          */
         public val signal: String? = null,
     ) : List<String> by (buildList {
@@ -44,7 +44,7 @@ public open class DockerKillCommandLine(
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
-                 * 	Signal to send to the container (default: KILL)
+                 * Signal to send to the container (default: KILL)
                  */
                 public val signal: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
             }

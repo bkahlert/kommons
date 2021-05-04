@@ -32,15 +32,15 @@ public open class DockerRemoveCommandLine(
 ) {
     public open class Options(
         /**
-         * 	Force the removal of a running container (uses SIGKILL)
+         * Force the removal of a running container (uses SIGKILL)
          */
         public val force: Boolean = false,
         /**
-         * 	Remove the specified link associated with the container.
+         * Remove the specified link associated with the container.
          */
         public val link: Boolean = false,
         /**
-         * 	Remove anonymous volumes associated with the container
+         * Remove anonymous volumes associated with the container
          */
         public val volumes: Boolean = false,
     ) : List<String> by (buildList {
@@ -53,17 +53,17 @@ public open class DockerRemoveCommandLine(
 
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 /**
-                 * 	Force the removal of a running container (uses SIGKILL)
+                 * Force the removal of a running container (uses SIGKILL)
                  */
                 public val force: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
 
                 /**
-                 * 	Remove the specified link
+                 * Remove the specified link
                  */
                 public val link: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
 
                 /**
-                 * 	Remove anonymous volumes associated with the container
+                 * Remove anonymous volumes associated with the container
                  */
                 public val volumes: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
             }

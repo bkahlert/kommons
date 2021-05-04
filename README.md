@@ -375,8 +375,8 @@ Same functionality provided by `DynamicReadableByteChannel`.
 #### File and Directory Size
 
 ```kotlin
-Path.of("/tmp").size // 1.9 TB
-listOf(largeFile, smallFile, mediumFile).sortedBy { it.size }
+Path.of("/tmp").getSize() // 1.9 TB
+listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 ```
 
 #### From and to String

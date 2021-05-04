@@ -14,10 +14,10 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
+import koodies.text.LineSeparators.mapLines
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.mapLines
-import koodies.text.prefixLinesWith
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock

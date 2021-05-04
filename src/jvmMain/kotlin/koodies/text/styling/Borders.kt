@@ -5,7 +5,6 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.asCodePointSequence
 import koodies.text.codePointCount
-import koodies.text.joinLinesToString
 import koodies.text.repeat
 import koodies.text.styling.Borders.Block
 import koodies.text.styling.Borders.Double
@@ -256,7 +255,7 @@ public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     padding: Int = 2,
     margin: Int = 1,
     formatter: Formatter = Formatter.PassThrough,
-): String = joinLinesToString().wrapWithBorder(border, padding, margin, formatter)
+): String = joinToString(LF).wrapWithBorder(border, padding, margin, formatter)
 
 public class Draw(public val text: CharSequence) {
     public val border: Border get() = Border()

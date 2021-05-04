@@ -9,15 +9,15 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
+import koodies.text.LineSeparators.mapLines
+import koodies.text.LineSeparators.prefixLinesWith
+import koodies.text.LineSeparators.wrapLines
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.addColumn
 import koodies.text.joinToTruncatedString
-import koodies.text.mapLines
-import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.withPrefix
-import koodies.text.wrapLines
 
 /**
  * Logger interface with the ability to render its log with a border.

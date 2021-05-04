@@ -6,8 +6,8 @@ import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.Semantics.Symbols.Computation
-import koodies.text.prefixLinesWith
 import koodies.text.takeUnlessBlank
 import kotlin.properties.Delegates
 

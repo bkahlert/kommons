@@ -11,6 +11,7 @@ import koodies.text.AnsiString.Companion.subSequence
 import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.mapLines
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -397,7 +398,7 @@ class AnsiStringTest {
 
         @Test
         fun `should join split ANSI string`() {
-            expectThat(expectedAnsiFormattedLines.joinLinesToString { it }).isEqualTo("""
+            expectThat(expectedAnsiFormattedLines.joinToString(LF) { it }).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m
                 $e[3;36mLast one is clean.$e[23;39m

@@ -14,7 +14,6 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.fuzzyLevenshteinDistance
-import koodies.text.joinLinesToString
 import koodies.times
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
@@ -143,10 +142,10 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
                     }
                 }
             }.onFailure {
-                dump("Test failed.") { read.joinLinesToString() }
+                dump("Test failed.") { read.joinToString(LF) }
             }
 
-            expectThat(read.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+            expectThat(read.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
         }
 
         @Test
@@ -157,7 +156,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
             kotlin.runCatching {
                 assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
                     val readLines = reader.readLines()
-                    expectThat(readLines.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+                    expectThat(readLines.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
                 }
             }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
         }

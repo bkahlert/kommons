@@ -8,7 +8,6 @@ import koodies.io.path.writeText
 import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
-import koodies.text.joinLinesToString
 import koodies.text.withSuffix
 import java.io.IOException
 import java.nio.file.Path
@@ -49,9 +48,9 @@ public fun Path.dump(
 
     (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
         "➜ A dump has been written to:$LF" +
-        dumps.entries.joinLinesToString(postfix = LF) { "  - ${it.value.toUri()} (${it.key})" } +
+        dumps.entries.joinToString("") { "  - ${it.value.toUri()} (${it.key})$LF" } +
         "➜ The last $recentLineCount lines are:$LF" +
-        dumpedLines.takeLast(recentLineCount).map { "  $it" }.joinLinesToString(postfix = LF)
+        dumpedLines.takeLast(recentLineCount).map { "  $it$LF" }.joinToString("")
 }.recover { ex: Throwable ->
     (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
         "In the attempt to persist the corresponding dump the following error occurred:$LF" +

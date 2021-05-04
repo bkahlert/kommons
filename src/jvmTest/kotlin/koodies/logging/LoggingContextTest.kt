@@ -14,8 +14,8 @@ import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.matchesCurlyPattern
-import koodies.text.prefixLinesWith
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.AfterEach

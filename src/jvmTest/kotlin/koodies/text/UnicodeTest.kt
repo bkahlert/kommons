@@ -3,6 +3,7 @@ package koodies.text
 import koodies.number.ApproximationMode
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
+import koodies.text.Unicode.characterTabulation
 import koodies.text.Unicode.nextLine
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -32,22 +33,22 @@ class UnicodeTest {
     @TestFactory
     fun `should have valid unicode blocks`() = listOf(
         Unicode.BoxDrawings to ("╿" to """
-            ─	BOX DRAWINGS LIGHT HORIZONTAL
-            ━	BOX DRAWINGS HEAVY HORIZONTAL
-            │	BOX DRAWINGS LIGHT VERTICAL
-            ┃	BOX DRAWINGS HEAVY VERTICAL
+            ─${characterTabulation}BOX DRAWINGS LIGHT HORIZONTAL
+            ━${characterTabulation}BOX DRAWINGS HEAVY HORIZONTAL
+            │${characterTabulation}BOX DRAWINGS LIGHT VERTICAL
+            ┃${characterTabulation}BOX DRAWINGS HEAVY VERTICAL
         """.trimIndent()),
         Unicode.CombiningDiacriticalMarks to ("ͯ" to """
-             ̀	COMBINING GRAVE ACCENT
-             ́	COMBINING ACUTE ACCENT
-             ̂	COMBINING CIRCUMFLEX ACCENT
-             ̃	COMBINING TILDE
+             ̀${characterTabulation}COMBINING GRAVE ACCENT
+             ́${characterTabulation}COMBINING ACUTE ACCENT
+             ̂${characterTabulation}COMBINING CIRCUMFLEX ACCENT
+             ̃${characterTabulation}COMBINING TILDE
         """.trimIndent()),
         Unicode.DivinationSymbols.Tetragrams to ("𝍖" to """
-            𝌆	TETRAGRAM FOR CENTRE
-            𝌇	TETRAGRAM FOR FULL CIRCLE
-            𝌈	TETRAGRAM FOR MIRED
-            𝌉	TETRAGRAM FOR BARRIER
+            𝌆${characterTabulation}TETRAGRAM FOR CENTRE
+            𝌇${characterTabulation}TETRAGRAM FOR FULL CIRCLE
+            𝌈${characterTabulation}TETRAGRAM FOR MIRED
+            𝌉${characterTabulation}TETRAGRAM FOR BARRIER
         """.trimIndent()),
     ).map { (unicodeBlockMeta, expectations) ->
         dynamicContainer(unicodeBlockMeta.name, listOf(

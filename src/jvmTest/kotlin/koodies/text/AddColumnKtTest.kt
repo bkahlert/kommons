@@ -3,6 +3,8 @@ package koodies.text
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.AnsiStringTest.Companion.ansiString
 import koodies.text.AnsiStringTest.Companion.nonAnsiString
+import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.wrapLines
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -27,7 +29,7 @@ class AddColumnKtTest {
         @Test
         fun `should add fewer lines as second column`() {
             expectThat(nonAnsiString.wrapLines(26)
-                .addColumn(nonAnsiString.lines().dropLast(1).joinLinesToString().wrapLines(26))).isEqualTo("""
+                .addColumn(nonAnsiString.lines().dropLast(1).joinToString(LF).wrapLines(26))).isEqualTo("""
                 Important: This line has n     Important: This line has n
                 o ANSI escapes.                o ANSI escapes.
                 This one's bold!               This one's bold!
@@ -75,7 +77,7 @@ class AddColumnKtTest {
         @Test
         fun `should add fewer lines as second column`() {
             expectThat(ansiString.wrapLines(26).asAnsiString()
-                .addColumn(ansiString.lines().dropLast(1).joinLinesToString().asAnsiString().wrapLines(26).asAnsiString())).isEqualTo("""
+                .addColumn(ansiString.lines().dropLast(1).joinToString(LF).asAnsiString().wrapLines(26).asAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m

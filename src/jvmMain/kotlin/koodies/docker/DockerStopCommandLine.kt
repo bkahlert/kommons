@@ -33,7 +33,7 @@ public open class DockerStopCommandLine(
 ) {
     public open class Options(
         /**
-         * 	Seconds to wait for stop before killing it
+         * Seconds to wait for stop before killing it
          */
         public val time: Int? = null,
     ) : List<String> by (buildList {
@@ -44,7 +44,7 @@ public open class DockerStopCommandLine(
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
-                 * 	Seconds to wait for stop before killing it
+                 * Seconds to wait for stop before killing it
                  */
                 public val time: SkippableCapturingBuilderInterface<() -> Int?, Int?> by builder()
 

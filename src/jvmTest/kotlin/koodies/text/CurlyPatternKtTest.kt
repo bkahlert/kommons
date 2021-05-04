@@ -9,6 +9,7 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
+import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.Symbols

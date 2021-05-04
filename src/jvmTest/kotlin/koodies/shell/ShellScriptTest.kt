@@ -19,7 +19,6 @@ import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
-import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
 import koodies.text.toByteArray
@@ -237,7 +236,7 @@ class ShellScriptTest {
 
             expect {
                 that(exec.exitCodeOrNull).isEqualTo(0)
-                that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
+                that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinToString(LF))
                     .matchesCurlyPattern("""
                         Executing {}
                         about to run embedded script

@@ -22,7 +22,7 @@ import koodies.test.output.TestLogger
 import koodies.test.test
 import koodies.test.tests
 import koodies.text.LineSeparators.LF
-import koodies.text.mapLines
+import koodies.text.LineSeparators.mapLines
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.text.withoutPrefix

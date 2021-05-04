@@ -10,11 +10,11 @@ import koodies.takeIfDebugging
 import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.prefixLinesWith
 import koodies.text.styling.wrapWithBorder
 import koodies.time.Now
 import koodies.unit.Size

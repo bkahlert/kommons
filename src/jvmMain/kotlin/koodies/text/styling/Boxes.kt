@@ -3,8 +3,8 @@ package koodies.text.styling
 import koodies.math.isEven
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
+import koodies.text.LineSeparators.mapLines
 import koodies.text.Unicode.NBSP
-import koodies.text.mapLines
 import koodies.text.maxLength
 import koodies.text.repeat
 import koodies.text.styling.Boxes.FAIL

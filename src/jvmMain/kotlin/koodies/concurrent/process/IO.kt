@@ -13,9 +13,9 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.AnsiString
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
+import koodies.text.LineSeparators.mapLines
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.mapLines
 import koodies.time.Now
 import java.nio.file.Path
 

@@ -2,6 +2,7 @@ package koodies.text
 
 import koodies.collections.zipWithDefault
 import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
 
 /**
@@ -36,7 +37,7 @@ public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxLength
             val leftColumn = leftLine.asAnsiString().padEnd(columnWidth + paddingWidth, padChar = paddingCharacter)
             "$leftColumn$rightLine"
         }
-        .joinLinesToString()
+        .joinToString(LF)
         .asAnsiString()
 
 /**

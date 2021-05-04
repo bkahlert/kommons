@@ -4,10 +4,10 @@ import koodies.collections.synchronizedListOf
 import koodies.jvm.currentThread
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.padStartFixedLength
-import koodies.text.prefixLinesWith
 import koodies.time.Now
 import java.io.OutputStream
 

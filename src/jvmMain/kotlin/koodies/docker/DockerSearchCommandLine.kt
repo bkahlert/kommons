@@ -37,7 +37,7 @@ public open class DockerSearchCommandLine(
          */
         public val filters: List<Pair<String, String>> = emptyList(),
         /**
-         * 	Pretty-print search using a Go template
+         * Pretty-print search using a Go template
          */
         public val format: String?,
         /**
@@ -81,7 +81,7 @@ public open class DockerSearchCommandLine(
                     by (BooleanBuilder.OnOff then { "is-official" to it.toString() }) then filter
 
                 /**
-                 * 	Pretty-print search using a Go template
+                 * Pretty-print search using a Go template
                  */
                 public val format: SkippableCapturingBuilderInterface<() -> String, String?> by builder<String>()
 

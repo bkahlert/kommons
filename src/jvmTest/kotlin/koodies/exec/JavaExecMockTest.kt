@@ -31,7 +31,6 @@ import koodies.test.expecting
 import koodies.test.test
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
-import koodies.text.joinLinesToString
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -341,7 +340,7 @@ class JavaExecMockTest {
             p.outputStream.enter("password1234")
         }
 
-        expectThat(reader.readLines().joinLinesToString()).isEqualToByteWise("""
+        expectThat(reader.readLines().joinToString(LF)).isEqualToByteWise("""
             Welcome!
             Password? password1234
             

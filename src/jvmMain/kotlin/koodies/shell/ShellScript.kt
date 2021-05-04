@@ -12,9 +12,9 @@ import koodies.shell.ShellScript.ScriptContext
 import koodies.text.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.TruncationStrategy.MIDDLE
-import koodies.text.prefixLinesWith
 import koodies.text.quoted
 import koodies.text.truncate
 import koodies.text.withRandomSuffix

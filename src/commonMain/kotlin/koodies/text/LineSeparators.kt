@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.regex.or
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 
@@ -183,4 +184,94 @@ public object LineSeparators : Collection<String> {
      * If this [CharSequence] [isMultiline] this property contains the first line's line separator length.
      */
     public val CharSequence.firstLineSeparatorLength: Int get() = firstLineSeparator?.length ?: 0
+
+    /**
+     * Maps each line of this char sequence using [transform].
+     *
+     * If this char sequence consists of but a single line this line is mapped.
+     *
+     * If this char sequence has a trailing line that trailing line is left unchanged.
+     */
+    public fun CharSequence.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
+        (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
+            lines().map(transform)
+                .let { if (trailingLineSeparator) it.dropLast(1) else it }
+                .joinToString(LF)
+                .let { if (trailingLineSeparator) it + LF else it }
+        }
+
+    /**
+     * Maps each line of this string using [transform].
+     *
+     * If this string consists of but a single line this line is mapped.
+     *
+     * If this string has a trailing line that trailing line is left unchanged.
+     */
+    public fun String.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
+        (this as CharSequence).mapLines(ignoreTrailingSeparator, transform)
+
+    /**
+     * Flat maps each line of this char sequence using [transform].
+     *
+     * If this char sequence consists of but a single line this line is mapped.
+     *
+     * If this char sequence has a trailing line that trailing line is left unchanged.
+     */
+    public fun <T : CharSequence> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
+        (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
+            lines().map { line -> transform(line).joinToString(LF) }
+                .let { if (trailingLineSeparator) it.dropLast(1) else it }
+                .joinToString(LF)
+                .let { if (trailingLineSeparator) it + LF else it }
+        }
+
+    /**
+     * Returns the [String] of what all lines of text are prefixed with the given [prefix].
+     */
+    public fun CharSequence.prefixLinesWith(prefix: CharSequence, ignoreTrailingSeparator: Boolean = true): String =
+        mapLines(ignoreTrailingSeparator) { "$prefix$it" }
+
+    /**
+     * Breaks this char sequence to a sequence of strings of [maxLength].
+     *
+     * @param maxLength The maximum length of each returned line.
+     */
+    public fun CharSequence.breakLines(maxLength: Int, ignoreTrailingSeparator: Boolean = true): String {
+        return flatMapLines(ignoreTrailingSeparator) { line ->
+            line.chunked(maxLength)
+        }
+    }
+
+
+    /**
+     * Returns a sequence of lines of which none is longer than [maxLineLength].
+     */
+    public fun CharSequence.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+        val ansiString = this is AnsiString
+        val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
+        return lines.flatMap { line: String ->
+            if (ansiString) {
+                val seq: Sequence<AnsiString> = line.asAnsiString().chunkedSequence(maxLineLength)
+                if (ignoreTrailingSeparator) seq
+                else seq.iterator().run { if (!hasNext()) sequenceOf(AnsiString.EMPTY) else asSequence() }
+            } else {
+                val seq = line.chunkedSequence(maxLineLength)
+                if (ignoreTrailingSeparator) seq
+                else seq.iterator().run { if (!hasNext()) sequenceOf("") else asSequence() }
+            }
+        }
+    }
+
+    /**
+     * Returns a list of lines of which none is longer than [maxLineLength].
+     */
+    public fun CharSequence.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
+        linesOfLengthSequence(maxLineLength, ignoreTrailingSeparator).toList()
+
+
+    /**
+     * Returns a string consisting of lines of which none is longer than [maxLineLength].
+     */
+    public fun CharSequence.wrapLines(maxLineLength: Int): CharSequence =
+        linesOfLength(maxLineLength).joinToString(LF) { "$it" }
 }

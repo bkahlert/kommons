@@ -8,6 +8,7 @@ import koodies.test.output.Bordered
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
+import koodies.text.Unicode.characterTabulation
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -139,6 +140,7 @@ class BlockRenderingLoggerKtTest {
             @Test
             fun @receiver:Columns(20) InMemoryLogger.`should truncate long status element`() {
                 logStatus("X".repeat(50)) { "X" }
+                @Suppress("SpellCheckingInspection")
                 expectThatLogged().matchesCurlyPattern("""
                     ╭──╴{}
                     │
@@ -281,7 +283,7 @@ class BlockRenderingLoggerKtTest {
                     ╭──╴{}
                     │
                     │   java.lang.RuntimeException: exception
-                    │   	at koodies.logging.{}
+                    │   ${characterTabulation}at koodies.logging.{}
                     {{}}
                 """.trimIndent()
             )
@@ -295,7 +297,7 @@ class BlockRenderingLoggerKtTest {
                 """
                     ▶ {}
                     · java.lang.RuntimeException: exception
-                    · 	at koodies.logging.{}
+                    · ${characterTabulation}at koodies.logging.{}
                     {{}}
                 """.trimIndent()
             )
@@ -309,7 +311,7 @@ class BlockRenderingLoggerKtTest {
                 """
                     {}
                     java.lang.RuntimeException: exception
-                    	at koodies.logging.{}
+                    ${characterTabulation}at koodies.logging.{}
                     {{}}
                 """.trimIndent()
             )
@@ -426,6 +428,7 @@ class BlockRenderingLoggerKtTest {
         logStatus("status") { "line" }
     }
 
+    @Suppress("SpellCheckingInspection")
     @Nested
     inner class LoggingAfterResult {
 

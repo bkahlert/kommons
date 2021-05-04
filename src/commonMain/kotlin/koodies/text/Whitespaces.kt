@@ -39,7 +39,7 @@ public object Whitespaces : Collection<String> {
     /** SIX-PER-EM SPACE: 1/6 em */
     public const val SIX_PER_EM_SPACE: String = "\u2006"
 
-    /** FIGURE SPACE	fo: “Tabular width”, the width of digits */
+    /** FIGURE SPACE: “Tabular width”, the width of digits */
     public const val FIGURE_SPACE_FO: String = "\u2007"
 
     /** PUNCTUATION SPACE: The width of a period “.” */
@@ -51,7 +51,7 @@ public object Whitespaces : Collection<String> {
     /** HAIR SPACE: Narrower than THIN SPACE */
     public const val HAIR_SPACE: String = "\u200A"
 
-    /** NARROW NO-BREAK SPACE	fo: Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space” */
+    /** NARROW NO-BREAK SPACE: Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space” */
     public const val NARROW_NO_BREAK_SPACE_FO: String = "\u202F"
 
     /** MEDIUM MATHEMATICAL SPACE: 4/18 em */

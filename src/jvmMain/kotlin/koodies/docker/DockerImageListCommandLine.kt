@@ -32,7 +32,7 @@ public open class DockerImageListCommandLine(
 ) {
     public open class Options(
         /**
-         * 	Show all images (default hides intermediate images)
+         * Show all images (default hides intermediate images)
          */
         public val all: Boolean = false,
     ) : List<String> by (buildList {

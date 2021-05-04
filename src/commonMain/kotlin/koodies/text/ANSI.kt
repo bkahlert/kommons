@@ -16,6 +16,7 @@ import koodies.text.AnsiCodeHelper.closingControlSequence
 import koodies.text.AnsiCodeHelper.controlSequence
 import koodies.text.AnsiCodeHelper.parseAnsiCodesAsSequence
 import koodies.text.AnsiCodeHelper.unclosedCodes
+import koodies.text.LineSeparators.mapLines
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
@@ -33,8 +34,20 @@ public object ANSI {
     /**
      * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
      */
-    public val <T : CharSequence> T.ansiRemoved: String get() = AnsiCode.REGEX.replace(toString(), "")
-    public val <T : CharSequence> T.containsEscapeSequences: Boolean get() = AnsiCode.REGEX.containsMatchIn(this)
+    public val CharSequence.ansiRemoved: String get() = REGEX.replace(toString(), "")
+    public val CharSequence.containsEscapeSequences: Boolean get() = REGEX.containsMatchIn(this)
+
+    /**
+     * Returns this character sequence as a string with all lines terminated with
+     * a reset escape sequence. This is a hackish way of fixing ANSI escape based graphics that bleed
+     * because of mal-formed or mal-interpreted escape sequences.
+     *
+     * Example: Bleeding graphic with three colors
+     * ```
+     *
+     * ```
+     */
+    public fun CharSequence.resetLines(): String = toString().mapLines { "$it$RESET" }
 
     public fun interface Formatter {
         public operator fun invoke(text: CharSequence): CharSequence
@@ -86,7 +99,7 @@ public object ANSI {
         override fun on(backgroundColorizer: Colorizer): Formatter = this + (backgroundColorizer.bg)
     }
 
-    private val reset: AnsiCode by lazy { if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0) }
+    internal val RESET: AnsiCode by lazy { if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0) }
 
     public object Colors {
 

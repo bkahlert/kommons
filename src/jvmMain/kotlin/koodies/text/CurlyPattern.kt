@@ -2,6 +2,7 @@
 
 package koodies.text
 
+import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.withoutLeadingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 

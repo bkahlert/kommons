@@ -6,9 +6,9 @@ import koodies.concurrent.process.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
+import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.Symbols
-import koodies.text.prefixLinesWith
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 

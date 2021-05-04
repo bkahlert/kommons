@@ -31,7 +31,7 @@ public open class DockerPsCommandLine(
 ) {
     public open class Options(
         /**
-         * 	Show all images (default hides intermediate images)
+         * Show all images (default hides intermediate images)
          */
         public val all: Boolean = false,
 
@@ -57,7 +57,7 @@ public open class DockerPsCommandLine(
                 public val filter: SkippableCapturingBuilderInterface<() -> Pair<String, String>, Pair<String, String>?> by PairBuilder()
 
                 /**
-                 * 	Filter output based on container’s exact name
+                 * Filter output based on container’s exact name
                  */
                 public fun exactName(name: String): Unit = filter { "name" to "^$name${'$'}" }
             }
