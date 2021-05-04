@@ -1,16 +1,9 @@
 package koodies.exec
 
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.Error
-import koodies.concurrent.process.IO.Input
-import koodies.concurrent.process.IO.Meta
-import koodies.concurrent.process.IO.Output
-import koodies.concurrent.process.IOSequence
-import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.process
-import koodies.concurrent.process.processAsynchronously
-import koodies.concurrent.process.processSilently
-import koodies.concurrent.process.processSynchronously
+import koodies.exec.IO.Error
+import koodies.exec.IO.Input
+import koodies.exec.IO.Meta
+import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ExitState.Failure

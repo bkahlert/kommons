@@ -37,7 +37,6 @@ import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.seconds
 
-
 public class DockerContainer(public val name: String) {
 
     init {

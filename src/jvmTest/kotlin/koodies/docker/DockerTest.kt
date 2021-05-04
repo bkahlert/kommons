@@ -1,6 +1,5 @@
 package koodies.docker
 
-import koodies.concurrent.process.output
 import koodies.docker.Docker.run
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
@@ -126,7 +125,7 @@ class DockerTest {
                     arguments { +"test" }
                 }
             }
-            expectThat(process.output()).isEqualTo("test")
+            expectThat(process.io.output.ansiRemoved).isEqualTo("test")
         }
 
         @Test

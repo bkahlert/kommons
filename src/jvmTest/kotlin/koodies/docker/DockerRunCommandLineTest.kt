@@ -1,8 +1,6 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.Output
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
@@ -11,6 +9,8 @@ import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
+import koodies.exec.IO
+import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ProcessState.Terminated
 import koodies.exec.ansiRemoved

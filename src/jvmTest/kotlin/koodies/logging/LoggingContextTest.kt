@@ -1,7 +1,7 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
+import koodies.exec.IO
 import koodies.io.ByteArrayOutputStream
 import koodies.jvm.completableFuture
 import koodies.jvm.currentThread

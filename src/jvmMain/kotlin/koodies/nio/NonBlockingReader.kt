@@ -1,8 +1,8 @@
 package koodies.nio
 
-import koodies.concurrent.process.IO
 import koodies.debug.asEmoji
 import koodies.debug.debug
+import koodies.exec.IO
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled

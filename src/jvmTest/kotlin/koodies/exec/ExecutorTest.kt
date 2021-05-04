@@ -1,12 +1,10 @@
 package koodies.exec
 
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
-import koodies.concurrent.process.output
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Failure
 import koodies.exec.Process.ExitState.Success
+import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.io.path.Locations
 import koodies.io.path.pathString
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE

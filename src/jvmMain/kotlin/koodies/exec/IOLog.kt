@@ -1,12 +1,13 @@
-package koodies.concurrent.process
+package koodies.exec
 
 import koodies.asString
 import koodies.exception.persistDump
-import koodies.exec.Exec
+import koodies.exec.IO.Error
+import koodies.exec.IO.Input
+import koodies.exec.IO.Output
 import koodies.io.ByteArrayOutputStream
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
-import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.Semantics.Symbols
 import koodies.text.truncate
@@ -33,12 +34,12 @@ public class IOLog : Sequence<IO> {
         lock.withLock { log.toList() }.iterator()
 
     /**
-     * Contains the currently logged I/O. See [copy] for more details.
+     * Contains the currently logged I/O.
      */
     private val log = mutableListOf<IO>()
 
     /**
-     * Adds the specified [META] [IO] to this log.
+     * Adds the specified [IO.Meta] to this log.
      */
     public operator fun plus(meta: IO.Meta) {
         lock.withLock { log.add(meta) }
@@ -50,7 +51,7 @@ public class IOLog : Sequence<IO> {
      */
     public val input: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.Input typed it) }
+            lines.forEach { log.add(Input typed it) }
         }
     }
 
@@ -60,7 +61,7 @@ public class IOLog : Sequence<IO> {
      */
     public val output: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.Output typed it) }
+            lines.forEach { log.add(Output typed it) }
         }
     }
 
@@ -70,7 +71,7 @@ public class IOLog : Sequence<IO> {
      */
     public val error: IOAssembler = IOAssembler { lines ->
         lock.withLock {
-            lines.forEach { log.add(IO.Error typed it) }
+            lines.forEach { log.add(Error typed it) }
         }
     }
 
@@ -78,7 +79,7 @@ public class IOLog : Sequence<IO> {
      * For each type of [IO] all so far saved incomplete strings are treated
      * as if they were complete, that is, appended to the list of completed strings.
      */
-    public fun flush(): Unit {
+    public fun flush() {
         input.flush()
         output.flush()
         error.flush()
@@ -108,7 +109,7 @@ public class IOLog : Sequence<IO> {
  *
  * Bytes are provided using [plus].
  */
-public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Unit) {
+public class IOAssembler(private val lineCompletedCallback: (List<String>) -> Unit) {
 
     private val lock = ReentrantLock()
 
@@ -167,42 +168,3 @@ public class IOAssembler(public val lineCompletedCallback: (List<String>) -> Uni
 
     override fun toString(): String = asString(::lock, ::incomplete)
 }
-
-/**
- * Filters this [IO] sequence by the specified type.
- *
- * By default [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
- * Set [removeEscapeSequences] to `false` to keep escapes codes.
- */
-public inline fun <reified T : IO> Sequence<IO>.merge(removeEscapeSequences: Boolean = true): String =
-    filterIsInstance<T>().joinToString(LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
-
-/**
- * Convenience method to get the output of a process.
- *
- * - If the process was not started, it will be started.
- * - If the process is running, this method blocks until the process terminated.
- * - If the process already terminated, the recorded IO is returned.
- *
- * If nothing terribly goes wrong, all IO of type [IO.Output] is returned.
- */
-@Deprecated("use io.out")
-public fun Exec.output(): String = run {
-    process({ sync }, Processors.noopProcessor())
-    io.merge<IO.Output>()
-}
-
-/**
- * Convenience method to get the output of a process, split the lines
- * and apply [transform] to each line. The lines [transform] maps to `null`
- * are filtered out.
- *
- * - If the process was not started, it will be started.
- * - If the process is running, this method blocks until the process terminated.
- * - If the process already terminated, the recorded IO is returned.
- *
- * If nothing terribly goes wrong, all IO of type [IO.Output] is returned.
- */
-@Deprecated("use io.out")
-public fun <T> Exec.output(transform: String.() -> T?): List<T> =
-    output().lines(ignoreTrailingSeparator = true).mapNotNull { it.transform() }

@@ -4,16 +4,12 @@ import koodies.Either
 import koodies.Either.Left
 import koodies.Either.Right
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.Meta
-import koodies.concurrent.process.IO.Meta.Dump
-import koodies.concurrent.process.IO.Meta.Starting
-import koodies.concurrent.process.IO.Meta.Terminated
-import koodies.concurrent.process.IO.Output
-import koodies.concurrent.process.IOSequence
-import koodies.concurrent.process.ProcessingMode
 import koodies.docker.Docker
 import koodies.exception.dump
+import koodies.exec.IO.Meta
+import koodies.exec.IO.Meta.Dump
+import koodies.exec.IO.Meta.Terminated
+import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ExitState.Failure
@@ -80,12 +76,12 @@ import java.nio.file.Path
  *
  *      // 🐚 run shell scripts with same API (exec, exec.logging, exec.processing)
  *      ShellScript {
- *        !"curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
+ *        "curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
  *      }.exec()
  *
  *      // 🐳 dockerized, e.g. if a command line tool is missing
  *      ShellScript {
- *        !"curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
+ *        "curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
  *      }.dockerized { "dwdraju" / "alpine-curl-jq" }.exec()
  * ```
  *
@@ -281,7 +277,7 @@ public inline class ColumnParser(
     public inline fun <T : Any, reified E : Failure> columns(num: Int, crossinline lineParser: (List<String>) -> T?): Either<List<T>, E> =
         when (val exitState = exec.waitFor()) {
             is Fatal -> {
-                val commandLine = exec.io.filterIsInstance<Starting>().singleOrNull()?.run { commandLine.summary } ?: "docker command"
+                val commandLine = exec.commandLine.summary
                 error("Error running $commandLine: $exitState")
             }
 

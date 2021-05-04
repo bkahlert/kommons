@@ -1,16 +1,12 @@
 package koodies.exec
 
 import koodies.collections.synchronizedSetOf
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.Meta.File
-import koodies.concurrent.process.IO.Meta.Starting
-import koodies.concurrent.process.IOLog
-import koodies.concurrent.process.IOSequence
-import koodies.concurrent.process.ShutdownHookUtils
 import koodies.debug.asEmoji
 import koodies.exception.toCompactString
 import koodies.exec.Exec.Companion.createDump
 import koodies.exec.Exec.Companion.fallbackExitStateHandler
+import koodies.exec.IO.Meta.File
+import koodies.exec.IO.Meta.Starting
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ExitState.Fatal
@@ -19,6 +15,8 @@ import koodies.exec.Process.ProcessState.Running
 import koodies.exec.Process.ProcessState.Terminated
 import koodies.io.TeeInputStream
 import koodies.io.TeeOutputStream
+import koodies.jvm.addShutDownHook
+import koodies.jvm.removeShutdownHook
 import koodies.jvm.thenAlso
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
@@ -33,13 +31,14 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.concurrent.thread
 import koodies.io.RedirectingOutputStream as ReOutputStream
+import java.lang.Process as JavaProcess
 
 /**
  * Java-based [Exec] implementation.
  */
 public class JavaExec(
 
-    private val javaProcess: java.lang.Process,
+    private val javaProcess: JavaProcess,
 
     /**
      * The working directory to be used during execution.
@@ -158,9 +157,9 @@ public class JavaExec(
 
             if (destroyOnShutdown) {
                 val shutdownHook = thread(start = false, name = "shutdown hook for $this", contextClassLoader = null) { javaProcess.destroy() }
-                ShutdownHookUtils.addShutDownHook(shutdownHook)
+                addShutDownHook(shutdownHook)
 
-                javaProcess.onExit().handle { _, _ -> ShutdownHookUtils.removeShutdownHook(shutdownHook) }
+                javaProcess.onExit().handle { _, _ -> removeShutdownHook(shutdownHook) }
             }
 
             execTerminationCallback?.let { callback ->

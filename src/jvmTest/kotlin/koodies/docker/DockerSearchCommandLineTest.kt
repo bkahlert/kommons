@@ -3,10 +3,10 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.collections.head
 import koodies.collections.tail
-import koodies.concurrent.process.output
 import koodies.debug.trace
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options
+import koodies.exec.output
 import koodies.test.BuilderFixture
 import koodies.test.UniqueId
 import koodies.test.withTempDir
@@ -44,7 +44,7 @@ class DockerSearchCommandLineTest {
             val url = """https://registry.hub.docker.com/api/content/v1/repositories/public/library/${repo}/tags?page=${page}&page_size=${size}"""
             docker({ "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" }) {
                 """curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"""
-            }.output().lines().map { tag -> DockerImage(repo.split("/").head, repo.split("/").tail, tag = tag) }
+            }.io.output.ansiRemoved.lines().map { tag -> DockerImage(repo.split("/").head, repo.split("/").tail, tag = tag) }
 
 //            Docker.busybox({ "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" },
 //                """curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"""

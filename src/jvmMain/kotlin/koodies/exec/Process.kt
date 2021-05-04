@@ -1,8 +1,6 @@
 package koodies.exec
 
 import koodies.Exceptions.ISE
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IOSequence
 import koodies.exception.toCompactString
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ProcessState.Running
@@ -11,14 +9,20 @@ import koodies.logging.ReturnValue
 import koodies.text.LineSeparators
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
+import koodies.text.withSuffix
 import koodies.time.Now
+import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlin.time.Duration
+import kotlin.time.milliseconds
 
 /**
  * Platform independent representation of a running program.
@@ -66,7 +70,6 @@ public interface Process : ReturnValue {
      * Representation of the state of a [Process].
      *
      * The types are distinguished (which may have more differentiated specializations):
-     * - [Prepared] for not yet started processes
      * - [Running] for already started and not yet terminated processes
      * - [Terminated] for started and no more running processes
      */
@@ -135,7 +138,6 @@ public interface Process : ReturnValue {
      * Representation of the exit state of a [ProcessState.Terminated] [Process].
      *
      * The types are distinguished (which may have more differentiated specializations):
-     * - [Prepared] for not yet started processes
      * - [Running] for already started and not yet terminated processes
      * - [Terminated] for started and no more running processes
      */
@@ -258,15 +260,11 @@ public interface Process : ReturnValue {
 
 /**
  * Returns whether `this` [Process] [isRunning].
- *
- * Contrary to [started] this property stays turns `false` again after the process terminated.
  */
 public val Process.alive: Boolean get() = state is Running
 
 /**
- * Returns whether `this` [Process] is running.
- *
- * Contrary to [started] this property stays turns `false` again after the process terminated.
+ * Returns whether `this` [Process] is [Running].
  */
 public val Process.isRunning: Boolean get() = state is Running
 
@@ -283,6 +281,32 @@ public val Process.exitCodeOrNull: Int? get() = exitState?.exitCode
  */
 public val Process.exitCode: Int get() = exitState?.exitCode ?: throw ISE("Process $pid has not terminated.")
 
+/**
+ * Writes the given [input] strings with a slight delay between
+ * each input on the [Process]'s [InputStream].
+ */
+public fun Process.enter(vararg input: String, delay: Duration = 10.milliseconds): Unit =
+    inputStream.enter(*input, delay = delay)
+
+/**
+ * Writes the given [input] strings with a slight delay between
+ * each input on the [Process]'s [InputStream].
+ */
+public fun Process.input(vararg input: String, delay: Duration = 10.milliseconds): Unit =
+    inputStream.enter(*input, delay = delay)
+
+/**
+ * Writes the given [input] strings with a slight delay between
+ * each input on the [Process]'s [InputStream].
+ */
+public fun OutputStream.enter(vararg input: String, delay: Duration = 10.milliseconds) {
+    val stdin = BufferedWriter(OutputStreamWriter(this))
+    input.forEach {
+        TimeUnit.MILLISECONDS.sleep(delay.toLongMilliseconds())
+        stdin.write(it.withSuffix(LineSeparators.CRLF))
+        stdin.flush()
+    }
+}
 
 // PROCESS BUILDER EXTENSIONS
 

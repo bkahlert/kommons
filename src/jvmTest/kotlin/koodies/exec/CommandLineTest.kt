@@ -1,8 +1,5 @@
 package koodies.exec
 
-import koodies.concurrent.process.Processors
-import koodies.concurrent.process.output
-import koodies.concurrent.process.process
 import koodies.io.path.Locations
 import koodies.test.string
 import koodies.test.toStringIsEqualTo

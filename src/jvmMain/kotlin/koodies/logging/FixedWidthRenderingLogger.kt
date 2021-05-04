@@ -1,7 +1,7 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.regex.RegularExpressions
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke

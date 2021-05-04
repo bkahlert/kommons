@@ -1,8 +1,6 @@
 package koodies.docker
 
 import koodies.collections.too
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IOSequence
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotKillContainer
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotRemoveRunningContainer
@@ -14,6 +12,9 @@ import koodies.docker.DockerExitStateHandler.Failure.BadRequest.PathDoesNotExist
 import koodies.docker.DockerExitStateHandler.Failure.ConnectivityProblem
 import koodies.docker.DockerExitStateHandler.Failure.UnknownError
 import koodies.docker.DockerExitStateHandler.ParseException
+import koodies.exec.IO.Error
+import koodies.exec.IO.Output
+import koodies.exec.IOSequence
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ProcessState.Terminated
 import koodies.exec.status
@@ -42,7 +43,7 @@ import kotlin.reflect.KClass
 
 class DockerExitStateHandlerTest {
 
-    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(IO.Error typed errorMessage))
+    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(Error typed errorMessage))
 
     @TestFactory
     fun `should match docker engine not running error message`() = tests {
@@ -62,9 +63,9 @@ class DockerExitStateHandlerTest {
     fun `should match out errors`() {
         val errorMessage = "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
         val exitState = DockerExitStateHandler.handle(Terminated(12345L, 42, IOSequence(
-            IO.Output typed "out",
-            IO.Output typed "error: $errorMessage",
-            IO.Error typed "error: err",
+            Output typed "out",
+            Output typed "error: $errorMessage",
+            Error typed "error: err",
         )))
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved

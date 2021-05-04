@@ -1,6 +1,6 @@
 package koodies.shell
 
-import koodies.concurrent.process.output
+import koodies.exec.output
 import koodies.test.toStringIsEqualTo
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern

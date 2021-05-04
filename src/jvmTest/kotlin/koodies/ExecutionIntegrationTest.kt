@@ -1,16 +1,16 @@
 package koodies
 
 import koodies.collections.size
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.error
-import koodies.concurrent.process.output
 import koodies.docker.docker
 import koodies.docker.dockerized
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
+import koodies.exec.IO
 import koodies.exec.Process.ExitState
+import koodies.exec.error
 import koodies.exec.exitCode
+import koodies.exec.output
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.tempDir
@@ -31,6 +31,7 @@ import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.resetLines
 import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
@@ -55,7 +56,7 @@ import kotlin.io.path.exists
 class ExecutionIntegrationTest {
 
     @Test
-    fun `should process`() {
+    fun `should run command line`() {
         // simply create a command line
         val commandLine = CommandLine("echo", "Hello, World!") check {
             shellCommand { isEqualTo("echo \"Hello, World!\"") }
@@ -238,15 +239,15 @@ class ExecutionIntegrationTest {
         SvgFile.copyTo(resolve("koodies.svg"))
 
         // run a command line
-        docker("minidocks/librsvg", "-z", 10, "--output", "koodies.png", "koodies.svg")
+        docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg")
         resolve("koodies.png") asserting { exists() }
 
         // run a shell script
         docker("rafib/awesome-cli-binaries", logger = null) {
             """
-               /opt/bin/chafa koodies.png 
+               /opt/bin/chafa -c full -w 9 koodies.png
             """
-        }.io.output.ansiKept.let { println(it) }
+        }.io.output.ansiKept.let { println(it.resetLines()) }
     }
 
 

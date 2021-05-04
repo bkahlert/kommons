@@ -1,24 +1,29 @@
-package koodies.exec
+package koodies.exec.mock
 
-import koodies.concurrent.process.ExecMock.Companion.FAILED_MANAGED_PROCESS
-import koodies.concurrent.process.ExecMock.Companion.RUNNING_MANAGED_PROCESS
-import koodies.concurrent.process.ExecMock.Companion.SUCCEEDED_MANAGED_PROCESS
-import koodies.concurrent.process.JavaProcessMock.Companion.FAILED_PROCESS
-import koodies.concurrent.process.JavaProcessMock.Companion.RUNNING_PROCESS
-import koodies.concurrent.process.JavaProcessMock.Companion.SUCCEEDED_PROCESS
-import koodies.concurrent.process.JavaProcessMock.Companion.processMock
-import koodies.concurrent.process.JavaProcessMock.Companion.withIndividuallySlowInput
-import koodies.concurrent.process.JavaProcessMock.Companion.withSlowInput
-import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
-import koodies.concurrent.process.SlowInputStream
-import koodies.concurrent.process.SlowInputStream.Companion.prompt
-import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
-import koodies.concurrent.process.UserInput.enter
-import koodies.concurrent.process.process
-import koodies.concurrent.process.terminationLoggingProcessor
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.Success
 import koodies.exec.Process.ProcessState
+import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.exec.enter
+import koodies.exec.exitCode
+import koodies.exec.fails
+import koodies.exec.hasState
+import koodies.exec.mock.ExecMock.Companion.FAILED_EXEC
+import koodies.exec.mock.ExecMock.Companion.RUNNING_EXEC
+import koodies.exec.mock.ExecMock.Companion.SUCCEEDED_EXEC
+import koodies.exec.mock.JavaProcessMock.Companion.FAILING_PROCESS
+import koodies.exec.mock.JavaProcessMock.Companion.RUNNING_PROCESS
+import koodies.exec.mock.JavaProcessMock.Companion.SUCCEEDING_PROCESS
+import koodies.exec.mock.JavaProcessMock.Companion.processMock
+import koodies.exec.mock.JavaProcessMock.Companion.withIndividuallySlowInput
+import koodies.exec.mock.JavaProcessMock.Companion.withSlowInput
+import koodies.exec.mock.SlowInputStream.Companion.prompt
+import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
+import koodies.exec.process
+import koodies.exec.starts
+import koodies.exec.status
+import koodies.exec.succeeds
+import koodies.exec.terminationLoggingProcessor
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.isEqualToByteWise
 import koodies.jvm.daemon
@@ -69,15 +74,15 @@ class JavaExecMockTest {
             }
 
             @TestFactory
-            fun `should have completed successfully`() = test({ SUCCEEDED_PROCESS }) {
+            fun `should have completed successfully`() = test({ SUCCEEDING_PROCESS }) {
                 expecting { it().isAlive } that { isFalse() }
                 expecting { it().exitValue() } that { isEqualTo(0) }
             }
 
             @TestFactory
-            fun `should have failed`() = test({ FAILED_PROCESS }) {
+            fun `should have failed`() = test({ FAILING_PROCESS }) {
                 expecting { it().isAlive } that { isFalse() }
-                expecting { it().exitValue() } that { isEqualTo(1) }
+                expecting { it().exitValue() } that { isEqualTo(42) }
             }
         }
 
@@ -85,7 +90,7 @@ class JavaExecMockTest {
         inner class ExecMocks {
 
             @TestFactory
-            fun `should run`() = test({ RUNNING_MANAGED_PROCESS }) {
+            fun `should run`() = test({ RUNNING_EXEC }) {
                 expecting { it() } that { starts() }
                 expecting { it() } that { hasState<ProcessState.Running> { status.contains("running") } }
                 expecting("stays running for 5s") {
@@ -94,13 +99,13 @@ class JavaExecMockTest {
             }
 
             @TestFactory
-            fun `should succeed`() = test({ SUCCEEDED_MANAGED_PROCESS }) {
+            fun `should succeed`() = test({ SUCCEEDED_EXEC }) {
                 expecting { it() } that { succeeds() }
                 expecting { it() } that { hasState<Success> { status.contains("terminated successfully") } }
             }
 
             @TestFactory
-            fun `should fail`() = test({ FAILED_MANAGED_PROCESS }) {
+            fun `should fail`() = test({ FAILED_EXEC }) {
                 expecting { it() } that { fails() }
                 expecting { it() } that { hasState<ExitState.Failure> { status.contains("terminated with exit code") } }
             }

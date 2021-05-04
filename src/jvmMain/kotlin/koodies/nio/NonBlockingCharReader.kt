@@ -1,7 +1,7 @@
 package koodies.nio
 
-import koodies.concurrent.process.IO
 import koodies.debug.debug
+import koodies.exec.IO
 import koodies.io.ByteArrayOutputStream
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger

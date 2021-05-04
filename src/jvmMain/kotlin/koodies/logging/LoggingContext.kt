@@ -2,7 +2,7 @@ package koodies.logging
 
 import koodies.asString
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.runtime.isTesting
 import koodies.runtime.onExit

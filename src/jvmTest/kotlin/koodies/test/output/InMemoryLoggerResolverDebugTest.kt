@@ -1,7 +1,7 @@
 package koodies.test.output
 
-import koodies.concurrent.process.IO
 import koodies.debug.CapturedOutput
+import koodies.exec.IO
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.Debug

@@ -1,7 +1,7 @@
 package koodies.io
 
-import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
 import koodies.exception.dump
+import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.io.path.notContainsLineSeparator
 import koodies.io.path.prefixes
 import koodies.logging.BlockRenderingLogger

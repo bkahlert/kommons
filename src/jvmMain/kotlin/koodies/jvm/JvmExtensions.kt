@@ -119,7 +119,7 @@ private val onExitHandlers: MutableList<() -> Unit> = object : MutableList<() ->
 }
 
 /**
- * Runs the [handler] on exit.
+ * Runs the given [handler] when the virtual-machine shuts down.
  */
 public fun <T : () -> Unit> runOnExit(handler: T): T = handler.apply { onExitHandlers.add(this) }
 
@@ -128,10 +128,24 @@ public fun <T : () -> Unit> runOnExit(handler: T): T = handler.apply { onExitHan
  */
 public fun <T : Path> deleteOnExit(path: T): T = path.apply { onExitHandlers.add { deleteRecursively() } }
 
+/**
+ * Registers the given [handler] as a new virtual-machine shutdown hook.
+ */
 public fun <T : () -> Unit> addShutDownHook(handler: T): T =
-    handler.also {
-        val hook = handler.toHook()
-        Runtime.getRuntime().addShutdownHook(hook)
+    handler.apply { addShutDownHook(toHook()) }
+
+/**
+ * Registers the given [thread] as a new virtual-machine shutdown hook.
+ */
+public fun addShutDownHook(thread: Thread): Thread =
+    thread.also { Runtime.getRuntime().addShutdownHook(it) }
+
+/**
+ * Unregisters the given [thread] from the the virtual-machine shutdown hooks.
+ */
+public fun removeShutdownHook(thread: Thread): Any =
+    runCatching { Runtime.getRuntime().removeShutdownHook(thread) }.onFailure {
+        if (it !is IllegalStateException && it !is AccessControlException) throw it else Unit
     }
 
 /**

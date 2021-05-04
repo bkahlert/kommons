@@ -1,6 +1,6 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 

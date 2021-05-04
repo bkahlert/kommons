@@ -1,6 +1,16 @@
-package koodies.concurrent.process
+package koodies.exec
 
-import koodies.exec.CommandLine
+import koodies.exec.IO.Error
+import koodies.exec.IO.Input
+import koodies.exec.IO.Meta
+import koodies.exec.IO.Meta.Dump
+import koodies.exec.IO.Meta.Starting
+import koodies.exec.IO.Meta.Terminated
+import koodies.exec.IO.Meta.Text
+import koodies.exec.IO.Output
+import koodies.exec.mock.ExecMock
+import koodies.exec.mock.JavaProcessMock
+import koodies.io.path.Locations
 import koodies.io.path.asPath
 import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo
@@ -104,7 +114,7 @@ class IOTest {
         @Nested
         inner class Terminated {
 
-            private val process = ExecMock(JavaProcessMock(MutedRenderingLogger()))
+            private val process = JavaExec(JavaProcessMock(MutedRenderingLogger()), Locations.Temp, CommandLine("echo", JavaProcessMock::class.simpleName!!))
             private val meta = IO.Meta.Terminated(process)
 
             @Test
@@ -226,14 +236,14 @@ class IOTest {
 
     companion object {
         val IO_LIST: IOSequence<IO> = IOSequence(
-            IO.Meta.Starting(CommandLine("command", "arg")),
-            IO.Meta typed "file".asPath(),
-            IO.Meta.Text("text"),
-            IO.Meta.Dump("dump"),
-            IO.Meta.Terminated(ExecMock(JavaProcessMock(MutedRenderingLogger()))),
-            IO.Input typed "in",
-            IO.Output typed "out",
-            IO.Error(RuntimeException("err")),
+            Starting(CommandLine("command", "arg")),
+            Meta typed "file".asPath(),
+            Text("text"),
+            Dump("dump"),
+            Terminated(ExecMock(JavaProcessMock(MutedRenderingLogger()))),
+            Input typed "in",
+            Output typed "out",
+            Error(RuntimeException("err")),
         )
     }
 }

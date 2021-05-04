@@ -2,7 +2,7 @@ package koodies.logging
 
 import koodies.asString
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
@@ -104,7 +104,6 @@ public class CompactRenderingLogger(
         block: MicroLogger.() -> R,
     ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
 }
-
 
 /**
  * Creates a logger which serves for logging a sub-process and all of its corresponding events.

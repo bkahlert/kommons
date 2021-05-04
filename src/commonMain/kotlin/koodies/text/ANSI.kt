@@ -27,6 +27,9 @@ import koodies.text.Unicode.controlSequenceIntroducer as c
 import koodies.text.Unicode.escape as e
 import kotlin.text.contains as containsNonAnsiAware
 
+/**
+ * All around [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
+ */
 public object ANSI {
 
     private val level by lazy { if (isDebugging) NONE else ansiSupport }
@@ -35,18 +38,76 @@ public object ANSI {
      * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
      */
     public val CharSequence.ansiRemoved: String get() = REGEX.replace(toString(), "")
+
+    /**
+     * Whether this character sequence contains [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
+     */
     public val CharSequence.containsEscapeSequences: Boolean get() = REGEX.containsMatchIn(this)
 
     /**
      * Returns this character sequence as a string with all lines terminated with
-     * a reset escape sequence. This is a hackish way of fixing ANSI escape based graphics that bleed
+     * an reset escape sequence. This is a hackish way of fixing ANSI escape based graphics that bleed
      * because of mal-formed or mal-interpreted escape sequences.
      *
-     * Example: Bleeding graphic with three colors
+     * **Example: "Bleeding" Koodies logo**
+     * ```
+     * &kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * RR&kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBRR&kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBRR&kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBRR&kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBBRR&kyTx}vvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBBBBRZT}vvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBBBBQxvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBB&xvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBZzvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBZuvvvvvvvvvvvvvvvvvvvvvv▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+     * BBZTvvvvvvvvvvvvvvvvvvvvvv\.▝▜MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * R3vvvvvvvvvvvvvvvvvvvvvv\.   .▝▜MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * vvvvvvvvvvvvvvvvvvvvvv\.       .▝▜MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * vvvvvvvvvvvvvvvvvvvv\.           .▝▜MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * uxvvvvvvvvvvvvvvvvz3x_              ▝▜MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * ▁3uxvvvvvvvvvvvv▁▅&▆▂gx`              ▝▜MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * Z▅▁3uxvvvvvvvvz▆WWRZ&▆▂gv.             `▀WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * WR&▄▁3uxvvvvvuk▀BWWWRZ&▆▂gv.         .\vvz▀WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+     * WWWRZ▅▁3ux▁▂Zg33k▀BWWWRZ&▆▂g}.     .\vvvvvvz▀WMM0WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+     * 000WWRZ▅▃▆MM▆▂Zg33k▀BWWWRZ&▆▂g}. .\vvvvvvvvvvx▀BBRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+     * 00000WMMMMMMMM▆▂Zg33k▀BWWWRZ&▆▂yxxvvvvvvvvvvvvvx▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+     * 0000MMMMMMMMMMMM▆▂Zg33k▀BWWWRZ▆▆▂gTxvvvvvvvvvvvvvxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+     * 00MMMMMMMMMMMMMMMM▆▂Zg33k▀BWWWRZ&▆▂gTxvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+     * MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
      * ```
      *
+     * **Example: "Repaired" Koodies logo with reset lines**
+     * ```
+     * &kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * RR&kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBRR&kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBRR&kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBRR&kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBBRR&kyTx}vvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBBBBRZT}vvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBBBBQxvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBBB&xvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBBBZzvvvvvvvvvvvvvvvvvvvvvv\.
+     * BBBBZuvvvvvvvvvvvvvvvvvvvvvv▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+     * BBZTvvvvvvvvvvvvvvvvvvvvvv\.▝▜MMMMMMMMMMMMMMMMMMMM
+     * R3vvvvvvvvvvvvvvvvvvvvvv\.   .▝▜MMMMMMMMMMMMMMMMMM
+     * vvvvvvvvvvvvvvvvvvvvvv\.       .▝▜MMMMMMMMMMMMMMMM
+     * vvvvvvvvvvvvvvvvvvvv\.           .▝▜MMMMMMMMMMMMMM
+     * uxvvvvvvvvvvvvvvvvz3x_              ▝▜MMMMMMMMMMMM
+     * ▁3uxvvvvvvvvvvvv▁▅&▆▂gx`              ▝▜MMMMMMMMMM
+     * Z▅▁3uxvvvvvvvvz▆WWRZ&▆▂gv.             `▀WMMMMMMMM
+     * WR&▄▁3uxvvvvvuk▀BWWWRZ&▆▂gv.         .\vvz▀WMMMMMM
+     * WWWRZ▅▁3ux▁▂Zg33k▀BWWWRZ&▆▂g}.     .\vvvvvvz▀WMM0W
+     * 000WWRZ▅▃▆MM▆▂Zg33k▀BWWWRZ&▆▂g}. .\vvvvvvvvvvx▀BBR
+     * 00000WMMMMMMMM▆▂Zg33k▀BWWWRZ&▆▂yxxvvvvvvvvvvvvvx▝▀
+     * 0000MMMMMMMMMMMM▆▂Zg33k▀BWWWRZ▆▆▂gTxvvvvvvvvvvvvvx
+     * 00MMMMMMMMMMMMMMMM▆▂Zg33k▀BWWWRZ&▆▂gTxvvvvvvvvvvvv
+     * MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
      * ```
      */
+    @Suppress("SpellCheckingInspection")
     public fun CharSequence.resetLines(): String = toString().mapLines { "$it$RESET" }
 
     public fun interface Formatter {

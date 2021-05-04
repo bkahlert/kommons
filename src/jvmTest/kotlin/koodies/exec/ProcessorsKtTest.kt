@@ -1,12 +1,10 @@
-package koodies.concurrent.process
+package koodies.exec
 
 import koodies.collections.synchronizedListOf
-import koodies.concurrent.process.ProcessingMode.Interactivity.Interactive
-import koodies.concurrent.process.ProcessingMode.Interactivity.NonInteractive
-import koodies.concurrent.process.ProcessingMode.Synchronicity.Async
-import koodies.concurrent.process.ProcessingMode.Synchronicity.Sync
-import koodies.concurrent.process.UserInput.enter
-import koodies.exec.CommandLine
+import koodies.exec.ProcessingMode.Interactivity.Interactive
+import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.exec.ProcessingMode.Synchronicity.Async
+import koodies.exec.ProcessingMode.Synchronicity.Sync
 import koodies.io.path.Locations.Temp
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo

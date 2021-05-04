@@ -1,6 +1,6 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.io.ByteArrayOutputStream
 import koodies.io.path.randomFile
 import koodies.io.path.withExtension

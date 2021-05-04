@@ -3,7 +3,7 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.io.path.bufferedWriter
 import koodies.io.path.withExtension
 import koodies.jvm.currentStackTrace

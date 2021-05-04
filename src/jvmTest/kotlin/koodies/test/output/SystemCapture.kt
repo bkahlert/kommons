@@ -1,6 +1,6 @@
 package koodies.test.output
 
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 

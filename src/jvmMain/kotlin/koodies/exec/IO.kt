@@ -1,12 +1,10 @@
-package koodies.concurrent.process
+package koodies.exec
 
-import koodies.concurrent.process.IO.Companion.ERASE_MARKER
-import koodies.concurrent.process.IO.Error
-import koodies.concurrent.process.IO.Input
-import koodies.concurrent.process.IO.Meta
-import koodies.concurrent.process.IO.Output
-import koodies.exec.CommandLine
-import koodies.exec.Process
+import koodies.exec.IO.Companion.ERASE_MARKER
+import koodies.exec.IO.Error
+import koodies.exec.IO.Input
+import koodies.exec.IO.Meta
+import koodies.exec.IO.Output
 import koodies.logging.ReturnValue
 import koodies.text.ANSI.Style
 import koodies.text.ANSI.Text.Companion.ansi
@@ -66,7 +64,7 @@ public sealed class IO(
         /**
          * Information that a [Process] is starting.
          */
-        public class Starting(public val commandLine: CommandLine) : Meta("Executing ${commandLine.summary}")
+        public class Starting(commandLine: CommandLine) : Meta("Executing ${commandLine.summary}")
 
         /**
          * Information that a [Path] is a resource used to start a [Process].
@@ -225,31 +223,44 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
     override fun toString(): String = ansiRemoved
 
     public companion object {
+
+        /**
+         * An empty [IOSequence].
+         */
         public val EMPTY: IOSequence<IO> = IOSequence(emptySequence())
     }
 }
 
 /**
+ * Filters this [IO] sequence by the specified type.
+ *
+ * By default [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
+ * Set [removeEscapeSequences] to `false` to keep escapes codes.
+ */
+public inline fun <reified T : IO> Sequence<IO>.merge(removeEscapeSequences: Boolean = true): String =
+    filterIsInstance<T>().joinToString(LineSeparators.LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
+
+/**
  * Contains a filtered copy only consisting of [Meta].
  */
-public val IOSequence<IO>.meta: IOSequence<Meta> get() = IOSequence(filterIsInstance<Meta>())
+public val Sequence<IO>.meta: IOSequence<Meta> get() = IOSequence(filterIsInstance<Meta>())
 
 /**
  * Contains a filtered copy only consisting of [Input].
  */
-public val IOSequence<IO>.input: IOSequence<Input> get() = IOSequence(filterIsInstance<Input>())
+public val Sequence<IO>.input: IOSequence<Input> get() = IOSequence(filterIsInstance<Input>())
 
 /**
  * Contains a filtered copy only consisting of [Output].
  */
-public val IOSequence<IO>.output: IOSequence<Output> get() = IOSequence(filterIsInstance<Output>())
+public val Sequence<IO>.output: IOSequence<Output> get() = IOSequence(filterIsInstance<Output>())
 
 /**
  * Contains a filtered copy only consisting of [Error].
  */
-public val IOSequence<IO>.error: IOSequence<Error> get() = IOSequence(filterIsInstance<Error>())
+public val Sequence<IO>.error: IOSequence<Error> get() = IOSequence(filterIsInstance<Error>())
 
 /**
  * Contains a filtered copy only consisting of [Output] and [Error].
  */
-public val IOSequence<IO>.outputAndError: IOSequence<IO> get() = IOSequence(filter { it is Output || it is Error })
+public val Sequence<IO>.outputAndError: IOSequence<IO> get() = IOSequence(filter { it is Output || it is Error })

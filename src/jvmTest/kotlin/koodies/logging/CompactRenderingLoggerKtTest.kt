@@ -1,6 +1,6 @@
 package koodies.logging
 
-import koodies.concurrent.process.IO
+import koodies.exec.IO
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.matchesCurlyPattern

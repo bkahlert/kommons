@@ -1,6 +1,6 @@
 package koodies.exec
 
-import koodies.concurrent.process.IO.Meta
+import koodies.exec.IO.Meta
 import koodies.io.path.Locations
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching

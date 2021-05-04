@@ -2,9 +2,6 @@ package koodies.docker
 
 import koodies.collections.head
 import koodies.collections.tail
-import koodies.concurrent.process.error
-import koodies.concurrent.process.output
-import koodies.concurrent.process.outputAndError
 import koodies.debug.asEmoji
 import koodies.docker.DockerExitStateHandler.Failure.BadRequest
 import koodies.docker.DockerExitStateHandler.Failure.ConnectivityProblem
@@ -12,6 +9,9 @@ import koodies.docker.DockerExitStateHandler.Failure.UnknownError
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.error
+import koodies.exec.output
+import koodies.exec.outputAndError
 import koodies.lowerSentenceCaseName
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics

@@ -1,7 +1,6 @@
-package koodies.concurrent.process
+package koodies.exec
 
-import koodies.concurrent.process.IO.Meta
-import koodies.exec.CommandLine
+import koodies.exec.IO.Meta
 import koodies.io.path.pathString
 import koodies.io.path.text
 import koodies.io.path.writeText

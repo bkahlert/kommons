@@ -1,10 +1,12 @@
 package koodies.logging
 
-import koodies.concurrent.process.ExecMock
+import koodies.exec.alive
+import koodies.exec.mock.ExecMock
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
+import koodies.test.expecting
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.Semantics.Symbols
@@ -29,7 +31,7 @@ class ReturnValueKtTest {
     private val successfulExpectations = listOf(
         null to Symbols.Null,
         "string" to "string",
-        ExecMock.SUCCEEDED_MANAGED_PROCESS to "Process {} terminated successfully at {}",
+        ExecMock.SUCCEEDED_EXEC to "Process {} terminated successfully at {}",
     )
 
     private val failedExpectations = listOf(
@@ -37,17 +39,31 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-//        ExecMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42. ${Semantics.Delimiter} dump"
+        ExecMock.FAILED_EXEC to "ϟ Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42"
     )
 
     private val expectations = successfulExpectations + failedExpectations
+
+    @Test
+    fun `should format as return value22`() {
+        val x = ExecMock.SUCCEEDED_EXEC
+        val state = x.state
+        val alive = x.alive
+        expecting { x } that {
+            not {
+                alive
+            }
+        }
+        val format = ReturnValue.format(x)
+        expecting { format } that { matchesCurlyPattern("✔︎") }
+    }
 
     @TestFactory
     fun `should format as return value`() = testEach(
         null to Symbols.Null,
         Unit to "✔︎",
         "string" to "✔︎",
-        ExecMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
+        ExecMock.SUCCEEDED_EXEC to "✔︎",
         failedReturnValue to "ϟ return value",
         RuntimeException("exception") to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "ϟ return value",
@@ -61,7 +77,7 @@ class ReturnValueKtTest {
         null to "␀",
         Unit to "✔︎",
         "string" to "✔︎",
-        ExecMock.SUCCEEDED_MANAGED_PROCESS to "✔︎",
+        ExecMock.SUCCEEDED_EXEC to "✔︎",
     ) { (subject, expected) ->
 
         expecting(subject.toSimpleString()) {
@@ -100,7 +116,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        ExecMock.FAILED_MANAGED_PROCESS to "Process 12345 terminated with exit code 42."
+        ExecMock.FAILED_EXEC to "Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42"
     ) { (subject, expected) ->
 
         expecting(subject.toSimpleString()) {
@@ -191,6 +207,7 @@ class ReturnValueKtTest {
                           ϟ RuntimeException: exception at.({})
                           ϟ return value
                           ϟ RuntimeException: exception at.({})
+                          ϟ Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42
                   """.trimIndent())
             }
         }

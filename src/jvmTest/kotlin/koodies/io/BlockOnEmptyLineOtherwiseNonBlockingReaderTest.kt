@@ -1,6 +1,6 @@
 package koodies.io
 
-import koodies.concurrent.process.SlowInputStream.Companion.slowInputStream
+import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.Slow

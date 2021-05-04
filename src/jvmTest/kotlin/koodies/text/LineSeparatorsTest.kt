@@ -439,8 +439,8 @@ class LineSeparatorsTest {
                 "sequence" to (AnsiStringTest.ansiString + LF).linesOfLengthSequence(26).toList(),
                 "list" to (AnsiStringTest.ansiString + LF).linesOfLength(26),
             ) { (method, lines) ->
-                test("using $method") {
-                    expectThat(lines).containsExactly(
+                expecting("using $method") { lines } that {
+                    containsExactly(
                         "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
                         "$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m".asAnsiString(),
                         "$e[3;36mThis one's $e[1mbold!$e[23;39;22m".asAnsiString(),
@@ -455,8 +455,8 @@ class LineSeparatorsTest {
                 "sequence" to (AnsiStringTest.ansiString + LF).linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
                 "list" to (AnsiStringTest.ansiString + LF).linesOfLength(26, ignoreTrailingSeparator = true),
             ) { (method, lines) ->
-                test("using $method") {
-                    expectThat(lines).containsExactly(
+                expecting("using $method") { lines } that {
+                    containsExactly(
                         "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
                         "$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m".asAnsiString(),
                         "$e[3;36mThis one's $e[1mbold!$e[23;39;22m".asAnsiString(),

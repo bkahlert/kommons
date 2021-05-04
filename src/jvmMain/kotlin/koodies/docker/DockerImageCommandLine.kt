@@ -3,7 +3,7 @@ package koodies.docker
 import koodies.builder.buildArray
 
 /**
- * [DockerCommandLine] that managed images.
+ * [DockerCommandLine] that manages images.
  */
 public abstract class DockerImageCommandLine(
     public val dockerImageCommand: String,

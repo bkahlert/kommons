@@ -1,9 +1,9 @@
 package koodies.test.output
 
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.IO.Error
-import koodies.concurrent.process.IO.Output
 import koodies.debug.CapturedOutput
+import koodies.exec.IO
+import koodies.exec.IO.Error
+import koodies.exec.IO.Output
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
