@@ -104,7 +104,7 @@ class IOTest {
         @Nested
         inner class Terminated {
 
-            private val process = ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })
+            private val process = ExecMock(JavaProcessMock(MutedRenderingLogger()))
             private val meta = IO.Meta.Terminated(process)
 
             @Test
@@ -120,7 +120,7 @@ class IOTest {
     }
 
     @Nested
-    inner class In {
+    inner class Input {
 
         private val `in` = IO.Input typed "in"
 
@@ -136,7 +136,7 @@ class IOTest {
     }
 
     @Nested
-    inner class Out {
+    inner class Output {
 
         private val out = IO.Output typed "out"
 
@@ -152,7 +152,7 @@ class IOTest {
     }
 
     @Nested
-    inner class Err {
+    inner class Error {
 
         private val err = IO.Error(RuntimeException("err"))
 
@@ -230,7 +230,7 @@ class IOTest {
             IO.Meta typed "file".asPath(),
             IO.Meta.Text("text"),
             IO.Meta.Dump("dump"),
-            IO.Meta.Terminated(ExecMock(JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() })),
+            IO.Meta.Terminated(ExecMock(JavaProcessMock(MutedRenderingLogger()))),
             IO.Input typed "in",
             IO.Output typed "out",
             IO.Error(RuntimeException("err")),

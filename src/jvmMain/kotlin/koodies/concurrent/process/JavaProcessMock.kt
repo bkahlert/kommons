@@ -15,6 +15,7 @@ import koodies.io.ByteArrayOutputStream
 import koodies.io.RedirectingOutputStream
 import koodies.io.TeeOutputStream
 import koodies.io.path.Locations
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
@@ -23,9 +24,8 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.Semantics.Symbols
 import koodies.text.takeUnlessEmpty
 import koodies.time.Now
+import koodies.time.busyWait
 import koodies.time.sleep
-import koodies.tracing.MiniTracer
-import koodies.tracing.miniTrace
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -33,6 +33,7 @@ import java.io.OutputStream
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.milliseconds
@@ -43,7 +44,8 @@ public open class JavaProcessMock(
     public var logger: RenderingLogger,
     private var outputStream: OutputStream = ByteArrayOutputStream(),
     private val inputStream: InputStream = InputStream.nullInputStream(),
-    private val processExit: JavaProcessMock.() -> ProcessExitMock,
+    private val exitDelay: Duration = Duration.ZERO,
+    private val exitCode: JavaProcessMock.() -> Int = { 0 },
 ) : JavaProcess() {
 
     private val pid: Long = Random.nextLong()
@@ -64,21 +66,23 @@ public open class JavaProcessMock(
                 "process",
                 "processed",
                 "slowly",
-                echoInput = true) { ProcessExitMock.immediateSuccess() }
-        public val SUCCEEDED_PROCESS: JavaProcessMock get() = JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateSuccess() }
-        public val FAILED_PROCESS: JavaProcessMock get() = JavaProcessMock(MutedRenderingLogger()) { ProcessExitMock.immediateExit(-1) }
+                echoInput = true)
+        public val SUCCEEDED_PROCESS: JavaProcessMock get() = JavaProcessMock(MutedRenderingLogger(), exitCode = { 0 })
+        public val FAILED_PROCESS: JavaProcessMock get() = JavaProcessMock(MutedRenderingLogger(), exitCode = { 1 })
 
         public fun InMemoryLogger.processMock(
             outputStream: OutputStream = ByteArrayOutputStream(),
             inputStream: InputStream = InputStream.nullInputStream(),
-            processExit: JavaProcessMock.() -> ProcessExitMock,
-        ): JavaProcessMock = JavaProcessMock(this, outputStream, inputStream, processExit)
+            exitDelay: Duration = Duration.ZERO,
+            exitCode: JavaProcessMock.() -> Int = { 0 },
+        ): JavaProcessMock = JavaProcessMock(this, outputStream, inputStream, exitDelay, exitCode)
 
         public fun InMemoryLogger.withSlowInput(
             vararg inputs: String,
             baseDelayPerInput: Duration = 1.seconds,
             echoInput: Boolean,
-            processExit: JavaProcessMock.() -> ProcessExitMock,
+            exitDelay: Duration = Duration.ZERO,
+            exitCode: JavaProcessMock.() -> Int = { 0 },
         ): JavaProcessMock {
             val outputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
@@ -87,18 +91,15 @@ public open class JavaProcessMock(
                 echoInput = echoInput,
                 inputs = inputs,
             )
-            return processMock(
-                outputStream = outputStream,
-                inputStream = slowInputStream,
-                processExit = processExit,
-            )
+            return processMock(outputStream, slowInputStream, exitDelay, exitCode)
         }
 
         public fun InMemoryLogger.withIndividuallySlowInput(
             vararg inputs: Pair<Duration, String>,
             echoInput: Boolean,
             baseDelayPerInput: Duration = 1.seconds,
-            processExit: JavaProcessMock.() -> ProcessExitMock,
+            exitDelay: Duration = Duration.ZERO,
+            exitCode: JavaProcessMock.() -> Int = { 0 },
         ): JavaProcessMock {
             val outputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
@@ -110,7 +111,8 @@ public open class JavaProcessMock(
             return processMock(
                 outputStream = outputStream,
                 inputStream = slowInputStream,
-                processExit = processExit,
+                exitDelay = exitDelay,
+                exitCode = exitCode,
             )
         }
     }
@@ -118,33 +120,36 @@ public open class JavaProcessMock(
     override fun getOutputStream(): OutputStream = outputStream
     override fun getInputStream(): InputStream = inputStream
     override fun getErrorStream(): InputStream = InputStream.nullInputStream()
-    override fun waitFor(): Int = logger.miniTrace(::waitFor) {
-        this@JavaProcessMock.processExit()()
+    override fun waitFor(): Int {
+        exitDelay.busyWait()
+        return exitCode()
     }
 
-    override fun exitValue(): Int = logger.miniTrace(::exitValue) {
-        this@JavaProcessMock.processExit()()
+    override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
+        exitDelay.busyWait()
+        return TimeUnit.MILLISECONDS.convert(timeout, unit).milliseconds >= exitDelay
+    }
+
+    override fun exitValue(): Int {
+        exitDelay.busyWait()
+        return exitCode()
     }
 
     override fun onExit(): CompletableFuture<java.lang.Process> {
         return super.onExit().thenApply { process ->
-            processExit()()
+            exitDelay.busyWait()
             process
         }
     }
 
-    override fun isAlive(): Boolean {
-        return logger.miniTrace(::isAlive) {
-            when (inputStream) {
-                is SlowInputStream -> inputStream.unreadCount != 0
-                else -> processExit().delay > Duration.ZERO
-            }
-        }
+    override fun isAlive(): Boolean = when (inputStream) {
+        is SlowInputStream -> inputStream.unreadCount != 0
+        else -> exitDelay > Duration.ZERO
     }
 
     public fun start(name: String? = null): ExecMock = ExecMock(this, name)
 
-    override fun destroy(): Unit = logger.miniTrace(::destroy) { }
+    override fun destroy(): Unit = Unit
 
     public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
 }
@@ -238,7 +243,7 @@ public class SlowInputStream(
     public val baseDelayPerInput: Duration,
     public val byteArrayOutputStream: ByteArrayOutputStream? = null,
     public val echoInput: Boolean = false,
-    public var logger: RenderingLogger,
+    public var logger: FixedWidthRenderingLogger,
     vararg inputs: Pair<Duration, String>,
 ) : InputStream() {
     public constructor(
@@ -246,7 +251,7 @@ public class SlowInputStream(
         baseDelayPerInput: Duration,
         byteArrayOutputStream: ByteArrayOutputStream? = null,
         echoInput: Boolean = false,
-        logger: RenderingLogger,
+        logger: FixedWidthRenderingLogger,
     ) : this(
         baseDelayPerInput = baseDelayPerInput,
         byteArrayOutputStream = byteArrayOutputStream,
@@ -285,51 +290,51 @@ public class SlowInputStream(
     private val Int.padded get() = this.toString().padStart(originalCountLength)
 
     private val inputs = mutableListOf<String>()
-    public fun processInput(logger: MiniTracer): Boolean = logger.microTrace("✏️") {
+    public fun processInput(logger: FixedWidthRenderingLogger): Boolean = logger.logging("✏️") {
         byteArrayOutputStream?.apply {
             toString(Charsets.UTF_8).takeUnlessEmpty()?.let { newInput ->
                 inputs.add(newInput)
-                trace("new input added; buffer is $inputs")
+                logLine { "new input added; buffer is $inputs" }
                 reset()
             }
         }
         if (inputs.isNotEmpty()) {
             if (blockedByPrompt) {
                 val input = inputs.first()
-                trace(input.debug)
+                logLine { input.debug }
                 if (echoInput) unread[0] = Duration.ZERO to input.map { it.toByte() }.toMutableList()
                 else unread.removeFirst()
-                trace("unblocked prompt")
+                logLine { "unblocked prompt" }
             }
         } else {
             if (blockedByPrompt) {
-                trace("blocked by prompt")
+                logLine { "blocked by prompt" }
             } else {
-                trace("no input and no prompt")
+                logLine { "no input and no prompt" }
             }
         }
         blockedByPrompt
     }
 
-    private fun handleAndReturnBlockingState(): Boolean = logger.miniTrace(::handleAndReturnBlockingState) { processInput(this) }
+    private fun handleAndReturnBlockingState(): Boolean = processInput(logger)
 
-    override fun available(): Int = logger.miniTrace(::available) {
+    override fun available(): Int = logger.logging("available") {
         if (closed) {
             throw IOException("Closed.")
         }
 
         if (handleAndReturnBlockingState()) {
-            trace("prompt is blocking")
-            return@miniTrace 0
+            logLine { "prompt is blocking" }
+            return@logging 0
         }
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            trace("${yetBlocked.milliseconds} to wait for next chunk")
-            return@miniTrace 0
+            logLine { "${yetBlocked.milliseconds} to wait for next chunk" }
+            return@logging 0
         }
         if (terminated) {
-            trace("Backing buffer is depleted ➜ EOF reached.")
-            return@miniTrace 0
+            logLine { "Backing buffer is depleted ➜ EOF reached." }
+            return@logging 0
         }
 
         val currentDelayedWord = unread.first()
@@ -337,34 +342,34 @@ public class SlowInputStream(
             val delay = currentDelayedWord.first
             blockUntil = System.currentTimeMillis() + delay.toLongMilliseconds()
             unread[0] = Duration.ZERO to currentDelayedWord.second
-            trace("$delay to wait for next chunk (just started)")
-            return@miniTrace 0
+            logLine { "$delay to wait for next chunk (just started)" }
+            return@logging 0
         }
 
         currentDelayedWord.second.size
     }
 
-    override fun read(): Int = logger.miniTrace(::read) {
+    override fun read(): Int = logger.logging("read") {
         if (closed) {
             throw IOException("Closed.")
         }
 
         while (handleAndReturnBlockingState()) {
-            trace("prompt is blocking")
+            logLine { "prompt is blocking" }
             10.milliseconds.sleep()
         }
 
-        trace("${unreadCount.padded.ansi.yellow} bytes unread")
+        logLine { "${unreadCount.padded.ansi.yellow} bytes unread" }
 
         if (terminated) {
-            trace("Backing buffer is depleted ➜ EOF reached.")
-            return@miniTrace -1
+            logLine { "Backing buffer is depleted ➜ EOF reached." }
+            return@logging -1
         }
 
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            microTrace<Unit>(Now.emoji) {
-                trace("blocking for the remaining ${yetBlocked.milliseconds}...")
+            logging(Now.emoji) {
+                logLine { "blocking for the remaining ${yetBlocked.milliseconds}..." }
                 Thread.sleep(yetBlocked)
             }
         }
@@ -373,22 +378,22 @@ public class SlowInputStream(
             val currentLine: Pair<Duration, MutableList<Byte>> = it.first()
             val delay = currentLine.first
             if (delay > Duration.ZERO) {
-                this.microTrace<Unit>(Now.emoji) {
-                    trace("output delayed by $delay...")
+                logging(Now.emoji) {
+                    logLine { "output delayed by $delay..." }
                     Thread.sleep(delay.toLongMilliseconds())
                     unread[0] = Duration.ZERO to currentLine.second
                 }
             }
             currentLine.second
         }
-        trace("— available ${currentWord.debug.ansi.magenta}")
+        logLine { "— available ${currentWord.debug.ansi.magenta}" }
         val currentByte = currentWord.removeFirst()
-        trace("— current: $currentByte/${currentByte.toChar()}")
+        logLine { "— current: $currentByte/${currentByte.toChar()}" }
 
         if (currentWord.isEmpty()) {
             unread.removeFirst()
             blockUntil = System.currentTimeMillis() + baseDelayPerInput.toLongMilliseconds()
-            trace("— empty; waiting time for next chunk is $baseDelayPerInput")
+            logLine { "— empty; waiting time for next chunk is $baseDelayPerInput" }
         }
         currentByte.toInt()
     }
@@ -427,9 +432,9 @@ public class SlowInputStream(
         }
     }
 
-    public fun input(text: String): Unit = logger.miniTrace(::input) {
+    public fun input(text: String): Unit = logger.logging("input") {
         if (handleAndReturnBlockingState()) {
-            trace("Input received: $text")
+            logLine { "Input received: $text" }
             unread.removeFirst()
         }
     }
