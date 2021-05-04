@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 class QuotesKtTest {
 
     @Nested

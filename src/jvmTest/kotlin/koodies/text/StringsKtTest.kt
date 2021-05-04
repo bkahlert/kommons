@@ -19,7 +19,6 @@ import strikt.assertions.matches
 import strikt.assertions.message
 import strikt.assertions.startsWith
 
-
 class StringsKtTest {
 
     @Nested

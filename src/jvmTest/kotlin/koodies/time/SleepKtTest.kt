@@ -18,6 +18,7 @@ import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class SleepKtTest {
+
     @Test
     fun `should sleep on positive duration`() {
         expectThat(measureTime { 1.seconds.sleep() }).isGreaterThan(900.milliseconds).isLessThan(1100.milliseconds)

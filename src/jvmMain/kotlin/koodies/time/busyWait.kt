@@ -1,6 +1,6 @@
 package koodies.time
 
-import koodies.jvm.*
+import koodies.jvm.currentThread
 import kotlin.time.Duration
 import kotlin.time.milliseconds
 

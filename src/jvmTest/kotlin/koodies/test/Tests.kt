@@ -1,6 +1,5 @@
 package koodies.test
 
-import filepeek.FileInfo
 import filepeek.LambdaBody
 import koodies.Exceptions.ISE
 import koodies.collections.asStream
@@ -60,9 +59,7 @@ import strikt.assertions.message
 import strikt.assertions.size
 import java.net.URI
 import java.nio.file.Path
-import java.util.concurrent.locks.ReentrantLock
 import java.util.stream.Stream
-import kotlin.concurrent.withLock
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
@@ -128,7 +125,7 @@ object Tester {
         is KFunction<*> -> "$this return value of ${fn.name}"
         is KCallable<*> -> findCaller().run { "$this value of ${fn.getPropertyName(function)}" }
         else -> "$this " + findCaller().run {
-            getLambdaBodyOrNull(receiver ?: error("Missing receiver"), function)?.wrap(" ❴ ", " ❵ ") ?: fn.toSimpleString()
+            getLambdaBodyOrNull(this, function)?.wrap(" ❴ ", " ❵ ") ?: fn.toSimpleString()
         }
     }
 
@@ -293,17 +290,6 @@ object Tester {
     private fun KCallable<*>.getPropertyName(callerMethodName: String): String =
         "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.decapitalize() } ?: name
 
-    /**
-     * Uses a dynamically provided and cached [FilePeek] instance to
-     * retrieve the body of the lambda that was passed as a parameter
-     * to a call of a method with name [callerMethodName] of a class
-     * with name [callerClassName].
-     */
-    private fun getLambdaBodyOrNull(callerClassName: String, callerMethodName: String) = kotlin.runCatching {
-        val line = filePeek(callerClassName, callerMethodName).line
-        LambdaBody(callerMethodName, line).body.trim().truncate(40, MIDDLE, " … ")
-    }.getOrNull()
-
     private fun getLambdaBodyOrNull(
         callStackElement: CallStackElement,
         explicitMethodName: String? = null,
@@ -319,21 +305,6 @@ object Tester {
     }.getOrNull()
 
     private val CallStackElement.stackTraceElement get() = StackTraceElement(receiver, function, file, line)
-
-    /**
-     * A lambda that returns a [FilePeek] to access the body of a lambda
-     * that was passed as a parameter to a call of a method of a class
-     * with the specified name.
-     */
-    private val filePeek = object : (String, String) -> FileInfo {
-        private val lock = ReentrantLock()
-        private val cache: MutableMap<Pair<String, String>, FileInfo> = mutableMapOf()
-        override fun invoke(callerClassName: String, callerMethodName: String): FileInfo = lock.withLock {
-            cache.getOrPut(callerClassName to callerMethodName) {
-                FilePeek(callerClassName, callerMethodName).getCallerFileInfo()
-            }
-        }
-    }
 
     fun findCaller(): CallStackElement = getCaller {
         receiver == enclosingClassName || receiver?.matches(Regex(".*DynamicTest.*Builder.*")) == true || receiver?.matches(Regex(".TestsKt.*")) == true
@@ -1040,6 +1011,7 @@ fun DynamicTest.execute() {
     executable.execute()
 }
 
+@Smoke
 class TesterTest {
 
     @Nested

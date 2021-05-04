@@ -27,9 +27,6 @@ import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
 
-@DslMarker
-public annotation class ScriptDsl
-
 /**
  * A shell script.
  */
@@ -139,7 +136,6 @@ public class ShellScript(
     /**
      * Context to ease building shell scripts.
      */
-    @ScriptDsl
     public class ScriptContext(private val lines: MutableList<String>) {
 
         /**

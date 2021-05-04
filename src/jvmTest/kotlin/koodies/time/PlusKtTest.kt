@@ -1,13 +1,12 @@
 package koodies.time
 
+import koodies.test.testEach
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import java.nio.file.attribute.FileTime
 import java.time.Duration
 import java.time.temporal.Temporal
@@ -18,17 +17,16 @@ import kotlin.time.minutes
 import kotlin.time.nanoseconds
 import kotlin.time.seconds
 
-
 class PlusKtTest {
 
     @TestFactory
-    fun `should add`() = listOf(
+    fun `should add`() = testEach(
         2.days to Duration.ofDays(2),
         3.hours to Duration.ofHours(3),
         4.minutes to Duration.ofMinutes(4),
         5.seconds to Duration.ofSeconds(5),
         6.nanoseconds to Duration.ofNanos(6),
-    ).map { (kotlinDuration, javaDuration) ->
+    ) { (kotlinDuration, javaDuration) -> // TODO
         dynamicContainer("$kotlinDuration", listOf(
             Now.instant,
             Now.localTime,
@@ -47,13 +45,11 @@ class PlusKtTest {
     }
 
     @TestFactory
-    fun `should throw if differ in conceptual days`() = listOf(
+    fun `should throw if differ in conceptual days`() = testEach(
         Now.localDate,
         Now.yearMonth,
         Now.year,
-    ).map { time ->
-        dynamicTest("from ${time::class.simpleName}") {
-            expectCatching { time + 2.days }.isFailure().isA<UnsupportedTemporalTypeException>()
-        }
+    ) { time ->
+        expectThrows<UnsupportedTemporalTypeException> { time + 2.days }
     }
 }

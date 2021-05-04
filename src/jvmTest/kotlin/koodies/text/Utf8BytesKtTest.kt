@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 class Utf8BytesKtTest {
+    
     @Test
     fun `should have same size as UTF-8 byte array`() {
         val string = "【\uD83E\uDDDA\uD83C\uDFFF\u200D♀️〗"

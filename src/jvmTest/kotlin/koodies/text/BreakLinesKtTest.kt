@@ -1,13 +1,11 @@
 package koodies.text
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 class BreakLinesKtTest {
+
     @Test
     fun `should break do nothing on single short line`() {
         expectThat("short line".breakLines(15)).isEqualTo("short line")

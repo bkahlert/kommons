@@ -14,7 +14,6 @@ import strikt.assertions.isTrue
 import strikt.assertions.startsWith
 import java.time.Instant
 
-
 class UnicodeTest {
 
     @Nested

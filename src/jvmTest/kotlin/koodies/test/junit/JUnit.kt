@@ -11,6 +11,7 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary
 import java.io.PrintWriter
 
 object JUnit {
+    
     enum class ExecutionMode(private val value: String) {
         Concurrent("concurrent"), SameThread("same_thread");
 

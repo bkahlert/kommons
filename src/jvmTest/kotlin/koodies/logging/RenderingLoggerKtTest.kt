@@ -9,6 +9,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.runtime.isDebugging
+import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
@@ -37,6 +38,7 @@ import kotlin.io.path.extension
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
 
+@Smoke
 class RenderingLoggerKtTest {
 
     @Test
@@ -87,7 +89,7 @@ class RenderingLoggerKtTest {
         """.trimIndent())
     }
 
-    @TestFactory
+    @Smoke @TestFactory
     fun @receiver:Columns(100) InMemoryLoggerFactory.`should log complex layouts`() = testEach(
         SOLID to """
             ╭──╴{}

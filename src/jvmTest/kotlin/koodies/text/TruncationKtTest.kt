@@ -12,7 +12,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
-
 class TruncationKtTest {
 
     @Nested

@@ -9,7 +9,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
 
-class FileSizeKtTest {
+class FileSizeKtTest { 
 
     private fun Path.getSmall() = randomFile("small").writeText("123")
     private fun Path.getMedium() = randomFile("medium").writeText("123456")

@@ -17,8 +17,6 @@ import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -35,7 +33,6 @@ import java.io.IOException
 import java.nio.file.Path
 import kotlin.time.milliseconds
 import kotlin.time.seconds
-
 
 class IOLogTest {
 

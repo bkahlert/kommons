@@ -54,5 +54,4 @@ public class DynamicReadableByteChannel : ReadableByteChannel {
     }
 
     internal val bytes: ByteArray get() = buffer.toByteArray()
-
 }

@@ -5,11 +5,8 @@ import koodies.test.SystemIOExclusive
 import koodies.test.output.OutputCaptureExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.contains
-
 
 @ExtendWith(OutputCaptureExtension::class)
 class CarDSLTest {

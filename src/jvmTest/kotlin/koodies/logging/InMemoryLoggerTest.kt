@@ -15,8 +15,6 @@ import koodies.text.containsEscapeSequences
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -24,7 +22,6 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.startsWith
-
 
 class InMemoryLoggerTest {
 

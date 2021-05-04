@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 class PrefixLinesKtTest {
+    
     @Test
     fun `should add prefix to each line`() {
         val prefixedLines = "12345     12345\nsnake    snake".prefixLinesWith("ab ", ignoreTrailingSeparator = true)

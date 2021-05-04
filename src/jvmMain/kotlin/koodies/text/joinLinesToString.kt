@@ -18,7 +18,7 @@ public fun <T : Any> Sequence<T>.joinLinesToString(
     postfix = postfix,
     limit = limit,
     truncated = truncated,
-    transform = transform
+    transform = transform,
 )
 
 /**
@@ -39,5 +39,5 @@ public fun <T : Any> Iterable<T>.joinLinesToString(
     postfix = postfix,
     limit = limit,
     truncated = truncated,
-    transform = transform
+    transform = transform,
 )

@@ -33,7 +33,6 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 
-
 class WhitespacesTest {
 
     @Test

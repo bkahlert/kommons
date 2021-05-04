@@ -2,16 +2,13 @@ package koodies.io.file
 
 import koodies.jvm.deleteOnExit
 import koodies.nio.file.toBase64
-import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
 import koodies.test.UniqueId
+import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-
 
 class ToBase64KtTest {
 

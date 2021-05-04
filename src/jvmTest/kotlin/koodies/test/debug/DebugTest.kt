@@ -8,8 +8,6 @@ import koodies.test.SystemIORead
 import koodies.test.toStringContains
 import koodies.text.ANSI.ansiRemoved
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import org.junit.platform.commons.support.AnnotationSupport
 import strikt.api.expectCatching
@@ -18,7 +16,6 @@ import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
-
 
 class DebugTest {
 

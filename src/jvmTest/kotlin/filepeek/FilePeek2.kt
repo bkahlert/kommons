@@ -8,7 +8,6 @@ import koodies.text.LineSeparators.LF
 import koodies.text.joinToCamelCase
 import koodies.text.withSuffix
 import koodies.text.withoutSuffix
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
@@ -20,8 +19,6 @@ data class FileInfo(
     val methodName: String,
 )
 
-private val FS = File.separator
-private fun path(vararg pathElements: String): String = pathElements.joinToString(FS) // TODO delete
 private fun Path.contains(other: Path): Boolean =
     other.map { it.pathString }.let { otherStrings ->
         map { it.pathString }.windowed(otherStrings.size).contains(otherStrings)
@@ -35,12 +32,6 @@ class FilePeek2(
         Path.of("target", "classes"), // Maven
     ),
 ) {
-    constructor(
-        callerClassName: String,
-        callerMethodName: String,
-    ) : this(RuntimeException().stackTrace.first { el ->
-        el.className == callerClassName && el.methodName == callerMethodName
-    })
 
     private val classLoader = javaClass.classLoader
 
@@ -114,19 +105,6 @@ internal fun <T> List<T>.takeWhileInclusive(pred: (T) -> Boolean): List<T> {
         shouldContinue = pred(it)
         result
     }
-}
-
-internal fun <T> Sequence<T>.takeWhileInclusive(pred: (T) -> Boolean): Sequence<T> {
-    var shouldContinue = true
-    return takeWhile {
-        val result = shouldContinue
-        shouldContinue = pred(it)
-        result
-    }
-}
-
-class SourceFileNotFoundException(classFilePath: String, className: String, candidates: List<File>) :
-    java.lang.RuntimeException("did not find source file for class $className loaded from $classFilePath. tried: ${candidates.joinToString { it.path }}") {
 }
 
 

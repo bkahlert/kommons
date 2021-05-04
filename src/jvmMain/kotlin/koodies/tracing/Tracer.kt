@@ -5,7 +5,7 @@ import kotlin.reflect.KFunction0
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KFunction3
-
+ 
 public interface Tracer {
     public fun trace(input: String)
     public fun <R> macroTrace(f: String, block: MacroTracer.() -> R): R

@@ -202,7 +202,6 @@ public class PathTreeWalk private constructor(
                 return root
             }
         }
-
     }
 
     /**

@@ -2,14 +2,12 @@ package koodies.io.file
 
 import koodies.text.randomString
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
-import strikt.java.exists
 import strikt.assertions.isEqualTo
-
+import strikt.java.exists
 
 class SameFileKtTest {
+
     @Test
     fun `should always return same path`() {
         val random = randomString(17)

@@ -18,7 +18,6 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
-
 class IOTest {
 
     @Nested

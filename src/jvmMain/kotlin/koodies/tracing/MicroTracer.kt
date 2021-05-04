@@ -1,6 +1,5 @@
 package koodies.tracing
 
-
 public interface MicroTracer {
     public fun trace(input: String)
 }

@@ -1,6 +1,5 @@
 package koodies.text
 
-
 import java.security.MessageDigest
 
 public val CharSequence.md5: String

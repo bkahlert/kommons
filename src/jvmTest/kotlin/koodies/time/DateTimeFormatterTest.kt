@@ -7,8 +7,8 @@ import strikt.assertions.isEqualTo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-
 class DateTimeFormatterTest {
+    
     val localDate = LocalDate.parse("2010-09-20")
 
     private class Foo

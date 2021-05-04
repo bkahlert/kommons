@@ -45,7 +45,6 @@ enum class CleanUpMode {
     ThanksForCleaningUp, FailAndKill
 }
 
-
 class TestContainerCheck : BeforeEachCallback, AfterEachCallback {
 
     private val ExtensionContext.logger get() = conditionallyVerboseLogger()

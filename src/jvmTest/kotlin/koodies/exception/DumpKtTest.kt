@@ -33,7 +33,6 @@ import java.io.IOException
 import java.net.URL
 import kotlin.io.path.readText
 
-
 class DumpKtTest {
 
     @Nested

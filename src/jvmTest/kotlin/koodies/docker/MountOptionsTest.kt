@@ -10,8 +10,6 @@ import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -23,7 +21,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.message
 import java.nio.file.Path
-
 
 class MountOptionsTest {
 

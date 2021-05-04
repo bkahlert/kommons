@@ -5,7 +5,6 @@ import koodies.logging.expectThatLogged
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 
-
 class MicroTracerKtTest {
 
     @Test

@@ -10,7 +10,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.message
 
-
 class RootCauseKtTest {
     @TestFactory
     fun `should find root cause`() = listOf(

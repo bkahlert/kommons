@@ -11,6 +11,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 
 class DefaultIPv4toIPv6MappingTest {
+
     private val ipv4 = IPv4Address.parse("192.168.16.1")
     private val ipv6 = IPv6Address.parse("::ffff:192.168.16.1")
 

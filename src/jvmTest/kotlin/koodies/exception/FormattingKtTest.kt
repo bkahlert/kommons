@@ -9,14 +9,11 @@ import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.matches
 import strikt.assertions.startsWith
 import java.nio.file.Path
-
 
 class FormattingKtTest {
 
@@ -37,7 +34,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(runtimeException.toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:25)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
         }
@@ -45,7 +42,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(emptyException.toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:23)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
                 isSingleLine()
             }
         }
@@ -57,7 +54,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(Result.failure<String>(runtimeException).toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:25)")
+                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
                 isSingleLine()
             }
         }
@@ -65,7 +62,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(Result.failure<String>(emptyException).toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:23)")
+                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
                 isSingleLine()
             }
         }

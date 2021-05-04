@@ -7,6 +7,7 @@ import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestPlan
 
 class Verbosity : TestExecutionListener {
+
     companion object {
         // Hack but wouldn't know how else to get the number of tests
         // in order to activate logging.

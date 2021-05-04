@@ -7,7 +7,6 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.randomDirectory
 import koodies.io.path.randomPath
 import koodies.io.path.renameTo
-import koodies.io.path.withDirectoriesCreated
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 import java.nio.file.Files
@@ -15,15 +14,8 @@ import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.writeBytes
 
 public object Fixtures {
-
-    public fun Fixture.copyTo(file: Path): Path =
-        file.withDirectoriesCreated().apply { writeBytes(data) }
-
-    public fun Fixture.copyToDirectory(directory: Path): Path =
-        copyTo(directory.resolve(name))
 
     public fun Path.symbolicLink(): Path = randomPath()
         .also { link -> Files.createSymbolicLink(link, randomPath()) }

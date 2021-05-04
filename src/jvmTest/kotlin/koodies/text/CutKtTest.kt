@@ -1,13 +1,11 @@
 package koodies.text
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 class CutKtTest {
+
     @Test
     fun `should return left and right substring each from given pos `() {
         expectThat("Hello World!".cut(3u)).isEqualTo("Hel" to "lo World!")

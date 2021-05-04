@@ -40,19 +40,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.message
 import kotlin.reflect.KClass
 
-/**
- * If this class is sealed returns a [Map] where keys are
- * immediate subclasses of this class is a sealed class and values
- * are produced by the given [valueSelector] function applied to each element,
- * or an empty list otherwise.
- *
- * If any two elements are equal, the last one gets added to the map.
- *
- * The returned map preserves the entry iteration order of the original collection.
- */
-public inline fun <reified T : Any, V> associateSealedSubclasses(valueSelector: (KClass<out T>) -> V): Map<KClass<out T>, V> =
-    T::class.sealedSubclasses.associateWith(valueSelector)
-
 class DockerExitStateHandlerTest {
 
     private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(IO.Error typed errorMessage))
@@ -154,7 +141,7 @@ class DockerExitStateHandlerTest {
     }
 }
 
-public fun Builder<ExitState>.isSuccessful(): Builder<ExitState> =
+fun Builder<ExitState>.isSuccessful(): Builder<ExitState> =
     assert("exit state represents success") { actual ->
         when (actual.successful) {
             true -> pass(actual.successful)
@@ -164,7 +151,7 @@ public fun Builder<ExitState>.isSuccessful(): Builder<ExitState> =
     }
 
 
-public fun Builder<ExitState>.isFailed(): Builder<ExitState> =
+fun Builder<ExitState>.isFailed(): Builder<ExitState> =
     assert("exit state represents failed") { actual ->
         when (actual.successful) {
             true -> fail("process did not fail: $actual")

@@ -6,7 +6,7 @@ import strikt.assertions.isEqualTo
 import koodies.text.Unicode.escape as e
 
 class WrapLinesKtTest {
-    
+
     @Test
     fun `should wrap non-ANSI lines`() {
         expectThat(AnsiStringTest.nonAnsiString.wrapLines(26)).isEqualTo("""

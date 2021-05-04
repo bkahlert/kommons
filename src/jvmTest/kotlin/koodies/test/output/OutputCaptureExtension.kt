@@ -51,7 +51,7 @@ class OutputCaptureExtension :
 
     companion object {
         fun ExtensionContext.isCapturingOutput(): Boolean = outputCapture.isCapturing
-        
+
         private inline fun <reified T : Any> ExtensionContext.Store.getSingleton(): T =
             getOrComputeIfAbsent(T::class.java)
 

@@ -8,14 +8,11 @@ import koodies.text.matchesCurlyPattern
 import koodies.unit.Size
 import koodies.unit.bytes
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
-
 
 class TraversingKtTest {
 
@@ -23,10 +20,10 @@ class TraversingKtTest {
     fun `should accept transform as last argument`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         directoryWithTwoFiles()
 
-        val totalSize = traverse(0.bytes, Size::plus, {
+        val totalSize = traverse(0.bytes, Size::plus) {
             if (isDirectory()) 0.bytes
             else kotlin.runCatching { fileSize().bytes }.getOrElse { 0.bytes }
-        })
+        }
 
         expectThat(totalSize).isEqualTo(144.bytes)
     }

@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 class ToByteArrayKtTest {
+
     @Test
     fun `should produce same byte array as string with default encoding`() {
         val string = "【\uD83E\uDDDA\uD83C\uDFFF\u200D♀️〗"

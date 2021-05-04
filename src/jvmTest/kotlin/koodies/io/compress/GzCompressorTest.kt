@@ -20,20 +20,17 @@ import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.java.exists
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isLessThan
+import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
 class GzCompressorTest {
 
     @TestFactory

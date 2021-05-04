@@ -2,13 +2,10 @@ package koodies.io.file
 
 import koodies.io.path.asPath
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
-
 
 class MimeTypeKtTest {
 

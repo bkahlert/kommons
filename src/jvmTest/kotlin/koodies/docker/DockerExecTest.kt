@@ -167,7 +167,7 @@ class DockerExecTest {
                 }
 
                 val passed = measureTime { runningProcess.kill() }
-                expectThat(passed).isLessThan(2.seconds)
+                expectThat(passed).isLessThan(4.seconds)
             }
 
             @DockerRequiring([BusyBox::class]) @Test

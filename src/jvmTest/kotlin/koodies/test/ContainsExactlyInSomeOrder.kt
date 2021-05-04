@@ -8,7 +8,6 @@ import strikt.api.Assertion
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 
-
 /**
  * Asserts if this [Iterable] contains exactly the elements provided by [init].
  *

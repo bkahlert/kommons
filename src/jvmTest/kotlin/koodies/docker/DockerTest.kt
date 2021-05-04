@@ -241,7 +241,7 @@ class DockerTest {
             docker(Chafa, logger = this@`should run multiple containers`) {
                 """
                /opt/bin/chafa koodies.png 
-            """
+                """
             } asserting {
                 io.output.ansiKept
                     .containsEscapeSequences()

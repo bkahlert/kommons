@@ -9,7 +9,6 @@ import koodies.text.matchesCurlyPattern
 import koodies.text.repeat
 import org.junit.jupiter.api.Test
 
-
 class BoxesTest {
     @Test
     fun @receiver:Columns(150) InMemoryLogger.`should render FAIL`() {

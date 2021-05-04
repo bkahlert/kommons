@@ -7,8 +7,10 @@ import strikt.assertions.isEqualTo
 import kotlin.time.hours
 
 class DurationsKtTest {
+
     @Nested
     inner class ToIntMilliseconds {
+        
         @Test
         fun `should correspond to long value`() {
             val duration = 14.5.hours

@@ -2,7 +2,6 @@ package koodies.collections
 
 import strikt.api.Assertion.Builder
 
-
 /**
  * Maps an assertion on a sequence to an assertion on its size.
  *

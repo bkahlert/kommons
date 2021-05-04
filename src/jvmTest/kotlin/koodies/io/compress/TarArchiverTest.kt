@@ -17,20 +17,17 @@ import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.java.exists
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
+import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import kotlin.io.path.copyTo
 
-@Execution(CONCURRENT)
 class TarArchiverTest {
 
     @TestFactory

@@ -9,8 +9,6 @@ import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -27,7 +25,6 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
 import kotlin.io.path.createDirectory
 import kotlin.io.path.isSymbolicLink
-
 
 class StdLibMissingKtTest {
 

@@ -23,8 +23,6 @@ import koodies.test.withTempDir
 import koodies.unit.bytes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -35,13 +33,12 @@ import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 
-@Execution(CONCURRENT)
 class ArchiverTarGzTest {
 
     @TestFactory
     fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
-//        { randomPath().archive() },
-//        { randomPath(extension = ".tar.gz").unarchive() },
+        { randomPath().archive() },
+        { randomPath(extension = ".tar.gz").unarchive() },
         {
             randomPath(extension = ".tar.gz").apply {
                 listArchive()
@@ -83,4 +80,3 @@ class ArchiverTarGzTest {
         expectThat(unarchivedDir).hasSameFiles(renamedDir)
     }
 }
-

@@ -5,7 +5,6 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.nio.file.attribute.FileTime
 
-
 class ToFileTimeKtTest {
     @Test
     fun `should return FileType`() {

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-
 class BordersTest {
 
     private val border = "╭─╮\n│*│\n╰─╯"

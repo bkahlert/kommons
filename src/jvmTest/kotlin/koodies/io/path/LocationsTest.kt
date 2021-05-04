@@ -1,10 +1,10 @@
 package koodies.io.path
 
 import koodies.io.path.Locations.ls
-import koodies.test.Fixtures.copyTo
 import koodies.test.HtmlFile
 import koodies.test.TextFile
 import koodies.test.UniqueId
+import koodies.test.copyTo
 import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested

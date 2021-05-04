@@ -22,7 +22,6 @@ import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
 @Isolated // time critical
-
 class ThreadsKtTest {
 
     @Nested

@@ -1,13 +1,11 @@
 package koodies.io.path
 
-import koodies.test.Fixtures.copyToDirectory
 import koodies.test.HtmlFile
 import koodies.test.UniqueId
+import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -16,7 +14,6 @@ import strikt.assertions.isFailure
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-
 
 class ConditionsKtTest {
 

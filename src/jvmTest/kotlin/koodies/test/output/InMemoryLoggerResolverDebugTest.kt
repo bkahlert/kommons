@@ -9,14 +9,11 @@ import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.ansiRemoved
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isFailure
-
 
 class InMemoryLoggerResolverDebugTest {
 

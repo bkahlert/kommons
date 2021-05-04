@@ -5,7 +5,6 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-
 class AlignmentsKtTest {
 
     @Test

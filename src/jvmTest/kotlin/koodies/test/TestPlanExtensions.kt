@@ -8,7 +8,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-public class TestPlanAnalysis(private val testPlan: TestPlan) {
+class TestPlanAnalysis(private val testPlan: TestPlan) {
     val rootIds: List<String> by lazy { testPlan.roots.map { root -> root.uniqueId } }
     val allTestIdentifiers: List<TestIdentifier> by lazy { testPlan.roots.flatMap { testPlan.getDescendants(it) } }
     val parentMappings: Map<String, String> by lazy { allTestIdentifiers.mapNotNull { it.relation }.toMap() }

@@ -98,7 +98,6 @@ fun function(id: String = "default", vararg receivers: Any): String =
     receivers.joinToString("") { "$it." } + "function($id)"
 
 fun ForeignClass.extensionFunction(argument: Int): String = function("$id-$argument", this)
-
 class SomeClass(val id: String = "default") {
     fun memberFunction(argument: Int): String = function("$id-$argument", this)
     override fun toString(): String = asString(::id)

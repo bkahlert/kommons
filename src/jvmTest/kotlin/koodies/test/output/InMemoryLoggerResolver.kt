@@ -30,7 +30,6 @@ import java.io.OutputStream
  */
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
 annotation class Bordered(val value: Border)
-
 class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
 
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean =

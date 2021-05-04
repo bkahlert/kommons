@@ -1,30 +1,23 @@
 package koodies.text
 
-import org.junit.jupiter.api.DynamicTest.dynamicTest
+import koodies.collections.too
+import koodies.test.testEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectCatching
-import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-
 
 class RepeatKtTest {
 
     @TestFactory
-    fun `should repeat`() = listOf(
-        3 to ("AAA" to "ABC 🤯ABC 🤯ABC 🤯"),
-        1 to ("A" to "ABC 🤯"),
-        0 to ("" to ""),
-    ).flatMap { (repeatCount, expectations) ->
-        val (repeatedChar, repeatedString) = expectations
-        listOf(
-            dynamicTest("$repeatCount x A = $repeatedChar") {
-                expectThat('A'.repeat(repeatCount)).isEqualTo(repeatedChar)
-            },
-            dynamicTest("$repeatCount x ABC🤯 = $repeatedString") {
-                expectThat("ABC 🤯".repeat(repeatCount)).isEqualTo(repeatedString)
-            },
-        )
+    fun `should repeat`() = testEach(
+        3 to "AAA" too "ABC 🤯ABC 🤯ABC 🤯",
+        1 to "A" too "ABC 🤯",
+        0 to "" too "",
+    ) { (repeatCount, repeatedChar, repeatedString) ->
+
+        expecting("$repeatCount x A = $repeatedChar") { 'A'.repeat(repeatCount) } that { isEqualTo(repeatedChar) }
+        expecting("$repeatCount x ABC🤯 = $repeatedString") { "ABC 🤯".repeat(repeatCount) } that { isEqualTo(repeatedString) }
     }
 
     @Test

@@ -40,4 +40,3 @@ class DebugCondition : ExecutionCondition {
             disabled("Test ${testName.quoted} skipped due to existing ${Debug::class.simpleName} annotation on another test.")
     }
 }
-

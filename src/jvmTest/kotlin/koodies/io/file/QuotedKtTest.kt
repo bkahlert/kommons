@@ -2,12 +2,9 @@ package koodies.io.file
 
 import koodies.test.testEach
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.assertions.isEqualTo
 import java.nio.file.Path
-
 
 class QuotedKtTest {
 

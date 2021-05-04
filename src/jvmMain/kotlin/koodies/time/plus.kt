@@ -9,7 +9,6 @@ import java.time.temporal.Temporal
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
-
 /**
  * Returns an object of the same type [T] as this object with the specified [duration] added.
  *

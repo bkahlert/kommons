@@ -2,13 +2,11 @@ package koodies.text
 
 import koodies.test.test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-
 class ContainsAllKtTest {
+
     val string = "foo bar"
 
     @TestFactory

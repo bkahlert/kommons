@@ -9,7 +9,7 @@ import kotlin.reflect.KFunction0
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KFunction3
-
+ 
 @Suppress("NonAsciiCharacters")
 public interface MiniTracer {
     public fun trace(input: String)

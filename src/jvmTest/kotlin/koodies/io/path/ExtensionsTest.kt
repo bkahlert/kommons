@@ -5,8 +5,6 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -16,7 +14,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
-
 
 class ExtensionsTest {
 

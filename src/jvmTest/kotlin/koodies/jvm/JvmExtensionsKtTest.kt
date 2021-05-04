@@ -9,7 +9,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import java.util.Optional
 import kotlin.reflect.jvm.javaMethod
-
 class JvmExtensionsKtTest {
 
     @Nested

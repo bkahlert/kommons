@@ -1,8 +1,8 @@
 package koodies.nio
 
 import koodies.debug.replaceNonPrintableCharacters
-import java.io.ByteArrayOutputStream
 import koodies.math.BigInteger
+import java.io.ByteArrayOutputStream
 
 /**
  * A [ByteArrayOutputStream] implementation that allows to remove
@@ -59,4 +59,3 @@ public class MemoryReclaimableByteArrayOutputStream(private val initialSize: Int
 
     public operator fun get(pos: Int): Byte = buf[pos]
 }
-

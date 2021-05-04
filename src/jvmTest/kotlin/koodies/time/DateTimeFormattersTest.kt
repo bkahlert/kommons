@@ -12,7 +12,6 @@ import java.nio.file.Path
 import java.time.Instant
 import java.time.LocalDate
 
-
 class DateTimeFormattersTest {
 
     val instant: Instant = Instant.parse("2021-11-09T00:08:02.123456789Z")

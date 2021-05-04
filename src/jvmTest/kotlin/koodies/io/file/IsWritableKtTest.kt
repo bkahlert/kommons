@@ -4,9 +4,6 @@ import strikt.api.Assertion
 import java.nio.file.Files
 import java.nio.file.Path
 
-class IsWritableKtTest
-
-
 /**
  * Asserts that the subject is writable.
  *

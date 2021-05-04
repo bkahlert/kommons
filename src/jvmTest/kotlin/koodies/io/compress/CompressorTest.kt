@@ -31,7 +31,6 @@ import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 
-
 class CompressorTest {
 
     @TestFactory
