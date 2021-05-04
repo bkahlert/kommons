@@ -1,20 +1,34 @@
 package koodies.text
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-
+import koodies.text.Unicode.escape as e
 
 class BannerTest {
 
-    // @formatter:off
-    @Test fun `should format ImgCstmzr`() { expectThat(Banner.banner("ImgCstmzr")).isEqualTo("\u001B[90;40m░\u001B[39;49m\u001B[96;46m░\u001B[39;49m\u001B[94;44m░\u001B[39;49m\u001B[92;42m░\u001B[39;49m\u001B[93;43m░\u001B[39;49m\u001B[95;45m░\u001B[39;49m\u001B[91;41m░\u001B[39;49m \u001B[96mIMG\u001B[39m \u001B[36mCSTMZR\u001B[39m") }
-    @Test fun `should format camelCase`() { expectThat(Banner.banner("camelCase")).isEqualTo("\u001B[90;40m░\u001B[39;49m\u001B[96;46m░\u001B[39;49m\u001B[94;44m░\u001B[39;49m\u001B[92;42m░\u001B[39;49m\u001B[93;43m░\u001B[39;49m\u001B[95;45m░\u001B[39;49m\u001B[91;41m░\u001B[39;49m \u001B[96mCAMEL\u001B[39m \u001B[36mCASE\u001B[39m") }
-    @Test fun `should format PascalCase`() { expectThat(Banner.banner("PascalCase")).isEqualTo("\u001B[90;40m░\u001B[39;49m\u001B[96;46m░\u001B[39;49m\u001B[94;44m░\u001B[39;49m\u001B[92;42m░\u001B[39;49m\u001B[93;43m░\u001B[39;49m\u001B[95;45m░\u001B[39;49m\u001B[91;41m░\u001B[39;49m \u001B[96mPASCAL\u001B[39m \u001B[36mCASE\u001B[39m") }
-    @Test fun `should format any CaSe`() { expectThat(Banner.banner("any CaSe")).isEqualTo("\u001B[90;40m░\u001B[39;49m\u001B[96;46m░\u001B[39;49m\u001B[94;44m░\u001B[39;49m\u001B[92;42m░\u001B[39;49m\u001B[93;43m░\u001B[39;49m\u001B[95;45m░\u001B[39;49m\u001B[91;41m░\u001B[39;49m \u001B[96mANY\u001B[39m \u001B[95mCASE\u001B[39m") }
-    @Test fun `should format camelCamelCase`() { expectThat(Banner.banner("camelCamelCase")).isEqualTo("\u001B[90;40m░\u001B[39;49m\u001B[96;46m░\u001B[39;49m\u001B[94;44m░\u001B[39;49m\u001B[92;42m░\u001B[39;49m\u001B[93;43m░\u001B[39;49m\u001B[95;45m░\u001B[39;49m\u001B[91;41m░\u001B[39;49m \u001B[96mCAMEL\u001B[39m \u001B[36mCAMELCASE\u001B[39m") }
-    // @formatter:on
+    @Test fun `should format HandyKoodies`() {
+        expectThat(Banner.banner("HandyKoodies"))
+            .isEqualTo("$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mHANDY$e[39m $e[36mKOODIES$e[39m")
+    }
 
+    @Test fun `should format camelCase`() {
+        expectThat(Banner.banner("camelCase"))
+            .isEqualTo("$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mCAMEL$e[39m $e[36mCASE$e[39m")
+    }
+
+    @Test fun `should format PascalCase`() {
+        expectThat(Banner.banner("PascalCase"))
+            .isEqualTo("$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mPASCAL$e[39m $e[36mCASE$e[39m")
+    }
+
+    @Test fun `should format any CaSe`() {
+        expectThat(Banner.banner("any CaSe"))
+            .isEqualTo("$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mANY$e[39m $e[95mCASE$e[39m")
+    }
+
+    @Test fun `should format camelCamelCase`() {
+        expectThat(Banner.banner("camelCamelCase"))
+            .isEqualTo("$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mCAMEL$e[39m $e[36mCAMELCASE$e[39m")
+    }
 }

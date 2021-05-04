@@ -6,13 +6,12 @@ import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
+import koodies.text.Unicode.characterTabulation
 import koodies.text.containsEscapeSequences
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -162,7 +161,7 @@ class IOTest {
         fun `should have plain stacktrace`() {
             expectThat(err.text).toStringMatchesCurlyPattern("""
                 {}.RuntimeException: err
-                	at koodies.{}
+                ${characterTabulation}at koodies.{}
                 {{}}
             """.trimIndent())
         }
@@ -171,7 +170,7 @@ class IOTest {
         fun `should have formatted stacktrace`() {
             expectThat(err).containsEscapeSequences().toStringMatchesCurlyPattern("""
                 {}.RuntimeException: err
-                	at koodies.{}
+                ${characterTabulation}at koodies.{}
                 {{}}
             """.trimIndent())
         }

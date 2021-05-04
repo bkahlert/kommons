@@ -22,6 +22,11 @@ public object Unicode {
     public const val bell: Char = '\u0007'
 
     /**
+     * [CHARACTER TABULATION](https://codepoints.net/U+0009)
+     */
+    public const val characterTabulation: Char = '\u0009'
+
+    /**
      * [ESCAPE](https://codepoints.net/U+001B)
      */
     public const val escape: Char = '\u001B'

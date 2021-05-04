@@ -22,6 +22,8 @@ import kotlin.math.floor
 import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random.Default.nextDouble
+import koodies.text.Unicode.controlSequenceIntroducer as c
+import koodies.text.Unicode.escape as e
 import kotlin.text.contains as containsNonAnsiAware
 
 public object ANSI {
@@ -317,25 +319,23 @@ public object ANSI {
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        public val hideCursor: String get() = if (level == NONE) "" else "$CSI?25l"
+        public val hideCursor: String get() = if (level == NONE) "" else "$c?25l"
 
         /**
          * Create an ANSI code to show the cursor.
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        public val showCursor: String get() = if (level == NONE) "" else "$CSI?25h"
+        public val showCursor: String get() = if (level == NONE) "" else "$c?25h"
 
         private fun moveCursor(dir: String, count: Int): String {
             return if (count == 0 || level == NONE) ""
-            else "$CSI$count$dir"
+            else "$c$count$dir"
         }
     }
 }
 
-private const val ESC = Unicode.escape
-private const val CSI = Unicode.controlSequenceIntroducer
-private val ansiCloseRe = Regex("""$ESC\[((?:\d{1,3};?)+)m""")
+private val ansiCloseRe = Regex("""$e\[((?:\d{1,3};?)+)m""")
 
 public object Banner {
     private val prefix = with(ANSI.Colors) {
@@ -399,7 +399,7 @@ internal open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
         tag(codes.toList())
     }
 
-    private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "$ESC[${c.joinToString(";")}m"
+    private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "$e[${c.joinToString(";")}m"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -414,7 +414,7 @@ internal open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
         /**
          * [Regex] that matches an [AnsiCode].
          */
-        val REGEX: Regex = Regex("(?<CSI>${CSI}\\[|${ESC}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
+        val REGEX: Regex = Regex("(?<CSI>${c}\\[|${e}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
     }
 }
 

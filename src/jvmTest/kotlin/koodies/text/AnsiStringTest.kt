@@ -26,7 +26,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotBlank
 import strikt.assertions.isSameInstanceAs
-import koodies.text.Unicode.escape as ESC
+import koodies.text.Unicode.escape as e
 
 class AnsiStringTest {
 
@@ -35,14 +35,14 @@ class AnsiStringTest {
         val nonAnsiString = "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean."
         val ansiString =
             AnsiString(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean."))
-        val blankAnsiString = AnsiString("$ESC[3;36m$ESC[4m$ESC[24m$ESC[9m$ESC[29m$ESC[23;39m")
+        val blankAnsiString = AnsiString("$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m")
     }
 
     @Suppress("SpellCheckingInspection")
     val expectedAnsiFormattedLines = listOf(
-        "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[23;39m",
-        "$ESC[3;36mThis one's $ESC[1mbold!$ESC[23;39;22m",
-        "$ESC[3;36mLast one is clean.$ESC[23;39m",
+        "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m",
+        "$e[3;36mThis one's $e[1mbold!$e[23;39;22m",
+        "$e[3;36mLast one is clean.$e[23;39m",
     )
     val expectedLines = listOf(
         "Important: This line has no ANSI escapes.",
@@ -76,20 +76,20 @@ class AnsiStringTest {
         fun `should tokenize string`() {
             val tokens = string.tokenize()
             expectThat(tokens.toList()).containsExactly(
-                "$ESC[3;36m" to 0,
-                "$ESC[4m" to 0,
+                "$e[3;36m" to 0,
+                "$e[4m" to 0,
                 "Important:" to 10,
-                "$ESC[24m" to 0,
+                "$e[24m" to 0,
                 " This line has " to 15,
-                "$ESC[9m" to 0,
+                "$e[9m" to 0,
                 "no" to 2,
-                "$ESC[29m" to 0,
+                "$e[29m" to 0,
                 " ANSI escapes.\nThis one's " to 26,
-                "$ESC[1m" to 0,
+                "$e[1m" to 0,
                 "bold!" to 5,
-                "$ESC[22m" to 0,
+                "$e[22m" to 0,
                 "${CRLF}Last one is clean." to 20,
-                "$ESC[23;39m" to 0)
+                "$e[23;39m" to 0)
             expectThat(tokens.sumBy { it.second }).isEqualTo(78)
             expectThat(string.length).isEqualTo(120)
         }
@@ -98,13 +98,13 @@ class AnsiStringTest {
         fun `should create ansi string from first n tokens`() {
             val tokens = string.tokenize()
             expectThat(tokens.subSequence(0, 26)).isEqualTo(
-                "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mn$ESC[23;39;29m")
+                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m")
         }
 
         @Test
         internal fun `should create ansi string from subSequence`() {
             val tokens = string.tokenize()
-            expectThat(tokens.subSequence(11, 25)).isEqualTo("$ESC[3;36mThis line has $ESC[23;39m")
+            expectThat(tokens.subSequence(11, 25)).isEqualTo("$e[3;36mThis line has $e[23;39m")
         }
 
         @Test
@@ -137,12 +137,12 @@ class AnsiStringTest {
         @TestFactory
         fun `should return length`(): List<DynamicTest> {
             return listOf(
-                41 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[23;39m"),
-                40 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes$ESC[23;39m"),
-                26 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mn$ESC[23;29;39m"),
-                11 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m $ESC[23;39m"),
-                10 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[23;24;39m"),
-                9 to AnsiString("$ESC[3;36m$ESC[4mImportant$ESC[23;24;39m"),
+                41 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m"),
+                40 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m"),
+                26 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;29;39m"),
+                11 to AnsiString("$e[3;36m$e[4mImportant:$e[24m $e[23;39m"),
+                10 to AnsiString("$e[3;36m$e[4mImportant:$e[23;24;39m"),
+                9 to AnsiString("$e[3;36m$e[4mImportant$e[23;24;39m"),
                 0 to AnsiString(""),
             ).map { (expected, ansiString) ->
                 dynamicTest("${ansiString.quoted}.length should be $expected") {
@@ -182,16 +182,16 @@ class AnsiStringTest {
 
     @Nested
     inner class SubSequence {
-        val ansiString = AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[0m")
+        val ansiString = AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m")
 
         @TestFactory
         fun `should product right substring`() = testEach(
-            41 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[23;39m"),
-            40 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes$ESC[23;39m"),
-            25 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[23;39m"),
-            11 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m $ESC[23;39m"),
-            10 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[23;39;24m"),
-            9 to AnsiString("$ESC[3;36m$ESC[4mImportant$ESC[23;39;24m"),
+            41 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m"),
+            40 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m"),
+            25 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m"),
+            11 to AnsiString("$e[3;36m$e[4mImportant:$e[24m $e[23;39m"),
+            10 to AnsiString("$e[3;36m$e[4mImportant:$e[23;39;24m"),
+            9 to AnsiString("$e[3;36m$e[4mImportant$e[23;39;24m"),
             0 to AnsiString(""),
         ) { (length, expected) ->
             group("$expected ...") {
@@ -219,12 +219,12 @@ class AnsiStringTest {
 
         @TestFactory
         fun `should product right non zero start substring`() = testEach(
-            0 to AnsiString("$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[23;39m"),
-            1 to AnsiString("$ESC[3;36;4mmportant:$ESC[24m This line has $ESC[23;39m"),
-            9 to AnsiString("$ESC[3;36;4m:$ESC[24m This line has $ESC[23;39m"),
-            10 to AnsiString("$ESC[3;36;4m$ESC[24m This line has $ESC[23;39m"),
-            11 to AnsiString("$ESC[3;36mThis line has $ESC[23;39m"),
-            25 to AnsiString("$ESC[3;36m$ESC[23;39m"),
+            0 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m"),
+            1 to AnsiString("$e[3;36;4mmportant:$e[24m This line has $e[23;39m"),
+            9 to AnsiString("$e[3;36;4m:$e[24m This line has $e[23;39m"),
+            10 to AnsiString("$e[3;36;4m$e[24m This line has $e[23;39m"),
+            11 to AnsiString("$e[3;36mThis line has $e[23;39m"),
+            25 to AnsiString("$e[3;36m$e[23;39m"),
         ) { (startIndex, expected) ->
             group("$expected ...") {
 
@@ -259,7 +259,7 @@ class AnsiStringTest {
         @TestFactory
         fun `should strip ANSI escape sequences off`() = listOf(
             ansiString to nonAnsiString,
-            AnsiString("[$ESC[0;32m  OK  $ESC[0m] Listening on $ESC[0;1;39mudev Control Socket$ESC[0m.") to
+            AnsiString("[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m.") to
                 "[  OK  ] Listening on udev Control Socket.",
             AnsiString("Text") to "Text",
             AnsiString("__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___") to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___"
@@ -336,9 +336,9 @@ class AnsiStringTest {
         fun `should split ANSI string`() {
             @Suppress("SpellCheckingInspection")
             expectThat(ansiString.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
-                $ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI control sequences.$ESC[23;39m
-                $ESC[3;36mThis one's $ESC[1mbold!$ESC[23;39;22m
-                $ESC[3;36mLast one is clean.$ESC[23;39m
+                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
+                $e[3;36mLast one is clean.$e[23;39m
             """.trimIndent())
         }
 
@@ -346,20 +346,20 @@ class AnsiStringTest {
         fun `should split char sequence casted ANSI string`() {
             @Suppress("SpellCheckingInspection")
             expectThat((ansiString as CharSequence).mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
-                $ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI control sequences.$ESC[23;39m
-                $ESC[3;36mThis one's $ESC[1mbold!$ESC[23;39;22m
-                $ESC[3;36mLast one is clean.$ESC[23;39m
+                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
+                $e[3;36mLast one is clean.$e[23;39m
             """.trimIndent())
         }
 
         @Test
         fun `should not throw on errors`() {
-            val subject = AnsiString("$ESC[4;m ← missing second code $ESC[24m").mapLines {
+            val subject = AnsiString("$e[4;m ← missing second code $e[24m").mapLines {
                 it.ansi.black
             }.mapLines {
                 "$it".replace("second", "second".ansi.magenta.toString())
             }
-            val expected = "$ESC[30m$ESC[4m ← missing $ESC[35msecond$ESC[39m code $ESC[24m$ESC[39m"
+            val expected = "$e[30m$e[4m ← missing $e[35msecond$e[39m code $e[24m$e[39m"
             expectThat(subject).isEqualTo(expected)
         }
     }
@@ -383,8 +383,8 @@ class AnsiStringTest {
 
         @Test
         fun `should skip errors`() {
-            expectThat("$ESC[4;m ← missing second code $ESC[24m".lineSequence()
-                .toList()).containsExactly("$ESC[4;m ← missing second code $ESC[24m")
+            expectThat("$e[4;m ← missing second code $e[24m".lineSequence()
+                .toList()).containsExactly("$e[4;m ← missing second code $e[24m")
         }
     }
 
@@ -398,9 +398,9 @@ class AnsiStringTest {
         @Test
         fun `should join split ANSI string`() {
             expectThat(expectedAnsiFormattedLines.joinLinesToString { it }).isEqualTo("""
-                $ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.$ESC[23;39m
-                $ESC[3;36mThis one's $ESC[1mbold!$ESC[23;39;22m
-                $ESC[3;36mLast one is clean.$ESC[23;39m
+                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
+                $e[3;36mLast one is clean.$e[23;39m
             """.trimIndent())
         }
 
@@ -416,7 +416,7 @@ class AnsiStringTest {
 
         @Test
         fun `should skip errors`() {
-            expectThat("$ESC[4;m ← missing second code $ESC[24m".lines()).containsExactly("$ESC[4;m ← missing second code $ESC[24m")
+            expectThat("$e[4;m ← missing second code $e[24m".lines()).containsExactly("$e[4;m ← missing second code $e[24m")
         }
     }
 
@@ -434,9 +434,9 @@ class AnsiStringTest {
         @Test
         fun `should chunk ANSI string`() {
             expectThat(ansiString.chunkedSequence(26).toList()).containsExactly(
-                "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mn$ESC[23;39;29m".asAnsiString(),
-                "$ESC[3;36;9mo$ESC[29m ANSI escapes.\nThis one's$ESC[23;39m".asAnsiString(),
-                "$ESC[3;36m $ESC[1mbold!$ESC[22m${CRLF}Last one is clean.$ESC[23;39m".asAnsiString(),
+                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
+                "$e[3;36;9mo$e[29m ANSI escapes.\nThis one's$e[23;39m".asAnsiString(),
+                "$e[3;36m $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39m".asAnsiString(),
             )
         }
     }
@@ -453,7 +453,7 @@ class AnsiStringTest {
         @Test
         fun `should create ANSI string from existing plus added string`() {
             expectThat(ansiString + "plus").isEqualTo(
-                "$ESC[3;36m$ESC[4mImportant:$ESC[24m This line has $ESC[9mno$ESC[29m ANSI escapes.\nThis one's $ESC[1mbold!$ESC[22m${CRLF}Last one is clean.$ESC[23;39mplus".asAnsiString(),
+                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.\nThis one's $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39mplus".asAnsiString(),
             )
         }
     }
@@ -464,10 +464,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `NOT ignoring case AND NOT ignoring ANSI`() = listOf(
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  OK") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  ok") to false,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  OK") to false,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  ok") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
@@ -487,10 +487,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `NOT ignoring case AND ignoring ANSI`() = listOf(
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  OK") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  ok") to false,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  OK") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  ok") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
@@ -504,10 +504,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `ignoring case AND NOT ignoring ANSI`() = listOf(
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  OK") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  ok") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  OK") to false,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  ok") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to false,
+            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
@@ -521,10 +521,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `ignoring case AND ignoring ANSI`() = listOf(
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  OK") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[$ESC[0;32m  ok") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  OK") to true,
-            ("[$ESC[0;32m  OK  $ESC[0m]" to "[  ok") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to true,
+            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to true,
         ).flatMap { (input, expected) ->
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {

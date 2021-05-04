@@ -4,19 +4,11 @@ import koodies.CallableProperty
 import koodies.builder.Builder
 import koodies.builder.Init
 import koodies.builder.mapBuild
-import koodies.collections.head
-import koodies.collections.tail
-import koodies.concurrent.process.IO
-import koodies.concurrent.process.Processor
-import koodies.concurrent.process.Processors
 import koodies.docker.DockerExitStateHandler.Failure
-import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Companion
-import koodies.docker.DockerRunCommandLine.Options
 import koodies.exec.CommandLine
-import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
-import koodies.exec.ExecTerminationCallback
+import koodies.exec.Executable
 import koodies.exec.parse
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
@@ -24,6 +16,8 @@ import koodies.map
 import koodies.or
 import koodies.provideDelegate
 import koodies.regex.RegularExpressions
+import koodies.shell.ShellScript
+import koodies.shell.ShellScript.ScriptContext
 import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.joinToKebabCase
@@ -131,128 +125,148 @@ public object Docker {
     public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
         DockerRunCommandLine.mapBuild { if (thisRef != null) it.exec.logging(thisRef) else it.exec.logging() }
     }
-
-    /**
-     * Micro DSL to build a [DockerImage] in the style of:
-     * - `DockerImage { "bkahlert" / "libguestfs" }`
-     * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
-     * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
-     *
-     * Convenience alias for [DockerImage].
-     */
-//    @Suppress("SpellCheckingInspection")
-//    public fun image(init: ImageContext.() -> DockerImage): DockerImage = DockerImage(init)
-
-    @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun options(init: Init<Options.Companion.OptionsContext>): Options =
-        Options(init)
-
-    @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun commandLine(init: Init<CommandLineContext>): CommandLine =
-        CommandLine(init)
-
-    @Deprecated("use docker instead", replaceWith = ReplaceWith("docker"))
-    public fun commandLine(image: DockerImage, options: Options, commandLine: CommandLine): DockerRunCommandLine =
-        DockerRunCommandLine(image, options, commandLine)
-}
-
-/* ALL DOCKER METHODS BELOW ALWAYS START THE PROCESS AND AND PROCESS IT ASYNCHRONOUSLY */
-
-/**
- * Runs a Docker process using the
- * - [DockerImage] built by the specified [imageInit]
- * - [DockerRunCommandLineOptions] built by the specified [optionsInit]
- * - specified [arguments]
- * in `this` [Path].
- *
- * If provided, the [execTerminationCallback] will be called on process
- * termination and before other [Exec.onExit] registered listeners
- * get called.
- */
-public fun Path.docker(
-    imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<Options.Companion.OptionsContext>,
-    vararg arguments: String,
-    execTerminationCallback: ExecTerminationCallback? = null,
-): DockerExec {
-    val dockerRunCommandLine = DockerRunCommandLine(DockerImage(imageInit), Options(optionsInit), arguments.takeIf { it.isNotEmpty() }?.let {
-        CommandLine(it.toList().head, it.toList().tail)
-    })
-    return dockerRunCommandLine.exec.logging(workingDirectory = this, execTerminationCallback = execTerminationCallback)
 }
 
 /**
- * Runs a Docker process using the
- * - [DockerImage] built by the specified [imageInit]
- * - [DockerRunCommandLineOptions] built by the specified [optionsInit]
- * - specified [arguments]
- * in `this` [Path].
+ * Runs the given [command] and its [arguments] in
+ * a [DockerContainer] with the [DockerImage] parsed from [image].
  *
- * The output of the [DockerExec] will be processed by the specified [processor].
- * You can use one of the provided [Processors] or implement one on your own, e.g.
- * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
- * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
- *
- * If provided, the [execTerminationCallback] will be called on process
- * termination and before other [Exec.onExit] registered listeners
- * get called.
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container.
  */
-public fun Path.docker(
-    imageInit: ImageContext.() -> DockerImage,
-    optionsInit: Init<Options.Companion.OptionsContext>,
-    vararg arguments: String,
-    execTerminationCallback: ExecTerminationCallback? = null,
-    processor: Processor<Exec>?,
-): DockerExec {
-    val dockerRunCommandLine = DockerRunCommandLine(DockerImage(imageInit), Options(optionsInit), arguments.takeIf { it.isNotEmpty() }?.let {
-        CommandLine(it.toList().head, it.toList().tail)
-    })
-    return if (processor != null) {
-        dockerRunCommandLine.exec.processing(workingDirectory = this, execTerminationCallback = execTerminationCallback, processor = processor)
-    } else {
-        dockerRunCommandLine.exec.logging(workingDirectory = this)
+public fun Path.docker(image: String, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+    dockerExecute(DockerImage { image }, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+
+/**
+ * Runs the given [command] and its [arguments] in
+ * a [DockerContainer] with the [DockerImage] built using [imageInit].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container.
+ */
+public fun Path.docker(imageInit: DockerImageInit, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+    dockerExecute(DockerImage(imageInit), logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+
+/**
+ * Runs the given [command] and its [arguments] in
+ * a [DockerContainer] with the given [image].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container.
+ */
+public fun Path.docker(image: DockerImage, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+    dockerExecute(image, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+
+/**
+ * Builds a shell script using the given [scriptInit] and runs it in
+ * a [DockerContainer] with the [DockerImage] parsed from [image].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [scriptInit] as the only argument.
+ */
+public fun Path.docker(image: String, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    dockerExecute(DockerImage { image }, logger) { workDir -> ShellScript { scriptInit(workDir) } }
+
+/**
+ * Builds a shell script using the given [scriptInit] and runs it in
+ * a [DockerContainer] with the [DockerImage] built using [imageInit].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [scriptInit] as the only argument.
+ */
+public fun Path.docker(imageInit: DockerImageInit, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    dockerExecute(DockerImage(imageInit), logger) { workDir -> ShellScript { scriptInit(workDir) } }
+
+/**
+ * Builds a shell script using the given [scriptInit] and runs it in
+ * a [DockerContainer] with the given [image].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [scriptInit] as the only argument.
+ */
+public fun Path.docker(image: DockerImage, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    dockerExecute(image, logger) { workDir -> ShellScript { scriptInit(workDir) } }
+
+/**
+ * Builds an [Executable] using the given [executableProvider] and runs it in
+ * a [DockerContainer] with the given [image].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [executableProvider].
+ */
+private fun Path.dockerExecute(image: DockerImage, logger: RenderingLogger? = BACKGROUND, executableProvider: (ContainerPath) -> Executable<Exec>): DockerExec {
+    val containerPath = "/work".asContainerPath()
+    return executableProvider(containerPath).dockerized(image) {
+        mounts { this@dockerExecute mountAt containerPath }
+        workingDirectory { containerPath }
+    }.run {
+        if (logger != null) exec.logging(logger)
+        else exec()
     }
 }
 
 /**
- * Runs a Docker process using the [DockerRunCommandLine] built by the
- * specified [init].
- *
- * The output of the [DockerExec] will be processed by the specified [processor].
- * You can use one of the provided [Processors] or implement one on your own, e.g.
- * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console
- * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
- *
- * If provided, the [execTerminationCallback] will be called on process
- * termination and before other [Exec.onExit] registered listeners
- * get called.
+ * Type of the argument supported by [docker] and its variants (e.g. [ubuntu].
  */
-public fun docker(
-    init: Init<Companion.CommandContext>,
-    execTerminationCallback: ExecTerminationCallback? = null,
-    processor: Processor<DockerExec>?,
-): DockerExec =
-    if (processor != null) DockerRunCommandLine(init).exec.processing(execTerminationCallback = execTerminationCallback, processor = processor)
-    else DockerRunCommandLine(init).exec.logging()
+public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) -> CharSequence
 
+
+/*
+ * UBUNTU
+ */
 
 /**
- * Runs a Docker process using the [DockerRunCommandLine] built by the
- * specified [init].
+ * Runs the given [command] and its [arguments] in
+ * a [Ubuntu](https://hub.docker.com/_/ubuntu) based [DockerContainer].
  *
- * The output of the [DockerExec] will be processed by the specified [processor].
- * You can use one of the provided [Processors] or implement one on your own, e.g.
- * - `docker(..., [Processors.loggingProcessor])` to prints all [IO] to the console (default)
- * - `docker(...) { io -> doSomething(io) }` to process the [IO] the way you like.
- *
- * If provided, the [execTerminationCallback] will be called on process
- * termination and before other [Exec.onExit] registered listeners
- * get called.
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container.
  */
-public fun docker(
-    processor: Processor<DockerExec>?,
-    execTerminationCallback: ExecTerminationCallback? = null,
-    init: Init<Companion.CommandContext>,
-): DockerExec =
-    if (processor != null) DockerRunCommandLine(init).exec.processing(execTerminationCallback = execTerminationCallback, processor = processor)
-    else DockerRunCommandLine(init).exec.logging()
+public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+    docker(DockerImage { "ubuntu" }, command, *arguments, logger = logger)
+
+/**
+ * Builds a shell script using the given [scriptInit] and runs it in
+ * a [Ubuntu](https://hub.docker.com/_/ubuntu) based [DockerContainer].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [scriptInit] as the only argument.
+ */
+public fun Path.ubuntu(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    docker(DockerImage { "ubuntu" }, logger, scriptInit)
+
+
+/*
+ * BUSYBOX
+ */
+
+/**
+ * Runs the given [command] and its [arguments] in
+ * a [busybox](https://hub.docker.com/_/busybox) based [DockerContainer].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container.
+ */
+public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+    docker(DockerImage { "busybox" }, command, *arguments, logger = logger)
+
+/**
+ * Builds a shell script using the given [scriptInit] and runs it in
+ * a [busybox](https://hub.docker.com/_/busybox) based [DockerContainer].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [scriptInit] as the only argument.
+ */
+public fun Path.busybox(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    docker(DockerImage { "busybox" }, logger, scriptInit)

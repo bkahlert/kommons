@@ -8,12 +8,9 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import koodies.text.Unicode.escape as ESC
-
+import koodies.text.Unicode.escape as e
 
 class LinesOfLengthKtTest {
 
@@ -61,10 +58,10 @@ class LinesOfLengthKtTest {
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
-                    "${ESC}[3;36m${ESC}[4mImportant:${ESC}[24m This line has ${ESC}[9mn${ESC}[23;39;29m".asAnsiString(),
-                    "${ESC}[3;36;9mo${ESC}[29m ANSI escapes.${ESC}[23;39m".asAnsiString(),
-                    "${ESC}[3;36mThis one's ${ESC}[1mbold!${ESC}[23;39;22m".asAnsiString(),
-                    "${ESC}[3;36mLast one is clean.${ESC}[23;39m".asAnsiString(),
+                    "${e}[3;36m${e}[4mImportant:${e}[24m This line has ${e}[9mn${e}[23;39;29m".asAnsiString(),
+                    "${e}[3;36;9mo${e}[29m ANSI escapes.${e}[23;39m".asAnsiString(),
+                    "${e}[3;36mThis one's ${e}[1mbold!${e}[23;39;22m".asAnsiString(),
+                    "${e}[3;36mLast one is clean.${e}[23;39m".asAnsiString(),
                     "".asAnsiString(),
                 )
             }
@@ -77,10 +74,10 @@ class LinesOfLengthKtTest {
         ).map { (method, lines) ->
             dynamicTest("using $method") {
                 expectThat(lines).containsExactly(
-                    "${ESC}[3;36m${ESC}[4mImportant:${ESC}[24m This line has ${ESC}[9mn${ESC}[23;39;29m".asAnsiString(),
-                    "${ESC}[3;36;9mo${ESC}[29m ANSI escapes.${ESC}[23;39m".asAnsiString(),
-                    "${ESC}[3;36mThis one's ${ESC}[1mbold!${ESC}[23;39;22m".asAnsiString(),
-                    "${ESC}[3;36mLast one is clean.${ESC}[23;39m".asAnsiString(),
+                    "${e}[3;36m${e}[4mImportant:${e}[24m This line has ${e}[9mn${e}[23;39;29m".asAnsiString(),
+                    "${e}[3;36;9mo${e}[29m ANSI escapes.${e}[23;39m".asAnsiString(),
+                    "${e}[3;36mThis one's ${e}[1mbold!${e}[23;39;22m".asAnsiString(),
+                    "${e}[3;36mLast one is clean.${e}[23;39m".asAnsiString(),
                 )
             }
         }

@@ -18,11 +18,11 @@ import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import koodies.text.Unicode.escape as e
 
 class ANSITest {
 
     private val italicCyan = Style.italic + ANSI.Colors.cyan
-    private val ESC = Unicode.escape
 
     @Nested
     inner class Formatting {
@@ -41,7 +41,7 @@ class ANSITest {
             italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.") to
                 "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.",
 
-            "[$ESC[0;32m  OK  $ESC[0m] Listening on $ESC[0;1;39mudev Control Socket$ESC[0m." to
+            "[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m." to
                 "[  OK  ] Listening on udev Control Socket.",
 
             "Text" to "Text",

@@ -4,6 +4,7 @@ import koodies.collections.size
 import koodies.concurrent.process.IO
 import koodies.concurrent.process.error
 import koodies.concurrent.process.output
+import koodies.docker.docker
 import koodies.docker.dockerized
 import koodies.exec.CommandLine
 import koodies.exec.Exec
@@ -22,7 +23,9 @@ import koodies.logging.expectLogged
 import koodies.logging.expectThatLogged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
+import koodies.test.SvgFile
 import koodies.test.UniqueId
+import koodies.test.asserting
 import koodies.test.copyTo
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
@@ -43,6 +46,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isTrue
 import strikt.assertions.length
+import strikt.java.exists
 import kotlin.io.path.exists
 
 // TODO update readme.md
@@ -230,7 +234,19 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun docker() {
+    fun docker(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        SvgFile.copyTo(resolve("koodies.svg"))
+
+        // run a command line
+        docker("minidocks/librsvg", "-z", 10, "--output", "koodies.png", "koodies.svg")
+        resolve("koodies.png") asserting { exists() }
+
+        // run a shell script
+        docker("rafib/awesome-cli-binaries", logger = null) {
+            """
+               /opt/bin/chafa koodies.png 
+            """
+        }.io.output.ansiKept.let { println(it) }
     }
 
 

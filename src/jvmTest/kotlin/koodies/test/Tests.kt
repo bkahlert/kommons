@@ -336,7 +336,7 @@ object Tester {
     }
 
     fun findCaller(): CallStackElement = getCaller {
-        receiver == enclosingClassName || receiver?.matches(Regex(".*DynamicTest.*Builder.*")) == true
+        receiver == enclosingClassName || receiver?.matches(Regex(".*DynamicTest.*Builder.*")) == true || receiver?.matches(Regex(".TestsKt.*")) == true
     }
 
     /**

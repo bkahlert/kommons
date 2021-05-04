@@ -566,6 +566,9 @@ val Builder<List<IO>>.error: DescribeableBuilder<List<Error>>
 val Builder<out List<IO>>.ansiRemoved: DescribeableBuilder<String>
     get() = get("ANSI escape codes removed") { IOSequence(this).ansiRemoved }
 
+val Builder<out List<IO>>.ansiKept: DescribeableBuilder<String>
+    get() = get("ANSI escape codes kept") { IOSequence(this).ansiKept }
+
 @JvmName("failureContainsDump")
 fun <T : Failure> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =
     with({ dump }) { isNotNull().and { containsDump(*containedStrings) } }
