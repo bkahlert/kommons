@@ -110,6 +110,36 @@ with(tempDir()) {
 }
 ```
 
+**Output:**
+
+```kotlin
+&kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv\.
+RR&kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+BBRR&kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+BBBBRR&kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+BBBBBBRR&kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv\.
+BBBBBBBBRR&kyTx}vvvvvvvvvvvvvvvvvvvvvv\.
+BBBBBBBBBBRZT}vvvvvvvvvvvvvvvvvvvvvv\.
+BBBBBBBBBBQxvvvvvvvvvvvvvvvvvvvvvv\.
+BBBBBBBB&xvvvvvvvvvvvvvvvvvvvvvv\.
+BBBBBBZzvvvvvvvvvvvvvvvvvvvvvv\.
+BBBBZuvvvvvvvvvvvvvvvvvvvvvv▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+BBZTvvvvvvvvvvvvvvvvvvvvvv\.▝▜MMMMMMMMMMMMMMMMMMMM
+R3vvvvvvvvvvvvvvvvvvvvvv\.   .▝▜MMMMMMMMMMMMMMMMMM
+vvvvvvvvvvvvvvvvvvvvvv\.       .▝▜MMMMMMMMMMMMMMMM
+vvvvvvvvvvvvvvvvvvvv\.           .▝▜MMMMMMMMMMMMMM
+uxvvvvvvvvvvvvvvvvz3x_              ▝▜MMMMMMMMMMMM
+▁3uxvvvvvvvvvvvv▁▅&▆▂gx`              ▝▜MMMMMMMMMM
+Z▅▁3uxvvvvvvvvz▆WWRZ&▆▂gv.             `▀WMMMMMMMM
+WR&▄▁3uxvvvvvuk▀BWWWRZ&▆▂gv.         .\vvz▀WMMMMMM
+WWWRZ▅▁3ux▁▂Zg33k▀BWWWRZ&▆▂g}.     .\vvvvvvz▀WMM0W
+000WWRZ▅▃▆MM▆▂Zg33k▀BWWWRZ&▆▂g}. .\vvvvvvvvvvx▀BBR
+00000WMMMMMMMM▆▂Zg33k▀BWWWRZ&▆▂yxxvvvvvvvvvvvvvx▝▀
+0000MMMMMMMMMMMM▆▂Zg33k▀BWWWRZ▆▆▂gTxvvvvvvvvvvvvvx
+00MMMMMMMMMMMMMMMM▆▂Zg33k▀BWWWRZ&▆▂gTxvvvvvvvvvvvv
+MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
+```
+
 - All docker commands (`docker`, `ubuntu`, `busybox`, …) use the path in the receiver to
     - set the working directory of both the host command and the docker container
     - map the host working directory to the container's working directory,
