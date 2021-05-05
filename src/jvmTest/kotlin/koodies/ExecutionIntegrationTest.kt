@@ -1,26 +1,27 @@
 package koodies
 
-import koodies.collections.size
 import koodies.docker.docker
 import koodies.docker.dockerized
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.IO
-import koodies.exec.Process.ExitState
+import koodies.exec.Process.ExitState.Failure
 import koodies.exec.error
 import koodies.exec.exitCode
 import koodies.exec.output
+import koodies.io.path.Locations
 import koodies.io.path.Locations.ls
 import koodies.io.path.deleteRecursively
+import koodies.io.path.pathString
 import koodies.io.path.tempDir
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.expectLogged
 import koodies.logging.expectThatLogged
+import koodies.logging.logged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
 import koodies.test.SvgFile
@@ -29,10 +30,9 @@ import koodies.test.asserting
 import koodies.test.copyTo
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
-import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.resetLines
-import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Test
@@ -44,31 +44,21 @@ import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.assertions.isGreaterThan
 import strikt.assertions.isTrue
 import strikt.assertions.length
 import strikt.java.exists
 import kotlin.io.path.exists
 
-// TODO update readme.md
-// TODO check exec class docs
 @Isolated
 class ExecutionIntegrationTest {
 
     @Test
-    fun `should run command line`() {
-        // simply create a command line
-        val commandLine = CommandLine("echo", "Hello, World!") check {
-            shellCommand { isEqualTo("echo \"Hello, World!\"") }
-        }
+    fun `should exec command line`() {
 
-        // and execute it
-        commandLine.exec() check {
+        CommandLine("echo", "Hello, World!").exec() check {
 
-            // just OUT
             io.output.ansiRemoved { isEqualTo("Hello, World!") }
 
-            // or all IO
             io.ansiRemoved {
                 matchesCurlyPattern("""
                     Executing echo "Hello, World!"
@@ -77,55 +67,47 @@ class ExecutionIntegrationTest {
                 """.trimIndent())
             }
 
-            // further information
             exitCode { isEqualTo(0) }
             successful { isTrue() }
         }
     }
 
     @Test
-    fun `should script`() {
-        // simply create a shell script
+    fun `should process shell script`() {
+
         val shellScript = ShellScript {
             !"echo 'Hello, World!'"
             !"echo 'Hello, Back!'"
-        } check {
-            // can be run like a process
-            exec().io.output.ansiRemoved { contains("Hello, World!").contains("Hello, Back!") }
         }
 
         // can also be executed with builder
         var counter = 0
-        shellScript.exec.processing { io ->
-            if (io is IO.Output) counter++
-        } check {
-            successful { isTrue() }
-        }
+        shellScript.exec.processing { io -> if (io is IO.Output) counter++ } check {
 
-        counter { isEqualTo(2) }
-        BACKGROUND check { logged.contains("Script(name=null;content=echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
+            counter { isEqualTo(2) }
+
+            BACKGROUND { logged.contains("Script(name=null;content=echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
+        }
     }
 
     @Test
-    fun `should output`() {
+    fun `should nicely log`() {
 
-        // if output is too boring, you can customize it
         ShellScript {
             !"echo 'Countdown!'"
             (10 downTo 0).forEach { !"echo '$it'" }
             !"echo 'Take Off'"
         }.exec.logging {
             block {
-                val arrow = "->".red()
                 caption { "countdown" }
-                contentFormatter { Formatter { "$arrow $it" } }
+                contentFormatter { Formatter { "${"->".ansi.red} $it" } }
                 decorationFormatter { Colors.brightRed }
                 border = SOLID
             }
-        }
+        } check {
 
-        BACKGROUND check {
-            expectLogged.toStringMatchesCurlyPattern("""
+            BACKGROUND {
+                logged.toStringMatchesCurlyPattern("""
                 {{}}
                 ╭──╴countdown
                 │
@@ -148,22 +130,22 @@ class ExecutionIntegrationTest {
                 ╰──╴✔︎
                 {{}}
             """.trimIndent())
+            }
         }
     }
 
     @Test
     fun `should handle errors`() {
 
-        // and if something goes wrong, a failed exit state is returned
         ShellScript {
             !"echo 'Countdown!'"
             (10 downTo 7).forEach { !"echo '$it'" }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
-        }.exec.logging {
-            block { border { Border.NONE } }
-        } check {
-            exitState { isA<ExitState.Failure>() }
+        }.exec.logging { block { border { Border.NONE } } } check {
+
+            exitState { isA<Failure>() }
+
             io.ansiRemoved {
                 matchesCurlyPattern("""
                 Executing {}
@@ -195,12 +177,12 @@ class ExecutionIntegrationTest {
     fun `should be simple`() {
         tempDir().apply {
 
-            ShellScript { !"cat sample.html" }.exec(this) check {
+            ShellScript { "cat sample.html" }.exec(this) check {
                 io.error.ansiRemoved { contains("cat: sample.html: No such file or directory") }
             }
 
             HtmlFile.copyTo(resolve("sample.html"))
-            ShellScript { !"cat sample.html" }.exec(this) check {
+            ShellScript { "cat sample.html" }.exec(this) check {
                 io.output.ansiRemoved { length.isEqualTo(HtmlFile.text.length) }
             }
 
@@ -218,27 +200,25 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun `should process`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should exec using docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
-        // let's define a simple command line
-        val commandLine = CommandLine("printenv")
-
-        // and run it
-        commandLine.exec() check {
-            io.output { size.isGreaterThan(10) }
+        CommandLine("printenv", "HOME").exec() check {
+            io.output.ansiRemoved { isEqualTo(Locations.HomeDirectory.pathString) }
         }
 
-        // How about running it in a container?
-        commandLine.dockerized { "ubuntu" }.exec() check {
-            (io.output.toList()) { any { ansiRemoved.isEqualTo("HOME=/root") } }
+        CommandLine("printenv", "HOME").dockerized { "ubuntu" }.exec() check {
+            io.output.ansiRemoved { isEqualTo("/root") }
+        }
+
+        ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }.dockerized { "ubuntu" }.exec() check {
+            io.output.ansiRemoved { isEqualTo("/root") }
         }
     }
 
     @Test
-    fun docker(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should exec composed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         SvgFile.copyTo(resolve("koodies.svg"))
 
-        // run a command line
         docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg")
         resolve("koodies.png") asserting { exists() }
 
@@ -250,6 +230,7 @@ class ExecutionIntegrationTest {
         }.io.output.ansiKept.let { println(it.resetLines()) }
     }
 
+    // TODO pi example
 
     @Test
     fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {

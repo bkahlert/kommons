@@ -19,54 +19,99 @@
   </dependency>
   ```
 
-### Bintray JCenter
-
-* **Gradle**
-    * add Maven repository
-      `repositories { maven("https://dl.bintray.com/bkahlert/koodies") }`
-    * add dependency `implementation("com.bkahlert:koodies:1.3.0")`
+### ~~Bintray JCenter~~ 🤬
 
 ## Features
 
-### Run Commands & Scripts Locally and in a Docker Container
+### Exec: Feature-Rich Process Execution
 
-#### Command Lines
+#### What can you run?
+
+##### ⌨️ Command Lines `CommandLine("printenv", "HOME").exec()`
+
+##### 📄 Shell Scripts `ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }.exec()`
+
+#### How can you run?
+
+##### Degree of Interaction
+
+###### ▶️ executing-only `ShellScript { … }.exec()`
+
+###### 📝 logging `ShellScript { … }.exec.logging()`
+
+- If things go wrong, it's also logged:
+  ```text
+  Process {PID} terminated with exit code {…}
+  ➜ A dump has been written to:
+  - {WorkDir}/koodies.dump.{}.log
+  - {WorkDir}/koodies.dump.{}.ansi-removed.log
+    ➜ The last 10 lines are:
+    {…}
+    3
+    2
+    1
+    Boom!
+  ```  
+
+###### 🧠 processing `ShellScript { … }.exec.processing { io -> doSomething(io) }`
+
+- `io` is typed; simply use `io is IO.Output` to filter out errors and meta information
+
+##### Synchronicity
+
+###### 👯‍♀️ 👯‍♂️ synchronous: `ShellScript { … }.exec()`
+
+###### 💃 🕺 asynchronous: `ShellScript { … }.exec.async()`
+
+#### Where can you run?
+
+##### 💻 Locally `ShellScript { … }.exec()`
+
+##### 🐳 Dockerized `ShellScript { … }.dockerized{ "bkahlert" / "libguestfs" }.exec()`
+
+- use any Docker image you like
+
+#### Features
+
+##### Automatically Captured I/O
+
+Whatever variant you choose, life-cycle events, sent input, the process's output and errors are logged for you:
 
 ```kotlin
-commandLine("echo", "Hello World!").execute() // 💻 Local
+CommandLine(…).exec().io
+CommandLine(…).exec().io.output
+CommandLine(…).exec().io.error.ansiRemoved
+```
 
-with(DockerImage { official("ubuntu") }) { // 🐳 Docker Container
-    commandLine("echo", "Hello World!").execute()
+##### Typed (Exit) State
+
+- Access the state with `state`, which is either an instance of `Running` or `Terminated.`
+- Access the exit state with `exitState`, which is either an instance of `Success`, `Failure` or `Fatal`.
+- All (exit) states print nicely and provide a copy of all logged I/O, and state-dependent information such as the exit code.
+- By default, processes are killed on VM shutdown, which can be changed.
+- Life-cycle callbacks can be registered.
+
+##### Ready to run Docker commands
+
+```kotlin
+with(tempDir()) {
+    SvgFile.copyTo(resolve("koodies.svg"))
+
+    // convert SVG to PNG using command line-style docker command
+    docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg")
+    resolve("koodies.png") asserting { exists() }
+
+    // convert PNG to ASCII art using shell script-style docker command
+    docker("rafib/awesome-cli-binaries", logger = null) {
+        """
+           /opt/bin/chafa -c full -w 9 koodies.png
+        """
+    }.io.output.ansiKept.let { println(it.resetLines()) }
 }
 ```
 
-#### Shell Scripts
-
-```kotlin
-script { // 💻 Local
-    !"echo 'Hello World!'"
-}
-
-with(DockerImage { official("ubuntu") }) { // 🐳 Docker Container
-    script {
-        !"echo 'Hello World!'"
-    }
-}
-```
-
-#### Interact with a Process
-
-```kotlin
-process("echo 'Hello World!'") { io ->
-    println("Process did output $io") // process the I/O of any process
-}.start()
-```
-
-#### Automatically Captured I/O
-
-```kotlin
-println(process.io)
-```
+- see [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
+  [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples
 
 ```shell
 Executing /some/where/koodies.exec.bka.sh
@@ -74,51 +119,9 @@ Hello World!
 Process 1234 terminated successfully at 2021-05-15T14:30:00Z.
 ```
 
-### Docker Runner
-
-Run busybox …
-
-```kotlin
-Docker.busybox("""
-  while true; do
-  echo "looping"
-  sleep 1
-  done
-""").execute()
-```
-
-… or any container you want …
-
-```kotlin
-Docker.run {
-    image { "lukechilds" / "dockerpi" tag "vm" }
-    options {
-        name { "raspberry-pi" }
-        remove { on }
-        interactive { on }
-        mount { Locations.HomeDir mountAt "/sdcard/filesystem.img" }
-    }
-}
-```
-
-… and if something goes wrong, easy to read error message:
-
-```shell
-ϟ ProcessExecutionException: Process 67008 terminated with exit code 2. Expected 0. at.(Exec.kt:126)
-  ➜ A dump has been written to:
-    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.log (unchanged)
-    - file:///var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/X2rjjlE-tmp/koodies.dump.PLn.ansi-removed.log (ANSI escape/control sequences removed)
-  ➜ The last 6 lines are:
-    🐳 docker attach "download-latest-bkahlert_koodies"
-    Executing docker run --name download-latest-bkahlert_koodies --rm -i --mount type=bind,source=/var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T,target=/tmp zero88/ghrd --regex bkahlert/koodies
-    Searching release 'latest' in repository 'bkahlert/koodies'…
-    Not Found artifact '' with regex option 'on'
-    Process 67008 terminated with exit code 2. Expected 0.
-```
-
 ### JUnit + Strikt Integration
 
-- self-explaning (even works likely if inlined by looking for matching classes and methods in source file manually)
+- self-explaining (even works likely if inlined by looking for matching classes and methods in source file manually)
 - each aspect its own test
 
 #### Before

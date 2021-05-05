@@ -72,9 +72,9 @@ import java.nio.file.Path
  *      CommandLine(…).exec.logging()
  *
  *      // 🧠 processing / interactively
- *      CommandLine(…).exec.processing{ io -> … }
+ *      CommandLine(…).exec.processing { io -> … }
  *
- *      // 🐚 run shell scripts with same API (exec, exec.logging, exec.processing)
+ *      // 📄 run shell scripts with same API (exec, exec.logging, exec.processing)
  *      ShellScript {
  *        "curl -s https://api.github.com/repos/jetbrains/kotlin/releases/latest | jq -r .tag_name | perl -pe 's/v//'"
  *      }.exec()
@@ -118,7 +118,6 @@ import java.nio.file.Path
  * (and in case of [Executor.logging] is also automatically printed):
  * ```
  *      Process {PID} terminated with exit code {exit code}
- *      📄 file://urls-to-file(s)-found-in-command-to-easily-access-it/them
  *      ➜ A dump has been written to:
  *      - {working dir}/koodies.dump.{}.log
  *      - {working dir}/koodies.dump.{}.ansi-removed.log
