@@ -75,7 +75,7 @@
 
 ##### Automatically Captured I/O
 
-Whatever variant you choose, life-cycle events, sent input, the process's output and errors are logged for you:
+Whatever variant you choose, life-cycle events, sent input, the process's output and errors are stored for you:
 
 ```kotlin
 CommandLine(…).exec().io
@@ -88,7 +88,7 @@ CommandLine(…).exec().io.error.ansiRemoved
 - Access the state with `state`, which is either an instance of `Running` or `Terminated.`
 - Access the exit state with `exitState`, which is either an instance of `Success`, `Failure` or `Fatal`.
 - All (exit) states print nicely and provide a copy of all logged I/O, and state-dependent information such as the exit code.
-- By default, processes are killed on VM shutdown, which can be changed.
+- By default, processes are killed on VM shutdown, which can be configured.
 - Life-cycle callbacks can be registered.
 
 ##### Ready to run Docker commands
@@ -110,14 +110,12 @@ with(tempDir()) {
 }
 ```
 
-- see [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
-  [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples
-
-```shell
-Executing /some/where/koodies.exec.bka.sh
-Hello World!
-Process 1234 terminated successfully at 2021-05-15T14:30:00Z.
-```
+- All docker commands (`docker`, `ubuntu`, `busybox`, …) use the path in the receiver to
+    - set the working directory of both the host command and the docker container
+    - map the host working directory to the container's working directory,
+    - that is, all files of that directory are equally available in your container instance.
+- See [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
+  [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples.
 
 ### JUnit + Strikt Integration
 
