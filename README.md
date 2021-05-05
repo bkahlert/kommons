@@ -503,7 +503,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
 * Colors & Formatting
   ```shell
-  "string in".cyan() + "or" + "bold".bold()
+  "string in".ansi.cyan + "or" + "bold".ansi.bold
   ```
 
 * Kaomoji
@@ -532,7 +532,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
   Check if your program currently runs in debugging mode.
   ```kotlin
-  Program.isDebugging
+  if(isDebugging) { … }
   ```
 
   Use `debug` to check what's actually inside a `String`:
@@ -541,9 +541,25 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
   "�" // D800▌﹍ (low surrogate with a missing high surrogate)
   ```
 
-* Line Separators as defined in Unicode
+  Use `trace` to print stuff without interrupting the call chain:
+  ```kotlin
+  chain().of.endless().calls()
+  
+  // print return value of endless()
+  chain().of.endless().trace.calls() 
+  
+  // prints return value of endless() formatted with debug
+  chain().of.endless().trace { debug }.calls() 
+  ```
+    - Never look for orphaned print statements again. trace is declared as deprecated and inflicts a build warning.  
+      `w: Koodies.kt: (42, 15): 'trace: T' is deprecated. Don't forget to remove after you finished debugging.`
+    - trace has `replaceWith` set so that in IntelliJ the cleanup action removes all trace statements in one stroke.
+    - Each trace statement prints the file and line it was called at.  
+      `(Koodies.kt:42) trace output`
 
-  Finally constants for common and uncommon line separators
+* Line Separators are defined in the [LineSeparators](src/commonMain/kotlin/koodies/text/LineSeparators.kt)
+  and [Unicode](src/commonMain/kotlin/koodies/text/Unicode.kt) object
+
   ```kotlin
   LineSeparators.toList() == listOf(
     LineSeparators.CRLF, // carriage return + line feed (\r\n)
