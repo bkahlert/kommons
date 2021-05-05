@@ -110,7 +110,7 @@ with(tempDir()) {
 }
 ```
 
-**Output:**
+###### Output
 
 ```kotlin
 &kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv\.
