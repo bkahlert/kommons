@@ -140,7 +140,7 @@ WWWRZ▅▁3ux▁▂Zg33k▀BWWWRZ&▆▂g}.     .\vvvvvvz▀WMM0W
 MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
 ```
 
-- All docker commands (`docker`, `ubuntu`, `busybox`, …) use the path in the receiver to
+- All docker commands (`docker`, `ubuntu`, `busybox`, `curl`, `download`, …) use the path in the receiver to
     - set the working directory of both the host command and the docker container
     - map the host working directory to the container's working directory,
     - that is, all files of that directory are equally available in your container instance.

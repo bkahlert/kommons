@@ -131,13 +131,13 @@ public data class Executor<E : Exec>(
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
      */
     public fun processing(
-        parentLogger: RenderingLogger = this.logger ?: BACKGROUND,
+        logger: RenderingLogger? = this.logger ?: BACKGROUND,
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptionsInit: Init<LoggingOptionsContext> = { smart },
         processor: Processor<E>,
     ): E = copy(
-        logger = parentLogger,
+        logger = logger,
         loggingOptions = LoggingOptions.build(loggingOptionsInit),
         processor = processor
     ).invoke(workingDirectory, execTerminationCallback)

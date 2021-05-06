@@ -182,13 +182,13 @@ class ExecutorTest {
 
             @Test
             fun TestLogger.`should only log success`() {
-                executable.exec.testProp.processing(parentLogger = this) {}
+                executable.exec.testProp.processing(logger = this) {}
                 expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
             }
 
             @Test
             fun TestLogger.`should log dump on failure`() {
-                executable.exec.processing(parentLogger = this) {}
+                executable.exec.processing(logger = this) {}
                 expectLogged.containsDump(*emptyArray())
             }
 
@@ -207,7 +207,7 @@ class ExecutorTest {
             @Test
             fun `should apply custom logging options`() {
                 val logger = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                executable.exec.testProp.processing(parentLogger = logger,
+                executable.exec.testProp.processing(logger = logger,
                     loggingOptionsInit = { block { caption { "custom caption" }; border = SOLID } }) {}
                 logger.expectLogged.contains("╭──╴custom caption")
             }
@@ -337,10 +337,10 @@ class ExecutorTest {
 
             @TestFactory
             fun TestLogger.`should only log async computation`() = tests {
-                executable.exec.async.testProp.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
+                executable.exec.async.testProp.processing(logger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
                     expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
-                executable.exec.async.processing(parentLogger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
+                executable.exec.async.processing(logger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
                     expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
             }
@@ -348,12 +348,12 @@ class ExecutorTest {
             @TestFactory
             fun TestLogger.`should only to receiver logger if available`() = tests {
                 with(executable) {
-                    logging.async.testProp.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
+                    logging.async.testProp.processing(logger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
                     expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
                 with(executable) {
-                    logging.async.processing(parentLogger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
+                    logging.async.processing(logger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
                     expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
                 }
@@ -362,7 +362,7 @@ class ExecutorTest {
             @Test
             fun `should apply custom logging options`() {
                 val logger = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                executable.exec.async.testProp.processing(parentLogger = logger,
+                executable.exec.async.testProp.processing(logger = logger,
                     loggingOptionsInit = { block { caption { "custom caption" }; border = SOLID } }) {}.apply { waitFor() }
                 logger.expectLogged.contains("╭──╴custom caption")
             }

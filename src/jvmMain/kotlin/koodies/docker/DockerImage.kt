@@ -152,7 +152,7 @@ public open class DockerImage(
         val page = 1
         val pageSize = 100
         val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
-        Locations.Temp.docker(tagsImage, logger = null) { "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort" }.io.output.ansiRemoved.lines()
+        Locations.Temp.curlJq(null) { "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort" }.io.output.ansiRemoved.lines()
     }
 
     /**
@@ -286,10 +286,6 @@ public open class DockerImage(
             }.exec.logging(logger) {
                 noDetails("Listing images")
             }.parseImages()
-
-        private val tagsImage by lazy {
-            DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" }
-        }
     }
 }
 

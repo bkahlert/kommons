@@ -25,6 +25,7 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.any
+import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
@@ -166,6 +167,15 @@ class DockerTest {
                 HtmlFile.copyTo(resolve(name))
                 expecting { exec { "cat $name" } } that { io.output.ansiRemoved.isEqualTo(HtmlFile.text) }
             }
+        }
+        
+        @Suppress("SpellCheckingInspection")
+        @DockerRequiring @Test
+        fun InMemoryLogger.`should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val uri = "https://www.riscosopen.org/zipfiles/platform/raspberry-pi/BCM2835Dev.5.29.zip?1604815147"
+            download(uri, "riscos.img").dockerPi { io ->
+                logLine { io }
+            } asserting { io.output.ansiRemoved.contains("Rebooting in 1 seconds") }
         }
 
         @Suppress("SpellCheckingInspection")

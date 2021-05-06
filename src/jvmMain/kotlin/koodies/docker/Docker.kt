@@ -6,6 +6,8 @@ import koodies.docker.DockerSearchCommandLine.DockerSeachResult
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
+import koodies.exec.IO
+import koodies.exec.ProcessingMode.Interactivity
 import koodies.exec.parse
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
@@ -17,6 +19,8 @@ import koodies.shell.ShellScript.ScriptContext
 import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.joinToKebabCase
+import koodies.text.withRandomSuffix
+import java.net.URI
 import java.nio.file.Path
 
 /**
@@ -128,8 +132,7 @@ public object Docker {
         command: Any? = null,
         vararg arguments: Any,
         logger: RenderingLogger? = BACKGROUND,
-    ): DockerExec =
-        execute(image, workingDirectory, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+    ): DockerExec = execute(image, workingDirectory, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
 
     /**
      * Builds a shell script using the given [scriptInit] and executes it in
@@ -144,8 +147,7 @@ public object Docker {
         workingDirectory: Path,
         logger: RenderingLogger? = BACKGROUND,
         scriptInit: ScriptInitWithWorkingDirectory,
-    ): DockerExec =
-        execute(image, workingDirectory, logger) { workDir -> ShellScript { scriptInit(workDir) } }
+    ): DockerExec = execute(image, workingDirectory, logger) { workDir -> ShellScript { scriptInit(workDir) } }
 
     /**
      * Builds an [Executable] using the given [executableProvider] and executes it in
@@ -296,3 +298,66 @@ public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: Ren
  */
 public fun Path.busybox(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
     docker(DockerImage { "busybox" }, logger, scriptInit)
+
+
+/*
+ * CURL & JQ
+ */
+@Suppress("SpellCheckingInspection")
+private val curlJqImage = DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" }
+
+/**
+ * Builds a shell script using the given [scriptInit] and runs it in
+ * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container and also passed to [scriptInit] as the only argument.
+ */
+public fun Path.curlJq(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    docker(curlJqImage, logger, scriptInit)
+
+/**
+ * Runs a [curl](https://curl.se/docs/manpage.html) with the given [arguments] in
+ * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
+ *
+ * `this` [Path] is used as the working directory on this host and
+ * is mapped to `/work`, which is configured as the working directory
+ * inside of the container.
+ */
+public fun Path.curl(vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+    docker(curlJqImage, "curl", *arguments, logger = logger)
+
+/**
+ * Downloads the given [uri] to [fileName] in `this` directory using
+ * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
+ */
+public fun Path.download(uri: URI, fileName: String, logger: RenderingLogger? = BACKGROUND): Path =
+    resolve(fileName).also { curl("-L", uri, "-o", fileName, logger = logger) }
+
+/**
+ * Downloads the given [uri] to [fileName] in `this` directory using
+ * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
+ */
+public fun Path.download(uri: String, fileName: String, logger: RenderingLogger? = BACKGROUND): Path =
+    download(URI(uri), fileName, logger)
+
+
+/*
+ * DOCKER-PI
+ */
+
+/**
+ * Boots `this` ARM based image using
+ * a [dockerpi](https://hub.docker.com/lukechilds/dockerpi) based [DockerContainer]
+ * and processes the [IO] with the given [processor].
+ */
+@Suppress("SpellCheckingInspection")
+public fun Path.dockerPi(name: String = "dockerpi".withRandomSuffix(), logger: RenderingLogger? = BACKGROUND, processor: DockerExec.(IO) -> Unit): DockerExec =
+    DockerRunCommandLine {
+        image { "lukechilds" / "dockerpi" tag "vm" }
+        options {
+            name { name }
+            mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
+        }
+    }.exec.mode { sync(Interactivity.Interactive { nonBlocking }) }.processing(logger, processor = processor)

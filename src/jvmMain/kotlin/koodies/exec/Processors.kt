@@ -112,6 +112,7 @@ public data class ProcessingMode(val synchronicity: Synchronicity, val interacti
         @ExecutionDsl
         public object ProcessingModeContext {
             public val sync: ProcessingMode = ProcessingMode(Sync, NonInteractive(null))
+            public fun sync(interactivity: Interactivity): ProcessingMode = ProcessingMode(Sync, interactivity)
             public val async: ProcessingMode = ProcessingMode(Async, NonInteractive(null))
             public fun async(interactivity: Interactivity): ProcessingMode = ProcessingMode(Async, interactivity)
         }
