@@ -93,7 +93,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
 
     private var bytes: Size = Size.ZERO
     public fun reset() {
-        bytes = messages.use { sumBy { it.second.length }.bytes }
+        bytes = messages.use { sumOf { it.second.length }.bytes }
         messages.clear()
     }
 

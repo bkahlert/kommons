@@ -98,7 +98,8 @@ public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableList
  *
  * Otherwise [value] is considered [successful] and is formatted using [toCompactString].
  */
-public inline class AnyReturnValue(private val value: Any?) : ReturnValue {
+@JvmInline
+public value class AnyReturnValue(private val value: Any?) : ReturnValue {
     override val successful: Boolean?
         get() = if (value is ReturnValue) {
             value.successful
@@ -128,7 +129,8 @@ public inline class AnyReturnValue(private val value: Any?) : ReturnValue {
  *
  * The given [exception] is considered non-[successful] and is formatted using [toCompactString].
  */
-public inline class ExceptionReturnValue(private val exception: Throwable) : ReturnValue {
+@JvmInline
+public value class ExceptionReturnValue(private val exception: Throwable) : ReturnValue {
     override val successful: Boolean get() = false
     override val textRepresentation: String? get() = if (!successful) exception.toCompactString() else null
 }

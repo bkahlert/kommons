@@ -6,12 +6,13 @@ import koodies.builder.context.ListBuildingContext
 import koodies.text.CharRanges
 import koodies.text.LineSeparators
 import koodies.text.randomString
+import java.util.Locale
 
 public object HereDocBuilder {
     /**
      * Returns a random—most likely unique—label to be used for a [HereDoc].
      */
-    public fun randomLabel(): String = "HERE-" + randomString(8, allowedCharacters = CharRanges.UpperCaseAlphanumeric).toUpperCase()
+    public fun randomLabel(): String = "HERE-" + randomString(8, allowedCharacters = CharRanges.UpperCaseAlphanumeric).uppercase(Locale.getDefault())
 
     /**
      * The line separator used by default to separate lines in a [HereDoc].

@@ -62,6 +62,7 @@ import strikt.assertions.message
 import strikt.assertions.size
 import java.net.URI
 import java.nio.file.Path
+import java.util.Locale
 import java.util.stream.Stream
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
@@ -291,7 +292,7 @@ object Tester {
         }
 
     private fun KCallable<*>.getPropertyName(callerMethodName: String): String =
-        "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.decapitalize() } ?: name
+        "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.replaceFirstChar { it.lowercase(Locale.getDefault()) } } ?: name
 
     private fun getLambdaBodyOrNull(
         callStackElement: CallStackElement,

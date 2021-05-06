@@ -11,8 +11,9 @@ import koodies.text.LineSeparators.LF
 import koodies.text.withSuffix
 import java.io.IOException
 import java.nio.file.Path
-import kotlin.time.days
-import kotlin.time.minutes
+import java.util.Locale
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 private object Dump {
     val dumpDir = Locations.Temp.resolve("com.bkahlert.koodies")
@@ -20,8 +21,8 @@ private object Dump {
     const val dumpSuffix = ".log"
 
     init {
-        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 5.days, keepAtMost = 100, dumpDir)
-        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 10.minutes, keepAtMost = 5)
+        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, days(5), keepAtMost = 100, dumpDir)
+        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, minutes(10), keepAtMost = 5)
     }
 }
 
@@ -46,13 +47,13 @@ public fun Path.dump(
     val dumpedLines = (dumped ?: error("Dump seems empty")).lines()
     val recentLineCount = dumpedLines.size.coerceAtMost(10)
 
-    (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
+    (errorMessage?.withSuffix(LF)?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } ?: "") +
         "➜ A dump has been written to:$LF" +
         dumps.entries.joinToString("") { "  - ${it.value.toUri()} (${it.key})$LF" } +
         "➜ The last $recentLineCount lines are:$LF" +
         dumpedLines.takeLast(recentLineCount).map { "  $it$LF" }.joinToString("")
 }.recover { ex: Throwable ->
-    (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
+    (errorMessage?.withSuffix(LF)?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } ?: "") +
         "In the attempt to persist the corresponding dump the following error occurred:$LF" +
         "${ex.toCompactString()}$LF" +
         LF +

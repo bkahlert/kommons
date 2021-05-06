@@ -38,8 +38,6 @@ import strikt.assertions.size
 import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 class DockerExecTest {
 
@@ -155,8 +153,8 @@ class DockerExecTest {
                 val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
                 runningProcess.waitForCondition("Did not start in time.") { state is Running }
 
-                val passed = measureTime { runningProcess.stop(1.seconds) }
-                expectThat(passed).isLessThan(4.seconds)
+                val passed = measureTime { runningProcess.stop(Duration.seconds(1)) }
+                expectThat(passed).isLessThan(Duration.seconds(4))
             }
 
             @DockerRequiring([BusyBox::class]) @Test
@@ -167,14 +165,14 @@ class DockerExecTest {
                 }
 
                 val passed = measureTime { runningProcess.kill() }
-                expectThat(passed).isLessThan(4.seconds)
+                expectThat(passed).isLessThan(Duration.seconds(4))
             }
 
             @DockerRequiring([BusyBox::class]) @Test
             fun `should call callback on termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var calledBack = false
                 val runningProcess = unprocessedProcess(uniqueId, "exit", "0") { calledBack = true }
-                runningProcess.waitForCondition("Did not call back.", 8.seconds) { calledBack }
+                runningProcess.waitForCondition("Did not call back.", Duration.seconds(8)) { calledBack }
             }
         }
 
@@ -231,12 +229,12 @@ private fun Path.createExec(
 
 private fun DockerExec.waitForCondition(
     errorMessage: String,
-    atMost: Duration = 4.seconds,
+    atMost: Duration = Duration.seconds(4),
     test: DockerExec.() -> Boolean,
 ) {
     poll {
         test()
-    }.every(100.milliseconds).forAtMost(atMost) {
+    }.every(Duration.milliseconds(100)).forAtMost(atMost) {
         fail(errorMessage)
     }
 }
@@ -248,7 +246,7 @@ private fun DockerExec.waitForOutputOrFail(
 ) {
     poll {
         io.toList().test()
-    }.every(100.milliseconds).forAtMost(8.seconds) {
+    }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(8)) {
         if (alive) fail(stillRunningErrorMessage)
         fail(errorMessage)
     }

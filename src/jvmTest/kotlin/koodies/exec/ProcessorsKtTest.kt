@@ -16,6 +16,7 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThan
+import kotlin.time.Duration
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
@@ -62,7 +63,7 @@ class ProcessorsKtTest {
             fun `should process with non-blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                    .also { it.enter("Hello Back!", delay = 0.milliseconds) }
+                    .also { it.enter("Hello Back!", delay = Duration.milliseconds(0)) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
                     }
@@ -78,7 +79,7 @@ class ProcessorsKtTest {
             fun `should process with blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                    .also { it.enter("Hello Back!", delay = 0.milliseconds) }
+                    .also { it.enter("Hello Back!", delay = Duration.milliseconds(0)) }
                     .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
                     }
@@ -137,7 +138,7 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec().process(ProcessingMode(Async, NonInteractive(null))) { }
                     }
-                    expectThat(timePassed).isLessThan(250.milliseconds)
+                    expectThat(timePassed).isLessThan(Duration.milliseconds(250))
                 }
 
                 @Test
@@ -146,7 +147,7 @@ class ProcessorsKtTest {
                         CommandLine("cat").toExec().process(ProcessingMode(Async,
                             NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
-                    expectThat(timePassed).isLessThan(250.milliseconds)
+                    expectThat(timePassed).isLessThan(Duration.milliseconds(250))
                 }
             }
         }
@@ -162,7 +163,7 @@ class ProcessorsKtTest {
                 fun `should process with non-blocking reader`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                        .also { it.enter("Hello Back!", delay = 0.milliseconds) }
+                        .also { it.enter("Hello Back!", delay = Duration.milliseconds(0)) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
                         }.waitFor()
@@ -178,7 +179,7 @@ class ProcessorsKtTest {
                 fun `should process with blocking reader`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                        .also { it.enter("Hello Back!", delay = 0.milliseconds) }
+                        .also { it.enter("Hello Back!", delay = Duration.milliseconds(0)) }
                         .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
                         }.waitFor()
@@ -198,20 +199,20 @@ class ProcessorsKtTest {
                 fun `should process with non-blocking reader`() {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
-                            .also { it.enter("Hello Back!", delay = 0.milliseconds) }
+                            .also { it.enter("Hello Back!", delay = Duration.milliseconds(0)) }
                             .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { }
                     }
-                    expectThat(timePassed).isLessThan(250.milliseconds)
+                    expectThat(timePassed).isLessThan(Duration.milliseconds(250))
                 }
 
                 @Test
                 fun `should process with blocking reader`() {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
-                            .also { it.enter("Hello Back!", delay = 0.milliseconds) }
+                            .also { it.enter("Hello Back!", delay = Duration.milliseconds(0)) }
                             .process(ProcessingMode(Async, Interactive(nonBlocking = false))) {}
                     }
-                    expectThat(timePassed).isLessThan(250.milliseconds)
+                    expectThat(timePassed).isLessThan(Duration.milliseconds(250))
                 }
             }
         }

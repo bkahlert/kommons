@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import kotlin.time.Duration
 import kotlin.time.minutes
 
 class CreatedKtTest {
@@ -16,16 +17,16 @@ class CreatedKtTest {
     @Test
     fun `should read created`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectThat(randomFile().created.toInstant())
-            .isLessThan(Now.plus(1.minutes))
-            .isGreaterThan(Now.minus(1.minutes))
+            .isLessThan(Now.plus(Duration.minutes(1)))
+            .isGreaterThan(Now.minus(Duration.minutes(1)))
     }
 
     @Test
     fun `should write created`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile()
-        file.created = Now.minus(20.minutes).toFileTime()
+        file.created = Now.minus(Duration.minutes(20)).toFileTime()
         expectThat(file.created)
-            .isLessThan(Now.plus(21.minutes).toFileTime())
-            .isGreaterThan(Now.minus(21.minutes).toFileTime())
+            .isLessThan(Now.plus(Duration.minutes(21)).toFileTime())
+            .isGreaterThan(Now.minus(Duration.minutes(21)).toFileTime())
     }
 }

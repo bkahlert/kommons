@@ -19,6 +19,7 @@ import koodies.math.toScientificString
 import koodies.math.toString
 import koodies.math.unaryMinus
 import koodies.text.Semantics.formattedAs
+import kotlin.jvm.JvmInline
 import kotlin.reflect.KClass
 
 /**
@@ -26,7 +27,8 @@ import kotlin.reflect.KClass
  * [Yotta], [Zetta], [Exa], [Peta], [Tera], [Giga], [Mega], [kilo] as well as with the binary prefixes as defined by
  * [ISO/IEC 80000](https://en.wikipedia.org/wiki/ISO/IEC_80000) [Yobi], [Zebi], [Exbi], [Pebi], [Tebi], [Gibi], [Mebi] and [Kibi].
  */
-public inline class Size(public val bytes: BigDecimal) : Comparable<Size> {
+@JvmInline
+public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
 
     public val bits: BigInteger get() = bytes.toBigInteger() * Byte.SIZE_BITS
 

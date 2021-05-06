@@ -13,6 +13,7 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import kotlin.time.Duration
 import kotlin.time.milliseconds
 
 class CommandLineTest {
@@ -300,6 +301,6 @@ val <P : Exec> Assertion.Builder<P>.exitCodeOrNull
 fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String) {
     with(evaluated) {
         io.output.ansiRemoved.isEqualTo(expectedOutput)
-        50.milliseconds.sleep()
+        Duration.milliseconds(50).sleep()
     }
 }

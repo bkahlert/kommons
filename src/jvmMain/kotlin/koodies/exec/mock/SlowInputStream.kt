@@ -12,7 +12,6 @@ import koodies.unit.bytes
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration
-import kotlin.time.milliseconds
 
 public class SlowInputStream(
     public val baseDelayPerInput: Duration,
@@ -64,7 +63,7 @@ public class SlowInputStream(
             if (blockedByPrompt) {
                 val input = inputs.first()
                 logLine { input.debug }
-                if (echoInput) unread[0] = Duration.ZERO to input.map { it.toByte() }.toMutableList()
+                if (echoInput) unread[0] = Duration.ZERO to input.map { it.code.toByte() }.toMutableList()
                 else unread.removeFirst()
                 logLine { "unblocked prompt" }
             }
@@ -91,7 +90,7 @@ public class SlowInputStream(
         }
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            logLine { "${yetBlocked.milliseconds} to wait for next chunk" }
+            logLine { "${Duration.milliseconds(yetBlocked)} to wait for next chunk" }
             return@logging 0
         }
         if (terminated) {
@@ -102,7 +101,7 @@ public class SlowInputStream(
         val currentDelayedWord = unread.first()
         if (currentDelayedWord.first > Duration.ZERO) {
             val delay = currentDelayedWord.first
-            blockUntil = System.currentTimeMillis() + delay.toLongMilliseconds()
+            blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
             unread[0] = Duration.ZERO to currentDelayedWord.second
             logLine { "$delay to wait for next chunk (just started)" }
             return@logging 0
@@ -118,7 +117,7 @@ public class SlowInputStream(
 
         while (handleAndReturnBlockingState()) {
             logLine { "prompt is blocking" }
-            10.milliseconds.sleep()
+            Duration.milliseconds(10).sleep()
         }
 
         logLine { "${unreadCount.padded.ansi.yellow} bytes unread" }
@@ -131,7 +130,7 @@ public class SlowInputStream(
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
             logging(Now.emoji) {
-                logLine { "blocking for the remaining ${yetBlocked.milliseconds}..." }
+                logLine { "blocking for the remaining ${Duration.milliseconds(yetBlocked)}..." }
                 Thread.sleep(yetBlocked)
             }
         }
@@ -142,7 +141,7 @@ public class SlowInputStream(
             if (delay > Duration.ZERO) {
                 logging(Now.emoji) {
                     logLine { "output delayed by $delay..." }
-                    Thread.sleep(delay.toLongMilliseconds())
+                    Thread.sleep(delay.inWholeMilliseconds)
                     unread[0] = Duration.ZERO to currentLine.second
                 }
             }
@@ -150,11 +149,11 @@ public class SlowInputStream(
         }
         logLine { "— available ${currentWord.debug.ansi.magenta}" }
         val currentByte = currentWord.removeFirst()
-        logLine { "— current: $currentByte/${currentByte.toChar()}" }
+        logLine { "— current: $currentByte/${currentByte.toInt().toChar()}" }
 
         if (currentWord.isEmpty()) {
             unread.removeFirst()
-            blockUntil = System.currentTimeMillis() + baseDelayPerInput.toLongMilliseconds()
+            blockUntil = System.currentTimeMillis() + baseDelayPerInput.inWholeMilliseconds
             logLine { "— empty; waiting time for next chunk is $baseDelayPerInput" }
         }
         currentByte.toInt()

@@ -258,7 +258,8 @@ public val Exec.parse: ColumnParser get() = ColumnParser(this)
 /**
  * Column-based parser that maps output line of an [Exec].
  */
-public inline class ColumnParser(
+@JvmInline
+public value class ColumnParser(
     /**
      * [Exec] to parse the output of.
      */

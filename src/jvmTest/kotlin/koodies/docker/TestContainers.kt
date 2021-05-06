@@ -37,8 +37,6 @@ import kotlin.concurrent.withLock
 import kotlin.math.ceil
 import kotlin.reflect.KClass
 import kotlin.time.Duration
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 /**
  * Images used for the purpose of testing.
@@ -242,7 +240,7 @@ class TestContainers(
      *
      * The next time this container is started it will run for the specified [duration] (default: 30 seconds).
      */
-    internal fun newExitedTestContainer(duration: Duration = 30.seconds): DockerContainer =
+    internal fun newExitedTestContainer(duration: Duration = Duration.seconds(30)): DockerContainer =
         startContainerWithCommandLine(CommandLine("sh", "-c", """
                 if [ -f "booted-before" ]; then
                   sleep ${duration.toIntegerSeconds()}
@@ -253,7 +251,7 @@ class TestContainers(
             """.trimIndent())).also { container ->
             poll {
                 with(container) { with(logger) { state } } is Exited
-            }.every(500.milliseconds).forAtMost(5.seconds) { timeout ->
+            }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5)) { timeout ->
                 fail { "Could not provide exited test container $container within $timeout." }
             }
         }
@@ -261,11 +259,11 @@ class TestContainers(
     /**
      * Returns a container that is running for the specified [duration] (default: 30 seconds).
      */
-    internal fun newRunningTestContainer(duration: Duration = 30.seconds): DockerContainer =
+    internal fun newRunningTestContainer(duration: Duration = Duration.seconds(30)): DockerContainer =
         newRunningContainer(duration).also { container ->
             poll {
                 with(container) { with(logger) { state } } is Running
-            }.every(500.milliseconds).forAtMost(5.seconds) { duration ->
+            }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5)) { duration ->
                 fail { "Could not provide stopped test container $container within $duration." }
             }
         }
@@ -361,7 +359,7 @@ class TestImage(
         with(logger) {
             if (pulled && !isPulled) pull(logger = logger)
             else if (!pulled && isPulled) remove(force = true, logger = logger)
-            poll { isPulled == pulled }.every(500.milliseconds).forAtMost(5.seconds) {
+            poll { isPulled == pulled }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5)) {
                 "Failed to " + (if (pulled) "pull" else "remove") + " $this"
             }
             runCatching(block)

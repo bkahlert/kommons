@@ -8,6 +8,7 @@ import koodies.runtime.AnsiSupport.ANSI24
 import koodies.runtime.AnsiSupport.ANSI4
 import koodies.runtime.AnsiSupport.ANSI8
 import koodies.text.anyContainsAny
+import java.util.Locale
 
 private val jvmArgs: List<String>
     get() = contextClassLoader.loadClassOrNull("java.lang.management.ManagementFactory")?.let {
@@ -53,13 +54,13 @@ public actual fun <T : () -> Unit> onExit(handler: T): T = addShutDownHook(handl
 @Suppress("LocalVariableName")
 public actual val ansiSupport: AnsiSupport
     get() {
-        val TERM_PROGRAM = System.getenv("TERM_PROGRAM")?.toLowerCase()
-        val TERM = System.getenv("TERM")?.toLowerCase()
+        val TERM_PROGRAM = System.getenv("TERM_PROGRAM")?.lowercase(Locale.getDefault())
+        val TERM = System.getenv("TERM")?.lowercase(Locale.getDefault())
         return when {
             isIntelliJ -> ANSI24
             TERM_PROGRAM == "vscode" -> ANSI8
             System.console() == null -> AnsiSupport.NONE
-            System.getenv("COLORTERM")?.toLowerCase() in listOf("24bit", "truecolor") -> ANSI24
+            System.getenv("COLORTERM").lowercase(Locale.getDefault()) in listOf("24bit", "truecolor") -> ANSI24
             TERM_PROGRAM == "hyper" -> ANSI24 // stackoverflow.com/q/7052683
             TERM_PROGRAM == "apple_terminal" -> ANSI8
             TERM_PROGRAM == "iterm.app" -> System.getenv("TERM_PROGRAM_VERSION").toIntOrNull()?.takeIf { it > 3 }?.let { ANSI24 } ?: ANSI8

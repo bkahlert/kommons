@@ -117,7 +117,8 @@ public fun requireClassPathBytes(path: String): ByteArray =
  */
 public fun classPath(path: String): ReadOnlyProperty<Any?, Path> = ReadOnlyProperty<Any?, Path> { _, _ -> DelegatingPath(path) }
 
-private inline class DelegatingPath(inline val path: String) : WrappedPath, Path {
+@JvmInline
+private value class DelegatingPath(inline val path: String) : WrappedPath, Path {
 
     inline fun <reified T> op(crossinline transform: Path.() -> T): T =
         useClassPath(path, transform) ?: throw NoSuchFileException(path, null, "classpath:$path could not be found")
@@ -145,4 +146,3 @@ private inline class DelegatingPath(inline val path: String) : WrappedPath, Path
     override fun toAbsolutePath(): Path = op { toAbsolutePath() }
     override fun toRealPath(vararg options: LinkOption?): Path = op { toRealPath() }
 }
-

@@ -156,7 +156,7 @@ public fun CharSequence.containsLowerCase(): Boolean = any { it.isLowerCase() }
 
 public fun CharSequence.capitalize(): CharSequence = object : CharSequence {
     override val length: Int get() = this@capitalize.length
-    override fun get(index: Int): Char = this@capitalize[index].let { if (index == 0) it.toUpperCase() else it }
+    override fun get(index: Int): Char = this@capitalize[index].let { if (index == 0) it.uppercaseChar() else it }
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
         this@capitalize.subSequence(startIndex, endIndex).capitalize()
 
@@ -165,7 +165,7 @@ public fun CharSequence.capitalize(): CharSequence = object : CharSequence {
 
 public fun CharSequence.decapitalize(): CharSequence = object : CharSequence {
     override val length: Int get() = this@decapitalize.length
-    override fun get(index: Int): Char = this@decapitalize[index].let { if (index == 0) it.toLowerCase() else it }
+    override fun get(index: Int): Char = this@decapitalize[index].let { if (index == 0) it.lowercaseChar() else it }
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
         this@decapitalize.subSequence(startIndex, endIndex).decapitalize()
 
@@ -175,7 +175,7 @@ public fun CharSequence.decapitalize(): CharSequence = object : CharSequence {
 
 public fun CharSequence.toUpperCase(): CharSequence = object : CharSequence {
     override val length: Int get() = this@toUpperCase.length
-    override fun get(index: Int): Char = this@toUpperCase[index].toUpperCase()
+    override fun get(index: Int): Char = this@toUpperCase[index].uppercaseChar()
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
         this@toUpperCase.subSequence(startIndex, endIndex).toUpperCase()
 
@@ -184,7 +184,7 @@ public fun CharSequence.toUpperCase(): CharSequence = object : CharSequence {
 
 public fun CharSequence.toLowerCase(): CharSequence = object : CharSequence {
     override val length: Int get() = this@toLowerCase.length
-    override fun get(index: Int): Char = this@toLowerCase[index].toLowerCase()
+    override fun get(index: Int): Char = this@toLowerCase[index].lowercaseChar()
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
         this@toLowerCase.subSequence(startIndex, endIndex).toLowerCase()
 
@@ -200,11 +200,11 @@ public fun String.toLowerCase(): String = (this as CharSequence).toLowerCase().t
  *
  * @see isLowerCase
  */
-public fun Char.isUpperCase(): Boolean = this == toUpperCase() && this != toLowerCase()
+public fun Char.isUpperCase(): Boolean = this == uppercaseChar() && this != lowercaseChar()
 
 /**
  * Returns `true` if this character is lower case.
  *
  * @see isUpperCase
  */
-public fun Char.isLowerCase(): Boolean = this == toLowerCase() && this != toUpperCase()
+public fun Char.isLowerCase(): Boolean = this == lowercaseChar() && this != uppercaseChar()

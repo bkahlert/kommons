@@ -15,6 +15,7 @@ import koodies.text.withoutPrefix
 import koodies.text.withoutSuffix
 import koodies.text.wrap
 import koodies.toSimpleString
+import java.util.Locale
 
 public object Debug {
     public fun CharSequence.meta(): String = ansi.brightCyan.toString()
@@ -43,7 +44,7 @@ public inline val Byte?.debug: String
     get() = this?.let { byte: Byte ->
         StringBuilder().apply {
             append("0x".meta())
-            append(String.format("%02x", byte).toUpperCase())
+            append(String.format("%02x", byte).uppercase(Locale.getDefault()))
             append(byte.asCodePoint().string.replaceNonPrintableCharacters().secondaryMeta())
         }.toString()
     }.let { Debug.wrap(it) }

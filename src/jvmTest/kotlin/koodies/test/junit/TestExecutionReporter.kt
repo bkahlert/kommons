@@ -23,7 +23,7 @@ import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
 import java.lang.reflect.Method
 import kotlin.properties.Delegates
-import kotlin.time.milliseconds
+import kotlin.time.Duration
 
 class TestExecutionReporter : TestExecutionListener, TestWatcher {
 
@@ -39,7 +39,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
     }
 
     override fun testPlanExecutionFinished(testPlan: TestPlan) {
-        val timeNeeded = (System.currentTimeMillis() - startTimestamp).milliseconds
+        val timeNeeded = Duration.milliseconds((System.currentTimeMillis() - startTimestamp))
         checkDebug(testPlan)
         checkSkippedDockerTests(testPlan)
 

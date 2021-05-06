@@ -22,6 +22,7 @@ import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
 import java.net.URI
 import java.nio.file.Path
+import java.util.Locale
 
 /**
  * Entrypoint to ease discovery of Docker related features.
@@ -81,7 +82,7 @@ public object Docker {
                 }.map { singleOrNull() } or { null }
             }
 
-        private fun String.unify() = toLowerCase().split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()
+        private fun String.unify() = lowercase(Locale.getDefault()).split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()
     }
 
     /**

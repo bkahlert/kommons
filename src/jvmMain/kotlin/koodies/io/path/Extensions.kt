@@ -4,6 +4,7 @@ import koodies.collections.head
 import koodies.text.takeUnlessBlank
 import koodies.text.withoutSuffix
 import java.nio.file.Path
+import java.util.Locale
 import kotlin.io.path.extension
 
 
@@ -37,7 +38,7 @@ public class Extensions(private val path: Path) : List<String> by path.fileNameP
     private fun normalizedExtensionString(extensions: List<String>): String = extensions
         .flatMap { it.split(".") }
         .filter { it.isNotBlank() }
-        .joinToString("") { ".${it.toLowerCase()}" }
+        .joinToString("") { ".${it.lowercase(Locale.getDefault())}" }
 
     override fun toString(): String =
         normalizedExtensionString(this)

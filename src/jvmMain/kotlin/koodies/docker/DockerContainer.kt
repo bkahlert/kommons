@@ -34,8 +34,8 @@ import koodies.text.spaced
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import java.nio.file.Path
+import java.util.Locale
 import kotlin.time.Duration
-import kotlin.time.seconds
 
 public class DockerContainer(public val name: String) {
 
@@ -118,7 +118,7 @@ public class DockerContainer(public val name: String) {
     /**
      * Stops this container with the optionally specified [timeout] (default: 5 seconds).
      */
-    public fun stop(timeout: Duration? = 5.seconds, async: Boolean = false): ExitState =
+    public fun stop(timeout: Duration? = Duration.seconds(5), async: Boolean = false): ExitState =
         DockerStopCommandLine {
             options { this.timeout by timeout }
             containers by listOf(this@DockerContainer.name)
@@ -189,7 +189,7 @@ public class DockerContainer(public val name: String) {
             }.exec.logging(logger) {
                 noDetails("Checking status of ${container.name.formattedAs.input}")
             }.parse.columns<State, Failure>(3) { (_, state, status) ->
-                when (state.capitalize()) {
+                when (state.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }) {
                     Created::class.simpleName -> Created(status)
                     Restarting::class.simpleName -> Restarting(status)
                     Running::class.simpleName -> Running(status)
@@ -233,7 +233,7 @@ public class DockerContainer(public val name: String) {
         /**
          * Stops the given [containers] with the optionally specified [timeout] (default: 5 seconds).
          */
-        public fun stop(vararg containers: DockerContainer, timeout: Duration = 5.seconds): ExitState {
+        public fun stop(vararg containers: DockerContainer, timeout: Duration = Duration.seconds(5)): ExitState {
             val names: List<String> = containers.map { it.name }
             return DockerStopCommandLine {
                 options { this.timeout by timeout }

@@ -37,8 +37,8 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.length
 import java.nio.file.Path
+import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class DockerContainerTest {
@@ -241,10 +241,10 @@ class DockerContainerTest {
 
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should start attached by default`(testContainers: TestContainers) {
-                    val container = testContainers.newExitedTestContainer(5.seconds)
+                    val container = testContainers.newExitedTestContainer(Duration.seconds(5))
                     val passed = measureTime { expectThat(container).get { start(attach = true) }.isSuccessful() }
                     BACKGROUND.expectLogged.contains("Starting ${container.name}")
-                    expectThat(passed).isGreaterThanOrEqualTo(5.seconds)
+                    expectThat(passed).isGreaterThanOrEqualTo(Duration.seconds(5))
                     expectThat(container.isRunning).isFalse()
                 }
 

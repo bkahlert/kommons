@@ -30,13 +30,13 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
     fun InMemoryLogger.`should not read empty lines due to timeout`() {
         val reader = readerFactory(object : InputStream() {
             override fun read(): Int {
-                5.seconds.sleep()
+                Duration.seconds(5).sleep()
                 return -1
             }
-        }, 2.seconds)
+        }, Duration.seconds(2))
 
         val read: MutableList<String> = mutableListOf()
-        assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
+        assertTimeoutPreemptively(Duration.seconds(100).toJavaDuration()) {
             read.addAll(reader.readLines())
         }
 
@@ -90,10 +90,10 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         }
 
         private fun InMemoryLogger.read(slowInputStream: InputStream): List<String> {
-            val reader = readerFactory(slowInputStream, 1.seconds)
+            val reader = readerFactory(slowInputStream, Duration.seconds(1))
 
             val read: MutableList<String> = mutableListOf()
-            assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
+            assertTimeoutPreemptively(Duration.seconds(100).toJavaDuration()) {
                 read.addAll(reader.readLines())
             }
             return read

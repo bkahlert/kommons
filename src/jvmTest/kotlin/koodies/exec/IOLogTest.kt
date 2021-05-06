@@ -30,6 +30,7 @@ import strikt.assertions.single
 import strikt.assertions.startsWith
 import java.io.IOException
 import java.nio.file.Path
+import kotlin.time.Duration
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
@@ -43,12 +44,12 @@ class IOLogTest {
             var i = 0
             while (!stop) {
                 ioLog + (Meta typed "being busy $i times")
-                10.milliseconds.sleep()
+                Duration.milliseconds(10).sleep()
                 i++
             }
         }
 
-        poll { ioLog.count() > 0 }.every(10.milliseconds).forAtMost(1.seconds) { fail("No I/O logged in one second.") }
+        poll { ioLog.count() > 0 }.every(Duration.milliseconds(10)).forAtMost(Duration.seconds(1)) { fail("No I/O logged in one second.") }
 
         expectThat(ioLog.toList()) {
             isNotEmpty()

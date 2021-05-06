@@ -12,7 +12,6 @@ import java.io.InputStream
 import java.io.Reader
 import java.nio.charset.Charset
 import kotlin.time.Duration
-import kotlin.time.seconds
 import org.jline.utils.NonBlockingReader as JLineNonBlockingReader
 
 /**
@@ -23,12 +22,12 @@ import org.jline.utils.NonBlockingReader as JLineNonBlockingReader
  */
 public class NonBlockingCharReader(
     private val inputStream: InputStream,
-    private val timeout: Duration = 6.seconds,
+    private val timeout: Duration = Duration.seconds(6),
     private val charset: Charset = Charsets.UTF_8,
     name: String = "ImgCstmzr-${NonBlockingCharReader::class.simpleName}".withRandomSuffix(),
 ) : Reader() {
 
-    private val timeoutMillis: Long = timeout.toLongMilliseconds()
+    private val timeoutMillis: Long = timeout.inWholeMilliseconds
     private inline val inlineTimeoutMillis get() = timeoutMillis
 
     public var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)

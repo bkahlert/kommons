@@ -18,6 +18,7 @@ import strikt.assertions.isLessThan
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
@@ -57,25 +58,25 @@ class ThreadsKtTest {
                 measureTime {
                     exec(finished)
                     while (!finished.get()) {
-                        1.milliseconds.sleep()
+                        Duration.milliseconds(1).sleep()
                     }
-                }.let { expectThat(it).isLessThan(80.milliseconds) }
+                }.let { expectThat(it).isLessThan(Duration.milliseconds(80)) }
             }
         }
 
         @TestFactory
         fun `should start delayed`() = listOf(
-            "without explicit executor" to { finished: AtomicBoolean -> completableFuture(500.milliseconds) { finished.set(true) } },
-            "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture(500.milliseconds) { finished.set(true) } },
+            "without explicit executor" to { finished: AtomicBoolean -> completableFuture(Duration.milliseconds(500)) { finished.set(true) } },
+            "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture(Duration.milliseconds(500)) { finished.set(true) } },
         ).map { (caption, exec) ->
             dynamicTest(caption) {
                 val finished = AtomicBoolean(false)
                 measureTime {
                     exec(finished)
                     while (!finished.get()) {
-                        1.milliseconds.sleep()
+                        Duration.milliseconds(1).sleep()
                     }
-                }.let { expectThat(it).isGreaterThan(400.milliseconds).isLessThan(600.milliseconds) }
+                }.let { expectThat(it).isGreaterThan(Duration.milliseconds(400)).isLessThan(Duration.milliseconds(600)) }
             }
         }
 

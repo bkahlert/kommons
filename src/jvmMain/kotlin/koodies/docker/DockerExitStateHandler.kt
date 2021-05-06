@@ -23,6 +23,7 @@ import koodies.text.spaced
 import koodies.text.splitPascalCase
 import koodies.text.takeUnlessBlank
 import koodies.text.withoutSuffix
+import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.text.RegexOption.IGNORE_CASE
 
@@ -149,7 +150,8 @@ public object DockerExitStateHandler : ExitStateHandler {
             public companion object {
                 // ThisIsAClassName -> This is a class name
                 protected inline val <reified T : KClass<*>> T.expectedErrorMessage: String?
-                    get() = simpleName?.splitPascalCase()?.joinToString(" ")?.capitalize()
+                    get() = simpleName?.splitPascalCase()?.joinToString(" ")
+                        ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
                 private inline fun <reified T : Any> String.matches() = equals(T::class.expectedErrorMessage, ignoreCase = true)
 

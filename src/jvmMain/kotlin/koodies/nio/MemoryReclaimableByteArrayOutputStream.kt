@@ -55,7 +55,7 @@ public class MemoryReclaimableByteArrayOutputStream(private val initialSize: Int
     public val remaining: Int get() = buf.size - count
 
     override fun toString(): String = "$count/${buf.size} (${count / buf.size}% used): " + buf.take(count)
-        .joinToString(separator = "", limit = 100) { it.toChar().toString().replaceNonPrintableCharacters() }
+        .joinToString(separator = "", limit = 100) { it.toInt().toChar().toString().replaceNonPrintableCharacters() }
 
     public operator fun get(pos: Int): Byte = buf[pos]
 }

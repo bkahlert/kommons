@@ -68,10 +68,10 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         }
 
         private fun InMemoryLogger.read(slowInputStream: InputStream): List<String> {
-            val reader = readerFactory(slowInputStream, 1.seconds)
+            val reader = readerFactory(slowInputStream, Duration.seconds(1))
 
             val read: MutableList<String> = mutableListOf()
-            assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
+            assertTimeoutPreemptively(Duration.seconds(100).toJavaDuration()) {
                 read.addAll(reader.readLines())
             }
             return read

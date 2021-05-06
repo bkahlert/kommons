@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
 import kotlin.streams.toList
 
 private object UnicodeDict : Dictionary<Long, String> by
-dictOf("unicode.dict.tsv".asSystemResourceUrl().loadTabSeparatedValues(skipLines = 1), { "\\u${it.toString(16)}!!${it.toChar().category.name}" })
+dictOf("unicode.dict.tsv".asSystemResourceUrl().loadTabSeparatedValues(skipLines = 1), { "\\u${it.toString(16)}!!${it.toInt().toChar().category.name}" })
 
 public operator fun Unicode.get(codePoint: Long): String = UnicodeDict.get(codePoint)
 

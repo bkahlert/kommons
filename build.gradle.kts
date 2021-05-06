@@ -49,7 +49,7 @@ fun Any.isFinal(): Boolean =
 
 
 plugins {
-    kotlin("multiplatform") version "1.4.32"
+    kotlin("multiplatform") version "1.5.0"
     id("org.jetbrains.dokka") version "1.4.30"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.16"
@@ -69,7 +69,7 @@ allprojects {
     configurations.all {
         resolutionStrategy.eachDependency {
 
-            val kotlinVersion = "1.4.32"
+            val kotlinVersion = "1.5.0"
             val kotlinModules = listOf(
                 "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
                 "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
@@ -131,8 +131,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                useIR = true
-                freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.io.path.ExperimentalPathApi")
+                freeCompilerArgs = listOf("-Xjvm-default=all")
             }
         }
 
@@ -200,7 +199,7 @@ kotlin {
                 implementation("io.strikt:strikt-core:0.30.1")
                 implementation("io.strikt:strikt-jvm:0.30.1")
 
-                implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.32") {
+                implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0") {
                     because("filepeek takes 1.3")
                 }
             }
@@ -217,9 +216,8 @@ kotlin {
 
         all {
             languageSettings.apply {
-                languageVersion = "1.4"
-                apiVersion = "1.4"
-                enableLanguageFeature("InlineClasses") // language feature name
+                languageVersion = "1.5"
+                apiVersion = "1.5"
                 useExperimentalAnnotation("kotlin.RequiresOptIn")
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
                 useExperimentalAnnotation("kotlin.time.ExperimentalTime")

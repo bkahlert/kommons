@@ -4,6 +4,7 @@ import koodies.text.CharRanges
 import koodies.text.CodePoint
 import koodies.text.asCodePointSequence
 import koodies.text.randomString
+import java.util.Locale
 
 /**
  * Creates a base name suited to be used as an ID for various programs
@@ -44,5 +45,5 @@ public fun String?.toBaseName(minLength: Int = 8): String {
     val fillUp = (minLength - sanitizedChars.size).takeIf { it > 0 }?.let { randomString(it, CharRanges.Alphanumeric) } ?: ""
     val decapitalize = (firstCharReplaced && sanitizedChars.drop(1).filter { it[0].isLetter() }.partition { it[0].isUpperCase() }
         .let { (upper, lower) -> lower.size > upper.size })
-    return sanitizedChars.joinToString("", postfix = fillUp).let { if (decapitalize) it.decapitalize() else it }
+    return sanitizedChars.joinToString("", postfix = fillUp).let { if (decapitalize) it.replaceFirstChar { it.lowercase(Locale.getDefault()) } else it }
 }

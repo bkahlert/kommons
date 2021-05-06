@@ -53,8 +53,8 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
+import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.seconds
 
 @Slow
 class DockerRunCommandLineTest {
@@ -380,7 +380,7 @@ class DockerRunCommandLineTest {
         { with(Ubuntu) { dockerized.exec() } },
     ) { execVariant ->
         var exec: DockerExec? = null
-        expecting { measureTime { exec = CommandLine("sleep", "2").execVariant() } } that { isGreaterThanOrEqualTo(2.seconds) }
+        expecting { measureTime { exec = CommandLine("sleep", "2").execVariant() } } that { isGreaterThanOrEqualTo(Duration.seconds(2)) }
         { exec } asserting { get { invoke() }.isNotNull().hasState<Terminated>() }
     }
 
@@ -390,7 +390,7 @@ class DockerRunCommandLineTest {
         { dockerized { "ubuntu" }.exec.async() },
         { with(Ubuntu) { dockerized.exec.async() } },
     ) { execVariant ->
-        expecting { measureTime { CommandLine("sleep", "2").execVariant() } } that { isLessThan(2.seconds) }
+        expecting { measureTime { CommandLine("sleep", "2").execVariant() } } that { isLessThan(Duration.seconds(2)) }
     }
 
     @Nested

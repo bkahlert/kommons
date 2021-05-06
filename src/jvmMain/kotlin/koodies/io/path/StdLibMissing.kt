@@ -33,7 +33,7 @@ import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
 import kotlin.streams.asSequence
 import kotlin.streams.toList
-import kotlin.time.milliseconds
+import kotlin.time.Duration
 import kotlin.io.path.appendBytes as kotlinAppendBytes
 import kotlin.io.path.writeBytes as kotlinWriteBytes
 
@@ -277,7 +277,7 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
                     val files = listDirectoryEntriesRecursively(options = options)
                     files.forEach { it.deleteRecursively(*options) }
                 }
-                100.milliseconds.sleep()
+                Duration.milliseconds(100).sleep()
                 ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
             }
             if (ex != null) throw ex

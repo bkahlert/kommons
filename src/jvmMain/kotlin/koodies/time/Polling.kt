@@ -3,8 +3,6 @@ package koodies.time
 import koodies.time.IntervalPolling.Polling
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 /**
  * Checks once per [interval][Duration] if the [targetState] evaluates to `true`
@@ -39,7 +37,8 @@ public fun pollCatching(test: () -> Unit): IntervalPolling = IntervalPolling { r
  *
  * @sample PollSample.pollTargetState
  */
-public inline class IntervalPolling(private val targetState: () -> Boolean) {
+@JvmInline
+public value class IntervalPolling(private val targetState: () -> Boolean) {
     /**
      * Specifies the [pollInterval] by which [targetState] should be polled.
      *
@@ -131,7 +130,7 @@ private class PollSample {
         // for at most 1 second
         val condition: () -> Boolean = { listOf(true, false).random() }
 
-        100.milliseconds.poll { condition() }.forAtMost(1.seconds) { passed ->
+        Duration.milliseconds(100).poll { condition() }.forAtMost(Duration.seconds(1)) { passed ->
             throw TimeoutException("Condition did not become true within $passed")
         }
     }
@@ -141,7 +140,7 @@ private class PollSample {
         // for at most 1 second
         val condition: () -> Boolean = { listOf(true, false).random() }
 
-        poll { condition() }.every(100.milliseconds).forAtMost(1.seconds) { passed ->
+        poll { condition() }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(1)) { passed ->
             throw TimeoutException("Condition did not become true within $passed")
         }
     }

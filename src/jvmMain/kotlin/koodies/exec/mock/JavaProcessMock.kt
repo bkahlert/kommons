@@ -14,9 +14,8 @@ import java.io.InputStream.nullInputStream
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.time.Duration
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 import java.lang.Process as JavaProcess
 
 /**
@@ -61,7 +60,7 @@ public open class JavaProcessMock(
 
         public fun InMemoryLogger.withSlowInput(
             vararg inputs: String,
-            baseDelayPerInput: Duration = 1.seconds,
+            baseDelayPerInput: Duration = Duration.seconds(1),
             echoInput: Boolean,
             exitDelay: Duration = Duration.ZERO,
             exitCode: JavaProcessMock.() -> Int = { 0 },
@@ -79,7 +78,7 @@ public open class JavaProcessMock(
         public fun InMemoryLogger.withIndividuallySlowInput(
             vararg inputs: Pair<Duration, String>,
             echoInput: Boolean,
-            baseDelayPerInput: Duration = 1.seconds,
+            baseDelayPerInput: Duration = Duration.seconds(1),
             exitDelay: Duration = Duration.ZERO,
             exitCode: JavaProcessMock.() -> Int = { 0 },
         ): JavaProcessMock {
@@ -109,7 +108,7 @@ public open class JavaProcessMock(
 
     override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
         exitDelay.busyWait()
-        return TimeUnit.MILLISECONDS.convert(timeout, unit).milliseconds >= exitDelay
+        return Duration.milliseconds(MILLISECONDS.convert(timeout, unit)) >= exitDelay
     }
 
     override fun exitValue(): Int {

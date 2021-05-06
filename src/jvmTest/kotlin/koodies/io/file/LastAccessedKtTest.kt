@@ -9,6 +9,7 @@ import strikt.api.expectThat
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import java.nio.file.attribute.FileTime
+import kotlin.time.Duration
 import kotlin.time.minutes
 
 class LastAccessedKtTest {
@@ -16,16 +17,16 @@ class LastAccessedKtTest {
     @Test
     fun `should read last accessed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectThat(randomFile().lastAccessed.toInstant())
-            .isLessThan(Now.plus(1.minutes))
-            .isGreaterThan(Now.minus(1.minutes))
+            .isLessThan(Now.plus(Duration.minutes(1)))
+            .isGreaterThan(Now.minus(Duration.minutes(1)))
     }
 
     @Test
     fun `should write last accessed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile()
-        file.lastAccessed = FileTime.from(Now.minus(20.minutes))
+        file.lastAccessed = FileTime.from(Now.minus(Duration.minutes(20)))
         expectThat(file.lastAccessed.toInstant())
-            .isLessThan(Now.plus(21.minutes))
-            .isGreaterThan(Now.minus(21.minutes))
+            .isLessThan(Now.plus(Duration.minutes(21)))
+            .isGreaterThan(Now.minus(Duration.minutes(21)))
     }
 }

@@ -18,11 +18,10 @@ import strikt.assertions.isTrue
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.milliseconds
 import kotlin.time.seconds
 
 @Execution(CONCURRENT)
-class PollKtTes {
+class PollingKtTest {
 
     @Nested
     inner class Succeeding {
@@ -30,19 +29,19 @@ class PollKtTes {
         @Test
         fun `should succeed if target state reached`() {
             var counter = Random(12).nextInt(5, 10)
-            expectThat(measureTime { 100.milliseconds.poll { --counter <= 0 }.indefinitely() })
+            expectThat(measureTime { Duration.milliseconds(100).poll { --counter <= 0 }.indefinitely() })
                 .isLessThan(1.5.seconds)
         }
 
         @Test
         fun `should return true`() {
-            expectThat(poll { true }.every(100.milliseconds).indefinitely()).isTrue()
+            expectThat(poll { true }.every(Duration.milliseconds(100)).indefinitely()).isTrue()
         }
 
         @Test
         fun `should not call callback`() {
             var callbackCalled = false
-            100.milliseconds.poll { true }.forAtMost(1.seconds) { callbackCalled = true }
+            Duration.milliseconds(100).poll { true }.forAtMost(Duration.seconds(1)) { callbackCalled = true }
             expectThat(callbackCalled).isFalse()
         }
     }
@@ -53,20 +52,20 @@ class PollKtTes {
         @Test
         fun `should check condition once per interval`() {
             var counter = 0
-            100.milliseconds.poll { counter++; false }.forAtMost(1.seconds) {}
+            Duration.milliseconds(100).poll { counter++; false }.forAtMost(Duration.seconds(1)) {}
             expectThat(counter).isGreaterThan(5).isLessThan(15)
         }
 
         @Test
         fun `should only accept positive interval`() {
-            expectCatching { measureTime { 0.milliseconds.poll { true } } }
+            expectCatching { measureTime { Duration.milliseconds(0).poll { true } } }
                 .isFailure().isA<IllegalArgumentException>()
         }
 
         @Test
         fun `should poll using alternative syntax`() {
             var counter = 0
-            poll { counter++; false }.every(100.milliseconds).forAtMost(1.seconds) {}
+            poll { counter++; false }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(1)) {}
             expectThat(counter).isGreaterThan(5).isLessThan(15)
         }
     }
@@ -77,25 +76,25 @@ class PollKtTes {
         @Test
         fun `should fail if condition becomes false`() {
             var counter = 5
-            poll { false }.every(100.milliseconds).forAsLongAs({ counter-- > 0 }) {}
+            poll { false }.every(Duration.milliseconds(100)).forAsLongAs({ counter-- > 0 }) {}
             expectThat(counter).isLessThanOrEqualTo(0)
         }
 
         @Test
         fun `should fail if time is up`() {
-            val timePassed = measureTime { 100.milliseconds.poll { false }.forAtMost(1.seconds) {} }
-            expectThat(timePassed).isGreaterThan(750.milliseconds).isLessThan(1250.milliseconds)
+            val timePassed = measureTime { Duration.milliseconds(100).poll { false }.forAtMost(Duration.seconds(1)) {} }
+            expectThat(timePassed).isGreaterThan(Duration.milliseconds(750)).isLessThan(Duration.milliseconds(1250))
         }
 
         @Test
         fun `should fail if condition becomes false before time is up`() {
             var counter = 2
             val timePassed = measureTime {
-                poll { false }.every(100.milliseconds).noLongerThan({ counter-- > 0 }, 100.seconds) {}
+                poll { false }.every(Duration.milliseconds(100)).noLongerThan({ counter-- > 0 }, Duration.seconds(100)) {}
             }
             expect {
                 that(counter).isLessThanOrEqualTo(0)
-                that(timePassed).isLessThan(10.seconds)
+                that(timePassed).isLessThan(Duration.seconds(10))
             }
         }
 
@@ -103,7 +102,7 @@ class PollKtTes {
         fun `should fail if time is up while condition still holds true`() {
             var counter = 1
             val timePassed = measureTime {
-                poll { false }.every(100.milliseconds).noLongerThan({ counter++ > 0 }, 0.1.seconds) {}
+                poll { false }.every(Duration.milliseconds(100)).noLongerThan({ counter++ > 0 }, 0.1.seconds) {}
             }
             expect {
                 that(counter).isGreaterThan(0)
@@ -113,21 +112,21 @@ class PollKtTes {
 
         @Test
         fun `should call callback only if timeout was specified`() {
-            val timeout = 1.seconds
+            val timeout = Duration.seconds(1)
             var timePassed: Duration? = null
-            100.milliseconds.poll { false }.forAtMost(timeout) { timePassed = it }
+            Duration.milliseconds(100).poll { false }.forAtMost(timeout) { timePassed = it }
             expectThat(timePassed).isNotNull().isGreaterThan(timeout)
         }
 
         @Test
         fun `should return false`() {
-            expectThat(poll { false }.every(100.milliseconds).forAtMost(1.seconds) {}).isFalse()
+            expectThat(poll { false }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(1)) {}).isFalse()
         }
 
         @Test
         fun `should call callback`() {
             var callbackCalled = false
-            100.milliseconds.poll { false }.forAtMost(1.seconds) { callbackCalled = true }
+            Duration.milliseconds(100).poll { false }.forAtMost(Duration.seconds(1)) { callbackCalled = true }
             expectThat(callbackCalled).isTrue()
         }
     }
@@ -137,12 +136,12 @@ class PollKtTes {
 
         @Test
         fun `should succeed if test does not throw`() {
-            expectThat(pollCatching { }.every(100.milliseconds).indefinitely()).isTrue()
+            expectThat(pollCatching { }.every(Duration.milliseconds(100)).indefinitely()).isTrue()
         }
 
         @Test
         fun `should fail if test always throws`() {
-            expectThat(pollCatching { throw RuntimeException("test") }.every(100.milliseconds).forAtMost(1.seconds)).isFalse()
+            expectThat(pollCatching { throw RuntimeException("test") }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(1))).isFalse()
         }
     }
 }

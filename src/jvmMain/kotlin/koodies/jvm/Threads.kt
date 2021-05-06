@@ -11,7 +11,6 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.time.Duration
-import kotlin.time.milliseconds
 
 public fun <T> withThreadName(temporaryName: String, block: () -> T): T =
     currentThread.runWrapping({ name.also { name = temporaryName } }, { oldName -> name = oldName }, { block() })
@@ -55,7 +54,7 @@ public class BusyThread private constructor(private var stopped: AtomicBoolean, 
         logger?.logLine { "THREAD stopped? $stopped" }
         try {
             logger?.logLine { "busy" }
-            50.milliseconds.sleep()
+            Duration.milliseconds(50).sleep()
         } catch (e: InterruptedException) {
             if (!stopped.get()) currentThread().interrupt()
             else logger?.logLine { "interruption ignored" }

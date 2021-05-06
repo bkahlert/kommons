@@ -30,16 +30,16 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readBytes
+import kotlin.time.Duration
 import kotlin.time.days
-import kotlin.time.seconds
 
 class CopyKtTest {
 
     @Nested
     inner class CopyToKtTest {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
-        private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
+        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= Duration.days(7) }
+        private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= Duration.days(7) } }
 
 
         @Test
@@ -104,7 +104,7 @@ class CopyKtTest {
             @Test
             fun `should not copy attributes by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val dest = randomPath(extension = ".txt")
-                expectThat(getTestFile().copyTo(dest)).get { age }.isLessThan(10.seconds)
+                expectThat(getTestFile().copyTo(dest)).get { age }.isLessThan(Duration.seconds(10))
             }
 
             @Test
@@ -175,7 +175,7 @@ class CopyKtTest {
                 val dest = randomPath(extension = ".txt")
                 expectThat(getTestDir().copyTo(dest)) {
                     get { listDirectoryEntriesRecursively() }.all {
-                        get { age }.isLessThan(10.seconds)
+                        get { age }.isLessThan(Duration.seconds(10))
                     }
                 }
             }
@@ -196,8 +196,8 @@ class CopyKtTest {
     @Nested
     inner class CopyToDirectoryKtTest {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
-        private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
+        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= Duration.days(7) }
+        private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= Duration.days(7) } }
 
         @Test
         fun `should throw on missing src`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -269,7 +269,7 @@ class CopyKtTest {
                 val srcFile = getTestFile()
                 val dest = randomDirectory().resolve(srcFile.fileName)
                 expectThat(srcFile.copyToDirectory(dest.parent))
-                    .get { age }.isLessThan(10.seconds)
+                    .get { age }.isLessThan(Duration.seconds(10))
             }
 
             @Test
@@ -349,7 +349,7 @@ class CopyKtTest {
                 val dest = randomDirectory().resolve(fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent)) {
                     get { listDirectoryEntriesRecursively() }.all {
-                        get { age }.isLessThan(10.seconds)
+                        get { age }.isLessThan(Duration.seconds(10))
                     }
                 }
             }

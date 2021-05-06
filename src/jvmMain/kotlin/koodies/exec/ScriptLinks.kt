@@ -6,8 +6,8 @@ import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.shell.ShellScript
 import java.net.URI
 import java.nio.file.Path
-import kotlin.time.days
-import kotlin.time.minutes
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 private val shellScriptDir: Path by lazy { Locations.Temp.resolve("com.bkahlert.koodies") }
 private const val shellScriptPrefix: String = "koodies.exec."
@@ -17,8 +17,8 @@ private var cleanupHandlerRegistered = false
 private fun registerCleanupHandler(): Unit {
     if (!cleanupHandlerRegistered) {
         cleanupHandlerRegistered = true
-        deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, 3.days, keepAtMost = 100, shellScriptDir)
-        deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, 10.minutes, keepAtMost = 5)
+        deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, days(3), keepAtMost = 100, shellScriptDir)
+        deleteOldTempFilesOnExit(shellScriptPrefix, shellScriptExtension, minutes(10), keepAtMost = 5)
     }
 }
 

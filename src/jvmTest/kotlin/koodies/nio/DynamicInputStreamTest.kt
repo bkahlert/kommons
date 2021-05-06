@@ -48,7 +48,7 @@ class DynamicInputStreamTest {
         }
 
         expect {
-            that(duration).isGreaterThanOrEqualTo(2.seconds)
+            that(duration).isGreaterThanOrEqualTo(Duration.seconds(2))
             that(bytes).isEqualTo("Hello World!".toByteArray())
         }
     }

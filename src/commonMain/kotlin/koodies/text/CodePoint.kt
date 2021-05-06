@@ -8,6 +8,7 @@ import kotlin.Char.Companion.MAX_SURROGATE
 import kotlin.Char.Companion.MAX_VALUE
 import kotlin.Char.Companion.MIN_SURROGATE
 import kotlin.Char.Companion.MIN_VALUE
+import kotlin.jvm.JvmInline
 import kotlin.random.Random
 
 private const val ESCAPED_X = "\\x"
@@ -18,7 +19,8 @@ private fun String.escape() = "$ESCAPED_X{$this}"
  *
  * @see <a href="https://www.unicode.org/reports/tr18/">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
  */
-public inline class CodePoint(
+@JvmInline
+public value class CodePoint(
     /**
      * Index of this code point in the [Unicode](http://www.unicode.org/) table.
      */
@@ -84,7 +86,7 @@ public inline class CodePoint(
      *
      * Otherwise [string] must be used.
      */
-    public val char: Char? get() = codePoint.takeIf { it in MIN_VALUE.toInt()..MAX_VALUE.toInt() }?.toChar()
+    public val char: Char? get() = codePoint.takeIf { it in MIN_VALUE.code..MAX_VALUE.code }?.toChar()
 
     /**
      * Determines if a character (Unicode code point) is defined in Unicode.
@@ -241,7 +243,7 @@ public inline class CodePoint(
         }
 
         private fun Int.surrogate(): Boolean =
-            this in MIN_SURROGATE.toInt()..MAX_SURROGATE.toInt()
+            this in MIN_SURROGATE.code..MAX_SURROGATE.code
 
         private fun Int.isDefined(): Boolean {
             val assignedPlanes = listOf(0, 1, 2, 14, 15)
@@ -435,17 +437,17 @@ private fun CharSequence.readCodePoint(offset: Int): Pair<Int, Int>? {
     val firstChar: Char = this[offset]
     if (firstChar.isHighSurrogate()) {
         if (length <= offset + 1) {
-            return 1 to firstChar.toInt()
+            return 1 to firstChar.code
         }
         val secondChar: Char = this[offset + 1]
         if (secondChar.isLowSurrogate()) {
-            val left = (firstChar.toInt() - 0xD800) * 0x400
-            val right = secondChar.toInt() - 0xDC00
+            val left = (firstChar.code - 0xD800) * 0x400
+            val right = secondChar.code - 0xDC00
             return 2 to (left + right + 0x10000)
         }
     }
 
-    return 1 to firstChar.toInt()
+    return 1 to firstChar.code
 }
 
 /**

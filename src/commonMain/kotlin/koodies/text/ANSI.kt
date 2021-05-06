@@ -989,7 +989,7 @@ public open class AnsiString private constructor(public val string: String) : Ch
             tokens.toTypedArray()
         }
 
-        public val Tokens.length: Int get():Int = sumBy { it.second }
+        public val Tokens.length: Int get():Int = sumOf { it.second }
 
         private fun Tokens.subSequence(endIndex: Int): Pair<String, List<Int>> {
             if (endIndex == 0) return "" to emptyList()

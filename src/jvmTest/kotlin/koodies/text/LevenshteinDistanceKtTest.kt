@@ -13,6 +13,7 @@ import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
 import kotlin.system.measureTimeMillis
+import kotlin.time.Duration
 import kotlin.time.milliseconds
 import kotlin.time.seconds
 
@@ -59,7 +60,7 @@ class LevenshteinDistanceKtTest {
             (HtmlFile.text.repeat(200) + "abc") to ("xyz" + HtmlFile.text.repeat(200))
         ) { (a, b) ->
             a asserting { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
-            expecting { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds } that { isLessThanOrEqualTo(5.seconds) }
+            expecting { Duration.milliseconds(measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }) } that { isLessThanOrEqualTo(Duration.seconds(5)) }
         }
 
         @TestFactory @Slow
@@ -67,7 +68,7 @@ class LevenshteinDistanceKtTest {
             randomString(1000) to randomString(123)
         ) { (a, b) ->
             a asserting { fuzzyLevenshteinDistance(b).isGreaterThan(0.85) }
-            expecting { measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }.milliseconds } that { isLessThanOrEqualTo(5.seconds) }
+            expecting { Duration.milliseconds(measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }) } that { isLessThanOrEqualTo(Duration.seconds(5)) }
         }
     }
 }

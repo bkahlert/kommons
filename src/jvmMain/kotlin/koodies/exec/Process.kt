@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.time.Duration
-import kotlin.time.milliseconds
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Platform independent representation of a running program.
@@ -285,24 +285,24 @@ public val Process.exitCode: Int get() = exitState?.exitCode ?: throw ISE("Proce
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun Process.enter(vararg input: String, delay: Duration = 10.milliseconds): Unit =
+public fun Process.enter(vararg input: String, delay: Duration = milliseconds(10)): Unit =
     inputStream.enter(*input, delay = delay)
 
 /**
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun Process.input(vararg input: String, delay: Duration = 10.milliseconds): Unit =
+public fun Process.input(vararg input: String, delay: Duration = milliseconds(10)): Unit =
     inputStream.enter(*input, delay = delay)
 
 /**
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun OutputStream.enter(vararg input: String, delay: Duration = 10.milliseconds) {
+public fun OutputStream.enter(vararg input: String, delay: Duration = milliseconds(10)) {
     val stdin = BufferedWriter(OutputStreamWriter(this))
     input.forEach {
-        TimeUnit.MILLISECONDS.sleep(delay.toLongMilliseconds())
+        TimeUnit.MILLISECONDS.sleep(delay.inWholeMilliseconds)
         stdin.write(it.withSuffix(LineSeparators.CRLF))
         stdin.flush()
     }

@@ -68,29 +68,29 @@ public abstract class MountOptionContext<T>(
     public infix fun HostPath.mountAs(type: Type): Mount<T> = Mount(type.name, this) { mount(source, it, type.name) }
 }
 
-public inline class ContainerPath(private val containerPath: Path) {
-    private val absolutePath: Path
-        get() {
-            require(containerPath.isAbsolute) { "$containerPath must be absolute." }
-            return containerPath.toAbsolutePath()
-        }
+@JvmInline
+public value class ContainerPath(private val containerPath: Path) {
+
+    init {
+        require(containerPath.isAbsolute) { "$containerPath must be absolute." }
+    }
 
     public fun relativeTo(baseContainerPath: ContainerPath): String =
-        absolutePath.relativeTo(baseContainerPath.absolutePath).pathString
+        containerPath.relativeTo(baseContainerPath.containerPath).pathString
 
     public fun isSubPathOf(baseContainerPath: ContainerPath): Boolean =
-        absolutePath.isSubPathOf(baseContainerPath.absolutePath)
+        containerPath.isSubPathOf(baseContainerPath.containerPath)
 
     public fun resolve(other: ContainerPath): ContainerPath =
-        absolutePath.resolve(other.absolutePath).asContainerPath()
+        containerPath.resolve(other.containerPath).asContainerPath()
 
     public fun resolve(other: String): ContainerPath =
-        absolutePath.resolve(other).asContainerPath()
+        containerPath.resolve(other).asContainerPath()
 
     public fun mapToHostPath(mountOptions: MountOptions): HostPath /* = java.nio.file.Path */ =
         mountOptions.mapToHostPath(this)
 
-    public fun asString(): String = absolutePath.pathString
+    public fun asString(): String = containerPath.pathString
 
     override fun toString(): String = asString()
 }
