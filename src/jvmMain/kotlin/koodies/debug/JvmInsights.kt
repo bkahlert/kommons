@@ -99,12 +99,12 @@ public val ReentrantReadWriteLock.trace: ReentrantReadWriteLock
  * by printing `this` match result properly with details.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public val <T:MatchResult?> T.trace: T
+public val <T : MatchResult?> T.trace: T
     get() = this?.apply {
         val matchedGroups = groups.filterNotNull()
         println("Regular Expression Matched ${matchedGroups.size.toString().formattedAs.debug} group(s)")
         println(matchedGroups.joinToString(LF) { "${it.range}: ".padStart(8) + it.value.formattedAs.debug })
-    }?:apply { println("Regular Expression Did Not Match".formattedAs.warning) }
+    } ?: apply { println("Regular Expression Did Not Match".formattedAs.warning) }
 
 
 /**

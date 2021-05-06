@@ -131,7 +131,7 @@ class DockerExecTest {
                 vararg args: String,
                 callback: ExecTerminationCallback? = null,
             ): DockerExec = CommandLine(command, *args)
-                .dockerized(BusyBox, Options(name = DockerContainer(uniqueId.simplified)))
+                .dockerized(BusyBox, Options(name = DockerContainer("$uniqueId")))
                 .toExec(false, emptyMap(), this, callback)
 
             @DockerRequiring([BusyBox::class], mode = ThanksForCleaningUp) @Test
@@ -226,7 +226,7 @@ private fun Path.createExec(
     processor: Processor<DockerExec> = noopProcessor(),
 ): DockerExec =
     CommandLine(command, *args)
-        .dockerized(Ubuntu) { name { uniqueId.simplified } }
+        .dockerized(Ubuntu) { name { "$uniqueId" } }
         .exec.processing(workingDirectory = this, processor = processor)
 
 private fun DockerExec.waitForCondition(

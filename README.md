@@ -555,7 +555,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
       `w: Koodies.kt: (42, 15): 'trace: T' is deprecated. Don't forget to remove after you finished debugging.`
     - trace has `replaceWith` set so that in IntelliJ the cleanup action removes all trace statements in one stroke.
     - Each trace statement prints the file and line it was called at.  
-      `(Koodies.kt:42) trace output`
+      `.ͥ (Koodies.kt:42) ⟨ … ⟩`
 
 * Line Separators are defined in the [LineSeparators](src/commonMain/kotlin/koodies/text/LineSeparators.kt)
   and [Unicode](src/commonMain/kotlin/koodies/text/Unicode.kt) object

@@ -210,7 +210,7 @@ class TestContainers(
     private fun startContainerWithCommandLine(
         commandLine: CommandLine,
     ): DockerContainer {
-        val container = DockerContainer.from(name = uniqueId.simplified, randomSuffix = true).also { provisioned.add(it) }
+        val container = DockerContainer.from(name = "$uniqueId", randomSuffix = true).also { provisioned.add(it) }
         commandLine.dockerized(this@TestContainers.image) {
             name by container.name
             this.autoCleanup by false

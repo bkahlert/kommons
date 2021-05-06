@@ -3,7 +3,10 @@
 package koodies.debug
 
 import koodies.collections.map
+import koodies.debug.XRay.Companion.highlight
 import koodies.math.toHexadecimalString
+import koodies.regex.groupValue
+import koodies.runtime.CallStackElement
 import koodies.runtime.getCaller
 import koodies.text.CodePoint
 import koodies.text.LineSeparators
@@ -42,10 +45,10 @@ public class XRay<T>(
 
     private val string: String = run {
         val source = getCaller {
-            receiver?.endsWith(".InsightsKt") ==true ||
-            receiver?.endsWith(".XRay") ==true ||
+            receiver?.endsWith(".InsightsKt") == true ||
+                receiver?.endsWith(".XRay") == true ||
                 function == "trace" ||
-                function=="xray"
+                function == "xray"
         }.run { ".⃦⃥ͥ ".formattedAs.debug + "($file:$line) ".formattedAs.meta }
         source + run {
             transform?.let {
@@ -100,7 +103,7 @@ public class XRay<T>(
     public companion object {
         private fun lineBreakSymbol(lineBreak: String) = "⏎$lineBreak"
 
-        private fun highlight(subject: Any?) = subject.toString().formattedAs.debug
+        internal fun highlight(subject: Any?) = subject.toString().formattedAs.debug
         private val selfBrackets = BlockDelimiters.UNIT.map { it.formattedAs.debug }
         private val transformedBrackets = BlockDelimiters.BLOCK.map { it.formattedAs.debug }
     }
@@ -167,3 +170,30 @@ public val <T> T.trace: T
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun <T> T.trace(transform: T.() -> Any?): T =
     apply { println(xray(transform = { transform().toString() })) }
+
+
+public val CallStackElement.highlightedMethod: String
+    get() = toString().replace(Regex("(?<prefix>.*\\.)(?<method>.*?)(?<suffix>\\(.*)")) {
+        val prefix = it.groupValue("prefix")
+        val suffix = it.groupValue("suffix")
+        val methodName = highlight(it.groupValue("method"))
+        prefix + methodName + suffix
+    }
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` stacktrace and highlighting the method names.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public val Array<CallStackElement>.trace: Array<CallStackElement>
+    get() = also { println(joinToString("$LF\t${highlight("at")} ", postfix = LF) { it.highlightedMethod }) }
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` stacktrace and highlighting the method names.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public val Iterable<CallStackElement>.trace: Iterable<CallStackElement>
+    get() = also { println(joinToString("$LF\t${highlight("at")} ", postfix = LF) { it.highlightedMethod }) }

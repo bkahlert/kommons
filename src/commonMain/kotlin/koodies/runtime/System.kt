@@ -54,6 +54,51 @@ public interface CallStackElement : CharSequence {
      * Column in which the invocation takes place.
      */
     public val column: Int?
+
+    public companion object {
+
+        /**
+         * Creates a call stack element for the given [receiver], [function], [function], [line] and [column].
+         */
+        public fun from(
+            /**
+             * Receiver of the [function] call.
+             */
+            receiver: String?,
+
+            /**
+             * Name of the invoked function.
+             */
+            function: String,
+
+            /**
+             * File in which the invocation takes place.
+             */
+            file: String?,
+
+            /**
+             * Line in which the invocation takes place.
+             */
+            line: Int,
+
+            /**
+             * Column in which the invocation takes place.
+             */
+            column: Int? = null,
+        ): CallStackElement = object : CallStackElement {
+            override val receiver: String? = receiver
+            override val function: String = function
+            override val file: String? = file
+            override val line: Int = line
+            override val column: Int? = column
+
+            private val string = (receiver?.let { "$it." } ?: "") + "${function}(${file}:${line})" + (column?.let { ":$column" } ?: "")
+            override fun toString(): String = string
+            override val length: Int = string.length
+            override fun get(index: Int): Char = string[index]
+            override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = string.subSequence(startIndex, endIndex)
+        }
+    }
 }
 
 /**

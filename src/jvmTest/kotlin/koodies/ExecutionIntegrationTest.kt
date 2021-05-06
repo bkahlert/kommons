@@ -86,7 +86,7 @@ class ExecutionIntegrationTest {
 
             counter { isEqualTo(2) }
 
-            BACKGROUND { logged.contains("Script(name=null;content=echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
+            BACKGROUND { logged.contains("Script(echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
         }
     }
 

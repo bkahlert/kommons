@@ -21,7 +21,6 @@ import org.junit.platform.engine.TestExecutionResult
 import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
-import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import kotlin.properties.Delegates
 import kotlin.time.milliseconds
@@ -100,9 +99,4 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
                 .also { println(it) }
         }
     }
-
-    private fun format(nonConcurrentTestClasses: Collection<AnnotatedElement>): String =
-        if (nonConcurrentTestClasses.isEmpty()) "—" else nonConcurrentTestClasses.joinToString(LF,
-            prefix = LF,
-            limit = 10) { "$it" }
 }

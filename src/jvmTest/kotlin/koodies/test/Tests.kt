@@ -3,14 +3,17 @@ package koodies.test
 import filepeek.LambdaBody
 import koodies.Exceptions.ISE
 import koodies.collections.asStream
+import koodies.debug.trace
 import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.readLine
+import koodies.jvm.currentStackTrace
 import koodies.jvm.deleteOnExit
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
 import koodies.runtime.CallStackElement
 import koodies.runtime.getCaller
+import koodies.runtime.isDebugging
 import koodies.test.DynamicTestBuilder.InCompleteExpectationBuilder
 import koodies.test.IllegalUsageCheck.ExpectIllegalUsageException
 import koodies.test.TestFlattener.flatten
@@ -22,13 +25,13 @@ import koodies.test.Tester.expectingDisplayName
 import koodies.test.Tester.findCaller
 import koodies.test.Tester.property
 import koodies.test.Tester.throwingDisplayName
+import koodies.test.UniqueId.Companion.id
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.BlockDelimiters.TEXT
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
-import koodies.text.randomString
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
@@ -306,8 +309,12 @@ object Tester {
 
     private val CallStackElement.stackTraceElement get() = StackTraceElement(receiver, function, file, line)
 
-    fun findCaller(): CallStackElement = getCaller {
-        receiver == enclosingClassName || receiver?.matches(Regex(".*DynamicTest.*Builder.*")) == true || receiver?.matches(Regex(".TestsKt.*")) == true
+    private val callerIgnoreRegex = Regex(".*DynamicTest.*Builder|.*\\.TestsKt.*")
+    fun findCaller(): CallStackElement {
+        if (isDebugging) currentStackTrace.trace { "Finding caller" }
+        return getCaller {
+            receiver == enclosingClassName || receiver?.matches(callerIgnoreRegex) == true
+        }
     }
 
     /**
@@ -410,8 +417,8 @@ inline fun <reified T> ExtensionContext.store(clazz: Class<T> = T::class.java): 
 class IllegalUsageCheck : AfterEachCallback {
 
     override fun afterEach(context: ExtensionContext) {
-        illegalUsages.keys.firstOrNull()?.also { key ->
-            val illegalUsage = illegalUsages.remove(key)!!
+        val id = context.id
+        illegalUsages[id]?.also { illegalUsage ->
             if (!context.illegalUsageExpected) {
                 throw illegalUsage
             }
@@ -434,7 +441,8 @@ class IllegalUsageCheck : AfterEachCallback {
         var ExtensionContext.illegalUsageExpected: Boolean
             get() = store<IllegalUsageCheck>().get("expect-illegal-usage-exception") == true
             set(value) = store<IllegalUsageCheck>().put("expect-illegal-usage-exception", value)
-        val illegalUsages = mutableMapOf<String, IllegalUsageException>()
+
+        val illegalUsages = mutableMapOf<UniqueId, IllegalUsageException>()
     }
 }
 
@@ -462,8 +470,9 @@ fun <T> asserting(subject: T, assertions: Builder<T>.() -> Unit) =
  * **Usage:** `expecting { <action> } that { <assertions> }`
  */
 fun <T> expecting(action: () -> T): InCompleteExpectationBuilder<T> {
-    val id = randomString()
-    IllegalUsageCheck.illegalUsages[id] = IllegalUsageException("expecting", findCaller().callerSource)
+    val caller = findCaller()
+    val id = UniqueId.from(caller)
+    IllegalUsageCheck.illegalUsages[id] = IllegalUsageException("expecting", caller.callerSource)
     return InCompleteExpectationBuilder { assertions: Builder<T>.() -> Unit ->
         IllegalUsageCheck.illegalUsages.remove(id)
         strikt.api.expectThat(action()).assertions()
@@ -477,8 +486,9 @@ fun <T> expecting(action: () -> T): InCompleteExpectationBuilder<T> {
  * **Usage:** `expectCatching { <action> } that { <assertions> }`
  */
 fun <T> expectCatching(action: () -> T): InCompleteExpectationBuilder<Result<T>> {
-    val id = randomString()
-    IllegalUsageCheck.illegalUsages[id] = IllegalUsageException("expectCatching", findCaller().callerSource)
+    val caller = findCaller()
+    val id = UniqueId.from(caller)
+    IllegalUsageCheck.illegalUsages[id] = IllegalUsageException("expectCatching", caller.callerSource)
     return InCompleteExpectationBuilder { additionalAssertions: Builder<Result<T>>.() -> Unit ->
         IllegalUsageCheck.illegalUsages.remove(id)
         strikt.api.expectCatching { action() }.and(additionalAssertions)
@@ -953,7 +963,7 @@ class DynamicTestBuilder<T>(val subject: T, private val buildErrors: MutableList
  * @throws IllegalStateException if called from outside of a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir = root.resolve(uniqueId.simplified.toBaseName().withRandomSuffix()).createDirectories()
+    val tempDir = root.resolve(uniqueId.value.toBaseName().withRandomSuffix()).createDirectories()
     tempDir.block()
     check(root.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".ansi.red.toString())
