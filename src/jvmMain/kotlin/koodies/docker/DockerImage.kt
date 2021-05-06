@@ -12,7 +12,9 @@ import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState
+import koodies.exec.output
 import koodies.exec.parse
+import koodies.io.path.Locations
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
@@ -90,7 +92,7 @@ public open class DockerImage(
 
 
     /**
-     * Lists locally available instances this image.
+     * Lists locally available instances of this image.
      */
     public fun list(ignoreIntermediateImages: Boolean = true): List<DockerImage> =
         DockerImageListCommandLine {
@@ -141,6 +143,17 @@ public open class DockerImage(
         }.exec.logging(logger) {
             noDetails("Removing ${this@DockerImage.formattedAs.input}")
         }.waitFor()
+
+    /**
+     * Contains a list of tags available on [Docker Hub](https://registry.hub.docker.com).
+     */
+    public val tagsOnDockerHub: List<String> by lazy {
+        val fullPath = repoAndPath.joinToString("/")
+        val page = 1
+        val pageSize = 100
+        val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
+        Locations.Temp.docker(tagsImage, logger = null) { "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort" }.io.output.ansiRemoved.lines()
+    }
 
     /**
      * Returns a [DockerRunCommandLine] that runs `this` [Executable]
@@ -265,7 +278,7 @@ public open class DockerImage(
         }
 
         /**
-         * Lists locally available instances this image.
+         * Lists locally available images.
          */
         public fun list(ignoreIntermediateImages: Boolean = true, logger: FixedWidthRenderingLogger = BACKGROUND): List<DockerImage> =
             DockerImageListCommandLine {
@@ -273,6 +286,10 @@ public open class DockerImage(
             }.exec.logging(logger) {
                 noDetails("Listing images")
             }.parseImages()
+
+        private val tagsImage by lazy {
+            DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" }
+        }
     }
 }
 

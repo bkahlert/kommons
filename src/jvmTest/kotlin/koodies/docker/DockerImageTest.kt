@@ -127,6 +127,14 @@ class DockerImageTest {
         }
 
         @ImageTest @IdeaWorkaroundTest
+        fun TestImage.`should provide tags on Docker Hub`() {
+            expectThat(tagsOnDockerHub) {
+                contains("latest")
+                contains("linux")
+            }
+        }
+
+        @ImageTest @IdeaWorkaroundTest
         fun TestImage.`should check if is pulled and log`() = whilePulled { testImage ->
             expectThat(testImage.isPulled).isTrue()
             BACKGROUND.expectLogged.contains("Checking if $testImage is pulled")

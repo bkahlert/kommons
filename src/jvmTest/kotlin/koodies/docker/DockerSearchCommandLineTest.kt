@@ -1,21 +1,22 @@
 package koodies.docker
 
 import koodies.builder.Init
-import koodies.collections.head
-import koodies.collections.tail
-import koodies.debug.trace
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
+import koodies.docker.DockerSearchCommandLine.DockerSeachResult
 import koodies.docker.DockerSearchCommandLine.Options
-import koodies.exec.output
+import koodies.docker.TestImages.BusyBox
 import koodies.test.BuilderFixture
 import koodies.test.UniqueId
 import koodies.test.withTempDir
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
+import strikt.assertions.any
+import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThan
 
-@Disabled
 class DockerSearchCommandLineTest {
 
     @Test
@@ -26,34 +27,19 @@ class DockerSearchCommandLineTest {
 
     @Test
     fun `should search`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dockerSearchCommandLine = DockerSearchCommandLine {
-            options {
-                stars by 4
-                isAutomated { off }
-                isOfficial { on }
-                format { "{{.Name}}" }
-                limit by 10
-            }
-            term { "busybox" }
+        expectThat(DockerSearchCommandLine.search(
+            "busybox",
+            stars = 4,
+            automated = false,
+            official = true,
+            limit = 2
+        )).any {
+            image.isEqualTo(BusyBox)
+            description.contains("Busybox").contains("base").contains("image")
+            stars.isGreaterThan(1000)
+            isOfficial()
+            not { isAutomated() }
         }
-        val o = with(dockerSearchCommandLine) { exec().io.ansiRemoved }
-        o.lines().map { repo ->
-            val size = 100
-            val page = 1
-            // TODO improve busybox to run ShellScripts
-            val url = """https://registry.hub.docker.com/api/content/v1/repositories/public/library/${repo}/tags?page=${page}&page_size=${size}"""
-            docker({ "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" }) {
-                """curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"""
-            }.io.output.ansiRemoved.lines().map { tag -> DockerImage(repo.split("/").head, repo.split("/").tail, tag = tag) }
-
-//            Docker.busybox({ "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" },
-//                """curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"""
-//            ).process(mode = Synchronous) {
-//                { tag: IO ->
-//                    DockerImage(repo.split("/").head, repo.split("/").tail, tag = tag.unformatted)
-//                }
-//            }
-        }.trace
     }
 
     companion object : BuilderFixture<Init<CommandContext>, DockerSearchCommandLine>(
@@ -69,10 +55,31 @@ class DockerSearchCommandLineTest {
             term { "busybox" }
         },
         DockerSearchCommandLine(
-            options = Options(filters = listOf("key" to "value", "stars" to "4", "is-automated" to "false", "is-official" to "true"),
-                format = null,
-                limit = 10),
+            options = Options(listOf("key" to "value", "stars" to "4", "is-automated" to "false", "is-official" to "true"), 10),
             term = "busybox",
         ),
     )
 }
+
+val Assertion.Builder<DockerSeachResult>.image: DescribeableBuilder<DockerImage>
+    get() = get("image") { image }
+val Assertion.Builder<DockerSeachResult>.description: DescribeableBuilder<String>
+    get() = get("description") { description }
+val Assertion.Builder<DockerSeachResult>.stars: DescribeableBuilder<Int>
+    get() = get("starCount") { stars }
+
+fun Assertion.Builder<DockerSeachResult>.isOfficial() =
+    assert("is official") {
+        when (it.official) {
+            true -> pass()
+            else -> fail("not official")
+        }
+    }
+
+fun Assertion.Builder<DockerSeachResult>.isAutomated() =
+    assert("is automated") {
+        when (it.automated) {
+            true -> pass()
+            else -> fail("not official")
+        }
+    }

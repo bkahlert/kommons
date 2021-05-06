@@ -1,11 +1,8 @@
 package koodies.docker
 
-import koodies.CallableProperty
-import koodies.builder.Builder
-import koodies.builder.Init
-import koodies.builder.mapBuild
+import koodies.docker.Docker.info.get
 import koodies.docker.DockerExitStateHandler.Failure
-import koodies.docker.DockerRunCommandLine.Companion
+import koodies.docker.DockerSearchCommandLine.DockerSeachResult
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
@@ -14,7 +11,6 @@ import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
 import koodies.map
 import koodies.or
-import koodies.provideDelegate
 import koodies.regex.RegularExpressions
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.ScriptContext
@@ -30,7 +26,14 @@ public object Docker {
 
     /**
      * System wide information regarding the Docker installation.
+     *
+     * Usage:
+     * - `info["server.server-version"]`
+     * - `info["server", "server-version"]`
+     *
+     * @see get
      */
+    @Suppress("ClassName") // used like an array
     public object info {
 
         /**
@@ -98,34 +101,81 @@ public object Docker {
      */
     public operator fun invoke(name: String): DockerContainer = DockerContainer.from(name, randomSuffix = false)
 
-
-//    /**
-//     * Builds a [DockerSearchCommandLine] and executes it.
-//     */
-//    public val search: (Init<SearchContext> /* = koodies.docker.DockerSearchCommandLine.Companion.SearchContext.() -> kotlin.Unit */)
-//    -> Exec by DockerSearchCommandLine.mapBuild { it.execute().output() }
-//
-//    /**
-//     * Builds a [DockerSearchCommandLine] and executes it using `this` [RenderingLogger].
-//     */
-//    public val RenderingLogger?.search: Builder<Init<SearchContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
-//        DockerSearchCommandLine.mapBuild { it.execute(processor = thisRef.toProcessor()) }
-//    }
-
+    /**
+     * Searches for at most [limit] Docker images matching [term],
+     * having at least the given number of [stars] and being [automated] and/or [official].
+     */
+    public fun search(
+        term: String,
+        stars: Int? = null,
+        automated: Boolean? = null,
+        official: Boolean? = null,
+        limit: Int = 100,
+        logger: RenderingLogger = BACKGROUND,
+    ): List<DockerSeachResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, logger)
 
     /**
-     * Builds a [DockerRunCommandLine] and executes it.
+     * Executes the given [command] and its [arguments] in
+     * a [DockerContainer] with the given [image].
+     *
+     * The given [workingDirectory] is mapped to `/work`,
+     * which is configured as the working directory
+     * inside of the container.
      */
-    public val run: (Init<Companion.CommandContext> /* = koodies.docker.DockerRunCommandLine.Companion.DockerRunCommandContext.() -> kotlin.Unit */)
-    -> Exec by DockerRunCommandLine.mapBuild { it.exec.logging() }
+    public fun exec(
+        image: DockerImage,
+        workingDirectory: Path,
+        command: Any? = null,
+        vararg arguments: Any,
+        logger: RenderingLogger? = BACKGROUND,
+    ): DockerExec =
+        execute(image, workingDirectory, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
 
     /**
-     * Builds a [DockerRunCommandLine] and executes it using `this` [RenderingLogger].
+     * Builds a shell script using the given [scriptInit] and executes it in
+     * a [DockerContainer] with the given [image].
+     *
+     * The given [workingDirectory] is mapped to `/work`,
+     * which is configured as the working directory
+     * inside of the container and also passed to [scriptInit] as the only argument.
      */
-    public val RenderingLogger?.run: Builder<Init<Companion.CommandContext>, Exec> by CallableProperty { thisRef: RenderingLogger?, _ ->
-        DockerRunCommandLine.mapBuild { if (thisRef != null) it.exec.logging(thisRef) else it.exec.logging() }
+    public fun exec(
+        image: DockerImage,
+        workingDirectory: Path,
+        logger: RenderingLogger? = BACKGROUND,
+        scriptInit: ScriptInitWithWorkingDirectory,
+    ): DockerExec =
+        execute(image, workingDirectory, logger) { workDir -> ShellScript { scriptInit(workDir) } }
+
+    /**
+     * Builds an [Executable] using the given [executableProvider] and executes it in
+     * a [DockerContainer] with the given [image].
+     *
+     * The given [workingDirectory] is mapped to `/work`,
+     * which is configured as the working directory
+     * inside of the container and also passed to [executableProvider].
+     */
+    private fun execute(
+        image: DockerImage,
+        workingDirectory: Path,
+        logger: RenderingLogger? = BACKGROUND,
+        executableProvider: (ContainerPath) -> Executable<Exec>,
+    ): DockerExec {
+        val containerPath = "/work".asContainerPath()
+        return executableProvider(containerPath).dockerized(image) {
+            mounts { workingDirectory mountAt containerPath }
+            workingDirectory { containerPath }
+        }.run {
+            if (logger != null) exec.logging(logger)
+            else exec()
+        }
     }
 }
+
+/**
+ * Type of the argument supported by [docker] and its variants (e.g. [ubuntu].
+ */
+public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) -> CharSequence
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -136,7 +186,7 @@ public object Docker {
  * inside of the container.
  */
 public fun Path.docker(image: String, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    dockerExecute(DockerImage { image }, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+    Docker.exec(DockerImage { image }, this, command, *arguments, logger = logger)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -147,7 +197,7 @@ public fun Path.docker(image: String, command: Any? = null, vararg arguments: An
  * inside of the container.
  */
 public fun Path.docker(imageInit: DockerImageInit, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    dockerExecute(DockerImage(imageInit), logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+    Docker.exec(DockerImage(imageInit), this, command, *arguments, logger = logger)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -158,7 +208,7 @@ public fun Path.docker(imageInit: DockerImageInit, command: Any? = null, vararg 
  * inside of the container.
  */
 public fun Path.docker(image: DockerImage, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    dockerExecute(image, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+    Docker.exec(image, this, command, *arguments, logger = logger)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -169,7 +219,7 @@ public fun Path.docker(image: DockerImage, command: Any? = null, vararg argument
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
 public fun Path.docker(image: String, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    dockerExecute(DockerImage { image }, logger) { workDir -> ShellScript { scriptInit(workDir) } }
+    Docker.exec(DockerImage { image }, this, logger, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -180,7 +230,7 @@ public fun Path.docker(image: String, logger: RenderingLogger? = BACKGROUND, scr
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
 public fun Path.docker(imageInit: DockerImageInit, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    dockerExecute(DockerImage(imageInit), logger) { workDir -> ShellScript { scriptInit(workDir) } }
+    Docker.exec(DockerImage(imageInit), this, logger, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -191,31 +241,7 @@ public fun Path.docker(imageInit: DockerImageInit, logger: RenderingLogger? = BA
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
 public fun Path.docker(image: DockerImage, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    dockerExecute(image, logger) { workDir -> ShellScript { scriptInit(workDir) } }
-
-/**
- * Builds an [Executable] using the given [executableProvider] and runs it in
- * a [DockerContainer] with the given [image].
- *
- * `this` [Path] is used as the working directory on this host and
- * is mapped to `/work`, which is configured as the working directory
- * inside of the container and also passed to [executableProvider].
- */
-private fun Path.dockerExecute(image: DockerImage, logger: RenderingLogger? = BACKGROUND, executableProvider: (ContainerPath) -> Executable<Exec>): DockerExec {
-    val containerPath = "/work".asContainerPath()
-    return executableProvider(containerPath).dockerized(image) {
-        mounts { this@dockerExecute mountAt containerPath }
-        workingDirectory { containerPath }
-    }.run {
-        if (logger != null) exec.logging(logger)
-        else exec()
-    }
-}
-
-/**
- * Type of the argument supported by [docker] and its variants (e.g. [ubuntu].
- */
-public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) -> CharSequence
+    Docker.exec(image, this, logger, scriptInit)
 
 
 /*

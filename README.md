@@ -144,6 +144,11 @@ MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
     - set the working directory of both the host command and the docker container
     - map the host working directory to the container's working directory,
     - that is, all files of that directory are equally available in your container instance.
+- Low level docker commands: `start`, `run`, `stop`, `kill`, `remove`, `search`, `image`, `ps`
+- Object-oriented design
+    - [Docker](src/jvmMain/kotlin/koodies/docker/Docker.kt): `engineRunning`, `info`, `images`, `containers`, `search`, `exec`
+    - [DockerImage](src/jvmMain/kotlin/koodies/docker/DockerImage.kt): `list`, `isPulled`, `pull`, `tagsOnDockerHub`
+    - [DockerContainer](src/jvmMain/kotlin/koodies/docker/DockerContainer.kt): `start`, `stop`, `state`, `kill`, `remove`
 - See [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
   [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples.
 

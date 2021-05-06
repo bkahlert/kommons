@@ -1,6 +1,5 @@
 package koodies.docker
 
-import koodies.docker.Docker.run
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.Exec
@@ -9,12 +8,10 @@ import koodies.exec.ansiRemoved
 import koodies.exec.io
 import koodies.exec.output
 import koodies.logging.InMemoryLogger
-import koodies.logging.expectThatLogged
 import koodies.test.HtmlFile
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.Smoke
 import koodies.test.SvgFile
-import koodies.test.SystemIOExclusive
 import koodies.test.UniqueId
 import koodies.test.asserting
 import koodies.test.copyTo
@@ -22,13 +19,12 @@ import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.containsEscapeSequences
 import koodies.text.toStringMatchesCurlyPattern
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.contains
+import strikt.assertions.any
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
@@ -110,67 +106,10 @@ class DockerTest {
         }
     }
 
-    @Disabled
-    @DockerRequiring([BusyBox::class])
-    @Nested
-    inner class RunCommand {
-
-        @SystemIOExclusive
-        @Test
-        fun `should run`() {
-            val process = Docker.run {
-                image { "busybox" }
-                commandLine {
-                    command { "echo" }
-                    arguments { +"test" }
-                }
-            }
-            expectThat(process.io.output.ansiRemoved).isEqualTo("test")
-        }
-
-        @Test
-        fun InMemoryLogger.`should use existing logger`() {
-            run {
-                image { "busybox" }
-                commandLine {
-                    command { "echo" }
-                    arguments { +"test" }
-                }
-            }
-            expectThatLogged().contains("test")
-        }
+    @Test
+    fun `should search`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        expectThat(Docker.search("busybox")).any { image.isEqualTo(BusyBox) }
     }
-
-    @DockerRequiring([BusyBox::class])
-    @Nested
-    inner class StopCommand {
-
-//        @SystemIoExclusive
-//        @Test
-//        fun `should stop`() {
-//            val process = Docker.stop {
-//                image { official("busybox") }
-//                commandLine {
-//                    command { "echo" }
-//                    arguments { +"test" }
-//                }
-//            }
-//            expectThat(process.output()).isEqualTo("test")
-//        }
-//
-//        @Test
-//        fun InMemoryLogger.`should use existing logger`() {
-//            stop {
-//                image { official("busybox") }
-//                commandLine {
-//                    command { "echo" }
-//                    arguments { +"test" }
-//                }
-//            }
-//            expectThatLogged().contains("test")
-//        }
-    }
-
 
     @Suppress("SpellCheckingInspection")
     object LibRSvg : DockerImage("minidocks", listOf("librsvg"))
