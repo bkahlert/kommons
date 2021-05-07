@@ -570,33 +570,6 @@ fun <T> testEach(
 ): List<DynamicContainer> = subjects.toList().testEach(containerNamePattern, init)
 
 /**
- * Creates one [DynamicContainer] for each element of `this` array
- * using the specified [DynamicTestsWithSubjectBuilder] based [init].
- *
- * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
- * which supports curly placeholders `{}` like [SLF4J] does.
- */
-@DynamicTestsDsl
-@JvmName("testArrayAsReceiver")
-fun <T> Array<T>.testEach(
-    containerNamePattern: String? = null,
-    init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit,
-): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
-
-/**
- * Creates one [DynamicContainer] for each key-value pair of `this` map
- * using the specified [DynamicTestsWithSubjectBuilder] based [init].
- *
- * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
- * which supports curly placeholders `{}` like [SLF4J] does.
- */
-@DynamicTestsDsl
-fun <K, V> Map<K, V>.testEach(
-    containerNamePattern: String? = null,
-    init: DynamicTestsWithSubjectBuilder<Pair<K, V>>.(Pair<K, V>) -> Unit,
-): List<DynamicContainer> = toList().testEach(containerNamePattern, init)
-
-/**
  * Builder for arbitrary test trees consisting of instances of [DynamicContainer] and [DynamicTest]
  * and a fluent transition to [Strikt](https://strikt.io) assertions.
  */

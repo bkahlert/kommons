@@ -4,6 +4,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
+import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
@@ -124,10 +125,10 @@ class SmartRenderingLoggerKtTest {
     }
 
 
-    private fun borderTest(borderPattern: String, nonborderPattern: String, block: RenderingLogger.() -> Any) = listOf(
+    private fun borderTest(borderPattern: String, noBorderPattern: String, block: RenderingLogger.() -> Any) = testEach(
         SOLID to borderPattern,
-        DOTTED to nonborderPattern,
-    ).testEach("border={}") { (border, expectation) ->
+        DOTTED to noBorderPattern,
+        containerNamePattern = "border={}") { (border, expectation) ->
         val label = border.name
         val logger = InMemoryLogger(caption = "InMemoryLogger", border = SOLID).withUnclosedWarningDisabled
             .apply { logging(caption = "$label caption", border = border) { block() } }
@@ -376,7 +377,7 @@ class SmartRenderingLoggerKtTest {
     inner class LoggingAfterResult {
 
         @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+        fun InMemoryLoggerFactory.`should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val logger = createLogger(opName)
             var delegate: RenderingLogger? = null
             logger.logging("test") {
@@ -399,7 +400,7 @@ class SmartRenderingLoggerKtTest {
         }
 
         @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged message and result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+        fun InMemoryLoggerFactory.`should log after logged message and result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val logger = createLogger(opName)
             var delegate: RenderingLogger? = null
             logger.logging("test") {

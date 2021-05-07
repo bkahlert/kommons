@@ -27,7 +27,7 @@ class KaomojisTest {
 
     @TestFactory
     fun `should create random Kaomoji from`() =
-        Kaomojis.Generator.values().testEach("{}") { category ->
+        testEach(Kaomojis.Generator.values(), "{}") { category ->
             val kaomoji = category.random()
             expecting { kaomoji.asCodePointSequence().count() } that { isGreaterThanOrEqualTo(3) }
         }

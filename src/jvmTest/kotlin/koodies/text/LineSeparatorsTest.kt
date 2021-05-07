@@ -111,14 +111,14 @@ class LineSeparatorsTest {
     }
 
     @TestFactory
-    fun lineOperations() = mapOf(
+    fun lineOperations() = testEach(
         "lineSequence" to { input: CharSequence, ignoreTrailSep: Boolean, keepDelimiters: Boolean ->
             input.lineSequence(ignoreTrailingSeparator = ignoreTrailSep, keepDelimiters = keepDelimiters).toList()
         },
         "lines" to { input: CharSequence, ignoreTrailSep: Boolean, keepDelimiters: Boolean ->
             input.lines(ignoreTrailingSeparator = ignoreTrailSep, keepDelimiters = keepDelimiters).toList()
-        }
-    ).testEach("{}(…)") { (_: String, operation: (CharSequence, Boolean, Boolean) -> Iterable<String>) ->
+        },
+        containerNamePattern = "{}(…)") { (_: String, operation: (CharSequence, Boolean, Boolean) -> Iterable<String>) ->
         val multiLineTrail = "1${CR}2${CRLF}3$PS"
         val multiLine = "1${CR}2${CRLF}3"
         val singleLine = "1"

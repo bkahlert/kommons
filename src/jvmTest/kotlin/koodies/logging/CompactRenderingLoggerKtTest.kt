@@ -1,6 +1,7 @@
 package koodies.logging
 
 import koodies.exec.IO
+import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.matchesCurlyPattern
@@ -186,7 +187,7 @@ class CompactRenderingLoggerKtTest {
     inner class LoggingAfterResult {
 
         @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+        fun InMemoryLoggerFactory.`should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val logger = createLogger(opName)
             var delegate: CompactRenderingLogger? = null
             logger.compactLogging("test") {
@@ -208,16 +209,17 @@ class CompactRenderingLoggerKtTest {
         }
 
         @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged message and result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
-            val logger = createLogger(opName)
-            var delegate: CompactRenderingLogger? = null
-            logger.compactLogging("test") {
-                delegate = this
-            }
-            delegate?.op()
-            expecting { logger } that {
-                toStringMatchesCurlyPattern(
-                    """
+        fun InMemoryLoggerFactory.`should log after logged message and result`() =
+            testEach(*LOG_OPERATIONS.toList().toTypedArray()) { (opName, op) ->
+                val logger = createLogger(opName)
+                var delegate: CompactRenderingLogger? = null
+                logger.compactLogging("test") {
+                    delegate = this
+                }
+                delegate?.op()
+                expecting { logger } that {
+                    toStringMatchesCurlyPattern(
+                        """
                      ╭──╴{}
                      │
                      │   test ✔︎
@@ -225,7 +227,7 @@ class CompactRenderingLoggerKtTest {
                      │
                      ╰──╴✔︎
                     """.trimIndent())
+                }
             }
-        }
     }
 }

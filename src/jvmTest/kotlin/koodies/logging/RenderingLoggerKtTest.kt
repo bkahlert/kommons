@@ -7,6 +7,7 @@ import koodies.io.path.withExtension
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
+import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.runtime.isDebugging
 import koodies.test.Smoke
@@ -401,7 +402,7 @@ class RenderingLoggerKtTest {
         }
 
         @TestFactory
-        fun `should log after logged result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+        fun `should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val (out, logger) = createLogger(opName) {
                 logLine { "line" }
                 logResult()
@@ -419,7 +420,7 @@ class RenderingLoggerKtTest {
         }
 
         @TestFactory
-        fun `should log after logged message and result`() = InMemoryLogger.LOG_OPERATIONS.testEach { (opName, op) ->
+        fun `should log after logged message and result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val (out, logger) = createLogger(opName) {
                 logResult()
             }
