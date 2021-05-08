@@ -40,6 +40,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 
 1. Commit your changes using `git commit`.
 2. Release candidate using `./gradlew candidate -Prelease.scope=minor`.
+   (increases with every call)
 
 ### Release a Final Version
 

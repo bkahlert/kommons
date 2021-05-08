@@ -53,7 +53,6 @@ plugins {
     id("nebula.release") version "15.3.1"
     id("nebula.source-jar") version "17.3.2"
     id("nebula.javadoc-jar") version "17.3.2"
-    id("nebula.nebula-bintray-publishing") version "8.5.0"
 }
 
 allprojects {
@@ -240,7 +239,7 @@ publishing {
                 archiveClassifier.set("kdoc")
             })
         }
-        
+
         if (version.isFinal()) {
             withType<MavenPublication>().configureEach {
                 artifact(tasks.register<Jar>("${name}JavaDocJar") {
