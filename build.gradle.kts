@@ -51,6 +51,7 @@ plugins {
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.1"
+    id("nebula.maven-publish") version "17.3.2"
     id("nebula.source-jar") version "17.3.2"
     id("nebula.javadoc-jar") version "17.3.2"
 }
