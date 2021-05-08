@@ -243,6 +243,7 @@ publishing {
 
         if (version.isFinal()) {
             withType<MavenPublication>().configureEach {
+                nebulaRelease
                 artifact(tasks.register<Jar>("${name}JavaDocJar") {
                     dependsOn(tasks.dokkaHtml)
                     from(tasks.dokkaHtml.flatMap { it.outputDirectory })
