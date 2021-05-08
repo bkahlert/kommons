@@ -195,9 +195,6 @@ kotlin {
         sign(publishing.publications)
     }
 
-    val publicationsFromMainHost =
-        listOf(jvm(), js()).map { it.name } + "kotlinMultiplatform"
-
     publishing {
 
         repositories {
@@ -225,12 +222,6 @@ kotlin {
         }
 
         publications {
-            matching { it.name in publicationsFromMainHost }.all {
-                val targetPublication = this@all
-                tasks.withType<AbstractPublishToMaven>()
-                    .matching { it.publication == targetPublication }
-                    .configureEach { onlyIf { findProperty("isMainHost") == "true" } }
-            }
 
             withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
                 artifact(tasks.register<Jar>("dokkaHtmlJar") {
