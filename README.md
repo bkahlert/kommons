@@ -101,7 +101,6 @@ with(tempDir()) {
 
     // convert SVG to PNG using command line-style docker command
     docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg")
-    resolve("koodies.png")
 
     // convert PNG to ASCII art using shell script-style docker command
     docker("rafib/awesome-cli-binaries", logger = null) {
