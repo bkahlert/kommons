@@ -213,15 +213,15 @@ kotlin {
                     password = findPropertyEverywhere("sonatypeNexusPassword", "")
                 }
             }
-//
-//            maven {
-//                name = "GitHubPackages"
-//                url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-//                credentials {
-//                    username = findPropertyEverywhere("githubUsername", "")
-//                    password = findPropertyEverywhere("githubToken", "")
-//                }
-//            }
+
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+                credentials {
+                    username = findPropertyEverywhere("githubUsername", "")
+                    password = findPropertyEverywhere("githubToken", "")
+                }
+            }
         }
 
         publications {
