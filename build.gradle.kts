@@ -51,7 +51,6 @@ plugins {
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.1"
-    id("nebula.maven-publish") version "17.3.2"
     id("nebula.source-jar") version "17.3.2"
     id("nebula.javadoc-jar") version "17.3.2"
 }
@@ -81,36 +80,7 @@ group = "com.bkahlert"
 
 repositories {
     mavenCentral()
-
-    maven {
-        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-        credentials {
-            username = project.findPropertyEverywhere("githubUsername", "")
-            password = project.findPropertyEverywhere("githubToken", "")
-        }
-    }
-
-    maven {
-        name = "MavenCentral"
-        url = if (version.isFinal()) {
-            uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-        } else {
-            uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        }
-        credentials {
-            username = findPropertyEverywhere("sonatypeNexusUsername", "")
-            password = findPropertyEverywhere("sonatypeNexusPassword", "")
-        }
-    }
-
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-        credentials {
-            username = findPropertyEverywhere("githubUsername", "")
-            password = findPropertyEverywhere("githubToken", "")
-        }
-    }
+    jcenter()
 }
 
 kotlin {
@@ -220,30 +190,58 @@ kotlin {
             }
         }
     }
-}
 
-// TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
+    signing {
+        sign(publishing.publications)
+    }
 
-// TODO see https://github.com/christophsturm/filepeek/pull/11/files
+    val publicationsFromMainHost =
+        listOf(jvm(), js()).map { it.name } + "kotlinMultiplatform"
 
-signing {
-    sign(publishing.publications)
-}
+    publishing {
 
-publishing {
-    publications {
-        withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
-            artifact(tasks.register<Jar>("dokkaHtmlJar") {
-                group = DOCUMENTATION_GROUP
-                dependsOn(tasks.dokkaHtml)
-                from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-                archiveClassifier.set("kdoc")
-            })
+        repositories {
+            maven {
+                name = "MavenCentral"
+                url = if (version.isFinal()) {
+                    uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                } else {
+                    uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                }
+                credentials {
+                    username = findPropertyEverywhere("sonatypeNexusUsername", "")
+                    password = findPropertyEverywhere("sonatypeNexusPassword", "")
+                }
+            }
+//
+//            maven {
+//                name = "GitHubPackages"
+//                url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+//                credentials {
+//                    username = findPropertyEverywhere("githubUsername", "")
+//                    password = findPropertyEverywhere("githubToken", "")
+//                }
+//            }
         }
 
-        if (version.isFinal()) {
+        publications {
+            matching { it.name in publicationsFromMainHost }.all {
+                val targetPublication = this@all
+                tasks.withType<AbstractPublishToMaven>()
+                    .matching { it.publication == targetPublication }
+                    .configureEach { onlyIf { findProperty("isMainHost") == "true" } }
+            }
+
+            withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
+                artifact(tasks.register<Jar>("dokkaHtmlJar") {
+                    group = DOCUMENTATION_GROUP
+                    dependsOn(tasks.dokkaHtml)
+                    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+                    archiveClassifier.set("kdoc")
+                })
+            }
+
             withType<MavenPublication>().configureEach {
-                nebulaRelease
                 artifact(tasks.register<Jar>("${name}JavaDocJar") {
                     dependsOn(tasks.dokkaHtml)
                     from(tasks.dokkaHtml.flatMap { it.outputDirectory })
@@ -290,3 +288,7 @@ publishing {
         }
     }
 }
+
+// TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
+
+// TODO see https://github.com/christophsturm/filepeek/pull/11/files

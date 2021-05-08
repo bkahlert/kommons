@@ -1,5 +1,8 @@
 # Releasing
 
+[Maven Central Nexus](https://oss.sonatype.org/#welcome)  
+[Sonatype Jira](https://issues.sonatype.org/secure/Dashboard.jspa)
+
 New versions are released using the [Nebula Release Plugin](https://github.com/nebula-plugins/nebula-release-plugin) which
 uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repository.
 
