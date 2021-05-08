@@ -132,6 +132,11 @@ public actual operator fun BigDecimal.inc(): BigDecimal = this.add(BigDecimal.ON
 public actual operator fun BigDecimal.dec(): BigDecimal = this.subtract(BigDecimal.ONE)
 
 /**
+ * Whether this big decimal represents an integer.
+ */
+public actual val BigDecimal.isInteger: Boolean get() = stripTrailingZeros().scale() <= 0
+
+/**
  * Returns the value of this [Int] number as a [BigDecimal].
  */
 public actual fun Int.toBigDecimal(): BigDecimal = toBigDecimalKotlin()

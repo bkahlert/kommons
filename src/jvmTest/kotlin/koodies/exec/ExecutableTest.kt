@@ -1,7 +1,7 @@
 package koodies.exec
 
 import koodies.collections.synchronizedListOf
-import koodies.exec.Process.ExitState.Failure
+import koodies.exec.Process.State.Exited.Failed
 import koodies.shell.ShellScript
 import koodies.test.UniqueId
 import koodies.test.tests
@@ -58,7 +58,7 @@ class ExecutableTest {
 
     @TestFactory
     fun `should return failed state on unexpected exit value`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
-        expectCatching { process.waitFor() }.isSuccess().isA<Failure>()
+        expectCatching { process.waitFor() }.isSuccess().isA<Failed>()
     }
 
     @Nested

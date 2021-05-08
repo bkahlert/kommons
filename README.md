@@ -85,9 +85,9 @@ CommandLine(…).exec().io.error.ansiRemoved
 
 ##### Typed (Exit) State
 
-- Access the state with `state`, which is either an instance of `Running` or `Terminated.`
-- Access the exit state with `exitState`, which is either an instance of `Success`, `Failure` or `Fatal`.
-- All (exit) states print nicely and provide a copy of all logged I/O, and state-dependent information such as the exit code.
+- Access the state with `state`, which is either an instance of `Running`, `Exited`
+  (with the sub states `Succeeded` and `Failed`) or `Excepted`.
+- All states print nicely and provide a copy of all logged I/O, and state-dependent information such as the exit code.
 - By default, processes are killed on VM shutdown, which can be configured.
 - Life-cycle callbacks can be registered.
 

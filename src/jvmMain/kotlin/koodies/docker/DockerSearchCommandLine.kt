@@ -12,7 +12,7 @@ import koodies.builder.buildList
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerExitStateHandler.Failure
+import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options.Companion.OptionsContext
 import koodies.exec.parse
@@ -139,7 +139,7 @@ public open class DockerSearchCommandLine(
 
             return commandLine.exec.logging(logger) {
                 errorsOnly("Searching up to ${limit.formattedAs.input} images with filters ${commandLine.options.filters.formattedAs.input}")
-            }.parse.columns<DockerSeachResult, Failure>(5) { (name, description, starCount, isOfficial, isAutomated) ->
+            }.parse.columns<DockerSeachResult, Failed>(5) { (name, description, starCount, isOfficial, isAutomated) ->
                 DockerSeachResult(DockerImage { name }, description, starCount.toIntOrNull() ?: 0, isOfficial.isNotBlank(), isAutomated.isNotBlank())
             } or { emptyList() }
         }

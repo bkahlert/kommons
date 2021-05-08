@@ -18,7 +18,6 @@ import strikt.assertions.isTrue
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class PollingKtTest {
@@ -30,7 +29,7 @@ class PollingKtTest {
         fun `should succeed if target state reached`() {
             var counter = Random(12).nextInt(5, 10)
             expectThat(measureTime { Duration.milliseconds(100).poll { --counter <= 0 }.indefinitely() })
-                .isLessThan(1.5.seconds)
+                .isLessThan(Duration.seconds(1.5))
         }
 
         @Test
@@ -102,11 +101,11 @@ class PollingKtTest {
         fun `should fail if time is up while condition still holds true`() {
             var counter = 1
             val timePassed = measureTime {
-                poll { false }.every(Duration.milliseconds(100)).noLongerThan({ counter++ > 0 }, 0.1.seconds) {}
+                poll { false }.every(Duration.milliseconds(100)).noLongerThan({ counter++ > 0 }, Duration.seconds(0.1)) {}
             }
             expect {
                 that(counter).isGreaterThan(0)
-                that(timePassed).isGreaterThan(0.1.seconds)
+                that(timePassed).isGreaterThan(Duration.seconds(0.1))
             }
         }
 

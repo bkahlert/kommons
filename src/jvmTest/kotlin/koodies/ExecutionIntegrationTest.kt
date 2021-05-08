@@ -1,12 +1,13 @@
 package koodies
 
+import koodies.docker.DockerRequiring
 import koodies.docker.docker
 import koodies.docker.dockerized
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.IO
-import koodies.exec.Process.ExitState.Failure
+import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.error
 import koodies.exec.exitCode
 import koodies.exec.output
@@ -24,6 +25,7 @@ import koodies.logging.expectThatLogged
 import koodies.logging.logged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFile
+import koodies.test.Smoke
 import koodies.test.SvgFile
 import koodies.test.UniqueId
 import koodies.test.asserting
@@ -49,7 +51,7 @@ import strikt.assertions.length
 import strikt.java.exists
 import kotlin.io.path.exists
 
-@Isolated
+@Smoke @Isolated
 class ExecutionIntegrationTest {
 
     @Test
@@ -144,7 +146,7 @@ class ExecutionIntegrationTest {
             !"exit 1"
         }.exec.logging { block { border { Border.NONE } } } check {
 
-            exitState { isA<Failure>() }
+            state { isA<Failed>() }
 
             io.ansiRemoved {
                 matchesCurlyPattern("""
@@ -199,7 +201,7 @@ class ExecutionIntegrationTest {
         }
     }
 
-    @Test
+    @DockerRequiring @Test
     fun `should exec using docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         CommandLine("printenv", "HOME").exec() check {
@@ -215,7 +217,7 @@ class ExecutionIntegrationTest {
         }
     }
 
-    @Test
+    @DockerRequiring @Test
     fun `should exec composed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         SvgFile.copyTo(resolve("koodies.svg"))
 
@@ -229,8 +231,6 @@ class ExecutionIntegrationTest {
             """
         }.io.output.ansiKept.let { println(it.resetLines()) }
     }
-
-    // TODO pi example
 
     @Test
     fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {

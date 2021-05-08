@@ -2,8 +2,9 @@ package koodies.exec
 
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.Failure
-import koodies.exec.Process.ExitState.Success
+import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.Process.State.Exited.Succeeded
+import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.io.path.Locations
 import koodies.io.path.pathString
@@ -32,8 +33,6 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
 class ExecutorTest {
@@ -432,7 +431,7 @@ fun Builder<String>.logsIO(ignorePrefix: String, curlyPattern: String): Builder<
     get { mapLines { it.withoutPrefix(ignorePrefix) } }.toStringMatchesCurlyPattern(curlyPattern)
 
 
-inline fun <reified T : Exec> Builder<T>.succeeds(): Builder<Success> = exited.isA()
+inline fun <reified T : Exec> Builder<T>.succeeds(): Builder<Succeeded> = exited.isA()
 inline fun <reified T : Exec> Builder<T>.logsSuccessfulIO(): Builder<String> = logsIO(successfulIO)
 
 @JvmName("logsSuccessfulIOInMemoryLogger")
@@ -449,8 +448,8 @@ val successfulIO = """
     Process {} terminated successfully at {}
 """.trimIndent()
 
-inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failure> =
-    exited.isA<Failure>().assert("unsuccessfully with non-zero exit code") {
+inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failed> =
+    exited.isA<Failed>().assert("unsuccessfully with non-zero exit code") {
         val actual = it.exitCode
         when (actual != 0) {
             true -> pass()
@@ -474,9 +473,9 @@ val failedIO = """
     {{}}
 """.trimIndent()
 
-inline val Builder<out Process>.exitState get() = get("exit state") { exitState }
-inline fun <reified T : Exec> Builder<T>.runsSynchronously(): Builder<ExitState> = exitState.isNotNull()
-inline fun <reified T : Exec> Builder<T>.runsAsynchronously(): Builder<Nothing> = exitState.isNull()
+inline val Builder<out Process>.state get() = get("exit state") { state }
+inline fun <reified T : Exec> Builder<T>.runsSynchronously(): Builder<ExitState> = state.isA()
+inline fun <reified T : Exec> Builder<T>.runsAsynchronously(): Builder<Running> = state.isA()
 
 
 inline val <reified T : Process> Builder<T>.joined: Builder<T>

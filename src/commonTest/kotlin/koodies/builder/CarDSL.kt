@@ -19,7 +19,8 @@ import koodies.unit.centi
 import koodies.unit.kilo
 import koodies.unit.milli
 import kotlin.time.Duration
-import kotlin.time.hours
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.DurationUnit.HOURS
 
 class CarDSL {
 
@@ -107,13 +108,13 @@ class CarDSL {
         companion object : Returning<SpeedContext, Speed>(SpeedContext) {
             object SpeedContext {
                 val Int.km: Distance get() = kilo.m
-                val hour: Duration = 1.hours
+                val hour: Duration = hours(1)
                 infix fun Distance.per(time: Duration): Speed = Speed(this, time)
                 val BigDecimal.m: Distance get() = Distance(this)
             }
         }
 
-        override fun toString(): String = "${(distance.meter.toDouble() / 1000.0) / time.inHours}km/h"
+        override fun toString(): String = "${(distance.meter.toDouble() / 1000.0) / time.toDouble(HOURS)}km/h"
     }
 
     data class Engine(val power: EnginePower, val maxSpeed: Speed) {

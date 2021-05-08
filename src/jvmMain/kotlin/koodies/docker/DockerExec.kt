@@ -10,14 +10,12 @@ import koodies.docker.DockerContainer.State.Existent.Removing
 import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
-import koodies.docker.DockerExitStateHandler.Failure
 import koodies.exec.Exec
 import koodies.exec.Exec.Companion.createDump
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.Fatal
-import koodies.exec.Process.ProcessState
+import koodies.exec.Process.State
+import koodies.exec.Process.State.Excepted
 import koodies.text.ANSI.ansiRemoved
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 
 /**
@@ -28,26 +26,18 @@ public open class DockerExec(
     private val exec: Exec,
 ) : Exec by exec {
 
-    override var exitState: ExitState? = null
-    override val state: ProcessState
-        get() = exitState ?: when (container.state) {
-            is NotExistent, is Created, is Restarting, is Running, is Removing, is Paused -> ProcessState.Running(pid, format())
-            is Exited, is Dead, is Error -> run {
-                val message = "Backed Docker exec no more running but no exit state is known."
-                val dump = createDump(message)
-                Fatal(IllegalStateException(dump.ansiRemoved), -1, pid, dump, io, message).also { exitState = it }
-            }
-        }.also { onExit } // hack to trigger lazy on exit register an exit state storing future
-
-    override val onExit: CompletableFuture<out ExitState> by lazy {
-        exec.onExit.apply {
-            thenAccept {
-                exitState = kotlin.runCatching { DockerExitStateHandler.handle(it) }.getOrNull()
-                    ?.takeIf { it is Failure.ConnectivityProblem }
-                    ?: it
-            }
-        }
-    }
+    private var finalState: ExitState? = null
+    override val state: State
+        get() {
+            return (exec.state as? ExitState) ?: when (container.state) {
+                is NotExistent, is Created, is Restarting, is Running, is Removing, is Paused -> State.Running(pid, format())
+                is Exited, is Dead, is Error -> run {
+                    val message = "Backed Docker exec no more running but no exit state is known."
+                    val dump = createDump(message)
+                    Excepted(pid, -1, io, IllegalStateException(dump.ansiRemoved), dump, message).also { finalState = it }
+                }
+            }.also { onExit }
+        } // hack to trigger lazy on exit register an exit state storing future
 
     /**
      * Stops this [Exec] by stopping its container.

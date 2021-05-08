@@ -25,7 +25,7 @@ class DockerSearchCommandLineTest {
         expectThat(dockerSearchCommandLine).isEqualTo(result)
     }
 
-    @Test
+    @DockerRequiring @Test
     fun `should search`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectThat(DockerSearchCommandLine.search(
             "busybox",

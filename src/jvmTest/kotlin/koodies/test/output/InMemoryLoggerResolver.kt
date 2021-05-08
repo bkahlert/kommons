@@ -74,7 +74,7 @@ object TestLogging {
     init {
         onExit {
             val count = streams.size
-            val size = streams.values.sumBy { it.size() }.bytes
+            val size = streams.values.sumOf { it.size() }.bytes
             println("$count tests logged a total of $size".wrapWithBorder())
         }
     }

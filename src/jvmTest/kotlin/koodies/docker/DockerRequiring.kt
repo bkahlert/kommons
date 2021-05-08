@@ -106,6 +106,6 @@ class DockerRunningCondition : ExecutionCondition {
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
         context.testName.let { testName ->
             if (dockerUpAndRunning) enabled("Test ${testName.quoted} enabled because Docker is found running.")
-            else disabled("Test ${testName.quoted} enabled because Docker is found running.")
+            else disabled("Test ${testName.quoted} disabled because Docker was NOT found running.")
         }
 }

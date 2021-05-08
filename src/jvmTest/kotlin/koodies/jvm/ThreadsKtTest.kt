@@ -1,13 +1,12 @@
 package koodies.jvm
 
 import koodies.logging.InMemoryLogger
+import koodies.test.Slow
 import koodies.time.sleep
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
@@ -20,14 +19,14 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.milliseconds
 
 @Isolated // time critical
 class ThreadsKtTest {
 
     @Nested
     inner class BusyThreadTest {
-        @Test
+
+        @Slow @Test
         fun `should not complete until asked`(tracer: InMemoryLogger) {
             val thread = BusyThread(tracer)
 

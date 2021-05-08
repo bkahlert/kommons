@@ -4,6 +4,7 @@ import koodies.test.HtmlFile
 import koodies.test.Slow
 import koodies.test.test
 import koodies.test.testEach
+import koodies.unit.bytes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
@@ -14,8 +15,6 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 class LevenshteinDistanceKtTest {
 
@@ -86,7 +85,7 @@ fun <T : CharSequence> Assertion.Builder<T>.levenshteinDistance(other: CharSeque
  * For strings of length 1000 or less the result is the same as of [levenshteinDistance].
  */
 fun <T : CharSequence> Assertion.Builder<T>.fuzzyLevenshteinDistance(other: CharSequence): Assertion.Builder<Double> =
-    get("fuzzy Levenshtein distance %s") {
+    get("fuzzy Levenshtein distance %s: ${other.length.bytes}") {
         val thisString = "$this"
         val otherString = "$other"
         when {

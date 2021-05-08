@@ -32,7 +32,6 @@ public object RegularExpressions {
     private val COMMENT_END: Regex = Regex("\\*/")
     private val OPTIONAL_OPTIONALITY: Regex = Regex("[?!]?")
 
-    // TODO add regex comments
     public fun packageRegex(groupName: String?): Regex = Regex("(?:\\w+\\.)*(?:\\w+)").group(groupName)
 
     public fun fullyQualifiedClassRegex(groupNamePrefix: String?): Regex {

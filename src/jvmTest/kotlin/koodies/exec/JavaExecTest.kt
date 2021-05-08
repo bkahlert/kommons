@@ -6,16 +6,17 @@ import koodies.exec.IO.Meta
 import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.Process.ExitState.Failure
-import koodies.exec.Process.ExitState.Fatal
-import koodies.exec.Process.ExitState.Success
-import koodies.exec.Process.ProcessState.Running
-import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.Process.State.Excepted
+import koodies.exec.Process.State.Exited
+import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.Process.State.Exited.Succeeded
+import koodies.exec.Process.State.Running
 import koodies.io.path.pathString
 import koodies.io.path.randomPath
 import koodies.jvm.wait
 import koodies.shell.ShellScript
 import koodies.test.Slow
+import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.testWithTempDir
@@ -50,9 +51,11 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
 class JavaExecTest {
@@ -75,7 +78,7 @@ class JavaExecTest {
         ) { operation ->
             withTempDir(uniqueId) {
                 val exec = createCompletingExec().operation()
-                expecting { exec.state } that { isA<Terminated>() }
+                expecting { exec.state } that { isA<Exited>() }
                 expecting { exec } that { completesWithIO() }
                 expecting { poll { exec.successful == true }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(8)) } that { isTrue() }
             }
@@ -218,7 +221,7 @@ class JavaExecTest {
         @Test
         fun `by waiting for`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec = createCompletingExec(0)
-            expectThat(exec.waitFor()).isA<Success>()
+            expectThat(exec.waitFor()).isA<Succeeded>()
         }
 
         @Test
@@ -238,7 +241,6 @@ class JavaExecTest {
         fun `should return same termination on multiple calls`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec = createCompletingExec(0)
             expectThat(exec.waitFor()) {
-                isSameInstanceAs(exec.exitState)
                 isSameInstanceAs(exec.state)
             }
         }
@@ -252,7 +254,7 @@ class JavaExecTest {
                 measureTime {
                     val exec = createLoopingExec()
                     that(exec) {
-                        destroyOperation.invoke(this).joined.hasState<Failure> {
+                        destroyOperation.invoke(this).joined.hasState<Failed> {
                             exitCode.isGreaterThan(0)
                         }
                         not { alive }.get { this.alive }.isFalse()
@@ -294,7 +296,7 @@ class JavaExecTest {
                 expectThat(createCompletingExec().addPreTerminationCallback {
                     throw RuntimeException("test")
                 }.onExit).wait().isSuccess()
-                    .isA<Fatal>().get { exception.message }.isEqualTo("test")
+                    .isA<Excepted>().get { exception }.isNotNull().message.isEqualTo("test")
             }
         }
 
@@ -304,7 +306,7 @@ class JavaExecTest {
             @Test
             fun `should succeed on 0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(0)
-                expectThat(exec.waitFor()).isA<Success>().io.any {
+                expectThat(exec.waitFor()).isA<Succeeded>().io.any {
                     contains("terminated successfully")
                 }
             }
@@ -340,7 +342,7 @@ class JavaExecTest {
                 }
             }
 
-            @Test
+            @Smoke @Test
             fun `should exit with Successful termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(0)
                 expectThat(exec).succeeds().and {
@@ -358,23 +360,19 @@ class JavaExecTest {
             @Test
             fun `should fail on non-0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(42)
-                expectThat(exec.waitFor()).isA<Failure>().io.any {
-                    this.ansiRemoved.contains("terminated with exit code 42")
-                }
+                expectThat(exec.waitFor()).isA<Failed>().io.any { ansiRemoved.contains("terminated with exit code 42") }
             }
 
             @Test
             fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(42)
-                expectThat(exec.waitFor()).isA<Failure>().io.any {
-                    this.ansiRemoved.contains("terminated with exit code 42")
-                }
+                expectThat(exec.waitFor()).isA<Failed>().io.any { ansiRemoved.contains("terminated with exit code 42") }
             }
 
             @Test
             fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(42)
-                expectThat(exec.waitFor()).isA<Failure>()
+                expectThat(exec.waitFor()).isA<Failed>()
                     .io().containsDump()
             }
 
@@ -387,7 +385,7 @@ class JavaExecTest {
             @Test
             fun `should fail on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(42)
-                expectThat(exec.waitFor()).isA<Failure>()
+                expectThat(exec.waitFor()).isA<Failed>()
             }
 
             @Test
@@ -395,7 +393,7 @@ class JavaExecTest {
                 var callbackCalled = false
                 val exec = createCompletingExec(42, execTerminationCallback = { callbackCalled = true })
                 expect {
-                    expectThat(exec.waitFor()).isA<Failure>()
+                    expectThat(exec.waitFor()).isA<Failed>()
                     expectThat(callbackCalled).isTrue()
                 }
             }
@@ -409,11 +407,11 @@ class JavaExecTest {
                 }
             }
 
-            @Test
+            @Smoke @Test
             fun `should exit with failed exit state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.onExit).wait().isSuccess()
-                    .isA<Failure>() and {
+                    .isA<Failed>() and {
                     status.lines().first().matchesCurlyPattern("Process ${exec.pid} terminated with exit code ${exec.exitCode}.")
                     containsDump()
                     pid.isGreaterThan(0)
@@ -434,15 +432,15 @@ class JavaExecTest {
                 ): Exec =
                     createCompletingExec(
                         exitValue = 42,
-                        exitStateHandler = { throw RuntimeException("handler error") },
+                        exitStateHandler = { _, _, _ -> throw RuntimeException("handler error") },
                         execTerminationCallback = execTerminationCallback
                     )
 
                 @Test
                 fun `should exit fatally on exit handler exception`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val exec = fatallyFailingExec()
-                    expectThat(exec.waitFor()).isA<Fatal>().and {
-                        get { exception.message }.isEqualTo("handler error")
+                    expectThat(exec.waitFor()).isA<Excepted>().and {
+                        get { exception }.isNotNull().message.isEqualTo("handler error")
                         status.ansiRemoved.isEqualTo("Unexpected error terminating process ${exec.pid} with exit code 42:$LF\thandler error")
                         io.any { contains("handler error") }
                     }
@@ -451,7 +449,7 @@ class JavaExecTest {
                 @Test
                 fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     val exec = fatallyFailingExec()
-                    expectThat(exec.waitFor()).isA<Fatal>().containsDump()
+                    expectThat(exec.waitFor()).isA<Excepted>().containsDump()
                 }
 
                 @Test
@@ -459,18 +457,18 @@ class JavaExecTest {
                     var callbackCalled = false
                     val exec = fatallyFailingExec { callbackCalled = true }
                     expect {
-                        that(exec.onExit).wait().isSuccess().isA<Fatal>()
+                        that(exec.onExit).wait().isSuccess().isA<Excepted>()
                         that(callbackCalled).isTrue()
                     }
                 }
 
-                @Test
+                @Smoke @Test
                 fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     var termination: Any? = null
                     val exec = fatallyFailingExec().addPostTerminationCallback { termination = it }
                     expectThat(exec.onExit).wait()
                         .isSuccess()
-                        .isA<Fatal>()
+                        .isA<Excepted>()
                         .isSameInstanceAs(termination)
                 }
             }
@@ -494,7 +492,7 @@ fun createCompletingScript(
 ) = ShellScript {
     !""">&1 echo "test out""""
     !""">&2 echo "test err""""
-    sleep.takeIf { it.isPositive() }?.also { !"sleep ${it.inSeconds}" }
+    sleep.takeIf { it.isPositive() }?.also { !"sleep ${it.toDouble(DurationUnit.SECONDS)}" }
     !"""exit $exitValue"""
 }
 
@@ -561,11 +559,11 @@ val Builder<out List<IO>>.ansiKept: DescribeableBuilder<String>
     get() = get("ANSI escape codes kept") { IOSequence(this).ansiKept }
 
 @JvmName("failureContainsDump")
-fun <T : Failure> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =
+fun <T : Failed> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =
     with({ dump }) { isNotNull().and { containsDump(*containedStrings) } }
 
 @JvmName("fatalContainsDump")
-fun <T : Fatal> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =
+fun Builder<Excepted>.containsDump(vararg containedStrings: String = emptyArray()) =
     with({ dump }) { containsDump(*containedStrings) }
 
 fun Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh")) {
@@ -608,21 +606,21 @@ inline val <reified T : Process> Builder<T>.stopped: Builder<T>
 inline val <reified T : Process> Builder<T>.killed: Builder<T>
     get() = get("with kill() called") { kill() }.isA()
 
-inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
+inline fun <reified T : Process.State> Builder<out Process>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<out Process> =
     compose("state") {
         get { state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
-inline fun <reified T : Process.ProcessState> Builder<out Process>.hasState(
+inline fun <reified T : Process.State> Builder<out Process>.hasState(
 ): Builder<out Process> =
     compose("state") {
         get { state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
 
-inline val Builder<out Process.ProcessState>.status
+inline val Builder<out Process.State>.status
     get(): Builder<String> =
         get("status") { status }
 
@@ -630,19 +628,19 @@ inline val Builder<Running>.runningPid
     get(): Builder<Long> =
         get("pid") { pid }
 
-inline val <T : Process.ProcessState.Terminated> Builder<T>.pid
+inline val <T : ExitState> Builder<T>.pid
     get(): Builder<Long> =
         get("pid") { pid }
-inline val <T : Process.ProcessState.Terminated> Builder<T>.exitCode
+inline val <T : ExitState> Builder<T>.exitCode
     get(): Builder<Int> =
         get("exit code") { exitCode }
-inline val <T : Process.ProcessState.Terminated> Builder<T>.io
+inline val <T : ExitState> Builder<T>.io
     get(): Builder<List<IO>> =
         get("io") { io.toList() }
 
 
-inline val Builder<out Failure>.dump: Builder<String?>
+inline val Builder<out Failed>.dump: Builder<String?>
     get(): Builder<String?> = get("dump") { dump }
 
-fun Builder<out Process.ProcessState.Terminated>.io() =
+fun Builder<out ExitState>.io() =
     get("IO with kept ANSI escape codes") { io.ansiKept }

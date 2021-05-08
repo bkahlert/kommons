@@ -1,12 +1,10 @@
 package koodies.logging
 
-import koodies.exec.alive
 import koodies.exec.mock.ExecMock
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.test.expecting
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.Semantics.Symbols
@@ -43,20 +41,6 @@ class ReturnValueKtTest {
     )
 
     private val expectations = successfulExpectations + failedExpectations
-
-    @Test
-    fun `should format as return value22`() {
-        val x = ExecMock.SUCCEEDED_EXEC
-        val state = x.state
-        val alive = x.alive
-        expecting { x } that {
-            not {
-                alive
-            }
-        }
-        val format = ReturnValue.format(x)
-        expecting { format } that { matchesCurlyPattern("✔︎") }
-    }
 
     @TestFactory
     fun `should format as return value`() = testEach(

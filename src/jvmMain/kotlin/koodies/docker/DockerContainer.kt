@@ -12,7 +12,7 @@ import koodies.docker.DockerContainer.State.Existent.Removing
 import koodies.docker.DockerContainer.State.Existent.Restarting
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
-import koodies.docker.DockerExitStateHandler.Failure
+import koodies.docker.DockerExitStateHandler.Failed
 import koodies.exec.Process.ExitState
 import koodies.exec.parse
 import koodies.io.path.pathString
@@ -188,7 +188,7 @@ public class DockerContainer(public val name: String) {
                 options { all by true; container.run { exactName(name) } }
             }.exec.logging(logger) {
                 noDetails("Checking status of ${container.name.formattedAs.input}")
-            }.parse.columns<State, Failure>(3) { (_, state, status) ->
+            }.parse.columns<State, Failed>(3) { (_, state, status) ->
                 when (state.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }) {
                     Created::class.simpleName -> Created(status)
                     Restarting::class.simpleName -> Restarting(status)
@@ -209,7 +209,7 @@ public class DockerContainer(public val name: String) {
                 options { all by true }
             }.exec.logging(logger) {
                 noDetails("Listing ${"all".formattedAs.input} containers")
-            }.parse.columns<DockerContainer, Failure>(3) { (name, _, _) ->
+            }.parse.columns<DockerContainer, Failed>(3) { (name, _, _) ->
                 DockerContainer(name)
             } or { error(it) }
 

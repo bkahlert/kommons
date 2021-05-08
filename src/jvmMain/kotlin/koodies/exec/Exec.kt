@@ -12,10 +12,9 @@ import koodies.exec.IO.Meta.Terminated
 import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.Process.ExitState.Failure
-import koodies.exec.Process.ExitState.Fatal
-import koodies.exec.Process.ExitState.Success
-import koodies.exec.Process.ProcessState
+import koodies.exec.Process.State
+import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.Process.State.Exited.Succeeded
 import koodies.io.path.Locations
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
@@ -48,7 +47,7 @@ import java.nio.file.Path
  *                        .execute().outputUTF8();
  *          success = true;
  *      } catch (InvalidExitValueException e) {
- *          System.out.println("Process exited with " + e.getExitValue());
+ *          System.out.println("Process terminated with " + e.getExitValue());
  *          output = e.getResult().outputUTF8();
  *      }
  * ```
@@ -59,7 +58,7 @@ import java.nio.file.Path
  * The following snippet provides the same functionality as the code from:
  * ```kotlin
  *      val exec = CommandLine("java", "-version").exec()
- *           .apply { if(exitState is Failure) println(exitCode) }
+ *           .apply { if(state is Failure) println(exitCode) }
  *      val (output, success) = exec.io.out to exec.successful
  * ```
  *
@@ -101,17 +100,17 @@ import java.nio.file.Path
  *
  * I/O can be accessed:
  * - always using the [io] property and
- * - after termination also using [exitState] (Each exit state is accompanied with a copy of all recorded [IO].)
+ * - as part of [state] (i.e. [ExitState] which is accompanied with a full copy of all recorded [IO])
  *
  * ### State Handling
- * Wrapped processes have a runtime [state] and an [exitState].
+ * Wrapped processes have a [state].
  *
  * States are modelled with sealed classes:
- * - [ProcessState.Running]
- * - [ProcessState.Terminated]
- *      - [ExitState.Success]
- *      - [ExitState.Failure]
- *      - [ExitState.Fatal]
+ * - [State.Running]
+ * - [State.Exited]
+ *      - [Succeeded]
+ *      - [Failed]
+ * - [State.Excepted]
  *
  * By default all non-`0` exit codes are considered failed.
  * Failed and fatal exit states contain a [dump] of the form
@@ -164,17 +163,17 @@ public interface Exec : Process {
 
         /**
          * Returns an [ExitStateHandler] that interprets `this` [Exec]
-         * once terminated as a [Success] if it exits with code 0
-         * and as a [Failure] otherwise.
+         * once terminated as a [Succeeded] if it exits with code 0
+         * and as a [Failed] otherwise.
          */
-        public fun Exec.fallbackExitStateHandler(): ExitStateHandler = ExitStateHandler { terminated ->
-            if (terminated.exitCode == 0) {
+        public fun fallbackExitStateHandler(): ExitStateHandler = ExitStateHandler { pid, exitCode, io ->
+            if (exitCode == 0) {
                 metaStream.emit(Terminated(this))
-                Success(terminated.pid, terminated.io)
+                Succeeded(pid, io)
             } else {
                 val relevantFiles = commandLine.includedFiles
-                val dump = createDump("Process ${terminated.pid.formattedAs.input} terminated with exit code ${terminated.exitCode.formattedAs.input}")
-                Failure(terminated.exitCode, terminated.pid, relevantFiles.map { it.toUri() }, dump, terminated.io)
+                val dump = createDump("Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.input}")
+                Failed(pid, exitCode, io, relevantFiles.map { it.toUri() }, dump)
             }
         }
 
@@ -274,17 +273,12 @@ public value class ColumnParser(
      *
      * Otherwise the [Failure] [Exec.exitState] is returned.
      */
-    public inline fun <T : Any, reified E : Failure> columns(num: Int, crossinline lineParser: (List<String>) -> T?): Either<List<T>, E> =
+    public inline fun <T : Any, reified E : ExitState> columns(num: Int, crossinline lineParser: (List<String>) -> T?): Either<List<T>, E> =
         when (val exitState = exec.waitFor()) {
-            is Fatal -> {
-                val commandLine = exec.commandLine.summary
-                error("Error running $commandLine: $exitState")
-            }
 
             is E -> Right(exitState)
-            is Failure -> error("Unmapped ${E::class.simpleName} ${exitState::class.simpleName}: $exitState")
 
-            is Success -> {
+            is Succeeded -> {
                 Left(exitState.io.asSequence()
                     .filterIsInstance<Output>()
                     .map { it.unformatted }
@@ -297,5 +291,7 @@ public value class ColumnParser(
                         }.getOrThrow()
                     }.toList())
             }
+
+            else -> error("Unmapped ${E::class.simpleName} ${exitState::class.simpleName}: $exitState")
         }
 }

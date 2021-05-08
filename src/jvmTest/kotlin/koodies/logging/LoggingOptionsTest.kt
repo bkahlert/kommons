@@ -1,6 +1,6 @@
 package koodies.logging
 
-import koodies.exec.Process.ExitState.Failure
+import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.hasState
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
@@ -592,7 +592,7 @@ class LoggingOptionsTest {
                     countDownAndBoom().exec.logging(this) {
                         errorsOnly("caption")
                     })
-                    .hasState<Failure>()
+                    .hasState<Failed>()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
                     │   caption: 4
@@ -649,7 +649,7 @@ class LoggingOptionsTest {
                     countDownAndBoom().exec.async.logging(this) {
                         errorsOnly("caption")
                     }.waitFor())
-                    .isA<Failure>()
+                    .isA<Failed>()
                 expectThatLogged().matchesCurlyPattern("""
                     {{}}
                     │   caption: 4

@@ -9,9 +9,8 @@ import koodies.exec.CommandLine
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.IO
 import koodies.exec.IO.Output
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ProcessState.Running
-import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.Process.State.Exited
+import koodies.exec.Process.State.Running
 import koodies.exec.Processor
 import koodies.exec.Processors.noopProcessor
 import koodies.exec.alive
@@ -144,7 +143,7 @@ class DockerExecTest {
                 val completedProcess = unprocessedProcess(uniqueId, "sleep", "1")
                 completedProcess.apply {
                     waitForCondition("Did not start in time.") { state is Running }
-                    waitForCondition("Did not complete in time.") { state is Terminated }
+                    waitForCondition("Did not complete in time.") { state is Exited }
                 }
             }
 
@@ -179,7 +178,7 @@ class DockerExecTest {
         @DockerRequiring([BusyBox::class]) @Test
         fun `should have failed state on non 0 exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dockerExec = createExec(uniqueId, "invalid")
-            expectThat(dockerExec).hasState<ExitState.Failure> { exitCode.isEqualTo(127) }
+            expectThat(dockerExec).hasState<Exited.Failed> { exitCode.isEqualTo(127) }
         }
 
         @Slow @DockerRequiring([BusyBox::class]) @Test

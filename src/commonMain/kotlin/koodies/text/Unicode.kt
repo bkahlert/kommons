@@ -188,7 +188,7 @@ public object Unicode {
     }
 
     @Suppress("SpellCheckingInspection")
-    public val whitespaces: List<Char> = Whitespaces.asChars
+    public val whitespaces: List<Char> by lazy { Whitespaces.asChars }
 
     public val controlCharacters: Map<Char, Char> = mapOf(
         '\u0000' to '\u2400', // ␀

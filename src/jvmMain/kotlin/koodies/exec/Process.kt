@@ -3,8 +3,9 @@ package koodies.exec
 import koodies.Exceptions.ISE
 import koodies.exception.toCompactString
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ProcessState.Running
-import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.Process.State.Excepted
+import koodies.exec.Process.State.Exited
+import koodies.exec.Process.State.Running
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators
 import koodies.text.Semantics.formattedAs
@@ -71,78 +72,159 @@ public interface Process : ReturnValue {
      *
      * The types are distinguished (which may have more differentiated specializations):
      * - [Running] for already started and not yet terminated processes
-     * - [Terminated] for started and no more running processes
+     * - [Exited] for processes that terminated with an [exitCode]
+     * - [Excepted] for processes that did not run properly
      */
-    public sealed class ProcessState(
+    public sealed interface State : ReturnValue {
+
+        /**
+         * PID of the process.
+         */
+        public val pid: Long
+
         /**
          * Textual representation of this state.
          */
-        public val status: String,
+        public val status: String
+
         /**
          * Whether this state represents a successful or failed state.
          *
          * Can be `null` if currently unknown (i.e. while running).
          */
-        public override val successful: Boolean?,
-    ) : ReturnValue {
-        override fun toString(): String = status
-        override val textRepresentation: String?
-            get() = when (successful) {
-                true -> null
-                null -> "async computation"
-                false -> status
-            }
+        public override val successful: Boolean?
 
         /**
          * State of a process that already started but not terminated, yet.
          */
         public class Running(
-            /**
-             * PID of the running process.
-             */
-            public val pid: Long,
-            status: String = "Process $pid is running.",
-        ) : ProcessState(status, null)
+            override val pid: Long,
+            override val status: String = "Process $pid is running.",
+        ) : State {
+            override val successful: Boolean? = null
+            override fun toString(): String = status
+            override val textRepresentation: String? = "async computation"
+        }
 
         /**
-         * State of a process that started and is no longer running.
+         * State of a process that terminated with an [exitCode].
          */
-        public open class Terminated(
+        public sealed class Exited(
+
             /**
              * PID of the terminated process at the time is was still running.
              */
-            public val pid: Long,
+            override val pid: Long,
+
             /**
-             * Code the terminated process exited with.
+             * Code the terminated process terminated with.
              */
             public val exitCode: Int,
+
             /**
              * All [IO] that was logged while the process was running.
              */
             public val io: IOSequence<IO>,
-            status: String = "Process $pid terminated with exit code $exitCode.",
-        ) : ProcessState(status, exitCode == 0)
+
+            ) : State {
+
+            /**
+             * State of a process that [Exited] successfully.
+             */
+            public open class Succeeded(
+                pid: Long,
+                io: IOSequence<IO>,
+                override val status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
+            ) : ExitState, Exited(pid, 0, io) {
+                override val successful: Boolean = true
+            }
+
+            /**
+             * State of a process that [Exited] erroneously.
+             */
+            public open class Failed(
+                pid: Long,
+                exitCode: Int,
+                io: IOSequence<IO> = IOSequence.EMPTY,
+
+                private val relevantFiles: List<URI> = emptyList(),
+                /**
+                 * Detailed information about the circumstances of a process's failed termination.
+                 */
+                public val dump: String? = null,
+                override val status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
+            ) : ExitState, Exited(pid, exitCode, io) {
+                override val successful: Boolean = false
+                override val textRepresentation: String? get() = toString()
+                override fun toString(): String =
+                    StringBuilder(status).apply {
+                        relevantFiles.forEach {
+                            append(LineSeparators.LF)
+                            append(it)
+                        }
+                        dump?.takeUnlessBlank()?.let {
+                            append(LineSeparators.LF)
+                            append(dump)
+                        }
+                    }.toString()
+            }
+        }
+
+        /**
+         * State of a process that did not run properly.
+         */
+        public class Excepted(
+
+            /**
+             * PID of the terminated process at the time is was still running.
+             */
+            public override val pid: Long,
+
+            /**
+             * Code the terminated process terminated with.
+             */
+            public override val exitCode: Int,
+
+            /**
+             * All [IO] that was logged so far.
+             */
+            public override val io: IOSequence<IO>,
+
+            /**
+             * Unexpected exception that lead to a process's termination.
+             */
+            public val exception: Throwable?,
+
+            /**
+             * Detailed information about the circumstances of a process's unexpected termination.
+             */
+            public val dump: String,
+
+            override val status: String = "Process excepted with ${exception.toCompactString()}",
+        ) : State, ExitState {
+            override val successful: Boolean = false
+            override fun toString(): String = status
+            override val textRepresentation: String = status
+        }
     }
 
     /**
      * The current state of this process.
      */
-    public val state: ProcessState
+    public val state: State
 
     /**
-     * The state this process exited with. Only set, if [state] is [ProcessState.Terminated].
-     */
-    public val exitState: ExitState?
-
-    /**
-     * Representation of the exit state of a [ProcessState.Terminated] [Process].
+     * Representation of the exit state of a [State.Exited] [Process].
      *
      * The types are distinguished (which may have more differentiated specializations):
      * - [Running] for already started and not yet terminated processes
-     * - [Terminated] for started and no more running processes
+     * - [Exited] for started and no more running processes
      */
-    public sealed class ExitState(exitCode: Int, pid: Long, io: IOSequence<IO>, status: String) :
-        Terminated(pid, exitCode, io, status), ReturnValue {
+    public interface ExitState : State {
+
+        public override val pid: Long
+        public val exitCode: Int
+        public val io: IOSequence<IO>
 
         /**
          * Implementors are used to delegate the creation of the [ExitState] to.
@@ -151,66 +233,10 @@ public interface Process : ReturnValue {
 
             /**
              * Returns the [ExitState] of a [Process] based on the
-             * given [terminated] [ProcessState].
+             * given [exited] [State].
              */
-            public fun handle(terminated: Terminated): ExitState
+            public fun Exec.handle(pid: Long, exitCode: Int, io: IOSequence<IO>): ExitState
         }
-
-        /**
-         * State of a process that [Terminated] successfully.
-         */
-        public open class Success(
-            pid: Long,
-            io: IOSequence<IO>,
-            status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
-        ) : ExitState(0, pid, io, status)
-
-        /**
-         * State of a process that [Terminated] erroneously.
-         */
-        public open class Failure(
-            exitCode: Int,
-            pid: Long,
-            private val relevantFiles: List<URI> = emptyList(),
-
-            /**
-             * Detailed information about the circumstances of a process's failed termination.
-             */
-            public val dump: String? = null,
-            io: IOSequence<IO> = IOSequence.EMPTY,
-            status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
-        ) : ExitState(exitCode, pid, io, status) {
-            override val textRepresentation: String? get() = toString()
-            override fun toString(): String =
-                StringBuilder(status).apply {
-                    relevantFiles.forEach {
-                        append(LineSeparators.LF)
-                        append(it)
-                    }
-                    dump?.takeUnlessBlank()?.let {
-                        append(LineSeparators.LF)
-                        append(dump)
-                    }
-                }.toString()
-        }
-
-        /**
-         * State of a process that [Terminated] with a technical [exception].
-         */
-        public open class Fatal(
-            /**
-             * Unexpected exception that lead to a process's termination.
-             */
-            public val exception: Throwable,
-            exitCode: Int,
-            pid: Long,
-            /**
-             * Detailed information about the circumstances of a process's unexpected termination.
-             */
-            public val dump: String,
-            io: IOSequence<IO>,
-            status: String = "Process ${pid.formattedAs.input} fatally failed with ${exception.toCompactString()}",
-        ) : ExitState(exitCode, pid, io, status)
     }
 
     /**
@@ -218,9 +244,9 @@ public interface Process : ReturnValue {
      *
      * `null` is the process has not terminated, yet.
      */
-    override val successful: Boolean? get() = exitState?.successful
-    override val symbol: String get() = exitState?.symbol ?: state.symbol
-    override val textRepresentation: String? get() = exitState?.textRepresentation ?: state.textRepresentation
+    override val successful: Boolean? get() = state.successful
+    override val symbol: String get() = state.symbol
+    override val textRepresentation: String? get() = state.textRepresentation
 
     /**
      * A completable future that returns an instances of this process once
@@ -245,7 +271,7 @@ public interface Process : ReturnValue {
      * Blocking method that waits until the program represented by this process
      * terminates and returns its [exitValue].
      */
-    @Deprecated("use waitFor", ReplaceWith("waitFor()")) public fun waitForTermination(): Terminated = waitFor()
+    @Deprecated("use waitFor", ReplaceWith("waitFor()")) public fun waitForTermination(): ExitState = waitFor()
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.
@@ -272,14 +298,14 @@ public val Process.isRunning: Boolean get() = state is Running
  * Returns `this` process's [ExitState.exitCode] if it terminated
  * or `null` otherwise.
  */
-public val Process.exitCodeOrNull: Int? get() = exitState?.exitCode
+public val Process.exitCodeOrNull: Int? get() = (state as? Exited)?.exitCode
 
 /**
- * Returns `this` process's [ExitState.exitCode].
+ * Returns `this` process's [Exited.exitCode].
  *
- * Throws an [IllegalStateException] if the process has not terminated.
+ * Throws an [IllegalStateException] if the process has not [Exited].
  */
-public val Process.exitCode: Int get() = exitState?.exitCode ?: throw ISE("Process $pid has not terminated.")
+public val Process.exitCode: Int get() = (state as? Exited)?.exitCode ?: throw ISE("Process $pid has not terminated.")
 
 /**
  * Writes the given [input] strings with a slight delay between

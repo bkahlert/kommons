@@ -1,8 +1,8 @@
 package koodies.exec.mock
 
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ExitState.Success
-import koodies.exec.Process.ProcessState
+import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.Process.State.Exited.Succeeded
+import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.enter
 import koodies.exec.exitCode
@@ -56,7 +56,6 @@ import strikt.assertions.isTrue
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.seconds
 
 @Execution(CONCURRENT)
 class JavaExecMockTest {
@@ -91,25 +90,25 @@ class JavaExecMockTest {
         @Nested
         inner class ExecMocks {
 
-            @TestFactory
+            @Slow @TestFactory
             fun `should run`() = test({ RUNNING_EXEC }) {
                 expecting { it() } that { starts() }
-                expecting { it() } that { hasState<ProcessState.Running> { status.contains("running") } }
+                expecting { it() } that { hasState<Running> { status.contains("running") } }
                 expecting("stays running for 5s") {
-                    val p = it(); poll { p.state !is ProcessState.Running }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5))
+                    val p = it(); poll { p.state !is Running }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5))
                 } that { isFalse() }
             }
 
             @TestFactory
             fun `should succeed`() = test({ SUCCEEDED_EXEC }) {
                 expecting { it() } that { succeeds() }
-                expecting { it() } that { hasState<Success> { status.contains("terminated successfully") } }
+                expecting { it() } that { hasState<Succeeded> { status.contains("terminated successfully") } }
             }
 
             @TestFactory
             fun `should fail`() = test({ FAILED_EXEC }) {
                 expecting { it() } that { fails() }
-                expecting { it() } that { hasState<ExitState.Failure> { status.contains("terminated with exit code") } }
+                expecting { it() } that { hasState<Failed> { status.contains("terminated with exit code") } }
             }
         }
     }
@@ -161,7 +160,7 @@ class JavaExecMockTest {
             val output = StringBuilder()
             val start = System.currentTimeMillis()
             while (!slowInputStream.terminated) {
-                if (Duration.milliseconds((System.currentTimeMillis() - start)) > .8.seconds) {
+                if (Duration.milliseconds((System.currentTimeMillis() - start)) > Duration.seconds(.8)) {
                     byteArrayOutputStream.write("password1234\r".toByteArray())
                     byteArrayOutputStream.flush()
                 }
@@ -395,7 +394,7 @@ class JavaExecMockTest {
         val status = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitFor()
 
         expectThat(status) {
-            isA<Success>().exitCode.isEqualTo(0)
+            isA<Succeeded>().exitCode.isEqualTo(0)
         }
     }
 }

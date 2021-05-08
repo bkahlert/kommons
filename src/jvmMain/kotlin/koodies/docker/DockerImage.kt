@@ -4,7 +4,7 @@ import koodies.builder.Init
 import koodies.builder.StatelessBuilder
 import koodies.collections.head
 import koodies.collections.tail
-import koodies.docker.DockerExitStateHandler.Failure
+import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerImage.Companion.parse
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Options
@@ -297,7 +297,7 @@ public open class DockerImage(
 public typealias DockerImageInit = ImageContext.() -> CharSequence
 
 private fun Exec.parseImages(): List<DockerImage> {
-    return parse.columns<DockerImage, Failure>(3) { (repoAndPath, tag, digest) ->
+    return parse.columns<DockerImage, Failed>(3) { (repoAndPath, tag, digest) ->
         val (repository, path) = repoAndPath.split("/").let { it.head to it.tail }
         repository.takeUnlessBlank()?.let { repo ->
             DockerImage(repo, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())

@@ -107,7 +107,7 @@ class DockerTest {
         }
     }
 
-    @Test
+    @DockerRequiring @Test
     fun `should search`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         expectThat(Docker.search("busybox")).any { image.isEqualTo(BusyBox) }
     }
@@ -168,7 +168,7 @@ class DockerTest {
                 expecting { exec { "cat $name" } } that { io.output.ansiRemoved.isEqualTo(HtmlFile.text) }
             }
         }
-        
+
         @Suppress("SpellCheckingInspection")
         @DockerRequiring @Test
         fun InMemoryLogger.`should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {

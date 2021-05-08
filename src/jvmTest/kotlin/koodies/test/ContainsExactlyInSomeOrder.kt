@@ -34,7 +34,7 @@ fun <T : Iterable<E>, E> Assertion.Builder<T>.containsExactlyInSomeOrder(init: I
 fun <T : Iterable<E>, E> Assertion.Builder<T>.containsExactlyInSomeOrder(vararg elementGroups: Iterable<E>): Assertion.Builder<T> =
     compose("contains exactly the elements %s in some order", elementGroups.toList()) { subject ->
         val original = subject.toList()
-        if (original.isEmpty() && elementGroups.isNotEmpty()) fail("is empty but ${elementGroups.sumBy { it.count() }} elements expected")
+        if (original.isEmpty() && elementGroups.isNotEmpty()) fail("is empty but ${elementGroups.sumOf { it.count() }} elements expected")
         val remaining = subject.toMutableList()
         var i = 0
         elementGroups.forEach { elements ->

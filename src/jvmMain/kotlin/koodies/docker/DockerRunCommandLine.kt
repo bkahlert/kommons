@@ -11,12 +11,14 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
+import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.CommandLine
 import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
+import koodies.exec.Exec.Companion.fallbackExitStateHandler
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.Executable
 import koodies.io.file.resolveBetweenFileSystems
@@ -91,7 +93,15 @@ public class DockerRunCommandLine(
         workingDirectory: Path?,
         execTerminationCallback: ExecTerminationCallback?,
     ): DockerExec {
-        val commandLine = toCommandLine(environment, workingDirectory)
+        val commandLine = toCommandLine(environment, workingDirectory).let {
+            CommandLine(it.command, it.arguments) { pid, exitCode, io ->
+                kotlin.runCatching {
+                    with(DockerExitStateHandler) { handle(pid, exitCode, io).takeIf { exitState -> exitState is Failed.ConnectivityProblem } }
+                }.getOrNull() ?: run {
+                    with(fallbackExitStateHandler()) { handle(pid, exitCode, io) }
+                }
+            }
+        }
         val container = options.name ?: error("Missing name in $options; at least would have expected $fallbackName")
         return DockerExec(container, commandLine.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback))
     }

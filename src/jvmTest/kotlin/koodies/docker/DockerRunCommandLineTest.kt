@@ -11,15 +11,15 @@ import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.IO.Output
-import koodies.exec.Process.ExitState
-import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.Process.State.Exited
+import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.ansiRemoved
 import koodies.exec.commandLine
 import koodies.exec.exitCode
-import koodies.exec.exitState
 import koodies.exec.hasState
 import koodies.exec.io
 import koodies.exec.output
+import koodies.exec.state
 import koodies.io.path.asPath
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
@@ -176,53 +176,53 @@ class DockerRunCommandLineTest {
     inner class DockerizedExecutor {
 
         @Smoke @TestFactory
-        fun InMemoryLogger.`should exec dockerized`() = testEach(
+        fun `should exec dockerized`(logger: InMemoryLogger) = testEach(
             CommandLine("printenv", "HOME"),
             ShellScript {
                 shebang
                 !"printenv | grep HOME | perl -pe 's/.*?HOME=//'"
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.logging(this@`should exec dockerized`) } that {
+            expecting { executable.dockerized(Ubuntu).exec.logging(logger) } that {
                 io.output.ansiRemoved.isEqualTo("/root")
             }
         }
 
         @TestFactory
-        fun InMemoryLogger.`should have success state on exit code 0`() = testEach(
+        fun `should have success state on exit code 0`(logger: InMemoryLogger) = testEach(
             CommandLine("ls", "/root"),
             ShellScript {
                 shebang
                 !CommandLine("ls", "/root")
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.logging(this@`should have success state on exit code 0`) } that {
-                exitState.isA<ExitState.Success>().exitCode.isEqualTo(0)
+            expecting { executable.dockerized(Ubuntu).exec.logging(logger) } that {
+                state.isA<Succeeded>().exitCode.isEqualTo(0)
             }
         }
 
         @TestFactory
-        fun InMemoryLogger.`should have failure state on exit code other than 0`() = testEach(
+        fun `should have failed state on exit code other than 0`(logger: InMemoryLogger) = testEach(
             CommandLine("ls", "invalid"),
             ShellScript {
                 shebang
                 !CommandLine("ls", "invalid")
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.logging(this@`should have failure state on exit code other than 0`) } that {
-                exitState.isA<ExitState.Failure>().exitCode.isEqualTo(2)
+            expecting { executable.dockerized(Ubuntu).exec.logging(logger) } that {
+                state.isA<Exited.Failed>().exitCode.isEqualTo(2)
             }
         }
 
         @TestFactory
-        fun InMemoryLogger.`should apply env`() = testEach(
+        fun `should apply env`(logger: InMemoryLogger) = testEach(
             CommandLine("printenv", "TEST_PROP"),
             ShellScript {
                 shebang
                 !CommandLine("printenv", "TEST_PROP")
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.env("TEST_PROP", "TEST_VALUE").logging(this@`should apply env`) } that {
+            expecting { executable.dockerized(Ubuntu).exec.env("TEST_PROP", "TEST_VALUE").logging(logger) } that {
                 io.output.ansiRemoved.isEqualTo("TEST_VALUE")
             }
         }
@@ -240,8 +240,8 @@ class DockerRunCommandLineTest {
 
             private val commandLine = CommandLine("cat", htmlFile.pathString)
 
-            @TestFactory
-            fun InMemoryLogger.`should apply working directory`() = testEach(
+            @DockerRequiring @TestFactory
+            fun `should apply working directory`(logger: InMemoryLogger) = testEach(
                 commandLine,
                 ShellScript { !commandLine },
             ) { executable ->
@@ -250,7 +250,7 @@ class DockerRunCommandLineTest {
                         mounts {
                             tempDir mountAt "/host"
                         }
-                    }.exec.logging(this@`should apply working directory`, workDir)
+                    }.exec.logging(logger, workDir)
                 } that {
                     commandLine.toStringMatchesCurlyPattern("""
                         {{}}
@@ -325,7 +325,7 @@ class DockerRunCommandLineTest {
             toCommandLine(emptyMap(), hostWorkDir.asPath())
     }
 
-    @TestFactory
+    @DockerRequiring @TestFactory
     fun `should exec using specified image`() = testEach<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec() },
         { dockerized { "ubuntu" }.exec() },
@@ -338,7 +338,7 @@ class DockerRunCommandLineTest {
         }
     }
 
-    @TestFactory
+    @DockerRequiring @TestFactory
     fun TestLogger.`should exec logging using specified image`() = testEach<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec.logging(this@`should exec logging using specified image`) },
         { dockerized { "ubuntu" }.exec.logging(this@`should exec logging using specified image`) },
@@ -358,7 +358,7 @@ class DockerRunCommandLineTest {
         }
     }
 
-    @TestFactory
+    @DockerRequiring @TestFactory
     fun `should exec processing using specified image`() = testEach<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
         { dockerized(Ubuntu).exec.processing { io -> it.add(io) } },
         { dockerized { "ubuntu" }.exec.processing { io -> it.add(io) } },
@@ -373,7 +373,7 @@ class DockerRunCommandLineTest {
         }
     }
 
-    @TestFactory
+    @DockerRequiring @TestFactory
     fun `should exec synchronously`() = testEach<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec() },
         { dockerized { "ubuntu" }.exec() },
@@ -381,7 +381,7 @@ class DockerRunCommandLineTest {
     ) { execVariant ->
         var exec: DockerExec? = null
         expecting { measureTime { exec = CommandLine("sleep", "2").execVariant() } } that { isGreaterThanOrEqualTo(Duration.seconds(2)) }
-        { exec } asserting { get { invoke() }.isNotNull().hasState<Terminated>() }
+        { exec } asserting { get { invoke() }.isNotNull().hasState<Exited>() }
     }
 
     @TestFactory
@@ -409,7 +409,7 @@ class DockerRunCommandLineTest {
 
         private val options = Options(optionsInit)
 
-        @TestFactory
+        @DockerRequiring @TestFactory
         fun `should exec using specified options`() = testEach<Executable<Exec>.() -> DockerExec>(
             { dockerized(Ubuntu, options).exec() },
             { dockerized(Ubuntu) { optionsInit() }.exec() },

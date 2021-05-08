@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.exec.Process.ExitState.Failure
+import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.parse
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.or
@@ -26,7 +26,7 @@ public object Locations {
     public fun Path.ls(glob: String = ""): List<Path> =
         ShellScript { !"ls $glob" }.exec.logging(BACKGROUND, this) {
             errorsOnly("${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}")
-        }.parse.columns<Path, Failure>(1) {
+        }.parse.columns<Path, Failed>(1) {
             resolve(it[0])
         } or { emptyList() }
 

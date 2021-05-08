@@ -24,13 +24,6 @@ fun Project.findPropertyEverywhere(name: String): String? =
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-private var _syncToMavenCentralUsingBintray: Boolean? = null
-var Project.syncToMavenCentralUsingBintray: Boolean
-    get() = _syncToMavenCentralUsingBintray ?: findBooleanPropertyEverywhere("syncToMavenCentralUsingBintray", true)
-    set(value) {
-        _syncToMavenCentralUsingBintray = value
-    }
-
 private var _releasingFinal: Boolean? = null
 var Project.releasingFinal: Boolean
     get() = _releasingFinal ?: findBooleanPropertyEverywhere("releasingFinal", true)
@@ -173,6 +166,7 @@ kotlin {
         val commonMain by getting
         val commonTest by getting {
             dependencies {
+                implementation(kotlin("test"))
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
@@ -230,15 +224,7 @@ kotlin {
 
 // TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
 
-tasks.configureEach {
-    onlyIf {
-        if (Regex(".*MavenCentral.*").matches(name)) {
-            !syncToMavenCentralUsingBintray
-        } else {
-            true
-        }
-    }
-}
+// TODO see https://github.com/christophsturm/filepeek/pull/11/files
 
 signing {
     sign(publishing.publications)
@@ -254,72 +240,52 @@ publishing {
                 archiveClassifier.set("kdoc")
             })
         }
-        withType<MavenPublication>().configureEach {
-            artifact(tasks.register<Jar>("${name}JavaDocJar") {
-                dependsOn(tasks.dokkaHtml)
-                from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-                archiveBaseName.set("${project.name}-${this@configureEach.name}")
-                archiveClassifier.set("javadoc")
-            })
+        
+        if (version.isFinal()) {
+            withType<MavenPublication>().configureEach {
+                artifact(tasks.register<Jar>("${name}JavaDocJar") {
+                    dependsOn(tasks.dokkaHtml)
+                    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+                    archiveBaseName.set("${project.name}-${this@configureEach.name}")
+                    archiveClassifier.set("javadoc")
+                })
 
-            pom {
-                name.set("Koodies")
-                description.set(project.description)
-                url.set(baseUrl)
-                licenses {
-                    license {
-                        name.set("MIT")
-                        url.set("$baseUrl/blob/master/LICENSE")
-                    }
-                }
-                scm {
+                pom {
+                    name.set("Koodies")
+                    description.set(project.description)
                     url.set(baseUrl)
-                    connection.set("scm:git:$baseUrl.git")
-                    developerConnection.set("scm:git:$baseUrl.git")
-                }
-                issueManagement {
-                    url.set("$baseUrl/issues")
-                    system.set("GitHub")
-                }
+                    licenses {
+                        license {
+                            name.set("MIT")
+                            url.set("$baseUrl/blob/master/LICENSE")
+                        }
+                    }
+                    scm {
+                        url.set(baseUrl)
+                        connection.set("scm:git:$baseUrl.git")
+                        developerConnection.set("scm:git:$baseUrl.git")
+                    }
+                    issueManagement {
+                        url.set("$baseUrl/issues")
+                        system.set("GitHub")
+                    }
 
-                ciManagement {
-                    url.set("$baseUrl/issues")
-                    system.set("GitHub")
-                }
+                    ciManagement {
+                        url.set("$baseUrl/issues")
+                        system.set("GitHub")
+                    }
 
-                developers {
-                    developer {
-                        id.set("bkahlert")
-                        name.set("Björn Kahlert")
-                        email.set("mail@bkahlert.com")
-                        url.set("https://bkahlert.com")
-                        timezone.set("Europe/Berlin")
+                    developers {
+                        developer {
+                            id.set("bkahlert")
+                            name.set("Björn Kahlert")
+                            email.set("mail@bkahlert.com")
+                            url.set("https://bkahlert.com")
+                            timezone.set("Europe/Berlin")
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-
-if (version.isFinal()) {
-    // TODO see https://github.com/christophsturm/filepeek/pull/11/files
-    bintray {
-        user.set(findPropertyEverywhere("bintrayUser", ""))
-        apiKey.set(findPropertyEverywhere("bintrayApiKey", ""))
-        userOrg.set(user.get())
-        repo.set("koodies")
-        pkgName.set("koodies")
-        labels.set(listOf("kotlin", "builder", "shellscript", "docker",
-            "integration", "java", "nio", "nio2", "kaomoji", "border",
-            "box", "logger", "fixture", "time", "unicode"))
-        websiteUrl.set(baseUrl)
-        issueTrackerUrl.set("$baseUrl/issues")
-        licenses.set(listOf("MIT"))
-        vcsUrl.set("$baseUrl.git")
-        gppSign.set(false)
-        syncToMavenCentral.set(syncToMavenCentralUsingBintray)
-        sonatypeUsername.set(findPropertyEverywhere("sonatypeNexusUsername", ""))
-        sonatypePassword.set(findPropertyEverywhere("sonatypeNexusPassword", ""))
     }
 }

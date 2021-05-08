@@ -2,8 +2,6 @@ package koodies.logging
 
 import koodies.exec.IO
 import koodies.io.ByteArrayOutputStream
-import koodies.io.path.randomFile
-import koodies.io.path.withExtension
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
@@ -11,16 +9,12 @@ import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.runtime.isDebugging
 import koodies.test.Smoke
-import koodies.test.UniqueId
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
-import koodies.test.withTempDir
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
-import koodies.text.Semantics.Symbols
-import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Disabled
@@ -31,13 +25,8 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.endsWith
-import strikt.assertions.first
 import strikt.assertions.isA
-import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import kotlin.io.path.extension
-import kotlin.io.path.readLines
-import kotlin.io.path.readText
 
 @Smoke
 class RenderingLoggerKtTest {
@@ -244,42 +233,6 @@ class RenderingLoggerKtTest {
         }).toStringMatchesCurlyPattern("""
             
         """.trimIndent())
-    }
-
-    @Disabled
-    @Test
-    fun @receiver:Columns(200) InMemoryLogger.`should log to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        logLine { "before" }
-        val ansiLog = randomFile("file-log", ".log")
-        fileLogging(ansiLog, "caption") {
-            logLine { "line" }
-            logStatus { "status" }
-            logCaughtException { RuntimeException("caught") }
-            "👍"
-        }
-        logLine { "after" }
-
-        expectThatLogged().matchesCurlyPattern("""
-            ╭──╴{}
-            │
-            │   before
-            │   caption Logging to ${Symbols.Document} ${ansiLog.toUri()} ✔︎
-            │   after
-            │
-            ╰──╴✔︎{}
-        """.trimIndent())
-        expect {
-            that(ansiLog.also { it.readText() }.readLines().filter { it.isNotBlank() }) {
-                first().ansiRemoved.isEqualTo("▶ caption")
-                get { last { it.isNotBlank() } }.ansiRemoved.endsWith("✔︎")
-            }
-
-            val noAnsiLog = ansiLog.withExtension("ansi-removed.${ansiLog.extension}")
-            that(noAnsiLog.readLines().filter { it.isNotBlank() }) {
-                first().isEqualTo("▶ caption")
-                get { last { it.isNotBlank() } }.endsWith("✔︎")
-            }
-        }
     }
 
     @Suppress("UNREACHABLE_CODE")

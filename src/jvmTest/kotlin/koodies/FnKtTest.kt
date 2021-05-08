@@ -1,5 +1,7 @@
 package koodies
 
+import koodies.math.BigIntegerConstants
+import koodies.math.toBigInteger
 import koodies.test.tests
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -118,6 +120,40 @@ class FnKtTest {
         @Test
         fun `should throw negative index`() {
             expectCatching { -1 * { println("test failed") } }.isFailure().isA<IllegalArgumentException>()
+        }
+    }
+
+
+    @Nested
+    inner class BigIntegerTimes {
+
+        @Test
+        fun `should run block 0 times`() {
+            expectCatching { BigIntegerConstants.ZERO * { throw IllegalStateException("test failed") } }.isSuccess()
+        }
+
+        @Test
+        fun `should run block n times`() {
+            var n = 3.toBigInteger()
+            n * { n-- }
+            expectThat(n == BigIntegerConstants.ZERO)
+        }
+
+        @Test
+        fun `should return n results`() {
+            val n = 3.toBigInteger()
+            val results = run { n * { it } }
+            expectThat(results).containsExactly(0, 1, 2)
+        }
+
+        @Test
+        fun `should throw negative index`() {
+            expectCatching { (-1).toBigInteger() * { println("test failed") } }.isFailure().isA<IllegalArgumentException>()
+        }
+
+        @Test
+        fun `should throw on too large index`() {
+            expectCatching { (Int.MAX_VALUE.toBigInteger() + BigIntegerConstants.ONE) * { println("test failed") } }.isFailure().isA<IllegalArgumentException>()
         }
     }
 

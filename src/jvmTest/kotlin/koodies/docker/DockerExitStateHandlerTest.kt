@@ -1,22 +1,23 @@
 package koodies.docker
 
 import koodies.collections.too
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotKillContainer
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.CannotRemoveRunningContainer
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.Conflict
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NameAlreadyInUse
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NoSuchContainer
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.NoSuchImage
-import koodies.docker.DockerExitStateHandler.Failure.BadRequest.PathDoesNotExistInsideTheContainer
-import koodies.docker.DockerExitStateHandler.Failure.ConnectivityProblem
-import koodies.docker.DockerExitStateHandler.Failure.UnknownError
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.CannotKillContainer
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.CannotRemoveRunningContainer
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.Conflict
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.NameAlreadyInUse
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.NoSuchContainer
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.NoSuchImage
+import koodies.docker.DockerExitStateHandler.Failed.BadRequest.PathDoesNotExistInsideTheContainer
+import koodies.docker.DockerExitStateHandler.Failed.ConnectivityProblem
+import koodies.docker.DockerExitStateHandler.Failed.UnknownError
 import koodies.docker.DockerExitStateHandler.ParseException
+import koodies.exec.IO
 import koodies.exec.IO.Error
 import koodies.exec.IO.Output
 import koodies.exec.IOSequence
 import koodies.exec.Process.ExitState
-import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.mock.ExecMock
 import koodies.exec.status
 import koodies.test.test
 import koodies.test.testEach
@@ -43,12 +44,13 @@ import kotlin.reflect.KClass
 
 class DockerExitStateHandlerTest {
 
-    private fun getTerminated(errorMessage: String) = Terminated(12345L, 42, IOSequence(Error typed errorMessage))
+    private val exec = ExecMock.FAILED_EXEC
+    private fun handleTermination(errorMessage: String) = with(DockerExitStateHandler) { exec.handle(12345L, 42, IOSequence(Error typed errorMessage)) }
+    private fun handleTermination(vararg messages: IO) = with(DockerExitStateHandler) { exec.handle(12345L, 42, IOSequence(*messages)) }
 
     @TestFactory
     fun `should match docker engine not running error message`() = tests {
-        val errorMessage = "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
-        val connectivityProblemState = DockerExitStateHandler.handle(getTerminated(errorMessage))
+        val connectivityProblemState = handleTermination("Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?")
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
 
@@ -62,11 +64,11 @@ class DockerExitStateHandlerTest {
     @Test
     fun `should match out errors`() {
         val errorMessage = "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
-        val exitState = DockerExitStateHandler.handle(Terminated(12345L, 42, IOSequence(
+        val exitState = handleTermination(
             Output typed "out",
             Output typed "error: $errorMessage",
             Error typed "error: err",
-        )))
+        )
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
 
@@ -81,7 +83,7 @@ class DockerExitStateHandlerTest {
         NameAlreadyInUse::class to "Error: Name already in use: AFFECTED" too "name already in use",
         Conflict::class to "Error: Conflict: AFFECTED" too "conflict"
     ).testEach { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
-        val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
+        val badRequestState = handleTermination(errorMessage)
 
         expecting("matches ${clazz.simpleName}") { badRequestState::class } that { isEqualTo(clazz) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
@@ -94,7 +96,7 @@ class DockerExitStateHandlerTest {
         "Error response from daemon: You cannot remove a running container 2c5e082a462134. " +
             "Stop the container before attempting removal or force remove") { errorMessage ->
 
-        val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
+        val badRequestState = handleTermination(errorMessage)
 
         val status = "You cannot remove a running container. Stop the container before attempting removal or force remove."
         expecting("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class } that { isEqualTo(CannotRemoveRunningContainer::class) }
@@ -109,7 +111,7 @@ class DockerExitStateHandlerTest {
         "Error response from daemon: Cannot kill container: AFFECTED: Container AFFECTED is not running" to "container is not running",
     ) { (errorMessage, status) ->
 
-        val badRequestState = DockerExitStateHandler.handle(getTerminated(errorMessage))
+        val badRequestState = handleTermination(errorMessage)
 
         expecting("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class } that { isEqualTo(CannotKillContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
@@ -119,7 +121,7 @@ class DockerExitStateHandlerTest {
 
     @Test
     fun `should return unknown state for unknown error`() {
-        val unknownError = DockerExitStateHandler.handle(getTerminated("Error: Nothing I know of: status"))
+        val unknownError = handleTermination("Error: Nothing I know of: status")
         expectThat(unknownError).isA<UnknownError>().and {
             status.ansiRemoved.isEqualTo("Unknown error from Docker daemon: Nothing I know of: status")
             get { format() }.ansiRemoved.isEqualTo("ϟ Unknown error from Docker daemon: Nothing I know of: status")
@@ -129,14 +131,14 @@ class DockerExitStateHandlerTest {
 
     @Test
     fun `should throw on error-like message without error prefix`() {
-        expectCatching { DockerExitStateHandler.handle(getTerminated("No Error: No such container: AFFECTED")) }.isFailure().isA<ParseException>().and {
+        expectCatching { handleTermination("No Error: No such container: AFFECTED") }.isFailure().isA<ParseException>().and {
             message.isNotNull().ansiRemoved.isEqualTo("Error parsing response from Docker daemon: No Error: No such container: AFFECTED")
         }
     }
 
     @Test
     fun `should throw if exception is caught`() {
-        expectCatching { DockerExitStateHandler.handle(getTerminated("Not the typical error")) }.isFailure().isA<ParseException>().and {
+        expectCatching { handleTermination("Not the typical error") }.isFailure().isA<ParseException>().and {
             message.isNotNull().ansiRemoved.isEqualTo("Error parsing response from Docker daemon: Not the typical error")
         }
     }

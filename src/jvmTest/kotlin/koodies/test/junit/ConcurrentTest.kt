@@ -3,6 +3,7 @@ package koodies.test.junit
 import koodies.collections.maxOrThrow
 import koodies.collections.minOrThrow
 import koodies.collections.synchronizedMapOf
+import koodies.test.Slow
 import koodies.time.poll
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
@@ -13,9 +14,9 @@ import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
 import strikt.api.expectThat
 import kotlin.time.Duration
-import kotlin.time.seconds
 
 @Isolated
+@Slow
 @Execution(CONCURRENT)
 class ConcurrentTest {
 
@@ -50,9 +51,9 @@ fun <T : Enum<T>> Assertion.Builder<List<T>>.ranConcurrently(startTimes: Map<T, 
         val endDifference = Duration.milliseconds(relevantEndTimes.values.run { maxOrThrow() - minOrThrow() })
         val overallDifference = Duration.milliseconds((relevantEndTimes.values.maxOrThrow() - relevantStartTimes.values.minOrThrow()))
         when {
-            startDifference < .5.seconds -> fail("$startDifference difference between start times")
-            endDifference < .5.seconds -> fail("$endDifference difference between end times")
-            overallDifference < .5.seconds -> fail("$overallDifference difference between first start and last end time")
+            startDifference < Duration.seconds(.5) -> fail("$startDifference difference between start times")
+            endDifference < Duration.seconds(.5) -> fail("$endDifference difference between end times")
+            overallDifference < Duration.seconds(.5) -> fail("$overallDifference difference between first start and last end time")
             else -> pass()
         }
     }

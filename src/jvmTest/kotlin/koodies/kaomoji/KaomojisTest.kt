@@ -1,5 +1,6 @@
 package koodies.kaomoji
 
+import koodies.kaomoji.Kaomojis.Generator
 import koodies.kaomoji.Kaomojis.fishing
 import koodies.kaomoji.Kaomojis.thinking
 import koodies.runtime.isIntelliJ
@@ -7,6 +8,7 @@ import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.asCodePointSequence
+import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
@@ -26,11 +28,12 @@ class KaomojisTest {
     }
 
     @TestFactory
-    fun `should create random Kaomoji from`() =
-        testEach(Kaomojis.Generator.values(), "{}") { category ->
+    fun `should create random Kaomoji from`(): List<DynamicContainer> {
+        return testEach(*Generator.values(), containerNamePattern = "{}") { category ->
             val kaomoji = category.random()
             expecting { kaomoji.asCodePointSequence().count() } that { isGreaterThanOrEqualTo(3) }
         }
+    }
 
     @RepeatedTest(10)
     fun `should create random dogs`() = (0 until 10).map {

@@ -152,7 +152,7 @@ class CodePointKtTest {
 
         @Test
         fun `should detekt valid code points`() {
-            expectThat('A'.toInt())
+            expectThat('A'.code)
                 .isEqualTo(65)
                 .get { isUsableCodePoint() }.isTrue()
         }

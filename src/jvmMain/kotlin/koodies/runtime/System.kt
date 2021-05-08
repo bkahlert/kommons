@@ -59,8 +59,8 @@ public actual val ansiSupport: AnsiSupport
         return when {
             isIntelliJ -> ANSI24
             TERM_PROGRAM == "vscode" -> ANSI8
-            System.console() == null -> AnsiSupport.NONE
             System.getenv("COLORTERM").lowercase(Locale.getDefault()) in listOf("24bit", "truecolor") -> ANSI24
+            System.console() == null -> AnsiSupport.NONE
             TERM_PROGRAM == "hyper" -> ANSI24 // stackoverflow.com/q/7052683
             TERM_PROGRAM == "apple_terminal" -> ANSI8
             TERM_PROGRAM == "iterm.app" -> System.getenv("TERM_PROGRAM_VERSION").toIntOrNull()?.takeIf { it > 3 }?.let { ANSI24 } ?: ANSI8

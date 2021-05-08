@@ -10,7 +10,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
 import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.seconds
 
 class DynamicInputStreamTest {
 
@@ -40,7 +39,7 @@ class DynamicInputStreamTest {
     fun `should read as long as stream is not closed`() {
         val inputStream = DynamicInputStream()
         inputStream.yield("Hello World!".toByteArray())
-        thread { 2.1.seconds.sleep { inputStream.close() } }
+        thread { Duration.seconds(2.1).sleep { inputStream.close() } }
 
         var bytes: ByteArray
         val duration: Duration = measureTime {

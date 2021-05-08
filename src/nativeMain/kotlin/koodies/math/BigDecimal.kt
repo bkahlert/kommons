@@ -130,6 +130,11 @@ public actual operator fun BigDecimal.inc(): BigDecimal = BigDecimalConstants.ZE
 public actual operator fun BigDecimal.dec(): BigDecimal = BigDecimalConstants.ZERO
 
 /**
+ * Whether this big decimal represents an integer.
+ */
+public actual val BigDecimal.isInteger: Boolean get() = false
+
+/**
  * Returns the value of this [Int] number as a [BigDecimal].
  */
 public actual fun Int.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO

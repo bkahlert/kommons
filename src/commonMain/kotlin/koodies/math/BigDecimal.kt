@@ -122,6 +122,11 @@ public expect operator fun BigDecimal.inc(): BigDecimal
 public expect operator fun BigDecimal.dec(): BigDecimal
 
 /**
+ * Whether this big decimal represents an integer.
+ */
+public expect val BigDecimal.isInteger: Boolean
+
+/**
  * Returns the value of this [Int] number as a [BigDecimal].
  */
 public expect fun Int.toBigDecimal(): BigDecimal

@@ -3,9 +3,6 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
-import koodies.exec.IO
-import koodies.io.path.bufferedWriter
-import koodies.io.path.withExtension
 import koodies.jvm.currentStackTrace
 import koodies.runtime.onExit
 import koodies.text.ANSI.Formatter
@@ -18,12 +15,10 @@ import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-import kotlin.io.path.extension
 
 /**
  * Logger interface to implement loggers that don't just log
@@ -129,6 +124,7 @@ public open class RenderingLogger(
      * Logs a caught [Throwable]. In contrast to [logResult] with a failed [Result] and [logException]
      * this method only marks the current logging context as failed but does not escalate (rethrow).
      */
+    @Deprecated("delete")
     public fun <R : Throwable> logCaughtException(block: () -> R): Unit {
         val ex = block()
         val formattedResult = object : ReturnValue by ReturnValue.of(Result.failure<R>(ex)) {
@@ -234,28 +230,6 @@ public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() 
     logResult { result }
     return result.getOrThrow()
 }
-
-/**
- * Creates a logger which logs to [path].
- */
-@RenderingLoggingDsl
-public inline fun <reified T : RenderingLogger, reified R> T.fileLogging(
-    path: Path,
-    caption: CharSequence,
-    crossinline block: RenderingLogger.() -> R,
-): R = CompactRenderingLogger(caption, null, null, null, log = { logText { it } }).runLogging {
-    logLine { IO.Meta typed "Logging to" }
-    logLine { "${Symbols.Document} ${path.toUri()}" }
-    path.bufferedWriter().use { ansiLog ->
-        path.withExtension("ansi-removed.${path.extension}").bufferedWriter().use { noAnsiLog ->
-            BlockRenderingLogger(caption.toString(), log = {
-                ansiLog.appendLine(it)
-                noAnsiLog.appendLine(it.ansiRemoved)
-            })
-        }.runLogging(block)
-    }
-}
-
 
 /**
  * Logs the given [returnValue] as the value that is returned from the logging span.

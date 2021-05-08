@@ -37,6 +37,7 @@ import kotlin.concurrent.withLock
 import kotlin.math.ceil
 import kotlin.reflect.KClass
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 /**
  * Images used for the purpose of testing.
@@ -220,7 +221,7 @@ class TestContainers(
     }
 
 
-    private fun Duration.toIntegerSeconds(): Int = ceil(inSeconds).toInt()
+    private fun Duration.toIntegerSeconds(): Int = ceil(toDouble(DurationUnit.SECONDS)).toInt()
 
     /**
      * Returns a new container that will run for as long as specified by [duration].
@@ -236,7 +237,7 @@ class TestContainers(
     internal fun newNotExistentContainer() = DockerContainer.from(randomString())
 
     /**
-     * Returns a new container that already exited with exit code `0`.
+     * Returns a new container that already terminated with exit code `0`.
      *
      * The next time this container is started it will run for the specified [duration] (default: 30 seconds).
      */

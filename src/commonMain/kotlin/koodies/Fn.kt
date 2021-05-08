@@ -3,6 +3,9 @@ package koodies
 import koodies.Either.Left
 import koodies.Either.Right
 import koodies.debug.xray
+import koodies.math.BigInteger
+import koodies.math.BigIntegerConstants
+import koodies.math.toBigInteger
 import koodies.runtime.isDebugging
 import koodies.text.ANSI.containsEscapeSequences
 import koodies.text.Semantics.formattedAs
@@ -77,6 +80,15 @@ public operator fun <R> Int.times(block: (index: Int) -> R): List<R> {
     }
 }
 
+/**
+ * Runs the provided [block] `this` times with an increasing index passed
+ * on each call and returns a list of the returned results.
+ */
+public operator fun <R> BigInteger.times(block: (index: Int) -> R): List<R> {
+    require(this >= BigIntegerConstants.ZERO) { "times must not be negative" }
+    require(this <= Int.MAX_VALUE.toBigInteger()) { "times must not be greater than ${Int.MAX_VALUE}" }
+    return toInt().times(block)
+}
 
 /**
  * Invokes this nullable identity lambda with [arg] and returns its result.
@@ -142,13 +154,12 @@ public fun <T> T.takeIfDebugging(): T? = takeIf { isDebugging }
 public fun <T> T.takeUnlessDebugging(): T? = takeIf { isDebugging }
 
 /**
- * Represents a container containing either an instance of type [A] ([Left]]
+ * Represents a container containing either an instance of type [A] ([Left])
  * or [B] ([Right]).
  */
-// TODO transform to sealed interface when Kotlin 1.5 is out
-public sealed class Either<A, B> {
-    public class Left<A, B>(public val left: A) : Either<A, B>()
-    public class Right<A, B>(public val right: B) : Either<A, B>()
+public sealed interface Either<A, B> {
+    public class Left<A, B>(public val left: A) : Either<A, B>
+    public class Right<A, B>(public val right: B) : Either<A, B>
 }
 
 /**
@@ -173,13 +184,3 @@ public inline fun <reified A, reified B, reified R> Either<A, B>.map(transform: 
             @Suppress("UNCHECKED_CAST")
             this.also { check(it === right) } as Either<R, B>
     }
-//
-///**
-// * Returns either the encapsulated instance [A] mapped using [transform] or
-// * the encapsulated instance [B].
-// */
-//public inline fun <reified A, reified B> Either<List<A>, B>.singleOr(transform: List<A>.(B) -> A): A =
-//    when (this) {
-//        is Left -> left.singleOrNull() ?: left.transform()
-//        is Right -> emptyList<A>().transform(right)
-//    }

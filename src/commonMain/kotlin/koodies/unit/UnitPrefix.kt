@@ -92,8 +92,6 @@ public inline val <reified T : UnitPrefix> T?.factor: BigDecimal
  */
 public inline fun <reified T> UnitPrefix?.getSymbol(): String = when {
     this == null -> ""
-    symbol == kilo.symbol && T::class == Size::class -> {
-        symbol.toUpperCase()
-    }
+    symbol == kilo.symbol && T::class == Size::class -> symbol.uppercase()
     else -> symbol
 }

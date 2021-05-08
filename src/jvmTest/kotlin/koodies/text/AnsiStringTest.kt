@@ -91,7 +91,7 @@ class AnsiStringTest {
                 "$e[22m" to 0,
                 "${CRLF}Last one is clean." to 20,
                 "$e[23;39m" to 0)
-            expectThat(tokens.sumBy { it.second }).isEqualTo(78)
+            expectThat(tokens.sumOf { it.second }).isEqualTo(78)
             expectThat(string.length).isEqualTo(120)
         }
 

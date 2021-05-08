@@ -311,8 +311,13 @@ object Tester {
     private val CallStackElement.stackTraceElement get() = StackTraceElement(receiver, function, file, line)
 
     private val callerIgnoreRegex = Regex(".*DynamicTest.*Builder|.*\\.TestsKt.*")
+
+    @Suppress("DEPRECATION")
     fun findCaller(): CallStackElement {
-        if (isDebugging) currentStackTrace.trace { "Finding caller" }
+        if (isDebugging) {
+            "FINDING CALLER".trace
+            currentStackTrace.trace
+        }
         return getCaller {
             receiver == enclosingClassName || receiver?.matches(callerIgnoreRegex) == true
         }
@@ -857,7 +862,7 @@ class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>) {
 }
 
 @DynamicTestsDsl
-class DynamicTestBuilder<T>(val subject: T, private val buildErrors: MutableList<String>) {
+class DynamicTestBuilder<T>(val subject: T, public val buildErrors: MutableList<String>) {
 
     /**
      * Incomplete builder of an [Strikt](https://strikt.io) assertion
@@ -868,9 +873,8 @@ class DynamicTestBuilder<T>(val subject: T, private val buildErrors: MutableList
      * this [that] was never called.
      */
     class InCompleteExpectationBuilder<T>(val assertionBuilderProvider: (Builder<T>.() -> Unit) -> Unit) {
-        infix fun that(assertions: Builder<T>.() -> Unit) {
-            assertionBuilderProvider(assertions)
-        }
+        @Suppress("NOTHING_TO_INLINE")
+        inline infix fun that(noinline assertions: Builder<T>.() -> Unit) = assertionBuilderProvider(assertions)
     }
 
     /**

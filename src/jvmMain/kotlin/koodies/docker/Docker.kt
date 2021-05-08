@@ -1,7 +1,7 @@
 package koodies.docker
 
 import koodies.docker.Docker.info.get
-import koodies.docker.DockerExitStateHandler.Failure
+import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerSearchCommandLine.DockerSeachResult
 import koodies.exec.CommandLine
 import koodies.exec.Exec
@@ -71,7 +71,7 @@ public object Docker {
             with(keys.flatMap { it.split(".") }.map { it.unify() }.toMutableList()) {
                 DockerInfoCommandLine {}.exec.logging(this@get) {
                     noDetails("Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}")
-                }.parse.columns<String, Failure>(1) { (line) ->
+                }.parse.columns<String, Failed>(1) { (line) ->
                     if (isNotEmpty() && line.substringBefore(":").unify() == first()) {
                         removeAt(0)
                         if (isEmpty()) line.substringAfter(":").trim()

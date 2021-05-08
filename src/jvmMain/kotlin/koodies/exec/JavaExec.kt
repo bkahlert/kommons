@@ -9,17 +9,15 @@ import koodies.exec.IO.Meta.File
 import koodies.exec.IO.Meta.Starting
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
-import koodies.exec.Process.ExitState.Fatal
-import koodies.exec.Process.ProcessState
-import koodies.exec.Process.ProcessState.Running
-import koodies.exec.Process.ProcessState.Terminated
+import koodies.exec.Process.State
+import koodies.exec.Process.State.Excepted
+import koodies.exec.Process.State.Running
 import koodies.io.TeeInputStream
 import koodies.io.TeeOutputStream
 import koodies.jvm.addShutDownHook
 import koodies.jvm.removeShutdownHook
-import koodies.jvm.thenAlso
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.LineSeparators
+import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols.Computation
 import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
@@ -68,14 +66,12 @@ public class JavaExec(
     public companion object;
 
     override val pid: Long by lazy { javaProcess.pid() }
-    override fun waitFor(): ExitState = exitState ?: onExit.join()
+    override fun waitFor(): ExitState = (state as? ExitState) ?: onExit.join()
     override fun stop(): Exec = also { javaProcess.destroy() }
     override fun kill(): Exec = also { javaProcess.destroyForcibly() }
 
-    override val state: ProcessState get() = exitState ?: Running(pid)
-
-    override var exitState: ExitState? = null
-        protected set
+    override var state: State = Running(pid)
+        private set
 
     private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, ReOutputStream { ioLog.input + it }) }
     private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, ReOutputStream { ioLog.output + it }) }
@@ -106,33 +102,24 @@ public class JavaExec(
         }.handle { _, throwable ->
             val exitValue = javaProcess.exitValue()
 
-            run {
-                if (throwable != null) {
-                    val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
-                    val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
-
-                    Fatal(cause, exitValue, pid, dump.ansiRemoved, io)
-                } else {
-                    kotlin.runCatching {
-                        val exitStateHandler = exitStateHandler ?: fallbackExitStateHandler()
-                        val terminated = Terminated(pid, exitValue, io)
-
-                        exitStateHandler.handle(terminated)
-                    }.getOrElse { ex ->
-                        val message =
-                            "Unexpected error terminating process ${pid.formattedAs.input} with exit code ${exitValue.formattedAs.input}:${LineSeparators.LF}\t" +
-                                ex.message.formattedAs.error
-
-                        Fatal(ex, exitValue, pid, createDump(message), io, message)
-                    }
+            val exitState: ExitState = if (throwable != null) {
+                val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
+                val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
+                Excepted(pid, exitValue, io, cause, dump.ansiRemoved)
+            } else {
+                kotlin.runCatching {
+                    with(exitStateHandler ?: fallbackExitStateHandler()) { handle(pid, exitValue, io) }
+                }.getOrElse { exception ->
+                    val formattedPid = pid.formattedAs.input
+                    val formattedExitCode = exitValue.formattedAs.input
+                    val formattedException = exception.message.formattedAs.error
+                    val message = "Unexpected error terminating process $formattedPid with exit code $formattedExitCode:$LF\t$formattedException"
+                    Excepted(pid, exitValue, io, exception, createDump(message), message)
                 }
-
-            }.also { exitState = it }
-
-        }.thenAlso { term, ex ->
-            postTerminationCallbacks.forEach {
-                process.it(term ?: Fatal(ex!!, javaProcess.exitValue(), pid, "Unexpected exception in process termination handling.", io))
             }
+            state = exitState
+            postTerminationCallbacks.forEach { process.it(exitState) }
+            exitState
         }
     }
 
@@ -140,7 +127,7 @@ public class JavaExec(
     public override fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec =
         apply { postTerminationCallbacks.add(callback) }
 
-    override val onExit: CompletableFuture<out ExitState> get() = exitState?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
+    override val onExit: CompletableFuture<out ExitState> get() = (state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String {
         val delegateString = "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Computation}"

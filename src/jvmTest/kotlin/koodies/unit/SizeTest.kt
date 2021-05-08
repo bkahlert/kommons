@@ -11,10 +11,16 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.math.BigInteger
 import java.nio.file.Path
 import kotlin.io.path.appendText
 
 class SizeTest {
+
+    @TestFactory
+    fun `should return whole bytes`() = testEach(2.bytes, 1.1.bytes) { size ->
+        expecting { size.wholeBytes } that { isEqualTo(BigInteger.TWO) }
+    }
 
     @Test
     fun `should use decimal unit by default`() {

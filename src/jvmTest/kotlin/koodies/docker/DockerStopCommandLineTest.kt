@@ -7,7 +7,7 @@ import koodies.test.BuilderFixture
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import kotlin.time.seconds
+import kotlin.time.Duration
 
 class DockerStopCommandLineTest {
 
@@ -19,7 +19,7 @@ class DockerStopCommandLineTest {
 
     @Test
     fun `should round`() {
-        val dockerStopCommandLine = DockerStopCommandLine { init(); options { timeout { 1.6.seconds } } }
+        val dockerStopCommandLine = DockerStopCommandLine { init(); options { timeout { Duration.seconds(1.6) } } }
         expectThat(dockerStopCommandLine.options.time).isEqualTo(2)
     }
 

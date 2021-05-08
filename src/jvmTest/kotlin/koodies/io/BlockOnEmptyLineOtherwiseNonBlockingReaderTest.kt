@@ -17,7 +17,6 @@ import strikt.assertions.isBlank
 import strikt.assertions.none
 import java.io.InputStream
 import kotlin.time.Duration
-import kotlin.time.seconds
 import kotlin.time.toJavaDuration
 
 @Execution(CONCURRENT)
@@ -50,7 +49,7 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         fun InMemoryLogger.`should read full line if delayed`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                1.5.seconds to "Foo$LF",
+                Duration.seconds(1.5) to "Foo$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo")
@@ -60,8 +59,8 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         fun InMemoryLogger.`should read full line if second half delayed`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                1.5.seconds to "F",
-                0.5.seconds to "oo$LF",
+                Duration.seconds(1.5) to "F",
+                Duration.seconds(0.5) to "oo$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo")
@@ -71,8 +70,8 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         fun InMemoryLogger.`should read full line if split`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                1.5.seconds to "Foo\nB",
-                0.5.seconds to "ar$LF",
+                Duration.seconds(1.5) to "Foo\nB",
+                Duration.seconds(0.5) to "ar$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo", "Bar")
@@ -82,8 +81,8 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         fun InMemoryLogger.`should read full line if delayed split`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                1.5.seconds to "Foo\nB",
-                1.5.seconds to "ar$LF",
+                Duration.seconds(1.5) to "Foo\nB",
+                Duration.seconds(1.5) to "ar$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("Foo", "B", "Bar")

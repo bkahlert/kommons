@@ -7,6 +7,7 @@ import koodies.math.BigIntegerConstants
 import koodies.math.absoluteValue
 import koodies.math.dec
 import koodies.math.div
+import koodies.math.isInteger
 import koodies.math.isZero
 import koodies.math.minus
 import koodies.math.plus
@@ -30,7 +31,18 @@ import kotlin.reflect.KClass
 @JvmInline
 public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
 
-    public val bits: BigInteger get() = bytes.toBigInteger() * Byte.SIZE_BITS
+    /**
+     * Number of whole bytes (rounded up).
+     */
+    public val wholeBytes: BigInteger
+        get() = bytes.toBigInteger() + if (bytes.isInteger) BigIntegerConstants.ZERO else BigIntegerConstants.ONE
+
+    /**
+     * Number of bits.
+     */
+    public
+    val bits: BigInteger
+        get() = wholeBytes * Byte.SIZE_BITS
 
     /**
      * Computes the amount of characters needed at most to represent
