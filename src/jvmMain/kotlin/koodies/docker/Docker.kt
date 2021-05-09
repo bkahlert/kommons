@@ -9,6 +9,11 @@ import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.ProcessingMode.Interactivity
 import koodies.exec.parse
+import koodies.io.path.deleteRecursively
+import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.io.path.moveTo
+import koodies.io.path.pathString
+import koodies.io.path.randomDirectory
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
 import koodies.map
@@ -20,6 +25,7 @@ import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
+import java.io.FileNotFoundException
 import java.net.URI
 import java.nio.file.Path
 import java.util.Locale
@@ -330,18 +336,30 @@ public fun Path.curl(vararg arguments: Any, logger: RenderingLogger? = BACKGROUN
     docker(curlJqImage, "curl", *arguments, logger = logger)
 
 /**
- * Downloads the given [uri] to [fileName] in `this` directory using
+ * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
-public fun Path.download(uri: URI, fileName: String, logger: RenderingLogger? = BACKGROUND): Path =
-    resolve(fileName).also { curl("-L", uri, "-o", fileName, logger = logger) }
+public fun Path.download(uri: String, fileName: String? = null, logger: RenderingLogger? = BACKGROUND): Path =
+    if (fileName != null) {
+        resolve(fileName).also { curl("--location", uri, "-o", fileName, logger = logger) }
+    } else {
+        val downloadDir = randomDirectory()
+        downloadDir.run {
+            curl("--location", "--remote-name", "--remote-header-name", "--compressed", uri, logger = logger)
+            listDirectoryEntriesRecursively().singleOrNull()?.let { file ->
+                file.moveTo(parent.resolve(file.cleanFileName()))
+            } ?: throw FileNotFoundException("Failed to download $uri")
+        }.also { downloadDir.deleteRecursively() }
+    }
 
 /**
- * Downloads the given [uri] to [fileName] in `this` directory using
+ * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
-public fun Path.download(uri: String, fileName: String, logger: RenderingLogger? = BACKGROUND): Path =
-    download(URI(uri), fileName, logger)
+public fun Path.download(uri: URI, fileName: String? = null, logger: RenderingLogger? = BACKGROUND): Path =
+    download(uri.toString(), fileName, logger)
+
+private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }
 
 
 /*

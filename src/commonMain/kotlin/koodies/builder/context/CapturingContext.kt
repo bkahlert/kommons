@@ -33,19 +33,19 @@ import kotlin.reflect.KProperty
  * ```kotlin
  * CustomContext : CapturingContext {
  *
- *     val build by anyBuilder() default ...      👉 capturing builder with
+ *     val build by anyBuilder() default …        👉 capturing builder with
  *                                                           optional default result
  *
  *     val array by arrayBuilder()                👉 container builders with
  *          list by listBuilder()                    empty array/list/map as default
  *           map by mapBuilder()
  *
- * val reference by ::anyFunction default ...     👉 capturing function or
+ * val reference by ::anyFunction default …       👉 capturing function or
  *                                                    callable property with default
  *
  *   val builder by builder<T>()                  👉 capturing f(init: ()->T)
  *      val func by function<T>()                 👉 capturing f(value: T)
- *      var prop by setter<T>()                   👉 capturing prop: T = ...
+ *      var prop by setter<T>()                   👉 capturing prop: T = …
  *
  * }
  *

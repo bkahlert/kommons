@@ -201,7 +201,7 @@ public fun Regex.Companion.namedGroup(name: String, pattern: String): String = "
 /**
  * Returns all values that matched the groups with corresponding [groupNames].
  *
- * E.g. if `(?<a>...)(?<b>...)` matched, `result.values(listOf("b"))` returns a map with the [Map.Entry] `b` and its matched value.
+ * E.g. if `(?<a>…)(?<b>…)` matched, `result.values(listOf("b"))` returns a map with the [Map.Entry] `b` and its matched value.
  *
  * Important: In Kotlin 1.0 group names are not supported but in order to still work [groupNames] is expected to contain all used group names in the order as their appear in the regular expression (e.g. `listOf("a", "b")`).
  */

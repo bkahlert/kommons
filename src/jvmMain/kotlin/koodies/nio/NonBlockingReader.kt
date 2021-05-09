@@ -20,6 +20,8 @@ import java.io.InputStream
 import java.io.Reader
 import java.lang.System.currentTimeMillis
 import kotlin.time.Duration
+import kotlin.time.milliseconds
+import kotlin.time.seconds
 
 /**
  * Non-blocking [Reader] with Unicode code support which is suitable to
@@ -29,7 +31,7 @@ import kotlin.time.Duration
  */
 public class NonBlockingReader(
     inputStream: InputStream,
-    private val timeout: Duration = Duration.seconds(6),
+    private val timeout: Duration = 6.seconds,
     private val logger: FixedWidthRenderingLogger = MutedRenderingLogger(),
     private val blockOnEmptyLine: Boolean = false,
 ) : BufferedReader(Reader.nullReader()) {
@@ -83,7 +85,7 @@ public class NonBlockingReader(
                         lastReadLine!!.withoutTrailingLineSeparator
                     }
                 }
-                logLine { IO.Meta typed "${Now.emoji} ${Duration.milliseconds((latestReadMoment - currentTimeMillis()))}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
+                logLine { IO.Meta typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milliseconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
                 if (read == 1) {
 
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF

@@ -25,7 +25,6 @@ import koodies.exec.status
 import koodies.exec.succeeds
 import koodies.exec.terminationLoggingProcessor
 import koodies.io.ByteArrayOutputStream
-import koodies.io.path.isEqualToByteWise
 import koodies.jvm.daemon
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
@@ -33,6 +32,7 @@ import koodies.test.Slow
 import koodies.test.assertTimeoutPreemptively
 import koodies.test.expectThrows
 import koodies.test.expecting
+import koodies.test.isEqualToByteWise
 import koodies.test.test
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
@@ -55,6 +55,7 @@ import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isTrue
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 @Execution(CONCURRENT)
@@ -70,7 +71,7 @@ class JavaExecMockTest {
             fun `should run`() = test({ RUNNING_PROCESS }) {
                 expecting { it().isAlive } that { isTrue() }
                 expecting("stays running for 5s") {
-                    val p = it(); poll { !p.isAlive }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5))
+                    val p = it(); poll { !p.isAlive }.every(Duration.milliseconds(500)).forAtMost(seconds(5))
                 } that { isFalse() }
             }
 
@@ -95,7 +96,7 @@ class JavaExecMockTest {
                 expecting { it() } that { starts() }
                 expecting { it() } that { hasState<Running> { status.contains("running") } }
                 expecting("stays running for 5s") {
-                    val p = it(); poll { p.state !is Running }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5))
+                    val p = it(); poll { p.state !is Running }.every(Duration.milliseconds(500)).forAtMost(seconds(5))
                 } that { isFalse() }
             }
 
@@ -118,9 +119,9 @@ class JavaExecMockTest {
 
         @Test
         fun InMemoryLogger.`should provide input correctly`() {
-            val slowInputStream = slowInputStream(Duration.seconds(1), "Hello$LF", "World!$LF")
+            val slowInputStream = slowInputStream(seconds(1), "Hello$LF", "World!$LF")
 
-            assertTimeoutPreemptively(Duration.seconds(10)) {
+            assertTimeoutPreemptively(seconds(10)) {
                 val read = String(slowInputStream.readBytes())
 
                 expectThat(read).isEqualTo("Hello\nWorld!$LF")
@@ -129,7 +130,7 @@ class JavaExecMockTest {
 
         @Test
         fun InMemoryLogger.`should provide input slowly`() {
-            val delay = Duration.seconds(1)
+            val delay = seconds(1)
             val slowInputStream = slowInputStream(delay, "Hello$LF", "World!$LF")
 
             assertTimeoutPreemptively(delay * 5) {
@@ -147,11 +148,11 @@ class JavaExecMockTest {
         ).testEach("{}") { (_, echoOption) ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
-                Duration.seconds(0),
-                Duration.seconds(0) to "Password? ",
+                seconds(0),
+                seconds(0) to "Password? ",
                 prompt(),
-                Duration.seconds(0) to "\r",
-                Duration.seconds(0) to "Correct!$LF",
+                seconds(0) to "\r",
+                seconds(0) to "Correct!$LF",
                 byteArrayOutputStream = byteArrayOutputStream,
                 echoInput = echoOption,
             )
@@ -160,7 +161,7 @@ class JavaExecMockTest {
             val output = StringBuilder()
             val start = System.currentTimeMillis()
             while (!slowInputStream.terminated) {
-                if (Duration.milliseconds((System.currentTimeMillis() - start)) > Duration.seconds(.8)) {
+                if (Duration.milliseconds((System.currentTimeMillis() - start)) > seconds(.8)) {
                     byteArrayOutputStream.write("password1234\r".toByteArray())
                     byteArrayOutputStream.flush()
                 }
@@ -181,15 +182,15 @@ class JavaExecMockTest {
         @Test
         fun InMemoryLogger.`should produce same byte sequence as ByteArrayInputStream`() {
             val input = "A𝌪𝌫𝌬𝌭𝌮Z"
-            val inputStream = slowInputStream(Duration.seconds(2), input)
+            val inputStream = slowInputStream(seconds(2), input)
             expectThat(input.byteInputStream().readAllBytes()).isEqualTo(inputStream.readAllBytes())
         }
 
         @TestFactory
         fun InMemoryLogger.`should never apply delay at at end stream`() = "𝌪".let { input ->
             listOf(
-                slowInputStream(Duration.seconds(5), input, echoInput = true),
-                slowInputStream(Duration.seconds(5), Duration.seconds(0) to input, echoInput = true),
+                slowInputStream(seconds(5), input, echoInput = true),
+                slowInputStream(seconds(5), seconds(0) to input, echoInput = true),
             ).testEach("{}") { inputStream ->
                 val duration = measureTime {
                     @Suppress("ControlFlowWithEmptyBody")
@@ -202,7 +203,7 @@ class JavaExecMockTest {
                     inputStream.available()
                     inputStream.read()
                 }
-                expecting { duration } that { isLessThanOrEqualTo(Duration.seconds(2)) }
+                expecting { duration } that { isLessThanOrEqualTo(seconds(3)) }
             }
         }
     }
@@ -307,7 +308,7 @@ class JavaExecMockTest {
             prompt(),
             Duration.milliseconds(500) to "\r",
             Duration.milliseconds(500) to "Correct!$LF",
-            baseDelayPerInput = Duration.seconds(1),
+            baseDelayPerInput = seconds(1),
             echoInput = true,
         )
 
@@ -335,7 +336,7 @@ class JavaExecMockTest {
             prompt(),
             Duration.milliseconds(500) to "\r",
             Duration.milliseconds(500) to "Correct!$LF",
-            baseDelayPerInput = Duration.seconds(1),
+            baseDelayPerInput = seconds(1),
             echoInput = true,
         )
 
@@ -359,7 +360,7 @@ class JavaExecMockTest {
     @Test
     fun InMemoryLogger.`should provide access to unfiltered output stream`() {
         val p = withIndividuallySlowInput(
-            baseDelayPerInput = Duration.seconds(1),
+            baseDelayPerInput = seconds(1),
             echoInput = true,
         )
 
@@ -387,7 +388,7 @@ class JavaExecMockTest {
             }).start()
 
         daemon {
-            Duration.seconds(3).sleep()
+            seconds(3).sleep()
             process.enter("shutdown")
         }
 

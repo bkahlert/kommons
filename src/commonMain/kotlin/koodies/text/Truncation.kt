@@ -7,7 +7,7 @@ import koodies.text.Whitespaces.trailingWhitespaces
  * Creates a truncated string from selected elements separated using [separator] and using the given [prefix] and [postfix] if supplied.
  *
  * If the collection could be huge, you can specify a non-negative value of [startLimit], in which case at most the first [startLimit]
- * elements and the [endLimit] last elements will be appended, leaving out the elements in between using the [truncated] string (which defaults to "...").
+ * elements and the [endLimit] last elements will be appended, leaving out the elements in between using the [truncated] string (which defaults to "…").
  */
 public fun <T> Collection<T>.joinToTruncatedString(
     separator: CharSequence = ", ",
@@ -15,7 +15,7 @@ public fun <T> Collection<T>.joinToTruncatedString(
     postfix: CharSequence = "",
     startLimit: Int = 2,
     endLimit: Int = 1,
-    truncated: CharSequence = "...",
+    truncated: CharSequence = "…",
     transform: ((T) -> CharSequence)? = null,
     transformEnd: ((T) -> CharSequence)? = null,
 ): String {

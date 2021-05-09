@@ -17,7 +17,6 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -220,19 +219,6 @@ class RenderingLoggerKtTest {
             │   ϟ{}
             │   ╰──╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
         """.trimIndent(), ignoreTrailingLines = true)
-    }
-
-    @Disabled
-    @Test
-    fun @receiver:Columns(100) InMemoryLogger.`should log caught exception`() {
-        expectThat(logging("exception") {
-            logLine { "line" }
-            logCaughtException { RuntimeException("caught") }
-            logLine { "line" }
-            this
-        }).toStringMatchesCurlyPattern("""
-            
-        """.trimIndent())
     }
 
     @Suppress("UNREACHABLE_CODE")

@@ -1,6 +1,7 @@
 package koodies.test
 
-import koodies.test.debug.DebugCondition.Companion.currentIsDebug
+import koodies.debug.Debug
+import koodies.debug.DebugCondition.Companion.currentIsDebug
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.platform.launcher.TestExecutionListener

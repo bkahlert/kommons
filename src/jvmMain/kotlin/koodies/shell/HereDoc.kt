@@ -42,20 +42,6 @@ public class HereDoc(
     public constructor(commands: Iterable<CharSequence>, delimiter: String = randomDelimiter(), substituteParameters: Boolean = true) :
         this(*commands.map { it.toString() }.toTypedArray<String>(), delimiter = delimiter, substituteParameters = substituteParameters)
 
-    /**
-     * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [lines], a customizable [delimiter] and [lineSeparator].
-     */
-    @Deprecated("unused feature; remove")
-    public constructor(delimiter: String = randomDelimiter(), lineSeparator: String = DEFAULT_LINE_SEPARATOR, lines: Iterable<CharSequence>) :
-        this(commands = lines.map { "$it" }.toTypedArray(), delimiter = delimiter, lineSeparator = lineSeparator)
-
-    /**
-     * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [lines], a customizable [label] and [lineSeparator].
-     */
-    @Deprecated("unused feature; remove")
-    public constructor(vararg lines: CharSequence, label: String = randomDelimiter(), lineSeparator: String = DEFAULT_LINE_SEPARATOR) :
-        this(delimiter = label, lineSeparator = lineSeparator, lines = lines.map { "$it" })
-
     public companion object {
 
         /**

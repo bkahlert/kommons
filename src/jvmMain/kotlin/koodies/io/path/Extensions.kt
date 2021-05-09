@@ -27,13 +27,13 @@ public class Extensions(private val path: Path) : List<String> by path.fileNameP
     }
 
     /**
-     * Returns a string of the form `.ext1[...[.extn]]`.
+     * Returns a string of the form `.ext1[…[.extn]]`.
      */
     private fun normalizedExtensionString(extensions: String, vararg more: String): String =
         normalizedExtensionString(listOf(extensions) + more.toList())
 
     /**
-     * Returns a string of the form `.ext1[...[.extn]]`.
+     * Returns a string of the form `.ext1[…[.extn]]`.
      */
     private fun normalizedExtensionString(extensions: List<String>): String = extensions
         .flatMap { it.split(".") }

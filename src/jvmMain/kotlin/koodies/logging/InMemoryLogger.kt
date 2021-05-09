@@ -85,8 +85,6 @@ public open class InMemoryLogger(
                 to { logResult() },
             "logException { … }"
                 to { kotlin.runCatching { logException { RuntimeException("log exception") } } },
-            "logCaughtException { … }"
-                to { logCaughtException { RuntimeException("log exception") } },
         )
     }
 }

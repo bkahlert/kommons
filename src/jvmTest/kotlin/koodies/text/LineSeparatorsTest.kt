@@ -204,7 +204,7 @@ class LineSeparatorsTest {
             expecting("should not match empty string") { LAST_LINE_REGEX } that { not { matchEntire("") } }
             expecting("should match line") { LAST_LINE_REGEX } that { matchEntire("line").groupValues.containsExactly("line") }
             expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator") } }
-            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator...") } }
+            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator…") } }
         }
 
         group(LineSeparators::INTERMEDIARY_LINE_PATTERN.name) {
@@ -216,8 +216,8 @@ class LineSeparatorsTest {
             expecting("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN } that {
                 matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
             }
-            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN } that {
-                not { matchEntire("line$lineSeparator...") }
+            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LineSeparators.INTERMEDIARY_LINE_PATTERN } that {
+                not { matchEntire("line$lineSeparator…") }
             }
         }
 
@@ -230,7 +230,7 @@ class LineSeparatorsTest {
             expecting("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that {
                 matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
             }
-            expecting("should not match line$lineSeparator...".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that { not { matchEntire("line$lineSeparator...") } }
+            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that { not { matchEntire("line$lineSeparator…") } }
         }
     }
 

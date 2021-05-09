@@ -10,10 +10,10 @@ import strikt.assertions.isEqualTo
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class SerializedKtTest {
+class PathStringTest {
 
     @TestFactory
-    fun `serialized property`() = listOf(
+    fun `path string`() = listOf(
         "/absolute/path",
         "file.ext",
         "dir",
@@ -25,7 +25,7 @@ class SerializedKtTest {
             dynamicContainer("as generic path", Paths.get(path).let { genericPath ->
                 listOf(
                     dynamicTest("should have identical serialization") {
-                        expectThat(genericPath).serializedIsEqualTo(path)
+                        expectThat(genericPath).pathStringIsEqualTo(path)
                     },
                 )
             }),
@@ -37,7 +37,7 @@ class SerializedKtTest {
                         expectThat("$customPath").isEqualTo("custom toString")
                     },
                     dynamicTest("should have identical serialization") {
-                        expectThat(customPath).serializedIsEqualTo(path)
+                        expectThat(customPath).pathStringIsEqualTo(path)
                     },
                     dynamicTest("should have get equal path from serialized path") {
                         expectThat(Paths.get(customPath.pathString)).isEqualTo(Paths.get(path))
@@ -48,7 +48,7 @@ class SerializedKtTest {
     }
 }
 
-fun <T : Path> Assertion.Builder<T>.serializedIsEqualTo(path: String) =
+fun <T : Path> Assertion.Builder<T>.pathStringIsEqualTo(path: String) =
     assert("equals $path") {
         val actual = it.pathString
         if (actual == path) pass()

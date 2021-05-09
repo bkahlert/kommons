@@ -146,7 +146,7 @@ public class ShellScript(
          * return what they already added to the [lines] list (with the consequence
          * of adding the contents twice).
          */
-        private fun lines(block: MutableList<String>.() -> Unit): String =
+        private fun lines(block: ScriptContext.() -> Unit): String =
             lines.run {
                 block()
                 ""
@@ -165,42 +165,42 @@ public class ShellScript(
          * Adds `cd [directory] || exit [errorCode]` to this script.
          */
         public fun changeDirectoryOrExit(directory: Path, errorCode: UByte = 1u): String = lines {
-            add("cd \"$directory\" || exit $errorCode")
+            lines.add("cd \"$directory\" || exit $errorCode")
         }
 
         /**
          * Adds `this` character sequence as a separate line to this script.
          */
         public operator fun CharSequence.not(): String = lines {
-            add(this@not.toString())
+            lines.add(this@not.toString())
         }
 
         /**
          * Adds all elements of `this` collection to this script.
          */
         public operator fun Iterable<CharSequence>.not(): String = lines {
-            addAll(this@not.map { it.toString() })
+            lines.addAll(this@not.map { it.toString() })
         }
 
         /**
          * Adds the given [words] concatenated with a whitespace to this script.
          */
         public fun line(vararg words: String): String = lines {
-            add(words.joinToString(" "))
+            lines.add(words.joinToString(" "))
         }
 
         /**
          * Adds the given [line] to this script.
          */
         public fun line(line: String): String = lines {
-            add(line)
+            lines.add(line)
         }
 
         /**
          * Adds the given [lines] to this script.
          */
         public fun lines(lines: Iterable<String>): String = lines {
-            addAll(lines)
+            this.lines.addAll(lines)
         }
 
         /**
@@ -213,7 +213,7 @@ public class ShellScript(
          * Adds the given [CommandLine] to this script.
          */
         public fun command(command: CommandLine): String = lines {
-            addAll(command.lines)
+            this.lines.addAll(command.lines)
         }
 
         /**
@@ -250,7 +250,7 @@ public class ShellScript(
             val fileName = "$baseName.sh"
             val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
             val finalScript = shellScript.build().withoutTrailingLineSeparator
-            add(finalScript.wrapMultiline(
+            lines.add(finalScript.wrapMultiline(
                 """
                 (
                 cat <<'$delimiter'
@@ -274,19 +274,19 @@ public class ShellScript(
          * Adds `exit [code]` to this script.
          */
         public fun exit(code: Int): String =
-            lines { add("exit $code") }
+            lines { lines.add("exit $code") }
 
         /**
          * Adds the given [text] as a comment to this script.
          */
         public fun comment(text: String): String =
-            lines { add(text.prefixLinesWith(prefix = "# ")) }
+            lines { lines.add(text.prefixLinesWith(prefix = "# ")) }
 
         /**
          * Adds `echo "[password]" | sudo -S [command]` to this script.
          */
         public fun sudo(password: String, command: String): String =
-            lines { add("echo ${password.quoted} | sudo -S $command") }
+            lines { lines.add("echo ${password.quoted} | sudo -S $command") }
 
         /**
          * Adds a command that removes / deletes this script file.
@@ -296,7 +296,7 @@ public class ShellScript(
          * is undetermined.
          */
         public fun deleteSelf(): String =
-            lines { add("rm -- \"\$0\"") }
+            lines { lines.add("rm -- \"\$0\"") }
     }
 
     public companion object : koodies.builder.Builder<ScriptInit, ShellScript> {

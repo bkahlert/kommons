@@ -25,7 +25,7 @@ find .. -type d
 echo "line 3"
 for i in 1 2 3 4 5
 do
-  echo "Looping ... number $i"
+  echo "Looping … number $i"
 done
 EOF
 ) >script.sh

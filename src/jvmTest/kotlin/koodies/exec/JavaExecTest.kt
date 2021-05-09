@@ -55,6 +55,7 @@ import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
@@ -67,33 +68,33 @@ class JavaExecTest {
         fun `should be running`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (exec, file) = createLazyFileCreatingExec()
             expectThat(exec).hasState<Running>()
-            expectThat(poll { file.exists() }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(8))).isTrue()
+            expectThat(poll { file.exists() }.every(Duration.milliseconds(100)).forAtMost(seconds(8))).isTrue()
         }
 
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = testEach<Exec.() -> Exec>(
-            { processSilently().apply { Duration.seconds(1).sleep() } },
+            { processSilently().apply { seconds(1).sleep() } },
             { processSynchronously {} },
-            { processAsynchronously().apply { Duration.seconds(1).sleep() } },
+            { processAsynchronously().apply { seconds(1).sleep() } },
         ) { operation ->
             withTempDir(uniqueId) {
                 val exec = createCompletingExec().operation()
                 expecting { exec.state } that { isA<Exited>() }
                 expecting { exec } that { completesWithIO() }
-                expecting { poll { exec.successful == true }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(8)) } that { isTrue() }
+                expecting { poll { exec.successful == true }.every(Duration.milliseconds(100)).forAtMost(seconds(8)) } that { isTrue() }
             }
         }
 
         @Test
         fun `should be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val exec = createCompletingExec(sleep = Duration.seconds(5))
+            val exec = createCompletingExec(sleep = seconds(5))
             expectThat(exec).alive
             exec.kill()
         }
 
         @Test
         fun `should have running state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val exec = createCompletingExec(sleep = Duration.seconds(5))
+            val exec = createCompletingExec(sleep = seconds(5))
             expectThat(exec).hasState<Running> {
                 status.isEqualTo("Process ${exec.pid} is running.")
                 runningPid.isGreaterThan(0)
@@ -193,7 +194,7 @@ class JavaExecTest {
                 }
 
                 poll { exec.io.toList().size >= 7 }.every(Duration.milliseconds(100))
-                    .forAtMost(Duration.seconds(15)) { fail("Less than 6x I/O logged within 8 seconds.") }
+                    .forAtMost(seconds(15)) { fail("Less than 6x I/O logged within 8 seconds.") }
                 exec.stop()
                 exec.waitFor()
                 expectThat(exec) {
@@ -217,6 +218,13 @@ class JavaExecTest {
 
     @Nested
     inner class Termination {
+
+        @Test
+        fun `by polling state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val exec = createCompletingExec(0)
+            poll { exec.state is Exited }.every(seconds(0.5)).forAtMost(seconds(8)) { fail { "Did not terminate." } }
+            expectThat(exec).hasState<Exited>()
+        }
 
         @Test
         fun `by waiting for`(uniqueId: UniqueId) = withTempDir(uniqueId) {
@@ -260,7 +268,7 @@ class JavaExecTest {
                         not { alive }.get { this.alive }.isFalse()
                         exitCodeOrNull.not { isEqualTo(0) }
                     }
-                }.also { that(it).isLessThanOrEqualTo(Duration.seconds(5)) }
+                }.also { that(it).isLessThanOrEqualTo(seconds(5)) }
             }
         }
 
@@ -580,21 +588,21 @@ fun Builder<List<IO>>.logs(vararg io: IO) = logs(io.toList())
 fun Builder<List<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
 fun Builder<List<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
 
-fun Builder<List<IO>>.logsWithin(timeFrame: Duration = Duration.seconds(5), io: Collection<IO>) =
+fun Builder<List<IO>>.logsWithin(timeFrame: Duration = seconds(5), io: Collection<IO>) =
     assert("logs $io within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().containsAll(io)
-        }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(5))) {
+        }.every(Duration.milliseconds(100)).forAtMost(seconds(5))) {
             true -> pass()
             else -> fail("logged ${ioLog.toList()} instead")
         }
     }
 
-fun Builder<List<IO>>.logsWithin(timeFrame: Duration = Duration.seconds(5), predicate: List<IO>.() -> Boolean) =
+fun Builder<List<IO>>.logsWithin(timeFrame: Duration = seconds(5), predicate: List<IO>.() -> Boolean) =
     assert("logs within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().predicate()
-        }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(5))) {
+        }.every(Duration.milliseconds(100)).forAtMost(seconds(5))) {
             true -> pass()
             else -> fail("did not log within $timeFrame")
         }

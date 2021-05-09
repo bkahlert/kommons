@@ -3,7 +3,6 @@
 package koodies.debug
 
 import koodies.asString
-import koodies.debug.Debug.meta
 import koodies.math.BigDecimal
 import koodies.math.precision
 import koodies.math.scale
@@ -20,7 +19,7 @@ public val Thread.highlightedName: String
     get() = toString().replace(Regex("(?<prefix>.*?\\[)(?<details>.*)(?<suffix>].*?)")) {
         val prefix = it.groupValue("prefix")
         val suffix = it.groupValue("suffix")
-        val details = it.groupValue("details")?.split(",")?.joinToString(", ") { detail -> detail.meta() }
+        val details = it.groupValue("details")?.split(",")?.joinToString(", ") { detail -> detail.formattedAs.debug }
         prefix + details + suffix
     }
 
@@ -28,7 +27,7 @@ public val StackTraceElement.highlightedMethod: String
     get() = toString().replace(Regex("(?<prefix>.*\\.)(?<method>.*?)(?<suffix>\\(.*)")) {
         val prefix = it.groupValue("prefix")
         val suffix = it.groupValue("suffix")
-        val methodName = it.groupValue("method")?.meta()
+        val methodName = it.groupValue("method")?.let { it.formattedAs.debug }
         prefix + methodName + suffix
     }
 
@@ -58,7 +57,7 @@ public fun <T : Thread> T.trace(transform: T.() -> Any?): T =
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Array<StackTraceElement>.trace: Array<StackTraceElement>
-    get() = also { println(joinToString("$LF\t${"at".meta()} ", postfix = LF) { it.highlightedMethod }) }
+    get() = also { println(joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF) { it.highlightedMethod }) }
 
 /**
  * Helper property that supports

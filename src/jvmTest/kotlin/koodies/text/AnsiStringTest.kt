@@ -195,7 +195,7 @@ class AnsiStringTest {
             9 to AnsiString("$e[3;36m$e[4mImportant$e[23;39;24m"),
             0 to AnsiString(""),
         ) { (length, expected) ->
-            group("$expected ...") {
+            group("$expected …") {
 
                 expecting("should have ansiAwareSubSequence(0, $length): \"$expected\"") {
                     ansiString.subSequence(0, length)
@@ -227,7 +227,7 @@ class AnsiStringTest {
             11 to AnsiString("$e[3;36mThis line has $e[23;39m"),
             25 to AnsiString("$e[3;36m$e[23;39m"),
         ) { (startIndex, expected) ->
-            group("$expected ...") {
+            group("$expected …") {
 
                 expecting("should have ansiAwareSubSequence($startIndex, 25): \"$expected\"") {
                     ansiString.subSequence(startIndex, 25)

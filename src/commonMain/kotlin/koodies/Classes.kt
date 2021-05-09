@@ -35,7 +35,7 @@ public val KClass<*>.lowerSentenceCaseName: String
 
 /**
  * Returns a string representing `this` class and all specified [properties]
- * in the format `ClassName(name1=value1, name2=value2, ...)`.
+ * in the format `ClassName(name1=value1, name2=value2, …)`.
  */
 public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
     asString {
@@ -57,7 +57,7 @@ private fun StringBuilder.close() = append(brackets.second)
 
 /**
  * Returns a string representing `this` class and all specified [Map.entries]
- * built by the given [init] in the format `ClassName(name1=value1, name2=value2, ...)`.
+ * built by the given [init] in the format `ClassName(name1=value1, name2=value2, …)`.
  */
 public fun Any.asString(
     className: String = this::class.toSimpleString(),

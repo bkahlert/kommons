@@ -2,21 +2,16 @@
 
 package koodies.io.path
 
-import koodies.debug.debug
 import koodies.debug.replaceNonPrintableCharacters
 import koodies.io.file.lastModified
 import koodies.io.file.quoted
 import koodies.io.file.resolveBetweenFileSystems
-import koodies.regex.countMatches
-import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
-import koodies.text.quoted
 import koodies.text.truncate
 import koodies.time.Now
 import koodies.time.minus
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
-import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import java.io.File
 import java.nio.file.Path
@@ -26,57 +21,6 @@ import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 import kotlin.time.Duration
 
-fun <T : CharSequence> Builder<T>.isEqualToByteWise(other: CharSequence) =
-    assert("is equal to byte-wise") { value ->
-        val thisString = value.toList()
-        val otherString = other.toList()
-        when (thisString.containsAll(otherString)) {
-            true -> pass()
-            else -> fail("\nwas        ${otherString.debug}" +
-                "\ninstead of ${thisString.debug}.")
-        }
-    }
-
-@Suppress("unused")
-fun <T : CharSequence> Builder<T>.containsAtLeast(value: CharSequence, lowerLimit: Int = 1) =
-    assert("contains ${value.quoted} at least ${lowerLimit}x") {
-        val actual = Regex.fromLiteral("$value").countMatches(it)
-        if (actual >= lowerLimit) pass()
-        else fail("but actually contains it only ${actual}x")
-    }
-
-fun <T : CharSequence> Builder<T>.containsAtMost(value: CharSequence, limit: Int = 1) =
-    assert("contains ${value.quoted} at most ${limit}x") {
-        val actual = Regex.fromLiteral(value.toString()).countMatches(it)
-        if (actual <= limit) pass()
-        else fail("but actually contains it even ${actual}x")
-    }
-
-fun <T : CharSequence> Builder<T>.containsExactly(value: CharSequence, expectedCount: Int) =
-    assert("contains ${value.quoted} exactly ${expectedCount}x") {
-        val actual = Regex.fromLiteral(value.toString()).countMatches(it)
-        if (actual == expectedCount) pass()
-        else fail("but actually contains it ${actual}x")
-    }
-
-fun <T : CharSequence> Builder<T>.notContainsLineSeparator() =
-    assert("contains line separator") { value ->
-        val matchedSeparators = LineSeparators.filter { value.contains(it) }
-        if (matchedSeparators.isEmpty()) pass()
-        else fail("but the following have been found: $matchedSeparators")
-    }
-
-
-fun Builder<String>.prefixes(value: String) =
-    assert("prefixed by $value") { prefix ->
-        if (value.startsWith(prefix)) pass()
-        else fail("$value is not prefixed by ${prefix.debug}")
-    }
-
-
-fun <T> Builder<List<T>>.single(assertion: Builder<T>.() -> Unit) {
-    hasSize(1).and { get { this[0] }.run(assertion) }
-}
 
 fun Builder<File>.exists() =
     assert("exists") {

@@ -21,8 +21,8 @@ class FormattingKtTest {
 
     private val runtimeException = RuntimeException("Something happened$LF" +
         " ➜ A dump has been written to:$LF" +
-        "   - file:///var/folders/.../file.log (unchanged)$LF" +
-        "   - file:///var/folders/.../file.ansi-removed.log (ANSI escape/control sequences removed)$LF" +
+        "   - file:///var/folders/…/file.log (unchanged)$LF" +
+        "   - file:///var/folders/…/file.ansi-removed.log (ANSI escape/control sequences removed)$LF" +
         " ➜ The last lines are:$LF" +
         "    raspberry$LF" +
         "    Login incorrect$LF" +

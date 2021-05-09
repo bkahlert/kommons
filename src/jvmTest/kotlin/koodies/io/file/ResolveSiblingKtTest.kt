@@ -15,12 +15,12 @@ class ResolveSiblingKtTest {
 
     @Test
     fun `should resolve sibling path`() {
-        expectThat(Path.of("/a/b/c").resolveSibling { resolveSibling(fileName.pathString + "-x") }).serializedIsEqualTo("/a/b-x/c")
+        expectThat(Path.of("/a/b/c").resolveSibling { resolveSibling(fileName.pathString + "-x") }).pathStringIsEqualTo("/a/b-x/c")
     }
 
     @Test
     fun `should resolve with returned multi-segment path`() {
-        expectThat(Path.of("/a/b/c.d").resolveSibling { resolveSibling("1/e") }).serializedIsEqualTo("/a/1/e/c.d")
+        expectThat(Path.of("/a/b/c.d").resolveSibling { resolveSibling("1/e") }).pathStringIsEqualTo("/a/1/e/c.d")
     }
 
     @TestFactory
@@ -29,7 +29,7 @@ class ResolveSiblingKtTest {
         1 to "/a/b-x/c",
         2 to "/a-x/b/c",
     ).testEach { (order, expected) ->
-        expecting { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.pathString + "-x") } } that { serializedIsEqualTo(expected) }
+        expecting { Path.of("/a/b/c").resolveSibling(order) { resolveSibling(fileName.pathString + "-x") } } that { pathStringIsEqualTo(expected) }
     }
 
     @Test

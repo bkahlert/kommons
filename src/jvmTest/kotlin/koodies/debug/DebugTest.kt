@@ -1,6 +1,5 @@
-package koodies.test.debug
+package koodies.debug
 
-import koodies.debug.CapturedOutput
 import koodies.exec.IO
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
@@ -21,7 +20,7 @@ class DebugTest {
 
     @Test
     fun `should run in isolation`() {
-        expectThat(AnnotationSupport.findAnnotation(InternalDebug::class.java, Isolated::class.java).orElse(null)).isNotNull()
+        expectThat(AnnotationSupport.findAnnotation(Debug::class.java, Isolated::class.java).orElse(null)).isNotNull()
     }
 
     @SystemIORead

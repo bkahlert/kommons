@@ -36,8 +36,8 @@ public open class DockerExec(
                     val dump = createDump(message)
                     Excepted(pid, -1, io, IllegalStateException(dump.ansiRemoved), dump, message).also { finalState = it }
                 }
-            }.also { onExit }
-        } // hack to trigger lazy on exit register an exit state storing future
+            }
+        }
 
     /**
      * Stops this [Exec] by stopping its container.

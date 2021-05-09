@@ -66,12 +66,19 @@ public class JavaExec(
     public companion object;
 
     override val pid: Long by lazy { javaProcess.pid() }
-    override fun waitFor(): ExitState = (state as? ExitState) ?: onExit.join()
+    override fun waitFor(): ExitState = (_state as? ExitState) ?: onExit.join()
     override fun stop(): Exec = also { javaProcess.destroy() }
     override fun kill(): Exec = also { javaProcess.destroyForcibly() }
 
-    override var state: State = Running(pid)
-        private set
+    private var _state: State = Running(pid)
+
+    // onExit needs to be triggered at some point so it updates the state
+    // consequently callbacks registered after that moment will likely not be triggered
+    override val state: State
+        get() {
+            onExit
+            return _state
+        }
 
     private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, ReOutputStream { ioLog.input + it }) }
     private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, ReOutputStream { ioLog.output + it }) }
@@ -117,7 +124,7 @@ public class JavaExec(
                     Excepted(pid, exitValue, io, exception, createDump(message), message)
                 }
             }
-            state = exitState
+            _state = exitState
             postTerminationCallbacks.forEach { process.it(exitState) }
             exitState
         }
@@ -127,7 +134,7 @@ public class JavaExec(
     public override fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec =
         apply { postTerminationCallbacks.add(callback) }
 
-    override val onExit: CompletableFuture<out ExitState> get() = (state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
+    override val onExit: CompletableFuture<out ExitState> get() = (_state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String {
         val delegateString = "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Computation}"
@@ -143,7 +150,7 @@ public class JavaExec(
             commandLine.includedFiles.forEach { metaStream.emit(File(it)) }
 
             if (destroyOnShutdown) {
-                val shutdownHook = thread(start = false, name = "shutdown hook for $this", contextClassLoader = null) { javaProcess.destroy() }
+                val shutdownHook = thread(start = false, name = "shutdown hook for $pid", contextClassLoader = null) { javaProcess.destroy() }
                 addShutDownHook(shutdownHook)
 
                 javaProcess.onExit().handle { _, _ -> removeShutdownHook(shutdownHook) }

@@ -20,6 +20,7 @@ import java.time.temporal.UnsupportedTemporalTypeException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
@@ -34,17 +35,17 @@ class TimeOperationsKtTest {
 
         @Test
         fun `should sleep on positive duration`() {
-            expectThat(measureTime { seconds(1).sleep() }).isGreaterThan(Duration.milliseconds(900)).isLessThan(Duration.milliseconds(1100))
+            expectThat(measureTime { seconds(1).sleep() }).isGreaterThan(milliseconds(900)).isLessThan(milliseconds(1100))
         }
 
         @Test
         fun `should sleep and call block on positive duration`() {
-            expectThat(Duration.seconds(1).sleep { 42 }).isEqualTo(42)
+            expectThat(seconds(1).sleep { 42 }).isEqualTo(42)
         }
 
         @Test
         fun `should not sleep on zero duration`() {
-            expectThat(measureTime { Duration.ZERO.sleep() }).isLessThanOrEqualTo(Duration.milliseconds(100))
+            expectThat(measureTime { Duration.ZERO.sleep() }).isLessThanOrEqualTo(milliseconds(100))
         }
 
         @Test

@@ -94,6 +94,19 @@ public fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = fals
 }
 
 /**
+ * Removes from a string both the given [Pair.first] and [Pair.second] if and only if
+ * it starts with the [Pair.first] and ends with the [Pair.second].
+ * Otherwise returns this string unchanged.
+ */
+public fun String.removeSurrounding(prefixSuffixPair: Pair<CharSequence, CharSequence>): String {
+    val (prefix, suffix) = prefixSuffixPair
+    if ((length >= prefix.length + suffix.length) && startsWith(prefix) && endsWith(suffix)) {
+        return substring(prefix.length, length - suffix.length)
+    }
+    return this
+}
+
+/**
  * Wraps this char sequence with the given [prefix] and [suffix].
  * - a line feed (`\n`) is added to separate the [prefix] from this char sequence
  * - a line feed (`\n`) is added to separate this char sequence from the [suffix].

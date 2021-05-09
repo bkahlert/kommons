@@ -1,5 +1,5 @@
 koodies.test.UniqueIdResolver
 koodies.test.IllegalUsageCheck
-koodies.test.debug.DebugCondition
-koodies.test.debug.DebugParameterResolver
+koodies.debug.DebugCondition
+koodies.debug.DebugParameterResolver
 koodies.test.output.InMemoryLoggerResolver

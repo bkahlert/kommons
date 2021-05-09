@@ -178,7 +178,7 @@ public fun Path.copyToDirectory(
  * - A order of `0` is identical to a making a copy with [copyTo].
  * - `1` (*default*) appends the suffix to parent's [Path.getFileName] instead.
  * - `2` to parent's parent
- * - ...  and so on
+ * - …  and so on
  *
  * E.g. `/a/b/c`'s 2 order duplication can be found at `/a/b-random/c`.
  */

@@ -124,13 +124,13 @@ public fun <T> T.xray(stringifier: T.() -> String, transform: (T.() -> String)?)
  * chain().of.endless().trace.calls()
  * ```
  *
- * ... does the same as ...
+ * … does the same as …
  *
  * ```kotlin
  * chain().of.endless().calls()
  * ```
  *
- * ... with the only difference that the return value of
+ * … with the only difference that the return value of
  *
  * ```kotlin
  * chain().of.endless()
@@ -153,13 +153,13 @@ public val <T> T.trace: T
  * chain().of.endless().trace { prop }.calls()
  * ```
  *
- * ... does the same as ...
+ * … does the same as …
  *
  * ```kotlin
  * chain().of.endless().calls()
  * ```
  *
- * ... with the only difference that the return value of
+ * … with the only difference that the return value of
  *
  * ```kotlin
  * chain().of.endless()

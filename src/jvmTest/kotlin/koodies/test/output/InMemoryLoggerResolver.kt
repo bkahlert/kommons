@@ -167,8 +167,7 @@ val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store<InMemoryLogg
 /**
  * Logs the given [block] in a new span with the active test logger if any.
  */
-@RenderingLoggingDsl
-public fun <R> ExtensionContext.logging(
+@RenderingLoggingDsl fun <R> ExtensionContext.logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,

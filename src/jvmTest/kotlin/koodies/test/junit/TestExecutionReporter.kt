@@ -1,8 +1,8 @@
 package koodies.test.junit
 
+import koodies.debug.Debug
 import koodies.docker.Docker
 import koodies.docker.DockerRequiring
-import koodies.test.Debug
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
 import koodies.test.withAnnotation

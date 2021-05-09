@@ -3,10 +3,9 @@ package koodies.exec.mock
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.logging.MutedRenderingLogger
-import koodies.logging.RenderingLogger
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.text.LineSeparators.LF
 import koodies.time.busyWait
 import java.io.InputStream
@@ -16,13 +15,14 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import java.lang.Process as JavaProcess
 
 /**
  * [JavaProcess] mock to ease testing.
  */
 public open class JavaProcessMock(
-    public var logger: RenderingLogger,
+    public var logger: FixedWidthRenderingLogger,
     private var outputStream: OutputStream = ByteArrayOutputStream(),
     private val inputStream: InputStream = nullInputStream(),
     private val errorStream: InputStream = nullInputStream(),
@@ -45,7 +45,7 @@ public open class JavaProcessMock(
     public companion object {
 
         public val RUNNING_PROCESS: JavaProcessMock
-            get() = InMemoryLogger().withUnclosedWarningDisabled.withSlowInput("this", "process", "processed", "slowly", echoInput = true)
+            get() = JavaProcessMock(MutedRenderingLogger(), exitCode = { 0 }, exitDelay = seconds(10))
         public val SUCCEEDING_PROCESS: JavaProcessMock
             get() = JavaProcessMock(MutedRenderingLogger(), inputStream = "line 1${LF}line 2$LF".byteInputStream(), exitCode = { 0 })
         public val FAILING_PROCESS: JavaProcessMock
@@ -60,7 +60,7 @@ public open class JavaProcessMock(
 
         public fun InMemoryLogger.withSlowInput(
             vararg inputs: String,
-            baseDelayPerInput: Duration = Duration.seconds(1),
+            baseDelayPerInput: Duration = seconds(1),
             echoInput: Boolean,
             exitDelay: Duration = Duration.ZERO,
             exitCode: JavaProcessMock.() -> Int = { 0 },
@@ -78,7 +78,7 @@ public open class JavaProcessMock(
         public fun InMemoryLogger.withIndividuallySlowInput(
             vararg inputs: Pair<Duration, String>,
             echoInput: Boolean,
-            baseDelayPerInput: Duration = Duration.seconds(1),
+            baseDelayPerInput: Duration = seconds(1),
             exitDelay: Duration = Duration.ZERO,
             exitCode: JavaProcessMock.() -> Int = { 0 },
         ): JavaProcessMock {

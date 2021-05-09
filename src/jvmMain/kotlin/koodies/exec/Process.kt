@@ -8,6 +8,8 @@ import koodies.exec.Process.State.Exited
 import koodies.exec.Process.State.Running
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators
+import koodies.text.LineSeparators.CRLF
+import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.withSuffix
@@ -268,12 +270,6 @@ public interface Process : ReturnValue {
     @Deprecated("use exitCode", ReplaceWith("exitCode", "koodies.exec.exitCode")) public val exitValue: Int get() = exitCode
 
     /**
-     * Blocking method that waits until the program represented by this process
-     * terminates and returns its [exitValue].
-     */
-    @Deprecated("use waitFor", ReplaceWith("waitFor()")) public fun waitForTermination(): ExitState = waitFor()
-
-    /**
      * Gracefully attempts to stop the execution of the program represented by this process.
      */
     public fun stop(): Process
@@ -329,7 +325,7 @@ public fun OutputStream.enter(vararg input: String, delay: Duration = millisecon
     val stdin = BufferedWriter(OutputStreamWriter(this))
     input.forEach {
         TimeUnit.MILLISECONDS.sleep(delay.inWholeMilliseconds)
-        stdin.write(it.withSuffix(LineSeparators.CRLF))
+        stdin.write(it.withoutTrailingLineSeparator.withSuffix(CRLF))
         stdin.flush()
     }
 }

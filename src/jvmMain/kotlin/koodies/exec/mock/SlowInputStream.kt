@@ -4,14 +4,14 @@ import koodies.debug.debug
 import koodies.io.ByteArrayOutputStream
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.InMemoryLogger
-import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessEmpty
-import koodies.time.Now
 import koodies.time.sleep
 import koodies.unit.bytes
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration
+import kotlin.time.milliseconds
 
 public class SlowInputStream(
     public val baseDelayPerInput: Duration,
@@ -46,12 +46,10 @@ public class SlowInputStream(
     private val unread: MutableList<Pair<Duration, MutableList<Byte>>> =
         inputs.map { it.first to it.second.toByteArray().toMutableList() }.toMutableList()
     public val unreadCount: Int get() = unread.map { it.second.size }.sum()
-    private val originalCountLength = "$unreadCount".length
     private val blockedByPrompt get() = unread.isNotEmpty() && unread.first().first == Duration.INFINITE
-    private val Int.padded get() = this.toString().padStart(originalCountLength)
 
     private val inputs = mutableListOf<String>()
-    public fun processInput(logger: FixedWidthRenderingLogger): Boolean = logger.logging("✏️") {
+    public fun processInput(logger: FixedWidthRenderingLogger): Boolean = logger.compactLogging("✏️ processing input") {
         byteArrayOutputStream?.apply {
             toString(Charsets.UTF_8).takeUnlessEmpty()?.let { newInput ->
                 inputs.add(newInput)
@@ -79,23 +77,26 @@ public class SlowInputStream(
 
     private fun handleAndReturnBlockingState(): Boolean = processInput(logger)
 
-    override fun available(): Int = logger.logging("available") {
+    override fun available(): Int = logger.compactLogging("available") {
         if (closed) {
             throw IOException("Closed.")
         }
 
         if (handleAndReturnBlockingState()) {
             logLine { "prompt is blocking" }
-            return@logging 0
+            50.milliseconds.sleep()
+            return@compactLogging 0
         }
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            logLine { "${Duration.milliseconds(yetBlocked)} to wait for next chunk" }
-            return@logging 0
+            val delay = Duration.milliseconds(yetBlocked)
+            logLine { "$delay to wait for next chunk" }
+            ((delay / 2).takeIf { it > 50.milliseconds } ?: 50.milliseconds).sleep()
+            return@compactLogging 0
         }
         if (terminated) {
             logLine { "Backing buffer is depleted ➜ EOF reached." }
-            return@logging 0
+            return@compactLogging 0
         }
 
         val currentDelayedWord = unread.first()
@@ -104,57 +105,56 @@ public class SlowInputStream(
             blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
             unread[0] = Duration.ZERO to currentDelayedWord.second
             logLine { "$delay to wait for next chunk (just started)" }
-            return@logging 0
+            ((delay / 2).takeIf { it > 50.milliseconds } ?: 50.milliseconds).sleep()
+            return@compactLogging 0
         }
 
         currentDelayedWord.second.size
     }
 
-    override fun read(): Int = logger.logging("read") {
+    override fun read(): Int = logger.compactLogging("read") {
         if (closed) {
             throw IOException("Closed.")
         }
 
         while (handleAndReturnBlockingState()) {
             logLine { "prompt is blocking" }
-            Duration.milliseconds(10).sleep()
+            Duration.milliseconds(50).sleep()
         }
 
-        logLine { "${unreadCount.padded.ansi.yellow} bytes unread" }
+        logLine { "${unreadCount.bytes.formattedAs.debug} unread" }
 
         if (terminated) {
             logLine { "Backing buffer is depleted ➜ EOF reached." }
-            return@logging -1
+            return@compactLogging -1
         }
 
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            logging(Now.emoji) {
-                logLine { "blocking for the remaining ${Duration.milliseconds(yetBlocked)}..." }
-                Thread.sleep(yetBlocked)
-            }
+            logLine { "blocking for the remaining ${Duration.milliseconds(yetBlocked)}…" }
+            yetBlocked.milliseconds.sleep()
         }
 
         val currentWord: MutableList<Byte> = unread.let {
             val currentLine: Pair<Duration, MutableList<Byte>> = it.first()
             val delay = currentLine.first
             if (delay > Duration.ZERO) {
-                logging(Now.emoji) {
-                    logLine { "output delayed by $delay..." }
-                    Thread.sleep(delay.inWholeMilliseconds)
-                    unread[0] = Duration.ZERO to currentLine.second
-                }
+                logLine { "output delayed by $delay…" }
+                delay.sleep()
+                unread[0] = Duration.ZERO to currentLine.second
             }
             currentLine.second
         }
-        logLine { "— available ${currentWord.debug.ansi.magenta}" }
+        logLine { "available:${currentWord.debug.formattedAs.debug}" }
         val currentByte = currentWord.removeFirst()
-        logLine { "— current: $currentByte/${currentByte.toInt().toChar()}" }
+        logLine { "current:${currentByte.debug.formattedAs.debug}" }
 
         if (currentWord.isEmpty()) {
             unread.removeFirst()
-            blockUntil = System.currentTimeMillis() + baseDelayPerInput.inWholeMilliseconds
+            val delay = baseDelayPerInput
+            blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
             logLine { "— empty; waiting time for next chunk is $baseDelayPerInput" }
+            ((delay / 2).takeIf { it > 50.milliseconds } ?: 50.milliseconds).sleep()
         }
         currentByte.toInt()
     }

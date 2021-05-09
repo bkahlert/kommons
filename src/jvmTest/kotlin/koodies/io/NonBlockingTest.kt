@@ -73,7 +73,7 @@ class NonBlockingTest {
             val inputStream = slowInputStream(seconds(10), seconds(0) to input)
 
             val readFromSlowInput =
-                NonBlocking.nonBlocking(randomString(), BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))).readAll(seconds(2))
+                NonBlocking.nonBlocking(randomString(), BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))).readAll(seconds(8))
             val readFromAnyInput = input.byteInputStream().readAllBytes().decodeToString()
             expectThat(readFromSlowInput).isEqualTo(readFromAnyInput).isEqualTo(input)
         }

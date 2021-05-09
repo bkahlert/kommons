@@ -32,7 +32,7 @@ class FixtureKtTest {
         expectThrows<IOException> { data }
         with("dynamic paths") { dir("services").file("org.junit.jupiter.api.extension.Extension") } then {
             expecting { name } that { isEqualTo("org.junit.jupiter.api.extension.Extension") }
-            expecting { text } that { contains("koodies.test.debug.DebugCondition") }
+            expecting { text } that { contains("koodies.debug.DebugCondition") }
             expecting { data.size } that { isGreaterThan(10) }
         }
         expectThrows<Throwable> { dir("I dont exist") }
@@ -45,7 +45,7 @@ class FixtureKtTest {
         expectThrows<IOException> { data }
         with("static paths") { META_INF.Services.JUnitExtensions } then {
             expecting { name } that { isEqualTo("org.junit.jupiter.api.extension.Extension") }
-            expecting { text } that { contains("koodies.test.debug.DebugCondition") }
+            expecting { text } that { contains("koodies.debug.DebugCondition") }
             expecting { data.size } that { isGreaterThan(10) }
         }
         expectThrows<Throwable> { Dir("I dont exist") }

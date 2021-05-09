@@ -11,6 +11,7 @@ import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
 import koodies.logging.LoggingOptions.SmartLoggingOptions
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
+import koodies.logging.ReturnValue
 import koodies.logging.runLogging
 import java.nio.file.Path
 
@@ -98,7 +99,12 @@ public data class Executor<E : Exec>(
                 exec.process(processingMode, processor = processor ?: Processors.loggingProcessor(processLogger))
             }
             Async -> {
-                processLogger.logResult { Result.success(exec) }
+                processLogger.logResult {
+                    Result.success(object : ReturnValue {
+                        override val successful: Boolean? = null
+                        override val textRepresentation: String = "async computation"
+                    })
+                }
                 exec.process(processingMode, processor = processor ?: exec.terminationLoggingProcessor(processLogger))
             }
         }

@@ -104,37 +104,3 @@ public open class BlockRenderingLogger(
     }
 }
 
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
- */
-@Deprecated("only use member function")
-@RenderingLoggingDsl
-public fun <R> blockLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
-    border: Border = Border.DEFAULT,
-    block: FixedWidthRenderingLogger.() -> R,
-): R = BlockRenderingLogger(caption, null, contentFormatter, decorationFormatter, returnValueFormatter, border).runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
- */
-@Deprecated("only use member function")
-@RenderingLoggingDsl
-public fun <T : RenderingLogger?, R> T.blockLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = Formatter { it.red() },
-    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
-    border: Border = Border.DEFAULT,
-    block: FixedWidthRenderingLogger.() -> R,
-): R =
-    if (this is FixedWidthRenderingLogger) blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)
-    else koodies.logging.blockLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, border, block)

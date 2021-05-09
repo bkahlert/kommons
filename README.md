@@ -295,7 +295,7 @@ enum class Trait { Exclusive, PreOwned, TaxExempt }
 * Compose and re-use builders, functions and callable properties
     * a couple of default builders like **EnumSetBuilder**, **ArrayBuilder**, **ListBuilder** and **MapBuilder** are already provided
 * Auto-generate simple builders, functions and setters
-* BuilderTemplate based builders are...
+* BuilderTemplate based builders are…
     * **thread-safe**
         * Builders created with the builder template have no state.
         * Instead, each build keeps its state in a dedicated context instance which you may implement on your own or assisted by

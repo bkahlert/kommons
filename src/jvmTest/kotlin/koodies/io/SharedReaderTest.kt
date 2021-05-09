@@ -2,14 +2,14 @@ package koodies.io
 
 import koodies.exception.dump
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
-import koodies.io.path.notContainsLineSeparator
-import koodies.io.path.prefixes
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.HtmlFile
 import koodies.test.Slow
 import koodies.test.UniqueId
+import koodies.test.notContainsLineSeparator
+import koodies.test.prefixes
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF

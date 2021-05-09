@@ -7,6 +7,10 @@ import koodies.exec.ansiKept
 import koodies.exec.ansiRemoved
 import koodies.exec.io
 import koodies.exec.output
+import koodies.io.compress.Archiver.unarchive
+import koodies.io.path.asPath
+import koodies.io.path.getSize
+import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.logging.InMemoryLogger
 import koodies.test.HtmlFile
 import koodies.test.IdeaWorkaroundTest
@@ -19,9 +23,12 @@ import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.containsEscapeSequences
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.unit.bytes
+import koodies.unit.hasSize
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.fail
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.any
@@ -34,6 +41,8 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.length
 import strikt.java.exists
+import strikt.java.fileName
+import java.net.URI
 import java.nio.file.Path
 
 class DockerTest {
@@ -169,24 +178,57 @@ class DockerTest {
             }
         }
 
+        @Nested
+        inner class Download {
+
+            private val uri = "https://github.com/NicolasCARPi/example-files/raw/master/example.png"
+
+            @DockerRequiring @TestFactory
+            fun `should download`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Path>(
+                { download(it, logger = logger) },
+                { download(URI.create(it), logger = logger) },
+            ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { hasSize(40959.bytes) } } }
+
+            @DockerRequiring @TestFactory
+            fun `should download use given name`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String, String) -> Path>(
+                { uri, name -> download(uri, name, logger = logger) },
+                { uri, name -> download(URI.create(uri), name, logger = logger) },
+            ) { download -> withTempDir(uniqueId) { expecting { download(uri, "custom.png") } that { fileName.isEqualTo("custom.png".asPath()) } } }
+
+            @DockerRequiring @TestFactory
+            fun `should download use remote name`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Path>(
+                { download(it, logger = logger) },
+                { download(URI.create(it), logger = logger) },
+            ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { fileName.isEqualTo("example.png".asPath()) } } }
+
+            @DockerRequiring @TestFactory
+            fun `should download clean remote name`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Path>(
+                { download(it, logger = logger) },
+                { download(URI.create(it), logger = logger) },
+            ) { download -> withTempDir(uniqueId) { expecting { download("$uri?a=b#c") } that { fileName.isEqualTo("example.png".asPath()) } } }
+        }
+
         @Suppress("SpellCheckingInspection")
         @DockerRequiring @Test
         fun InMemoryLogger.`should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val uri = "https://www.riscosopen.org/zipfiles/platform/raspberry-pi/BCM2835Dev.5.29.zip?1604815147"
-            download(uri, "riscos.img").dockerPi { io ->
+            val unarchive: Path = download(uri).unarchive()
+            val listDirectoryEntriesRecursively: List<Path> = unarchive.listDirectoryEntriesRecursively()
+            val maxOf = listDirectoryEntriesRecursively.maxByOrNull { it.getSize() } ?: fail { "No image found." }
+            maxOf.dockerPi { io ->
                 logLine { io }
             } asserting { io.output.ansiRemoved.contains("Rebooting in 1 seconds") }
         }
 
         @Suppress("SpellCheckingInspection")
         @DockerRequiring([LibRSvg::class, Chafa::class]) @Smoke @Test
-        fun InMemoryLogger.`should run multiple containers`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should run multiple containers`(uniqueId: UniqueId, logger: InMemoryLogger) = withTempDir(uniqueId) {
             SvgFile.copyTo(resolve("koodies.svg"))
 
             docker(LibRSvg, "-z", 10, "--output", "koodies.png", "koodies.svg")
             resolve("koodies.png") asserting { exists() }
 
-            docker(Chafa, logger = this@`should run multiple containers`) {
+            docker(Chafa, logger) {
                 """
                /opt/bin/chafa koodies.png 
                 """

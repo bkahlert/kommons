@@ -1,8 +1,7 @@
-package koodies.test.debug
+package koodies.debug
 
 
 import koodies.debug.AdHocOutputCapture.Companion.captureOutput
-import koodies.test.Debug
 import koodies.test.junit.JUnit.runTests
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -67,7 +66,6 @@ class DebugSkipTest {
 
 
     @TestMethodOrder(OrderAnnotation::class)
-
     class HiddenSkipTests : PostDiscoveryFilter {
         companion object {
             var hidden = true

@@ -138,17 +138,5 @@ class HereDocKtTest {
             HERE-{}
         """.trimIndent())
         }
-
-
-        @Test
-        fun `should take named arguments as such`() {
-            val hereDoc = HereDoc("line 1", "line 2", label = "test")
-            expectThat(hereDoc).matchesCurlyPattern("""
-            <<test
-            line 1
-            line 2
-            test
-        """.trimIndent())
-        }
     }
 }

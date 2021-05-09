@@ -14,4 +14,4 @@ fun <T> Assertion.Builder<T>.debug(): Assertion.Builder<T> =
             override fun invoke(): T = this@get
             override fun toString(): String = this@get.debug
         }
-    }.get("⬆ DEBUGGED".ansi.brightCyan.toString()) { this() }
+    }.get("⬆ DEBUGGED".ansi.brightCyan.done) { this() }

@@ -75,7 +75,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback {
                 }
                 else -> {
                     if (logger.state is Running) {
-                        logger.logLine { "Container $name is still running... just saying".formattedAs.debug }
+                        logger.logLine { "Container $name is still running… just saying".formattedAs.debug }
                     }
                 }
             }
