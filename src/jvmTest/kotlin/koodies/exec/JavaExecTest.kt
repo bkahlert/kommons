@@ -157,13 +157,13 @@ class JavaExecTest {
         @Test
         fun `should format running exec`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec: Exec = createCompletingExec()
-            expectThat("$exec").matchesCurlyPattern("JavaExec(delegate=Process(pid={}, exitValue={}), successful=⏳️, $shared)")
+            expectThat("$exec").matchesCurlyPattern("JavaExec(process=Process(pid={}, exitValue={}), successful=⏳️, $shared)")
         }
 
         @Test
         fun `should format terminated exec`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec: Exec = createCompletingExec().also { it.waitFor() }
-            expectThat("$exec").matchesCurlyPattern("JavaExec(delegate=Process(pid={}, exitValue={}), successful=✅, $shared)")
+            expectThat("$exec").matchesCurlyPattern("JavaExec(process=Process(pid={}, exitValue={}), successful=✅, $shared)")
         }
     }
 

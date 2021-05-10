@@ -16,7 +16,7 @@ import koodies.exec.output
 import koodies.exec.parse
 import koodies.io.path.Locations
 import koodies.logging.FixedWidthRenderingLogger
-import koodies.logging.LoggingContext.Companion.BACKGROUND
+import koodies.logging.LoggingContext.Companion.DEBUGGING_ONLY
 import koodies.logging.RenderingLogger
 import koodies.or
 import koodies.requireSaneInput
@@ -94,18 +94,21 @@ public open class DockerImage(
     /**
      * Lists locally available instances of this image.
      */
-    public fun list(ignoreIntermediateImages: Boolean = true): List<DockerImage> =
+    public fun list(
+        ignoreIntermediateImages: Boolean = true,
+        logger: FixedWidthRenderingLogger = DEBUGGING_ONLY,
+    ): List<DockerImage> =
         DockerImageListCommandLine {
             options { all by !ignoreIntermediateImages }
             image by this@DockerImage
-        }.exec.logging(BACKGROUND) {
+        }.exec.logging(logger) {
             summary("Listing ${this@DockerImage.formattedAs.input} images")
         }.parseImages()
 
     /**
      * Checks if this image is pulled.
      */
-    public val isPulled: Boolean get() = with(BACKGROUND) { isPulled }
+    public val isPulled: Boolean get() = with(DEBUGGING_ONLY) { isPulled }
 
     /**
      * Current pulled state of this image—queried using `this` [RenderingLogger].
@@ -123,7 +126,10 @@ public open class DockerImage(
      *
      * Enabled [allTags] to download all tagged images in the repository.
      */
-    public fun pull(allTags: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
+    public fun pull(
+        allTags: Boolean = false,
+        logger: RenderingLogger = DEBUGGING_ONLY,
+    ): ExitState =
         DockerImagePullCommandLine {
             options { this.allTags by allTags }
             image by this@DockerImage
@@ -136,7 +142,10 @@ public open class DockerImage(
      *
      * If [force] is specified, a force removal is triggered.
      */
-    public fun remove(force: Boolean = false, logger: RenderingLogger = BACKGROUND): ExitState =
+    public fun remove(
+        force: Boolean = false,
+        logger: RenderingLogger = DEBUGGING_ONLY,
+    ): ExitState =
         DockerImageRemoveCommandLine {
             options { this.force by force }
             image by this@DockerImage
@@ -280,7 +289,7 @@ public open class DockerImage(
         /**
          * Lists locally available images.
          */
-        public fun list(ignoreIntermediateImages: Boolean = true, logger: FixedWidthRenderingLogger = BACKGROUND): List<DockerImage> =
+        public fun list(ignoreIntermediateImages: Boolean = true, logger: RenderingLogger = DEBUGGING_ONLY): List<DockerImage> =
             DockerImageListCommandLine {
                 options { all by !ignoreIntermediateImages }
             }.exec.logging(logger) {

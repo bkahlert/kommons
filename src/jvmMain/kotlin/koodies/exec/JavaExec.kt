@@ -36,7 +36,7 @@ import java.lang.Process as JavaProcess
  */
 public class JavaExec(
 
-    private val javaProcess: JavaProcess,
+    private val process: JavaProcess,
 
     /**
      * The working directory to be used during execution.
@@ -65,10 +65,10 @@ public class JavaExec(
 ) : Exec {
     public companion object;
 
-    override val pid: Long by lazy { javaProcess.pid() }
+    override val pid: Long by lazy { process.pid() }
     override fun waitFor(): ExitState = (_state as? ExitState) ?: onExit.join()
-    override fun stop(): Exec = also { javaProcess.destroy() }
-    override fun kill(): Exec = also { javaProcess.destroyForcibly() }
+    override fun stop(): Exec = also { process.destroy() }
+    override fun kill(): Exec = also { process.destroyForcibly() }
 
     private var _state: State = Running(pid)
 
@@ -80,9 +80,9 @@ public class JavaExec(
             return _state
         }
 
-    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(javaProcess.outputStream, ReOutputStream { ioLog.input + it }) }
-    private val capturingOutputStream: InputStream by lazy { TeeInputStream(javaProcess.inputStream, ReOutputStream { ioLog.output + it }) }
-    private val capturingErrorStream: InputStream by lazy { TeeInputStream(javaProcess.errorStream, ReOutputStream { ioLog.error + it }) }
+    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(process.outputStream, ReOutputStream { ioLog.input + it }) }
+    private val capturingOutputStream: InputStream by lazy { TeeInputStream(process.inputStream, ReOutputStream { ioLog.output + it }) }
+    private val capturingErrorStream: InputStream by lazy { TeeInputStream(process.errorStream, ReOutputStream { ioLog.error + it }) }
 
     override val metaStream: MetaStream = MetaStream({ ioLog + it })
     override val inputStream: OutputStream get() = capturingInputStream
@@ -105,10 +105,10 @@ public class JavaExec(
             preTerminationCallbacks.mapNotNull { callback ->
                 runCatching { this.callback() }.exceptionOrNull()
             }.firstOrNull()?.let { throw it }
-        }.thenCombine(javaProcess.onExit()) { _, _ ->
+        }.thenCombine(process.onExit()) { _, _ ->
         }.handle { _, throwable ->
             ioLog.flush()
-            val exitValue = javaProcess.exitValue()
+            val exitValue = process.exitValue()
 
             val exitState: ExitState = if (throwable != null) {
                 val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
@@ -136,8 +136,8 @@ public class JavaExec(
     override val onExit: CompletableFuture<out ExitState> get() = (_state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String {
-        val delegateString = "${javaProcess.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Computation}"
-        return "${this::class.simpleName ?: "object"}(delegate=$delegateString)".substringBeforeLast(")") +
+        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Computation}"
+        return "${this::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")") +
             ", commandLine=${commandLine.shellCommand.toCompactString().truncate(50, MIDDLE, " … ")}" +
             ", execTerminationCallback=${(execTerminationCallback != null).asEmoji}" +
             ", destroyOnShutdown=${destroyOnShutdown.asEmoji})"
@@ -149,14 +149,14 @@ public class JavaExec(
             commandLine.includedFiles.forEach { metaStream.emit(File(it)) }
 
             if (destroyOnShutdown) {
-                val shutdownHook = thread(start = false, name = "shutdown hook for $pid", contextClassLoader = null) { javaProcess.destroy() }
+                val shutdownHook = thread(start = false, name = "shutdown hook for $pid", contextClassLoader = null) { process.destroy() }
                 addShutDownHook(shutdownHook)
 
-                javaProcess.onExit().handle { _, _ -> removeShutdownHook(shutdownHook) }
+                process.onExit().handle { _, _ -> removeShutdownHook(shutdownHook) }
             }
 
             execTerminationCallback?.let { callback ->
-                javaProcess.onExit().handle { _, ex -> runCatching { callback.invoke(ex) } }
+                process.onExit().handle { _, ex -> runCatching { callback.invoke(ex) } }
             }
         } catch (ex: Throwable) {
             kotlin.runCatching { execTerminationCallback?.invoke(ex) }

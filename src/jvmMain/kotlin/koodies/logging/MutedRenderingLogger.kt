@@ -1,11 +1,9 @@
 package koodies.logging
 
-import koodies.asString
-
 /**
  * A logger that can be used if no logging is needed.
  */
-public open class MutedRenderingLogger : BlockRenderingLogger("", null) {
+public object MutedRenderingLogger : BlockRenderingLogger("", null) {
 
     init {
         withUnclosedWarningDisabled
@@ -14,19 +12,12 @@ public open class MutedRenderingLogger : BlockRenderingLogger("", null) {
     override fun logText(block: () -> CharSequence): Unit = Unit
     override fun logLine(block: () -> CharSequence): Unit = Unit
     override fun logStatus(items: List<CharSequence>, block: () -> CharSequence): Unit = Unit
-    override fun <R> logResult(block: () -> Result<R>): R {
-        open = false
-        return block().getOrThrow()
-    }
+    override fun <R> logResult(block: () -> Result<R>): R = block().getOrThrow()
 
     override fun logException(block: () -> Throwable): Unit {
-        open = false
     }
 
-    override fun toString(): String = asString {
-        ::open to open
-        ::caption to caption
-    }
+    override fun toString(): String = "log > /dev/null"
 
     /**
      * Creates a logger which serves for logging a sub-process and all of its corresponding events.

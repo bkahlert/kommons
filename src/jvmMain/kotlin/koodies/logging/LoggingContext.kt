@@ -34,8 +34,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
             return use {
                 groupBy({ it.first }) { it.second }.map { (logger, messages) ->
                     logger.caption to messages.joinToString("").withoutTrailingLineSeparator
-                }
-                    .joinToString(FieldDelimiters.FIELD)
+                }.joinToString(FieldDelimiters.FIELD)
             }
         }
     }
@@ -102,6 +101,8 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
             val message = it.prefixLinesWith(IO.ERASE_MARKER)
             print(message)
         }
+
+        public val DEBUGGING_ONLY: FixedWidthRenderingLogger = BACKGROUND.takeIfDebugging() ?: MutedRenderingLogger
     }
 }
 
@@ -133,6 +134,6 @@ public abstract class Recorder<T> {
  * to its payload with each [map] call.
  */
 private open class Merger<T, V, R>(private val merge: (T, V) -> R) {
-    public fun <S> map(transform: (R) -> S): Merger<T, V, S> = Merger { t, v -> transform(merge(t, v)) }
-    public operator fun getValue(thisRef: T, property: KProperty<*>): (V) -> Unit = { message: V -> merge(thisRef, message) }
+    fun <S> map(transform: (R) -> S): Merger<T, V, S> = Merger { t, v -> transform(merge(t, v)) }
+    operator fun getValue(thisRef: T, property: KProperty<*>): (V) -> Unit = { message: V -> merge(thisRef, message) }
 }

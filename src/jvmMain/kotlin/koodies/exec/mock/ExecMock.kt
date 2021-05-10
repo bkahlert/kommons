@@ -11,13 +11,13 @@ import koodies.text.Semantics.Symbols
  * [Exec] mock to ease testing.
  */
 public open class ExecMock(
-    private val javaProcessMock: JavaProcessMock,
+    private val process: JavaProcessMock,
     private val name: String? = null,
-) : Exec by JavaExec(javaProcessMock, Locations.Temp, CommandLine("echo", ExecMock::class.simpleName!!)) {
+) : Exec by JavaExec(process, Locations.Temp, CommandLine("echo", ExecMock::class.simpleName!!)) {
 
     override fun toString(): String {
-        val delegateString = "${javaProcessMock.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Symbols.Computation})"
-        val string = "${ExecMock::class.simpleName ?: "object"}(delegate=$delegateString)".substringBeforeLast(")")
+        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Symbols.Computation})"
+        val string = "${ExecMock::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")")
         return string.takeUnless { name != null } ?: string.substringBeforeLast(")") + ", name=$name)"
     }
 

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
@@ -111,17 +112,17 @@ class DockerImageTest {
 
             @ImageTest @IdeaWorkaroundTest
             fun TestImage.`should list images and log`() = whilePulled { testImage ->
-                expectThat(DockerImage.list()).contains(testImage)
+                expectThat(DockerImage.list(logger = BACKGROUND)).contains(testImage)
                 BACKGROUND.expectLogged.contains("Listing images")
             }
 
             @ImageTest @IdeaWorkaroundTest
             fun TestImage.`should list existing image and log`() = whilePulled { testImage ->
-                expectThat(testImage.list()).contains(testImage)
+                expectThat(testImage.list(logger = BACKGROUND)).contains(testImage)
                 BACKGROUND.expectLogged.contains("Listing $testImage images")
 
                 testImage.remove()
-                expectThat(testImage.list()).isEmpty()
+                expectThat(testImage.list(logger = BACKGROUND)).isEmpty()
                 BACKGROUND.expectLogged.contains("Listing $testImage images")
             }
         }
@@ -136,32 +137,40 @@ class DockerImageTest {
 
         @ImageTest @IdeaWorkaroundTest
         fun TestImage.`should check if is pulled and log`() = whilePulled { testImage ->
-            expectThat(testImage.isPulled).isTrue()
+            expectThat(testImage).isPulled()
             BACKGROUND.expectLogged.contains("Checking if $testImage is pulled")
 
             testImage.remove()
-            expectThat(testImage.isPulled).isFalse()
+            expectThat(testImage).not { isPulled() }
             BACKGROUND.expectLogged.contains("Checking if $testImage is pulled")
         }
 
         @ImageTest @IdeaWorkaroundTest
         fun TestImage.`should pull image and log`() = whileRemoved { testImage ->
-            expectThat(testImage.pull()).isSuccessful()
+            expectThat(testImage.pull(logger = BACKGROUND)).isSuccessful()
             BACKGROUND.expectLogged.contains("Pulling $testImage")
             expectThat(testImage.isPulled).isTrue()
 
-            expectThat(testImage.pull()).isSuccessful()
+            expectThat(testImage.pull(logger = BACKGROUND)).isSuccessful()
             BACKGROUND.expectLogged.contains("Pulling $testImage")
         }
 
         @ImageTest @IdeaWorkaroundTest
         fun TestImage.`should remove image and log`() = whilePulled { testImage ->
-            expectThat(testImage.remove()).isSuccessful()
+            expectThat(testImage.remove(logger = BACKGROUND)).isSuccessful()
             BACKGROUND.expectLogged.contains("Removing $testImage")
             expectThat(testImage.isPulled).isFalse()
 
-            expectThat(testImage.remove()).isFailed()
+            expectThat(testImage.remove(logger = BACKGROUND)).isFailed()
             BACKGROUND.expectLogged.contains("Removing $testImage ${Symbols.Negative.ansiRemoved} no such image")
         }
     }
 }
+
+fun Assertion.Builder<DockerImage>.isPulled() =
+    assert("is pulled") {
+        when (with(it) { BACKGROUND.isPulled }) {
+            true -> pass()
+            else -> fail("$it is not pulled")
+        }
+    }

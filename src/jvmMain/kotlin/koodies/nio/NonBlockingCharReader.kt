@@ -55,7 +55,7 @@ public class NonBlockingCharReader(
             }
         }
 
-    override fun read(cbuf: CharArray, off: Int, len: Int): Int = read(cbuf, off, MutedRenderingLogger())
+    override fun read(cbuf: CharArray, off: Int, len: Int): Int = read(cbuf, off, MutedRenderingLogger)
 
     override fun close() {
         kotlin.runCatching { reader?.close() }

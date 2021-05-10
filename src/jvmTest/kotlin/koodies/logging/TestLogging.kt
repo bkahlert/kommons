@@ -1,7 +1,7 @@
 package koodies.logging
 
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.test.Verbosity.Companion.isVerbose
+import koodies.test.isVerbose
 import koodies.test.output.testLocalLogger
 import org.junit.jupiter.api.extension.ExtensionContext
 
@@ -16,4 +16,4 @@ fun ExtensionContext.conditionallyVerboseLogger(
     loggingRequestedByUser: Boolean? = false,
     logger: FixedWidthRenderingLogger = BACKGROUND,
 ): FixedWidthRenderingLogger =
-    if (loggingRequestedByUser != false || isVerbose) logger else MutedRenderingLogger()
+    if (loggingRequestedByUser != false || isVerbose) logger else MutedRenderingLogger

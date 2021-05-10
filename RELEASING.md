@@ -34,7 +34,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 ```
 
 ```shell
-./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishAllPublicationsToBintrayRepository -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository -x publishNativePublicationToBintrayRepository -x publishKotlinMultiplatformPublicationToBintrayRepository -x publishPackageToBintray -x publishAllPublicationsToGitHubPackagesRepository -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishNativePublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository -x publishJsPublicationToMavenCentralRepository -x publishJvmPublicationToMavenCentralRepository -x publishNativePublicationToMavenCentralRepository -x publishKotlinMultiplatformPublicationToMavenCentralRepository
+./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository -x publishNativePublicationToBintrayRepository -x publishKotlinMultiplatformPublicationToBintrayRepository -x publishPackageToBintray -x publishAllPublicationsToGitHubPackagesRepository -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishNativePublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository -x publishJsPublicationToMavenCentralRepository -x publishJvmPublicationToMavenCentralRepository -x publishNativePublicationToMavenCentralRepository -x publishKotlinMultiplatformPublicationToMavenCentralRepository
 ```
 
 .
@@ -48,7 +48,10 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 ### Release a Final Version
 
 1. Commit your changes using `git commit`.
-2. Release candidate using `./gradlew final push publish`.
+2. Release final version
+    - major: `./gradlew final -Prelease.scope=major publish`
+    - minor: `./gradlew final -Prelease.scope=minor publish`
+    - patch: `./gradlew final -Prelease.scope=patch publish`
 
 ### Increase Version Number
 
@@ -66,7 +69,6 @@ pre-defined version, e.g.
 
 ```shell
 ./gradlew -Prelease.useLastTag=true final publishAllPublicationsToMavenCentralRepository
-./gradlew -Prelease.useLastTag=true final publishAllPublicationsToBintrayRepository
 ./gradlew -Prelease.useLastTag=true final publishAllPublicationsToGitHubPackagesRepository
 ```
 
@@ -104,9 +106,6 @@ It's recommended to provide credentials via system or environment properties. To
 ```shell
 export SONATYPE_NEXUS_USERNAME=<Sonatype Nexus Username>
 export SONATYPE_NEXUS_PASSWORD=<Sonatype Nexus Password>
-
-export BINTRAY_USER=<BinTray Username>
-export BINTRAY_API_KEY=<BinTray API Key>
 
 export GITHUB_USERNAME=<GitHub Username>
 export GITHUB_TOKEN=<GitHub Token>

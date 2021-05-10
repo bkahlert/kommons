@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.asString
 import java.io.OutputStream
 
 /**
@@ -7,9 +8,16 @@ import java.io.OutputStream
  */
 public class RedirectingOutputStream(private val redirection: (ByteArray) -> Unit) : OutputStream() {
 
-    override fun write(b: Int): Unit = write(byteArrayOf((b and 0xFF).toByte()))
+    override fun write(b: ByteArray): Unit =
+        redirection.invoke(b)
 
-    override fun write(b: ByteArray, off: Int, len: Int) {
+    override fun write(b: ByteArray, off: Int, len: Int): Unit =
         redirection.invoke(b.copyOfRange(off, off + len))
+
+    override fun write(b: Int): Unit =
+        write(byteArrayOf((b and 0xFF).toByte()))
+
+    override fun toString(): String = asString {
+        ::redirection to redirection
     }
 }

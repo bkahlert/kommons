@@ -104,13 +104,13 @@ public open class CommandLine(
         val shell = org.codehaus.plexus.util.cli.Commandline().shell
         val shellCommandLine = shell.getShellCommandLine(commandLineParts)
 
-        val javaProcess = ProcessBuilder(shellCommandLine).let { pb ->
+        val process = ProcessBuilder(shellCommandLine).let { pb ->
             pb.redirectErrorStream = redirectErrorStream
             pb.environment.putAll(environment)
             pb.workingDirectory = workingDirectory
             pb.start()
         }
-        return JavaExec(javaProcess, workingDirectory, this, exitStateHandler, execTerminationCallback)
+        return JavaExec(process, workingDirectory, this, exitStateHandler, execTerminationCallback)
     }
 
     /**

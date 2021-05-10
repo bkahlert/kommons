@@ -9,7 +9,6 @@ import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.test.SystemIOExclusive
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
-import koodies.text.ANSI
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
@@ -36,14 +35,13 @@ class LoggingContextTest {
     private val out: ByteArrayOutputStream = ByteArrayOutputStream()
     private lateinit var root: LoggingContext
 
-    public val <T : FixedWidthRenderingLogger> Assertion.Builder<T>.logged: Assertion.Builder<String>
+    val <T : FixedWidthRenderingLogger> Builder<T>.logged: Builder<String>
         get() = get("recorded log %s") { with(root) { logged } }
 
     @BeforeEach
     fun setup() {
         root = LoggingContext("test") {
             out.write(it.toByteArray())
-            // TODO write tiny verbosity extension to get information to control if to log to console as well or not
             print(it.prefixLinesWith(IO.ERASE_MARKER))
         }
     }
@@ -147,7 +145,7 @@ class LoggingContextTest {
             }
         }.toTypedArray().let { CompletableFuture.allOf(*it) }
 
-        val color = ANSI.Colors.random(20)
+        val color = Colors.random(20)
         root.logging("main", decorationFormatter = color, contentFormatter = color) {
             (0..5).forEach { logLine { "${currentThread.name}: shared $it" } }
             with(root) {
@@ -210,7 +208,7 @@ class LoggingContextTest {
     }
 }
 
-private val Assertion.Builder<ByteArrayOutputStream>.printed: Assertion.Builder<String>
+private val Builder<ByteArrayOutputStream>.printed: Builder<String>
     get() = get("printed to simulated system out") { toString() }
 
 /**
@@ -222,5 +220,5 @@ val LoggingContext.expectLogged: Builder<String>
 /**
  * Returns an [Assertion.Builder] for all log messages recorded in the asserted [LoggingContext].
  */
-val Assertion.Builder<LoggingContext>.logged: Assertion.Builder<String>
+val Builder<LoggingContext>.logged: Builder<String>
     get() = get("record log messages in %s") { logged.ansiRemoved }

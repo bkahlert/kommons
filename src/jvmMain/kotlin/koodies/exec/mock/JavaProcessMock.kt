@@ -45,11 +45,11 @@ public open class JavaProcessMock(
     public companion object {
 
         public val RUNNING_PROCESS: JavaProcessMock
-            get() = JavaProcessMock(MutedRenderingLogger(), exitCode = { 0 }, exitDelay = seconds(10))
+            get() = JavaProcessMock(MutedRenderingLogger, exitCode = { 0 }, exitDelay = seconds(10))
         public val SUCCEEDING_PROCESS: JavaProcessMock
-            get() = JavaProcessMock(MutedRenderingLogger(), inputStream = "line 1${LF}line 2$LF".byteInputStream(), exitCode = { 0 })
+            get() = JavaProcessMock(MutedRenderingLogger, inputStream = "line 1${LF}line 2$LF".byteInputStream(), exitCode = { 0 })
         public val FAILING_PROCESS: JavaProcessMock
-            get() = JavaProcessMock(MutedRenderingLogger(), errorStream = "error 1${LF}error 2$LF".byteInputStream(), exitCode = { 42 })
+            get() = JavaProcessMock(MutedRenderingLogger, errorStream = "error 1${LF}error 2$LF".byteInputStream(), exitCode = { 42 })
 
         public fun InMemoryLogger.processMock(
             outputStream: OutputStream = ByteArrayOutputStream(),

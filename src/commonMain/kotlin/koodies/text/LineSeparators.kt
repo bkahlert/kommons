@@ -89,8 +89,7 @@ public object LineSeparators : Collection<String> {
     /**
      * If this [CharSequence] consists of more than one line this property is `true`.
      */
-    public val CharSequence.isMultiline: Boolean get() = lines().size > 1
-
+    public val CharSequence?.isMultiline: Boolean get() = lines().size > 1
 
     /**
      * Splits this char sequence to a sequence of lines delimited by any of the [LineSeparators].
@@ -99,15 +98,15 @@ public object LineSeparators : Collection<String> {
      *
      * If the last last is empty, it will be ignored unless [ignoreTrailingSeparator] is provided.
      */
-    public fun CharSequence.lineSequence(
+    public fun CharSequence?.lineSequence(
         ignoreTrailingSeparator: Boolean = false,
         keepDelimiters: Boolean = false,
     ): Sequence<String> =
-        splitToSequence(
+        this?.splitToSequence(
             delimiters = ALL,
             keepDelimiters = keepDelimiters,
             ignoreTrailingSeparator = ignoreTrailingSeparator
-        )
+        ) ?: emptySequence()
 
     /**
      * Splits this char sequence to a list of lines delimited by any of the [LineSeparators].
@@ -116,14 +115,14 @@ public object LineSeparators : Collection<String> {
      *
      * If the last last is empty, it will be ignored unless [ignoreTrailingSeparator] is provided.
      */
-    public fun CharSequence.lines(
+    public fun CharSequence?.lines(
         ignoreTrailingSeparator: Boolean = false,
         keepDelimiters: Boolean = false,
     ): List<String> =
-        lineSequence(
+        this?.lineSequence(
             ignoreTrailingSeparator = ignoreTrailingSeparator,
             keepDelimiters = keepDelimiters
-        ).toList()
+        )?.toList() ?: emptyList()
 
     /**
      * Replaces all lines separators by [LF].
@@ -150,12 +149,12 @@ public object LineSeparators : Collection<String> {
     /**
      * If this [CharSequence] ends with one of the [LineSeparators] this property includes it.
      */
-    public val CharSequence.trailingLineSeparator: String? get() :String? = ALL.firstOrNull { endsWith(it) }
+    public val CharSequence?.trailingLineSeparator: String? get() :String? = if (this != null) ALL.firstOrNull { endsWith(it) } else null
 
     /**
      * If this [CharSequence] ends with one of the [LineSeparators] this property is `true`.
      */
-    public val CharSequence.hasTrailingLineSeparator: Boolean get() = trailingLineSeparator != null
+    public val CharSequence?.hasTrailingLineSeparator: Boolean get() = trailingLineSeparator != null
 
     /**
      * If this [String] ends with one of the [LineSeparators] this property contains this [String] without it.
@@ -192,7 +191,7 @@ public object LineSeparators : Collection<String> {
      *
      * If this char sequence has a trailing line that trailing line is left unchanged.
      */
-    public fun CharSequence.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
+    public fun CharSequence?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
         (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
             lines().map(transform)
                 .let { if (trailingLineSeparator) it.dropLast(1) else it }
@@ -207,8 +206,8 @@ public object LineSeparators : Collection<String> {
      *
      * If this string has a trailing line that trailing line is left unchanged.
      */
-    public fun String.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
-        (this as CharSequence).mapLines(ignoreTrailingSeparator, transform)
+    public fun String?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
+        (this as? CharSequence).mapLines(ignoreTrailingSeparator, transform)
 
     /**
      * Flat maps each line of this char sequence using [transform].
@@ -217,7 +216,7 @@ public object LineSeparators : Collection<String> {
      *
      * If this char sequence has a trailing line that trailing line is left unchanged.
      */
-    public fun <T : CharSequence> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
+    public fun <T : CharSequence?> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
         (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
             lines().map { line -> transform(line).joinToString(LF) }
                 .let { if (trailingLineSeparator) it.dropLast(1) else it }
@@ -228,7 +227,7 @@ public object LineSeparators : Collection<String> {
     /**
      * Returns the [String] of what all lines of text are prefixed with the given [prefix].
      */
-    public fun CharSequence.prefixLinesWith(prefix: CharSequence, ignoreTrailingSeparator: Boolean = true): String =
+    public fun CharSequence?.prefixLinesWith(prefix: CharSequence, ignoreTrailingSeparator: Boolean = true): String =
         mapLines(ignoreTrailingSeparator) { "$prefix$it" }
 
     /**
@@ -236,17 +235,16 @@ public object LineSeparators : Collection<String> {
      *
      * @param maxLength The maximum length of each returned line.
      */
-    public fun CharSequence.breakLines(maxLength: Int, ignoreTrailingSeparator: Boolean = true): String {
-        return flatMapLines(ignoreTrailingSeparator) { line ->
+    public fun CharSequence?.breakLines(maxLength: Int, ignoreTrailingSeparator: Boolean = true): String =
+        flatMapLines(ignoreTrailingSeparator) { line ->
             line.chunked(maxLength)
         }
-    }
-
 
     /**
      * Returns a sequence of lines of which none is longer than [maxLineLength].
      */
-    public fun CharSequence.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+    public fun CharSequence?.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+        if (this == null) return emptySequence()
         val ansiString = this is AnsiString
         val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
         return lines.flatMap { line: String ->
@@ -265,13 +263,13 @@ public object LineSeparators : Collection<String> {
     /**
      * Returns a list of lines of which none is longer than [maxLineLength].
      */
-    public fun CharSequence.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
+    public fun CharSequence?.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
         linesOfLengthSequence(maxLineLength, ignoreTrailingSeparator).toList()
 
 
     /**
      * Returns a string consisting of lines of which none is longer than [maxLineLength].
      */
-    public fun CharSequence.wrapLines(maxLineLength: Int): CharSequence =
+    public fun CharSequence?.wrapLines(maxLineLength: Int): CharSequence =
         linesOfLength(maxLineLength).joinToString(LF) { "$it" }
 }

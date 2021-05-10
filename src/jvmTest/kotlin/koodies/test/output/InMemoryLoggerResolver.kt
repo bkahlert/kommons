@@ -12,7 +12,7 @@ import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
 import koodies.runtime.onExit
-import koodies.test.Verbosity.Companion.isVerbose
+import koodies.test.isVerbose
 import koodies.test.store
 import koodies.test.testName
 import koodies.text.ANSI.Formatter
@@ -114,11 +114,11 @@ object TestLogging {
 class TestLogger(
     private val extensionContext: ExtensionContext,
     parameterContext: ParameterContext,
-    suffix: String?,
+    caption: String,
     border: Border,
     outputStream: OutputStream?,
 ) : InMemoryLogger(
-    caption = extensionContext.testName + if (suffix != null) "::$suffix" else "",
+    caption = caption,
     border = border,
     width = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(null),
     outputStream = outputStream,

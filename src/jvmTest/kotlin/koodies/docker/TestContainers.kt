@@ -10,7 +10,7 @@ import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
-import koodies.logging.LoggingContext
+import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValues
 import koodies.logging.conditionallyVerboseLogger
@@ -47,7 +47,7 @@ object TestImages {
     /**
      * [Ubuntu](https://hub.docker.com/_/ubuntu) based [TestContainersProvider]
      */
-    object Ubuntu : DockerImage("ubuntu", emptyList(), null, null), TestContainersProvider {
+    object Ubuntu : DockerImage("ubuntu", emptyList()), TestContainersProvider {
         override val image: DockerImage get() = this
         private val testContainersProvider: TestContainersProvider by lazy { TestContainersProvider.of(this) }
 
@@ -61,7 +61,7 @@ object TestImages {
     /**
      * [busybox](https://hub.docker.com/_/busybox) based [TestContainersProvider]
      */
-    object BusyBox : DockerImage("busybox", emptyList(), null, null), TestContainersProvider {
+    object BusyBox : DockerImage("busybox", emptyList()), TestContainersProvider {
         override val image: DockerImage get() = this
         private val testContainersProvider: TestContainersProvider by lazy { TestContainersProvider.of(this) }
 
@@ -75,11 +75,9 @@ object TestImages {
     /**
      * [Hello World!](https://hub.docker.com/_/hello-world) based [TestImageProvider]
      */
-    object HelloWorld : DockerImage("hello-world", emptyList(), null, null), TestImageProvider {
+    object HelloWorld : DockerImage("hello-world", emptyList()), TestImageProvider {
         override val image: DockerImage get() = this
         override val lock: ReentrantLock by lazy { ReentrantLock() }
-
-        private val imageLock = ReentrantLock()
     }
 }
 
@@ -159,12 +157,12 @@ interface TestContainersProvider {
      *
      * If one already exists, an exception is thrown.
      */
-    fun testContainersFor(uniqueId: UniqueId, logger: FixedWidthRenderingLogger = LoggingContext.BACKGROUND): TestContainers
+    fun testContainersFor(uniqueId: UniqueId, logger: FixedWidthRenderingLogger = BACKGROUND): TestContainers
 
     /**
      * Kills and removes all provisioned test containers for the [uniqueId]
      */
-    fun release(uniqueId: UniqueId): Unit
+    fun release(uniqueId: UniqueId)
 
     companion object {
         fun of(image: DockerImage) = object : TestContainersProvider {
@@ -178,7 +176,7 @@ interface TestContainersProvider {
                         sessions[uniqueId] = it
                     }
 
-            override fun release(uniqueId: UniqueId): Unit {
+            override fun release(uniqueId: UniqueId) {
                 sessions.remove(uniqueId)?.apply { release() }
             }
         }
@@ -199,7 +197,7 @@ class TestContainers(
     /**
      * Kills and removes all provisioned test containers.
      */
-    internal fun release(): Unit {
+    fun release() {
         val copy = provisioned.toList().also { provisioned.clear() }
         logger.logging("Releasing ${copy.size} container(s)", border = DOTTED) {
             ReturnValues(copy.map { kotlin.runCatching { it.remove(force = true, logger = this) }.fold({ it }, { it }) })
@@ -214,9 +212,7 @@ class TestContainers(
             name by container.name
             this.autoCleanup by false
             detached { on }
-        }.exec.logging(logger) {
-            noDetails("running ${commandLine.summary}")
-        }
+        }.exec.logging(logger) { noDetails("running ${commandLine.summary}") }
         return container
     }
 
@@ -333,7 +329,7 @@ interface TestImageProvider {
     /**
      * Provides a new [TestImage].
      */
-    fun testImageFor(logger: FixedWidthRenderingLogger = LoggingContext.BACKGROUND): TestImage =
+    fun testImageFor(logger: FixedWidthRenderingLogger = BACKGROUND): TestImage =
         TestImage(lock, image, logger)
 
     companion object {

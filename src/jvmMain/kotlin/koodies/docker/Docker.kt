@@ -379,4 +379,4 @@ public fun Path.dockerPi(name: String = "dockerpi".withRandomSuffix(), logger: R
             name { name }
             mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
         }
-    }.exec.mode { sync(Interactivity.Interactive { nonBlocking }) }.processing(logger, processor = processor)
+    }.exec.mode { async(Interactivity.Interactive { nonBlocking }) }.processing(logger, processor = processor)

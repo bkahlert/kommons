@@ -26,7 +26,7 @@ class DockerImagePullCommandLineTest {
         },
         DockerImagePullCommandLine(
             options = Options(allTags = true),
-            image = DockerImage("busybox", emptyList(), null, null),
+            image = DockerImage("busybox", emptyList()),
         ),
     )
 }

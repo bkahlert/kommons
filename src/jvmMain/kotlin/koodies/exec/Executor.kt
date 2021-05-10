@@ -88,9 +88,7 @@ public data class Executor<E : Exec>(
         execTerminationCallback: ExecTerminationCallback? = null,
     ): E {
 
-        val processLogger: RenderingLogger = loggingOptions
-            ?.newLogger(logger, caption)
-            ?: MutedRenderingLogger()
+        val processLogger: RenderingLogger = loggingOptions?.newLogger(logger, caption) ?: MutedRenderingLogger
 
         val exec: E = executable.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 

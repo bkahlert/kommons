@@ -11,9 +11,9 @@ import koodies.test.IdeaWorkaroundTestFactory
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.Semantics.FieldDelimiters
-import koodies.text.Semantics.Symbols
+import koodies.text.Semantics.FieldDelimiters.FIELD
 import koodies.text.Semantics.Symbols.Negative
+import koodies.text.Semantics.Symbols.OK
 import koodies.text.Unicode.NBSP
 import koodies.text.endsWithRandomSuffix
 import koodies.text.matchesCurlyPattern
@@ -207,7 +207,7 @@ class DockerContainerTest {
             @ContainersTest @IdeaWorkaroundTest
             fun `should list containers and log`(testContainers: TestContainers) {
                 val containers = (1..3).map { testContainers.newRunningTestContainer() }
-                expectThat(DockerContainer.list()).contains(containers)
+                expectThat(DockerContainer.list(BACKGROUND)).contains(containers)
                 BACKGROUND.expectLogged.contains("Listing all containers")
             }
         }
@@ -222,7 +222,7 @@ class DockerContainerTest {
                 fun `should start container and log`(testContainers: TestContainers) {
                     val container = testContainers.newNotExistentContainer()
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).get { start(attach = false) }.isFailed()
+                    expectThat(container).get { start(attach = false, logger = BACKGROUND) }.isFailed()
                     BACKGROUND.expectLogged.contains("Starting ${container.name} $Negative no such container".ansiRemoved)
                 }
             }
@@ -234,7 +234,7 @@ class DockerContainerTest {
                 fun `should start container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).get { start(attach = false) }.isSuccessful()
+                    expectThat(container).get { start(attach = false, logger = BACKGROUND) }.isSuccessful()
                     BACKGROUND.expectLogged.contains("Starting ${container.name}")
                     expectThat(container.isRunning).isTrue()
                 }
@@ -242,7 +242,7 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should start attached by default`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer(Duration.seconds(5))
-                    val passed = measureTime { expectThat(container).get { start(attach = true) }.isSuccessful() }
+                    val passed = measureTime { expectThat(container).get { start(attach = true, logger = BACKGROUND) }.isSuccessful() }
                     BACKGROUND.expectLogged.contains("Starting ${container.name}")
                     expectThat(passed).isGreaterThanOrEqualTo(Duration.seconds(5))
                     expectThat(container.isRunning).isFalse()
@@ -251,8 +251,8 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should start multiple and log`(testContainers: TestContainers) {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newExitedTestContainer())
-                    expectThat(DockerContainer.start(*containers.toTypedArray(), attach = false)).isFailed()
-                    BACKGROUND.expectLogged.contains("Starting ${containers[0].name}$NBSP${FieldDelimiters.FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
+                    expectThat(DockerContainer.start(*containers.toTypedArray(), attach = false, logger = BACKGROUND)).isFailed()
+                    BACKGROUND.expectLogged.contains("Starting ${containers[0].name}$NBSP${FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
                     expectThat(containers).all { not { hasState<Exited>() } }
                 }
             }
@@ -265,7 +265,7 @@ class DockerContainerTest {
                 fun `should start container and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
                     expectThat(container.isRunning).isTrue()
-                    expectThat(container).get { start(attach = false) }.isSuccessful()
+                    expectThat(container).get { start(attach = false, logger = BACKGROUND) }.isSuccessful()
                     BACKGROUND.expectLogged.contains("Starting ${container.name}")
                     expectThat(container.isRunning).isTrue()
                     expectThat(container).hasState<State.Existent.Running>()
@@ -283,7 +283,7 @@ class DockerContainerTest {
                 fun `should stop container and log`(testContainers: TestContainers) {
                     val container = testContainers.newNotExistentContainer()
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).get { stop() }.isFailed()
+                    expectThat(container).get { stop(logger = BACKGROUND) }.isFailed()
                     BACKGROUND.expectLogged.contains("Stopping ${container.name} ${Negative.ansiRemoved} no such container")
                     expectThat(container.isRunning).isFalse()
                 }
@@ -296,7 +296,7 @@ class DockerContainerTest {
                 fun `should stop container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).get { stop() }.isSuccessful()
+                    expectThat(container).get { stop(logger = BACKGROUND) }.isSuccessful()
                     BACKGROUND.expectLogged.contains("Stopping ${container.name}")
                     expectThat(container.isRunning).isFalse()
                 }
@@ -309,7 +309,7 @@ class DockerContainerTest {
                 fun `should stop container - but not remove it - and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
                     expectThat(container.isRunning).isTrue()
-                    expectThat(container).get { stop() }.isSuccessful()
+                    expectThat(container).get { stop(logger = BACKGROUND) }.isSuccessful()
                     BACKGROUND.expectLogged.contains("Stopping ${container.name}")
                     expectThat(container.isRunning).isFalse()
                     expectThat(container).hasState<Exited>()
@@ -318,8 +318,8 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should stop multiple and log`(testContainers: TestContainers) {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
-                    expectThat(DockerContainer.stop(*containers.toTypedArray())).isFailed()
-                    BACKGROUND.expectLogged.contains("Stopping ${containers[0].name}$NBSP${FieldDelimiters.FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
+                    expectThat(DockerContainer.stop(*containers.toTypedArray(), logger = BACKGROUND)).isFailed()
+                    BACKGROUND.expectLogged.contains("Stopping ${containers[0].name}$NBSP${FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
                     expectThat(containers).all { not { hasState<State.Existent.Running>() } }
                 }
             }
@@ -335,7 +335,7 @@ class DockerContainerTest {
                 fun `should kill container and log`(testContainers: TestContainers) {
                     val container = testContainers.newNotExistentContainer()
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).get { kill() }.isFailed()
+                    expectThat(container).get { kill(logger = BACKGROUND) }.isFailed()
                     BACKGROUND.expectLogged.contains("Killing ${container.name} ${Negative.ansiRemoved} no such container")
                     expectThat(container.isRunning).isFalse()
                 }
@@ -348,7 +348,7 @@ class DockerContainerTest {
                 fun `should kill container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
                     expectThat(container.isRunning).isFalse()
-                    expectThat(container).get { kill() }.isFailed()
+                    expectThat(container).get { kill(logger = BACKGROUND) }.isFailed()
                     BACKGROUND.expectLogged.contains("Killing ${container.name}")
                     expectThat(container.isRunning).isFalse()
                 }
@@ -361,7 +361,7 @@ class DockerContainerTest {
                 fun `should kill container - but not remove it - and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
                     expectThat(container.isRunning).isTrue()
-                    expectThat(container).get { kill() }.isSuccessful()
+                    expectThat(container).get { kill(logger = BACKGROUND) }.isSuccessful()
                     BACKGROUND.expectLogged.contains("Killing ${container.name}")
                     expectThat(container.isRunning).isFalse()
                     expectThat(container).hasState<Exited> { exitCode.isNotEqualTo(0) }
@@ -370,8 +370,8 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should kill multiple and log`(testContainers: TestContainers) {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
-                    expectThat(DockerContainer.kill(*containers.toTypedArray())).isFailed()
-                    BACKGROUND.expectLogged.contains("Killing ${containers[0].name}$NBSP${FieldDelimiters.FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
+                    expectThat(DockerContainer.kill(*containers.toTypedArray(), logger = BACKGROUND)).isFailed()
+                    BACKGROUND.expectLogged.contains("Killing ${containers[0].name}$NBSP${FIELD.ansiRemoved}$NBSP${containers[1].name} ${Negative.ansiRemoved} no such container")
                     expectThat(containers).all { not { hasState<State.Existent.Running>() } }
                 }
             }
@@ -386,7 +386,7 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should remove container and log`(testContainers: TestContainers) {
                     val container = testContainers.newNotExistentContainer()
-                    expectThat(container.remove()).isFailed()
+                    expectThat(container.remove(logger = BACKGROUND)).isFailed()
                     BACKGROUND.expectLogged.contains("Removing ${container.name} ${Negative.ansiRemoved} no such container")
                 }
             }
@@ -397,7 +397,7 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should remove container and log`(testContainers: TestContainers) {
                     val container = testContainers.newExitedTestContainer()
-                    expectThat(container.remove()).isSuccessful()
+                    expectThat(container.remove(logger = BACKGROUND)).isSuccessful()
                     BACKGROUND.expectLogged.contains("Removing ${container.name}")
                 }
             }
@@ -408,7 +408,7 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should remove container and log`(testContainers: TestContainers) {
                     val container = testContainers.newRunningTestContainer()
-                    expectThat(container.remove()).isFailed()
+                    expectThat(container.remove(logger = BACKGROUND)).isFailed()
                     BACKGROUND.expectLogged.contains("Removing ${container.name}")
                     expectThat(container.isRunning).isTrue()
                     expectThat(container.exists).isTrue()
@@ -422,7 +422,7 @@ class DockerContainerTest {
             @ContainersTest @IdeaWorkaroundTest
             fun `should remove forcibly container and log`(testContainers: TestContainers) {
                 val container = testContainers.newRunningTestContainer()
-                expectThat(container.remove(force = true)).isSuccessful()
+                expectThat(container.remove(force = true, logger = BACKGROUND)).isSuccessful()
                 BACKGROUND.expectLogged.contains("Removing forcefully ${container.name}")
                 expectThat(container.isRunning).isFalse()
                 expectThat(container.exists).isFalse()
@@ -431,8 +431,8 @@ class DockerContainerTest {
             @ContainersTest @IdeaWorkaroundTest
             fun `should remove multiple and log`(testContainers: TestContainers) {
                 val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
-                expectThat(DockerContainer.remove(*containers.toTypedArray(), force = true)).isSuccessful()
-                BACKGROUND.expectLogged.contains("Removing forcefully ${containers[0].name}${FieldDelimiters.FIELD.spaced}${containers[1].name} ${Symbols.OK}".ansiRemoved)
+                expectThat(DockerContainer.remove(*containers.toTypedArray(), force = true, logger = BACKGROUND)).isSuccessful()
+                BACKGROUND.expectLogged.contains("Removing forcefully ${containers[0].name}${FIELD.spaced}${containers[1].name} $OK".ansiRemoved)
                 expectThat(containers).all { hasState<NotExistent>() }
             }
         }
@@ -441,14 +441,14 @@ class DockerContainerTest {
 
 inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<DockerContainer> =
     compose("status") {
-        get { state }.isA<T>()
+        get { BACKGROUND.state }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
 inline fun <reified T : State> Builder<DockerContainer>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<DockerContainer> =
     compose("status") {
-        get { state }.isA<T>().statusAssertion()
+        get { BACKGROUND.state }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
 val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }

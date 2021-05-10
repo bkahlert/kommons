@@ -13,12 +13,12 @@ class Verbosity : TestExecutionListener {
         // Hack but wouldn't know how else to get the number of tests
         // in order to activate logging.
         var testCount: Int? = null
-
-        val ExtensionContext.isVerbose: Boolean get() = currentIsDebug || testCount == 1
-        val ParameterContext.isVerbose: Boolean get() = parameter.isA<Debug>()
     }
 
     override fun testPlanExecutionStarted(testPlan: TestPlan) {
         testCount = testPlan.allTests.size
     }
 }
+
+val ExtensionContext.isVerbose: Boolean get() = currentIsDebug || Verbosity.testCount == 1
+val ParameterContext.isVerbose: Boolean get() = parameter.isA<Debug>()
