@@ -13,7 +13,7 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
-import koodies.kaomoji.Kaomojis.Kaomoji
+import koodies.kaomoji.Kaomoji
 
 public object TakeABow : Category() {
     public val `OTL`: Kaomoji by auto()

@@ -3,6 +3,7 @@ package koodies.test
 import filepeek.LambdaBody
 import koodies.Exceptions.ISE
 import koodies.collections.asStream
+import koodies.debug.trace
 import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.readLine

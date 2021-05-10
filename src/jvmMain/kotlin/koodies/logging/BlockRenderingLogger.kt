@@ -101,4 +101,3 @@ public open class BlockRenderingLogger(
         public fun prefixFor(border: Boolean?, decorationFormatter: Formatter?): String = Border.from(border).prefix(decorationFormatter)
     }
 }
-

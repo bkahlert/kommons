@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.decodeToString
 import koodies.test.TextFile
 import koodies.test.expecting
 import koodies.text.toStringMatchesCurlyPattern
@@ -14,7 +15,7 @@ class RedirectingOutputStreamTest {
         val text = TextFile.text
         val captured = mutableListOf<ByteArray>()
         text.byteInputStream().copyTo(RedirectingOutputStream { captured.add(it) })
-        expectThat(captured.joinToString()).isEqualTo(text)
+        expectThat(captured.decodeToString()).isEqualTo(text)
     }
 
     @Test
@@ -22,7 +23,7 @@ class RedirectingOutputStreamTest {
         val text = TextFile.text
         val captured = mutableListOf<ByteArray>()
         text.byteInputStream().copyTo(RedirectingOutputStream { captured.add(it) })
-        expectThat(captured.joinToString()).isEqualTo(text)
+        expectThat(captured.decodeToString()).isEqualTo(text)
     }
 
     @Test

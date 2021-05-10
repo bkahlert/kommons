@@ -13,7 +13,7 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
-import koodies.kaomoji.Kaomojis.Kaomoji
+import koodies.kaomoji.Kaomoji
 
 public object Monkey : Category() {
     public val `⊆◍益◍⊇`: Kaomoji by auto()

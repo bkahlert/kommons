@@ -13,7 +13,7 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
-import koodies.kaomoji.Kaomojis.Kaomoji
+import koodies.kaomoji.Kaomoji
 
 public object Confused : Category() {
     public val `ఠ_ఠ`: Kaomoji by auto()
@@ -47,7 +47,3 @@ public object Confused : Category() {
     public val `(●__●)`: Kaomoji by auto()
     public val `(ﾟヘﾟ)`: Kaomoji by auto()
 }
-
-
-
-

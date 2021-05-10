@@ -13,10 +13,9 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
-import koodies.kaomoji.Kaomojis.Kaomoji
+import koodies.kaomoji.Kaomoji
 
 public object Funny : Category() {
-    public val `〓D`: Kaomoji by auto()
     public val `❐‿❑`: Kaomoji by auto()
     public val `ರ_ರ`: Kaomoji by auto()
     public val `ಥ◡ಥ`: Kaomoji by auto()

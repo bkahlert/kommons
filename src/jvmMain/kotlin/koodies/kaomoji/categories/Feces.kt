@@ -13,7 +13,7 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
-import koodies.kaomoji.Kaomojis.Kaomoji
+import koodies.kaomoji.Kaomoji
 
 public object Feces : Category() {
     public val `( ж)․․ξ`: Kaomoji by auto("( ж)..ξ")

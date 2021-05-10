@@ -13,7 +13,7 @@
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category
-import koodies.kaomoji.Kaomojis.Kaomoji
+import koodies.kaomoji.Kaomoji
 
 public object Pointing : Category() {
     public val `☜ق❂Ⴢ❂ق☞`: Kaomoji by auto()

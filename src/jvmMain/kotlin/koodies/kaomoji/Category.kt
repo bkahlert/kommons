@@ -1,15 +1,12 @@
 package koodies.kaomoji
 
-import koodies.text.CodePoint
-import koodies.text.asCodePointSequence
-import koodies.text.charCount
 import kotlin.properties.PropertyDelegateProvider
 
-public open class Category : AbstractList<Kaomojis.Kaomoji>() {
-    private val _list = mutableListOf<Kaomojis.Kaomoji>()
+public open class Category : AbstractList<Kaomoji>() {
+    private val _list = mutableListOf<Kaomoji>()
 
     override val size: Int get() = _list.size
-    override fun get(index: Int): Kaomojis.Kaomoji = _list[index]
+    override fun get(index: Int): Kaomoji = _list[index]
 
     /**
      * Creates a new Kaomoji property based on the property's name.
@@ -17,50 +14,40 @@ public open class Category : AbstractList<Kaomojis.Kaomoji>() {
      * If the kaomoji contains illegal characters [kaomoji] can be used to specify the correct one
      * while using a similar kaomoji with only legal characters as the property name itself.
      */
-    public fun auto(kaomoji: String? = null): PropertyDelegateProvider<Category, Kaomojis.Kaomoji> =
-        PropertyDelegateProvider { category, property ->
-            val template = kaomoji ?: property.name
-            val parts = template.asCodePointSequence().toMutableList()
-            val ranges = parts.runningFold(IntRange(0, -1)) { previousRange: IntRange, codePoint: CodePoint ->
-                (previousRange.last + 1)..(previousRange.last + codePoint.charCount)
-            }.drop(1)
+    public fun auto(manualKaomojiString: String? = null): PropertyDelegateProvider<Category, Kaomoji> = PropertyDelegateProvider { category, property ->
+        val kaomojiString = manualKaomojiString ?: property.name
+        val kaomoji = Kaomoji.parse(kaomojiString) ?: throw IllegalStateException("Kaomoji $kaomojiString could not be parsed.")
+        kaomoji.also { category._list.add(it) }
+    }
 
-            var leftArmRange: IntRange? = null
-            var leftEyeRange: IntRange? = null
-            var mouthRange: IntRange? = null
-            var rightEyeRange: IntRange? = null
-            var rightArmRange: IntRange? = null
+    /**
+     * Creates a new Kaomoji property based the property's name
+     * and the given [leftArm], [leftEye],[mouth],[rightEye],[rightArm] and [accessory] ranges.
+     */
+    public fun parts(
+        leftArm: IntRange = IntRange.EMPTY,
+        leftEye: IntRange = IntRange.EMPTY,
+        mouth: IntRange = IntRange.EMPTY,
+        rightEye: IntRange = IntRange.EMPTY,
+        rightArm: IntRange = IntRange.EMPTY,
+        accessory: IntRange = IntRange.EMPTY,
+    ): PropertyDelegateProvider<Category, Kaomoji> = PropertyDelegateProvider { category, property ->
+        val kaomoji = Kaomoji(property.name, leftArm, leftEye, mouth, rightEye, rightArm, accessory)
+        kaomoji.also { category._list.add(it) }
+    }
 
-            when (parts.size) {
-                3 -> {
-                    leftEyeRange = ranges.getOrNull(0)
-                    mouthRange = ranges.getOrNull(1)
-                    rightEyeRange = ranges.getOrNull(2)
-                }
-                4 -> {
-                    leftEyeRange = ranges.getOrNull(0)
-                    mouthRange = ranges.getOrNull(1)
-                    rightEyeRange = ranges.getOrNull(2)
-                    rightArmRange = ranges.getOrNull(3)
-                }
-                5 -> {
-                    leftArmRange = ranges.getOrNull(0)
-                    leftEyeRange = ranges.getOrNull(1)
-                    mouthRange = ranges.getOrNull(2)
-                    rightEyeRange = ranges.getOrNull(3)
-                    rightArmRange = ranges.getOrNull(4)
-                }
-            }
-
-            Kaomojis.Kaomoji(
-                template,
-                leftArmRange = leftArmRange,
-                leftEyeRange = leftEyeRange,
-                mouthRange = mouthRange,
-                rightEyeRange = rightEyeRange,
-                rightArmRange = rightArmRange,
-            ).also {
-                category._list.add(it)
-            }
-        }
+    /**
+     * Creates a new Kaomoji property based on the given [leftArm], [leftEye],[mouth],[rightEye],[rightArm] and [accessory].
+     */
+    public fun parts(
+        leftArm: CharSequence,
+        leftEye: CharSequence,
+        mouth: CharSequence,
+        rightEye: CharSequence,
+        rightArm: CharSequence,
+        accessory: CharSequence = "",
+    ): PropertyDelegateProvider<Category, Kaomoji> = PropertyDelegateProvider { category, property ->
+        val kaomoji = Kaomoji(leftArm, leftEye, mouth, rightEye, rightArm, accessory)
+        kaomoji.also { category._list.add(it) }
+    }
 }
