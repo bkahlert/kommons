@@ -3,6 +3,7 @@ package koodies.debug
 
 import koodies.collections.withNegativeIndices
 import koodies.io.ByteArrayOutputStream
+import koodies.io.TeeOutputStream
 import koodies.text.LineSeparators.lines
 import java.io.OutputStream
 import java.io.PrintStream
@@ -57,20 +58,8 @@ public class AdHocOutputCapture : CapturedOutput {
     /**
      * Print stream that forwards all calls to a [TeeOutputStream] of the given output streams
      */
-    private class TeePrintStream(vararg streams: OutputStream) :
-        PrintStream(TeeOutputStream(*streams), false, Charsets.UTF_8.name())
-
-    /**
-     * Output stream that forwards all output calls to the given output streams
-     */
-    private class TeeOutputStream(vararg streams: OutputStream) : OutputStream() {
-        private var streams: List<OutputStream> = streams.toList()
-        override fun write(byte_: Int) = streams.forEach { it.write(byte_) }
-        override fun write(buffer: ByteArray) = streams.forEach { it.write(buffer) }
-        override fun write(buf: ByteArray, off: Int, len: Int) = streams.forEach { it.write(buf, off, len) }
-        override fun flush() = streams.forEach { it.flush() }
-        override fun close() = streams.forEach { it.close() }
-    }
+    private class TeePrintStream(out: OutputStream, vararg branches: OutputStream) :
+        PrintStream(TeeOutputStream(out, *branches), false, Charsets.UTF_8.name())
 
     public companion object {
         /**

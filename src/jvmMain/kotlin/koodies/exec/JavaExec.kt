@@ -96,17 +96,18 @@ public class JavaExec(
     override fun addPreTerminationCallback(callback: Exec.() -> Unit): Exec =
         apply { preTerminationCallbacks.add(callback) }
 
-    private val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {
-        val process: Exec = this@JavaExec
-        val callbackStage: CompletableFuture<Process> = preTerminationCallbacks.mapNotNull {
-            runCatching { process.it() }.exceptionOrNull()
-        }.firstOrNull()?.let { CompletableFuture.failedFuture(it) }
-            ?: CompletableFuture.completedFuture(process)
+    private val postTerminationCallbacks = synchronizedSetOf<Exec.(ExitState) -> Unit>()
+    public override fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec =
+        apply { postTerminationCallbacks.add(callback) }
 
-        callbackStage.thenCombine(javaProcess.onExit()) { _, _ ->
-            ioLog.flush()
-            process
+    private val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {
+        CompletableFuture.supplyAsync {
+            preTerminationCallbacks.mapNotNull { callback ->
+                runCatching { this.callback() }.exceptionOrNull()
+            }.firstOrNull()?.let { throw it }
+        }.thenCombine(javaProcess.onExit()) { _, _ ->
         }.handle { _, throwable ->
+            ioLog.flush()
             val exitValue = javaProcess.exitValue()
 
             val exitState: ExitState = if (throwable != null) {
@@ -125,14 +126,12 @@ public class JavaExec(
                 }
             }
             _state = exitState
-            postTerminationCallbacks.forEach { process.it(exitState) }
+            postTerminationCallbacks.mapNotNull { callback ->
+                runCatching { this.callback(exitState) }.exceptionOrNull()
+            }.firstOrNull()?.printStackTrace()
             exitState
         }
     }
-
-    private val postTerminationCallbacks = synchronizedSetOf<Exec.(ExitState) -> Unit>()
-    public override fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec =
-        apply { postTerminationCallbacks.add(callback) }
 
     override val onExit: CompletableFuture<out ExitState> get() = (_state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
 

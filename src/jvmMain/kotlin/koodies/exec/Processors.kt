@@ -154,7 +154,7 @@ public fun <E : Exec> E.process(
  * If no [processor] is specified, the output and the error stream will be
  * printed to the console.
  *
- * TOOD try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
+ * TODO try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <E : Exec> E.processAsynchronously(
     interactivity: Interactivity = NonInteractive(null),
@@ -164,40 +164,38 @@ public fun <E : Exec> E.processAsynchronously(
     async = true
     metaStream.subscribe { processor(this, it) }
 
-    val (execInputStream: InputStream?, nonBlockingReader) = when (interactivity) {
-        is Interactive -> InputStream.nullInputStream() to interactivity.nonBlocking
+    val (execInputStream: InputStream?, nonBlockingReader: Boolean) = when (interactivity) {
+        is Interactive -> null to interactivity.nonBlocking
         is NonInteractive -> interactivity.execInputStream to false
     }
 
-    val inputProvider = if (execInputStream != null) {
+    val inputProvider = execInputStream?.run {
         ioProcessingThreadPool.completableFuture {
-            execInputStream.use {
+            use { execInputStream ->
                 var bytesCopied: Long = 0
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                var bytes = it.read(buffer)
+                var bytes = execInputStream.read(buffer)
                 while (bytes >= 0) {
                     inputStream.write(buffer, 0, bytes)
                     bytesCopied += bytes
-                    bytes = it.read(buffer)
+                    bytes = execInputStream.read(buffer)
                 }
             }
             inputStream.close()
-        }.FatallyThrow("stdin")
-    } else {
-        null
+        }.thenPropagateException("stdin")
     }
 
     val outputConsumer = ioProcessingThreadPool.completableFuture {
         outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
             processor(this, IO.Output typed line)
         }
-    }.FatallyThrow("stdout")
+    }.thenPropagateException("stdout")
 
     val errorConsumer = ioProcessingThreadPool.completableFuture {
         errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
             processor(this, IO.Error typed line)
         }
-    }.FatallyThrow("stderr")
+    }.thenPropagateException("stderr")
 
     addPreTerminationCallback {
         CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).join()
@@ -247,7 +245,7 @@ private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
     if (nonBlockingReader) NonBlockingReader(this, blockOnEmptyLine = true)
     else JlineInputStreamReader(this)
 
-private fun CompletableFuture<*>.FatallyThrow(type: String): CompletableFuture<out Any?> = handle { value, exception ->
+private fun CompletableFuture<*>.thenPropagateException(type: String): CompletableFuture<out Any?> = handle { value, exception ->
     if (exception != null) {
         if ((exception.cause is IOException) && exception.cause?.message?.contains("stream closed", ignoreCase = true) == true) value
         else throw RuntimeException("An error occurred while processing ［$type］.", exception)

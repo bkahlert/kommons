@@ -5,7 +5,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.SequenceInputStream
 import java.nio.charset.Charset
-import java.util.ArrayList
 import java.util.Collections
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -13,7 +12,7 @@ import kotlin.concurrent.withLock
 /**
  * Thread-safe version of [AbstractByteArrayOutputStream] using [ReentrantLock] locking.
  */
-public class ByteArrayOutputStream @JvmOverloads constructor(size: Int = DEFAULT_BUFFER_SIZE) : AbstractByteArrayOutputStream() {
+public open class ByteArrayOutputStream @JvmOverloads constructor(size: Int = DEFAULT_BUFFER_SIZE) : AbstractByteArrayOutputStream() {
 
     private val lock = ReentrantLock()
 

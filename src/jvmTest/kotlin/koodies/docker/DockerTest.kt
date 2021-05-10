@@ -217,7 +217,9 @@ class DockerTest {
             val maxOf = listDirectoryEntriesRecursively.maxByOrNull { it.getSize() } ?: fail { "No image found." }
             maxOf.dockerPi { io ->
                 logLine { io }
-            } asserting { io.output.ansiRemoved.contains("Rebooting in 1 seconds") }
+            }.waitFor() asserting {
+                io.output.ansiRemoved.contains("Rebooting in 1 seconds")
+            }
         }
 
         @Suppress("SpellCheckingInspection")

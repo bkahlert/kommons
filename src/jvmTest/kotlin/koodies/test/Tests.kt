@@ -3,7 +3,6 @@ package koodies.test
 import filepeek.LambdaBody
 import koodies.Exceptions.ISE
 import koodies.collections.asStream
-import koodies.debug.trace
 import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.readLine
@@ -90,6 +89,8 @@ typealias IdeaWorkaroundTestFactory = TestFactory
 
 private val root by lazy { deleteOnExit(createTempDirectory("koodies")) }
 
+typealias Assertion<T> = Builder<T>.() -> Unit
+
 object Tester {
 
     /**
@@ -152,21 +153,21 @@ object Tester {
     /**
      * Returns the display name for an asserting test.
      */
-    fun <T> CallStackElement.assertingDisplayName(assertions: Builder<T>.() -> Unit): String =
+    fun <T> CallStackElement.assertingDisplayName(assertion: Assertion<T>): String =
         StringBuilder("❕").apply {
             append(" ")
-            append(this@assertingDisplayName.displayName(assertions))
+            append(this@assertingDisplayName.displayName(assertion))
         }.toString()
 
     /**
      * Returns the display name for an [subject] asserting test.
      */
-    fun <T> CallStackElement.assertingDisplayName(subject: T, assertions: Builder<T>.() -> Unit): String =
+    fun <T> CallStackElement.assertingDisplayName(subject: T, assertion: Assertion<T>): String =
         StringBuilder("❕").apply {
             append(" ")
             append(subject.displayName())
             append(" ")
-            append(this@assertingDisplayName.displayName(assertions))
+            append(this@assertingDisplayName.displayName(assertion))
         }.toString()
 
     /**
@@ -453,64 +454,64 @@ class IllegalUsageCheck : AfterEachCallback {
 }
 
 /**
- * Expects `this` subject to fulfil the given [assertions].
+ * Expects `this` subject to fulfil the given [assertion].
  *
- * **Usage:** `<subject> asserting { <assertions> }`
+ * **Usage:** `<subject> asserting { <assertion> }`
  */
 @JvmName("infixAsserting")
-infix fun <T> T.asserting(assertions: Builder<T>.() -> Unit) =
-    strikt.api.expectThat(this, assertions)
+infix fun <T> T.asserting(assertion: Assertion<T>) =
+    strikt.api.expectThat(this, assertion)
 
 /**
- * Expects the [subject] to fulfil the given [assertions].
+ * Expects the [subject] to fulfil the given [assertion].
  *
- * **Usage:** `asserting(<subject>) { <assertions> }`
+ * **Usage:** `asserting(<subject>) { <assertion> }`
  */
-fun <T> asserting(subject: T, assertions: Builder<T>.() -> Unit) =
-    strikt.api.expectThat(subject, assertions)
+fun <T> asserting(subject: T, assertion: Assertion<T>) =
+    strikt.api.expectThat(subject, assertion)
 
 /**
  * Expects the subject returned by [action] to fulfil the
- * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+ * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
  *
- * **Usage:** `expecting { <action> } that { <assertions> }`
+ * **Usage:** `expecting { <action> } that { <assertion> }`
  */
 fun <T> expecting(action: () -> T): InCompleteExpectationBuilder<T> {
     val caller = findCaller()
     val id = UniqueId.from(caller)
     IllegalUsageCheck.illegalUsages[id] = IllegalUsageException("expecting", caller.callerSource)
-    return InCompleteExpectationBuilder { assertions: Builder<T>.() -> Unit ->
+    return InCompleteExpectationBuilder { assertion: Assertion<T> ->
         IllegalUsageCheck.illegalUsages.remove(id)
-        strikt.api.expectThat(action()).assertions()
+        strikt.api.expectThat(action()).assertion()
     }
 }
 
 /**
  * Expects the [Result] returned by [action] to fulfil the
- * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+ * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
  *
- * **Usage:** `expectCatching { <action> } that { <assertions> }`
+ * **Usage:** `expectCatching { <action> } that { <assertion> }`
  */
 fun <T> expectCatching(action: () -> T): InCompleteExpectationBuilder<Result<T>> {
     val caller = findCaller()
     val id = UniqueId.from(caller)
     IllegalUsageCheck.illegalUsages[id] = IllegalUsageException("expectCatching", caller.callerSource)
-    return InCompleteExpectationBuilder { additionalAssertions: Builder<Result<T>>.() -> Unit ->
+    return InCompleteExpectationBuilder { additionalAssertion: Assertion<Result<T>> ->
         IllegalUsageCheck.illegalUsages.remove(id)
-        strikt.api.expectCatching { action() }.and(additionalAssertions)
+        strikt.api.expectCatching { action() }.and(additionalAssertion)
     }
 }
 
 /**
  * Expects an exception of type [E] to be thrown when running [action]
- * and to optionally fulfil the assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+ * and to optionally fulfil the assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
  *
- * **Usage:** `expectThrows<Exception> { <action> } [ that { <assertions> } ]`
+ * **Usage:** `expectThrows<Exception> { <action> } [ that { <assertion> } ]`
  */
 inline fun <reified E : Throwable> expectThrows(noinline action: () -> Any?): InCompleteExpectationBuilder<E> {
     val assertionBuilder = strikt.api.expectThrows<E> { action() }
-    return InCompleteExpectationBuilder { additionalAssertions: Builder<E>.() -> Unit ->
-        assertionBuilder.and(additionalAssertions)
+    return InCompleteExpectationBuilder { additionalAssertion: Assertion<E> ->
+        assertionBuilder.and(additionalAssertion)
     }
 }
 
@@ -576,7 +577,7 @@ fun <T> testEach(
 
 /**
  * Builder for arbitrary test trees consisting of instances of [DynamicContainer] and [DynamicTest]
- * and a fluent transition to [Strikt](https://strikt.io) assertions.
+ * and a fluent transition to [Strikt](https://strikt.io) assertion.
  */
 @DynamicTestsDsl
 class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNode) -> Unit) {
@@ -609,84 +610,84 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
     }
 
     /**
-     * Expects `this` subject to fulfil the given [assertions].
+     * Expects `this` subject to fulfil the given [assertion].
      *
      * ***Note:** The surrounding test subject is ignored.*
      *
-     * **Usage:** `<subject> asserting { <assertions> }`
+     * **Usage:** `<subject> asserting { <assertion> }`
      */
-    infix fun <T> T.asserting(assertions: Builder<T>.() -> Unit) {
+    infix fun <T> T.asserting(assertion: Assertion<T>) {
         val caller = findCaller()
-        val test = dynamicTest(findCaller().assertingDisplayName(this, assertions), caller.callerSource) {
-            strikt.api.expectThat(this, assertions)
+        val test = dynamicTest(findCaller().assertingDisplayName(this, assertion), caller.callerSource) {
+            strikt.api.expectThat(this, assertion)
         }
         callback(test)
     }
 
     /**
-     * Expects the [subject] to fulfil the given [assertions].
+     * Expects the [subject] to fulfil the given [assertion].
      *
-     * **Usage:** `asserting(<subject>) { <assertions> }`
+     * **Usage:** `asserting(<subject>) { <assertion> }`
      */
-    infix fun asserting(assertions: Builder<T>.() -> Unit) {
+    infix fun asserting(assertion: Assertion<T>) {
         val caller = findCaller()
-        val test = dynamicTest(findCaller().assertingDisplayName(assertions), caller.callerSource) {
-            strikt.api.expectThat(subject, assertions)
+        val test = dynamicTest(findCaller().assertingDisplayName(assertion), caller.callerSource) {
+            strikt.api.expectThat(subject, assertion)
         }
         callback(test)
     }
 
     /**
      * Expects the [subject] transformed by [action] to fulfil the
-     * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expecting { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertions> }`
+     * **Usage:** `expecting { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertion> }`
      */
     fun <R> expecting(description: String? = null, action: T.() -> R): InCompleteExpectationBuilder<R> {
-        var additionalAssertions: (Builder<R>.() -> Unit)? = null
+        var additionalAssertion: Assertion<R>? = null
         val caller = findCaller()
         val test = dynamicTest(description ?: caller.expectingDisplayName(subject, action), caller.callerSource) {
-            strikt.api.expectThat(subject).with(action, additionalAssertions ?: throw IllegalUsageException("expecting", caller.callerSource))
+            strikt.api.expectThat(subject).with(action, additionalAssertion ?: throw IllegalUsageException("expecting", caller.callerSource))
         }
         callback(test)
-        return InCompleteExpectationBuilder { assertions: Builder<R>.() -> Unit ->
-            additionalAssertions = assertions
+        return InCompleteExpectationBuilder { assertion: Assertion<R> ->
+            additionalAssertion = assertion
         }
     }
 
     /**
      * Expects the [Result] of the [subject] transformed by [action] to fulfil the
-     * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expectCatching { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertions> }`
+     * **Usage:** `expectCatching { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertion> }`
      */
     fun <R> expectCatching(action: T.() -> R): InCompleteExpectationBuilder<Result<R>> {
-        var additionalAssertions: (Builder<Result<R>>.() -> Unit)? = null
+        var additionalAssertion: Assertion<Result<R>>? = null
         val caller = findCaller()
         val test = dynamicTest(findCaller().catchingDisplayName(subject, action), caller.callerSource) {
-            strikt.api.expectCatching { subject.action() }.and(additionalAssertions ?: throw IllegalUsageException("expectCatching", caller.callerSource))
+            strikt.api.expectCatching { subject.action() }.and(additionalAssertion ?: throw IllegalUsageException("expectCatching", caller.callerSource))
         }
         callback(test)
-        return InCompleteExpectationBuilder { assertions: Builder<Result<R>>.() -> Unit ->
-            additionalAssertions = assertions
+        return InCompleteExpectationBuilder { assertion: Assertion<Result<R>> ->
+            additionalAssertion = assertion
         }
     }
 
     /**
      * Expects an exception of type [E] to be thrown when transforming the [subject] with [action]
-     * and to optionally fulfil the assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * and to optionally fulfil the assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expectThrows<Exception> { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } [ that { <assertions> } ]`
+     * **Usage:** `expectThrows<Exception> { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } [ that { <assertion> } ]`
      */
     inline fun <reified E : Throwable> expectThrows(noinline action: T.() -> Any?): InCompleteExpectationBuilder<E> {
-        var additionalAssertions: (Builder<E>.() -> Unit)? = null
+        var additionalAssertion: Assertion<E>? = null
         val caller = findCaller()
         val test = dynamicTest(throwingDisplayName<E>(), caller.callerSource) {
-            strikt.api.expectThrows<E> { subject.action() }.and(additionalAssertions ?: {})
+            strikt.api.expectThrows<E> { subject.action() }.and(additionalAssertion ?: {})
         }
         callback(test)
-        return InCompleteExpectationBuilder { assertions: Builder<E>.() -> Unit ->
-            additionalAssertions = assertions
+        return InCompleteExpectationBuilder { assertion: Assertion<E> ->
+            additionalAssertion = assertion
         }
     }
 
@@ -724,16 +725,16 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
 }
 
 /**
- * Expects the [subject] to fulfil the given [assertions].
+ * Expects the [subject] to fulfil the given [assertion].
  *
  * ***Note:** The surrounding test subject is ignored.*
  *
- * **Usage:** `asserting(<subject>) { <assertions> }`
+ * **Usage:** `asserting(<subject>) { <assertion> }`
  */
-@Deprecated("replace with subject asserting assertions", ReplaceWith("subject asserting assertions"))
-fun <T> DynamicTestsWithSubjectBuilder<*>.asserting(subject: T, assertions: Builder<T>.() -> Unit) {
+@Deprecated("replace with subject asserting assertion", ReplaceWith("subject asserting assertion"))
+fun <T> DynamicTestsWithSubjectBuilder<*>.asserting(subject: T, assertion: Assertion<T>) {
     with(subject) {
-        asserting(assertions)
+        asserting(assertion)
     }
 }
 
@@ -746,10 +747,10 @@ fun tests(init: DynamicTestsWithoutSubjectBuilder.() -> Unit): List<DynamicNode>
  * in a more concise manner.
  *
  * - [test] is for plain unit tests
- * - [asserting] is for running [Strikt](https://strikt.io) assertions on a subject you already have
- * - [expecting] is for running [Strikt](https://strikt.io) assertions on a subject that needs to be provided first
- * - [expectCatching] is for running [Strikt](https://strikt.io) assertions on the result of an action that might throw an exception
- * - [expectThrows] is for running [Strikt](https://strikt.io) assertions on the exception thrown by an action
+ * - [asserting] is for running [Strikt](https://strikt.io) assertion on a subject you already have
+ * - [expecting] is for running [Strikt](https://strikt.io) assertion on a subject that needs to be provided first
+ * - [expectCatching] is for running [Strikt](https://strikt.io) assertion on the result of an action that might throw an exception
+ * - [expectThrows] is for running [Strikt](https://strikt.io) assertion on the exception thrown by an action
  */
 @DynamicTestsDsl
 class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>) {
@@ -775,83 +776,83 @@ class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>) {
     }
 
     /**
-     * Expects `this` subject to fulfil the given [assertions].
+     * Expects `this` subject to fulfil the given [assertion].
      *
-     * **Usage:** `<subject> asserting { <assertions> }`
+     * **Usage:** `<subject> asserting { <assertion> }`
      */
     @JvmName("infixAsserting")
-    infix fun <T> T.asserting(assertions: Builder<T>.() -> Unit) {
+    infix fun <T> T.asserting(assertion: Assertion<T>) {
         val caller = findCaller()
-        val test = dynamicTest(findCaller().assertingDisplayName(this, assertions), caller.callerSource) {
-            strikt.api.expectThat(this, assertions)
+        val test = dynamicTest(findCaller().assertingDisplayName(this, assertion), caller.callerSource) {
+            strikt.api.expectThat(this, assertion)
         }
         tests.add(test)
     }
 
     /**
-     * Expects the [subject] to fulfil the given [assertions].
+     * Expects the [subject] to fulfil the given [assertion].
      *
-     * **Usage:** `asserting(<subject>) { <assertions> }`
+     * **Usage:** `asserting(<subject>) { <assertion> }`
      */
-    fun <T> asserting(subject: T, assertions: Builder<T>.() -> Unit) {
+    fun <T> asserting(subject: T, assertion: Assertion<T>) {
         val caller = findCaller()
-        val test = dynamicTest(findCaller().assertingDisplayName(assertions), caller.callerSource) {
-            strikt.api.expectThat(subject, assertions)
+        val test = dynamicTest(findCaller().assertingDisplayName(assertion), caller.callerSource) {
+            strikt.api.expectThat(subject, assertion)
         }
         tests.add(test)
     }
 
     /**
      * Expects the subject returned by [action] to fulfil the
-     * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expecting { <action> } that { <assertions> }`
+     * **Usage:** `expecting { <action> } that { <assertion> }`
      */
     fun <R> expecting(description: String? = null, action: () -> R): InCompleteExpectationBuilder<R> {
-        var additionalAssertions: (Builder<R>.() -> Unit)? = null
+        var additionalAssertion: Assertion<R>? = null
         val caller = findCaller()
         val test = dynamicTest(description ?: caller.expectingDisplayName(action), caller.callerSource) {
-            strikt.api.expectThat(action(), additionalAssertions ?: throw IllegalUsageException("expecting", caller.callerSource))
+            strikt.api.expectThat(action(), additionalAssertion ?: throw IllegalUsageException("expecting", caller.callerSource))
         }
         tests.add(test)
-        return InCompleteExpectationBuilder { assertions: Builder<R>.() -> Unit ->
-            additionalAssertions = assertions
+        return InCompleteExpectationBuilder { assertion: Assertion<R> ->
+            additionalAssertion = assertion
         }
     }
 
     /**
      * Expects the [Result] returned by [action] to fulfil the
-     * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expectCatching { <action> } that { <assertions> }`
+     * **Usage:** `expectCatching { <action> } that { <assertion> }`
      */
     fun <R> expectCatching(action: () -> R): InCompleteExpectationBuilder<Result<R>> {
-        var additionalAssertions: (Builder<Result<R>>.() -> Unit)? = null
+        var additionalAssertion: Assertion<Result<R>>? = null
         val caller = findCaller()
         val test = dynamicTest(findCaller().catchingDisplayName(action), caller.callerSource) {
-            strikt.api.expectCatching { action() }.and(additionalAssertions ?: throw IllegalUsageException("expectCatching", caller.callerSource))
+            strikt.api.expectCatching { action() }.and(additionalAssertion ?: throw IllegalUsageException("expectCatching", caller.callerSource))
         }
         tests.add(test)
-        return InCompleteExpectationBuilder { assertions: Builder<Result<R>>.() -> Unit ->
-            additionalAssertions = assertions
+        return InCompleteExpectationBuilder { assertion: Assertion<Result<R>> ->
+            additionalAssertion = assertion
         }
     }
 
     /**
      * Expects an exception of type [E] to be thrown when running [action]
-     * and to optionally fulfil the assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * and to optionally fulfil the assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expectThrows<Exception> { <action> } [ that { <assertions> } ]`
+     * **Usage:** `expectThrows<Exception> { <action> } [ that { <assertion> } ]`
      */
     inline fun <reified E : Throwable> expectThrows(noinline action: () -> Any?): InCompleteExpectationBuilder<E> {
-        var additionalAssertions: (Builder<E>.() -> Unit)? = null
+        var additionalAssertion: Assertion<E>? = null
         val caller = findCaller()
         val test = dynamicTest(throwingDisplayName<E>(), caller.callerSource) {
-            strikt.api.expectThrows<E> { action() }.and(additionalAssertions ?: {})
+            strikt.api.expectThrows<E> { action() }.and(additionalAssertion ?: {})
         }
         tests.add(test)
-        return InCompleteExpectationBuilder { assertions: Builder<E>.() -> Unit ->
-            additionalAssertions = assertions
+        return InCompleteExpectationBuilder { assertion: Assertion<E> ->
+            additionalAssertion = assertion
         }
     }
 
@@ -862,7 +863,7 @@ class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>) {
 }
 
 @DynamicTestsDsl
-class DynamicTestBuilder<T>(val subject: T, public val buildErrors: MutableList<String>) {
+class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>) {
 
     /**
      * Incomplete builder of an [Strikt](https://strikt.io) assertion
@@ -872,52 +873,52 @@ class DynamicTestBuilder<T>(val subject: T, public val buildErrors: MutableList<
      * If no callback took place until a certain moment in time
      * this [that] was never called.
      */
-    class InCompleteExpectationBuilder<T>(val assertionBuilderProvider: (Builder<T>.() -> Unit) -> Unit) {
+    class InCompleteExpectationBuilder<T>(val assertionBuilderProvider: (Assertion<T>) -> Unit) {
         @Suppress("NOTHING_TO_INLINE")
-        inline infix fun that(noinline assertions: Builder<T>.() -> Unit) = assertionBuilderProvider(assertions)
+        inline infix fun that(noinline assertion: Assertion<T>) = assertionBuilderProvider(assertion)
     }
 
     /**
      * Expects the [subject] transformed by [action] to fulfil the
-     * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expecting { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertions> }`
+     * **Usage:** `expecting { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertion> }`
      */
     fun <R> expecting(description: String? = null, action: T.() -> R): InCompleteExpectationBuilder<R> {
         val errorMessage = "expecting { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
-        return InCompleteExpectationBuilder { assertions: Builder<R>.() -> Unit ->
+        return InCompleteExpectationBuilder { assertion: Assertion<R> ->
             buildErrors.remove(errorMessage)
             strikt.api.expectThat(subject).with(description?.takeUnlessBlank() ?: "with".property(action) + findCaller().expectingDisplayName(subject,
                 action),
                 action,
-                assertions)
+                assertion)
         }
     }
 
     /**
      * Expects the [Result] of the [subject] transformed by [action] to fulfil the
-     * assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expectCatching { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertions> }`
+     * **Usage:** `expectCatching { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { <assertion> }`
      */
     fun <R> expectCatching(action: suspend T.() -> R): InCompleteExpectationBuilder<Result<R>> {
         val errorMessage = "expectCatching { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
-        return InCompleteExpectationBuilder { assertions: Builder<Result<R>>.() -> Unit ->
+        return InCompleteExpectationBuilder { assertion: Assertion<Result<R>> ->
             buildErrors.remove(errorMessage)
-            strikt.api.expectCatching { subject.action() }.assertions()
+            strikt.api.expectCatching { subject.action() }.assertion()
         }
     }
 
     /**
      * Expects an exception of type [E] to be thrown when transforming the [subject] with [action]
-     * and to optionally fulfil the assertions returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
+     * and to optionally fulfil the assertion returned by [DynamicTestBuilder.InCompleteExpectationBuilder].
      *
-     * **Usage:** `expectThrows<Exception> { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } [ that { <assertions> } ]`
+     * **Usage:** `expectThrows<Exception> { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } [ that { <assertion> } ]`
      */
     inline fun <reified E : Throwable> expectThrows(noinline action: suspend T.() -> Any?): InCompleteExpectationBuilder<E> {
         val assertionBuilder: Builder<E> = strikt.api.expectThrows { subject.action() }
-        return InCompleteExpectationBuilder { assertions: Builder<E>.() -> Unit ->
-            assertionBuilder.assertions()
+        return InCompleteExpectationBuilder { assertion: Assertion<E> ->
+            assertionBuilder.assertion()
         }
     }
 

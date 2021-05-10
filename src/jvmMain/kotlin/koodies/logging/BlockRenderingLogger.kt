@@ -2,8 +2,6 @@ package koodies.logging
 
 import koodies.asString
 import koodies.exec.IO
-import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.text.ANSI.Colors.red
 import koodies.text.ANSI.Formatter
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.prefixLinesWith
