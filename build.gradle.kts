@@ -1,4 +1,3 @@
-import org.gradle.api.plugins.JavaBasePlugin.DOCUMENTATION_GROUP
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import kotlin.text.toBoolean as kotlinToBoolean
 
@@ -51,8 +50,6 @@ plugins {
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.1"
-    id("nebula.source-jar") version "17.3.2"
-    id("nebula.javadoc-jar") version "17.3.2"
 }
 
 allprojects {
@@ -190,89 +187,100 @@ kotlin {
             }
         }
     }
+}
 
-    signing {
-        sign(publishing.publications)
-    }
+val dokkaOutputDir = buildDir.resolve("dokka")
 
-    publishing {
-
-        repositories {
-            maven {
-                name = "MavenCentral"
-                url = if (version.isFinal()) {
-                    uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                } else {
-                    uri("https://oss.sonatype.org/content/repositories/snapshots/")
-                }
-                credentials {
-                    username = findPropertyEverywhere("sonatypeNexusUsername", "")
-                    password = findPropertyEverywhere("sonatypeNexusPassword", "")
-                }
+tasks.dokkaHtml {
+    outputDirectory.set(file(dokkaOutputDir))
+    dokkaSourceSets {
+        configureEach {
+            val platformName = when (platform.get()) {
+                org.jetbrains.dokka.Platform.jvm -> "jvm"
+                org.jetbrains.dokka.Platform.js -> "js"
+                org.jetbrains.dokka.Platform.native -> "native"
+                org.jetbrains.dokka.Platform.common -> "common"
             }
+            displayName.set(platformName)
+        }
+    }
+}
 
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/bkahlert/koodies")
-                credentials {
-                    username = findPropertyEverywhere("githubUsername", "")
-                    password = findPropertyEverywhere("githubToken", "")
-                }
+val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
+    delete(dokkaOutputDir)
+}
+
+val javadocJar = tasks.create<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
+    from(dokkaOutputDir)
+}
+
+publishing {
+
+    repositories {
+        maven {
+            name = "MavenCentral"
+            url = if (version.isFinal()) {
+                uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            } else {
+                uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            }
+            credentials {
+                username = findPropertyEverywhere("sonatypeNexusUsername", "")
+                password = findPropertyEverywhere("sonatypeNexusPassword", "")
             }
         }
 
-        publications {
-
-            withType<MavenPublication>().matching { it.name.contains("kotlinMultiplatform") }.configureEach {
-                artifact(tasks.register<Jar>("dokkaHtmlJar") {
-                    group = DOCUMENTATION_GROUP
-                    dependsOn(tasks.dokkaHtml)
-                    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-                    archiveClassifier.set("kdoc")
-                })
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+            credentials {
+                username = findPropertyEverywhere("githubUsername", "")
+                password = findPropertyEverywhere("githubToken", "")
             }
+        }
+    }
 
-            withType<MavenPublication>().configureEach {
-                artifact(tasks.register<Jar>("${name}JavaDocJar") {
-                    dependsOn(tasks.dokkaHtml)
-                    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-                    archiveBaseName.set("${project.name}-${this@configureEach.name}")
-                    archiveClassifier.set("javadoc")
-                })
+    publications {
+        
+        withType<MavenPublication>().configureEach {
 
-                pom {
-                    name.set("Koodies")
-                    description.set(project.description)
+            artifact(javadocJar)
+
+            pom {
+                name.set("Koodies")
+                description.set(project.description)
+                url.set(baseUrl)
+                licenses {
+                    license {
+                        name.set("MIT")
+                        url.set("$baseUrl/blob/master/LICENSE")
+                    }
+                }
+                scm {
                     url.set(baseUrl)
-                    licenses {
-                        license {
-                            name.set("MIT")
-                            url.set("$baseUrl/blob/master/LICENSE")
-                        }
-                    }
-                    scm {
-                        url.set(baseUrl)
-                        connection.set("scm:git:$baseUrl.git")
-                        developerConnection.set("scm:git:$baseUrl.git")
-                    }
-                    issueManagement {
-                        url.set("$baseUrl/issues")
-                        system.set("GitHub")
-                    }
+                    connection.set("scm:git:$baseUrl.git")
+                    developerConnection.set("scm:git:$baseUrl.git")
+                }
+                issueManagement {
+                    url.set("$baseUrl/issues")
+                    system.set("GitHub")
+                }
 
-                    ciManagement {
-                        url.set("$baseUrl/issues")
-                        system.set("GitHub")
-                    }
+                ciManagement {
+                    url.set("$baseUrl/issues")
+                    system.set("GitHub")
+                }
 
-                    developers {
-                        developer {
-                            id.set("bkahlert")
-                            name.set("Björn Kahlert")
-                            email.set("mail@bkahlert.com")
-                            url.set("https://bkahlert.com")
-                            timezone.set("Europe/Berlin")
-                        }
+                developers {
+                    developer {
+                        id.set("bkahlert")
+                        name.set("Björn Kahlert")
+                        email.set("mail@bkahlert.com")
+                        url.set("https://bkahlert.com")
+                        timezone.set("Europe/Berlin")
                     }
                 }
             }
@@ -280,6 +288,6 @@ kotlin {
     }
 }
 
-// TODO https://github.com/sksamuel/hoplite/blob/master/publish.gradle.kts
-
-// TODO see https://github.com/christophsturm/filepeek/pull/11/files
+signing {
+    sign(publishing.publications)
+}

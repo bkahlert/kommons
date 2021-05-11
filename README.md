@@ -10,14 +10,14 @@
 
 ### Maven Central
 
-* **Gradle** `implementation("com.bkahlert:koodies:1.4.1")`
+* **Gradle** `implementation("com.bkahlert:koodies:1.4.2")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert</groupId>
       <artifactId>koodies</artifactId>
-      <version>1.4.1</version>
+      <version>1.4.2</version>
   </dependency>
   ```
 
