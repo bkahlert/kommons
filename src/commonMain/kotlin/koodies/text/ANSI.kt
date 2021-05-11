@@ -1169,14 +1169,14 @@ public open class AnsiString private constructor(public val string: String) : Ch
  * Returns if this char sequence contains the specified [other] [CharSequence] as a substring.
  *
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
- * @param ignoreAnsiFormatting ANSI formatting / escapes are ignored by default. Use `false` consider escape codes as well
+ * @param ignoreAnsi ANSI formatting / escapes are ignored by default. Use `false` consider escape codes as well
  */
 public fun <T : CharSequence> T.contains(
     other: CharSequence,
     ignoreCase: Boolean = false,
-    ignoreAnsiFormatting: Boolean = false,
+    ignoreAnsi: Boolean = false,
 ): Boolean =
-    if (ignoreAnsiFormatting) ansiRemoved.containsNonAnsiAware(other.ansiRemoved, ignoreCase)
+    if (ignoreAnsi) ansiRemoved.containsNonAnsiAware(other.ansiRemoved, ignoreCase)
     else containsNonAnsiAware(other, ignoreCase)
 
 private object AnsiCodeHelper {

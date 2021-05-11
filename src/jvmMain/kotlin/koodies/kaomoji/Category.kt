@@ -1,6 +1,8 @@
 package koodies.kaomoji
 
 import kotlin.properties.PropertyDelegateProvider
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 public open class Category : AbstractList<Kaomoji>() {
     private val _list = mutableListOf<Kaomoji>()
@@ -14,10 +16,10 @@ public open class Category : AbstractList<Kaomoji>() {
      * If the kaomoji contains illegal characters [kaomoji] can be used to specify the correct one
      * while using a similar kaomoji with only legal characters as the property name itself.
      */
-    public fun auto(manualKaomojiString: String? = null): PropertyDelegateProvider<Category, Kaomoji> = PropertyDelegateProvider { category, property ->
+    public fun auto(manualKaomojiString: String? = null): PropertyDelegateProvider<Category, KaomojiDelegate> = PropertyDelegateProvider { category, property ->
         val kaomojiString = manualKaomojiString ?: property.name
-        val kaomoji = Kaomoji.parse(kaomojiString) ?: throw IllegalStateException("Kaomoji $kaomojiString could not be parsed.")
-        kaomoji.also { category._list.add(it) }
+        KaomojiDelegate(Kaomoji.parse(kaomojiString)?.also { category._list.add(it) }
+            ?: throw IllegalStateException("Kaomoji $kaomojiString could not be parsed."))
     }
 
     /**
@@ -31,9 +33,8 @@ public open class Category : AbstractList<Kaomoji>() {
         rightEye: IntRange = IntRange.EMPTY,
         rightArm: IntRange = IntRange.EMPTY,
         accessory: IntRange = IntRange.EMPTY,
-    ): PropertyDelegateProvider<Category, Kaomoji> = PropertyDelegateProvider { category, property ->
-        val kaomoji = Kaomoji(property.name, leftArm, leftEye, mouth, rightEye, rightArm, accessory)
-        kaomoji.also { category._list.add(it) }
+    ): PropertyDelegateProvider<Category, KaomojiDelegate> = PropertyDelegateProvider { category, property ->
+        KaomojiDelegate(Kaomoji(property.name, leftArm, leftEye, mouth, rightEye, rightArm, accessory).also { category._list.add(it) })
     }
 
     /**
@@ -46,8 +47,12 @@ public open class Category : AbstractList<Kaomoji>() {
         rightEye: CharSequence,
         rightArm: CharSequence,
         accessory: CharSequence = "",
-    ): PropertyDelegateProvider<Category, Kaomoji> = PropertyDelegateProvider { category, property ->
-        val kaomoji = Kaomoji(leftArm, leftEye, mouth, rightEye, rightArm, accessory)
-        kaomoji.also { category._list.add(it) }
+    ): PropertyDelegateProvider<Category, KaomojiDelegate> = PropertyDelegateProvider { category, _ ->
+        KaomojiDelegate(Kaomoji(leftArm, leftEye, mouth, rightEye, rightArm, accessory).also { category._list.add(it) })
+    }
+
+    @JvmInline
+    public value class KaomojiDelegate(public val kaomoji: Kaomoji) : ReadOnlyProperty<Category, Kaomoji> {
+        override fun getValue(thisRef: Category, property: KProperty<*>): Kaomoji = kaomoji
     }
 }

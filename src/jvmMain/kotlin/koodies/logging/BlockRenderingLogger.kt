@@ -6,7 +6,7 @@ import koodies.text.ANSI.Formatter
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.Semantics.Symbols.Computation
-import koodies.text.takeUnlessBlank
+import koodies.text.takeUnlessEmpty
 import kotlin.properties.Delegates
 
 public open class BlockRenderingLogger(
@@ -70,7 +70,7 @@ public open class BlockRenderingLogger(
         val result = block()
         val returnValue = ReturnValue.of(result)
         val formatted = if (closed) returnValueFormatter(returnValue.withSymbol(Computation)).format() else getBlockEnd(returnValue)
-        formatted.takeUnlessBlank()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
+        formatted.takeUnlessEmpty()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
         open = false
         return result.getOrThrow()
     }

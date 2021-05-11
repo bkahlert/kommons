@@ -248,7 +248,7 @@ private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
 private fun CompletableFuture<*>.thenPropagateException(type: String): CompletableFuture<out Any?> = handle { value, exception ->
     if (exception != null) {
         if ((exception.cause is IOException) && exception.cause?.message?.contains("stream closed", ignoreCase = true) == true) value
-        else throw RuntimeException("An error occurred while processing ［$type］.", exception)
+        else throw RuntimeException("An error occurred while processing [$type].", exception)
     } else {
         value
     }

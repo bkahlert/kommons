@@ -29,12 +29,6 @@ public class HereDoc(
      * @see <a href="https://tldp.org/LDP/abs/html/here-docs.html">Advanced Bash-Scripting Guide: Chapter 19. Here Documents</a>
      */
     public val substituteParameters: Boolean = true,
-
-    /**
-     * Separator used to separator the lines of this here document.
-     */
-    @Deprecated("unused feature; remove")
-    public val lineSeparator: String = DEFAULT_LINE_SEPARATOR,
 ) : CharSequence {
     /**
      * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands], a customizable [delimiter] and [lineSeparator].
@@ -66,7 +60,7 @@ public class HereDoc(
         "<<${delimiter.takeIf { substituteParameters } ?: delimiter.singleQuoted}",
         *commands,
         delimiter,
-    ).joinToString(separator = lineSeparator)
+    ).joinToString(DEFAULT_LINE_SEPARATOR)
 
     override val length: Int = rendered.length
     override fun get(index: Int): Char = rendered[index]

@@ -6,7 +6,7 @@ import koodies.io.path.hasContent
 import koodies.logging.InMemoryLogger
 import koodies.test.UniqueId
 import koodies.test.output.InMemoryLoggerFactory
-import koodies.test.testWithTempDir
+import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
@@ -32,21 +32,25 @@ class FileOperationsTest {
 
 
         @TestFactory
-        fun InMemoryLoggerFactory.`should remove intermediary line`(uniqueId: UniqueId) = LineSeparators.testWithTempDir(uniqueId) { lineSeparator ->
-            val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
-            val fixture = file(lineSeparator)
-            ShellScript { file(fixture) { removeLine("line 2") } }.exec.logging(logger)
-            if (lineSeparator !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
-                expectThat(fixture).hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line")
+        fun InMemoryLoggerFactory.`should remove intermediary line`(uniqueId: UniqueId) = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
+            withTempDir(uniqueId) {
+                val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
+                val fixture = file(lineSeparator)
+                ShellScript { file(fixture) { removeLine("line 2") } }.exec.logging(logger)
+                if (lineSeparator !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
+                    expectThat(fixture).hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line")
+                }
             }
         }
 
         @TestFactory
-        fun InMemoryLoggerFactory.`should remove last line`(uniqueId: UniqueId) = LineSeparators.testWithTempDir(uniqueId) { lineSeparator ->
-            val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
-            val fixture = file(lineSeparator)
-            ShellScript { file(fixture) { removeLine("last line") } }.exec.logging(logger)
-            expectThat(fixture).hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator")
+        fun InMemoryLoggerFactory.`should remove last line`(uniqueId: UniqueId) = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
+            withTempDir(uniqueId) {
+                val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
+                val fixture = file(lineSeparator)
+                ShellScript { file(fixture) { removeLine("last line") } }.exec.logging(logger)
+                expectThat(fixture).hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator")
+            }
         }
     }
 

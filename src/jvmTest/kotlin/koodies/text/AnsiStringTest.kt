@@ -473,7 +473,7 @@ class AnsiStringTest {
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
-                        input.second, ignoreCase = false, ignoreAnsiFormatting = false
+                        input.second, ignoreCase = false, ignoreAnsi = false
                     )
                     expectThat(actual).isEqualTo(expected)
                 },
@@ -496,7 +496,7 @@ class AnsiStringTest {
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
-                        input.second, ignoreCase = false, ignoreAnsiFormatting = true
+                        input.second, ignoreCase = false, ignoreAnsi = true
                     )
                     expectThat(actual).isEqualTo(expected)
                 }
@@ -513,7 +513,7 @@ class AnsiStringTest {
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
-                        input.second, ignoreCase = true, ignoreAnsiFormatting = false
+                        input.second, ignoreCase = true, ignoreAnsi = false
                     )
                     expectThat(actual).isEqualTo(expected)
                 }
@@ -530,7 +530,7 @@ class AnsiStringTest {
             listOf(
                 DynamicTest.dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
-                        input.second, ignoreCase = true, ignoreAnsiFormatting = true
+                        input.second, ignoreCase = true, ignoreAnsi = true
                     )
                     expectThat(actual).isEqualTo(expected)
                 }

@@ -3,6 +3,7 @@ package koodies.text
 import koodies.test.test
 import koodies.test.testEach
 import koodies.test.tests
+import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -20,6 +21,16 @@ import strikt.assertions.message
 import strikt.assertions.startsWith
 
 class StringsKtTest {
+
+    @TestFactory
+    fun `should return length`() = tests {
+        expecting { "red".length() } that { isEqualTo(3) }
+        expecting { "red".ansi.red.length() } that { isEqualTo(3) }
+        expecting { "red".length(ignoreAnsi = true) } that { isEqualTo(3) }
+        expecting { "red".ansi.red.length(ignoreAnsi = true) } that { isEqualTo(3) }
+        expecting { "red".length(ignoreAnsi = false) } that { isEqualTo(3) }
+        expecting { "red".ansi.red.length(ignoreAnsi = false) } that { isEqualTo(13) }
+    }
 
     @Nested
     inner class RandomKtTest {
@@ -116,6 +127,22 @@ class StringsKtTest {
     }
 
     @TestFactory
+    fun `should pad start`() = tests {
+        expecting { "red".padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
+        expecting { "red".ansi.red.padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
+        expecting { "red".padStart(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
+        expecting { "red".ansi.red.padStart(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("XXred") }
+    }
+
+    @TestFactory
+    fun `should pad end`() = tests {
+        expecting { "red".padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
+        expecting { "red".ansi.red.padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
+        expecting { "red".padEnd(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
+        expecting { "red".ansi.red.padEnd(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("redXX") }
+    }
+
+    @TestFactory
     fun `wrap multiline`() = test("foo".wrapMultiline("  bar 1\n    bar 2", "  \n    baz 1\n    baz 2\n        ")) {
         asserting {
             isEqualTo("""
@@ -208,7 +235,7 @@ class StringsKtTest {
     }
 }
 
-public fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharArray) =
+fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars: CharArray) =
     assert("contains only the characters " + chars.joinToString(", ")) {
         val unexpectedCharacters: CharSequence = it.filter { char: Char -> !chars.contains(char) }
         when (unexpectedCharacters.isEmpty()) {
@@ -217,8 +244,7 @@ public fun <T : CharSequence> Assertion.Builder<T>.containsOnlyCharacters(chars:
         }
     }
 
-public fun <T : CharSequence> Assertion.Builder<T>.endsWithRandomSuffix(): Assertion.Builder<T> {
-    return assert("ends with random suffix") {
+fun <T : CharSequence> Assertion.Builder<T>.endsWithRandomSuffix(): Assertion.Builder<T> =
+    assert("ends with random suffix") {
         matches(Regex(".*--[0-9a-zA-Z]{4}"))
     }
-}

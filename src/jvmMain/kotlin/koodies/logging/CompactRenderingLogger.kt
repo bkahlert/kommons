@@ -104,35 +104,3 @@ public class CompactRenderingLogger(
         block: MicroLogger.() -> R,
     ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
 }
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
- */
-@Deprecated("only use member function")
-@RenderingLoggingDsl
-public fun <R> compactLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
-    block: CompactRenderingLogger.() -> R,
-): R = CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, null).runLogging(block)
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- *
- * This logger logs all events using a single line of text. If more room is needed [blockLogging] is more suitable.
- */
-@Deprecated("only use member function")
-@RenderingLoggingDsl
-public fun <T : RenderingLogger?, R> T.compactLogging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
-    block: CompactRenderingLogger.() -> R,
-): R =
-    if (this is CompactRenderingLogger) compactLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, block)
-    else koodies.logging.compactLogging(caption, contentFormatter, decorationFormatter, returnValueFormatter, block)

@@ -337,10 +337,10 @@ class ExecutorTest {
             @TestFactory
             fun TestLogger.`should only log async computation`() = tests {
                 executable.exec.async.testProp.processing(logger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
-                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF")
                 }
                 executable.exec.async.processing(logger = this@`should only log async computation`) {}.apply { waitFor() } asserting {
-                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF")
                 }
             }
 
@@ -349,12 +349,12 @@ class ExecutorTest {
                 with(executable) {
                     logging.async.testProp.processing(logger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
-                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF")
                 }
                 with(executable) {
                     logging.async.processing(logger = this@`should only to receiver logger if available`) {}.apply { waitFor() }
                 } asserting {
-                    expectLogged.contains("▶ printenv TEST_PROP$LF⏳️ async computation")
+                    expectLogged.contains("▶ printenv TEST_PROP$LF")
                 }
             }
 

@@ -8,9 +8,9 @@ import koodies.text.asCodePointSequence
 import koodies.text.charCount
 import koodies.text.codePointCount
 import koodies.text.maxLength
+import koodies.text.padEnd
 import koodies.text.takeIfNotBlank
 import kotlin.random.Random
-import kotlin.reflect.KProperty
 
 /**
  * A [kaomoji](https://en.wikipedia.org/wiki/Emoticon#Japanese_style).
@@ -124,18 +124,14 @@ public data class Kaomoji(
             }
             else -> {
                 val max = lines.maxLength()
-                val middle = lines.drop(1).dropLast(1)
-                """
-                    $blank       ⎛ ${lines.first().padEnd(max)} ⎞
-                    ${middle.joinToString(LF) { "$blank       ⎜ ${it.padEnd(max)} ⎟" }}
-                    $blank   ͚͔˱ ❨ ⎝ ${lines.last().padEnd(max)} ⎠
-                    $this ˙
-                """.trimIndent()
+                "$blank       ⎛ ${lines.first().padEnd(max)} ⎞$LF" +
+                    lines.drop(1).dropLast(1).joinToString("") { "$blank       ⎜ ${it.padEnd(max)} ⎟$LF" } +
+                    "$blank   ͚͔˱ ❨ ⎝ ${lines.last().padEnd(max)} ⎠$LF" +
+                    this + " ˙"
             }
         }
     }
 
-    public operator fun getValue(thisRef: Category, property: KProperty<*>): Kaomoji = this
     override val length: Int get() = toString().length
     override fun get(index: Int): Char = toString().get(index)
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = toString().subSequence(startIndex, endIndex)
@@ -233,6 +229,11 @@ public data class Kaomoji(
         @Suppress("unused") public val BadMood: koodies.kaomoji.categories.BadMood = koodies.kaomoji.categories.BadMood
 
         /**
+         * Selection of baby [Kaomoji]
+         */
+        @Suppress("unused") public val Babies: koodies.kaomoji.categories.Babies = koodies.kaomoji.categories.Babies
+
+        /**
          * Selection of bear [Kaomoji]
          */
         @Suppress("unused") public val Bears: koodies.kaomoji.categories.Bears = koodies.kaomoji.categories.Bears
@@ -243,9 +244,9 @@ public data class Kaomoji(
         @Suppress("unused") public val Begging: koodies.kaomoji.categories.Begging = koodies.kaomoji.categories.Begging
 
         /**
-         * Selection of blush [Kaomoji]
+         * Selection of blushing [Kaomoji]
          */
-        @Suppress("unused") public val Blush: koodies.kaomoji.categories.Blush = koodies.kaomoji.categories.Blush
+        @Suppress("unused") public val Blushing: koodies.kaomoji.categories.Blushing = koodies.kaomoji.categories.Blushing
 
         /**
          * Selection of cat [Kaomoji]
@@ -621,11 +622,6 @@ public data class Kaomoji(
          * Selection of weapon-related [Kaomoji]
          */
         @Suppress("unused") public val Weapons: koodies.kaomoji.categories.Weapons = koodies.kaomoji.categories.Weapons
-
-        /**
-         * Selection of baby [Kaomoji]
-         */
-        @Suppress("unused") public val Babies: koodies.kaomoji.categories.Babies = koodies.kaomoji.categories.Babies
 
         /**
          * Selection of money [Kaomoji]

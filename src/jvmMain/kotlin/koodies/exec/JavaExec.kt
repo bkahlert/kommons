@@ -112,7 +112,7 @@ public class JavaExec(
 
             val exitState: ExitState = if (throwable != null) {
                 val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
-                val dump = createDump("Process ${commandLine.summary} terminated with ${cause.toCompactString()}.")
+                val dump = createDump("Process ${pid.formattedAs.input} terminated with ${cause.toCompactString()}.")
                 Excepted(pid, exitValue, io, cause, dump.ansiRemoved)
             } else {
                 kotlin.runCatching {

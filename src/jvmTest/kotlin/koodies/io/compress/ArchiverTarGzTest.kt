@@ -18,15 +18,12 @@ import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.UniqueId
-import koodies.test.testWithTempDir
+import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.unit.bytes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isFailure
 import strikt.assertions.isLessThan
 import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
@@ -36,35 +33,37 @@ import java.nio.file.Path
 class ArchiverTarGzTest {
 
     @TestFactory
-    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { randomPath().archive() },
         { randomPath(extension = ".tar.gz").unarchive() },
-        {
-            randomPath(extension = ".tar.gz").apply {
-                listArchive()
-            }
-        },
-    ).testWithTempDir(uniqueId) { call ->
-        expectCatching { call() }.isFailure().isA<NoSuchFileException>()
+        { randomPath(extension = ".tar.gz").apply { listArchive() } },
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThrows<NoSuchFileException> { call() }
+        }
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().writeText("content") }.archive("tar.gz") },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive() },
-    ).testWithTempDir(uniqueId) { call ->
-        expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThrows<FileAlreadyExistsException> { call() }
+        }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         {
             randomDirectory().directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().writeText("content") }
                 .archive("tar.gz", overwrite = true)
         },
         { randomDirectory().archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive(overwrite = true) },
-    ).testWithTempDir(uniqueId) { call ->
-        expectThat(call()).exists()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThat(call()).exists()
+        }
     }
 
     @Test

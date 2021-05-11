@@ -19,7 +19,6 @@ import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.testEach
-import koodies.test.testWithTempDir
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
@@ -254,21 +253,25 @@ class JavaExecTest {
         }
 
         @TestFactory
-        fun `by destroying using`(uniqueId: UniqueId) = listOf(
+        fun `by destroying using`(uniqueId: UniqueId) = testEach(
             Builder<Exec>::stopped,
             Builder<Exec>::killed,
-        ).testWithTempDir(uniqueId) { destroyOperation ->
-            expect {
+        ) { destroyOperation ->
+            expecting {
                 measureTime {
-                    val exec = createLoopingExec()
-                    that(exec) {
-                        destroyOperation.invoke(this).joined.hasState<Failed> {
-                            exitCode.isGreaterThan(0)
+                    withTempDir(uniqueId) {
+                        val exec = createLoopingExec()
+                        expectThat(exec) {
+                            destroyOperation.invoke(this).joined.hasState<Failed> {
+                                exitCode.isGreaterThan(0)
+                            }
+                            not { alive }.get { this.alive }.isFalse()
+                            exitCodeOrNull.not { isEqualTo(0) }
                         }
-                        not { alive }.get { this.alive }.isFalse()
-                        exitCodeOrNull.not { isEqualTo(0) }
                     }
-                }.also { that(it).isLessThanOrEqualTo(seconds(5)) }
+                }
+            } that {
+                isLessThanOrEqualTo(seconds(5))
             }
         }
 
@@ -342,7 +345,7 @@ class JavaExecTest {
             fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackExec: Exec? = null
                 expect {
-                    that(createCompletingExec(exitValue = 0).addPostTerminationCallback { _ ->
+                    that(createCompletingExec(exitValue = 0).addPostTerminationCallback {
                         callbackExec = this
                     }).succeeds()
                     Duration.milliseconds(100).sleep()

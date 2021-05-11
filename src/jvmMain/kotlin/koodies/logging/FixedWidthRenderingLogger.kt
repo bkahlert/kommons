@@ -51,17 +51,18 @@ public abstract class FixedWidthRenderingLogger(
                 }.joinToString(LF)
 
             override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String {
-                val formatted = resultValueFormatter(returnValue)
+                val processReturnValue = resultValueFormatter(returnValue)
                 return when (returnValue.successful) {
                     true -> {
-                        formatter("│").toString() + LF + formatter("╰──╴").toString() + formatted.format()
+                        formatter("│").toString() + LF + formatter("╰──╴").toString() + processReturnValue.format()
                     }
                     null -> {
                         val halfLine = formatter("╵").toString()
-                        halfLine + LF + halfLine + LF + formatted.symbol + (formatted.textRepresentation?.withPrefix(" ") ?: "")
+                        val formatted: String = processReturnValue.symbol + (processReturnValue.textRepresentation?.withPrefix(" ") ?: "")
+                        halfLine + LF + halfLine + (formatted.takeUnlessBlank()?.let { "$LF$it" } ?: "")
                     }
                     false -> {
-                        formatted.symbol + LF + formatter("╰──╴").toString() + (formatted.textRepresentation ?: "")
+                        processReturnValue.symbol + LF + formatter("╰──╴").toString() + (processReturnValue.textRepresentation ?: "")
                     }
                 }.asAnsiString().mapLines {
                     it.ansi.bold

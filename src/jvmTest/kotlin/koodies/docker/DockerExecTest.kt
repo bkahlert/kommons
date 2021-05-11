@@ -36,6 +36,7 @@ import strikt.assertions.isTrue
 import strikt.assertions.size
 import java.nio.file.Path
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 class DockerExecTest {
@@ -152,8 +153,8 @@ class DockerExecTest {
                 val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
                 runningProcess.waitForCondition("Did not start in time.") { state is Running }
 
-                val passed = measureTime { runningProcess.stop(Duration.seconds(1)) }
-                expectThat(passed).isLessThan(Duration.seconds(4))
+                val passed = measureTime { runningProcess.stop(seconds(1)) }
+                expectThat(passed).isLessThan(seconds(8))
             }
 
             @DockerRequiring([BusyBox::class]) @Test
@@ -164,14 +165,14 @@ class DockerExecTest {
                 }
 
                 val passed = measureTime { runningProcess.kill() }
-                expectThat(passed).isLessThan(Duration.seconds(4))
+                expectThat(passed).isLessThan(seconds(4))
             }
 
             @DockerRequiring([BusyBox::class]) @Test
             fun `should call callback on termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var calledBack = false
                 val runningProcess = unprocessedProcess(uniqueId, "exit", "0") { calledBack = true }
-                runningProcess.waitForCondition("Did not call back.", Duration.seconds(8)) { calledBack }
+                runningProcess.waitForCondition("Did not call back.", seconds(8)) { calledBack }
             }
         }
 
@@ -228,7 +229,7 @@ private fun Path.createExec(
 
 private fun DockerExec.waitForCondition(
     errorMessage: String,
-    atMost: Duration = Duration.seconds(4),
+    atMost: Duration = seconds(4),
     test: DockerExec.() -> Boolean,
 ) {
     poll {
@@ -245,7 +246,7 @@ private fun DockerExec.waitForOutputOrFail(
 ) {
     poll {
         io.toList().test()
-    }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(8)) {
+    }.every(Duration.milliseconds(100)).forAtMost(seconds(8)) {
         if (alive) fail(stillRunningErrorMessage)
         fail(errorMessage)
     }

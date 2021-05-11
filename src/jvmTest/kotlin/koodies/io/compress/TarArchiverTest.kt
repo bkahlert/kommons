@@ -13,14 +13,11 @@ import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.UniqueId
-import koodies.test.testWithTempDir
+import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
@@ -31,27 +28,33 @@ import kotlin.io.path.copyTo
 class TarArchiverTest {
 
     @TestFactory
-    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { randomPath().tar() },
         { randomPath(extension = ".tar").untar() },
-    ).testWithTempDir(uniqueId) { call ->
-        expectCatching { call() }.isFailure().isA<NoSuchFileException>()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThrows<NoSuchFileException> { call() }
+        }
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar() },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar() },
-    ).testWithTempDir(uniqueId) { call ->
-        expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThrows<FileAlreadyExistsException> { call() }
+        }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar(overwrite = true) },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar(overwrite = true) },
-    ).testWithTempDir(uniqueId) { call ->
-        expectThat(call()).exists()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThat(call()).exists()
+        }
     }
 
     @Test

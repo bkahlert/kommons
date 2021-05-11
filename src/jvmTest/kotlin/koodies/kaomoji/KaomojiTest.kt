@@ -5,12 +5,12 @@ import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectThat
 import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isContainedIn
@@ -25,12 +25,12 @@ class KaomojiTest {
 
         @Test
         fun `should be created with random fisher and specified fish`() {
-            expectThat(Kaomoji.random().fishing(Kaomoji.Fish.`❮°«⠶＞˝`)).endsWith("o/￣￣￣❮°«⠶＞˝")
+            expecting { Kaomoji.random().fishing(Kaomoji.Fish.`❮°«⠶＞˝`) } that { endsWith("o/￣￣￣❮°«⠶＞˝") }
         }
 
         @Test
         fun `should be created with specified fisher and random fish`() {
-            expectThat(Kaomoji.Shrugging.first().fishing()).startsWith("┐(´д｀)o/￣￣￣")
+            expecting { Kaomoji.Shrugging.first().fishing() } that { startsWith("┐(´д｀)o/￣￣￣") }
         }
     }
 
@@ -44,47 +44,69 @@ class KaomojiTest {
         fun `should render empty`() = testEach(null, "", "   ") {
             expecting { kaomoji.thinking(it) } that {
                 isEqualTo("""
-                $left0   ͚͔˱ ❨ ( … )
-                ・㉨・ ˙
-            """.trimIndent())
+                    $left0   ͚͔˱ ❨ ( … )
+                    ・㉨・ ˙
+                """.trimIndent())
             }
         }
 
         @Test
         fun `should render single line`() {
-            expectThat(kaomoji.thinking("oh no")).isEqualTo("""
-                $left0   ͚͔˱ ❨ ( oh no )
-                ・㉨・ ˙
-            """.trimIndent())
+            expecting { kaomoji.thinking("oh no") } that {
+                isEqualTo("""
+                    $left0   ͚͔˱ ❨ ( oh no )
+                    ・㉨・ ˙
+                """.trimIndent())
+            }
         }
 
         @Test
         fun `should render two lines`() {
-            expectThat(kaomoji.thinking("oh no 1${LF}oh no 2")).isEqualTo("""
-                $left0       ⎛ oh no 1 ⎞
-                $left0   ͚͔˱ ❨ ⎝ oh no 2 ⎠
-                ・㉨・ ˙
-            """.trimIndent())
+            expecting { kaomoji.thinking("oh no 1${LF}oh no 2") } that {
+                isEqualTo("""
+                    $left0       ⎛ oh no 1 ⎞
+                    $left0   ͚͔˱ ❨ ⎝ oh no 2 ⎠
+                    ・㉨・ ˙
+                """.trimIndent())
+            }
         }
 
         @Test
         fun `should render multi line`() {
-            expectThat(kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3")).isEqualTo("""
-                $left0       ⎛ oh no 1 ⎞
-                $left0       ⎜ oh no 2 ⎟
-                $left0   ͚͔˱ ❨ ⎝ oh no 3 ⎠
-                ・㉨・ ˙
-            """.trimIndent())
+            expecting { kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3") } that {
+                isEqualTo("""
+                    $left0       ⎛ oh no 1 ⎞
+                    $left0       ⎜ oh no 2 ⎟
+                    $left0   ͚͔˱ ❨ ⎝ oh no 3 ⎠
+                    ・㉨・ ˙
+                """.trimIndent())
+            }
         }
 
         @Test
         fun `should render lines of different length`() {
-            expectThat(kaomoji.thinking("123${LF}${LF}1234567890")).isEqualTo("""
-                $left0       ⎛ 123        ⎞
-                $left0       ⎜            ⎟
-                $left0   ͚͔˱ ❨ ⎝ 1234567890 ⎠
-                ・㉨・ ˙
-            """.trimIndent())
+            expecting { kaomoji.thinking("123${LF}${LF}1234567890${LF}1234") } that {
+                isEqualTo("""
+                    $left0       ⎛ 123        ⎞
+                    $left0       ⎜            ⎟
+                    $left0       ⎜ 1234567890 ⎟
+                    $left0   ͚͔˱ ❨ ⎝ 1234       ⎠
+                    ・㉨・ ˙
+                """.trimIndent())
+            }
+        }
+
+        @Test
+        fun `should render ANSI`() {
+            expecting { kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234").ansiRemoved } that {
+                isEqualTo("""
+                    $left0       ⎛ 123        ⎞
+                    $left0       ⎜            ⎟
+                    $left0       ⎜ 1234567890 ⎟
+                    $left0   ͚͔˱ ❨ ⎝ 1234       ⎠
+                    ・㉨・ ˙
+                """.trimIndent())
+            }
         }
     }
 

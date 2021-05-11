@@ -12,7 +12,6 @@ import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.text
 import koodies.test.UniqueId
 import koodies.test.testEach
-import koodies.test.testWithTempDir
 import koodies.test.tests
 import koodies.test.withTempDir
 import koodies.unit.Size
@@ -96,19 +95,18 @@ class ClassPathsKtTest {
         }
 
         @TestFactory
-        fun `should throw on write access`(uniqueId: UniqueId) = listOf<Pair<String, Path.(Path) -> Unit>>(
+        fun `should throw on write access`(uniqueId: UniqueId) = testEach<Pair<String, Path.(Path) -> Unit>>(
             "outputStream" to { Files.newBufferedWriter(it) },
             "move" to { Files.move(it, this) },
             "delete" to { Files.delete(it) },
-        ).testWithTempDir(uniqueId) { (_, operation) ->
-            useClassPaths("try.it") {
-                expectThat(exists()).isTrue()
-                expectCatching {
-                    val target = this
-                    target.operation(this@useClassPaths)
-                }.isFailure().isA<ReadOnlyFileSystemException>()
-                expectThat(exists()).isTrue()
-                expectThat(readBytes()).isEqualTo(data)
+        ) { (_, operation) ->
+            withTempDir(uniqueId) {
+                useClassPaths("try.it") {
+                    expectThat(exists()).isTrue()
+                    expectThrows<ReadOnlyFileSystemException> { operation(this@useClassPaths) }
+                    expectThat(exists()).isTrue()
+                    expectThat(readBytes()).isEqualTo(data)
+                }
             }
         }
     }

@@ -7,8 +7,6 @@ import koodies.jvm.currentStackTrace
 import koodies.runtime.onExit
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
-import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.mapLines
@@ -67,7 +65,7 @@ public open class RenderingLogger(
      *
      * All default implemented methods use this method.
      */
-    public open fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
+    public open fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit =
         logWithLock {
             if (closed) {
                 val prefix = Symbols.Computation + " "
@@ -78,7 +76,6 @@ public open class RenderingLogger(
                 if (trailingNewline) message + LF else message
             }
         }
-    }
 
     /**
      * Logs raw text.
@@ -120,25 +117,10 @@ public open class RenderingLogger(
      */
     public open fun logException(block: () -> Throwable): Unit = logResult { Result.failure(block()) }
 
-    /**
-     * Logs a caught [Throwable]. In contrast to [logResult] with a failed [Result] and [logException]
-     * this method only marks the current logging context as failed but does not escalate (rethrow).
-     */
-    @Deprecated("delete")
-    public fun <R : Throwable> logCaughtException(block: () -> R): Unit {
-        val ex = block()
-        val formattedResult = object : ReturnValue by ReturnValue.of(Result.failure<R>(ex)) {
-            override val symbol: String = Symbols.Error.ansiRemoved.ansi.green.toString()
-        }.format()
-        render(true) { formattedResult }
-        open = false
-    }
-
     override fun toString(): String = asString {
         ::open to open
         ::caption to caption
     }
-
 
     /**
      * Helper method than can be applied on [CharSequence] returning lambdas
@@ -152,7 +134,7 @@ public open class RenderingLogger(
     public companion object {
 
         /**
-         * Helper method than can be applied on a list of [HasStatus] returning the
+         * Helper method than can be applied on a list of elements returning the
          * rendered statuses and passing them to [transform]
          * only in case the result was not blank.
          */
@@ -234,6 +216,6 @@ public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() 
 /**
  * Logs the given [returnValue] as the value that is returned from the logging span.
  */
-public fun <T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue): Unit {
+public fun <T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
     logResult { Result.success(returnValue) }
 }

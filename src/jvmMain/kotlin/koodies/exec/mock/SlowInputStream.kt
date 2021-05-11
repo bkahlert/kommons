@@ -11,7 +11,7 @@ import koodies.unit.bytes
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration
-import kotlin.time.milliseconds
+import kotlin.time.Duration.Companion.milliseconds
 
 public class SlowInputStream(
     public val baseDelayPerInput: Duration,
@@ -22,6 +22,8 @@ public class SlowInputStream(
 ) : InputStream() {
 
     public companion object {
+        private val fiftyMillis = milliseconds(50)
+
         public fun prompt(): Pair<Duration, String> = Duration.INFINITE to ""
         public fun InMemoryLogger.slowInputStream(
             baseDelayPerInput: Duration,
@@ -84,14 +86,14 @@ public class SlowInputStream(
 
         if (handleAndReturnBlockingState()) {
             logLine { "prompt is blocking" }
-            50.milliseconds.sleep()
+            fiftyMillis.sleep()
             return@compactLogging 0
         }
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            val delay = Duration.milliseconds(yetBlocked)
+            val delay = milliseconds(yetBlocked)
             logLine { "$delay to wait for next chunk" }
-            ((delay / 2).takeIf { it > 50.milliseconds } ?: 50.milliseconds).sleep()
+            ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
             return@compactLogging 0
         }
         if (terminated) {
@@ -105,7 +107,7 @@ public class SlowInputStream(
             blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
             unread[0] = Duration.ZERO to currentDelayedWord.second
             logLine { "$delay to wait for next chunk (just started)" }
-            ((delay / 2).takeIf { it > 50.milliseconds } ?: 50.milliseconds).sleep()
+            ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
             return@compactLogging 0
         }
 
@@ -119,7 +121,7 @@ public class SlowInputStream(
 
         while (handleAndReturnBlockingState()) {
             logLine { "prompt is blocking" }
-            Duration.milliseconds(50).sleep()
+            fiftyMillis.sleep()
         }
 
         logLine { "${unreadCount.bytes.formattedAs.debug} unread" }
@@ -131,8 +133,8 @@ public class SlowInputStream(
 
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            logLine { "blocking for the remaining ${Duration.milliseconds(yetBlocked)}…" }
-            yetBlocked.milliseconds.sleep()
+            logLine { "blocking for the remaining ${milliseconds(yetBlocked)}…" }
+            milliseconds(yetBlocked).sleep()
         }
 
         val currentWord: MutableList<Byte> = unread.let {
@@ -154,7 +156,7 @@ public class SlowInputStream(
             val delay = baseDelayPerInput
             blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
             logLine { "— empty; waiting time for next chunk is $baseDelayPerInput" }
-            ((delay / 2).takeIf { it > 50.milliseconds } ?: 50.milliseconds).sleep()
+            ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
         }
         currentByte.toInt()
     }

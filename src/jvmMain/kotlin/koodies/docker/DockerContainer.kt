@@ -76,7 +76,7 @@ public class DockerContainer(public val name: String) {
             public class Created(status: String) : Existent(true, "✱", status)
             public class Restarting(status: String) : Existent(true, "↻", status)
             public class Running(status: String) : Existent(true, "▶", status)
-            public class Removing(status: String) : Existent(true, "🗑", status)
+            public class Removing(status: String) : Existent(true, "♻︎", status)
             public class Paused(status: String) : Existent(true, "❚❚", status)
             public class Exited(status: String, public val exitCode: Int? = parseExitCode(status)) :
                 Existent(true, if (exitCode == 0) Symbols.OK else Symbols.Error + " " + exitCode.formattedAs.error, status) {

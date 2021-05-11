@@ -21,4 +21,3 @@ public fun <T : CharSequence> Iterable<T>.maxLength(): Int =
  */
 public fun <T : CharSequence> Sequence<T>.maxLength(): Int =
     maxOf { it.ansiRemoved.length }
-

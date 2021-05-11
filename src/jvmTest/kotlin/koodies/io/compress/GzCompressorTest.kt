@@ -15,16 +15,13 @@ import koodies.io.path.writeText
 import koodies.test.Fixtures.archiveWithSingleFile
 import koodies.test.Fixtures.singleFile
 import koodies.test.UniqueId
-import koodies.test.testWithTempDir
+import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isLessThan
 import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
@@ -34,27 +31,33 @@ import java.nio.file.Path
 class GzCompressorTest {
 
     @TestFactory
-    fun `should throw on missing source`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should throw on missing source`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { randomPath().gzip() },
         { randomPath(extension = ".gz").gunzip() },
-    ).testWithTempDir(uniqueId) { call ->
-        expectCatching { call() }.isFailure().isA<NoSuchFileException>()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThrows<NoSuchFileException> { call() }
+        }
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { singleFile().apply { addExtensions("gz").touch().writeText("content") }.gzip() },
         { archiveWithSingleFile("gz").apply { copyTo(removeExtensions("gz")) }.gunzip() },
-    ).testWithTempDir(uniqueId) { call ->
-        expectCatching { call() }.isFailure().isA<FileAlreadyExistsException>()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThrows<FileAlreadyExistsException> { call() }
+        }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = listOf<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
         { singleFile().apply { addExtensions("gz").touch().writeText("content") }.gzip(overwrite = true) },
         { archiveWithSingleFile("gz").apply { copyTo(removeExtensions("gz")) }.gunzip(overwrite = true) },
-    ).testWithTempDir(uniqueId) { call ->
-        expectThat(call()).exists()
+    ) { call ->
+        withTempDir(uniqueId) {
+            expectThat(call()).exists()
+        }
     }
 
     @Test

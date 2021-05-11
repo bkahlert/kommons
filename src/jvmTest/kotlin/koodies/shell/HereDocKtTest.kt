@@ -1,7 +1,6 @@
 package koodies.shell
 
 import koodies.exec.output
-import koodies.test.toStringIsEqualTo
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -16,13 +15,7 @@ import strikt.assertions.isNotEqualTo
 class HereDocKtTest {
 
     @Test
-    fun `should create here document using given delimiter and line separator`() {
-        val hereDoc = HereDoc("line 1", "line 2", delimiter = "MY-DELIMITER", lineSeparator = "␤")
-        expectThat(hereDoc).toStringIsEqualTo("<<MY-DELIMITER␤line 1␤line 2␤MY-DELIMITER")
-    }
-
-    @Test
-    fun `should create here document using HERE- delimiter and line feed by default`() {
+    fun `should create here document using HERE- delimiter`() {
         val hereDoc = listOf("line 1", "line 2").toHereDoc()
         expectThat(hereDoc).matchesCurlyPattern("""
             <<HERE-{}

@@ -951,25 +951,6 @@ fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
     }
 }
 
-/**
- * Creates a [DynamicTest] for each [T]—providing each test with a temporary work directory
- * that is automatically deletes after execution as the receiver object.
- *
- * The name for each test is heuristically derived but can also be explicitly specified using [testNamePattern]
- * which supports curly placeholders `{}` like [SLF4J] does.
- */
-fun <T> Iterable<T>.testWithTempDir(
-    uniqueId: UniqueId,
-    testNamePattern: String? = null,
-    executable: Path.(T) -> Unit,
-) = testEach(testNamePattern) {
-    test {
-        withTempDir(uniqueId) {
-            executable(it)
-        }
-    }
-}
-
 object TestFlattener {
 
     fun Array<DynamicNode>.flatten(): Sequence<DynamicTest> = asSequence().flatten()

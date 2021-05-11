@@ -98,9 +98,11 @@ public data class Executor<E : Exec>(
             }
             Async -> {
                 processLogger.logResult {
-                    Result.success(object : ReturnValue {
+                    Result.success<ReturnValue>(object : ReturnValue {
                         override val successful: Boolean? = null
-                        override val textRepresentation: String = "async computation"
+                        override val symbol: String = " "
+                        override val textRepresentation: String? = null
+                        override fun format(): String = " "
                     })
                 }
                 exec.process(processingMode, processor = processor ?: exec.terminationLoggingProcessor(processLogger))

@@ -14,6 +14,13 @@ public object CharRanges {
     public val UpperCaseAlphanumeric: CharArray = (Numeric + UpperCaseAtoZ).toCharArray()
 }
 
+/**
+ * Returns the length of this character sequence.
+ * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
+ * @return number of characters
+ */
+public fun CharSequence.length(ignoreAnsi: Boolean = true): Int =
+    if (ignoreAnsi) ansiRemoved.length else length
 
 /**
  * Creates a random string of the specified [length] made up of the specified [allowedCharacters].
@@ -105,6 +112,77 @@ public fun String.removeSurrounding(prefixSuffixPair: Pair<CharSequence, CharSeq
     }
     return this
 }
+
+
+/**
+ * Returns a char sequence with content of this char sequence padded at the beginning
+ * to the specified [length] with the specified character or space.
+ *
+ * @param length the desired string length.
+ * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
+ * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
+ * @return Returns a char sequence of length at least [length] consisting of `this` char sequence prepended with [padChar] as many times
+ * as are necessary to reach that length.
+ */
+public fun CharSequence.padStart(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean = true): CharSequence {
+    if (length < 0)
+        throw IllegalArgumentException("Desired length $length is less than zero.")
+    if (length <= this.length(ignoreAnsi))
+        return this.subSequence(0, this.length(ignoreAnsi))
+
+    val sb = StringBuilder(length)
+    for (i in 1..(length - this.length(ignoreAnsi)))
+        sb.append(padChar)
+    sb.append(this)
+    return sb
+}
+
+/**
+ * Pads the string to the specified [length] at the beginning with the specified character or space.
+ *
+ * @param length the desired string length.
+ * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
+ * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
+ * @return Returns a string of length at least [length] consisting of `this` string prepended with [padChar] as many times
+ * as are necessary to reach that length.
+ */
+public fun String.padStart(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean = true): String =
+    (this as CharSequence).padStart(length, padChar, ignoreAnsi).toString()
+
+/**
+ * Returns a char sequence with content of this char sequence padded at the end
+ * to the specified [length] with the specified character or space.
+ *
+ * @param length the desired string length.
+ * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
+ * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
+ * @return Returns a char sequence of length at least [length] consisting of `this` char sequence appended with [padChar] as many times
+ * as are necessary to reach that length.
+ */
+public fun CharSequence.padEnd(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean = true): CharSequence {
+    if (length < 0)
+        throw IllegalArgumentException("Desired length $length is less than zero.")
+    if (length <= this.length(ignoreAnsi))
+        return this.subSequence(0, this.length(ignoreAnsi))
+
+    val sb = StringBuilder(length)
+    sb.append(this)
+    for (i in 1..(length - this.length(ignoreAnsi)))
+        sb.append(padChar)
+    return sb
+}
+
+/**
+ * Pads the string to the specified [length] at the end with the specified character or space.
+ *
+ * @param length the desired string length.
+ * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
+ * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
+ * @return Returns a string of length at least [length] consisting of `this` string appended with [padChar] as many times
+ * as are necessary to reach that length.
+ */
+public fun String.padEnd(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean = true): String =
+    (this as CharSequence).padEnd(length, padChar, ignoreAnsi).toString()
 
 /**
  * Wraps this char sequence with the given [prefix] and [suffix].

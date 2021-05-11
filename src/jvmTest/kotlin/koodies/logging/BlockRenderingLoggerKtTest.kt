@@ -5,6 +5,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
 import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
+import koodies.test.Slow
 import koodies.test.output.Bordered
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
@@ -433,7 +434,7 @@ class BlockRenderingLoggerKtTest {
     @Nested
     inner class LoggingAfterResult {
 
-        @TestFactory
+        @Slow @TestFactory
         fun InMemoryLoggerFactory.`should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val logger = createLogger(opName)
             var delegate: FixedWidthRenderingLogger? = null
@@ -459,7 +460,7 @@ class BlockRenderingLoggerKtTest {
             }
         }
 
-        @TestFactory
+        @Slow @TestFactory
         fun InMemoryLoggerFactory.`should log after logged message and result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
             val logger = createLogger(opName)
             var delegate: FixedWidthRenderingLogger? = null
