@@ -26,12 +26,12 @@ import java.nio.file.Path
  * # Exec: Feature-Rich [Process] Execution
  *
  * ## Background
- * [Java's Development Kit](https://docs.oracle.com/en/java/javase/index.html) allows developers to execute native OS processes
+ * The [Java's Development Kit](https://docs.oracle.com/en/java/javase/index.html) allows developers to execute native OS processes
  * using the [Runtime.exec] since its first release. As of Java 1.5/5.0 the newly introduced [ProcessBuilder] rendered
- * process handling easier; as did subsequent features additions like [ProcessHandle].
+ * process handling easier; as did subsequent feature additions like [ProcessHandle].
  *
  * [Apache Commons Exec](https://commons.apache.org/proper/commons-exec/) was somewhat a breakthrough as it took away one of the biggest
- * challenges programmers have with processes—reading their standard output and error. Furthermore Apache Commons Exec supports parameter
+ * challenges programmers face with processes—reading their standard output and error. Furthermore Apache Commons Exec supports parameter
  * substitution and helps coping with concurrency (e.g. [DefaultExecutor](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/DefaultExecutor.html),
  * [ExecuteWatchdog](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/ExecuteWatchdog.html)).
  * Yet, a couple of everyday tasks are still not easily achievable.
@@ -58,7 +58,7 @@ import java.nio.file.Path
  * The following snippet provides the same functionality as the code from:
  * ```kotlin
  *      val exec = CommandLine("java", "-version").exec()
- *           .apply { if(state is Failure) println(exitCode) }
+ *           .apply { if(state is Failed) println(exitCode) }
  *      val (output, success) = exec.io.out to exec.successful
  * ```
  *

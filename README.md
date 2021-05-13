@@ -4,20 +4,22 @@
 
 <!-- C21E73 -->
 
-*RANDOM SELECTION OF KOTLIN GOODIES*
+**Koodies is a Kotlin Multiplatform Library, with a minimal set of dependencies, allowing you to run Command Lines and Shell Scripts, locally or in a Docker
+Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, Unicode-aware string functions and
+stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞o`.**
 
 ## Install
 
 ### Maven Central
 
-* **Gradle** `implementation("com.bkahlert:koodies:1.4.2")`
+* **Gradle** `implementation("com.bkahlert:koodies:1.5.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert</groupId>
       <artifactId>koodies</artifactId>
-      <version>1.4.2</version>
+      <version>1.5.0</version>
   </dependency>
   ```
 
@@ -145,7 +147,7 @@ MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
     - set the working directory of both the host command and the docker container
     - map the host working directory to the container's working directory,
     - that is, all files of that directory are equally available in your container instance.
-- Low level docker commands: `start`, `run`, `stop`, `kill`, `remove`, `search`, `image`, `ps`
+- Low-level docker commands: `start`, `run`, `stop`, `kill`, `remove`, `search`, `image`, `ps`
 - Object-oriented design
     - [Docker](src/jvmMain/kotlin/koodies/docker/Docker.kt): `engineRunning`, `info`, `images`, `containers`, `search`, `exec`
     - [DockerImage](src/jvmMain/kotlin/koodies/docker/DockerImage.kt): `list`, `isPulled`, `pull`, `tagsOnDockerHub`
@@ -514,7 +516,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
 * Kaomoji
   ```kotlin
-  Kaomojis.`(#-_-)o´・━・・━・━━・━☆`.random()
+  Kaomoji.Wizards.`(#-_-)o´・━・・━・━━・━☆`.random()
   ```
 
 * Borders, Boxes, …

@@ -221,7 +221,7 @@ publishing {
 
     repositories {
         maven {
-            name = "MavenCentral"
+            name = "OSSRH"
             url = if (version.isFinal()) {
                 uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
             } else {
@@ -244,7 +244,7 @@ publishing {
     }
 
     publications {
-        
+
         withType<MavenPublication>().configureEach {
 
             artifact(javadocJar)

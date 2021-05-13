@@ -34,7 +34,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 ```
 
 ```shell
-./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository -x publishNativePublicationToBintrayRepository -x publishKotlinMultiplatformPublicationToBintrayRepository -x publishPackageToBintray -x publishAllPublicationsToGitHubPackagesRepository -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishNativePublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository -x publishJsPublicationToMavenCentralRepository -x publishJvmPublicationToMavenCentralRepository -x publishNativePublicationToMavenCentralRepository -x publishKotlinMultiplatformPublicationToMavenCentralRepository
+./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository -x publishNativePublicationToBintrayRepository -x publishKotlinMultiplatformPublicationToBintrayRepository -x publishPackageToBintray -x publishAllPublicationsToGitHubPackagesRepository -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishNativePublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository -x publishJsPublicationToOSSRHRepository -x publishJvmPublicationToOSSRHRepository -x publishNativePublicationToOSSRHRepository -x publishKotlinMultiplatformPublicationToOSSRHRepository
 ```
 
 .
@@ -68,7 +68,7 @@ Create a tag locally using `git tag v2.2.0` (leading `v`  is important) and `./g
 pre-defined version, e.g.
 
 ```shell
-./gradlew -Prelease.useLastTag=true final publishAllPublicationsToMavenCentralRepository
+./gradlew -Prelease.useLastTag=true final publishAllPublicationsToOSSRHRepository
 ./gradlew -Prelease.useLastTag=true final publishAllPublicationsToGitHubPackagesRepository
 ```
 
