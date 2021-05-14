@@ -3,7 +3,6 @@ package koodies.shell
 import koodies.docker.DockerRunCommandLine
 import koodies.docker.DockerStopCommandLine
 import koodies.exec.exitCodeOrNull
-import koodies.io.path.Locations
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
 import koodies.io.path.pathString
@@ -102,31 +101,6 @@ class ShellScriptTest {
             echo "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m"
             cd "/some/where" || exit 1
             echo "Hello World!"
-            echo "Bye!"
-            exit 42
-
-        """.trimIndent())
-    }
-
-    @Test
-    fun `should sanitize script`() {
-        val sanitized = ShellScript(name = "Custom Name", content = """
-
-
-            cd "/some/where"
-            echo "Hello World!"
-
-            #!/bin/sh
-            echo "Bye!"
-            exit 42
-        """.trimIndent()).sanitize(Locations.Temp)
-
-        expectThat(sanitized.build()).matchesCurlyPattern("""
-            #!/bin/sh
-            echo "░░░░░░░ CUSTOM NAME"
-            cd "{}" || exit 1
-            echo "Hello World!"
-
             echo "Bye!"
             exit 42
 

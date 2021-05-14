@@ -97,7 +97,7 @@ class DockerRunCommandLineTest {
                 -p \
                 1234-1236:1234-1236/tcp \
                 --privileged \
-                -w \
+                --workdir \
                 /c \
                 --rm \
                 --interactive \
@@ -270,14 +270,14 @@ class DockerRunCommandLineTest {
                 val dockerCommandLine = dockerRunCommandLine("/a").toCommandLine("/some/where")
 
                 expectThat(dockerCommandLine.shellCommand)
-                    .isEqualTo("$d -w /a $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+                    .isEqualTo("$d --workdir /a $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
             }
 
             @Test
             fun `should take as is - even if re-mappable`() {
                 val dockerCommandLine = dockerRunCommandLine("/a/b/1").toCommandLine("/some/where")
                 expectThat(dockerCommandLine.shellCommand)
-                    .isEqualTo("$d -w /a/b/1 $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+                    .isEqualTo("$d --workdir /a/b/1 $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
             }
         }
 

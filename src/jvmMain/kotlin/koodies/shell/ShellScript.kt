@@ -60,20 +60,6 @@ public class ShellScript(
         return lines.toList().iterator()
     }
 
-    /**
-     * Returns a new script instance with an eventually missing [Shebang]
-     * added and if [workingDirectory] is set, an invocation of [ScriptContext.changeDirectoryOrExit].
-     */
-    public fun sanitize(workingDirectory: Path? = null): ShellScript {
-        var linesKept = lines.dropWhile { it.isShebang() || it.isBlank() }
-        if (workingDirectory != null && linesKept.firstOrNull()?.startsWith("cd ") == true) linesKept = linesKept.drop(1)
-        return ShellScript(name) {
-            shebang
-            workingDirectory?.let { changeDirectoryOrExit(it) }
-            linesKept.filter { !it.isShebang() }.joinToString(LF)
-        }
-    }
-
     // TOOD -> toString
     public fun build(name: String? = this.name): String {
         var echoNameCommandAdded = false
@@ -109,7 +95,7 @@ public class ShellScript(
     }
 
     override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?): CommandLine {
-        val script: String = sanitize().build()
+        val script: String = build()
         val shell = Commandline().shell
         return CommandLine(shell.shellCommand, *shell.shellArgsList.toTypedArray(), script)
     }

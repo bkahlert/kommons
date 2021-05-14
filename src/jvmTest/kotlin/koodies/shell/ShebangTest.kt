@@ -40,6 +40,21 @@ class ShebangTest {
     }
 
     @TestFactory
+    fun `should support custom interpreter with arguments`() = testEach({
+        ShellScript {
+            shebang("/my/custom/interpreter", "arg1", "-arg2")
+            !"echo 'shebang'"
+        }
+    }, {
+        ShellScript {
+            shebang(Path.of("/my/custom/interpreter"), "arg1", "-arg2")
+            !"echo 'shebang'"
+        }
+    }) { scriptFactory ->
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter arg1 -arg2", "echo 'shebang'", "") }
+    }
+
+    @TestFactory
     fun `should always insert in first line`() = testEach({
         ShellScript {
             !"echo 'shebang'"

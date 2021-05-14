@@ -248,7 +248,7 @@ public class DockerRunCommandLine(
         name?.also { add("--name", name.name) }
         publish.forEach { p -> add("-p", p) }
         privileged.takeIf { it }?.also { add("--privileged") }
-        workingDirectory?.also { add("-w", it.asString()) }
+        workingDirectory?.also { add("--workdir", it.asString()) }
         autoCleanup.takeIf { it }?.also { add("--rm") }
         interactive.takeIf { it }?.also { add("--interactive") }
         pseudoTerminal.takeIf { it }?.also { add("--tty") }

@@ -1,6 +1,5 @@
 package koodies.exec
 
-import koodies.builder.Init
 import koodies.builder.build
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.exec.ProcessingMode.Synchronicity.Async
@@ -114,7 +113,7 @@ public data class Executor<E : Exec>(
 
     /**
      * Executes the [executable] by logging all [IO] using the given [logger],
-     * the [LoggingOptions] built by means of the optional [loggingOptions].
+     * the [LoggingOptions] built by means of the optional [loggingOptionsInit].
      *
      * @param workingDirectory the working directory to be used during execution
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
@@ -123,10 +122,10 @@ public data class Executor<E : Exec>(
         logger: RenderingLogger = this.logger ?: BACKGROUND,
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-        loggingOptions: Init<LoggingOptionsContext> = { smart },
+        loggingOptionsInit: LoggingOptionsContext.(Executable<E>) -> Unit = { smart },
     ): E = copy(
         logger = logger,
-        loggingOptions = LoggingOptions.build(loggingOptions),
+        loggingOptions = LoggingOptions.build { loggingOptionsInit(this, executable) },
     ).invoke(workingDirectory, execTerminationCallback)
 
     /**
@@ -140,11 +139,11 @@ public data class Executor<E : Exec>(
         logger: RenderingLogger? = this.logger ?: BACKGROUND,
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-        loggingOptionsInit: Init<LoggingOptionsContext> = { smart },
+        loggingOptionsInit: LoggingOptionsContext.(Executable<E>) -> Unit = { smart },
         processor: Processor<E>,
     ): E = copy(
         logger = logger,
-        loggingOptions = LoggingOptions.build(loggingOptionsInit),
+        loggingOptions = LoggingOptions.build { loggingOptionsInit(this, executable) },
         processor = processor
     ).invoke(workingDirectory, execTerminationCallback)
 
