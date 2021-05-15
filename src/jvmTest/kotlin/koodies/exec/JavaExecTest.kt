@@ -356,6 +356,7 @@ class JavaExecTest {
             fun `should exit with Successful termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(0)
                 expectThat(exec).succeeds().and {
+                    toString().matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}.")
                     status.matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}.")
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)

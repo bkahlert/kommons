@@ -104,8 +104,8 @@ public interface Process : ReturnValue {
             override val status: String = "Process $pid is running.",
         ) : State {
             override val successful: Boolean? = null
-            override fun toString(): String = status
             override val textRepresentation: String? = "async computation"
+            override fun toString(): String = status
         }
 
         /**
@@ -139,6 +139,7 @@ public interface Process : ReturnValue {
                 override val status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
             ) : ExitState, Exited(pid, 0, io) {
                 override val successful: Boolean = true
+                override fun toString(): String = status
             }
 
             /**
@@ -205,8 +206,8 @@ public interface Process : ReturnValue {
             override val status: String = "Process excepted with ${exception.toCompactString()}",
         ) : State, ExitState {
             override val successful: Boolean = false
-            override fun toString(): String = status
             override val textRepresentation: String = status
+            override fun toString(): String = status
         }
     }
 
