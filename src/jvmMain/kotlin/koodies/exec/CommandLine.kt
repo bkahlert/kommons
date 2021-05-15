@@ -13,23 +13,25 @@ import koodies.io.path.executable
 import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
+import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.TruncationStrategy.MIDDLE
-import koodies.text.mapCodePoints
 import koodies.text.truncate
 import koodies.text.unquoted
-import org.codehaus.plexus.util.StringUtils.quoteAndEscape
+import org.codehaus.plexus.util.cli.shell.FormattingShell
 import java.nio.file.Path
 import kotlin.io.path.exists
-import org.codehaus.plexus.util.cli.Commandline as PlexusCommandLine
+import org.codehaus.plexus.util.cli.Commandline as PlexusCommandline
 
 /**
  * A command as it can be run in a shell.
  */
 public open class CommandLine(
+
     /**
      * The command to be executed.
      */
     public val command: String,
+
     /**
      * The arguments to be passed to [command].
      */
@@ -39,7 +41,7 @@ public open class CommandLine(
      * If set, each run [Exec] delegates its [ExitState] creation to it.
      */
     protected open val exitStateHandler: ExitStateHandler? = null,
-) : Executable<Exec> {
+) : Executable<Exec>, List<String> by listOf(command, *arguments.toTypedArray()) {
 
     public constructor(command: String, vararg arguments: String) : this(command, arguments.toList())
 
@@ -47,52 +49,45 @@ public open class CommandLine(
      * The array consisting of the command and its arguments that make up this command,
      * e.g. `[echo, Hello World!]`.
      */
-    public val commandLineParts: Array<String> by lazy { arrayOf(command, *arguments.toTypedArray()) }
+    public val commandLineParts: Array<String> = arrayOf(command, *arguments.toTypedArray())
 
     /**
-     * The command line as it can be used on the shell,
-     * e.g. `echo "Hello World!"`.
+     * The command line as it can be used in a shell,
+     * e.g. `'echo' 'Hello World!'`.
      */
-    public val shellCommand: String by lazy { asShellCommand(commandLineParts) }
+    public val shellCommand: String = asShellCommand(commandLineParts)
 
     /**
-     * The command line as it can be used on the shell, but in contrast to [shellCommand],
-     * this version eventually spans multiple lines using escaped line separators to be
-     * easier readable, e.g.
+     * The command line as it can be used in a shell,
+     * but in contrast to [shellCommand] applies line breaks for better readability,
+     * e.g.
      * ```shell
-     * command \
-     * --argument \
-     * "argument" \
-     * -org
+     * 'echo' \
+     * 'Hello World!'
      * ```
      */
-    public val multiLineShellCommand: String by lazy {
-        commandLineParts.joinToString(separator = " \\$LF") {
-            quoteAndEscape(it.trim(), '\"')
-        }
-    }
+    public val multiLineShellCommand: String = asShellCommand(commandLineParts, " \\$LF")
 
     /**
      * A human-readable representation of this command line.
      */
-    public override val summary: String
-        get() = multiLineShellCommand.run {
-            if (length <= 60) {
-                lines()
-                    .joinToString("; ") {
-                        it.replace(LF, LF.mapCodePoints { "\\x${it.hexCode}" }.joinToString(""))
-                    }
-                    .replace("\\; ", "").truncate(60, strategy = MIDDLE, marker = " … ")
-            } else {
-                ShellScript {
-                    shebang
-                    !this@CommandLine.shellCommand
-                }.toLink().toString()
-            }
+    public override val summary: String = multiLineShellCommand.run {
+        if (length <= 60) {
+            commandLineParts.joinToString(" ").truncate(60, strategy = MIDDLE, marker = " … ")
+                .withoutTrailingLineSeparator
+        } else {
+            ShellScript {
+                shebang
+                !this@CommandLine.shellCommand
+            }.toLink().toString()
         }
+    }
 
-
-    override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?): CommandLine = this
+    override fun toCommandLine(
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+        transform: (String) -> String,
+    ): CommandLine = CommandLine(transform(command), arguments.map(transform))
 
     public override fun toExec(
         redirectErrorStream: Boolean,
@@ -101,10 +96,7 @@ public open class CommandLine(
         execTerminationCallback: ExecTerminationCallback?,
     ): Exec {
 
-        val shell = org.codehaus.plexus.util.cli.Commandline().shell
-        val shellCommandLine = shell.getShellCommandLine(commandLineParts)
-
-        val process = ProcessBuilder(shellCommandLine).let { pb ->
+        val process = ProcessBuilder(*commandLineParts).let { pb ->
             pb.redirectErrorStream = redirectErrorStream
             pb.environment.putAll(environment)
             pb.workingDirectory = workingDirectory
@@ -169,28 +161,27 @@ public open class CommandLine(
          * Parses a [commandLine] string and returns an instance of [CommandLine]
          * that would generate the same string again.
          */
-        public fun parse(commandLine: String): CommandLine {
-            val plexusCommandLine = PlexusCommandLine(commandLine.replace("\\$LF", ""))
+        public fun parse(commandLine: CharSequence): CommandLine =
+            parseOrNull(commandLine) ?: throw IllegalArgumentException("$commandLine is no valid command line.")
+
+        /**
+         * Parses a [commandLine] string and returns an instance of [CommandLine]
+         * that would generate the same string again.
+         */
+        public fun parseOrNull(commandLine: CharSequence): CommandLine? {
+            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").withoutTrailingLineSeparator)
             val rawCommandline = plexusCommandLine.rawCommandline
             return rawCommandline.takeIf { it.isNotEmpty() }
                 ?.let { CommandLine(it.first(), it.drop(1)) }
-                ?: throw IllegalArgumentException("$commandLine is no valid command line.")
         }
 
         /**
          * Formats the given [commandLineParts] so they can be run in a shell.
          */
-        public fun asShellCommand(commandLineParts: Array<String>): String =
+        public fun asShellCommand(commandLineParts: Array<String>, joiner: String = " "): String =
             if (commandLineParts.isEmpty()) ""
-            else {
-                val quoteChar = '\"'
-                val escapedChars = charArrayOf('\"')
-                val quotingTriggers = charArrayOf(' ', '\t')
-                val escapeChar = '\\'
-                val force = false
-                commandLineParts.joinToString(" ") { part ->
-                    quoteAndEscape(part, quoteChar, escapedChars, quotingTriggers, escapeChar, force)
-                }
+            else FormattingShell(joiner).run {
+                getRawCommandLine(originalExecutable, commandLineParts).last()
             }
     }
 }

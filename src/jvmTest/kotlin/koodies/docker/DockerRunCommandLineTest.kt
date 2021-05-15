@@ -27,9 +27,7 @@ import koodies.io.path.tempDir
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectLogged
 import koodies.runtime.onExit
-import koodies.shell.HereDocBuilder
 import koodies.shell.ShellScript
-import koodies.shell.toHereDoc
 import koodies.test.BuilderFixture
 import koodies.test.HtmlFile
 import koodies.test.Slow
@@ -39,6 +37,7 @@ import koodies.test.copyToDirectory
 import koodies.test.output.TestLogger
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -79,7 +78,7 @@ class DockerRunCommandLineTest {
 
     @TestFactory
     fun `should set have auto cleanup and interactive options on by default`() =
-        test(DockerRunCommandLine { image by dockerImage }.toCommandLine(emptyMap(), null).arguments) {
+        test(DockerRunCommandLine { image by dockerImage }.toCommandLine().arguments) {
             asserting { contains("--rm") }
             asserting { contains("--interactive") }
         }
@@ -87,67 +86,63 @@ class DockerRunCommandLineTest {
     @Test
     fun `should build valid docker run`() {
         expectThat(result).toStringIsEqualTo("""
-                docker \
-                run \
-                -d \
-                --name \
-                container-name \
-                -p \
-                8080:6060 \
-                -p \
-                1234-1236:1234-1236/tcp \
-                --privileged \
-                --workdir \
-                /c \
-                --rm \
-                --interactive \
-                --tty \
-                --mount \
-                type=bind,source=/a/b,target=/c/d \
-                --mount \
-                type=bind,source=/e/f/../g,target=/h \
-                custom1 \
-                custom2 \
-                repo/name:tag \
-                work \
-                /etc/dnf/dnf.conf:s/check=1/check=0/ \
-                -arg1 \
-                --argument \
-                2 \
-                "<<HEREDOC
-                heredoc 1
-                -heredoc-line-2
-                HEREDOC" \
-                /a/b/c \
-                /c/d/e \
-                /e/f/../g/h \
-                /e/g/h \
-                /h/i \
-                arg=/a/b/c \
-                arg=/c/d/e \
-                arg=/e/f/../g/h \
-                arg=/e/g/h \
-                arg=/h/i \
-                a/b/c \
-                c/d/e \
-                e/f/../g/h \
-                e/g/h \
-                h/i \
-                arg=a/b/c \
-                arg=c/d/e \
-                arg=e/f/../g/h \
-                arg=e/g/h \
-                arg=h/i \
-                b/c \
-                d/e \
-                f/../g/h \
-                g/h \
-                i \
-                arg=b/c \
-                arg=d/e \
-                arg=f/../g/h \
-                arg=g/h \
-                arg=i
+                'docker' \
+                'run' \
+                '-d' \
+                '--name' \
+                'container-name' \
+                '-p' \
+                '8080:6060' \
+                '-p' \
+                '1234-1236:1234-1236/tcp' \
+                '--privileged' \
+                '--workdir' \
+                '/c' \
+                '--rm' \
+                '--interactive' \
+                '--tty' \
+                '--mount' \
+                'type=bind,source=/a/b,target=/c/d' \
+                '--mount' \
+                'type=bind,source=/e/f/../g,target=/h' \
+                'custom1' \
+                'custom2' \
+                'repo/name:tag' \
+                'work' \
+                '/etc/dnf/dnf.conf:s/check=1/check=0/' \
+                '-arg1' \
+                '--argument' \
+                '2' \
+                '/a/b/c' \
+                '/c/d/e' \
+                '/e/f/../g/h' \
+                '/e/g/h' \
+                '/h/i' \
+                'arg=/a/b/c' \
+                'arg=/c/d/e' \
+                'arg=/e/f/../g/h' \
+                'arg=/e/g/h' \
+                'arg=/h/i' \
+                'a/b/c' \
+                'c/d/e' \
+                'e/f/../g/h' \
+                'e/g/h' \
+                'h/i' \
+                'arg=a/b/c' \
+                'arg=c/d/e' \
+                'arg=e/f/../g/h' \
+                'arg=e/g/h' \
+                'arg=h/i' \
+                'b/c' \
+                'd/e' \
+                'f/../g/h' \
+                'g/h' \
+                'i' \
+                'arg=b/c' \
+                'arg=d/e' \
+                'arg=f/../g/h' \
+                'arg=g/h' \
+                'arg=i'
                 """.trimIndent())
     }
 
@@ -243,7 +238,10 @@ class DockerRunCommandLineTest {
             @DockerRequiring @TestFactory
             fun `should apply working directory`(logger: InMemoryLogger) = testEach(
                 commandLine,
-                ShellScript { !commandLine },
+                ShellScript {
+                    shebang
+                    !commandLine
+                },
             ) { executable ->
                 expecting {
                     executable.dockerized(Ubuntu) {
@@ -252,11 +250,7 @@ class DockerRunCommandLineTest {
                         }
                     }.exec.logging(logger, workDir)
                 } that {
-                    commandLine.toStringMatchesCurlyPattern("""
-                        {{}}
-                        cat \
-                        /host/work/files/sample.html{}
-                    """.trimIndent())
+                    commandLine.toStringContains("'/host/work/files/sample.html'")
                     io.output.ansiRemoved.isEqualTo(HtmlFile.text)
                 }
             }
@@ -270,14 +264,14 @@ class DockerRunCommandLineTest {
                 val dockerCommandLine = dockerRunCommandLine("/a").toCommandLine("/some/where")
 
                 expectThat(dockerCommandLine.shellCommand)
-                    .isEqualTo("$d --workdir /a $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+                    .isEqualTo("$d '--workdir' '/a' $ri $m=/a/b,target=/c/d' $m=/e/f/../g,target=/h' $args '/c/d/1'")
             }
 
             @Test
             fun `should take as is - even if re-mappable`() {
                 val dockerCommandLine = dockerRunCommandLine("/a/b/1").toCommandLine("/some/where")
                 expectThat(dockerCommandLine.shellCommand)
-                    .isEqualTo("$d --workdir /a/b/1 $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+                    .isEqualTo("$d '--workdir' '/a/b/1' $ri $m=/a/b,target=/c/d' $m=/e/f/../g,target=/h' $args '/c/d/1'")
             }
         }
 
@@ -288,21 +282,21 @@ class DockerRunCommandLineTest {
             fun `should use guest working dir if re-mappable`() {
                 val dockerCommandLine = dockerRunCommandLine().toCommandLine("/a/b/1")
                 expectThat(dockerCommandLine.shellCommand)
-                    .isEqualTo("$d $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+                    .isEqualTo("$d $ri $m=/a/b,target=/c/d' $m=/e/f/../g,target=/h' $args '/c/d/1'")
             }
 
             @Test
             fun `should ignore guest working dir if not re-mappable`() {
                 val dockerCommandLine = dockerRunCommandLine().toCommandLine("/some/where")
                 expectThat(dockerCommandLine.shellCommand)
-                    .isEqualTo("$d $ri $m=/a/b,target=/c/d $m=/e/f/../g,target=/h $args /c/d/1")
+                    .isEqualTo("$d $ri $m=/a/b,target=/c/d' $m=/e/f/../g,target=/h' $args '/c/d/1'")
             }
         }
 
-        private val d = "docker run --name container-name"
-        private val ri = "--rm --interactive"
-        private val m = "--mount type=bind,source"
-        private val args = "repo/name:tag command -arg1 --argument"
+        private val d = "'docker' 'run' '--name' 'container-name'"
+        private val ri = "'--rm' '--interactive'"
+        private val m = "'--mount' 'type=bind,source"
+        private val args = "'repo/name:tag' 'command' '-arg1' '--argument'"
 
         private fun dockerRunCommandLine(workingDirectoryOption: String? = null) = DockerRunCommandLine(
             DockerImage { "repo" / "name" tag "tag" },
@@ -459,10 +453,6 @@ class DockerRunCommandLineTest {
                     +"/etc/dnf/dnf.conf:s/check=1/check=0/"
                     +"-arg1"
                     +"--argument" + "2"
-                    +HereDocBuilder.hereDoc(label = "HEREDOC") {
-                        +"heredoc 1"
-                        +"-heredoc-line-2"
-                    }
                     +"/a/b/c" + "/c/d/e" + "/e/f/../g/h" + "/e/g/h" + "/h/i"
                     +"arg=/a/b/c" + "arg=/c/d/e" + "arg=/e/f/../g/h" + "arg=/e/g/h" + "arg=/h/i"
                     +"a/b/c" + "c/d/e" + "e/f/../g/h" + "e/g/h" + "h/i"
@@ -492,7 +482,7 @@ class DockerRunCommandLineTest {
             CommandLine(
                 "work",
                 "/etc/dnf/dnf.conf:s/check=1/check=0/",
-                "-arg1", "--argument", "2", listOf("heredoc 1", "-heredoc-line-2").toHereDoc("HEREDOC").toString(),
+                "-arg1", "--argument", "2",
                 "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
                 "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
                 "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",

@@ -183,10 +183,12 @@ public interface Executable<out E : Exec> {
      *
      * @param environment the environment to be exposed to the [Exec] during execution
      * @param workingDirectory the working directory to be used during execution
+     * @param transform applied to each argument before used to form the [CommandLine]
      */
     public fun toCommandLine(
-        environment: Map<String, String>,
-        workingDirectory: Path?,
+        environment: Map<String, String> = emptyMap(),
+        workingDirectory: Path? = null,
+        transform: (String) -> String = { it },
     ): CommandLine
 
     /**

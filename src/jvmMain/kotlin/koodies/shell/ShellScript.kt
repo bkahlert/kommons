@@ -9,6 +9,7 @@ import koodies.io.path.pathString
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
 import koodies.shell.ShellScript.ScriptContext
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
@@ -75,6 +76,18 @@ public class ShellScript(
         return if (echoNameCommandAdded) script else echoNameCommand + script
     }
 
+    override fun toCommandLine(
+        environment: Map<String, String>,
+        workingDirectory: Path?,
+        transform: (String) -> String,
+    ): CommandLine {
+        val script: String = build()
+        val transformedScript: String = transform(script)
+        return with(Commandline().shell) {
+            CommandLine(shellCommand, *shellArgsList.toTypedArray(), transformedScript)
+        }
+    }
+
     override fun toExec(
         redirectErrorStream: Boolean,
         environment: Map<String, String>,
@@ -84,8 +97,12 @@ public class ShellScript(
         .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 
     public override val summary: String
-        get() = (name?.let { "${it.quoted}: " } ?: "").let {
-            "Script($it${build().lines(ignoreTrailingSeparator = true).joinToString(";").truncate(150, MIDDLE, " … ")}})"
+        get() = (name?.let { "${it.ansi.italic.quoted}: " } ?: "").let {
+            "#!($it${
+                build().replace("\\$LF", "").withoutTrailingLineSeparator.lines().joinToString(";") {
+                    CommandLine.parseOrNull(it)?.commandLineParts?.joinToString(" ") ?: it
+                }.truncate(150, MIDDLE, " … ")
+            })"
         }
 
     public fun buildTo(path: Path): Path = path.apply {
@@ -94,13 +111,7 @@ public class ShellScript(
         executable = true
     }
 
-    override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?): CommandLine {
-        val script: String = build()
-        val shell = Commandline().shell
-        return CommandLine(shell.shellCommand, *shell.shellArgsList.toTypedArray(), script)
-    }
-
-    override fun toString(): String = summary
+    override fun toString(): String = build()
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -162,13 +173,6 @@ public class ShellScript(
         }
 
         /**
-         * Adds all elements of `this` collection to this script.
-         */
-        public operator fun Iterable<CharSequence>.not(): String = lines {
-            lines.addAll(this@not.map { it.toString() })
-        }
-
-        /**
          * Adds the given [words] concatenated with a whitespace to this script.
          */
         public fun line(vararg words: String): String = lines {
@@ -199,14 +203,14 @@ public class ShellScript(
          * Adds the given [CommandLine] to this script.
          */
         public fun command(command: CommandLine): String = lines {
-            this.lines.addAll(command.lines)
+            this.lines.add(command.shellCommand)
         }
 
         /**
          * Adds the [CommandLine] used by `this` [Executable] to this script.
          */
         public operator fun Executable<*>.not(): String =
-            command(toCommandLine(emptyMap(), null))
+            command(toCommandLine())
 
         /**
          * Initializes a [FileOperations] builder for the file specified by [path] and

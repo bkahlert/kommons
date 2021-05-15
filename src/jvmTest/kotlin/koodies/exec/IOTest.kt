@@ -41,12 +41,12 @@ class IOTest {
 
             @Test
             fun `should have original text`() {
-                expectThat(meta.text).toStringIsEqualTo("Executing ${commandLine.shellCommand}")
+                expectThat(meta.text).toStringIsEqualTo("Executing command arg")
             }
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().toStringIsEqualTo("Executing ${commandLine.shellCommand}")
+                expectThat(meta).containsEscapeSequences().toStringIsEqualTo("Executing command arg")
             }
         }
 

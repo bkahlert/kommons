@@ -19,6 +19,7 @@ import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.testEach
+import koodies.test.toStringContainsAll
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
@@ -26,7 +27,6 @@ import koodies.text.ansiRemoved
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.styling.wrapWithBorder
-import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
@@ -127,12 +127,11 @@ class JavaExecTest {
         @Test
         fun `should provide command line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec = createCompletingExec()
-            expectThat(exec).commandLine.toStringMatchesCurlyPattern("""
-                {{}}
-                >&1 echo \"test out\"
-                >&2 echo \"test err\"
-                exit 0"
-            """.trimIndent())
+            expectThat(exec).commandLine.toStringContainsAll(
+                ">&1 echo \"test out\"",
+                ">&2 echo \"test err\"",
+                "exit 0"
+            )
         }
 
         @Test

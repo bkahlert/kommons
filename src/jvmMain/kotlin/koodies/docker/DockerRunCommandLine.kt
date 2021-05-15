@@ -25,6 +25,7 @@ import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.asPath
 import koodies.io.path.pathString
 import koodies.shell.ShellScript.Companion.isScript
+import koodies.text.Semantics.formattedAs
 import koodies.text.splitAndMap
 import koodies.text.takeUnlessBlank
 import koodies.text.withRandomSuffix
@@ -54,18 +55,18 @@ public class DockerRunCommandLine(
      */
     options: Options = Options(),
 
-    public val runCommandLine: CommandLine? = null,
+    private val executable: Executable<Exec>,
 ) : Executable<DockerExec> {
 
-    private val fallbackName = (runCommandLine ?: CommandLine("")).summary.toBaseName().withRandomSuffix()
+    private val fallbackName = executable.summary.toBaseName().withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName)
 
-    private val rawCommandLine by lazy { toCommandLine(emptyMap(), null) }
-    override val summary: String by lazy { rawCommandLine.summary }
+    override val summary: String = "docker run ${image.formattedAs.input} ${executable.summary}"
 
     override fun toCommandLine(
         environment: Map<String, String>,
         workingDirectory: Path?,
+        transform: (String) -> String,
     ): CommandLine =
         CommandLine("docker", buildList {
             add("run")
@@ -80,12 +81,14 @@ public class DockerRunCommandLine(
 
             add(image.toString())
 
-            if (runCommandLine != null) {
-                runCommandLine.command.takeUnlessBlank()?.also { if (options.entryPoint == null) add(it) }
-                val wdFixedArguments = workingDirectory?.let { wdFixedOptions.remapPathsInArguments(it, runCommandLine.arguments) } ?: runCommandLine.arguments
-                addAll(wdFixedArguments)
+            val runCommandLine = if (workingDirectory != null) {
+                executable.toCommandLine(environment, workingDirectory) { arg -> wdFixedOptions.remapPathsInArguments(workingDirectory, arg) }
+            } else {
+                executable.toCommandLine(environment, workingDirectory)
             }
-        })
+            runCommandLine.command.takeUnlessBlank()?.also { if (options.entryPoint == null) add(it) }
+            addAll(runCommandLine.arguments)
+        }.map(transform))
 
     override fun toExec(
         redirectErrorStream: Boolean,
@@ -106,7 +109,7 @@ public class DockerRunCommandLine(
         return DockerExec(container, commandLine.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback))
     }
 
-    override fun toString(): String = rawCommandLine.toString()
+    override fun toString(): String = toCommandLine().toString()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -114,12 +117,12 @@ public class DockerRunCommandLine(
 
         other as DockerRunCommandLine
 
-        if (rawCommandLine != other.rawCommandLine) return false
+        if (executable != other.executable) return false
 
         return true
     }
 
-    override fun hashCode(): Int = rawCommandLine.hashCode()
+    override fun hashCode(): Int = executable.hashCode()
 
     /**
      * The options used to run the [DockerRunCommandLine].
@@ -273,22 +276,25 @@ public class DockerRunCommandLine(
          *
          * Arguments of the form `a=b` get mapped with key and value treated separately.
          */
-        public fun remapPathsInArguments(hostWorkingDirectory: Path, arguments: List<String>): List<String> = arguments.map { arg ->
-            if (arg.count { it == '=' } > 1) return@map arg
-            arg.splitAndMap("=") {
+        public fun remapPathsInArguments(hostWorkingDirectory: Path, arg: String): String =
+            if (arg.count { it == '=' } > 1) arg
+            else arg.splitAndMap("=") {
                 if (isScript) {
                     val pathString = hostWorkingDirectory.pathString
-                    val prefix = Regex.escape(pathString).toRegex()
-                    prefix.replace(this) {
+                    val baseDirRegex = Regex.escape(pathString).toRegex()
+                    baseDirRegex.replace(this) {
                         remapArgumentAsPath(hostWorkingDirectory, it.value.asPath()) ?: this
                     }
                 } else {
-                    val argAsPath = asHostPath() // e.g. /a/b resp. b
-                    if (!argAsPath.isAbsolute) return@splitAndMap this // skip -arg
-                    remapArgumentAsPath(hostWorkingDirectory, argAsPath) ?: this
+                    fun String.remap(): String {
+                        val argAsPath = asHostPath() // e.g. /a/b resp. b
+                        if (!argAsPath.isAbsolute) return this // skip -arg
+                        return remapArgumentAsPath(hostWorkingDirectory, argAsPath) ?: this
+                    }
+
+                    splitAndMap(" ") { remap() }
                 }
             }
-        }
 
         private fun remapArgumentAsPath(hostWorkingDirectory: Path, argAsPath: HostPath): String? {
             val argAsAbsPath = hostWorkingDirectory.resolveBetweenFileSystems(argAsPath) // e.g. /a/b resp. /a/b (if pwd=/a)
@@ -519,7 +525,7 @@ public class DockerRunCommandLine(
  * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.summary]).
  */
 public fun Executable<Exec>.dockerized(options: Options = Options(), image: DockerImageInit): DockerRunCommandLine =
-    DockerRunCommandLine(DockerImage(image), options, toCommandLine(emptyMap(), null))
+    DockerRunCommandLine(DockerImage(image), options, this)
 
 /**
  * Returns a [DockerRunCommandLine] that runs `this` [Executable]
@@ -527,7 +533,7 @@ public fun Executable<Exec>.dockerized(options: Options = Options(), image: Dock
  * and the [Options] built by [options].
  */
 public fun Executable<Exec>.dockerized(image: DockerImageInit, options: Init<OptionsContext>): DockerRunCommandLine =
-    DockerRunCommandLine(DockerImage(image), Options(options), toCommandLine(emptyMap(), null))
+    DockerRunCommandLine(DockerImage(image), Options(options), this)
 
 /**
  * Returns a [DockerRunCommandLine] that runs `this` [Executable]
@@ -535,7 +541,7 @@ public fun Executable<Exec>.dockerized(image: DockerImageInit, options: Init<Opt
  * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.summary]).
  */
 public fun Executable<Exec>.dockerized(image: DockerImage, options: Options = Options()): DockerRunCommandLine =
-    DockerRunCommandLine(image, options, toCommandLine(emptyMap(), null))
+    DockerRunCommandLine(image, options, this)
 
 /**
  * Returns a [DockerRunCommandLine] that runs `this` [Executable]
@@ -543,4 +549,4 @@ public fun Executable<Exec>.dockerized(image: DockerImage, options: Options = Op
  * and the [Options] built by [options].
  */
 public fun Executable<Exec>.dockerized(image: DockerImage, options: Init<OptionsContext>): DockerRunCommandLine =
-    DockerRunCommandLine(image, Options(options), toCommandLine(emptyMap(), null))
+    DockerRunCommandLine(image, Options(options), this)

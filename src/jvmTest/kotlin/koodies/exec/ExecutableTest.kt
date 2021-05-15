@@ -7,8 +7,6 @@ import koodies.test.UniqueId
 import koodies.test.tests
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicNode
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -59,15 +57,5 @@ class ExecutableTest {
     @TestFactory
     fun `should return failed state on unexpected exit value`(uniqueId: UniqueId) = testProcesses(uniqueId, "exit 42") { process ->
         expectCatching { process.waitFor() }.isSuccess().isA<Failed>()
-    }
-
-    @Nested
-    inner class ShellScriptBased {
-
-        @Test
-        fun `should add missing shebang`() {
-            val exec = ShellScript().toExec(false, emptyMap(), null, null)
-            expectThat(exec).isA<JavaExec>().get { commandLine.shellCommand }.contains("#!/bin/sh")
-        }
     }
 }

@@ -63,7 +63,7 @@ class ExecutionIntegrationTest {
 
             io.ansiRemoved {
                 matchesCurlyPattern("""
-                    Executing echo "Hello, World!"
+                    Executing echo Hello, World!
                     Hello, World!
                     Process {} terminated successfully at {}
                 """.trimIndent())
@@ -88,7 +88,7 @@ class ExecutionIntegrationTest {
 
             counter { isEqualTo(2) }
 
-            BACKGROUND { logged.contains("Script(echo 'Hello, World!';echo 'Hello, Back!'}) ✔︎") }
+            BACKGROUND { logged.contains("#!(echo Hello, World!;echo Hello, Back!) ✔︎") }
         }
     }
 

@@ -9,13 +9,11 @@ import koodies.io.path.pathString
 import koodies.io.path.randomFile
 import koodies.io.path.writeBytes
 import koodies.logging.InMemoryLogger
-import koodies.shell.HereDocBuilder.hereDoc
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.tests
-import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
@@ -245,35 +243,14 @@ class ShellScriptTest {
                         arguments {
                             +"-arg1"
                             +"--argument" + "2"
-                            +hereDoc(label = "HEREDOC") {
-                                +"heredoc 1"
-                                +"-heredoc-line-2"
-                            }
                         }
                     }
                 }
             }.build()).isEqualTo("""
-            #!/bin/sh
-            docker \
-            run \
-            --name \
-            container-name \
-            --rm \
-            --interactive \
-            --mount \
-            type=bind,source=/a/b,target=/c/d \
-            --mount \
-            type=bind,source=/e/f/../g,target=/h \
-            image/name \
-            -arg1 \
-            --argument \
-            2 \
-            "<<HEREDOC
-            heredoc 1
-            -heredoc-line-2
-            HEREDOC"
-
-        """.trimIndent())
+                #!/bin/sh
+                'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
+                
+            """.trimIndent())
         }
 
         @Test
@@ -286,12 +263,7 @@ class ShellScriptTest {
                 }
             }.build()).isEqualTo("""
             #!/bin/sh
-            docker \
-            stop \
-            --time \
-            42 \
-            busybox \
-            guestfish
+            'docker' 'stop' '--time' '42' 'busybox' 'guestfish'
 
         """.trimIndent())
         }
@@ -304,15 +276,10 @@ class ShellScriptTest {
             "$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m " +
             "$e[96mTEST$e[39m"
 
-        @Test
-        fun `should have an optional name`() {
-            val sh = ShellScript("test") { !"exit 0" }
-            expectThat(sh).toStringContains("Script(\"test\": ")
-        }
 
         @Test
         fun `should echo name`() {
-            val sh = ShellScript("test") { !"exit 0" }
+            val sh = ShellScript("test") { "exit 0" }
 
             expectThat(sh.build()).isEqualTo("""
             echo "$testBanner"
@@ -323,7 +290,7 @@ class ShellScriptTest {
 
         @Test
         fun `should accept name during build`() {
-            val sh = ShellScript { !"exit 0" }
+            val sh = ShellScript { "exit 0" }
             expectThat(sh.build("test")).isEqualTo("""
             echo "$testBanner"
             exit 0
@@ -336,7 +303,7 @@ class ShellScriptTest {
     fun `should build comments`() {
         val sh = ShellScript {
             comment("test")
-            !"exit 0"
+            "exit 0"
         }
         expectThat(sh).containsExactly("# test", "exit 0")
     }
@@ -349,7 +316,7 @@ class ShellScriptTest {
                 line 1
                 line 2
             """.trimIndent())
-            !"exit 0"
+            "exit 0"
 
         }).containsExactly("# line 1", "# line 2", "exit 0")
     }

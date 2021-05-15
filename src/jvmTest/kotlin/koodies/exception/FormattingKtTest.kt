@@ -1,6 +1,6 @@
 package koodies.exception
 
-import koodies.exec.CommandLine
+import koodies.shell.ShellScript
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
@@ -92,7 +92,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(CommandLine("exit", "42").toExec(false, emptyMap(), this, null)).toCompactString()) {
+                expectThat(Result.success(ShellScript { "exit 42" }.toExec(false, emptyMap(), this, null)).toCompactString()) {
                     ansiRemoved.matches("Process.*\\d+.*\\.".toRegex())
                     isSingleLine()
                 }

@@ -1,20 +1,23 @@
 package koodies.exec
 
 import koodies.io.path.Locations
+import koodies.shell.ShellScript
 import koodies.test.string
+import koodies.test.testEach
+import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
 import koodies.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import kotlin.time.Duration
-import kotlin.time.milliseconds
 
 class CommandLineTest {
 
@@ -22,7 +25,7 @@ class CommandLineTest {
     fun `should run`() {
         val command = CommandLine("echo", "test")
         expectThat(command) {
-            string.continuationsRemoved.isEqualTo("echo test")
+            string.continuationsRemoved.isEqualTo("'echo' 'test'")
             evaluatesTo("test")
         }
     }
@@ -31,7 +34,7 @@ class CommandLineTest {
     fun `should run with more arguments`() {
         val command = CommandLine("echo", "one", "two", "three")
         expectThat(command) {
-            string.continuationsRemoved.isEqualTo("echo one two three")
+            string.continuationsRemoved.isEqualTo("'echo' 'one' 'two' 'three'")
             evaluatesTo("one two three")
         }
     }
@@ -39,31 +42,75 @@ class CommandLineTest {
     @Nested
     inner class CompanionObject {
 
-        @Test
-        fun `should parse single line`() {
-            expectThat(CommandLine.parse("""
-                echo Hello
-            """.trimIndent()).commandLineParts.toList())
-                .containsExactly("echo", "Hello")
+        @TestFactory
+        fun `should parse single line`() = testEach(
+            "echo Hello",
+            "'echo' 'Hello'",
+        ) {
+            expecting { CommandLine.parse(it).commandLineParts.toList() } that {
+                containsExactly("echo", "Hello")
+            }
         }
 
-        @Test
-        fun `should parse multi line`() {
-            expectThat(CommandLine.parse("""
+        @TestFactory
+        fun `should parse multi line`() = testEach(
+            """
                 echo \
                 Hello
-            """.trimIndent()).commandLineParts.toList())
-                .containsExactly("echo", "Hello")
+            """.trimIndent(),
+            """
+                'echo' \
+                'Hello'
+            """.trimIndent(),
+        ) {
+            expecting { CommandLine.parse(it).commandLineParts.toList() } that {
+                containsExactly("echo", "Hello")
+            }
         }
 
-        @Test
-        fun `should parse empty line`() {
-            expectThat(CommandLine.parse("""
+        @TestFactory
+        fun `should ignore trailing new line`() = testEach(
+            """
+                echo Hello
+                
+            """.trimIndent(),
+            """
+                'echo' 'Hello'
+                
+            """.trimIndent(),
+            """
+                echo \
+                Hello
+                
+            """.trimIndent(),
+            """
+                'echo' \
+                'Hello'
+                
+            """.trimIndent(),
+        )
+        {
+            expecting { CommandLine.parse(it).commandLineParts.toList() } that {
+                containsExactly("echo", "Hello")
+            }
+        }
+
+        @TestFactory
+        fun `should parse empty line`() = testEach(
+            """
                 echo \
                 \
                 Hello
-            """.trimIndent()).commandLineParts.toList())
-                .containsExactly("echo", "Hello")
+            """.trimIndent(),
+            """
+                'echo' \
+                \
+                'Hello'
+            """.trimIndent(),
+        ) {
+            expecting { CommandLine.parse(it).commandLineParts.toList() } that {
+                containsExactly("echo", "Hello")
+            }
         }
     }
 
@@ -73,19 +120,19 @@ class CommandLineTest {
         @Test
         fun `should return command line`() {
             expectThat(CommandLine("command", "arg1", "arg2").shellCommand)
-                .isEqualTo("command arg1 arg2")
+                .isEqualTo("'command' 'arg1' 'arg2'")
         }
 
         @Test
         fun `should quote parts with spaces`() {
             expectThat(CommandLine("com mand", "arg 1").shellCommand)
-                .isEqualTo("\"com mand\" \"arg 1\"")
+                .isEqualTo("'com mand' 'arg 1'")
         }
 
         @Test
         fun `should quote parts with tabs`() {
             expectThat(CommandLine("com\tmand", "arg\t1").shellCommand)
-                .isEqualTo("\"com\tmand\" \"arg\t1\"")
+                .isEqualTo("'com\tmand' 'arg\t1'")
         }
     }
 
@@ -96,7 +143,7 @@ class CommandLineTest {
         fun `should not expand unquoted parameters`() {
             val command = CommandLine("echo", "\$HOME")
             expectThat(command) {
-                string.continuationsRemoved.isEqualTo("echo \$HOME")
+                string.continuationsRemoved.isEqualTo("'echo' '\$HOME'")
                 evaluated {
                     not { output.isEqualTo(System.getProperty("user.home")) }
                     exitCodeOrNull.isEqualTo(0)
@@ -108,7 +155,7 @@ class CommandLineTest {
         fun `should not expand quoted parameters`() {
             val command = CommandLine("echo", "\\\$HOME")
             expectThat(command) {
-                string.continuationsRemoved.isEqualTo("echo \\\$HOME")
+                string.continuationsRemoved.isEqualTo("'echo' '\\\$HOME'")
                 evaluated {
                     not { output.isEqualTo(System.getProperty("user.home")) }
                     exitCodeOrNull.isEqualTo(0)
@@ -122,22 +169,22 @@ class CommandLineTest {
         @Test
         fun `should output formatted`() {
             expectThat(CommandLine("command", "-a", "--bee", "c", "x y z".quoted)).toStringIsEqualTo("""
-            command \
-            -a \
-            --bee \
-            c \
-            "x y z"
+            'command' \
+            '-a' \
+            '--bee' \
+            'c' \
+            '"x y z"'
         """.trimIndent())
         }
 
         @Test
         fun `should handle whitespaces correctly command`() {
             expectThat(CommandLine("command", " - a", "    ", "c c", "x y z".quoted)).toStringIsEqualTo("""
-            command \
-            "- a" \
-             \
-            "c c" \
-            "x y z"
+            'command' \
+            ' - a' \
+            '    ' \
+            'c c' \
+            '"x y z"'
         """.trimIndent())
         }
 
@@ -150,39 +197,21 @@ class CommandLineTest {
                 CommandLine("command", "-a", "--bee", "c", "x y z".quoted).toString(),
                 "x y z".quoted)
             ).toStringIsEqualTo("""
-            command \
-            -a \
-            --bee \
-            "command \
-            -a \
-            --bee \
-            c \
-            \"x y z\"" \
-            "x y z"
+            'command' \
+            '-a' \
+            '--bee' \
+            ''"'"'command'"'"' \
+            '"'"'-a'"'"' \
+            '"'"'--bee'"'"' \
+            '"'"'c'"'"' \
+            '"'"'"x y z"'"'"'' \
+            '"x y z"'
         """.trimIndent())
         }
     }
 
     @Nested
     inner class Quoting {
-
-        @Test
-        fun `should not quote unnecessarily`() {
-            val command = CommandLine("echo", "Hello")
-            expectThat(command) {
-                string.continuationsRemoved.isEqualTo("echo Hello")
-                evaluatesTo("Hello")
-            }
-        }
-
-        @Test
-        fun `should quote on whitespaces`() {
-            val command = CommandLine("echo", "Hello World!")
-            expectThat(command) {
-                string.continuationsRemoved.isEqualTo("echo \"Hello World!\"")
-                evaluatesTo("Hello World!")
-            }
-        }
 
         @Test
         fun `should not substitute parameters`() {
@@ -196,75 +225,76 @@ class CommandLineTest {
         fun `should not escape parameters`() {
             val command = CommandLine("echo", "\$HOME")
             expectThat(command) {
-                string.continuationsRemoved.isEqualTo("echo \$HOME")
+                string.continuationsRemoved.isEqualTo("'echo' '\$HOME'")
             }
         }
     }
 
-    @Nested
-    inner class Nesting {
-
-        private fun Assertion.Builder<Exec>.outputParsedAsCommandLine() =
-            get { CommandLine.parse(io.output.ansiRemoved) }
-
-        @Test
-        fun `should produce runnable output`() {
-            val nestedCommand = CommandLine("echo", "Hello").toString()
-            val command = CommandLine("echo", nestedCommand)
-            expectThat(command) {
-                toStringIsEqualTo("""
-                    echo \
-                    "echo \
-                    Hello"
-                """.trimIndent())
-                evaluated {
-                    output.isEqualTo("""
-                        echo \
-                        Hello
-                    """.trimIndent())
-                    outputParsedAsCommandLine().evaluatesTo("Hello")
-                }
-            }
+    @TestFactory
+    fun `should quote quotes correctly`() = tests {
+        val script = ShellScript {
+            shebang("/bin/bash")
+            """
+                    echo "double quotes"
+                    echo 'single quotes'
+        
+                """.trimIndent()
         }
 
-        @Test
-        fun `should produce runnable quoted output`() {
-            val nestedCommand = CommandLine("echo", "Hello World!").toString()
-            val command = CommandLine("echo", nestedCommand)
-            expectThat(command) {
-                toStringIsEqualTo("""
-                    echo \
-                    "echo \
-                    \"Hello World!\""
-                """.trimIndent())
-                evaluated {
-                    output.isEqualTo("""
-                        echo \
-                        "Hello World!"
+        val commandLine = CommandLine("echo", script.build())
+
+        expecting { commandLine.commandLineParts.toList() } that {
+            containsExactly("echo", """
+                    #!/bin/bash
+                    echo "double quotes"
+                    echo 'single quotes'
+                    
                     """.trimIndent())
-                    outputParsedAsCommandLine().evaluatesTo("Hello World!")
-                }
-            }
         }
 
-        @Test
-        fun `should produce runnable single quoted output`() {
-            val nestedCommand = CommandLine("echo", "'Hello World!'").toString()
-            val command = CommandLine("echo", nestedCommand)
-            expectThat(command) {
-                toStringIsEqualTo("""
-                    echo \
-                    "echo \
-                    \"'Hello World!'\""
+//        expecting { commandLine.shellCommandParts.toList() } that {
+//            containsExactly("/bin/sh", "-c", """
+//                    'echo' '#!/bin/bash
+//                    echo "double quotes"
+//                    echo '"'"'single quotes'"'"'
+//                    '
+//                """.trimIndent())
+//        }
+//
+        expecting { commandLine.shellCommand } that {
+            isEqualTo("""
+                    'echo' '#!/bin/bash
+                    echo "double quotes"
+                    echo '"'"'single quotes'"'"'
+                    '
                 """.trimIndent())
-                evaluated {
-                    output.isEqualTo("""
-                        echo \
-                        "'Hello World!'"
-                    """.trimIndent())
-                    outputParsedAsCommandLine().evaluatesTo("'Hello World!'")
-                }
-            }
+        }
+
+        expecting { commandLine.multiLineShellCommand } that {
+            isEqualTo("""
+                    'echo' \
+                    '#!/bin/bash
+                    echo "double quotes"
+                    echo '"'"'single quotes'"'"'
+                    '
+                """.trimIndent())
+        }
+
+        val output = commandLine.exec().io.output.ansiRemoved
+        expecting { output } that {
+            isEqualTo("""
+                #!/bin/bash
+                echo "double quotes"
+                echo 'single quotes'
+                
+            """.trimIndent())
+        }
+
+        expecting { ShellScript { output }.exec() } that {
+            io.output.ansiRemoved.isEqualTo("""
+                double quotes
+                single quotes
+                """.trimIndent())
         }
     }
 
