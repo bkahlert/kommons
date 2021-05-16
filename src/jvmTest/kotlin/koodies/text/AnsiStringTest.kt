@@ -300,12 +300,12 @@ class AnsiStringTest {
 
         @Test
         fun `should create string with escape sequences`() {
-            expectThat(ansiString.toString(removeEscapeSequences = false)).isEqualTo(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString())
+            expectThat(ansiString.toString(removeAnsi = false)).isEqualTo(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString())
         }
 
         @Test
         fun `should create string without escape sequences`() {
-            expectThat(ansiString.toString(removeEscapeSequences = true)).isEqualTo("Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.")
+            expectThat(ansiString.toString(removeAnsi = true)).isEqualTo("Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.")
         }
 
         @Test

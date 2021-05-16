@@ -34,9 +34,11 @@ import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.copyTo
 import koodies.test.copyToDirectory
+import koodies.test.expecting
 import koodies.test.output.TestLogger
 import koodies.test.test
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.toStringMatchesCurlyPattern
@@ -52,6 +54,7 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
+import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -317,6 +320,46 @@ class DockerRunCommandLineTest {
 
         private fun DockerRunCommandLine.toCommandLine(hostWorkDir: String) =
             toCommandLine(emptyMap(), hostWorkDir.asPath())
+    }
+
+    @Nested
+    inner class EntryPoint {
+
+        @Nested
+        inner class DockerizingCommandLine {
+
+            @Test
+            fun InMemoryLogger.`should use entrypoint if set`() {
+                val commandLine = CommandLine("printenv", "HOME")
+                expecting { commandLine.dockerized(Ubuntu) { entrypoint { "echo" } }.exec.logging(this) } that {
+                    io.contains(Output typed "HOME")
+                }
+            }
+
+            @Test
+            fun InMemoryLogger.`should use command if not set`() {
+                val commandLine = CommandLine("printenv", "HOME")
+                expecting { commandLine.dockerized(Ubuntu).exec.logging(this) } that {
+                    io.contains(Output typed "/root")
+                }
+            }
+        }
+
+        @Nested
+        inner class DockerizingShellScript {
+
+            @TestFactory
+            fun `should always use ⧸bin⧸sh`(logger: InMemoryLogger) = tests {
+                val script = object : ShellScript(null, "printenv HOME") {
+                    override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?, transform: (String) -> String): CommandLine {
+                        val originalCommandLine = super.toCommandLine(environment, workingDirectory, transform)
+                        return CommandLine("/any/interpreter", originalCommandLine.arguments.last())
+                    }
+                }
+                expecting { script.dockerized(Ubuntu) { entrypoint { "bullshit" } }.exec.logging(logger) } that { io.contains(Output typed "/root") }
+                expecting { script.dockerized(Ubuntu).exec.logging(logger) } that { io.contains(Output typed "/root") }
+            }
+        }
     }
 
     @DockerRequiring @TestFactory

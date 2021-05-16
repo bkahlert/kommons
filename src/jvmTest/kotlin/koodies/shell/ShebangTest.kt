@@ -94,5 +94,5 @@ class ShebangTest {
 }
 
 fun Assertion.Builder<ShellScript>.linesAreEqualTo(vararg lines: String) {
-    get("build %s") { build().lines() }.containsExactly(*lines)
+    get("build %s") { toString().lines() }.containsExactly(*lines)
 }

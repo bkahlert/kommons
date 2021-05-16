@@ -47,6 +47,7 @@ import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.containsExactly
 import strikt.assertions.first
+import strikt.assertions.isContainedIn
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNullOrEmpty
@@ -54,6 +55,11 @@ import strikt.assertions.isTrue
 import koodies.text.Unicode.escape as e
 
 class LineSeparatorsTest {
+
+    @Test
+    fun `should have valid default`() {
+        expectThat(LineSeparators.DEFAULT).isContainedIn(LineSeparators)
+    }
 
     @Nested
     inner class Multiline {

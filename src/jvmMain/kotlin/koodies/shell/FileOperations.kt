@@ -20,8 +20,8 @@ public class FileOperations(private val script: ScriptContext, private val path:
      * Appends [content] to this [path], whereas an eventually existing line separator is replaced by [LineSeparators.LF].
      */
     public fun appendLine(content: String): FileOperations {
-        val separator = HereDocBuilder.randomLabel()
-        script.line("cat <<$separator >>${path.quoted}\n${content.withoutTrailingLineSeparator}\n$separator")
+        val delimiter = HereDoc.randomDelimiter()
+        script.line("cat <<$delimiter >>${path.quoted}\n${content.withoutTrailingLineSeparator}\n$delimiter")
         return this
     }
 }

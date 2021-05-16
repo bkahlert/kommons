@@ -91,6 +91,18 @@ class HereDocKtTest {
 
             expectThat(HereDoc.findAllDelimiters(text)).containsExactly("DELIMITER-A", "DELIMITER-B")
         }
+
+        @Test
+        fun `should build`() {
+            val hereDoc = HereDoc {
+                delimiter = "DELIMITER"
+                substituteParameters = false
+                +"command a-1"
+                +"command a-2"
+            }
+            expectThat(hereDoc)
+                .isEqualTo(HereDoc("command a-1", "command a-2", delimiter = "DELIMITER", substituteParameters = false))
+        }
     }
 
     @Nested

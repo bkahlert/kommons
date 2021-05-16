@@ -14,11 +14,13 @@ import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
 import koodies.test.UniqueId
 import koodies.test.tests
+import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
 import koodies.text.toByteArray
+import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -48,7 +50,7 @@ class ShellScriptTest {
 
     @Test
     fun `should build valid script`() {
-        expectThat(shellScript().build()).isEqualTo("""
+        expectThat(shellScript()).toStringIsEqualTo("""
             #!/bin/sh
             echo "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m"
             cd "/some/where" || exit 1
@@ -56,7 +58,7 @@ class ShellScriptTest {
             echo "Bye!"
             exit 42
 
-        """.trimIndent())
+        """.trimIndent(), removeAnsi = false)
     }
 
     @Test
@@ -65,24 +67,24 @@ class ShellScriptTest {
             """
             echo "👈 no padding"
             """
-        }.build()).isEqualTo("echo ${"👈 no padding".quoted}$LF")
+        }).toStringIsEqualTo("echo ${"👈 no padding".quoted}$LF")
     }
 
     @TestFactory
     fun `should build with simple string`() = tests {
         expecting {
-            ShellScript { "printenv HOME" }.build()
+            ShellScript { "printenv HOME" }
         } that {
-            isEqualTo("""
+            toStringIsEqualTo("""
                       printenv HOME
                       
                       """.trimIndent())
         }
 
         expecting {
-            ShellScript { shebang; "printenv HOME" }.build()
+            ShellScript { shebang; "printenv HOME" }
         } that {
-            isEqualTo("""
+            toStringIsEqualTo("""
                       #!/bin/sh
                       printenv HOME
                       
@@ -93,7 +95,7 @@ class ShellScriptTest {
     @Test
     fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
-        shellScript().buildTo(file)
+        shellScript().toFile(file)
         expectThat(file).hasContent("""
             #!/bin/sh
             echo "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m"
@@ -108,14 +110,14 @@ class ShellScriptTest {
     @Test
     fun `should write executable script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
-        val returnedScript = shellScript().buildTo(file)
+        val returnedScript = shellScript().toFile(file)
         expectThat(returnedScript).isExecutable()
     }
 
     @Test
     fun `should return same file as saved to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val file = randomFile(extension = ".sh")
-        val returnedScript = shellScript().buildTo(file)
+        val returnedScript = shellScript().toFile(file)
         expectThat(returnedScript).isEqualTo(file)
     }
 
@@ -128,7 +130,7 @@ class ShellScriptTest {
                 file("file.txt") {
                     appendLine("content")
                 }
-            }.build()).matchesCurlyPattern("""
+            }).toStringMatchesCurlyPattern("""
                 cat <<HERE-{} >>"file.txt"
                 content
                 HERE-{}
@@ -142,7 +144,7 @@ class ShellScriptTest {
                 file("file.txt".asPath()) {
                     appendLine("content")
                 }
-            }.build()).matchesCurlyPattern("""
+            }).toStringMatchesCurlyPattern("""
                 cat <<HERE-{} >>"file.txt"
                 content
                 HERE-{}
@@ -173,7 +175,7 @@ class ShellScriptTest {
 
         @Test
         fun `should embed shell script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(ShellScript { shellScript() }.build()).matchesCurlyPattern("""
+            expectThat(ShellScript { shellScript() }).toStringMatchesCurlyPattern("""
                 #!/bin/sh
                 echo "about to run embedded script"
                 (
@@ -246,7 +248,7 @@ class ShellScriptTest {
                         }
                     }
                 }
-            }.build()).isEqualTo("""
+            }).toStringIsEqualTo("""
                 #!/bin/sh
                 'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
                 
@@ -281,17 +283,17 @@ class ShellScriptTest {
         fun `should echo name`() {
             val sh = ShellScript("test") { "exit 0" }
 
-            expectThat(sh.build()).isEqualTo("""
+            expectThat(sh).toStringIsEqualTo("""
             echo "$testBanner"
             exit 0
 
-        """.trimIndent())
+        """.trimIndent(), removeAnsi = false)
         }
 
         @Test
-        fun `should accept name during build`() {
+        fun `should use different name if specified`() {
             val sh = ShellScript { "exit 0" }
-            expectThat(sh.build("test")).isEqualTo("""
+            expectThat(sh.toString("test")).isEqualTo("""
             echo "$testBanner"
             exit 0
 
@@ -346,14 +348,14 @@ class ShellScriptTest {
 
         @Test
         fun InMemoryLogger.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val script = ShellScript().buildTo(resolve("script.sh"))
+            val script = ShellScript().toFile(resolve("script.sh"))
             ShellScript { !script.pathString }.exec.logging(this@`should not remove itself by default`)
             expectThat(resolve("script.sh")).exists()
         }
 
         @Test
         fun InMemoryLogger.`should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val script = ShellScript { deleteSelf() }.buildTo(resolve("script.sh"))
+            val script = ShellScript { deleteSelf() }.toFile(resolve("script.sh"))
             ShellScript { !script.pathString }.exec.logging(this@`should remove itself`)
             expectThat(resolve("script.sh")).not { exists() }
         }

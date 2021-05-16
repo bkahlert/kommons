@@ -44,6 +44,7 @@ public open class CommandLine(
 ) : Executable<Exec>, List<String> by listOf(command, *arguments.toTypedArray()) {
 
     public constructor(command: String, vararg arguments: String) : this(command, arguments.toList())
+    public constructor(commandLine: CommandLine) : this(commandLine.command, commandLine.arguments)
 
     /**
      * The array consisting of the command and its arguments that make up this command,
@@ -52,13 +53,13 @@ public open class CommandLine(
     public val commandLineParts: Array<String> = arrayOf(command, *arguments.toTypedArray())
 
     /**
-     * The command line as it can be used in a shell,
+     * This command line as it can be used in a shell,
      * e.g. `'echo' 'Hello World!'`.
      */
     public val shellCommand: String = asShellCommand(commandLineParts)
 
     /**
-     * The command line as it can be used in a shell,
+     * This command line as it can be used in a shell,
      * but in contrast to [shellCommand] applies line breaks for better readability,
      * e.g.
      * ```shell
@@ -114,7 +115,14 @@ public open class CommandLine(
             .filter { it.exists() }
             .filterNot { it.executable }
 
-
+    /**
+     * Returns this command line as it can be used in a shell,
+     * e.g.
+     * ```shell
+     * 'echo' \
+     * 'Hello World!'
+     * ```
+     */
     override fun toString(): String = multiLineShellCommand
 
     /**

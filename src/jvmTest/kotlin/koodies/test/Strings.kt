@@ -12,8 +12,8 @@ import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.assertions.hasSize
 
-fun <T> Builder<T>.toStringIsEqualTo(expected: String, removeEscapeSequences: Boolean = true): Builder<T> =
-    if (removeEscapeSequences) with({ toString().ansiRemoved }) { toStringIsEqualTo(expected, false) }
+fun <T> Builder<T>.toStringIsEqualTo(expected: String, removeAnsi: Boolean = true): Builder<T> =
+    if (removeAnsi) with({ toString().ansiRemoved }) { toStringIsEqualTo(expected, false) }
     else assert("is equal to %s", expected) {
         when (val actual = it.toString()) {
             expected -> pass()

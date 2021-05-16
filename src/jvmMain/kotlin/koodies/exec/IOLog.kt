@@ -88,7 +88,7 @@ public class IOLog : Sequence<IO> {
     /**
      * Returns a dump of the logged I/O log.
      */
-    public fun dump(): String = merge<IO>(removeEscapeSequences = false)
+    public fun dump(): String = merge<IO>(removeAnsi = false)
 
     /**
      * Dumps the logged I/O log in the specified [directory] using the name scheme `koodies.exec.{PID}.{RANDOM}.log".

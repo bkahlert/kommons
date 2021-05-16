@@ -58,6 +58,11 @@ public object LineSeparators : Collection<String> {
     public const val LS: String = Unicode.lineSeparator.toString()
 
     /**
+     * Same line separator as used by Kotlin.
+     */
+    public val DEFAULT: String = StringBuilder().appendLine().toString()
+
+    /**
      * [Regex] that matches all line separators.
      */
     public val REGEX: Regex by lazy {

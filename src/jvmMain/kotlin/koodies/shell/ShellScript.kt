@@ -31,7 +31,7 @@ import kotlin.io.path.notExists
 /**
  * A shell script.
  */
-public class ShellScript(
+public open class ShellScript(
 
     /**
      * Optional name of this script.
@@ -81,7 +81,7 @@ public class ShellScript(
         workingDirectory: Path?,
         transform: (String) -> String,
     ): CommandLine {
-        val script: String = build()
+        val script: String = toString()
         val transformedScript: String = transform(script)
         return with(Commandline().shell) {
             CommandLine(shellCommand, *shellArgsList.toTypedArray(), transformedScript)
@@ -99,19 +99,60 @@ public class ShellScript(
     public override val summary: String
         get() = (name?.let { "${it.ansi.italic.quoted}: " } ?: "").let {
             "#!($it${
-                build().replace("\\$LF", "").withoutTrailingLineSeparator.lines().joinToString(";") {
+                toString().replace("\\$LF", "").withoutTrailingLineSeparator.lines().joinToString(";") {
                     CommandLine.parseOrNull(it)?.commandLineParts?.joinToString(" ") ?: it
                 }.truncate(150, MIDDLE, " … ")
             })"
         }
 
-    public fun buildTo(path: Path): Path = path.apply {
-        if (path.notExists()) path.withDirectoriesCreated().createFile()
-        writeText(build())
+    /**
+     * Returns a shell script line as it can be used in a shell,
+     * e.g.
+     * ```shell
+     * #!/bin/sh
+     * echo "Hello World!"
+     * ```
+     *
+     * If a [name] is set, it will be
+     * printed as the first command.
+     */
+    public override fun toString(): String = toString(name)
+
+    /**
+     * Returns this shell script as it can be used in a shell,
+     * e.g.
+     * ```shell
+     * #!/bin/sh
+     * echo "Hello World!"
+     * ```
+     *
+     * If a [name] is provided or already set, it will be
+     * printed as the first command.
+     */
+    public fun toString(name: String?): String {
+        var echoNameCommandAdded = false
+        val echoNameCommand = bannerEchoingCommand(name)
+        val script = lines.joinToString("") { line ->
+            if (!echoNameCommandAdded && line.isShebang()) {
+                echoNameCommandAdded = true
+                line + LF + echoNameCommand
+            } else {
+                line + LF
+            }
+        }
+        return if (echoNameCommandAdded) script else echoNameCommand + script
+    }
+
+    /**
+     * Saves this shell script at the specified [path] and sets its [executable] flag.
+     * @see toString
+     */
+    public fun toFile(path: Path): Path = path.apply {
+        if (notExists()) withDirectoriesCreated().createFile()
+        writeText(this@ShellScript.toString())
         executable = true
     }
 
-    override fun toString(): String = build()
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -149,10 +190,6 @@ public class ShellScript(
                 ""
             }
 
-        @Deprecated("replace with shebang", replaceWith = ReplaceWith("shebang", "koodies.shell.shebang"))
-        public val `#!`: Shebang
-            get() = shebang
-
         /**
          * Adds `#!` to this script.
          */
@@ -175,22 +212,22 @@ public class ShellScript(
         /**
          * Adds the given [words] concatenated with a whitespace to this script.
          */
-        public fun line(vararg words: String): String = lines {
+        public fun line(vararg words: CharSequence): String = lines {
             lines.add(words.joinToString(" "))
         }
 
         /**
          * Adds the given [line] to this script.
          */
-        public fun line(line: String): String = lines {
-            lines.add(line)
+        public fun line(line: CharSequence): String = lines {
+            lines.add(line.toString())
         }
 
         /**
          * Adds the given [lines] to this script.
          */
-        public fun lines(lines: Iterable<String>): String = lines {
-            this.lines.addAll(lines)
+        public fun lines(lines: Iterable<CharSequence>): String = lines {
+            lines.forEach { line(it) }
         }
 
         /**
@@ -229,7 +266,7 @@ public class ShellScript(
         }
 
         /**
-         * Embeds the given [ShellScript] in this script.
+         * Embeds the given [shellScript] in this script.
          *
          * As soon as the execution comes to this point, the script
          * is unpacked to a temporary script file, executed and
@@ -239,12 +276,12 @@ public class ShellScript(
             val baseName = shellScript.name.toBaseName()
             val fileName = "$baseName.sh"
             val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
-            val finalScript = shellScript.build().withoutTrailingLineSeparator
+            val finalScript = shellScript.toString().withoutTrailingLineSeparator
             lines.add(finalScript.wrapMultiline(
                 """
                 (
                 cat <<'$delimiter'
-            """,
+                """,
                 """
                 $delimiter
                 ) > "./$fileName"

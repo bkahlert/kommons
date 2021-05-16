@@ -34,7 +34,7 @@ class ANSITest {
     }
 
     @Nested
-    inner class RemoveEscapeSequences {
+    inner class AnsiRemoved {
 
         @TestFactory
         fun `should remove escape sequences`() = testEach(

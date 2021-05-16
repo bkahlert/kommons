@@ -1,6 +1,10 @@
 package koodies.shell
 
+import koodies.builder.Builder
+import koodies.builder.Init
+import koodies.builder.context.ListBuildingContext
 import koodies.regex.get
+import koodies.shell.HereDoc.Companion.HereDocContext
 import koodies.text.CharRanges
 import koodies.text.LineSeparators
 import koodies.text.randomString
@@ -10,6 +14,7 @@ import koodies.text.singleQuoted
  * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands], a customizable [delimiter] and [lineSeparator].
  */
 public class HereDoc(
+
     /**
      * Lines of text this here document is made of.
      */
@@ -36,31 +41,11 @@ public class HereDoc(
     public constructor(commands: Iterable<CharSequence>, delimiter: String = randomDelimiter(), substituteParameters: Boolean = true) :
         this(*commands.map { it.toString() }.toTypedArray<String>(), delimiter = delimiter, substituteParameters = substituteParameters)
 
-    public companion object {
-
-        /**
-         * A [Regex] that can be used to extract [here document](https://en.wikipedia.org/wiki/Here_document) delimiters.
-         */
-        private val hereDocDelimiterRegex: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
-
-        public fun findAllDelimiters(text: String): List<String> = hereDocDelimiterRegex.findAll(text).mapNotNull { it["name"] }.toList()
-
-        /**
-         * Returns a random—most likely unique—label to be used for a [HereDoc].
-         */
-        public fun randomDelimiter(): String = "HERE-" + randomString(8, CharRanges.UpperCaseAlphanumeric)
-
-        /**
-         * The line separator used by default to separate lines in a [HereDoc].
-         */
-        public const val DEFAULT_LINE_SEPARATOR: String = LineSeparators.LF
-    }
-
     private val rendered = sequenceOf(
         "<<${delimiter.takeIf { substituteParameters } ?: delimiter.singleQuoted}",
         *commands,
         delimiter,
-    ).joinToString(DEFAULT_LINE_SEPARATOR)
+    ).joinToString(LineSeparators.DEFAULT)
 
     override val length: Int = rendered.length
     override fun get(index: Int): Char = rendered[index]
@@ -73,6 +58,50 @@ public class HereDoc(
         other as HereDoc
         if (rendered != other.rendered) return false
         return true
+    }
+
+    public companion object : Builder<Init<HereDocContext>, HereDoc> {
+
+        override fun invoke(init: Init<HereDocContext>): HereDoc =
+            StringBuilder().let { commands ->
+                val (delimiter, substituteParameters) = HereDocContext(commands).run { init(); delimiter to substituteParameters }
+                HereDoc(commands.toString(), delimiter = delimiter, substituteParameters = substituteParameters)
+            }
+
+        public class HereDocContext(private val commands: StringBuilder) : ListBuildingContext<CharSequence> {
+
+            /**
+             * Identifier to delimit this here document from the surrounding text.
+             */
+            public var delimiter: String = randomDelimiter()
+
+            /**
+             * Whether the shell will process this heredoc like any other input,
+             * in particular substitution will take place.
+             *
+             * If disabled, the content will be treated as is, i.e. `$HOME` will no be substituted.
+             *
+             * @see <a href="https://tldp.org/LDP/abs/html/here-docs.html">Advanced Bash-Scripting Guide: Chapter 19. Here Documents</a>
+             */
+            public var substituteParameters: Boolean = true
+
+            override fun add(element: CharSequence) {
+                if (!commands.isEmpty()) commands.appendLine()
+                commands.append(element)
+            }
+        }
+
+        /**
+         * A [Regex] that can be used to extract [here document](https://en.wikipedia.org/wiki/Here_document) delimiters.
+         */
+        private val hereDocDelimiterRegex: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
+
+        public fun findAllDelimiters(text: String): List<String> = hereDocDelimiterRegex.findAll(text).mapNotNull { it["name"] }.toList()
+
+        /**
+         * Returns a random—most likely unique—label to be used for a [HereDoc].
+         */
+        public fun randomDelimiter(): String = "HERE-" + randomString(8, CharRanges.UpperCaseAlphanumeric)
     }
 }
 

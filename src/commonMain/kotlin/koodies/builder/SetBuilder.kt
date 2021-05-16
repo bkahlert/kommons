@@ -23,9 +23,8 @@ public open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> 
          */
         public val list: MutableList<E> = mutableListOf(),
     ) : ListBuildingContext<E> {
-        override fun add(element: E, vararg elements: E) {
+        override fun add(element: E) {
             list.add(element)
-            list.addAll(elements.toList())
         }
     }
 

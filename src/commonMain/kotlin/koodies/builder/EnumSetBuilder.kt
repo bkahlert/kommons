@@ -26,9 +26,8 @@ public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext
          */
         public val list: MutableList<E> = mutableListOf(),
     ) : ListBuildingContext<E> {
-        override fun add(element: E, vararg elements: E) {
-            list.add(element)
-            list.addAll(elements.toList())
+        override fun add(element: E) {
+            list += element
         }
     }
 

@@ -1090,8 +1090,8 @@ public open class AnsiString private constructor(public val string: String) : Ch
      */
     public fun isNotBlank(): Boolean = unformatted.isNotBlank()
 
-    public fun toString(removeEscapeSequences: Boolean = false): String =
-        if (removeEscapeSequences) unformatted
+    public fun toString(removeAnsi: Boolean = false): String =
+        if (removeAnsi) unformatted
         else string
 
     override fun toString(): String = toString(false)

@@ -225,7 +225,7 @@ class IOTest {
 
         @Test
         fun `should merge multiple types`() {
-            expectThat(IO_LIST.drop(2).take(2).merge<IO>(removeEscapeSequences = true)).isEqualTo("text${LF}dump")
+            expectThat(IO_LIST.drop(2).take(2).merge<IO>(removeAnsi = true)).isEqualTo("text${LF}dump")
         }
 
         @Test

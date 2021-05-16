@@ -241,7 +241,7 @@ class CommandLineTest {
                 """.trimIndent()
         }
 
-        val commandLine = CommandLine("echo", script.build())
+        val commandLine = CommandLine("echo", script.toString())
 
         expecting { commandLine.commandLineParts.toList() } that {
             containsExactly("echo", """
@@ -252,15 +252,6 @@ class CommandLineTest {
                     """.trimIndent())
         }
 
-//        expecting { commandLine.shellCommandParts.toList() } that {
-//            containsExactly("/bin/sh", "-c", """
-//                    'echo' '#!/bin/bash
-//                    echo "double quotes"
-//                    echo '"'"'single quotes'"'"'
-//                    '
-//                """.trimIndent())
-//        }
-//
         expecting { commandLine.shellCommand } that {
             isEqualTo("""
                     'echo' '#!/bin/bash

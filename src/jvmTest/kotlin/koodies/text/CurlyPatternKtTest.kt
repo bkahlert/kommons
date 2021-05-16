@@ -165,7 +165,7 @@ class CurlyPatternKtTest {
 
     @Test
     fun `should allow to deactivate removal of ANSI escape sequences`() {
-        expectThat("ab".ansi.red.toString() + "c").not { matchesCurlyPattern("abc", removeEscapeSequences = false) }
+        expectThat("ab".ansi.red.toString() + "c").not { matchesCurlyPattern("abc", removeAnsi = false) }
     }
 
     @Test
@@ -244,7 +244,7 @@ class CurlyPatternKtTest {
 fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     curlyPattern: String,
     removeTrailingBreak: Boolean = true,
-    removeEscapeSequences: Boolean = true,
+    removeAnsi: Boolean = true,
     unifyWhitespaces: Boolean = true,
     trimEnd: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
@@ -253,7 +253,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     val preprocessor = compositionOf(
         true to { s: String -> unify(s) },
         removeTrailingBreak to { s: String -> s.withoutTrailingLineSeparator },
-        removeEscapeSequences to { s: String -> s.ansiRemoved },
+        removeAnsi to { s: String -> s.ansiRemoved },
         unifyWhitespaces to { s: String -> Whitespaces.unify(s) },
         trimEnd to { s: String -> s.mapLines { it.trimEnd() } },
         trimmed to { s: String -> s.trim() },
@@ -286,12 +286,12 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
 fun <T> Assertion.Builder<T>.toStringMatchesCurlyPattern(
     expected: String,
     removeTrailingBreak: Boolean = true,
-    removeEscapeSequences: Boolean = true,
+    removeAnsi: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
     ignoreTrailingLines: Boolean = false,
 ): Assertion.Builder<String> = get { toString() }.matchesCurlyPattern(expected,
     removeTrailingBreak,
-    removeEscapeSequences,
+    removeAnsi,
     trimmed,
     trimmed = ignoreTrailingLines)
 

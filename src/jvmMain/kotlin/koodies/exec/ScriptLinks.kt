@@ -24,6 +24,6 @@ private fun registerCleanupHandler(): Unit {
 
 public fun ShellScript.toLink(): URI =
     shellScriptDir.randomPath(shellScriptPrefix, shellScriptExtension)
-        .also { buildTo(it) }
+        .also { toFile(it) }
         .toUri()
         .also { registerCleanupHandler() }

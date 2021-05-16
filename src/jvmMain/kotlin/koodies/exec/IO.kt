@@ -29,7 +29,7 @@ public sealed class IO(
      * Formats a strings to like an output of this type.
      */
     private val formatAnsi: (AnsiString) -> String,
-) : AnsiString(text.toString(removeEscapeSequences = false)) {
+) : AnsiString(text.toString(removeAnsi = false)) {
 
     /**
      * Contains this [text] with the format of this type applied.
@@ -195,7 +195,7 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
      *
      * @see ansiKept
      */
-    public val ansiRemoved: String by lazy { merge<IO>(removeEscapeSequences = true) }
+    public val ansiRemoved: String by lazy { merge<IO>(removeAnsi = true) }
 
     /**
      * Contains all encompassed [IO] merged to a string.
@@ -207,7 +207,7 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
      *
      * @see ansiRemoved
      */
-    public val ansiKept: String by lazy { merge<IO>(removeEscapeSequences = false) }
+    public val ansiKept: String by lazy { merge<IO>(removeAnsi = false) }
 
     /**
      * Returns all encompassed [IO] merged to a string.
@@ -235,10 +235,10 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
  * Filters this [IO] sequence by the specified type.
  *
  * By default [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
- * Set [removeEscapeSequences] to `false` to keep escapes codes.
+ * Set [removeAnsi] to `false` to keep escapes codes.
  */
-public inline fun <reified T : IO> Sequence<IO>.merge(removeEscapeSequences: Boolean = true): String =
-    filterIsInstance<T>().joinToString(LineSeparators.LF) { if (removeEscapeSequences) it.unformatted else it.formatted }
+public inline fun <reified T : IO> Sequence<IO>.merge(removeAnsi: Boolean = true): String =
+    filterIsInstance<T>().joinToString(LineSeparators.LF) { if (removeAnsi) it.unformatted else it.formatted }
 
 /**
  * Contains a filtered copy only consisting of [Meta].

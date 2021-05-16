@@ -24,12 +24,14 @@ import koodies.exec.Executable
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.asPath
 import koodies.io.path.pathString
+import koodies.shell.ShellScript
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.text.Semantics.formattedAs
 import koodies.text.splitAndMap
 import koodies.text.takeUnlessBlank
 import koodies.text.withRandomSuffix
 import koodies.toBaseName
+import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
 
 /**
@@ -59,7 +61,7 @@ public class DockerRunCommandLine(
 ) : Executable<DockerExec> {
 
     private val fallbackName = executable.summary.toBaseName().withRandomSuffix()
-    public val options: Options = options.withFallbackName(fallbackName)
+    public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
 
     override val summary: String = "docker run ${image.formattedAs.input} ${executable.summary}"
 
@@ -86,8 +88,15 @@ public class DockerRunCommandLine(
             } else {
                 executable.toCommandLine(environment, workingDirectory)
             }
-            runCommandLine.command.takeUnlessBlank()?.also { if (options.entryPoint == null) add(it) }
-            addAll(runCommandLine.arguments)
+
+            if (executable is ShellScript) {
+                addAll(DEFAULT_SHELL_ARGUMENTS)
+                add(runCommandLine.arguments.last())
+            } else {
+                val command = runCommandLine.command.takeUnlessBlank()
+                if (command != null && options.entryPoint == null) add(command)
+                addAll(runCommandLine.arguments)
+            }
         }.map(transform))
 
     override fun toExec(
@@ -326,6 +335,13 @@ public class DockerRunCommandLine(
                 takeUnless { mappedFallbackWorkingDirectory != null } ?: copy(workingDirectory = mappedFallbackWorkingDirectory)
             }
 
+        /**
+         * Adapts the [entryPoint] to allow the specified [executable] to be
+         * executed in a container.
+         */
+        public fun withFixedEntryPoint(executable: Executable<*>): Options =
+            takeUnless { executable is ShellScript } ?: copy(entryPoint = DEFAULT_SHELL_COMMAND)
+
         public companion object : BuilderTemplate<OptionsContext, Options>() {
 
             /**
@@ -516,6 +532,10 @@ public class DockerRunCommandLine(
                 ::commandLine.evalOrDefault { CommandLine("") },
             )
         }
+
+        private val DEFAULT_SHELL = BourneShell()
+        public val DEFAULT_SHELL_COMMAND: String = DEFAULT_SHELL.shellCommand
+        public val DEFAULT_SHELL_ARGUMENTS: List<String> = DEFAULT_SHELL.shellArgsList
     }
 }
 

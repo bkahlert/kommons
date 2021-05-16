@@ -29,9 +29,8 @@ public open class ArrayBuilder<E> private constructor(public val transform: List
          */
         public val list: MutableList<E> = mutableListOf(),
     ) : ListBuildingContext<E> {
-        override fun add(element: E, vararg elements: E) {
-            list.add(element)
-            list.addAll(elements.toList())
+        override fun add(element: E) {
+            list += element
         }
     }
 
