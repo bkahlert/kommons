@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import strikt.api.expectThat
 import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isContainedIn
@@ -112,6 +113,19 @@ class KaomojiTest {
 
     @Nested
     inner class CompanionObject {
+
+        @Nested
+        inner class EmptyKaomoji {
+            @Test
+            fun `should have empty kaomoji`() {
+                expectThat(Kaomoji.EMPTY).toStringIsEqualTo("")
+            }
+
+            @Test
+            fun `should have render as empty string`() {
+                expectThat(Kaomoji.Shrugging.first().fishing(Kaomoji.EMPTY)).toStringIsEqualTo("┐(´д｀)o/￣￣￣")
+            }
+        }
 
         @TestFactory
         fun `should create random Kaomoji`() = testEach(

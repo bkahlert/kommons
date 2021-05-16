@@ -2,7 +2,7 @@ package koodies.text
 
 /**
  * Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between `this`
- * char sequence and the given [other] one.
+ * character sequence and the given [other] one.
  */
 public fun CharSequence.levenshteinDistance(other: CharSequence): Int {
     val cost = Array(length + 1) { IntArray(other.length + 1) }

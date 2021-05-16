@@ -49,8 +49,8 @@ private val randomSuffixMatcher: Regex = Regex(".*--[0-9a-zA-Z]{$randomSuffixLen
 
 
 /**
- * If this char sequence starts with the given [prefix], returns a new char sequence
- * with the prefix removed. Otherwise, returns a new char sequence with the same characters.
+ * If this character sequence starts with the given [prefix], returns a new character sequence
+ * with the prefix removed. Otherwise, returns a new character sequence with the same characters.
  */
 public fun CharSequence.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): CharSequence {
     if (startsWith(prefix, ignoreCase = ignoreCase)) {
@@ -79,8 +79,8 @@ public fun CharSequence.withSuffix(suffix: String): String =
 
 
 /**
- * If this char sequence ends with the given [suffix], returns a new char sequence
- * with the suffix removed. Otherwise, returns a new char sequence with the same characters.
+ * If this character sequence ends with the given [suffix], returns a new character sequence
+ * with the suffix removed. Otherwise, returns a new character sequence with the same characters.
  */
 public fun CharSequence.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): CharSequence {
     if (endsWith(suffix, ignoreCase = ignoreCase)) {
@@ -115,13 +115,13 @@ public fun String.removeSurrounding(prefixSuffixPair: Pair<CharSequence, CharSeq
 
 
 /**
- * Returns a char sequence with content of this char sequence padded at the beginning
+ * Returns a character sequence with content of this character sequence padded at the beginning
  * to the specified [length] with the specified character or space.
  *
  * @param length the desired string length.
  * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
  * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
- * @return Returns a char sequence of length at least [length] consisting of `this` char sequence prepended with [padChar] as many times
+ * @return Returns a character sequence of length at least [length] consisting of `this` character sequence prepended with [padChar] as many times
  * as are necessary to reach that length.
  */
 public fun CharSequence.padStart(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean = true): CharSequence {
@@ -150,13 +150,13 @@ public fun String.padStart(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean
     (this as CharSequence).padStart(length, padChar, ignoreAnsi).toString()
 
 /**
- * Returns a char sequence with content of this char sequence padded at the end
+ * Returns a character sequence with content of this character sequence padded at the end
  * to the specified [length] with the specified character or space.
  *
  * @param length the desired string length.
  * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
  * @param ignoreAnsi whether to ignore [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). Ignored by default.
- * @return Returns a char sequence of length at least [length] consisting of `this` char sequence appended with [padChar] as many times
+ * @return Returns a character sequence of length at least [length] consisting of `this` character sequence appended with [padChar] as many times
  * as are necessary to reach that length.
  */
 public fun CharSequence.padEnd(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean = true): CharSequence {
@@ -185,58 +185,58 @@ public fun String.padEnd(length: Int, padChar: Char = ' ', ignoreAnsi: Boolean =
     (this as CharSequence).padEnd(length, padChar, ignoreAnsi).toString()
 
 /**
- * Wraps this char sequence with the given [prefix] and [suffix].
- * - a line feed (`\n`) is added to separate the [prefix] from this char sequence
- * - a line feed (`\n`) is added to separate this char sequence from the [suffix].
+ * Wraps this character sequence with the given [prefix] and [suffix].
+ * - a line feed (`\n`) is added to separate the [prefix] from this character sequence
+ * - a line feed (`\n`) is added to separate this character sequence from the [suffix].
  * - the indentation of [prefix] and [suffix] is trimmed using [String.trimIndent]
  */
 public fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
     "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"
 
 /**
- * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun CharSequence.takeIfNotEmpty(): CharSequence? = takeIf { it.isNotEmpty() }
 
 /**
- * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun String.takeIfNotEmpty(): String? = takeIf { it.isNotEmpty() }
 
 
 /**
- * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun CharSequence.takeIfNotBlank(): CharSequence? = takeIf { it.isNotBlank() }
 
 /**
- * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun String.takeIfNotBlank(): String? = takeIf { it.isNotBlank() }
 
 /**
- * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun CharSequence.takeUnlessEmpty(): CharSequence? = takeUnless { it.isEmpty() }
 
 /**
- * Returns `this` char sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun String.takeUnlessEmpty(): String? = takeUnless { it.isEmpty() }
 
 
 /**
- * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun CharSequence.takeUnlessBlank(): CharSequence? = takeUnless { it.isBlank() }
 
 /**
- * Returns `this` char sequence if it [isNotBlank] or `null`, if it is.
+ * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun String.takeUnlessBlank(): String? = takeUnless { it.isBlank() }
 
 /**
- * Splits this char sequence into at most [limit] columns
+ * Splits this character sequence into at most [limit] columns
  * and returns the two columns [index1] and [index2] mapped
  * using [transform]. If not enough columns exist, `null` is returned.
  *
@@ -244,7 +244,7 @@ public fun String.takeUnlessBlank(): String? = takeUnless { it.isBlank() }
  *
  * @param index1 index of the first column
  * @param index2 index of the second column
- * @param delimiter string to be used to split this char sequence into columns
+ * @param delimiter string to be used to split this character sequence into columns
  * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
  * @param removeAnsi whether to remove ANSI escape sequences (default: true)
  * @param transform function used to transform the two columns with indices [index1] and [index2]
@@ -268,7 +268,7 @@ public inline fun <T> CharSequence.mapColumnsOrNull(
 }
 
 /**
- * Splits this char sequence into at most [limit] columns
+ * Splits this character sequence into at most [limit] columns
  * and returns the two columns [index1] and [index2] mapped
  * using [transform].
  *
@@ -276,7 +276,7 @@ public inline fun <T> CharSequence.mapColumnsOrNull(
  *
  * @param index1 index of the first column
  * @param index2 index of the second column
- * @param delimiter string to be used to split this char sequence into columns
+ * @param delimiter string to be used to split this character sequence into columns
  * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
  * @param removeAnsi whether to remove ANSI escape sequences (default: true)
  * @param transform function used to transform the two columns with indices [index1] and [index2]
@@ -295,7 +295,7 @@ public inline fun <T> CharSequence.mapColumns(
 ): T = mapColumnsOrNull(index1, index2, delimiter, limit, removeAnsi, transform) ?: throw NoSuchElementException("No enough columns exist.")
 
 /**
- * Splits this char sequence into at most [limit] columns
+ * Splits this character sequence into at most [limit] columns
  * and returns the three columns [index1], [index2] and [index3] mapped
  * using [transform]. If not enough columns exist, `null` is returned.
  *
@@ -304,7 +304,7 @@ public inline fun <T> CharSequence.mapColumns(
  * @param index1 index of the first column
  * @param index2 index of the second column
  * @param index3 index of the third column
- * @param delimiter string to be used to split this char sequence into columns
+ * @param delimiter string to be used to split this character sequence into columns
  * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
  * @param removeAnsi whether to remove ANSI escape sequences (default: true)
  * @param transform function used to transform the two columns with indices [index1], [index2] and [index3]
@@ -329,7 +329,7 @@ public inline fun <T> CharSequence.mapColumnsOrNull(
 }
 
 /**
- * Splits this char sequence into at most [limit] columns
+ * Splits this character sequence into at most [limit] columns
  * and returns the three columns [index1], [index2] and [index3] mapped
  * using [transform].
  *
@@ -338,7 +338,7 @@ public inline fun <T> CharSequence.mapColumnsOrNull(
  * @param index1 index of the first column
  * @param index2 index of the second column
  * @param index3 index of the third column
- * @param delimiter string to be used to split this char sequence into columns
+ * @param delimiter string to be used to split this character sequence into columns
  * @param limit maximum number of columns to split into, before selecting the ones to process (default: no limit)
  * @param removeAnsi whether to remove ANSI escape sequences (default: true)
  * @param transform function used to transform the two columns with indices [index1], [index2] and [index3]

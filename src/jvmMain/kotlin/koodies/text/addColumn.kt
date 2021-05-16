@@ -7,8 +7,8 @@ import koodies.text.LineSeparators.lineSequence
 
 /**
  * Returns a string that consists of two columns.
- * 1) This char sequence as the first column.
- * 2) The other char sequence as the second column.
+ * 1) This character sequence as the first column.
+ * 2) The other character sequence as the second column.
  *
  * **Example**
  * ```
@@ -42,8 +42,8 @@ public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxLength
 
 /**
  * Returns a string that consists of two columns.
- * 1) This char sequence as the first column.
- * 2) The other char sequence as the second column.
+ * 1) This character sequence as the first column.
+ * 2) The other character sequence as the second column.
  *
  * **Example**
  * ```

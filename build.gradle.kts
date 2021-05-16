@@ -189,6 +189,15 @@ kotlin {
     }
 }
 
+tasks.register<Copy>("assembleReadme") {
+    from(projectDir)
+    into(projectDir)
+    include("README.template.md")
+    rename { "README.md" }
+    expand("project" to project)
+    dependsOn(tasks.releaseCheck)
+}
+
 val dokkaOutputDir = buildDir.resolve("dokka")
 
 tasks.dokkaHtml {
@@ -210,7 +219,7 @@ val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory")
     delete(dokkaOutputDir)
 }
 
-val javadocJar = tasks.create<Jar>("javadocJar") {
+val javadocJar = tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)

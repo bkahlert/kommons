@@ -3,6 +3,7 @@ package koodies.docker
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.DockerContainer.State.Existent.Running
+import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
 import koodies.test.UniqueId.Companion.simplifiedId
@@ -39,7 +40,11 @@ import kotlin.reflect.KClass
     ExtendWith(DockerRunningCondition::class),
     ExtendWith(TestContainerCheck::class)
 )
-annotation class DockerRequiring(val value: Array<KClass<out DockerImage>> = [], val mode: CleanUpMode = FailAndKill)
+annotation class DockerRequiring(
+    val value: Array<KClass<out DockerImage>> = [],
+    val mode: CleanUpMode = FailAndKill,
+    val logging: Boolean = false,
+)
 
 enum class CleanUpMode {
     ThanksForCleaningUp, FailAndKill
@@ -47,7 +52,8 @@ enum class CleanUpMode {
 
 class TestContainerCheck : BeforeEachCallback, AfterEachCallback {
 
-    private val ExtensionContext.logger get() = conditionallyVerboseLogger()
+    private val ExtensionContext.logger: FixedWidthRenderingLogger
+        get() = conditionallyVerboseLogger(withAnnotation<ContainersTestFactory, Boolean> { logging } ?: withAnnotation<ContainersTest, Boolean> { logging })
 
     override fun beforeEach(context: ExtensionContext) = with(context) {
         pullRequiredImages()

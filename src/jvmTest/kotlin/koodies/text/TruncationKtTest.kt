@@ -1,7 +1,9 @@
 package koodies.text
 
-import org.junit.jupiter.api.DynamicContainer
-import org.junit.jupiter.api.DynamicTest.dynamicTest
+import koodies.test.testEach
+import koodies.text.TruncationStrategy.END
+import koodies.text.TruncationStrategy.MIDDLE
+import koodies.text.TruncationStrategy.START
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -21,25 +23,17 @@ class TruncationKtTest {
         inner class StartTruncation {
 
             @TestFactory
-            fun `should truncate`() = listOf(
+            fun `should truncate`() = testEach(
                 "APrettyLongClassNameThatMightBeTooBigForTheAvailableSpace" to "…AvailableSpace",
                 "A pretty long sentence works, too." to "…ce works, too.",
-            ).flatMap { (input, expected) ->
-                listOf(
-                    dynamicTest("\"$expected\" ？⃔ \"$input\"") {
-                        val actual = input.truncate(strategy = TruncationStrategy.START)
-                        expectThat(actual).isEqualTo(expected)
-                    },
-                    dynamicTest("\"$expected\" ？⃔ length(15)") {
-                        val actual = input.truncate(strategy = TruncationStrategy.START)
-                        expectThat(actual).hasLength(15)
-                    },
-                )
+            ) { (input, expected) ->
+                expecting("\"$expected\" ？⃔ \"$input\"") { input.truncate(strategy = START) } that { isEqualTo(expected) }
+                expecting("\"$expected\" ？⃔ length(15)") { input.truncate(strategy = START) } that { hasLength(15) }
             }
 
             @Test
             fun `should not truncate if not needed`() {
-                val actual = "Too short".truncate(strategy = TruncationStrategy.START)
+                val actual = "Too short".truncate(strategy = START)
                 expectThat(actual).isEqualTo("Too short")
             }
         }
@@ -48,25 +42,17 @@ class TruncationKtTest {
         inner class MiddleTruncation {
 
             @TestFactory
-            fun `should truncate`() = listOf(
+            fun `should truncate`() = testEach(
                 "APrettyLongClassNameThatMightBeTooBigForTheAvailableSpace" to "APretty…leSpace",
-                "A pretty long sentence works, too." to "A prett…s, too.",
-            ).flatMap { (input, expected) ->
-                listOf(
-                    dynamicTest("\"$expected\" ？⃔ \"$input\"") {
-                        val actual = input.truncate(strategy = TruncationStrategy.MIDDLE)
-                        expectThat(actual).isEqualTo(expected)
-                    },
-                    dynamicTest("\"$expected\" ？⃔ length(15)") {
-                        val actual = input.truncate(strategy = TruncationStrategy.MIDDLE)
-                        expectThat(actual).hasLength(15)
-                    },
-                )
+                "A pretty long sentence works, too." to @Suppress("SpellCheckingInspection") "A prett…s, too.",
+            ) { (input, expected) ->
+                expecting("\"$expected\" ？⃔ \"$input\"") { input.truncate(strategy = MIDDLE) } that { isEqualTo(expected) }
+                expecting("\"$expected\" ？⃔ length(15)") { input.truncate(strategy = MIDDLE) } that { hasLength(15) }
             }
 
             @Test
             fun `should not truncate if not needed`() {
-                val actual = "Too short".truncate(strategy = TruncationStrategy.MIDDLE)
+                val actual = "Too short".truncate(strategy = MIDDLE)
                 expectThat(actual).isEqualTo("Too short")
             }
         }
@@ -75,25 +61,17 @@ class TruncationKtTest {
         inner class EndTruncation {
 
             @TestFactory
-            fun `should truncate`() = listOf(
+            fun `should truncate`() = testEach(
                 "APrettyLongClassNameThatMightBeTooBigForTheAvailableSpace" to "APrettyLongCla…",
                 "A pretty long sentence works, too." to "A pretty long …",
-            ).flatMap { (input, expected) ->
-                listOf(
-                    dynamicTest("\"$expected\" ？⃔ \"$input\"") {
-                        val actual = input.truncate(strategy = TruncationStrategy.END)
-                        expectThat(actual).isEqualTo(expected)
-                    },
-                    dynamicTest("\"$expected\" ？⃔ length(15)") {
-                        val actual = input.truncate(strategy = TruncationStrategy.END)
-                        expectThat(actual).hasLength(15)
-                    },
-                )
+            ) { (input, expected) ->
+                expecting("\"$expected\" ？⃔ \"$input\"") { input.truncate(strategy = END) } that { isEqualTo(expected) }
+                expecting("\"$expected\" ？⃔ length(15)") { input.truncate(strategy = END) } that { hasLength(15) }
             }
 
             @Test
             fun `should not truncate if not needed`() {
-                val actual = "Too short".truncate(strategy = TruncationStrategy.END)
+                val actual = "Too short".truncate(strategy = END)
                 expectThat(actual).isEqualTo("Too short")
             }
         }
@@ -218,52 +196,30 @@ class TruncationKtTest {
     @Nested
     inner class PadStartFixedLengthKtTest {
 
-        @Suppress("NonAsciiCharacters")
         @TestFactory
-        fun `should truncate to 10 chars using ··· and _`() = listOf(
+        fun `should truncate to 10 chars using ··· and _`() = testEach(
             "SomeClassName and a couple of words" to "Some···rds",
             "Short" to "_____Short",
-        ).flatMap { (input, expected) ->
-            listOf(
-                dynamicTest("\"$expected\" ？⃔ \"$input\"") {
-                    val actual = input.padStartFixedLength(10, TruncationStrategy.MIDDLE, "···", '_')
-                    expectThat(actual).isEqualTo(expected)
-                },
-                DynamicContainer.dynamicContainer("always have same length",
-                    TruncationStrategy.values().map { strategy ->
-                        val actual = input.padStartFixedLength(10, strategy, "···", '_')
-                        dynamicTest("\"$actual\" ？⃔ \"$input\"") {
-                            expectThat(actual).hasLength(10)
-                        }
-                    }.toList()
-                ),
-            )
+        ) { (input, expected) ->
+            expecting("\"$expected\" ？⃔ \"$input\"") { input.padStartFixedLength(10, MIDDLE, "···", '_') } that { isEqualTo(expected) }
+            TruncationStrategy.values().forEach { strategy ->
+                expecting { input.padStartFixedLength(10, strategy, "···", '_') } that { hasLength(10) }
+            }
         }
     }
 
     @Nested
     inner class PadEndFixedLengthKtTest {
 
-        @Suppress("NonAsciiCharacters")
         @TestFactory
-        fun `should truncate to 10 chars using ··· and _`() = listOf(
+        fun `should truncate to 10 chars using ··· and _`() = testEach(
             "SomeClassName and a couple of words" to "Some···rds",
             "Short" to "Short_____",
-        ).flatMap { (input, expected) ->
-            listOf(
-                dynamicTest("\"$expected\" ？⃔ \"$input\"") {
-                    val actual = input.padEndFixedLength(10, TruncationStrategy.MIDDLE, "···", '_')
-                    expectThat(actual).isEqualTo(expected)
-                },
-                DynamicContainer.dynamicContainer("always have same length",
-                    TruncationStrategy.values().map { strategy ->
-                        val actual = input.padEndFixedLength(10, strategy, "···", '_')
-                        dynamicTest("\"$actual\" ？⃔ \"$input\"") {
-                            expectThat(actual).hasLength(10)
-                        }
-                    }.toList()
-                ),
-            )
+        ) { (input, expected) ->
+            expecting("\"$expected\" ？⃔ \"$input\"") { input.padEndFixedLength(10, MIDDLE, "···", '_') } that { isEqualTo(expected) }
+            TruncationStrategy.values().forEach { strategy ->
+                expecting { input.padEndFixedLength(10, strategy, "···", '_') } that { hasLength(10) }
+            }
         }
     }
 }

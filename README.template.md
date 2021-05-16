@@ -12,14 +12,14 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
 
 ### Maven Central
 
-* **Gradle** `implementation("com.bkahlert:koodies:1.6.0-dev.5.uncommitted+486f653")`
+* **Gradle** `implementation("com.bkahlert:koodies:${project.version}")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert</groupId>
       <artifactId>koodies</artifactId>
-      <version>1.6.0-dev.5.uncommitted+486f653</version>
+      <version>${project.version}</version>
   </dependency>
   ```
 
@@ -258,7 +258,7 @@ data class EnginePower(val watts: BigDecimal) {
         }
     }
 
-    override fun toString(): String = "${watts.doubleValue() / 1000.0}kW"
+    override fun toString(): String = "\${watts.doubleValue() / 1000.0}kW"
 }
 
 data class Distance(val meter: BigDecimal) {
@@ -270,7 +270,7 @@ data class Distance(val meter: BigDecimal) {
         }
     }
 
-    override fun toString(): String = "${meter}m"
+    override fun toString(): String = "\${meter}m"
 }
 
 data class Engine(val power: EnginePower, val maxSpeed: Speed) {
@@ -288,7 +288,7 @@ data class Engine(val power: EnginePower, val maxSpeed: Speed) {
         }
     }
 
-    override fun toString(): String = "$maxSpeed, $power"
+    override fun toString(): String = "\$maxSpeed, \$power"
 }
 
 enum class Trait { Exclusive, PreOwned, TaxExempt }
@@ -508,7 +508,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
   **Process Each Actual Character** (and not each `char`)
   ```kotlin
-  "aⒷ☷👩‍👩‍👧‍👧".asCodePointSequence() -> "a", "Ⓑ", "☷", ":woman:" ZWJ, ":woman:", ZWJ, ":girl:", ZWJ, ":girl:"
+  "aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67".asCodePointSequence() -> "a", "Ⓑ", "☷", ":woman:" ZWJ, ":woman:", ZWJ, ":girl:", ZWJ, ":girl:"
   ```
 
 * Colors & Formatting
@@ -547,11 +547,8 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
   Use `debug` to check what's actually inside a `String`:
   ```kotlin
-  "a  b
-
-".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
-"�" // D800▌﹍ (low surrogate with a missing high surrogate)
-
+  "a  b\n".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
+  "�" // D800▌﹍ (low surrogate with a missing high surrogate)
   ```
 
   Use `trace` to print stuff without interrupting the call chain:
@@ -564,7 +561,6 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
   // prints return value of endless() formatted with debug
   chain().of.endless().trace { debug }.calls() 
   ```
-
     - Never look for orphaned print statements again. trace is declared as deprecated and inflicts a build warning.  
       `w: Koodies.kt: (42, 15): 'trace: T' is deprecated. Don't forget to remove after you finished debugging.`
     - trace has `replaceWith` set so that in IntelliJ the cleanup action removes all trace statements in one stroke.
@@ -576,16 +572,13 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
   ```kotlin
   LineSeparators.toList() == listOf(
-    LineSeparators.CRLF, // carriage return + line feed (
-
-)
-LineSeparators.LF, // line feed (
-)
-LineSeparators.CR, // carriage return (
-)
-LineSeparators.NL, // next line LineSeparators.PS, // paragraph separator LineSeparators.LS, // line separator
-)
-
+    LineSeparators.CRLF, // carriage return + line feed (\r\n)
+    LineSeparators.LF,   // line feed (\n)
+    LineSeparators.CR,   // carriage return (\r)
+    LineSeparators.NL,   // next line 
+    LineSeparators.PS,   // paragraph separator 
+    LineSeparators.LS,   // line separator
+  )
   ```
 
   Split string into its lines…
@@ -597,11 +590,12 @@ LineSeparators.NL, // next line LineSeparators.PS, // paragraph separator LineSe
   """.lines() // line 1, line 2 
   ```
 
-Split string into its lines lazily and keep the line separator…
-```kotlin
-"""
-line 1 line 2
-
+  Split string into its lines lazily and keep the line separator…
+    ```kotlin
+    """
+    line 1
+    line 2
+  
     """.lineSequence(keepDelimiters=true) // line 1␤, line 2␍␊ 
     ```
 

@@ -8,7 +8,7 @@ public fun String.splitAndMap(delimiter: String, ignoreCase: Boolean = false, li
     split(delimiter, ignoreCase = ignoreCase, limit = limit).map { transform(it) }.joinToString(delimiter)
 
 /**
- * Splits this char sequence to a sequence of strings around occurrences of the specified [delimiters].
+ * Splits this character sequence to a sequence of strings around occurrences of the specified [delimiters].
  *
  * @param delimiters One or more strings to be used as delimiters.
  * @param keepDelimiters `true` to have string end with its corresponding delimiter.
@@ -44,7 +44,7 @@ public fun CharSequence.splitToSequence(
         }
 
 /**
- * Returns a sequence of index ranges of substrings in this char sequence around occurrences of the specified [delimiters].
+ * Returns a sequence of index ranges of substrings in this character sequence around occurrences of the specified [delimiters].
  *
  * @param delimiters One or more strings to be used as delimiters.
  * @param startIndex The index to start searching delimiters from.

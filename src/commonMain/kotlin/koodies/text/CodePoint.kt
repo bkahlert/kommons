@@ -424,7 +424,7 @@ private fun ByteArray.readCodePoint(offset: Int): Pair<Int, Int>? {
 }
 
 /**
- * Attempts to read a code point from `this` char sequence at the given [offset].
+ * Attempts to read a code point from `this` character sequence at the given [offset].
  *
  * The characters are expected to be a UTF-18 encoded.
  *
@@ -566,7 +566,7 @@ public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence
 }
 
 /**
- * Returns a [Regex] matching exactly `this` char sequence.
+ * Returns a [Regex] matching exactly `this` character sequence.
  *
  * Each char is matched using it's hexadecimal encoding.
  */

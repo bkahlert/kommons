@@ -154,7 +154,7 @@ public fun Path.appendLines(vararg lines: CharSequence, charset: Charset = Chars
     appendLines(lines.asIterable(), charset)
 
 /**
- * Appends the specified collection of char sequences [lines] to a file terminating each one with the platform's line separator
+ * Appends the specified collection of character sequences [lines] to a file terminating each one with the platform's line separator
  * using [Charsets.UTF_8] by default.
  *
  * @param charset character set to use for writing text, UTF-8 by default.
@@ -163,7 +163,7 @@ public fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Ch
     Files.write(this, lines, charset, *DEFAULT_APPEND_OPTIONS)
 
 /**
- * Appends the specified sequence of char sequences [lines] to a file terminating each one with the platform's line separator
+ * Appends the specified sequence of character sequences [lines] to a file terminating each one with the platform's line separator
  * using [Charsets.UTF_8] by default.
  *
  * @param charset character set to use for writing text, UTF-8 by default.

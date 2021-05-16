@@ -75,7 +75,7 @@ class LevenshteinDistanceKtTest {
 
 /**
  * Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between the
- * char sequence of `this` assertion and the given [other] one char sequence and returns an assertion on the distance.
+ * character sequence of `this` assertion and the given [other] one character sequence and returns an assertion on the distance.
  */
 fun <T : CharSequence> Assertion.Builder<T>.levenshteinDistance(other: CharSequence): Assertion.Builder<Int> =
     get("Levenshtein distance") { levenshteinDistance(other) }

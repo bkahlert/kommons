@@ -4,9 +4,9 @@ import koodies.collections.head
 import koodies.text.LineSeparators.lines
 
 /**
- * If this char sequence is made up of multiple lines of text
+ * If this character sequence is made up of multiple lines of text
  * this property contains the first one. Otherwise it simply contains
- * this char sequence.
+ * this character sequence.
  *
  * @see CharSequence.otherLines
  */

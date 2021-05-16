@@ -23,7 +23,7 @@ class AlignmentsKtTest {
     @Test
     fun `should center string collection`() {
         val string = listOf("     foo", "  bar baz ")
-        val actual = string.center('X')
-        expectThat(actual).containsExactly("XXfooXX", "bar baz")
+        val actual = string.center('.')
+        expectThat(actual).containsExactly("..foo..", "bar baz")
     }
 }

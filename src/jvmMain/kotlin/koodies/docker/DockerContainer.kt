@@ -313,12 +313,12 @@ public class DockerContainer(public val name: String) {
         public object ContainerContext {
 
             /**
-             * Sanitizes this char sequence and returns it as a Docker container.
+             * Sanitizes this character sequence and returns it as a Docker container.
              */
             public val <T : CharSequence> T.sanitized: DockerContainer get() = from(this.toString(), randomSuffix = false)
 
             /**
-             * Sanitizes and appends a random suffix to this char sequence before
+             * Sanitizes and appends a random suffix to this character sequence before
              * returning the result as a Docker container.
              */
             public val <T : CharSequence> T.withRandomSuffix: DockerContainer get() = from(this.toString(), randomSuffix = true)

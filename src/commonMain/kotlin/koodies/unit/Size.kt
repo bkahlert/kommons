@@ -214,7 +214,7 @@ public inline fun <T> Sequence<T>.sumBy(selector: (T) -> Size): Size {
 }
 
 /**
- * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
+ * Tries to parse this character sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
  *
  * @see parse
  */
@@ -222,7 +222,7 @@ public fun CharSequence.toSize(): Size = parse()
 
 
 /**
- * Tries to parse this char sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
+ * Tries to parse this character sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
  *
  * Sizes with and without decimals, as much as all binary and decimal units
  * either with or without a space between value and unit are supported.

@@ -2,7 +2,7 @@ package koodies.text
 
 /**
  * Calculates the maximum length of overlapping regions between this
- * and the [other] char sequence.
+ * and the [other] character sequence.
  */
 public fun CharSequence.overlap(other: CharSequence): Int {
     var maxOverlap = other.length

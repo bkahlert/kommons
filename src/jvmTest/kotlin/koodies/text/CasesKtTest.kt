@@ -35,7 +35,7 @@ class CasesKtTest {
         }
 
         @Suppress("USELESS_CAST")
-        group("char sequence based") {
+        group("character sequence based") {
             group("split") {
                 expecting("should split kebab-case") { kebabCase.decapitalize().splitKebabCase() } that { containsExactlyCharacterWise(parts) }
                 expecting("should split camelCase") { camelCase.decapitalize().splitCamelCase() } that { containsExactlyCharacterWise(parts) }
@@ -78,7 +78,7 @@ class CasesKtTest {
             }
         }
 
-        group("char sequence based") {
+        group("character sequence based") {
             group("split") {
                 expecting("should split kebab-case (CharSequence)") { kebabCase.decapitalize().splitKebabCase() } that { containsExactlyCharacterWise(parts) }
                 expecting("should split SCREAMING_SNAKE_CASE (CharSequence)") {

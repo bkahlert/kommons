@@ -51,7 +51,7 @@ public interface UnitPrefix {
             }
 
         /**
-         * Tries to parse this char sequence as an instance of any unit (e.g. `1 MiB` or `1.32GB`).
+         * Tries to parse this character sequence as an instance of any unit (e.g. `1 MiB` or `1.32GB`).
          *
          * Sizes with and without decimals, as much as all binary and decimal units
          * either with or without a space between value and unit are supported.

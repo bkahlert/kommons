@@ -1,7 +1,6 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.collections.synchronizedListOf
 import koodies.exec.IO
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.runtime.isTesting
@@ -19,6 +18,8 @@ import koodies.text.styling.wrapWithBorder
 import koodies.time.Now
 import koodies.unit.Size
 import koodies.unit.bytes
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.reflect.KProperty
 
 
@@ -107,15 +108,28 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
 }
 
 public abstract class Recorder<T> {
-    private val messages = synchronizedListOf<T>()
-    public fun <R> use(transform: List<T>.() -> R): R = messages.toList().transform()
+    private val messagesLock = ReentrantLock()
+    private val messages = mutableListOf<T>()
 
-    public fun record(message: T): T = message.also(messages::add)
+    public fun <R> use(transform: List<T>.() -> R): R = messagesLock.withLock {
+        messages.toList().transform()
+    }
 
-    public fun joinMessages(): String = messages.joinToString(separator = "")
-    public fun joinMessages(transform: T.() -> CharSequence): String = messages.joinToString(separator = "") { it.transform() }
+    public fun record(message: T): T = messagesLock.withLock {
+        message.also(messages::add)
+    }
 
-    public fun clear(): Unit = messages.clear()
+    public fun joinMessages(): String = messagesLock.withLock {
+        messages.joinToString(separator = "")
+    }
+
+    public fun joinMessages(transform: T.() -> CharSequence): String = messagesLock.withLock {
+        messages.joinToString(separator = "") { it.transform() }
+    }
+
+    public fun clear(): Unit = messagesLock.withLock {
+        messages.clear()
+    }
 
     abstract override fun toString(): String
 }

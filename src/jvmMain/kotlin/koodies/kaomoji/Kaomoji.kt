@@ -58,12 +58,12 @@ public data class Kaomoji(
         accessory to accessory.codePointCount,
     )
 
-    public val leftArm: CharSequence get() = kaomojiString.subSequence(leftArmRange)
-    public val leftEye: CharSequence get() = kaomojiString.subSequence(leftEyeRange)
-    public val mouth: CharSequence get() = kaomojiString.subSequence(mouthRange)
-    public val rightEye: CharSequence get() = kaomojiString.subSequence(rightEyeRange)
-    public val rightArm: CharSequence get() = kaomojiString.subSequence(rightArmRange)
-    public val accessory: CharSequence get() = kaomojiString.subSequence(accessoryRange)
+    public val leftArm: CharSequence get() = leftArmRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
+    public val leftEye: CharSequence get() = leftEyeRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
+    public val mouth: CharSequence get() = mouthRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
+    public val rightEye: CharSequence get() = rightEyeRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
+    public val rightArm: CharSequence get() = rightArmRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
+    public val accessory: CharSequence get() = accessoryRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
     private val string = "$leftArm$leftEye$mouth$rightEye$rightArm$accessory"
 
     public fun random(): Kaomoji = Generator.random(
@@ -152,6 +152,11 @@ public data class Kaomoji(
 
     @Suppress("SpellCheckingInspection", "ObjectPropertyName", "HardCodedStringLiteral")
     public companion object {
+
+        /**
+         * An empty kaomoji...
+         */
+        public val EMPTY: Kaomoji = Kaomoji("", IntRange.EMPTY, IntRange.EMPTY, IntRange.EMPTY, IntRange.EMPTY, IntRange.EMPTY, IntRange.EMPTY)
 
         /**
          * Parses a [Kaomoji] from the given [kaomojiString].

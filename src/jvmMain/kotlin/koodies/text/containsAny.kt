@@ -1,7 +1,7 @@
 package koodies.text
 
 /**
- * Returns `true` if this char sequence contains any of the specified [others] as a substring.
+ * Returns `true` if this character sequence contains any of the specified [others] as a substring.
  *
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
  */
@@ -10,7 +10,7 @@ public fun <T : CharSequence> CharSequence.containsAny(others: Iterable<T>, igno
 
 
 /**
- * Returns `true` if this char sequence contains any of the specified [others] as a substring.
+ * Returns `true` if this character sequence contains any of the specified [others] as a substring.
  *
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
  */

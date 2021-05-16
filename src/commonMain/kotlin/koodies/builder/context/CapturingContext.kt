@@ -15,7 +15,6 @@ import koodies.builder.SetBuilder
 import koodies.builder.SkippableBuilder
 import koodies.builder.mapBuild
 import koodies.builder.skippable
-import koodies.callable
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -85,18 +84,6 @@ public abstract class CapturingContext {
      * Contains the mapping between property and its captured result.
      */
     protected abstract val captures: CapturesMap
-
-    /**
-     * Creates a [Builder] that delegates its build result to the given [transform].
-     *
-     * Use cases are:
-     * - specifying a custom [Builder] based on `this` existing one
-     * - providing an alias for another function
-     */
-    @Deprecated("replace by then", ReplaceWith("this then transform"))
-    public inline infix fun <reified T : Function<*>, reified R, reified S> Builder<T, R>.delegate(
-        crossinline transform: (R) -> S,
-    ): CallableProperty<Any?, (T) -> S> = callable(mapBuild(transform))
 
     /**
      * Creates a [SkippableBuilder] property that builds using `this` builder's result
@@ -200,7 +187,7 @@ public abstract class CapturingContext {
      *              add(MULTILINE)
      *         }
      *
-     *         👉 captures: EnumSetBuilder{ +RegexOption.IGNORE_CASE; add(RegexOption.MULTLINE) }
+     *         👉 captures: EnumSetBuilder{ +RegexOption.IGNORE_CASE; add(RegexOption.MULTILINE) }
      *     }
      * ```
      *

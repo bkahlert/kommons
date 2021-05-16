@@ -1,12 +1,12 @@
 package koodies.text.styling
 
+import koodies.math.ceilDiv
+import koodies.math.floorDiv
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.NBSP
 import koodies.text.maxLength
 import koodies.text.repeat
-import kotlin.math.ceil
-import kotlin.math.floor
 
 /**
  * Centers this collection of strings by adding the needed amount of whitespaces from the left (and right)
@@ -28,8 +28,8 @@ public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLen
     val maxLength = trimmed.maxLength()
     val finalLength = maxLength.coerceAtLeast(minLength)
     return trimmed.map { line ->
-        val missing: Double = (finalLength - line.ansiRemoved.length) / 2.0
-        whitespace.repeat(floor(missing).toInt()) + line + whitespace.repeat(ceil(missing).toInt())
+        val missing: Int = finalLength - line.ansiRemoved.length
+        whitespace.repeat(missing floorDiv 2) + line + whitespace.repeat(missing ceilDiv 2)
     }.toList()
 }
 

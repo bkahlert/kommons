@@ -35,7 +35,7 @@ public object ANSI {
     private val level by lazy { if (isDebugging) NONE else ansiSupport }
 
     /**
-     * Contains `this` char sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
+     * Contains `this` character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
      */
     public val CharSequence.ansiRemoved: String get() = REGEX.replace(toString(), "")
 
@@ -940,13 +940,13 @@ private object TokenizationCache {
 }
 
 /**
- * A char sequence which is [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) aware
+ * A character sequence which is [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) aware
  * and which does not break any sequence.
  *
  * The behaviour is as follows:
  * - escape sequences have length 0, that is, an [AnsiString] has the same length as its [String] counterpart
  * - [get] returns the unformatted char at the specified index
- * - [subSequence] returns the same char sequence as an unformatted [String] would do—but with the formatting ANSI escape sequences intact.
+ * - [subSequence] returns the same character sequence as an unformatted [String] would do—but with the formatting ANSI escape sequences intact.
  * the sub sequence. Also escape sequences are ignored from [length].
  */
 public open class AnsiString private constructor(public val string: String) : CharSequence {
@@ -1070,7 +1070,7 @@ public open class AnsiString private constructor(public val string: String) : Ch
     override fun get(index: Int): Char = unformatted[index]
 
     /**
-     * Returns the same char sequence as an unformatted [String.subSequence] would do.
+     * Returns the same character sequence as an unformatted [String.subSequence] would do.
      *
      * Sole difference: The formatting ANSI escape sequences are kept.
      * Eventually open sequences will be closes at the of the sub sequence.
@@ -1166,7 +1166,7 @@ public open class AnsiString private constructor(public val string: String) : Ch
 }
 
 /**
- * Returns if this char sequence contains the specified [other] [CharSequence] as a substring.
+ * Returns if this character sequence contains the specified [other] [CharSequence] as a substring.
  *
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
  * @param ignoreAnsi ANSI formatting / escapes are ignored by default. Use `false` consider escape codes as well
@@ -1267,7 +1267,7 @@ private object AnsiCodeHelper {
     }
 
     /**
-     * Searches this char sequence for [AnsiCodeHelper] and returns a stream of codes.
+     * Searches this character sequence for [AnsiCodeHelper] and returns a stream of codes.
      *
      * ***Note:** This method makes no difference between opening and closing codes.*
      */

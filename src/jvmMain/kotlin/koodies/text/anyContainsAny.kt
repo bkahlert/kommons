@@ -1,7 +1,7 @@
 package koodies.text
 
 /**
- * Returns `true` if any of the char sequences contains any of the specified [others] as a substring.
+ * Returns `true` if any of the character sequences contains any of the specified [others] as a substring.
  *
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
  */

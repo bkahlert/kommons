@@ -7,7 +7,7 @@ import koodies.text.LineSeparators.withoutLeadingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 
 /**
- * Returns true if this char sequence matches the given SLF4J / Logback style [curlyPattern], like `I {} you have to {}`.
+ * Returns true if this character sequence matches the given SLF4J / Logback style [curlyPattern], like `I {} you have to {}`.
  *
  * @sample Samples.singleLineMatches
  * @sample Samples.multiLineMatches

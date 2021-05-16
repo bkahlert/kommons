@@ -97,7 +97,7 @@ public object LineSeparators : Collection<String> {
     public val CharSequence?.isMultiline: Boolean get() = lines().size > 1
 
     /**
-     * Splits this char sequence to a sequence of lines delimited by any of the [LineSeparators].
+     * Splits this character sequence to a sequence of lines delimited by any of the [LineSeparators].
      *
      * If the lines returned do include terminating line separators is specified by [keepDelimiters].
      *
@@ -114,7 +114,7 @@ public object LineSeparators : Collection<String> {
         ) ?: emptySequence()
 
     /**
-     * Splits this char sequence to a list of lines delimited by any of the [LineSeparators].
+     * Splits this character sequence to a list of lines delimited by any of the [LineSeparators].
      *
      * If the lines returned do include terminating line separators is specified by [keepDelimiters].
      *
@@ -190,11 +190,11 @@ public object LineSeparators : Collection<String> {
     public val CharSequence.firstLineSeparatorLength: Int get() = firstLineSeparator?.length ?: 0
 
     /**
-     * Maps each line of this char sequence using [transform].
+     * Maps each line of this character sequence using [transform].
      *
-     * If this char sequence consists of but a single line this line is mapped.
+     * If this character sequence consists of but a single line this line is mapped.
      *
-     * If this char sequence has a trailing line that trailing line is left unchanged.
+     * If this character sequence has a trailing line that trailing line is left unchanged.
      */
     public fun CharSequence?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
         (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
@@ -215,11 +215,11 @@ public object LineSeparators : Collection<String> {
         (this as? CharSequence).mapLines(ignoreTrailingSeparator, transform)
 
     /**
-     * Flat maps each line of this char sequence using [transform].
+     * Flat maps each line of this character sequence using [transform].
      *
-     * If this char sequence consists of but a single line this line is mapped.
+     * If this character sequence consists of but a single line this line is mapped.
      *
-     * If this char sequence has a trailing line that trailing line is left unchanged.
+     * If this character sequence has a trailing line that trailing line is left unchanged.
      */
     public fun <T : CharSequence?> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
         (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
@@ -236,7 +236,7 @@ public object LineSeparators : Collection<String> {
         mapLines(ignoreTrailingSeparator) { "$prefix$it" }
 
     /**
-     * Breaks this char sequence to a sequence of strings of [maxLength].
+     * Breaks this character sequence to a sequence of strings of [maxLength].
      *
      * @param maxLength The maximum length of each returned line.
      */

@@ -223,7 +223,6 @@ class RegularExpressionsTest {
                 }
             }
 
-            @Suppress("NonAsciiCharacters")
             @TestFactory
             fun `should match lambda with …`() = test(RegularExpressions.lambdaRegex("lambda")) {
                 listOf(

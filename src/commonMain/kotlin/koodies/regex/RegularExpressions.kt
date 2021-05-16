@@ -251,7 +251,7 @@ public operator fun MatchResult.get(index: Int): String? = groupValue(index)
  * the [input] string, beginning at the specified [startIndex].
  *
  * @throws IndexOutOfBoundsException if [startIndex] is less than zero or
- *         greater than the length of the [input] char sequence.
+ *         greater than the length of the [input] character sequence.
  */
 public fun Regex.findAllValues(input: CharSequence, startIndex: Int = 0): Sequence<String> =
     findAll(input, startIndex).map { it.value }
@@ -261,7 +261,7 @@ public fun Regex.findAllValues(input: CharSequence, startIndex: Int = 0): Sequen
  * the [input] string, beginning at the specified [startIndex].
  *
  * @throws IndexOutOfBoundsException if [startIndex] is less than zero or
- *         greater than the length of the [input] char sequence.
+ *         greater than the length of the [input] character sequence.
  */
 public fun Regex.countMatches(input: CharSequence, startIndex: Int = 0): Int =
     findAll(input, startIndex).count()

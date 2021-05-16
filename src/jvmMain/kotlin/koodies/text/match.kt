@@ -5,7 +5,7 @@ package koodies.text
 import koodies.regex.group
 
 /**
- * Matches SLF4J / Logback style [curlyPattern] with this char sequence and returns a map of matches.
+ * Matches SLF4J / Logback style [curlyPattern] with this character sequence and returns a map of matches.
  *
  * Results consist of what was matches using a named placeholder (e.g. `{my custom name}`).
  */

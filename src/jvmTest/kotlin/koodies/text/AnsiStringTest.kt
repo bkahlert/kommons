@@ -344,7 +344,7 @@ class AnsiStringTest {
         }
 
         @Test
-        fun `should split char sequence casted ANSI string`() {
+        fun `should split character sequence casted ANSI string`() {
             @Suppress("SpellCheckingInspection")
             expectThat((ansiString as CharSequence).mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
@@ -378,7 +378,7 @@ class AnsiStringTest {
         }
 
         @Test
-        fun `should split char sequences casted ANSI string`() {
+        fun `should split character sequences casted ANSI string`() {
             expectThat((ansiString as CharSequence).lineSequence().toList()).containsExactly(expectedAnsiFormattedLines)
         }
 
@@ -411,7 +411,7 @@ class AnsiStringTest {
         }
 
         @Test
-        fun `should split char sequence casted ANSI string`() {
+        fun `should split character sequence casted ANSI string`() {
             expectThat((ansiString as CharSequence).lines()).containsExactly(expectedAnsiFormattedLines)
         }
 
