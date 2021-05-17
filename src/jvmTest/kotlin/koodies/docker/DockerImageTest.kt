@@ -41,6 +41,15 @@ class DockerImageTest {
     }
 
     @TestFactory
+    fun `should not include specifier if specified`() = testEach(
+        imageInit,
+        imageWithTagInit,
+        imageWithDigestInit,
+    ) {
+        expecting { DockerImage(it).toString(includeSpecifier = false) } that { isEqualTo("repo/name") }
+    }
+
+    @TestFactory
     fun `should accept valid repositories and paths`() = testEach(
         "repo",
         "repo123",

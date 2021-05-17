@@ -11,7 +11,7 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerExitStateHandler.Failed
+import koodies.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
@@ -63,7 +63,7 @@ public class DockerRunCommandLine(
     private val fallbackName = executable.summary.toBaseName().withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
 
-    override val summary: String = "docker run ${image.formattedAs.input} ${executable.summary}"
+    override val summary: String = "docker run ${image.toString(includeSpecifier = false).formattedAs.input} ${executable.summary}"
 
     override fun toCommandLine(
         environment: Map<String, String>,
@@ -105,15 +105,7 @@ public class DockerRunCommandLine(
         workingDirectory: Path?,
         execTerminationCallback: ExecTerminationCallback?,
     ): DockerExec {
-        val commandLine = toCommandLine(environment, workingDirectory).let {
-            CommandLine(it.command, it.arguments) { pid, exitCode, io ->
-                kotlin.runCatching {
-                    with(DockerExitStateHandler) { handle(pid, exitCode, io).takeIf { exitState -> exitState is Failed.ConnectivityProblem } }
-                }.getOrNull() ?: run {
-                    with(fallbackExitStateHandler()) { handle(pid, exitCode, io) }
-                }
-            }
-        }
+        val commandLine = toCommandLine(environment, workingDirectory).warnOnConnectivityProblem()
         val container = options.name ?: error("Missing name in $options; at least would have expected $fallbackName")
         return DockerExec(container, commandLine.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback))
     }
@@ -536,6 +528,14 @@ public class DockerRunCommandLine(
         private val DEFAULT_SHELL = BourneShell()
         public val DEFAULT_SHELL_COMMAND: String = DEFAULT_SHELL.shellCommand
         public val DEFAULT_SHELL_ARGUMENTS: List<String> = DEFAULT_SHELL.shellArgsList
+
+        private fun CommandLine.warnOnConnectivityProblem() = CommandLine(command, arguments) { pid, exitCode, io ->
+            kotlin.runCatching {
+                with(DockerExitStateHandler) { handle(pid, exitCode, io).takeIf { exitState -> exitState is ConnectivityProblem } }
+            }.getOrNull() ?: run {
+                with(fallbackExitStateHandler()) { handle(pid, exitCode, io) }
+            }
+        }
     }
 }
 

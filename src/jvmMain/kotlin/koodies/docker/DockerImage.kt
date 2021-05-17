@@ -193,6 +193,10 @@ public open class DockerImage(
     override fun get(index: Int): Char = string[index]
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = string.subSequence(startIndex, endIndex)
     override fun toString(): String = string
+    public fun toString(includeSpecifier: Boolean): String =
+        if (includeSpecifier) string
+        else repoAndPath.joinToString("/")
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DockerImage) return false

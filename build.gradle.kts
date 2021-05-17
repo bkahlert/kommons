@@ -53,6 +53,7 @@ plugins {
 }
 
 allprojects {
+    apply { plugin("maven-publish") }
     apply { plugin("com.github.ben-manes.versions") }
     apply { plugin("se.patrikerdes.use-latest-versions") }
     configurations.all {
@@ -195,7 +196,7 @@ tasks.register<Copy>("assembleReadme") {
     include("README.template.md")
     rename { "README.md" }
     expand("project" to project)
-    dependsOn(tasks.releaseCheck)
+    shouldRunAfter(tasks.releaseCheck)
 }
 
 val dokkaOutputDir = buildDir.resolve("dokka")
@@ -222,13 +223,14 @@ val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory")
 val javadocJar = tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
-    from(dokkaOutputDir)
+    dependsOn(deleteDokkaOutputDir) // TODO add jsGenerateExternalsIntegrated
+    from(tasks.dokkaHtml.map { it.outputs })
 }
 
 publishing {
 
     repositories {
+
         maven {
             name = "OSSRH"
             url = if (version.isFinal()) {
@@ -299,4 +301,15 @@ publishing {
 
 signing {
     sign(publishing.publications)
+}
+
+// getting rid of missing dependency declarations
+val signingTasks = tasks.filter { it.name.startsWith("sign") }
+listOf(
+    tasks.getByName("publishKotlinMultiplatformPublicationToMavenLocal"),
+    tasks.getByName("publishJsPublicationToMavenLocal"),
+    tasks.getByName("publishJvmPublicationToMavenLocal"),
+    tasks.getByName("publishNativePublicationToMavenLocal")
+).forEach {
+    it.dependsOn(signingTasks)
 }

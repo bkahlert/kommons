@@ -16,4 +16,4 @@ fun ExtensionContext.conditionallyVerboseLogger(
     loggingRequestedByUser: Boolean? = false,
     logger: FixedWidthRenderingLogger = BACKGROUND,
 ): FixedWidthRenderingLogger =
-    if (loggingRequestedByUser != false || isVerbose) logger else MutedRenderingLogger
+    if (loggingRequestedByUser == true || isVerbose) logger else MutedRenderingLogger
