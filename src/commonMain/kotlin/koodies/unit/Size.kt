@@ -84,11 +84,7 @@ public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
                 DecimalPrefix.Giga,
                 DecimalPrefix.Mega,
                 DecimalPrefix.kilo,
-//                DecimalPrefix.hecto,
-//                DecimalPrefix.deca,
                 null,
-//                DecimalPrefix.deci,
-//                DecimalPrefix.centi,
                 DecimalPrefix.milli,
                 DecimalPrefix.micro,
                 DecimalPrefix.nano,
@@ -220,7 +216,6 @@ public inline fun <T> Sequence<T>.sumBy(selector: (T) -> Size): Size {
  */
 public fun CharSequence.toSize(): Size = parse()
 
-
 /**
  * Tries to parse this character sequence as a [Size] instance (e.g. `1 MiB` or `1.32GB`).
  *
@@ -233,38 +228,20 @@ public fun CharSequence.parse(): Size {
     return value.bytes
 }
 
-/**
- * Contains the equivalent value as [bytes].
- */
-public val Number.bytes: Size
-    get() = if (isZero) Size.ZERO else Size(toDouble().toBigDecimal())
+/** Returns a [Size] representing `this` number of bytes. */
+public val Number.bytes: Size get() = if (isZero) Size.ZERO else Size(toDouble().toBigDecimal())
 
-/**
- * Contains the equivalent value as [bytes].
- */
-public val BigDecimal.bytes: Size
-    get() = if (isZero) Size.ZERO else Size(this)
+/** Returns a [Size] representing `this` number of bytes. */
+public val BigDecimal.bytes: Size get() = if (isZero) Size.ZERO else Size(this)
 
-/**
- * Contains the equivalent value as [bytes].
- */
-public val BigInteger.bytes: Size
-    get() = if (isZero) Size.ZERO else Size(toString(10).toBigDecimal(10))
+/** Returns a [Size] representing `this` number of bytes. */
+public val BigInteger.bytes: Size get() = if (isZero) Size.ZERO else Size(toString(10).toBigDecimal(10))
 
-/**
- * Contains the equivalent value as [bytes].
- */
-public val Number.bits: Size
-    get() = if (isZero) Size.ZERO else toDouble().toBigDecimal().bits
+/** Returns a [Size] representing `this` number of bits. */
+public val Number.bits: Size get() = if (isZero) Size.ZERO else toDouble().toBigDecimal().bits
 
-/**
- * Contains the equivalent value as [bytes].
- */
-public val BigDecimal.bits: Size
-    get() = if (isZero) Size.ZERO else Size(this / Byte.SIZE_BITS.toBigDecimal())
+/** Returns a [Size] representing `this` number of bits. */
+public val BigDecimal.bits: Size get() = if (isZero) Size.ZERO else Size(this / Byte.SIZE_BITS.toBigDecimal())
 
-/**
- * Contains the equivalent value as [bytes].
- */
-public val BigInteger.bits: Size
-    get() = if (isZero) Size.ZERO else toBigDecimal().bits
+/** Returns a [Size] representing `this` number of bits. */
+public val BigInteger.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits

@@ -238,40 +238,6 @@ class SizeTest {
     }
 
     @Nested
-    inner class Conversion {
-        private val binFactor = BinaryPrefix.Kibi.factor
-        private val decFactor = DecimalPrefix.kilo.factor
-
-        @TestFactory
-        fun `should format to specific unit`() = testEach(
-            42.Yobi.bytes to 42.bytes * binFactor * binFactor * binFactor * binFactor * binFactor * binFactor * binFactor * binFactor,
-            42.Zebi.bytes to 42.bytes * binFactor * binFactor * binFactor * binFactor * binFactor * binFactor * binFactor,
-            42.Exbi.bytes to 42.bytes * binFactor * binFactor * binFactor * binFactor * binFactor * binFactor,
-            42.Pebi.bytes to 42.bytes * binFactor * binFactor * binFactor * binFactor * binFactor,
-            42.Tebi.bytes to 42.bytes * binFactor * binFactor * binFactor * binFactor,
-            42.Gibi.bytes to 42.bytes * binFactor * binFactor * binFactor,
-            42.Mebi.bytes to 42.bytes * binFactor * binFactor,
-            42.Kibi.bytes to 42.bytes * binFactor,
-            42.bytes to 42.bytes,
-
-            42.Yotta.bytes to 42.bytes * decFactor * decFactor * decFactor * decFactor * decFactor * decFactor * decFactor * decFactor,
-            42.Zetta.bytes to 42.bytes * decFactor * decFactor * decFactor * decFactor * decFactor * decFactor * decFactor,
-            42.Exa.bytes to 42.bytes * decFactor * decFactor * decFactor * decFactor * decFactor * decFactor,
-            42.Peta.bytes to 42.bytes * decFactor * decFactor * decFactor * decFactor * decFactor,
-            42.Tera.bytes to 42.bytes * decFactor * decFactor * decFactor * decFactor,
-            42.Giga.bytes to 42.bytes * decFactor * decFactor * decFactor,
-            42.Mega.bytes to 42.bytes * decFactor * decFactor,
-            42.kilo.bytes to 42.bytes * decFactor,
-            42.hecto.bytes to 42.bytes * decFactor / 10,
-            42.deca.bytes to 42.bytes * decFactor / 100,
-            42.bytes to 42.bytes,
-        ) { (decimalSize: Size, binarySize: Size) ->
-            expecting { decimalSize } that { isEqualTo(binarySize) }
-            expecting { decimalSize.bytes } that { isEqualTo(binarySize.bytes) }
-        }
-    }
-
-    @Nested
     inner class Parsing {
 
         @Nested

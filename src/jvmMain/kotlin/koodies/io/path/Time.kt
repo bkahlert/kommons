@@ -1,6 +1,8 @@
 package koodies.io.path
 
 import koodies.time.Now
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.createFile
@@ -20,7 +22,7 @@ public fun Path.touch(): Path {
  * Contains since when this file was last modified.
  */
 public var Path.age: Duration
-    get() :Duration = Duration.milliseconds((Now.millis - getLastModifiedTime().toMillis()))
+    get() :Duration = (Now.millis - getLastModifiedTime().toMillis()).milli.seconds
     set(value) {
         setLastModifiedTime(FileTime.from(Now.minus(value)))
     }

@@ -3,6 +3,8 @@ package koodies.jvm
 import koodies.logging.RenderingLogger
 import koodies.runWrapping
 import koodies.time.sleep
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
@@ -54,7 +56,7 @@ public class BusyThread private constructor(private var stopped: AtomicBoolean, 
         logger?.logLine { "THREAD stopped? $stopped" }
         try {
             logger?.logLine { "busy" }
-            Duration.milliseconds(50).sleep()
+            50.milli.seconds.sleep()
         } catch (e: InterruptedException) {
             if (!stopped.get()) currentThread().interrupt()
             else logger?.logLine { "interruption ignored" }

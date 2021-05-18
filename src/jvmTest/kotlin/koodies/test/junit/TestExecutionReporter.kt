@@ -14,6 +14,8 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.styling.draw
 import koodies.text.styling.wrapWithBorder
 import koodies.toSimpleString
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.extension.TestWatcher
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -23,7 +25,6 @@ import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
 import java.lang.reflect.Method
 import kotlin.properties.Delegates
-import kotlin.time.Duration
 
 class TestExecutionReporter : TestExecutionListener, TestWatcher {
 
@@ -39,7 +40,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
     }
 
     override fun testPlanExecutionFinished(testPlan: TestPlan) {
-        val timeNeeded = Duration.milliseconds((System.currentTimeMillis() - startTimestamp))
+        val timeNeeded = (System.currentTimeMillis() - startTimestamp).milli.seconds
         checkDebug(testPlan)
         checkSkippedDockerTests(testPlan)
 

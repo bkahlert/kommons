@@ -9,11 +9,11 @@ import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.withSuffix
+import koodies.unit.days
+import koodies.unit.minutes
 import java.io.IOException
 import java.nio.file.Path
 import java.util.Locale
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
 
 private object Dump {
     val dumpDir = Locations.Temp.resolve("com.bkahlert.koodies")
@@ -21,8 +21,8 @@ private object Dump {
     const val dumpSuffix = ".log"
 
     init {
-        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, days(5), keepAtMost = 100, dumpDir)
-        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, minutes(10), keepAtMost = 5)
+        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 5.days, keepAtMost = 100, dumpDir)
+        deleteOldTempFilesOnExit(dumpPrefix, dumpSuffix, 10.minutes, keepAtMost = 5)
     }
 }
 

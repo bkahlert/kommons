@@ -1,6 +1,8 @@
 package koodies.time
 
 import koodies.jvm.currentThread
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.nio.file.attribute.FileTime
 import java.time.Instant
 import java.time.LocalDate
@@ -28,7 +30,7 @@ public fun <R> Duration.sleep(block: () -> R): R {
     return block()
 }
 
-public fun Duration.busyWait(sleepIntervals: Duration = Duration.milliseconds(50)) {
+public fun Duration.busyWait(sleepIntervals: Duration = 50.milli.seconds) {
     val start = System.currentTimeMillis()
     @Suppress("ControlFlowWithEmptyBody")
     while (notPassedSince(start)) {

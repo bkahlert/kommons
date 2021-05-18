@@ -16,6 +16,7 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.State
 import koodies.exec.Process.State.Excepted
 import koodies.text.ANSI.ansiRemoved
+import koodies.unit.seconds
 import kotlin.time.Duration
 
 /**
@@ -52,7 +53,7 @@ public open class DockerExec(
     /**
      * Stops this process by stopping its container with the optionally specified [timeout] (default: 5 seconds).
      */
-    public fun stop(timeout: Duration? = Duration.seconds(5)): DockerExec =
+    public fun stop(timeout: Duration? = 5.seconds): DockerExec =
         also { container.stop(timeout = timeout) }.also { exec.stop() }
 
     /**

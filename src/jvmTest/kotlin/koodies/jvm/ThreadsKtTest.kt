@@ -3,6 +3,8 @@ package koodies.jvm
 import koodies.logging.InMemoryLogger
 import koodies.test.Slow
 import koodies.time.sleep
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -17,7 +19,6 @@ import strikt.assertions.isLessThan
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @Isolated // time critical
@@ -57,25 +58,25 @@ class ThreadsKtTest {
                 measureTime {
                     exec(finished)
                     while (!finished.get()) {
-                        Duration.milliseconds(1).sleep()
+                        1.milli.seconds.sleep()
                     }
-                }.let { expectThat(it).isLessThan(Duration.milliseconds(80)) }
+                }.let { expectThat(it).isLessThan(80.milli.seconds) }
             }
         }
 
         @TestFactory
         fun `should start delayed`() = listOf(
-            "without explicit executor" to { finished: AtomicBoolean -> completableFuture(Duration.milliseconds(500)) { finished.set(true) } },
-            "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture(Duration.milliseconds(500)) { finished.set(true) } },
+            "without explicit executor" to { finished: AtomicBoolean -> completableFuture(0.5.seconds) { finished.set(true) } },
+            "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture(0.5.seconds) { finished.set(true) } },
         ).map { (caption, exec) ->
             dynamicTest(caption) {
                 val finished = AtomicBoolean(false)
                 measureTime {
                     exec(finished)
                     while (!finished.get()) {
-                        Duration.milliseconds(1).sleep()
+                        1.milli.seconds.sleep()
                     }
-                }.let { expectThat(it).isGreaterThan(Duration.milliseconds(400)).isLessThan(Duration.milliseconds(600)) }
+                }.let { expectThat(it).isGreaterThan(400.milli.seconds).isLessThan(600.milli.seconds) }
             }
         }
 
@@ -93,5 +94,5 @@ class ThreadsKtTest {
     }
 }
 
-public inline fun <reified T> Assertion.Builder<out CompletableFuture<out T>>.wait(): DescribeableBuilder<Result<T>> =
+inline fun <reified T> Assertion.Builder<out CompletableFuture<out T>>.wait(): DescribeableBuilder<Result<T>> =
     get { runCatching { get() } }

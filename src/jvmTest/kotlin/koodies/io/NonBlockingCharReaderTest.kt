@@ -9,6 +9,8 @@ import koodies.text.ANSI
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.styling.Borders
 import koodies.text.styling.wrapWithBorder
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution
@@ -20,21 +22,20 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThanOrEqualTo
 import java.io.InputStreamReader
-import kotlin.time.Duration
 
 @Execution(CONCURRENT)
 class NonBlockingCharReaderTest {
 
     @Test
     fun InMemoryLogger.`should read null if empty`() {
-        val reader = NonBlockingCharReader("".byteInputStream(), Duration.milliseconds(100))
+        val reader = NonBlockingCharReader("".byteInputStream(), 100.milli.seconds)
         5 times { expectThat(reader.read(CharArray(1), 0, this)).isLessThanOrEqualTo(0) }
         10 times { expectThat(reader.read(CharArray(1), 0, this)).isEqualTo(-1) }
     }
 
     @Test
     fun InMemoryLogger.`should return null if source is closed`() {
-        val reader = NonBlockingCharReader("123".byteInputStream(), Duration.milliseconds(100))
+        val reader = NonBlockingCharReader("123".byteInputStream(), 100.milli.seconds)
         expectThat(reader.readText()).isEqualTo("123")
         5 times { expectThat(reader.read(CharArray(1), 0, this)).isLessThanOrEqualTo(0) }
         10 times { expectThat(reader.read(CharArray(1), 0, this)).isEqualTo(-1) }
@@ -43,19 +44,19 @@ class NonBlockingCharReaderTest {
     @Test
     fun `should read content`() {
         val line = "line #壹\nline #❷"
-        val reader = NonBlockingCharReader(line.byteInputStream(), Duration.milliseconds(100))
+        val reader = NonBlockingCharReader(line.byteInputStream(), 100.milli.seconds)
         expectThat(reader.readLines()).containsExactly("line #壹", "line #❷")
     }
 
     @Slow @Test
     fun InMemoryLogger.`should read in a non-greedy fashion resp just as much as needed to avoid blocking`() {
         val inputStream = slowInputStream(
-            Duration.seconds(0),
-            Duration.seconds(1) to "123",
-            Duration.seconds(2) to "abc",
-            Duration.seconds(3) to "!§\"",
+            0.seconds,
+            1.seconds to "123",
+            2.seconds to "abc",
+            3.seconds to "!§\"",
         )
-        val reader = NonBlockingCharReader(inputStream, Duration.seconds(2))
+        val reader = NonBlockingCharReader(inputStream, 2.seconds)
 
         kotlin.runCatching {
             expectThat(reader.readLines()).containsExactly("123abc!\"")

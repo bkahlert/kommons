@@ -32,6 +32,7 @@ import koodies.text.randomString
 import koodies.text.spaced
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
+import koodies.unit.seconds
 import java.nio.file.Path
 import java.util.Locale
 import kotlin.time.Duration
@@ -122,7 +123,7 @@ public class DockerContainer(public val name: String) {
      * Stops this container with the optionally specified [timeout] (default: 5 seconds).
      */
     public fun stop(
-        timeout: Duration? = Duration.seconds(5),
+        timeout: Duration? = 5.seconds,
         async: Boolean = false,
         logger: RenderingLogger = DEBUGGING_ONLY,
     ): ExitState =
@@ -251,7 +252,7 @@ public class DockerContainer(public val name: String) {
          */
         public fun stop(
             vararg containers: DockerContainer,
-            timeout: Duration = Duration.seconds(5),
+            timeout: Duration = 5.seconds,
             logger: RenderingLogger = DEBUGGING_ONLY,
         ): ExitState {
             val names: List<String> = containers.map { it.name }

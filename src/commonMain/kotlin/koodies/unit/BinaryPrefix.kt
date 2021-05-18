@@ -64,42 +64,42 @@ public enum class BinaryPrefix(
     Kibi("Ki", 1),
 
     /**
-     * mibi is a [UnitPrefix] in the binary system denoting multiplications by 2-¹⁰
+     * mibi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻¹⁰
      */
     mibi("mi", -1),
 
     /**
-     * mubi is a [UnitPrefix] in the binary system denoting multiplications by 2-²⁰
+     * mubi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻²⁰
      */
     mubi("ui", -2),
 
     /**
-     * nabi is a [UnitPrefix] in the binary system denoting multiplications by 2-³⁰
+     * nabi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻³⁰
      */
     nabi("ni", -3),
 
     /**
-     * pibi is a [UnitPrefix] in the binary system denoting multiplications by 2-⁴⁰
+     * pibi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻⁴⁰
      */
     pibi("pi", -4),
 
     /**
-     * fembi is a [UnitPrefix] in the binary system denoting multiplications by 2-⁵⁰
+     * fembi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻⁵⁰
      */
     fembi("fi", -5),
 
     /**
-     * abi is a [UnitPrefix] in the binary system denoting multiplications by 2-⁶⁰
+     * abi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻⁶⁰
      */
     abi("ai", -6),
 
     /**
-     * zebi is a [UnitPrefix] in the binary system denoting multiplications by 2-⁷⁰
+     * zebi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻⁷⁰
      */
     zebi("Zi", -7),
 
     /**
-     * yobi is a [UnitPrefix] in the binary system denoting multiplications by 2-⁸⁰
+     * yobi is a [UnitPrefix] in the binary system denoting multiplications by 2⁻⁸⁰
      */
     yobi("Yi", -8),
     ;
@@ -171,43 +171,43 @@ public val Number.Mebi: BigDecimal by BinaryPrefix.Mebi
 public val Number.Kibi: BigDecimal by BinaryPrefix.Kibi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.mibi], that is multiplied by 2-¹⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.mibi], that is multiplied by 2⁻¹⁰.
  */
 public val Number.mibi: BigDecimal by BinaryPrefix.mibi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.mubi], that is multiplied by 2-²⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.mubi], that is multiplied by 2⁻²⁰.
  */
 public val Number.mubi: BigDecimal by BinaryPrefix.mubi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.nabi], that is multiplied by 2-³⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.nabi], that is multiplied by 2⁻³⁰.
  */
 public val Number.nabi: BigDecimal by BinaryPrefix.nabi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.pibi], that is multiplied by 2-⁴⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.pibi], that is multiplied by 2⁻⁴⁰.
  */
 public val Number.pibi: BigDecimal by BinaryPrefix.pibi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.fembi], that is multiplied by 2-⁵⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.fembi], that is multiplied by 2⁻⁵⁰.
  */
 public val Number.fembi: BigDecimal by BinaryPrefix.fembi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.abi], that is multiplied by 2-⁶⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.abi], that is multiplied by 2⁻⁶⁰.
  */
 public val Number.abi: BigDecimal by BinaryPrefix.abi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.zebi], that is multiplied by 2-⁷⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.zebi], that is multiplied by 2⁻⁷⁰.
  */
 @get:JvmName("getzebi")
 public val Number.zebi: BigDecimal by BinaryPrefix.zebi
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefix.yobi], that is multiplied by 2-⁸⁰.
+ * Denotes `this` number as prefixed with [BinaryPrefix.yobi], that is multiplied by 2⁻⁸⁰.
  */
 @get:JvmName("getyobi")
 public val Number.yobi: BigDecimal by BinaryPrefix.yobi

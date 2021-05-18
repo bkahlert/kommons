@@ -6,6 +6,7 @@ import koodies.nio.NonBlockingReader
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.text.LineSeparators.LF
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively
@@ -30,7 +31,7 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         fun InMemoryLogger.`should read full line if delayed`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                Duration.seconds(1.5) to "Foo$LF",
+                1.5.seconds to "Foo$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo")
@@ -40,8 +41,8 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         fun InMemoryLogger.`should read full line if second half delayed`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                Duration.seconds(1.5) to "F",
-                Duration.seconds(0.5) to "oo$LF",
+                1.5.seconds to "F",
+                0.5.seconds to "oo$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo")
@@ -51,8 +52,8 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         fun InMemoryLogger.`should read full line if split`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                Duration.seconds(1.5) to "Foo\nB",
-                Duration.seconds(0.5) to "ar$LF",
+                1.5.seconds to "Foo\nB",
+                0.5.seconds to "ar$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo", "Bar")
@@ -62,18 +63,18 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         fun InMemoryLogger.`should read full line if split delayed`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
-                Duration.seconds(1.5) to "Foo\nB",
-                Duration.seconds(1.5) to "ar$LF",
+                1.5.seconds to "Foo\nB",
+                1.5.seconds to "ar$LF",
             )
 
             expectThat(read(slowInputStream)).containsExactly("", "Foo", "B", "Bar")
         }
 
         private fun InMemoryLogger.read(slowInputStream: InputStream): List<String> {
-            val reader = readerFactory(slowInputStream, Duration.seconds(1))
+            val reader = readerFactory(slowInputStream, 1.seconds)
 
             val read: MutableList<String> = mutableListOf()
-            assertTimeoutPreemptively(Duration.seconds(100).toJavaDuration()) {
+            assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
                 read.addAll(reader.readLines())
             }
             return read

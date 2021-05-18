@@ -42,6 +42,7 @@ import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -55,7 +56,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
-import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @Slow
@@ -417,7 +417,7 @@ class DockerRunCommandLineTest {
         { with(Ubuntu) { dockerized.exec() } },
     ) { execVariant ->
         var exec: DockerExec? = null
-        expecting { measureTime { exec = CommandLine("sleep", "2").execVariant() } } that { isGreaterThanOrEqualTo(Duration.seconds(2)) }
+        expecting { measureTime { exec = CommandLine("sleep", "2").execVariant() } } that { isGreaterThanOrEqualTo(2.seconds) }
         { exec } asserting { get { invoke() }.isNotNull().hasState<Exited>() }
     }
 
@@ -427,7 +427,7 @@ class DockerRunCommandLineTest {
         { dockerized { "ubuntu" }.exec.async() },
         { with(Ubuntu) { dockerized.exec.async() } },
     ) { execVariant ->
-        expecting { measureTime { CommandLine("sleep", "2").execVariant() } } that { isLessThan(Duration.seconds(2)) }
+        expecting { measureTime { CommandLine("sleep", "2").execVariant() } } that { isLessThan(2.seconds) }
     }
 
     @Nested

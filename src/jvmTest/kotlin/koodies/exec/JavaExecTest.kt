@@ -29,6 +29,8 @@ import koodies.text.matchesCurlyPattern
 import koodies.text.styling.wrapWithBorder
 import koodies.time.poll
 import koodies.time.sleep
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -54,7 +56,6 @@ import strikt.assertions.message
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
@@ -67,33 +68,33 @@ class JavaExecTest {
         fun `should be running`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val (exec, file) = createLazyFileCreatingExec()
             expectThat(exec).hasState<Running>()
-            expectThat(poll { file.exists() }.every(Duration.milliseconds(100)).forAtMost(seconds(8))).isTrue()
+            expectThat(poll { file.exists() }.every(100.milli.seconds).forAtMost(8.seconds)).isTrue()
         }
 
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = testEach<Exec.() -> Exec>(
-            { processSilently().apply { seconds(1).sleep() } },
+            { processSilently().apply { 1.seconds.sleep() } },
             { processSynchronously {} },
-            { processAsynchronously().apply { seconds(1).sleep() } },
+            { processAsynchronously().apply { 1.seconds.sleep() } },
         ) { operation ->
             withTempDir(uniqueId) {
                 val exec = createCompletingExec().operation()
                 expecting { exec.state } that { isA<Exited>() }
                 expecting { exec } that { completesWithIO() }
-                expecting { poll { exec.successful == true }.every(Duration.milliseconds(100)).forAtMost(seconds(8)) } that { isTrue() }
+                expecting { poll { exec.successful == true }.every(100.milli.seconds).forAtMost(8.seconds) } that { isTrue() }
             }
         }
 
         @Test
         fun `should be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val exec = createCompletingExec(sleep = seconds(5))
+            val exec = createCompletingExec(sleep = 5.seconds)
             expectThat(exec).alive
             exec.kill()
         }
 
         @Test
         fun `should have running state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val exec = createCompletingExec(sleep = seconds(5))
+            val exec = createCompletingExec(sleep = 5.seconds)
             expectThat(exec).hasState<Running> {
                 status.isEqualTo("Process ${exec.pid} is running.")
                 runningPid.isGreaterThan(0)
@@ -191,8 +192,8 @@ class JavaExecTest {
                     }
                 }
 
-                poll { exec.io.toList().size >= 7 }.every(Duration.milliseconds(100))
-                    .forAtMost(seconds(15)) { fail("Less than 6x I/O logged within 8 seconds.") }
+                poll { exec.io.toList().size >= 7 }.every(100.milli.seconds)
+                    .forAtMost(15.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
                 exec.stop()
                 exec.waitFor()
                 expectThat(exec) {
@@ -220,7 +221,7 @@ class JavaExecTest {
         @Test
         fun `by polling state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec = createCompletingExec(0)
-            poll { exec.state is Exited }.every(seconds(0.5)).forAtMost(seconds(8)) { fail { "Did not terminate." } }
+            poll { exec.state is Exited }.every(0.5.seconds).forAtMost(8.seconds) { fail { "Did not terminate." } }
             expectThat(exec).hasState<Exited>()
         }
 
@@ -270,7 +271,7 @@ class JavaExecTest {
                     }
                 }
             } that {
-                isLessThanOrEqualTo(seconds(5))
+                isLessThanOrEqualTo(5.seconds)
             }
         }
 
@@ -296,7 +297,7 @@ class JavaExecTest {
                     that(createCompletingExec().addPreTerminationCallback {
                         callbackExec = this
                     }).succeeds()
-                    Duration.milliseconds(100).sleep()
+                    100.milli.seconds.sleep()
                     expectThat(callbackExec).isNotNull()
                 }
             }
@@ -335,7 +336,7 @@ class JavaExecTest {
                     that(createCompletingExec(exitValue = 0, execTerminationCallback = {
                         callbackCalled = true
                     })).succeeds()
-                    Duration.milliseconds(100).sleep()
+                    100.milli.seconds.sleep()
                     expectThat(callbackCalled).isTrue()
                 }
             }
@@ -347,7 +348,7 @@ class JavaExecTest {
                     that(createCompletingExec(exitValue = 0).addPostTerminationCallback {
                         callbackExec = this
                     }).succeeds()
-                    Duration.milliseconds(100).sleep()
+                    100.milli.seconds.sleep()
                     expectThat(callbackExec).isNotNull()
                 }
             }
@@ -591,21 +592,21 @@ fun Builder<List<IO>>.logs(vararg io: IO) = logs(io.toList())
 fun Builder<List<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
 fun Builder<List<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
 
-fun Builder<List<IO>>.logsWithin(timeFrame: Duration = seconds(5), io: Collection<IO>) =
+fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
     assert("logs $io within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().containsAll(io)
-        }.every(Duration.milliseconds(100)).forAtMost(seconds(5))) {
+        }.every(100.milli.seconds).forAtMost(5.seconds)) {
             true -> pass()
             else -> fail("logged ${ioLog.toList()} instead")
         }
     }
 
-fun Builder<List<IO>>.logsWithin(timeFrame: Duration = seconds(5), predicate: List<IO>.() -> Boolean) =
+fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate: List<IO>.() -> Boolean) =
     assert("logs within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().predicate()
-        }.every(Duration.milliseconds(100)).forAtMost(seconds(5))) {
+        }.every(100.milli.seconds).forAtMost(5.seconds)) {
             true -> pass()
             else -> fail("did not log within $timeFrame")
         }

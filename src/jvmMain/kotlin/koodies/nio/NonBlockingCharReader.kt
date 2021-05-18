@@ -6,6 +6,7 @@ import koodies.io.ByteArrayOutputStream
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.text.withRandomSuffix
+import koodies.unit.seconds
 import org.jline.utils.NonBlocking
 import java.io.IOException
 import java.io.InputStream
@@ -22,7 +23,7 @@ import org.jline.utils.NonBlockingReader as JLineNonBlockingReader
  */
 public class NonBlockingCharReader(
     private val inputStream: InputStream,
-    private val timeout: Duration = Duration.seconds(6),
+    private val timeout: Duration = 6.seconds,
     private val charset: Charset = Charsets.UTF_8,
     name: String = "ImgCstmzr-${NonBlockingCharReader::class.simpleName}".withRandomSuffix(),
 ) : Reader() {

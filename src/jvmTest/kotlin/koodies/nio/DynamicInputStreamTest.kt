@@ -2,6 +2,7 @@ package koodies.nio
 
 import koodies.jvm.thread
 import koodies.time.sleep
+import koodies.unit.seconds
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
@@ -39,7 +40,7 @@ class DynamicInputStreamTest {
     fun `should read as long as stream is not closed`() {
         val inputStream = DynamicInputStream()
         inputStream.yield("Hello World!".toByteArray())
-        thread { Duration.seconds(2.1).sleep { inputStream.close() } }
+        thread { 2.1.seconds.sleep { inputStream.close() } }
 
         var bytes: ByteArray
         val duration: Duration = measureTime {
@@ -47,7 +48,7 @@ class DynamicInputStreamTest {
         }
 
         expect {
-            that(duration).isGreaterThanOrEqualTo(Duration.seconds(2))
+            that(duration).isGreaterThanOrEqualTo(2.seconds)
             that(bytes).isEqualTo("Hello World!".toByteArray())
         }
     }

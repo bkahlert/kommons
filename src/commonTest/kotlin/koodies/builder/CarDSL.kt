@@ -16,10 +16,10 @@ import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.math.BigDecimal
 import koodies.unit.centi
+import koodies.unit.hours
 import koodies.unit.kilo
 import koodies.unit.milli
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.DurationUnit.HOURS
 
 class CarDSL {
@@ -108,7 +108,7 @@ class CarDSL {
         companion object : Returning<SpeedContext, Speed>(SpeedContext) {
             object SpeedContext {
                 val Int.km: Distance get() = kilo.m
-                val hour: Duration = hours(1)
+                val hour: Duration = 1.hours
                 infix fun Distance.per(time: Duration): Speed = Speed(this, time)
                 val BigDecimal.m: Distance get() = Distance(this)
             }

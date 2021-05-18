@@ -1,6 +1,7 @@
 package koodies.exec
 
 import koodies.exec.IO.Meta
+import koodies.exec.IO.Meta.Starting
 import koodies.io.path.pathString
 import koodies.io.path.text
 import koodies.io.path.writeText
@@ -13,6 +14,8 @@ import koodies.text.ansiRemoved
 import koodies.text.containsEscapeSequences
 import koodies.time.poll
 import koodies.time.sleep
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -30,9 +33,6 @@ import strikt.assertions.single
 import strikt.assertions.startsWith
 import java.io.IOException
 import java.nio.file.Path
-import kotlin.time.Duration
-import kotlin.time.milliseconds
-import kotlin.time.seconds
 
 class IOLogTest {
 
@@ -44,16 +44,16 @@ class IOLogTest {
             var i = 0
             while (!stop) {
                 ioLog + (Meta typed "being busy $i times")
-                Duration.milliseconds(10).sleep()
+                10.milli.seconds.sleep()
                 i++
             }
         }
 
-        poll { ioLog.count() > 0 }.every(Duration.milliseconds(10)).forAtMost(Duration.seconds(1)) { fail("No I/O logged in one second.") }
+        poll { ioLog.count() > 0 }.every(10.milli.seconds).forAtMost(1.seconds) { fail("No I/O logged in one second.") }
 
         expectThat(ioLog.toList()) {
             isNotEmpty()
-            contains(IO.Meta typed "being busy 0 times")
+            contains(Meta typed "being busy 0 times")
         }
         stop = true
     }
@@ -125,7 +125,7 @@ class IOLogTest {
 }
 
 fun createIOLog(): IOLog = IOLog().apply {
-    this + IO.Meta.Starting(CommandLine("command", "arg"))
+    this + Starting(CommandLine("command", "arg"))
     output + "processing$LF".toByteArray()
     output + "awaiting input: $LF".toByteArray()
     input + "cancel$LF".toByteArray()

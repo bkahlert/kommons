@@ -8,10 +8,11 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessEmpty
 import koodies.time.sleep
 import koodies.unit.bytes
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 public class SlowInputStream(
     public val baseDelayPerInput: Duration,
@@ -22,7 +23,7 @@ public class SlowInputStream(
 ) : InputStream() {
 
     public companion object {
-        private val fiftyMillis = milliseconds(50)
+        private val fiftyMillis = 50.milli.seconds
 
         public fun prompt(): Pair<Duration, String> = Duration.INFINITE to ""
         public fun InMemoryLogger.slowInputStream(
@@ -91,7 +92,7 @@ public class SlowInputStream(
         }
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            val delay = milliseconds(yetBlocked)
+            val delay = yetBlocked.milli.seconds
             logLine { "$delay to wait for next chunk" }
             ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
             return@compactLogging 0
@@ -133,8 +134,8 @@ public class SlowInputStream(
 
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            logLine { "blocking for the remaining ${milliseconds(yetBlocked)}…" }
-            milliseconds(yetBlocked).sleep()
+            logLine { "blocking for the remaining ${yetBlocked.milli.seconds}…" }
+            yetBlocked.milli.seconds.sleep()
         }
 
         val currentWord: MutableList<Byte> = unread.let {

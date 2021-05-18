@@ -1,6 +1,11 @@
 package koodies.time
 
 import koodies.test.testEach
+import koodies.unit.days
+import koodies.unit.hours
+import koodies.unit.minutes
+import koodies.unit.nano
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -18,12 +23,6 @@ import java.nio.file.attribute.FileTime
 import java.time.temporal.Temporal
 import java.time.temporal.UnsupportedTemporalTypeException
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 import java.time.Duration as JavaDuration
 
@@ -35,17 +34,17 @@ class TimeOperationsKtTest {
 
         @Test
         fun `should sleep on positive duration`() {
-            expectThat(measureTime { seconds(1).sleep() }).isGreaterThan(milliseconds(900)).isLessThan(milliseconds(1100))
+            expectThat(measureTime { 1.seconds.sleep() }).isGreaterThan(0.9.seconds).isLessThan(1.1.seconds)
         }
 
         @Test
         fun `should sleep and call block on positive duration`() {
-            expectThat(seconds(1).sleep { 42 }).isEqualTo(42)
+            expectThat(1.seconds.sleep { 42 }).isEqualTo(42)
         }
 
         @Test
         fun `should not sleep on zero duration`() {
-            expectThat(measureTime { Duration.ZERO.sleep() }).isLessThanOrEqualTo(milliseconds(100))
+            expectThat(measureTime { Duration.ZERO.sleep() }).isLessThanOrEqualTo(0.1.seconds)
         }
 
         @Test
@@ -55,12 +54,12 @@ class TimeOperationsKtTest {
 
         @Test
         fun `should throw on negative duration`() {
-            expectCatching { measureTime { seconds((-1)).sleep() } }.isFailure().isA<IllegalArgumentException>()
+            expectCatching { measureTime { (-1).seconds.sleep() } }.isFailure().isA<IllegalArgumentException>()
         }
 
         @Test
         fun `should throw and not run block on negative duration`() {
-            expectCatching { seconds((-1)).sleep { throw RuntimeException("error") } }.isFailure().isA<IllegalArgumentException>()
+            expectCatching { (-1).seconds.sleep { throw RuntimeException("error") } }.isFailure().isA<IllegalArgumentException>()
         }
     }
 
@@ -69,7 +68,7 @@ class TimeOperationsKtTest {
 
         @Test
         fun `should correspond to long value`() {
-            val duration = hours(14.5)
+            val duration = 14.5.hours
             expectThat(duration.toIntMilliseconds().toLong()).isEqualTo(duration.inWholeMilliseconds)
         }
     }
@@ -78,12 +77,12 @@ class TimeOperationsKtTest {
     inner class Plus {
 
         @TestFactory
-        fun `should add`() = testEach(
-            days(2) to JavaDuration.ofDays(2),
-            hours(3) to JavaDuration.ofHours(3),
-            minutes(4) to JavaDuration.ofMinutes(4),
-            seconds(5) to JavaDuration.ofSeconds(5),
-            nanoseconds(6) to JavaDuration.ofNanos(6),
+        fun `should add`() = testEach<Pair<Duration, JavaDuration>>(
+            2.days to JavaDuration.ofDays(2),
+            3.hours to JavaDuration.ofHours(3),
+            4.minutes to JavaDuration.ofMinutes(4),
+            5.seconds to JavaDuration.ofSeconds(5),
+            6.nano.seconds to JavaDuration.ofNanos(6),
         ) { (kotlinDuration, javaDuration) ->
             listOf(
                 Now.instant,
@@ -114,7 +113,7 @@ class TimeOperationsKtTest {
             Now.yearMonth,
             Now.year,
         ) { time ->
-            expectThrows<UnsupportedTemporalTypeException> { time + days(2) }
+            expectThrows<UnsupportedTemporalTypeException> { time + 2.days }
         }
     }
 
@@ -123,11 +122,11 @@ class TimeOperationsKtTest {
 
         @TestFactory
         fun `should subtract`() = testEach(
-            days(2) to JavaDuration.ofDays(2),
-            hours(3) to JavaDuration.ofHours(3),
-            minutes(4) to JavaDuration.ofMinutes(4),
-            seconds(5) to JavaDuration.ofSeconds(5),
-            nanoseconds(6) to JavaDuration.ofNanos(6),
+            2.days to JavaDuration.ofDays(2),
+            3.hours to JavaDuration.ofHours(3),
+            4.minutes to JavaDuration.ofMinutes(4),
+            5.seconds to JavaDuration.ofSeconds(5),
+            6.nano.seconds to JavaDuration.ofNanos(6),
         ) { (kotlinDuration, javaDuration) ->
             listOf(
                 Now.instant,
@@ -158,7 +157,7 @@ class TimeOperationsKtTest {
             Now.yearMonth,
             Now.year,
         ) { time ->
-            expectThrows<UnsupportedTemporalTypeException> { time - days(2) }
+            expectThrows<UnsupportedTemporalTypeException> { time - 2.days }
         }
     }
 

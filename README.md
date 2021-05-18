@@ -400,6 +400,18 @@ Same functionality provided by `DynamicReadableByteChannel`.
 
 ### Units
 
+#### Kotlin 1.5 Duration Extensions
+
+```kotlin
+42.days
+42.hours
+42.minutes
+42.seconds
+42.milli.seconds
+42.micro.seconds
+42.nano.seconds
+```
+
 #### Decimal and Binary Bytes
 
 ```kotlin
@@ -431,7 +443,8 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 #### Useless Nerd Stuff
 
 ```kotlin
-4.2.hecto.bytes == 42.deca.bytes == 420.bytes
+42.hecto.bytes
+42.mebi.days
 ```
 
 ### More…
@@ -598,6 +611,7 @@ LineSeparators.NL, // next line LineSeparators.PS, // paragraph separator LineSe
   ```
 
 Split string into its lines lazily and keep the line separator…
+
 ```kotlin
 """
 line 1 line 2

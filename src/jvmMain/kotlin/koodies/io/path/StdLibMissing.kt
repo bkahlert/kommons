@@ -4,6 +4,8 @@ import koodies.io.noDirectory
 import koodies.io.path.Defaults.DEFAULT_APPEND_OPTIONS
 import koodies.io.path.Defaults.DEFAULT_WRITE_OPTIONS
 import koodies.time.sleep
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.BufferedWriter
@@ -33,7 +35,6 @@ import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
 import kotlin.streams.asSequence
 import kotlin.streams.toList
-import kotlin.time.Duration
 import kotlin.io.path.appendBytes as kotlinAppendBytes
 import kotlin.io.path.writeBytes as kotlinWriteBytes
 
@@ -277,7 +278,7 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
                     val files = listDirectoryEntriesRecursively(options = options)
                     files.forEach { it.deleteRecursively(*options) }
                 }
-                Duration.milliseconds(100).sleep()
+                100.milli.seconds.sleep()
                 ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
             }
             if (ex != null) throw ex

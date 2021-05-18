@@ -17,6 +17,7 @@ import koodies.text.fuzzyLevenshteinDistance
 import koodies.times
 import koodies.unit.bytes
 import koodies.unit.kilo
+import koodies.unit.seconds
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
@@ -31,7 +32,6 @@ import strikt.assertions.isLessThanOrEqualTo
 import java.io.InputStream
 import java.io.Reader
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 @Disabled
@@ -40,11 +40,11 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Slow
     @RepeatedTest(3)
     fun InMemoryLogger.`should not block`() {
-        val slowInputStream = slowInputStream(seconds(1), "Hel", "lo$LF", "World!$LF")
-        val reader = readerFactory(slowInputStream, seconds(5))
+        val slowInputStream = slowInputStream(1.seconds, "Hel", "lo$LF", "World!$LF")
+        val reader = readerFactory(slowInputStream, 5.seconds)
 
         val read: MutableList<String> = mutableListOf()
-        assertTimeoutPreemptively(seconds(100).toJavaDuration()) {
+        assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
             while (read.lastOrNull() != "World!") {
                 val readLine = (reader as? NonBlockingReader)?.readLine() ?: return@assertTimeoutPreemptively
                 read.add(readLine)
@@ -71,11 +71,11 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Slow
     @RepeatedTest(3)
     fun InMemoryLogger.`should read characters that are represented by two chars`() {
-        val slowInputStream = slowInputStream(seconds(1), "𝌪𝌫𝌬𝌭𝌮", "𝌯𝌰$LF", "𝌱𝌲𝌳𝌴𝌵$LF")
-        val reader = readerFactory(slowInputStream, seconds(.5))
+        val slowInputStream = slowInputStream(1.seconds, "𝌪𝌫𝌬𝌭𝌮", "𝌯𝌰$LF", "𝌱𝌲𝌳𝌴𝌵$LF")
+        val reader = readerFactory(slowInputStream, 0.5.seconds)
 
         val read: MutableList<String> = mutableListOf()
-        assertTimeoutPreemptively(seconds(100).toJavaDuration()) {
+        assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
             while (read.lastOrNull() != "𝌱𝌲𝌳𝌴𝌵") {
                 val readLine = (reader as? NonBlockingReader)?.readLine() ?: return@assertTimeoutPreemptively
                 read.add(readLine)
@@ -102,11 +102,11 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
 
     @Test
     fun InMemoryLogger.`should never have trailing line separators`() {
-        val slowInputStream = slowInputStream(seconds(1), "Hel", "lo$LF$LF$LF$LF$LF", "World!$LF")
-        val reader = readerFactory(slowInputStream, seconds(5))
+        val slowInputStream = slowInputStream(1.seconds, "Hel", "lo$LF$LF$LF$LF$LF", "World!$LF")
+        val reader = readerFactory(slowInputStream, 5.seconds)
 
         val read: MutableList<String> = mutableListOf()
-        assertTimeoutPreemptively(seconds(100).toJavaDuration()) {
+        assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
             read.addAll(reader.readLines())
         }
 
@@ -115,11 +115,11 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
 
     @Test
     fun InMemoryLogger.`should not repeat line on split CRLF`() {
-        val slowInputStream = slowInputStream(seconds(1), "Hello$CR", "${LF}World")
-        val reader = readerFactory(slowInputStream, seconds(5))
+        val slowInputStream = slowInputStream(1.seconds, "Hello$CR", "${LF}World")
+        val reader = readerFactory(slowInputStream, 5.seconds)
 
         val read: MutableList<String> = mutableListOf()
-        assertTimeoutPreemptively(seconds(100).toJavaDuration()) {
+        assertTimeoutPreemptively(100.seconds.toJavaDuration()) {
             read.addAll(reader.readLines())
         }
 
@@ -136,11 +136,11 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
 
         @Slow @Test
         fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val reader = readerFactory(expected.byteInputStream(), seconds(1))
+            val reader = readerFactory(expected.byteInputStream(), 1.seconds)
 
             val read = mutableListOf<String>()
             kotlin.runCatching {
-                assertTimeoutPreemptively(seconds(8).toJavaDuration()) {
+                assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
                     reader.forEachLine {
                         read.add(it)
                     }
@@ -155,10 +155,10 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
         @Slow @Test
         fun InMemoryLogger.`should quickly read boot sequence using foreign forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val read = ByteArrayOutputStream()
-            val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), seconds(1))
+            val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), 1.seconds)
 
             kotlin.runCatching {
-                assertTimeoutPreemptively(seconds(8).toJavaDuration()) {
+                assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
                     val readLines = reader.readLines()
                     expectThat(readLines.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
                 }

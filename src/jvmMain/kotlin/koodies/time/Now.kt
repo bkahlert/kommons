@@ -1,6 +1,8 @@
 package koodies.time
 
 import koodies.text.asEmoji
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.nio.file.attribute.FileTime
 import java.time.Instant
 import java.time.LocalDate
@@ -26,7 +28,7 @@ public object Now {
     public val fileTime: FileTime get() = FileTime.from(instant)
     public val millis: Long get() = instant.toEpochMilli()
     public val emoji: String get() = instant.asEmoji().emojiVariant
-    public fun passedSince(start: Long): Duration = Duration.milliseconds((System.currentTimeMillis() - start))
+    public fun passedSince(start: Long): Duration = (System.currentTimeMillis() - start).milli.seconds
 
     public operator fun plus(duration: Duration): Instant = instant.plusMillis(duration.inWholeMilliseconds)
 

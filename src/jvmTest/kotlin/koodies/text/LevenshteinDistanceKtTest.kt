@@ -5,6 +5,7 @@ import koodies.test.Slow
 import koodies.test.test
 import koodies.test.testEach
 import koodies.unit.bytes
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
@@ -13,9 +14,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
-import kotlin.system.measureTimeMillis
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 class LevenshteinDistanceKtTest {
 
@@ -60,7 +59,7 @@ class LevenshteinDistanceKtTest {
             (HtmlFile.text.repeat(200) + "abc") to ("xyz" + HtmlFile.text.repeat(200))
         ) { (a, b) ->
             a asserting { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
-            expecting { Duration.milliseconds(measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }) } that { isLessThanOrEqualTo(seconds(8)) }
+            expecting { measureTime { expectThat(a).fuzzyLevenshteinDistance(b) } } that { isLessThanOrEqualTo(8.seconds) }
         }
 
         @TestFactory @Slow
@@ -68,7 +67,7 @@ class LevenshteinDistanceKtTest {
             randomString(1000) to randomString(123)
         ) { (a, b) ->
             a asserting { fuzzyLevenshteinDistance(b).isGreaterThan(0.85) }
-            expecting { Duration.milliseconds(measureTimeMillis { expectThat(a).fuzzyLevenshteinDistance(b) }) } that { isLessThanOrEqualTo(seconds(8)) }
+            expecting { measureTime { expectThat(a).fuzzyLevenshteinDistance(b) } } that { isLessThanOrEqualTo(8.seconds) }
         }
     }
 }

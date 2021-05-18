@@ -9,6 +9,8 @@ import koodies.test.toStringIsEqualTo
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
 import koodies.time.sleep
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -17,7 +19,6 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
-import kotlin.time.Duration
 
 class CommandLineTest {
 
@@ -322,6 +323,6 @@ val <P : Exec> Assertion.Builder<P>.exitCodeOrNull
 fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String) {
     with(evaluated) {
         io.output.ansiRemoved.isEqualTo(expectedOutput)
-        Duration.milliseconds(50).sleep()
+        50.milli.seconds.sleep()
     }
 }

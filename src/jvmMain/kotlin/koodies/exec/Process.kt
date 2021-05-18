@@ -14,6 +14,8 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.withSuffix
 import koodies.time.Now
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.OutputStream
@@ -25,7 +27,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Platform independent representation of a running program.
@@ -308,21 +309,21 @@ public val Process.exitCode: Int get() = (state as? Exited)?.exitCode ?: throw I
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun Process.enter(vararg input: String, delay: Duration = milliseconds(10)): Unit =
+public fun Process.enter(vararg input: String, delay: Duration = 10.milli.seconds): Unit =
     inputStream.enter(*input, delay = delay)
 
 /**
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun Process.input(vararg input: String, delay: Duration = milliseconds(10)): Unit =
+public fun Process.input(vararg input: String, delay: Duration = 10.milli.seconds): Unit =
     inputStream.enter(*input, delay = delay)
 
 /**
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun OutputStream.enter(vararg input: String, delay: Duration = milliseconds(10)) {
+public fun OutputStream.enter(vararg input: String, delay: Duration = 10.milli.seconds) {
     val stdin = BufferedWriter(OutputStreamWriter(this))
     input.forEach {
         TimeUnit.MILLISECONDS.sleep(delay.inWholeMilliseconds)

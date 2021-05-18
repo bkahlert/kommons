@@ -21,6 +21,7 @@ import koodies.test.store
 import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
+import koodies.unit.seconds
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -237,7 +238,7 @@ class TestContainers(
      *
      * The next time this container is started it will run for the specified [duration] (default: 30 seconds).
      */
-    internal fun newExitedTestContainer(duration: Duration = Duration.seconds(30)): DockerContainer =
+    internal fun newExitedTestContainer(duration: Duration = 30.seconds): DockerContainer =
         startContainerWithCommandLine(CommandLine("sh", "-c", """
                 if [ -f "booted-before" ]; then
                   sleep ${duration.toIntegerSeconds()}
@@ -248,7 +249,7 @@ class TestContainers(
             """.trimIndent())).also { container ->
             poll {
                 with(container) { with(logger) { state } } is Exited
-            }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5)) { timeout ->
+            }.every(0.5.seconds).forAtMost(5.seconds) { timeout ->
                 fail { "Could not provide exited test container $container within $timeout." }
             }
         }
@@ -256,11 +257,11 @@ class TestContainers(
     /**
      * Returns a container that is running for the specified [duration] (default: 30 seconds).
      */
-    internal fun newRunningTestContainer(duration: Duration = Duration.seconds(30)): DockerContainer =
+    internal fun newRunningTestContainer(duration: Duration = 30.seconds): DockerContainer =
         newRunningContainer(duration).also { container ->
             poll {
                 with(container) { with(logger) { state } } is Running
-            }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5)) { duration ->
+            }.every(0.5.seconds).forAtMost(5.seconds) { duration ->
                 fail { "Could not provide stopped test container $container within $duration." }
             }
         }
@@ -356,7 +357,7 @@ class TestImage(
         with(logger) {
             if (pulled && !isPulled) pull(logger = logger)
             else if (!pulled && isPulled) remove(force = true, logger = logger)
-            poll { isPulled == pulled }.every(Duration.milliseconds(500)).forAtMost(Duration.seconds(5)) {
+            poll { isPulled == pulled }.every(0.5.seconds).forAtMost(5.seconds) {
                 "Failed to " + (if (pulled) "pull" else "remove") + " $this"
             }
             runCatching(block)

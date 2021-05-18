@@ -1,6 +1,8 @@
 package koodies.time
 
 import koodies.time.IntervalPolling.Polling
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 
@@ -130,7 +132,7 @@ private class PollSample {
         // for at most 1 second
         val condition: () -> Boolean = { listOf(true, false).random() }
 
-        Duration.milliseconds(100).poll { condition() }.forAtMost(Duration.seconds(1)) { passed ->
+        100.milli.seconds.poll { condition() }.forAtMost(1.seconds) { passed ->
             throw TimeoutException("Condition did not become true within $passed")
         }
     }
@@ -140,7 +142,7 @@ private class PollSample {
         // for at most 1 second
         val condition: () -> Boolean = { listOf(true, false).random() }
 
-        poll { condition() }.every(Duration.milliseconds(100)).forAtMost(Duration.seconds(1)) { passed ->
+        poll { condition() }.every(100.milli.seconds).forAtMost(1.seconds) { passed ->
             throw TimeoutException("Condition did not become true within $passed")
         }
     }

@@ -15,6 +15,8 @@ import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.quoted
 import koodies.time.Now
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.Reader
@@ -29,7 +31,7 @@ import kotlin.time.Duration
  */
 public class NonBlockingReader(
     inputStream: InputStream,
-    private val timeout: Duration = Duration.seconds(6),
+    private val timeout: Duration = 6.seconds,
     private val logger: FixedWidthRenderingLogger = MutedRenderingLogger,
     private val blockOnEmptyLine: Boolean = false,
 ) : BufferedReader(Reader.nullReader()) {
@@ -83,7 +85,7 @@ public class NonBlockingReader(
                         lastReadLine!!.withoutTrailingLineSeparator
                     }
                 }
-                logLine { IO.Meta typed "${Now.emoji} ${Duration.milliseconds((latestReadMoment - currentTimeMillis()))}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
+                logLine { IO.Meta typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milli.seconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
                 if (read == 1) {
 
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF

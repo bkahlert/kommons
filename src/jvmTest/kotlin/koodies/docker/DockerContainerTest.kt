@@ -18,6 +18,7 @@ import koodies.text.Unicode.NBSP
 import koodies.text.endsWithRandomSuffix
 import koodies.text.matchesCurlyPattern
 import koodies.text.spaced
+import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -37,7 +38,6 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.length
 import java.nio.file.Path
-import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @Execution(CONCURRENT)
@@ -241,10 +241,10 @@ class DockerContainerTest {
 
                 @ContainersTest @IdeaWorkaroundTest
                 fun `should start attached by default`(testContainers: TestContainers) {
-                    val container = testContainers.newExitedTestContainer(Duration.seconds(5))
+                    val container = testContainers.newExitedTestContainer(5.seconds)
                     val passed = measureTime { expectThat(container).get { start(attach = true, logger = BACKGROUND) }.isSuccessful() }
                     BACKGROUND.expectLogged.contains("Starting ${container.name}")
-                    expectThat(passed).isGreaterThanOrEqualTo(Duration.seconds(5))
+                    expectThat(passed).isGreaterThanOrEqualTo(5.seconds)
                     expectThat(container.isRunning).isFalse()
                 }
 

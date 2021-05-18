@@ -4,10 +4,10 @@ import koodies.builder.Init
 import koodies.docker.DockerStopCommandLine.Companion.CommandContext
 import koodies.docker.DockerStopCommandLine.Options
 import koodies.test.BuilderFixture
+import koodies.unit.seconds
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import kotlin.time.Duration
 
 class DockerStopCommandLineTest {
 
@@ -19,7 +19,7 @@ class DockerStopCommandLineTest {
 
     @Test
     fun `should round`() {
-        val dockerStopCommandLine = DockerStopCommandLine { init(); options { timeout { Duration.seconds(1.6) } } }
+        val dockerStopCommandLine = DockerStopCommandLine { init(); options { timeout { 1.6.seconds } } }
         expectThat(dockerStopCommandLine.options.time).isEqualTo(2)
     }
 

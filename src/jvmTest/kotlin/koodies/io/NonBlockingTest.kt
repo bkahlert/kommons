@@ -3,6 +3,7 @@ package koodies.io
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.text.randomString
+import koodies.unit.seconds
 import org.jline.utils.InputStreamReader
 import org.jline.utils.NonBlocking
 import org.jline.utils.NonBlockingReader
@@ -16,7 +17,6 @@ import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.Reader
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests mainly JLine functionality / findings / working patterns.
@@ -50,7 +50,7 @@ class NonBlockingTest {
         @Test
         fun InMemoryLogger.`should read no non-BEM unicode extremely slow input streams`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
-            val inputStream = slowInputStream(seconds(1), seconds(0) to input)
+            val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
             val reader = NonBlocking.nonBlocking(randomString(), NonBlocking.nonBlocking(randomString(), BufferedInputStream(inputStream)), Charsets.UTF_8)
             val readLines = reader.readLines()
             expectThat(readLines).isEqualTo(listOf("A\uD834\uDF2A", "\uD834\uDF2B", "\uD834\uDF2C\uD834\uDF2D\uD834\uDF2E", "Z"))
@@ -59,7 +59,7 @@ class NonBlockingTest {
         @Test
         fun InMemoryLogger.`should read no non-BEM unicode extremely slow input streams if buffered`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
-            val inputStream = slowInputStream(seconds(1), seconds(0) to input)
+            val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
             val reader =
                 NonBlocking.nonBlocking("should read no non-BEM unicode extremely slow input streams if buffered",
                     BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8)))
@@ -70,18 +70,18 @@ class NonBlockingTest {
         @Test
         fun InMemoryLogger.`should be equally readable like any other byte input stream`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
-            val inputStream = slowInputStream(seconds(10), seconds(0) to input)
+            val inputStream = slowInputStream(10.seconds, Duration.ZERO to input)
 
             val readFromSlowInput =
-                NonBlocking.nonBlocking(randomString(), BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))).readAll(seconds(8))
+                NonBlocking.nonBlocking(randomString(), BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))).readAll(8.seconds)
             val readFromAnyInput = input.byteInputStream().readAllBytes().decodeToString()
             expectThat(readFromSlowInput).isEqualTo(readFromAnyInput).isEqualTo(input)
         }
     }
 
-    fun Reader.read(timeout: Duration = seconds(6)): Int = if (this is NonBlockingReader) this.read(timeout.inWholeMilliseconds) else this.read()
+    fun Reader.read(timeout: Duration = 6.seconds): Int = if (this is NonBlockingReader) this.read(timeout.inWholeMilliseconds) else this.read()
 
-    fun Reader.readAll(timeout: Duration = seconds(6)): String {
+    fun Reader.readAll(timeout: Duration = 6.seconds): String {
         val buffer = StringBuilder()
         kotlin.runCatching {
             var read: Int

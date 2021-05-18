@@ -8,6 +8,8 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.text.LineSeparators.LF
 import koodies.time.busyWait
+import koodies.unit.milli
+import koodies.unit.seconds
 import java.io.InputStream
 import java.io.InputStream.nullInputStream
 import java.io.OutputStream
@@ -15,7 +17,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import java.lang.Process as JavaProcess
 
 /**
@@ -45,7 +46,7 @@ public open class JavaProcessMock(
     public companion object {
 
         public val RUNNING_PROCESS: JavaProcessMock
-            get() = JavaProcessMock(MutedRenderingLogger, exitCode = { 0 }, exitDelay = seconds(10))
+            get() = JavaProcessMock(MutedRenderingLogger, exitCode = { 0 }, exitDelay = 10.seconds)
         public val SUCCEEDING_PROCESS: JavaProcessMock
             get() = JavaProcessMock(MutedRenderingLogger, inputStream = "line 1${LF}line 2$LF".byteInputStream(), exitCode = { 0 })
         public val FAILING_PROCESS: JavaProcessMock
@@ -60,7 +61,7 @@ public open class JavaProcessMock(
 
         public fun InMemoryLogger.withSlowInput(
             vararg inputs: String,
-            baseDelayPerInput: Duration = seconds(1),
+            baseDelayPerInput: Duration = 1.seconds,
             echoInput: Boolean,
             exitDelay: Duration = Duration.ZERO,
             exitCode: JavaProcessMock.() -> Int = { 0 },
@@ -78,7 +79,7 @@ public open class JavaProcessMock(
         public fun InMemoryLogger.withIndividuallySlowInput(
             vararg inputs: Pair<Duration, String>,
             echoInput: Boolean,
-            baseDelayPerInput: Duration = seconds(1),
+            baseDelayPerInput: Duration = 1.seconds,
             exitDelay: Duration = Duration.ZERO,
             exitCode: JavaProcessMock.() -> Int = { 0 },
         ): JavaProcessMock {
@@ -108,7 +109,7 @@ public open class JavaProcessMock(
 
     override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
         exitDelay.busyWait()
-        return Duration.milliseconds(MILLISECONDS.convert(timeout, unit)) >= exitDelay
+        return MILLISECONDS.convert(timeout, unit).milli.seconds >= exitDelay
     }
 
     override fun exitValue(): Int {

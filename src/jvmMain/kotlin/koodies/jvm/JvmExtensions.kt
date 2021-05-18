@@ -8,6 +8,7 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.requireTempSubPath
 import koodies.runtime.onExit
+import koodies.unit.minutes
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import java.nio.file.Path
@@ -19,7 +20,6 @@ import kotlin.concurrent.withLock
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * If a value [Optional.isPresent], returns the value. Otherwise returns `null`.
@@ -166,7 +166,7 @@ public fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): () -> Unit =
 public fun deleteOldTempFilesOnExit(
     prefix: String,
     suffix: String,
-    minAge: Duration = minutes(10),
+    minAge: Duration = 10.minutes,
     keepAtMost: Int = 100,
     tempDir: Path = Locations.Temp,
 ) {

@@ -5,6 +5,8 @@ import koodies.collections.minOrThrow
 import koodies.collections.synchronizedMapOf
 import koodies.test.Slow
 import koodies.time.poll
+import koodies.unit.milli
+import koodies.unit.seconds
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
 import strikt.api.expectThat
-import kotlin.time.Duration
 
 @Isolated
 @Slow
@@ -29,14 +30,14 @@ class ConcurrentTest {
     fun `should run concurrent tests`() = Tests.values().map { test ->
         DynamicTest.dynamicTest(test.name) {
             starts[test] = System.currentTimeMillis()
-            poll { false }.every(Duration.seconds(1)).forAtMost(Duration.seconds(2)) {}
+            poll { false }.every(1.seconds).forAtMost(2.seconds) {}
             ends[test] = System.currentTimeMillis()
         }
     }
 
     @Test
     fun `should run concurrent tests currently`() {
-        poll { starts.size == Tests.values().size && ends.size == Tests.values().size }.every(Duration.milliseconds(100)).indefinitely()
+        poll { starts.size == Tests.values().size && ends.size == Tests.values().size }.every(100.milli.seconds).indefinitely()
         expectThat(Tests.values().toList()).ranConcurrently(starts, ends)
     }
 }
@@ -47,13 +48,13 @@ fun <T : Enum<T>> Assertion.Builder<List<T>>.ranConcurrently(startTimes: Map<T, 
         val relevantStartTimes = startTimes.filterKeys { it in tests }
         val relevantEndTimes = endTimes.filterKeys { it in tests }
 
-        val startDifference = Duration.milliseconds(relevantStartTimes.values.run { maxOrThrow() - minOrThrow() })
-        val endDifference = Duration.milliseconds(relevantEndTimes.values.run { maxOrThrow() - minOrThrow() })
-        val overallDifference = Duration.milliseconds((relevantEndTimes.values.maxOrThrow() - relevantStartTimes.values.minOrThrow()))
+        val startDifference = relevantStartTimes.values.run { maxOrThrow() - minOrThrow() }.milli.seconds
+        val endDifference = relevantEndTimes.values.run { maxOrThrow() - minOrThrow() }.milli.seconds
+        val overallDifference = (relevantEndTimes.values.maxOrThrow() - relevantStartTimes.values.minOrThrow()).milli.seconds
         when {
-            startDifference < Duration.seconds(.5) -> fail("$startDifference difference between start times")
-            endDifference < Duration.seconds(.5) -> fail("$endDifference difference between end times")
-            overallDifference < Duration.seconds(.5) -> fail("$overallDifference difference between first start and last end time")
+            startDifference < 0.5.seconds -> fail("$startDifference difference between start times")
+            endDifference < 0.5.seconds -> fail("$endDifference difference between end times")
+            overallDifference < 0.5.seconds -> fail("$overallDifference difference between first start and last end time")
             else -> pass()
         }
     }
