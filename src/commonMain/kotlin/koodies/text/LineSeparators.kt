@@ -74,7 +74,7 @@ public object LineSeparators : Collection<String> {
      */
     public val LAST_LINE_REGEX: Regex by lazy { ".+$".toRegex() }
 
-    private val ALL by lazy { arrayOf(CRLF, LF, CR, LS, PS, NEL) }
+    private val ALL by lazy { arrayOf(CRLF, LF, CR, NEL, PS, LS) }
 
     override val size: Int by lazy { ALL.size }
 
@@ -129,11 +129,30 @@ public object LineSeparators : Collection<String> {
             keepDelimiters = keepDelimiters
         )?.toList() ?: emptyList()
 
+
     /**
-     * Replaces all lines separators by [LF].
+     * Auto-detects the line separator used in the given [charSequence].
+     */
+    public fun autoDetect(charSequence: CharSequence): String {
+        val histogram: MutableMap<String, Int?> = associateWith { null }.toMutableMap()
+        var offset: Int? = 0
+        while (offset != null) {
+            offset = charSequence.findAnyOf(this, offset)?.let { (pos, sep) ->
+                histogram[sep] = (histogram[sep] ?: 0) + 1
+                pos + sep.length
+            }
+        }
+        return histogram
+            .filterValues { it != null }
+            .maxByOrNull { (_, count) -> count ?: 0 }
+            ?.key ?: DEFAULT
+    }
+
+    /**
+     * Replaces all lines separators by [DEFAULT].
      */
     public fun unify(charSequence: CharSequence): String =
-        fold(charSequence.toString()) { acc, sep -> acc.replace(sep, LF) }
+        fold(charSequence.toString()) { acc, sep -> acc.replace(sep, DEFAULT) }
 
     /**
      * If this [CharSequence] starts with one of the [LineSeparators] this property includes it.
@@ -169,13 +188,12 @@ public object LineSeparators : Collection<String> {
 
     /**
      * If this [String] does not end with one of the [LineSeparators] this string appended
-     * with the given [lineSeparator] (default `\n`) is returned.
+     * with the given [lineSeparator] (default: [autoDetect]) is returned.
      *
-     * Returns this [String] if either this string already ends with a line separator
-     * or if [append] is set to `false`. This inconvenience toggle is handy
+     * If [append] is set to false, `this` string is returned unchanged, which is handy
      * if the needed behaviour is dynamic.
      */
-    public fun String.withTrailingLineSeparator(append: Boolean = true, lineSeparator: String = LF): String =
+    public fun String.withTrailingLineSeparator(append: Boolean = true, lineSeparator: String = autoDetect(this)): String =
         if (append && !hasTrailingLineSeparator) this + lineSeparator else this
 
     /**

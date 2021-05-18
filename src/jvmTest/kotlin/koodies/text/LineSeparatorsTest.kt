@@ -6,7 +6,9 @@ import koodies.regex.groupValues
 import koodies.regex.matchEntire
 import koodies.regex.value
 import koodies.test.Slow
+import koodies.test.expecting
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
@@ -16,6 +18,7 @@ import koodies.text.LineSeparators.LS
 import koodies.text.LineSeparators.NEL
 import koodies.text.LineSeparators.PS
 import koodies.text.LineSeparators.REGEX
+import koodies.text.LineSeparators.autoDetect
 import koodies.text.LineSeparators.breakLines
 import koodies.text.LineSeparators.firstLineSeparator
 import koodies.text.LineSeparators.firstLineSeparatorLength
@@ -93,7 +96,7 @@ class LineSeparatorsTest {
 
     @Test
     fun `should iterate all line breaks in order`() {
-        expectThat(LineSeparators.joinToString(" ") { "($it)" }).isEqualTo("($CRLF) ($LF) ($CR) ($LS) ($PS) ($NEL)")
+        expectThat(LineSeparators.joinToString(" ") { "($it)" }).isEqualTo("($CRLF) ($LF) ($CR) ($NEL) ($PS) ($LS)")
     }
 
     @Nested
@@ -105,14 +108,14 @@ class LineSeparatorsTest {
                 "(CARRIAGE RETURN + LINE FEED) " +
                     "(LINE FEED) " +
                     "(CARRIAGE RETURN) " +
-                    "(LINE SEPARATOR) " +
+                    "(NEXT LINE) " +
                     "(PARAGRAPH SEPARATOR) " +
-                    "(NEXT LINE)")
+                    "(LINE SEPARATOR)")
         }
 
         @Test
         fun `should iterate all line breaks in order`() {
-            expectThat(LineSeparators.Names.keys.joinToString(" ") { "($it)" }).isEqualTo("($CRLF) ($LF) ($CR) ($LS) ($PS) ($NEL)")
+            expectThat(LineSeparators.Names.keys.joinToString(" ") { "($it)" }).isEqualTo("($CRLF) ($LF) ($CR) ($NEL) ($PS) ($LS)")
         }
     }
 
@@ -209,8 +212,16 @@ class LineSeparatorsTest {
         group(LineSeparators::LAST_LINE_REGEX.name) {
             expecting("should not match empty string") { LAST_LINE_REGEX } that { not { matchEntire("") } }
             expecting("should match line") { LAST_LINE_REGEX } that { matchEntire("line").groupValues.containsExactly("line") }
-            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator") } }
-            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that { not { matchEntire("line$lineSeparator…") } }
+            expecting("should not match line$lineSeparator".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that {
+                not {
+                    matchEntire("line$lineSeparator")
+                }
+            }
+            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LAST_LINE_REGEX } that {
+                not {
+                    matchEntire("line$lineSeparator…")
+                }
+            }
         }
 
         group(LineSeparators::INTERMEDIARY_LINE_PATTERN.name) {
@@ -236,15 +247,28 @@ class LineSeparatorsTest {
             expecting("should match line$lineSeparator".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that {
                 matchEntire("line$lineSeparator").group("separator").value.isEqualTo(lineSeparator)
             }
-            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that { not { matchEntire("line$lineSeparator…") } }
+            expecting("should not match line$lineSeparator…".replaceNonPrintableCharacters()) { LineSeparators.LINE_PATTERN } that {
+                not { matchEntire("line$lineSeparator…") }
+            }
         }
     }
 
     @Nested
     inner class WithTrailingLineSeparator {
+
         @Test
         fun `should append if missing`() {
             expectThat("line".withTrailingLineSeparator()).isEqualTo("line$LF")
+        }
+
+        @Test
+        fun `should use auto-detected line separator`() {
+            expectThat("line${CR}line".withTrailingLineSeparator()).isEqualTo("line${CR}line$CR")
+        }
+
+        @Test
+        fun `should use specified line separator`() {
+            expectThat("line".withTrailingLineSeparator(lineSeparator = NEL)).isEqualTo("line$NEL")
         }
 
         @Test
@@ -255,6 +279,49 @@ class LineSeparatorsTest {
         @Test
         fun `should not append if already present`() {
             expectThat("line$CR".withTrailingLineSeparator()).isEqualTo("line$CR")
+        }
+    }
+
+    @Nested
+    inner class AutoDetection {
+
+        private fun documentWithLineSeparator(vararg lineSeparators: String): String = lineSeparators
+            .mapIndexed { index: Int, lineSeparator: String -> "line $index$lineSeparator" }
+            .joinToString("")
+
+        @Test
+        fun `should return default if single line`() {
+            expecting { autoDetect("single-line") } that { isEqualTo(LineSeparators.DEFAULT) }
+        }
+
+        @TestFactory
+        fun `should return line separator if only type`() = LineSeparators.testEach { sep ->
+            expecting { autoDetect(documentWithLineSeparator(sep, sep, sep)) } that { isEqualTo(sep) }
+        }
+
+        @Test
+        fun `should return most frequent line separator if multiple types`() {
+            expecting { autoDetect(documentWithLineSeparator(CR, NEL, NEL, PS)) } that { isEqualTo(NEL) }
+        }
+
+        @TestFactory
+        fun `should return line separator with higher precedence on tie`() = tests {
+            expecting("leading " + LineSeparators.Names[CRLF]) { autoDetect(documentWithLineSeparator(CRLF, LF, CR, NEL, PS, LS)) } that { isEqualTo(CRLF) }
+            expecting("trailing " + LineSeparators.Names[CRLF]) { autoDetect(documentWithLineSeparator(LS, PS, NEL, CR, LF, CRLF)) } that { isEqualTo(CRLF) }
+
+            expecting("leading " + LineSeparators.Names[LF]) { autoDetect(documentWithLineSeparator(LF, CR, NEL, PS, LS)) } that { isEqualTo(LF) }
+            expecting("trailing " + LineSeparators.Names[LF]) { autoDetect(documentWithLineSeparator(LS, PS, NEL, CR, LF)) } that { isEqualTo(LF) }
+
+            expecting("leading " + LineSeparators.Names[CR]) { autoDetect(documentWithLineSeparator(CR, NEL, PS, LS)) } that { isEqualTo(CR) }
+            expecting("trailing " + LineSeparators.Names[CR]) { autoDetect(documentWithLineSeparator(LS, PS, NEL, CR)) } that { isEqualTo(CR) }
+
+            expecting("leading " + LineSeparators.Names[NEL]) { autoDetect(documentWithLineSeparator(NEL, PS, LS)) } that { isEqualTo(NEL) }
+            expecting("trailing " + LineSeparators.Names[NEL]) { autoDetect(documentWithLineSeparator(LS, PS, NEL)) } that { isEqualTo(NEL) }
+
+            expecting("leading " + LineSeparators.Names[PS]) { autoDetect(documentWithLineSeparator(PS, LS)) } that { isEqualTo(PS) }
+            expecting("trailing " + LineSeparators.Names[PS]) { autoDetect(documentWithLineSeparator(LS, PS)) } that { isEqualTo(PS) }
+
+            expecting(LineSeparators.Names[LF]) { autoDetect(documentWithLineSeparator(LS)) } that { isEqualTo(LS) }
         }
     }
 
@@ -307,6 +374,7 @@ class LineSeparatorsTest {
 
         @Test
         fun `should transform single line`() {
+            @Suppress("SpellCheckingInspection")
             expectThat("AB".flatMapLines(ignoreTrailingSeparator = true, transform)).isEqualTo("ABBA\nBAAB")
         }
 
@@ -446,6 +514,7 @@ class LineSeparatorsTest {
                 "list" to (AnsiStringTest.ansiString + LF).linesOfLength(26),
             ) { (method, lines) ->
                 expecting("using $method") { lines } that {
+                    @Suppress("SpellCheckingInspection")
                     containsExactly(
                         "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
                         "$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m".asAnsiString(),
@@ -462,6 +531,7 @@ class LineSeparatorsTest {
                 "list" to (AnsiStringTest.ansiString + LF).linesOfLength(26, ignoreTrailingSeparator = true),
             ) { (method, lines) ->
                 expecting("using $method") { lines } that {
+                    @Suppress("SpellCheckingInspection")
                     containsExactly(
                         "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
                         "$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m".asAnsiString(),
@@ -488,6 +558,7 @@ class LineSeparatorsTest {
 
         @Test
         fun `should wrap ANSI lines`() {
+            @Suppress("SpellCheckingInspection")
             expectThat(AnsiStringTest.ansiString.wrapLines(26)).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m

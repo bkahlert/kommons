@@ -196,7 +196,7 @@ tasks.register<Copy>("assembleReadme") {
     include("README.template.md")
     rename { "README.md" }
     expand("project" to project)
-    shouldRunAfter(tasks.releaseCheck)
+    shouldRunAfter(tasks.final)
 }
 
 val dokkaOutputDir = buildDir.resolve("dokka")
