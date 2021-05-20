@@ -8,40 +8,72 @@
 Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, Unicode-aware string functions and
 stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞o`.**
 
-## Install
+## Installation / Setup
 
-### Maven Central
+Koodies is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert:koodies:1.6.0-dev.5.uncommitted+486f653")`
+* **Gradle** `implementation("com.bkahlert:koodies:1.5.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert</groupId>
       <artifactId>koodies</artifactId>
-      <version>1.6.0-dev.5.uncommitted+486f653</version>
+      <version>1.5.0</version>
   </dependency>
   ```
-
-### ~~Bintray JCenter~~ 🤬
 
 ## Features
 
 ### Exec: Feature-Rich Process Execution
 
-#### What can you run?
+#### ⌨️ *Execute* Command Lines *on* Host
 
-##### ⌨️ Command Lines `CommandLine("printenv", "HOME").exec()`
+```kotlin
+CommandLine("printenv", "HOME")
+    .exec() // .exec.logging() // .exec.processing { io -> … } 
+```
 
-##### 📄 Shell Scripts `ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }.exec()`
+#### 📄 *Execute* Shell Scripts *on* Host
+
+```kotlin
+ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
+
+#### 🐳 *Execute* Command Lines *in* Docker Container
+
+```kotlin
+CommandLine("printenv", "HOME").dockerized { "ubuntu" }
+    .dockerized { "ubuntu" }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
+
+#### 🐳 *Execute* Shell Scripts *in* Docker Container
+
+```kotlin
+ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }
+    .dockerized { "ubuntu" }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
 
 #### How can you run?
 
 ##### Degree of Interaction
 
-###### ▶️ executing-only `ShellScript { … }.exec()`
+###### ▶️ executing-only
 
-###### 📝 logging `ShellScript { … }.exec.logging()`
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec()
+```
+
+###### 📝 logging
+
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec.logging()
+```
 
 - If things go wrong, it's also logged:
   ```text
@@ -57,23 +89,30 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
     Boom!
   ```  
 
-###### 🧠 processing `ShellScript { … }.exec.processing { io -> doSomething(io) }`
+###### 🧠 processing
+
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec.processing { io -> doSomething(io) }`
+```
 
 - `io` is typed; simply use `io is IO.Output` to filter out errors and meta information
 
 ##### Synchronicity
 
-###### 👯‍♀️ 👯‍♂️ synchronous: `ShellScript { … }.exec()`
+###### 👯‍♀️ 👯‍♂️ synchronous
 
-###### 💃 🕺 asynchronous: `ShellScript { … }.exec.async()`
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
 
-#### Where can you run?
+###### 💃 🕺 asynchronous
 
-##### 💻 Locally `ShellScript { … }.exec()`
-
-##### 🐳 Dockerized `ShellScript { … }.dockerized{ "bkahlert" / "libguestfs" }.exec()`
-
-- use any Docker image you like
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec.async() // .exec.async.logging() // .exec.async.processing { io -> … }
+```
 
 #### Features
 
