@@ -5,8 +5,8 @@ import koodies.collections.minOrThrow
 import koodies.collections.synchronizedMapOf
 import koodies.test.Slow
 import koodies.time.poll
+import koodies.time.seconds
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

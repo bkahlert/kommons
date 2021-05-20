@@ -1,11 +1,7 @@
 package koodies.time
 
 import koodies.test.testEach
-import koodies.unit.days
-import koodies.unit.hours
-import koodies.unit.minutes
 import koodies.unit.nano
-import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

@@ -4,7 +4,7 @@ import koodies.builder.Init
 import koodies.docker.DockerStopCommandLine.Companion.CommandContext
 import koodies.docker.DockerStopCommandLine.Options
 import koodies.test.BuilderFixture
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo

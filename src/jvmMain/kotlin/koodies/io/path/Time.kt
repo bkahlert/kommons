@@ -1,8 +1,8 @@
 package koodies.io.path
 
 import koodies.time.Now
+import koodies.time.seconds
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.createFile

@@ -2,7 +2,6 @@ package koodies.time
 
 import koodies.time.IntervalPolling.Polling
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 

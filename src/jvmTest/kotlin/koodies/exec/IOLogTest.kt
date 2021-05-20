@@ -13,9 +13,9 @@ import koodies.text.LineSeparators.LF
 import koodies.text.ansiRemoved
 import koodies.text.containsEscapeSequences
 import koodies.time.poll
+import koodies.time.seconds
 import koodies.time.sleep
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail

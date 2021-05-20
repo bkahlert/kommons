@@ -16,7 +16,7 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.State
 import koodies.exec.Process.State.Excepted
 import koodies.text.ANSI.ansiRemoved
-import koodies.unit.seconds
+import koodies.time.seconds
 import kotlin.time.Duration
 
 /**

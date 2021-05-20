@@ -14,8 +14,8 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.withSuffix
 import koodies.time.Now
+import koodies.time.seconds
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.OutputStream

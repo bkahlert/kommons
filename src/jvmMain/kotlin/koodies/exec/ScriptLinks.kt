@@ -4,8 +4,8 @@ import koodies.io.path.Locations
 import koodies.io.path.randomPath
 import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.shell.ShellScript
-import koodies.unit.days
-import koodies.unit.minutes
+import koodies.time.days
+import koodies.time.minutes
 import java.net.URI
 import java.nio.file.Path
 

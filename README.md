@@ -25,7 +25,17 @@ Koodies is hosted on GitHub with releases provided on Maven Central.
 
 ## Features
 
-### Exec: Feature-Rich Process Execution
+### Kotlin 1.5 Duration Extensions *(since 1.5.1)*
+
+Those of you missing the [duration extension removed in Kotlin 1.5](https://kotlinlang.org/docs/whatsnew15.html#duration-api-changes) may sigh of relief, since
+Koodies 1.5.1 brings them back:
+
+```kotlin
+42.days + 42.hours + 42.minutes + 42.seconds // 43.8d
+42.milli.seconds + 450.micro.seconds + 50_000.nano.seconds // 42.5ms 
+```
+
+### Exec: Feature-Rich Process Execution *(since 1.5.0)*
 
 #### ⌨️ *Execute* Command Lines *on* Host
 
@@ -213,7 +223,7 @@ TODO
 TODO
 ```
 
-### Multi-Platform Builder Template
+### Multi-Platform Builder Template *(since 1.3.0)*
 
 #### Example: Car DSL *[full example](src/commonTest/kotlin/koodies/builder/CarDSL.kt)*
 

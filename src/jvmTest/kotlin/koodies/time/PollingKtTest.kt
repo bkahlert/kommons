@@ -1,7 +1,6 @@
 package koodies.time
 
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution

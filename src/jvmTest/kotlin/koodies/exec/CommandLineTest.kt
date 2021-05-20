@@ -8,9 +8,9 @@ import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.text.matchesCurlyPattern
 import koodies.text.quoted
+import koodies.time.seconds
 import koodies.time.sleep
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

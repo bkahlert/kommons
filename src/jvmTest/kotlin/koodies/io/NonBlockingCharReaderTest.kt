@@ -9,8 +9,8 @@ import koodies.text.ANSI
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.styling.Borders
 import koodies.text.styling.wrapWithBorder
+import koodies.time.seconds
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Execution

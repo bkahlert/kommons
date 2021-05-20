@@ -2,9 +2,9 @@ package koodies.jvm
 
 import koodies.logging.RenderingLogger
 import koodies.runWrapping
+import koodies.time.seconds
 import koodies.time.sleep
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor

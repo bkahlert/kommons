@@ -2,9 +2,9 @@ package koodies.jvm
 
 import koodies.logging.InMemoryLogger
 import koodies.test.Slow
+import koodies.time.seconds
 import koodies.time.sleep
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

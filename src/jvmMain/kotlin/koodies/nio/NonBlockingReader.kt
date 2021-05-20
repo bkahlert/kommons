@@ -15,8 +15,8 @@ import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.quoted
 import koodies.time.Now
+import koodies.time.seconds
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.Reader

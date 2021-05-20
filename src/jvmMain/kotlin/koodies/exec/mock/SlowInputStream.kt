@@ -6,10 +6,10 @@ import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessEmpty
+import koodies.time.seconds
 import koodies.time.sleep
 import koodies.unit.bytes
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration

@@ -2,7 +2,6 @@ package koodies.time
 
 import koodies.jvm.currentThread
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.nio.file.attribute.FileTime
 import java.time.Instant
 import java.time.LocalDate

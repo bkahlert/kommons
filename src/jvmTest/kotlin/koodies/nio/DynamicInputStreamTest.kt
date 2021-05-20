@@ -1,8 +1,8 @@
 package koodies.nio
 
 import koodies.jvm.thread
+import koodies.time.seconds
 import koodies.time.sleep
-import koodies.unit.seconds
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat

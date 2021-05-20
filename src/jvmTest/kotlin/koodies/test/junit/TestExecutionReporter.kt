@@ -13,9 +13,9 @@ import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.draw
 import koodies.text.styling.wrapWithBorder
+import koodies.time.seconds
 import koodies.toSimpleString
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.extension.TestWatcher
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT

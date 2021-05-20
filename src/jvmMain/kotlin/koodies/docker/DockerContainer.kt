@@ -32,7 +32,7 @@ import koodies.text.randomString
 import koodies.text.spaced
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
-import koodies.unit.seconds
+import koodies.time.seconds
 import java.nio.file.Path
 import java.util.Locale
 import kotlin.time.Duration

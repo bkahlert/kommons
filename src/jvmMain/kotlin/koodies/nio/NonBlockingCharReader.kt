@@ -6,7 +6,7 @@ import koodies.io.ByteArrayOutputStream
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.text.withRandomSuffix
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.jline.utils.NonBlocking
 import java.io.IOException
 import java.io.InputStream

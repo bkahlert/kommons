@@ -23,9 +23,9 @@ import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll
+import koodies.time.seconds
 import koodies.times
 import koodies.unit.milli
-import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail

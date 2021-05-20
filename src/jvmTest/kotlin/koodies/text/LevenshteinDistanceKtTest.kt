@@ -4,8 +4,8 @@ import koodies.test.HtmlFile
 import koodies.test.Slow
 import koodies.test.test
 import koodies.test.testEach
+import koodies.time.seconds
 import koodies.unit.bytes
-import koodies.unit.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion

@@ -14,10 +14,10 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.fuzzyLevenshteinDistance
+import koodies.time.seconds
 import koodies.times
 import koodies.unit.bytes
 import koodies.unit.kilo
-import koodies.unit.seconds
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest

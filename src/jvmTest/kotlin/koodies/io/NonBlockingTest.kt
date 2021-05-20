@@ -3,7 +3,7 @@ package koodies.io
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.logging.InMemoryLogger
 import koodies.text.randomString
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.jline.utils.InputStreamReader
 import org.jline.utils.NonBlocking
 import org.jline.utils.NonBlockingReader

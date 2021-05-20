@@ -21,7 +21,7 @@ import koodies.test.store
 import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback

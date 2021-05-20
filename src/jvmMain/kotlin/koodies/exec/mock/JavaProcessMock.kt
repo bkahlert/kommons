@@ -8,8 +8,8 @@ import koodies.logging.InMemoryLogger
 import koodies.logging.MutedRenderingLogger
 import koodies.text.LineSeparators.LF
 import koodies.time.busyWait
+import koodies.time.seconds
 import koodies.unit.milli
-import koodies.unit.seconds
 import java.io.InputStream
 import java.io.InputStream.nullInputStream
 import java.io.OutputStream

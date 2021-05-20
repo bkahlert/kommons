@@ -15,8 +15,8 @@ import koodies.builder.StatelessBuilder.Returning
 import koodies.builder.context.CapturesMap
 import koodies.builder.context.CapturingContext
 import koodies.math.BigDecimal
+import koodies.time.hours
 import koodies.unit.centi
-import koodies.unit.hours
 import koodies.unit.kilo
 import koodies.unit.milli
 import kotlin.time.Duration

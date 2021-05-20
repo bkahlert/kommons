@@ -1,8 +1,14 @@
-package koodies.unit
+package koodies.time
 
 import koodies.math.toBigDecimal
 import koodies.math.toBigInteger
 import koodies.test.tests
+import koodies.unit.mibi
+import koodies.unit.micro
+import koodies.unit.milli
+import koodies.unit.mubi
+import koodies.unit.nabi
+import koodies.unit.nano
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 import kotlin.time.Duration

@@ -42,7 +42,7 @@ import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.toStringMatchesCurlyPattern
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

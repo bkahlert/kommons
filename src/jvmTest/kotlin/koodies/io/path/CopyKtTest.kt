@@ -9,9 +9,9 @@ import koodies.test.Fixtures.singleFile
 import koodies.test.UniqueId
 import koodies.test.hasSameFileName
 import koodies.test.withTempDir
+import koodies.time.days
 import koodies.time.minus
-import koodies.unit.days
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion

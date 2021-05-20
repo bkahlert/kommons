@@ -9,8 +9,8 @@ import koodies.jvm.deleteOldTempFilesOnExit
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.withSuffix
-import koodies.unit.days
-import koodies.unit.minutes
+import koodies.time.days
+import koodies.time.minutes
 import java.io.IOException
 import java.nio.file.Path
 import java.util.Locale

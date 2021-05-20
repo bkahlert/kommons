@@ -18,7 +18,7 @@ import koodies.text.Unicode.NBSP
 import koodies.text.endsWithRandomSuffix
 import koodies.text.matchesCurlyPattern
 import koodies.text.spaced
-import koodies.unit.seconds
+import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

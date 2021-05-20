@@ -8,7 +8,7 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.requireTempSubPath
 import koodies.runtime.onExit
-import koodies.unit.minutes
+import koodies.time.minutes
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import java.nio.file.Path
