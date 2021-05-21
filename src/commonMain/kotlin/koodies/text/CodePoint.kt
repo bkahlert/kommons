@@ -485,7 +485,7 @@ public fun Byte.asCodePoint(): CodePoint = CodePoint(toInt() and 0xFF)
 /**
  * Returns the Unicode code point with the same value.
  */
-public fun Char.asCodePoint(): CodePoint = CodePoint(code)
+public inline val Char.codePoint: CodePoint get() = CodePoint(code)
 
 /**
  * Returns a lazily propagated sequence containing the [CodePoint] instances this string consists of.

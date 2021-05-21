@@ -59,12 +59,30 @@ CommandLine("printenv", "HOME").dockerized { "ubuntu" }
     .exec() // .exec.logging() // .exec.processing { io -> … }
 ```
 
+*or even simpler*
+
+```kotlin
+with(Locations.Temp) { // working directory provided via receiver
+    ubuntu("printenv", "HOME") // busybox
+        .exec() // .exec.logging() // .exec.processing { io -> … }
+}
+```
+
 #### 🐳 *Execute* Shell Scripts *in* Docker Container
 
 ```kotlin
 ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }
     .dockerized { "ubuntu" }
     .exec() // .exec.logging() // .exec.processing { io -> … }
+```
+
+*or even simpler*
+
+```kotlin
+with(Locations.Temp) { // working directory provided via receiver
+    ubuntu { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" } // busybox
+        .exec() // .exec.logging() // .exec.processing { io -> … }
+}
 ```
 
 #### How can you run?

@@ -54,7 +54,7 @@ class CodePointKtTest {
 
     @Test
     fun `should be instantiatable from char`() {
-        val subject = 'A'.asCodePoint()
+        val subject = 'A'.codePoint
         expectThat(subject).toStringIsEqualTo("A")
     }
 
@@ -168,32 +168,32 @@ class CodePointKtTest {
 
         @TestFactory
         fun `is whitespace`() = testEach(
-            '\u0020'.asCodePoint(),
-            '\u00A0'.asCodePoint(),
-            '\u1680'.asCodePoint(),
-            '\u2000'.asCodePoint(),
-            '\u2001'.asCodePoint(),
-            '\u2002'.asCodePoint(),
-            '\u2003'.asCodePoint(),
-            '\u2004'.asCodePoint(),
-            '\u2005'.asCodePoint(),
-            '\u2006'.asCodePoint(),
-            '\u2007'.asCodePoint(),
-            '\u2008'.asCodePoint(),
-            '\u2009'.asCodePoint(),
-            '\u200A'.asCodePoint(),
-            '\u202F'.asCodePoint(),
-            '\u205F'.asCodePoint(),
-            '\u3000'.asCodePoint(),
+            '\u0020'.codePoint,
+            '\u00A0'.codePoint,
+            '\u1680'.codePoint,
+            '\u2000'.codePoint,
+            '\u2001'.codePoint,
+            '\u2002'.codePoint,
+            '\u2003'.codePoint,
+            '\u2004'.codePoint,
+            '\u2005'.codePoint,
+            '\u2006'.codePoint,
+            '\u2007'.codePoint,
+            '\u2008'.codePoint,
+            '\u2009'.codePoint,
+            '\u200A'.codePoint,
+            '\u202F'.codePoint,
+            '\u205F'.codePoint,
+            '\u3000'.codePoint,
         ) {
             expecting { isWhitespace } that { isTrue() }
         }
 
         @TestFactory
         fun `is zero-width whitespace`() = testEach(
-            '\u180E'.asCodePoint(),//            MONGOLIAN_VOWEL_SEPARATO
-            '\u200B'.asCodePoint(),//            ZERO_WIDTH_SPACE to "ZER
-            '\uFEFF'.asCodePoint(),//            ZERO_WIDTH_NO_BREAK_SPAC
+            '\u180E'.codePoint,//            MONGOLIAN_VOWEL_SEPARATO
+            '\u200B'.codePoint,//            ZERO_WIDTH_SPACE to "ZER
+            '\uFEFF'.codePoint,//            ZERO_WIDTH_NO_BREAK_SPAC
         ) {
             expecting { isZeroWidthWhitespace } that { isTrue() }
         }
