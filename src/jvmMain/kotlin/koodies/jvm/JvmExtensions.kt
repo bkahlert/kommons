@@ -1,6 +1,6 @@
 package koodies.jvm
 
-import koodies.io.path.Locations
+import koodies.io.Locations
 import koodies.io.path.age
 import koodies.io.path.appendLine
 import koodies.io.path.delete
@@ -94,13 +94,14 @@ private fun <T : () -> Unit> T.toHook() = thread(start = false) {
 }
 
 private val onExitHandlers: MutableList<() -> Unit> = object : MutableList<() -> Unit> by mutableListOf() {
+
     val lock = ReentrantLock()
 
-    init {
-        val log = Locations.Temp.resolve("com.bkahlert.koodies/.onexit.log").delete()
+    val log by lazy { Locations.InternalTemp.resolve(".onexit.log").delete() }
 
+    init {
         onExit {
-            val copy = lock.withLock { toList() }
+            val copy = lock.withLock { reversed() }
             copy.forEach { onExitHandler ->
                 onExitHandler.runCatching {
                     invoke()
@@ -151,6 +152,7 @@ public fun removeShutdownHook(thread: Thread): Any =
 /**
  * Builds and returns a lambda that is called during shutdown.
  */
+@Deprecated("use TempDirectory")
 public fun deleteOnExit(block: OnExitDeletionBuilder.() -> Unit): () -> Unit =
     runOnExit(mutableListOf<() -> Unit>().also { OnExitDeletionBuilder(it).apply(block) }
         .let { jobs -> { jobs.forEach { job -> job() } } })

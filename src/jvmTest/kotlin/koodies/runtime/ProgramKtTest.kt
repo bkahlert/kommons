@@ -1,7 +1,7 @@
 package koodies.runtime
 
 import koodies.debug.asEmoji
-import koodies.io.path.Locations
+import koodies.io.Locations
 import koodies.jvm.deleteOnExit
 import koodies.logging.InMemoryLogger
 import koodies.time.Now
@@ -22,7 +22,7 @@ class ProgramKtTest {
     inner class DeleteOnExit {
 
         private val name = "koodies.onexit.does-not-work.txt"
-        private val markerFile: Path = Locations.Temp.resolve(name)
+        private val markerFile: Path = Locations.InternalTemp.resolve(name)
 
         @BeforeAll
         fun setUp() {

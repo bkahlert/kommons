@@ -8,7 +8,9 @@
 Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, Unicode-aware string functions and
 stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞o`.**
 
-## Install
+## Installation / Setup
+
+Koodies is hosted on GitHub with releases provided on Maven Central.
 
 ### Maven Central
 
@@ -23,25 +25,85 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
   </dependency>
   ```
 
-### ~~Bintray JCenter~~ 🤬
-
 ## Features
 
-### Exec: Feature-Rich Process Execution
+### Kotlin 1.5 Duration Extensions *(since 1.5.1)*
 
-#### What can you run?
+Those of you missing the [duration extension removed in Kotlin 1.5](https://kotlinlang.org/docs/whatsnew15.html#duration-api-changes) may sigh of relief, since
+Koodies 1.5.1 brings them back:
 
-##### ⌨️ Command Lines `CommandLine("printenv", "HOME").exec()`
+```kotlin
+42.days + 42.hours + 42.minutes + 42.seconds // 43.8d
+42.milli.seconds + 450.micro.seconds + 50_000.nano.seconds // 42.5ms 
+```
 
-##### 📄 Shell Scripts `ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }.exec()`
+### Exec: Feature-Rich Process Execution *(since 1.5.0)*
+
+#### ⌨️ *Execute* Command Lines *on* Host
+
+```kotlin
+CommandLine("printenv", "HOME")
+    .exec() // .exec.logging() // .exec.processing { io -> … } 
+```
+
+#### 📄 *Execute* Shell Scripts *on* Host
+
+```kotlin
+ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
+
+#### 🐳 *Execute* Command Lines *in* Docker Container
+
+```kotlin
+CommandLine("printenv", "HOME").dockerized { "ubuntu" }
+    .dockerized { "ubuntu" }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
+
+*or even simpler*
+
+```kotlin
+with(tempDir()) { // working directory provided via receiver
+    ubuntu("printenv", "HOME") // busybox
+        .exec() // .exec.logging() // .exec.processing { io -> … }
+}
+```
+
+#### 🐳 *Execute* Shell Scripts *in* Docker Container
+
+```kotlin
+ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }
+    .dockerized { "ubuntu" }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
+
+*or even simpler*
+
+```kotlin
+with(tempDir()) { // working directory provided via receiver
+    ubuntu { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" } // busybox
+        .exec() // .exec.logging() // .exec.processing { io -> … }
+}
+```
 
 #### How can you run?
 
 ##### Degree of Interaction
 
-###### ▶️ executing-only `ShellScript { … }.exec()`
+###### ▶️ executing-only
 
-###### 📝 logging `ShellScript { … }.exec.logging()`
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec()
+```
+
+###### 📝 logging
+
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec.logging()
+```
 
 - If things go wrong, it's also logged:
   ```text
@@ -57,23 +119,30 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
     Boom!
   ```  
 
-###### 🧠 processing `ShellScript { … }.exec.processing { io -> doSomething(io) }`
+###### 🧠 processing
+
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec.processing { io -> doSomething(io) }`
+```
 
 - `io` is typed; simply use `io is IO.Output` to filter out errors and meta information
 
 ##### Synchronicity
 
-###### 👯‍♀️ 👯‍♂️ synchronous: `ShellScript { … }.exec()`
+###### 👯‍♀️ 👯‍♂️ synchronous
 
-###### 💃 🕺 asynchronous: `ShellScript { … }.exec.async()`
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec() // .exec.logging() // .exec.processing { io -> … }
+```
 
-#### Where can you run?
+###### 💃 🕺 asynchronous
 
-##### 💻 Locally `ShellScript { … }.exec()`
-
-##### 🐳 Dockerized `ShellScript { … }.dockerized{ "bkahlert" / "libguestfs" }.exec()`
-
-- use any Docker image you like
+```kotlin
+CommandLine("…") // ShellScript { … }
+    .exec.async() // .exec.async.logging() // .exec.async.processing { io -> … }
+```
 
 #### Features
 
@@ -109,7 +178,7 @@ with(tempDir()) {
         """
            /opt/bin/chafa -c full -w 9 koodies.png
         """
-    }.io.output.ansiKept.let { println(it.resetLines()) }
+    }.io.output.ansiKept.resetLines().let { println(it) }
 }
 ```
 
@@ -400,6 +469,18 @@ Same functionality provided by `DynamicReadableByteChannel`.
 
 ### Units
 
+#### Kotlin 1.5 Duration Extensions
+
+```kotlin
+42.days
+42.hours
+42.minutes
+42.seconds
+42.milli.seconds
+42.micro.seconds
+42.nano.seconds
+```
+
 #### Decimal and Binary Bytes
 
 ```kotlin
@@ -431,7 +512,8 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 #### Useless Nerd Stuff
 
 ```kotlin
-4.2.hecto.bytes == 42.deca.bytes == 420.bytes
+42.hecto.bytes
+42.mebi.days
 ```
 
 ### More…
@@ -572,9 +654,9 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
   ```kotlin
   LineSeparators.toList() == listOf(
-    LineSeparators.CRLF, // carriage return + line feed (\r\n)
-    LineSeparators.LF,   // line feed (\n)
-    LineSeparators.CR,   // carriage return (\r)
+    LineSeparators.CRLF, // carriage return + line feed (\\r\\n)
+    LineSeparators.LF,   // line feed (\\n)
+    LineSeparators.CR,   // carriage return (\\r)
     LineSeparators.NL,   // next line 
     LineSeparators.PS,   // paragraph separator 
     LineSeparators.LS,   // line separator
@@ -596,7 +678,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
     line 1
     line 2
   
-    """.lineSequence(keepDelimiters=true) // line 1␤, line 2␍␊ 
+    """.lineSequence(keepDelimiters=true) // line 1⏎␤, line 2⏎␍␊ 
     ```
 
 ----

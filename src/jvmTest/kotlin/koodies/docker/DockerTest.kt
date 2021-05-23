@@ -7,18 +7,20 @@ import koodies.exec.ansiKept
 import koodies.exec.ansiRemoved
 import koodies.exec.io
 import koodies.exec.output
+import koodies.io.Chafa
+import koodies.io.LibRSvg
 import koodies.io.compress.Archiver.unarchive
+import koodies.io.copyTo
 import koodies.io.path.asPath
 import koodies.io.path.getSize
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.logging.InMemoryLogger
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.Smoke
-import koodies.test.SvgFile
+import koodies.test.SvgFixture
 import koodies.test.UniqueId
 import koodies.test.asserting
-import koodies.test.copyTo
 import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.containsEscapeSequences
@@ -42,6 +44,7 @@ import strikt.assertions.isTrue
 import strikt.assertions.length
 import strikt.java.exists
 import strikt.java.fileName
+import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
 
@@ -121,12 +124,6 @@ class DockerTest {
         expectThat(Docker.search("busybox")).any { image.isEqualTo(BusyBox) }
     }
 
-    @Suppress("SpellCheckingInspection")
-    object LibRSvg : DockerImage("minidocks", listOf("librsvg"))
-
-    @Suppress("SpellCheckingInspection")
-    object Chafa : DockerImage("rafib", listOf("awesome-cli-binaries"))
-
     @Nested
     inner class Shortcuts {
 
@@ -137,44 +134,58 @@ class DockerTest {
          */
         private fun withHtmlFile(uniqueId: UniqueId, block: Path.(String) -> Unit) {
             withTempDir(uniqueId) {
-                HtmlFile.copyTo(resolve("index.html"))
+                HtmlFixture.copyTo(resolve("index.html"))
                 block("index.html")
             }
         }
 
         @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-        fun `should run using well-known images`(uniqueId: UniqueId) = testEach<Path.(String) -> Exec>(
-            { fileName -> ubuntu("cat", fileName) },
-            { fileName -> ubuntu { "cat $fileName" } },
-            { fileName -> busybox("cat", fileName) },
-            { fileName -> busybox { "cat $fileName" } },
+        fun `should run using well-known images`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Exec>(
+            { fileName -> ubuntu("cat", fileName, logger = logger) },
+            { fileName -> ubuntu(logger = logger) { "cat $fileName" } },
+            { fileName -> busybox("cat", fileName, logger = logger) },
+            { fileName -> busybox(logger = logger) { "cat $fileName" } },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
-                expecting { exec(name) } that { io.output.ansiRemoved.isEqualTo(HtmlFile.text) }
+                expecting { exec(name) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
             }
         }
 
         @DockerRequiring([Ubuntu::class]) @TestFactory
-        fun `should run command line`(uniqueId: UniqueId) = testEach<Path.(String, String) -> Exec>(
-            { command, args -> docker("ubuntu", command, args) },
-            { command, args -> docker({ "ubuntu" }, command, args) },
-            { command, args -> docker(Ubuntu, command, args) },
+        fun `should run command line`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String, String) -> Exec>(
+            { command, args -> docker("ubuntu", command, args, logger = logger) },
+            { command, args -> docker({ "ubuntu" }, command, args, logger = logger) },
+            { command, args -> docker(Ubuntu, command, args, logger = logger) },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
-                HtmlFile.copyTo(resolve(name))
-                expecting { exec("cat", name) } that { io.output.ansiRemoved.isEqualTo(HtmlFile.text) }
+                HtmlFixture.copyTo(resolve(name))
+                expecting { exec("cat", name) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
             }
         }
 
         @DockerRequiring([Ubuntu::class]) @TestFactory
-        fun `should run shell script`(uniqueId: UniqueId) = testEach<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
-            { scriptInit -> docker("busybox") { wd -> scriptInit(wd) } },
-            { scriptInit -> docker({ "busybox" }) { wd -> scriptInit(wd) } },
-            { scriptInit -> docker(BusyBox) { wd -> scriptInit(wd) } },
+        fun `should run shell script`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
+            { scriptInit -> docker("busybox", logger = logger) { wd -> scriptInit(wd) } },
+            { scriptInit -> docker({ "busybox" }, logger = logger) { wd -> scriptInit(wd) } },
+            { scriptInit -> docker(BusyBox, logger = logger) { wd -> scriptInit(wd) } },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
-                HtmlFile.copyTo(resolve(name))
-                expecting { exec { "cat $name" } } that { io.output.ansiRemoved.isEqualTo(HtmlFile.text) }
+                HtmlFixture.copyTo(resolve(name))
+                expecting { exec { "cat $name" } } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
+            }
+        }
+
+        @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
+        fun `should pass input stream`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(InputStream) -> Exec>(
+            { fileName -> ubuntu("cat", logger = logger, inputStream = fileName) },
+            { fileName -> ubuntu(logger = logger, inputStream = fileName) { "cat" } },
+            { fileName -> busybox("cat", logger = logger, inputStream = fileName) },
+            { fileName -> busybox(logger = logger, inputStream = fileName) { "cat" } },
+            { fileName -> docker(BusyBox, "cat", logger = logger, inputStream = fileName) },
+            { fileName -> docker(BusyBox, logger = logger, inputStream = fileName) { "cat" } },
+        ) { exec ->
+            withTempDir(uniqueId) {
+                expecting { exec(HtmlFixture.data.inputStream()) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
             }
         }
 
@@ -225,7 +236,7 @@ class DockerTest {
         @Suppress("SpellCheckingInspection")
         @DockerRequiring([LibRSvg::class, Chafa::class]) @Smoke @Test
         fun `should run multiple containers`(uniqueId: UniqueId, logger: InMemoryLogger) = withTempDir(uniqueId) {
-            SvgFile.copyTo(resolve("koodies.svg"))
+            SvgFixture.copyTo(resolve("koodies.svg"))
 
             docker(LibRSvg, "-z", 10, "--output", "koodies.png", "koodies.svg")
             resolve("koodies.png") asserting { exists() }

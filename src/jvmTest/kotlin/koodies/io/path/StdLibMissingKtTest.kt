@@ -1,11 +1,11 @@
 package koodies.io.path
 
+import koodies.io.copyToDirectory
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.Fixtures.symbolicLink
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.UniqueId
-import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -33,19 +33,19 @@ class StdLibMissingKtTest {
 
         @Test
         fun `should read line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = HtmlFile.copyToDirectory(this)
+            val file = HtmlFixture.copyToDirectory(this)
             expectThat(file.readLine(6)).isEqualTo("    <p>Hello World!</p>")
         }
 
         @Test
         fun `should return null if file has less lines`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = HtmlFile.copyToDirectory(this)
+            val file = HtmlFixture.copyToDirectory(this)
             expectThat(file.readLine(16)).isNull()
         }
 
         @Test
         fun `should throw on illegal line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = HtmlFile.copyToDirectory(this)
+            val file = HtmlFixture.copyToDirectory(this)
             expectCatching { file.readLine(0) }.isFailure().isA<IllegalArgumentException>()
         }
 

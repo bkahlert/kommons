@@ -1,6 +1,6 @@
 package koodies.builder
 
-import koodies.test.TextFile
+import koodies.test.TextFixture
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -12,33 +12,33 @@ class ListBuilderTest {
     fun `should build with separately built builder`() {
 
         val list = ListBuilder<String>().build {
-            +"" + TextFile.text
+            +"" + TextFixture.text
             +"𓌈🥸𓂈"
         }
 
-        expectThat(list).containsExactly("", TextFile.text, "𓌈🥸𓂈")
+        expectThat(list).containsExactly("", TextFixture.text, "𓌈🥸𓂈")
     }
 
     @Test
     fun `should build using top-level function`() {
 
         val list = buildList {
-            +"" + TextFile.text
+            +"" + TextFixture.text
             +"𓌈🥸𓂈"
         }
 
-        expectThat(list).containsExactly("", TextFile.text, "𓌈🥸𓂈")
+        expectThat(list).containsExactly("", TextFixture.text, "𓌈🥸𓂈")
     }
 
     @Test
     fun `should build using companion object`() {
 
         val list = ListBuilder {
-            +"" + TextFile.text
+            +"" + TextFixture.text
             +"𓌈🥸𓂈"
         }
 
-        expectThat(list).containsExactly("", TextFile.text, "𓌈🥸𓂈")
+        expectThat(list).containsExactly("", TextFixture.text, "𓌈🥸𓂈")
     }
 
     @Test

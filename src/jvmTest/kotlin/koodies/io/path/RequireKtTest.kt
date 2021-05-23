@@ -1,8 +1,8 @@
 package koodies.io.path
 
-import koodies.test.HtmlFile
+import koodies.io.copyToDirectory
+import koodies.test.HtmlFixture
 import koodies.test.UniqueId
-import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -49,7 +49,7 @@ class RequireKtTest {
 
             @Test
             fun `should throw on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectCatching { HtmlFile.copyToDirectory(this).requireEmpty() }.isFailure()
+                expectCatching { HtmlFixture.copyToDirectory(this).requireEmpty() }.isFailure()
                     .isA<FileAlreadyExistsException>()
             }
         }
@@ -141,7 +141,7 @@ class RequireKtTest {
 
             @Test
             fun `should not throw on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectCatching { HtmlFile.copyToDirectory(randomDirectory()).requireNotEmpty() }.isSuccess()
+                expectCatching { HtmlFixture.copyToDirectory(randomDirectory()).requireNotEmpty() }.isSuccess()
             }
         }
 

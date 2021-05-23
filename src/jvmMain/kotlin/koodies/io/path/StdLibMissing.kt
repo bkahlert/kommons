@@ -3,6 +3,7 @@ package koodies.io.path
 import koodies.io.noDirectory
 import koodies.io.path.Defaults.DEFAULT_APPEND_OPTIONS
 import koodies.io.path.Defaults.DEFAULT_WRITE_OPTIONS
+import koodies.runtime.onExit
 import koodies.time.seconds
 import koodies.time.sleep
 import koodies.unit.milli
@@ -284,6 +285,19 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
             if (ex != null) throw ex
         }
     }
+
+/**
+ * Registers this file for deletion the moment this program exits.
+ *
+ * For safety reasons, [recursively] must be explicitly set to `true`
+ * if not-empty directories are to be deleted.
+ */
+public fun Path.deleteOnExit(recursively: Boolean = false): Path = apply {
+    onExit {
+        if (recursively) deleteRecursively()
+        else delete()
+    }
+}
 
 /**
  * Contains whether this path belongs to the default [FileSystem].

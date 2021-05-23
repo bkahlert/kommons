@@ -1,12 +1,8 @@
 package koodies.test
 
-import koodies.io.file.quoted
+import koodies.io.InMemoryFile
 import koodies.io.noSuchFile
-import koodies.io.path.copyTo
-import koodies.io.path.copyToDirectory
 import koodies.io.path.pathString
-import koodies.io.path.withDirectoriesCreated
-import koodies.io.path.writeBytes
 import koodies.io.useClassPath
 import koodies.text.quoted
 import java.nio.file.Path
@@ -15,7 +11,7 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.readBytes
 
 /**
- * Default implementation of a class path based [Fixture].
+ * Default implementation of a class path based [InMemoryFile].
  *
  * If the resource addressed by the specified [path] is a
  * readable file then [data] contains its contents.
@@ -24,9 +20,10 @@ import kotlin.io.path.readBytes
  * @see ClassPathDirectoryFixture
  * @see ClassPathFileFixture
  */
-public open class ClassPathFixture(public val path: String) : Fixture {
+public open class ClassPathFixture(public val path: String) : Fixture<ByteArray>, InMemoryFile {
     override val name: String by lazy { Path.of(path).fileName.pathString }
     override val data: ByteArray by lazy { useClassPath(path) { readBytes() } ?: throw noSuchFile(path) }
+    override val contents: ByteArray get() = data
 }
 
 /**
@@ -35,7 +32,7 @@ public open class ClassPathFixture(public val path: String) : Fixture {
  */
 public open class ClassPathDirectoryFixture(path: String) : ClassPathFixture(path) {
     init {
-        require(this { isDirectory() }) { "$this is no directory" }
+        require(this.use { isDirectory() }) { "$this is no directory" }
     }
 
     public fun dir(dir: String): Dir = Dir(dir)
@@ -51,20 +48,11 @@ public open class ClassPathDirectoryFixture(path: String) : ClassPathFixture(pat
  */
 public open class ClassPathFileFixture(path: String) : ClassPathFixture(path) {
     init {
-        require(this { isRegularFile() }) { "$this is no regular file" }
+        require(this.use { isRegularFile() }) { "$this is no regular file" }
     }
+
+    public val text: String = data.decodeToString()
 }
 
-
-public fun Fixture.copyTo(target: Path): Path = when (this) {
-    is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyTo(target))
-    else -> target.withDirectoriesCreated().writeBytes(data)
-} ?: error("Error copying ${name.quoted} to ${target.quoted}")
-
-public fun Fixture.copyToDirectory(target: Path): Path = when (this) {
-    is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyToDirectory(target))
-    else -> target.resolve(name).withDirectoriesCreated().writeBytes(data)
-} ?: error("Error copying ${name.quoted} to ${target.quoted}")
-
-public inline operator fun <reified T> ClassPathFixture.invoke(crossinline transform: Path.() -> T): T = useClassPath(path, transform)
-    ?: error("Error processing ${path.quoted}")
+public inline fun <reified T> ClassPathFixture.use(crossinline transform: Path.() -> T): T =
+    useClassPath(path, transform) ?: error("Error processing ${path.quoted}")

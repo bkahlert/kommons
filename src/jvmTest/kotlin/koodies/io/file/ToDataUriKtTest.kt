@@ -1,8 +1,8 @@
 package koodies.io.file
 
-import koodies.test.HtmlFile
+import koodies.io.copyToDirectory
+import koodies.test.HtmlFixture
 import koodies.test.UniqueId
-import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -12,7 +12,7 @@ class ToDataUriKtTest {
 
     @Test
     fun `should create data URI`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val htmlFile = HtmlFile.copyToDirectory(this)
+        val htmlFile = HtmlFixture.copyToDirectory(this)
 
         @Suppress("SpellCheckingInspection")
         expectThat(htmlFile.toDataUri())

@@ -3,6 +3,7 @@ package koodies.text
 import koodies.math.mod
 import koodies.regex.namedGroups
 import koodies.runtime.AnsiSupport
+import koodies.runtime.AnsiSupport.ANSI4
 import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.ansiSupport
 import koodies.runtime.isDebugging
@@ -108,7 +109,10 @@ public object ANSI {
      * ```
      */
     @Suppress("SpellCheckingInspection")
-    public fun CharSequence.resetLines(): String = toString().mapLines { "$it$RESET" }
+    public fun CharSequence.resetLines(): String {
+        val reset = reset(ANSI4)
+        return toString().mapLines { "$it$reset" }
+    }
 
     public fun interface Formatter {
         public operator fun invoke(text: CharSequence): CharSequence
@@ -160,7 +164,8 @@ public object ANSI {
         override fun on(backgroundColorizer: Colorizer): Formatter = this + (backgroundColorizer.bg)
     }
 
-    internal val RESET: AnsiCode by lazy { if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0) }
+    private fun reset(level: AnsiSupport) = if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0)
+    private val RESET: AnsiCode by lazy { reset(level) }
 
     public object Colors {
 

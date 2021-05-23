@@ -62,7 +62,7 @@ CommandLine("printenv", "HOME").dockerized { "ubuntu" }
 *or even simpler*
 
 ```kotlin
-with(Locations.Temp) { // working directory provided via receiver
+with(tempDir()) { // working directory provided via receiver
     ubuntu("printenv", "HOME") // busybox
         .exec() // .exec.logging() // .exec.processing { io -> … }
 }
@@ -79,7 +79,7 @@ ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }
 *or even simpler*
 
 ```kotlin
-with(Locations.Temp) { // working directory provided via receiver
+with(tempDir()) { // working directory provided via receiver
     ubuntu { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" } // busybox
         .exec() // .exec.logging() // .exec.processing { io -> … }
 }
@@ -176,7 +176,7 @@ with(tempDir()) {
         """
            /opt/bin/chafa -c full -w 9 koodies.png
         """
-    }.io.output.ansiKept.let { println(it.resetLines()) }
+    }.io.output.ansiKept.resetLines().let { println(it) }
 }
 ```
 

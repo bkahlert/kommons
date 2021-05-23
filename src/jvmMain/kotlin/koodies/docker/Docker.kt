@@ -7,7 +7,8 @@ import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.IO
-import koodies.exec.ProcessingMode.Interactivity
+import koodies.exec.ProcessingMode.Interactivity.Interactive
+import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.parse
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
@@ -26,6 +27,7 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
 import java.io.FileNotFoundException
+import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
 import java.util.Locale
@@ -132,6 +134,9 @@ public object Docker {
      * The given [workingDirectory] is mapped to `/work`,
      * which is configured as the working directory
      * inside of the container.
+     *
+     * If [inputStream] is set, the contents will be piped to the standard input
+     * of the created process.
      */
     public fun exec(
         image: DockerImage,
@@ -139,7 +144,8 @@ public object Docker {
         command: Any? = null,
         vararg arguments: Any,
         logger: RenderingLogger? = BACKGROUND,
-    ): DockerExec = execute(image, workingDirectory, logger) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+        inputStream: InputStream? = null,
+    ): DockerExec = execute(image, workingDirectory, logger, inputStream) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
 
     /**
      * Builds a shell script using the given [scriptInit] and executes it in
@@ -148,13 +154,17 @@ public object Docker {
      * The given [workingDirectory] is mapped to `/work`,
      * which is configured as the working directory
      * inside of the container and also passed to [scriptInit] as the only argument.
+     *
+     * If [inputStream] is set, the contents will be piped to the standard input
+     * of the created process.
      */
     public fun exec(
         image: DockerImage,
         workingDirectory: Path,
         logger: RenderingLogger? = BACKGROUND,
+        inputStream: InputStream? = null,
         scriptInit: ScriptInitWithWorkingDirectory,
-    ): DockerExec = execute(image, workingDirectory, logger) { workDir -> ShellScript { scriptInit(workDir) } }
+    ): DockerExec = execute(image, workingDirectory, logger, inputStream) { workDir -> ShellScript { scriptInit(workDir) } }
 
     /**
      * Builds an [Executable] using the given [executableProvider] and executes it in
@@ -163,11 +173,15 @@ public object Docker {
      * The given [workingDirectory] is mapped to `/work`,
      * which is configured as the working directory
      * inside of the container and also passed to [executableProvider].
+     *
+     * If [inputStream] is set, the contents will be piped to the standard input
+     * of the created process.
      */
     private fun execute(
         image: DockerImage,
         workingDirectory: Path,
         logger: RenderingLogger? = BACKGROUND,
+        inputStream: InputStream? = null,
         executableProvider: (ContainerPath) -> Executable<Exec>,
     ): DockerExec {
         val containerPath = "/work".asContainerPath()
@@ -175,8 +189,9 @@ public object Docker {
             mounts { workingDirectory mountAt containerPath }
             workingDirectory { containerPath }
         }.run {
-            if (logger != null) exec.logging(logger)
-            else exec()
+            val interactivity = if (inputStream != null) NonInteractive(inputStream) else Interactive(false)
+            if (logger != null) exec.mode { sync(interactivity) }.logging(logger)
+            else exec.mode { sync(interactivity) }()
         }
     }
 }
@@ -193,9 +208,14 @@ public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) 
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.docker(image: String, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    Docker.exec(DockerImage { image }, this, command, *arguments, logger = logger)
+public fun Path.docker(
+    image: String, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null,
+): DockerExec =
+    Docker.exec(DockerImage { image }, this, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -204,9 +224,18 @@ public fun Path.docker(image: String, command: Any? = null, vararg arguments: An
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.docker(imageInit: DockerImageInit, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    Docker.exec(DockerImage(imageInit), this, command, *arguments, logger = logger)
+public fun Path.docker(
+    imageInit: DockerImageInit,
+    command: Any? = null,
+    vararg arguments: Any,
+    logger: RenderingLogger? = BACKGROUND,
+    inputStream: InputStream? = null,
+): DockerExec =
+    Docker.exec(DockerImage(imageInit), this, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -215,9 +244,18 @@ public fun Path.docker(imageInit: DockerImageInit, command: Any? = null, vararg 
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.docker(image: DockerImage, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    Docker.exec(image, this, command, *arguments, logger = logger)
+public fun Path.docker(
+    image: DockerImage,
+    command: Any? = null,
+    vararg arguments: Any,
+    logger: RenderingLogger? = BACKGROUND,
+    inputStream: InputStream? = null,
+): DockerExec =
+    Docker.exec(image, this, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -226,9 +264,17 @@ public fun Path.docker(image: DockerImage, command: Any? = null, vararg argument
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.docker(image: String, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    Docker.exec(DockerImage { image }, this, logger, scriptInit)
+public fun Path.docker(
+    image: String,
+    logger: RenderingLogger? = BACKGROUND,
+    inputStream: InputStream? = null,
+    scriptInit: ScriptInitWithWorkingDirectory,
+): DockerExec =
+    Docker.exec(DockerImage { image }, this, logger, inputStream, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -237,9 +283,17 @@ public fun Path.docker(image: String, logger: RenderingLogger? = BACKGROUND, scr
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.docker(imageInit: DockerImageInit, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    Docker.exec(DockerImage(imageInit), this, logger, scriptInit)
+public fun Path.docker(
+    imageInit: DockerImageInit,
+    logger: RenderingLogger? = BACKGROUND,
+    inputStream: InputStream? = null,
+    scriptInit: ScriptInitWithWorkingDirectory,
+): DockerExec =
+    Docker.exec(DockerImage(imageInit), this, logger, inputStream, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -248,9 +302,17 @@ public fun Path.docker(imageInit: DockerImageInit, logger: RenderingLogger? = BA
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.docker(image: DockerImage, logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    Docker.exec(image, this, logger, scriptInit)
+public fun Path.docker(
+    image: DockerImage,
+    logger: RenderingLogger? = BACKGROUND,
+    inputStream: InputStream? = null,
+    scriptInit: ScriptInitWithWorkingDirectory,
+): DockerExec =
+    Docker.exec(image, this, logger, inputStream, scriptInit)
 
 
 /*
@@ -264,9 +326,12 @@ public fun Path.docker(image: DockerImage, logger: RenderingLogger? = BACKGROUND
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    docker(DockerImage { "ubuntu" }, command, *arguments, logger = logger)
+public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null): DockerExec =
+    docker(DockerImage { "ubuntu" }, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -275,9 +340,12 @@ public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: Rend
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.ubuntu(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    docker(DockerImage { "ubuntu" }, logger, scriptInit)
+public fun Path.ubuntu(logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    docker(DockerImage { "ubuntu" }, logger, inputStream, scriptInit)
 
 
 /*
@@ -291,9 +359,12 @@ public fun Path.ubuntu(logger: RenderingLogger? = BACKGROUND, scriptInit: Script
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
-    docker(DockerImage { "busybox" }, command, *arguments, logger = logger)
+public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null): DockerExec =
+    docker(DockerImage { "busybox" }, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -302,9 +373,12 @@ public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: Ren
  * `this` [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
+ *
+ * If [inputStream] is set, the contents will be piped to the standard input
+ * of the created process.
  */
-public fun Path.busybox(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    docker(DockerImage { "busybox" }, logger, scriptInit)
+public fun Path.busybox(logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+    docker(DockerImage { "busybox" }, logger, inputStream, scriptInit)
 
 
 /*
@@ -322,7 +396,7 @@ private val curlJqImage = DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
 public fun Path.curlJq(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    docker(curlJqImage, logger, scriptInit)
+    docker(curlJqImage, logger, null, scriptInit)
 
 /**
  * Runs a [curl](https://curl.se/docs/manpage.html) with the given [arguments] in
@@ -379,4 +453,4 @@ public fun Path.dockerPi(name: String = "dockerpi".withRandomSuffix(), logger: R
             name { name }
             mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
         }
-    }.exec.mode { async(Interactivity.Interactive { nonBlocking }) }.processing(logger, processor = processor)
+    }.exec.mode { async(Interactive { nonBlocking }) }.processing(logger, processor = processor)

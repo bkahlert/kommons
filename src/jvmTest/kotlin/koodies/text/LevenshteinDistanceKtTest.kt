@@ -1,6 +1,6 @@
 package koodies.text
 
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.Slow
 import koodies.test.test
 import koodies.test.testEach
@@ -56,7 +56,7 @@ class LevenshteinDistanceKtTest {
 
         @TestFactory @Slow
         fun `should calculate fuzzy distance between similar strings`() = test(
-            (HtmlFile.text.repeat(200) + "abc") to ("xyz" + HtmlFile.text.repeat(200))
+            (HtmlFixture.text.repeat(200) + "abc") to ("xyz" + HtmlFixture.text.repeat(200))
         ) { (a, b) ->
             a asserting { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
             expecting { measureTime { expectThat(a).fuzzyLevenshteinDistance(b) } } that { isLessThanOrEqualTo(8.seconds) }

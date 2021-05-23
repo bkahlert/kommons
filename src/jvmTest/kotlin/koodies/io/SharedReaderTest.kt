@@ -5,7 +5,7 @@ import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.notContainsLineSeparator
@@ -131,7 +131,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Nested
     inner class Benchmark {
         private val size = 10.kilo.bytes
-        private val input = HtmlFile.text
+        private val input = HtmlFixture.text
         private val expected: String = StringBuilder().apply { (size / input.length).wholeBytes.toInt() * { append(input);append(LF) } }.toString()
 
         @Slow @Test

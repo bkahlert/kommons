@@ -1,6 +1,6 @@
 package koodies.builder
 
-import koodies.test.TextFile
+import koodies.test.TextFixture
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -13,7 +13,7 @@ class MapBuilderTest {
 
         val map = MapBuilder<String, Int>().build {
             "ten" to 5
-            put("some", TextFile.text.length)
+            put("some", TextFixture.text.length)
             "𓌈🥸𓂈".let { it to it.length }
         }
 
@@ -25,7 +25,7 @@ class MapBuilderTest {
 
         val map = buildMap<String, Int> {
             "ten" to 5
-            put("some", TextFile.text.length)
+            put("some", TextFixture.text.length)
             "𓌈🥸𓂈".let { it to it.length }
         }
 
@@ -37,7 +37,7 @@ class MapBuilderTest {
 
         val map: Map<String, Int> = MapBuilder {
             "ten" to 5
-            put("some", TextFile.text.length)
+            put("some", TextFixture.text.length)
             "𓌈🥸𓂈".let { it to it.length }
         }
 

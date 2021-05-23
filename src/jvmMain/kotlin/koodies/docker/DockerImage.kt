@@ -14,7 +14,7 @@ import koodies.exec.Executable
 import koodies.exec.Process.ExitState
 import koodies.exec.output
 import koodies.exec.parse
-import koodies.io.path.Locations
+import koodies.io.Locations
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.DEBUGGING_ONLY
 import koodies.logging.RenderingLogger
@@ -161,7 +161,9 @@ public open class DockerImage(
         val page = 1
         val pageSize = 100
         val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
-        Locations.Temp.curlJq(null) { "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort" }.io.output.ansiRemoved.lines()
+        Locations.ExecTemp.path.curlJq(null) {
+            "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"
+        }.io.output.ansiRemoved.lines()
     }
 
     /**

@@ -1,5 +1,8 @@
 package koodies.test
 
+import koodies.io.InMemoryBinaryFile
+import koodies.io.InMemoryFile
+import koodies.io.InMemoryTextFile
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
@@ -11,16 +14,15 @@ import java.io.IOException
 class FixtureKtTest {
 
     @TestFactory
-    fun textFixture() = test(TextFixture("text-fixture", "line 1\nline 2$LF")) {
+    fun textFixture() = test(InMemoryTextFile("text-fixture", "line 1\nline 2$LF")) {
         expecting { name } that { isEqualTo("text-fixture") }
         expecting { text } that { isEqualTo("line 1\nline 2$LF") }
         expecting { data } that { isEqualTo("line 1\nline 2$LF".toByteArray()) }
     }
 
     @TestFactory
-    fun binaryFixture() = test(BinaryFixture("binary-fixture", "binary".toByteArray())) {
+    fun binaryFixture() = test(InMemoryBinaryFile("binary-fixture", "binary".toByteArray())) {
         expecting { name } that { isEqualTo("binary-fixture") }
-        expecting { text } that { isEqualTo("binary") }
         expecting { data } that { isEqualTo("binary".toByteArray()) }
     }
 
@@ -28,7 +30,6 @@ class FixtureKtTest {
     @TestFactory
     fun classPathFixture() = test(ClassPathDirectoryFixture("META-INF")) {
         expecting { name } that { isEqualTo("META-INF") }
-        expectThrows<IOException> { text }
         expectThrows<IOException> { data }
         with("dynamic paths") { dir("services").file("org.junit.jupiter.api.extension.Extension") } then {
             expecting { name } that { isEqualTo("org.junit.jupiter.api.extension.Extension") }
@@ -41,7 +42,6 @@ class FixtureKtTest {
     @TestFactory
     fun staticClassPathFixture() = test(META_INF) {
         expecting { name } that { isEqualTo("META-INF") }
-        expectThrows<IOException> { text }
         expectThrows<IOException> { data }
         with("static paths") { META_INF.Services.JUnitExtensions } then {
             expecting { name } that { isEqualTo("org.junit.jupiter.api.extension.Extension") }
@@ -58,6 +58,6 @@ class FixtureKtTest {
     }
 }
 
-val <T : Fixture> Assertion.Builder<T>.name get() = get("name %s") { name }
-val <T : Fixture> Assertion.Builder<T>.text get() = get("text %s") { text }
-val <T : Fixture> Assertion.Builder<T>.data get() = get("data %s") { data }
+val <T : InMemoryFile> Assertion.Builder<T>.name get() = get("name %s") { name }
+val <T : InMemoryTextFile> Assertion.Builder<T>.text get() = get("text %s") { text }
+val <T : InMemoryFile> Assertion.Builder<T>.data get() = get("data %s") { data }

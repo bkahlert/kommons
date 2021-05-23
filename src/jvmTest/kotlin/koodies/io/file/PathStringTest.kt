@@ -48,6 +48,9 @@ class PathStringTest {
     }
 }
 
+val <T : Path> Assertion.Builder<T>.pathString
+    get() = get("path as string") { pathString }
+
 fun <T : Path> Assertion.Builder<T>.pathStringIsEqualTo(path: String) =
     assert("equals $path") {
         val actual = it.pathString

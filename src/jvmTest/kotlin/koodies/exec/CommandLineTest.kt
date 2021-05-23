@@ -1,6 +1,6 @@
 package koodies.exec
 
-import koodies.io.path.Locations
+import koodies.io.Locations
 import koodies.shell.ShellScript
 import koodies.test.string
 import koodies.test.testEach

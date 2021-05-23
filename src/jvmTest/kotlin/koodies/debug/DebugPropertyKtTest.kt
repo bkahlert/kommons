@@ -1,6 +1,6 @@
 package koodies.debug
 
-import koodies.test.TextFile
+import koodies.test.TextFixture
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
 import koodies.text.asCodePointSequence
@@ -12,7 +12,7 @@ class DebugPropertyKtTest {
 
     @Test
     fun `should render String`() {
-        expectThat(TextFile.data.decodeToString().debug.ansiRemoved)
+        expectThat(TextFixture.data.decodeToString().debug.ansiRemoved)
             .isEqualTo("❬a⏎␤𝕓⏎␍⏎␊☰⏎␊👋⏎␊⦀11❭")
     }
 
@@ -30,7 +30,7 @@ class DebugPropertyKtTest {
 
     @Test
     fun `should render any Array`() {
-        val stringArray = TextFile.data.decodeToString().asCodePointSequence().map { it.string }.toList().toTypedArray()
+        val stringArray = TextFixture.data.decodeToString().asCodePointSequence().map { it.string }.toList().toTypedArray()
         expectThat(stringArray.debug.ansiRemoved)
             .isEqualTo("【a⦀1,⏎␤⦀1,𝕓⦀2,⏎␍⦀1,⏎␊⦀1,☰⦀1,⏎␊⦀1,👋⦀2,⏎␊⦀1】")
     }

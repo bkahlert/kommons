@@ -1,8 +1,8 @@
 package koodies.io.path
 
-import koodies.test.HtmlFile
+import koodies.io.copyToDirectory
+import koodies.test.HtmlFixture
 import koodies.test.UniqueId
-import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ class ConditionsKtTest {
 
             @Test
             fun `should return false on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(HtmlFile.copyToDirectory(this)).not { isEmpty() }
+                expectThat(HtmlFixture.copyToDirectory(this)).not { isEmpty() }
             }
         }
 
@@ -70,7 +70,7 @@ class ConditionsKtTest {
         inner class WithFile {
             @Test
             fun `should return true on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(HtmlFile.copyToDirectory(this)).isNotEmpty()
+                expectThat(HtmlFixture.copyToDirectory(this)).isNotEmpty()
             }
 
             @Test

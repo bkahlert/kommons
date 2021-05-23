@@ -1,10 +1,10 @@
 package koodies.io.file
 
+import koodies.io.copyToDirectory
 import koodies.jvm.deleteOnExit
 import koodies.nio.file.toBase64
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.UniqueId
-import koodies.test.copyToDirectory
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -14,7 +14,7 @@ class ToBase64KtTest {
 
     @Test
     fun `should encode using Base64`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val htmlFile = deleteOnExit(HtmlFile.copyToDirectory(this))
+        val htmlFile = deleteOnExit(HtmlFixture.copyToDirectory(this))
 
         @Suppress("SpellCheckingInspection")
         expectThat(htmlFile.toBase64())

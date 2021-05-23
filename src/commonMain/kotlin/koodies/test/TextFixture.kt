@@ -1,7 +1,10 @@
 package koodies.test
 
+import koodies.io.InMemoryFile
+import koodies.io.InMemoryTextFile
+
 /**
- * A text file [Fixture] encompassing the multi-string.
+ * A text [InMemoryFile] encompassing the following multi-line string:
  *
  * ```
  * a // "LATIN SMALL LETTER A" + "NEXT LINE (NEL)"
@@ -10,7 +13,7 @@ package koodies.test
  * 👋 // "WAVING HAND SIGN" + "LINE FEED"
  * ```
  */
-public object TextFile : Fixture by BinaryFixture.unsigned(
+public object TextFixture : InMemoryTextFile(
     "61C285F09D95930D0AE298B00AF09F918B0A.txt",
     0x61u, // LATIN SMALL LETTER A
     0xC2u, 0x85u, // NEXT LINE (NEL)

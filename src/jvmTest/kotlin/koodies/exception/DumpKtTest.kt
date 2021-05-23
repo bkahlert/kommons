@@ -6,7 +6,7 @@ import koodies.io.path.randomPath
 import koodies.io.path.writeText
 import koodies.regex.RegularExpressions
 import koodies.regex.findAllValues
-import koodies.test.TextFile
+import koodies.test.TextFixture
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.ANSI.Text.Companion.ansi
@@ -38,12 +38,12 @@ class DumpKtTest {
 
         @Test
         fun `should contain explanation`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(dump(null, data = TextFile.text)).contains("A dump has been written")
+            expectThat(dump(null, data = TextFixture.text)).contains("A dump has been written")
         }
 
         @Test
         fun `should contain capitalized custom explanation next to default one`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(dump("custom explanation", data = TextFile.text))
+            expectThat(dump("custom explanation", data = TextFixture.text))
                 .contains("Custom explanation")
                 .contains("A dump has been written")
         }
@@ -100,7 +100,7 @@ class DumpKtTest {
         fun `should throw if data could not be dumped`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val path = randomPath(extension = ".log").writeText("already exists")
             path.toFile().setReadOnly()
-            expectCatching { persistDump(path = path, data = { TextFile.text }) }.isFailure().isA<IOException>()
+            expectCatching { persistDump(path = path, data = { TextFixture.text }) }.isFailure().isA<IOException>()
             path.toFile().setWritable(true)
         }
 

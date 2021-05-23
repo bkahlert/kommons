@@ -3,6 +3,7 @@ package koodies.io.path
 import koodies.io.compress.TarArchiver.tar
 import koodies.io.file.isSiblingOf
 import koodies.io.file.lastModified
+import koodies.io.tempFile
 import koodies.jvm.deleteOnExit
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile

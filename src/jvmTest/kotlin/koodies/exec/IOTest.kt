@@ -10,7 +10,7 @@ import koodies.exec.IO.Meta.Text
 import koodies.exec.IO.Output
 import koodies.exec.mock.ExecMock
 import koodies.exec.mock.JavaProcessMock
-import koodies.io.path.Locations
+import koodies.io.Locations
 import koodies.io.path.asPath
 import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo

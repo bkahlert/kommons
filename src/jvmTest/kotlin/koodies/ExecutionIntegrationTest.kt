@@ -11,11 +11,12 @@ import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.error
 import koodies.exec.exitCode
 import koodies.exec.output
-import koodies.io.path.Locations
-import koodies.io.path.Locations.ls
+import koodies.io.Locations
+import koodies.io.Locations.ls
+import koodies.io.copyTo
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
-import koodies.io.path.tempDir
+import koodies.io.tempDir
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
@@ -24,12 +25,11 @@ import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.logging.expectThatLogged
 import koodies.logging.logged
 import koodies.shell.ShellScript
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.Smoke
-import koodies.test.SvgFile
+import koodies.test.SvgFixture
 import koodies.test.UniqueId
 import koodies.test.asserting
-import koodies.test.copyTo
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Formatter
@@ -183,9 +183,9 @@ class ExecutionIntegrationTest {
                 io.error.ansiRemoved { contains("cat: sample.html: No such file or directory") }
             }
 
-            HtmlFile.copyTo(resolve("sample.html"))
+            HtmlFixture.copyTo(resolve("sample.html"))
             ShellScript { "cat sample.html" }.exec(this) check {
-                io.output.ansiRemoved { length.isEqualTo(HtmlFile.text.length) }
+                io.output.ansiRemoved { length.isEqualTo(HtmlFixture.text.length) }
             }
 
             this.ls().map { it.fileName } check {
@@ -219,7 +219,7 @@ class ExecutionIntegrationTest {
 
     @DockerRequiring @Test
     fun `should exec composed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        SvgFile.copyTo(resolve("koodies.svg"))
+        SvgFixture.copyTo(resolve("koodies.svg"))
 
         docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg")
         resolve("koodies.png") asserting { exists() }
@@ -229,7 +229,7 @@ class ExecutionIntegrationTest {
             """
                /opt/bin/chafa -c full -w 9 koodies.png
             """
-        }.io.output.ansiKept.let { println(it.resetLines()) }
+        }.io.output.ansiKept.resetLines().let { println(it) }
     }
 
     @Test

@@ -1,5 +1,6 @@
 package koodies.exec
 
+import koodies.exception.rootCause
 import koodies.exec.IO.Error
 import koodies.exec.IO.Input
 import koodies.exec.IO.Meta
@@ -653,6 +654,13 @@ inline val <T : ExitState> Builder<T>.io
 
 inline val Builder<out Failed>.dump: Builder<String?>
     get(): Builder<String?> = get("dump") { dump }
+
+inline val Builder<out Excepted>.exception: Builder<Throwable?>
+    get(): Builder<Throwable?> = get("exception") { exception }
+
+inline val Builder<out Excepted>.rootCause: Builder<Throwable?>
+    get(): Builder<Throwable?> = get("root cause") { exception?.rootCause }
+
 
 fun Builder<out ExitState>.io() =
     get("IO with kept ANSI escape codes") { io.ansiKept }

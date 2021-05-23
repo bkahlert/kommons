@@ -20,20 +20,20 @@ import koodies.exec.hasState
 import koodies.exec.io
 import koodies.exec.output
 import koodies.exec.state
+import koodies.io.copyTo
+import koodies.io.copyToDirectory
 import koodies.io.path.asPath
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
-import koodies.io.path.tempDir
+import koodies.io.tempDir
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectLogged
 import koodies.runtime.onExit
 import koodies.shell.ShellScript
 import koodies.test.BuilderFixture
-import koodies.test.HtmlFile
+import koodies.test.HtmlFixture
 import koodies.test.Slow
 import koodies.test.Smoke
-import koodies.test.copyTo
-import koodies.test.copyToDirectory
 import koodies.test.expecting
 import koodies.test.output.TestLogger
 import koodies.test.test
@@ -234,7 +234,7 @@ class DockerRunCommandLineTest {
 
             private val tempDir = tempDir().also { onExit { it.deleteRecursively() } }
             private val workDir = tempDir.resolve("work")
-            private val htmlFile = workDir.resolve("files/sample.html").also { HtmlFile.copyTo(it) }
+            private val htmlFile = workDir.resolve("files/sample.html").also { HtmlFixture.copyTo(it) }
 
             private val commandLine = CommandLine("cat", htmlFile.pathString)
 
@@ -254,7 +254,7 @@ class DockerRunCommandLineTest {
                     }.exec.logging(logger, workDir)
                 } that {
                     commandLine.toStringContains("'/host/work/files/sample.html'")
-                    io.output.ansiRemoved.isEqualTo(HtmlFile.text)
+                    io.output.ansiRemoved.isEqualTo(HtmlFixture.text)
                 }
             }
         }
@@ -434,7 +434,7 @@ class DockerRunCommandLineTest {
     inner class WithOptions {
 
         private val tempDir = tempDir()
-            .also { HtmlFile.copyToDirectory(it) }
+            .also { HtmlFixture.copyToDirectory(it) }
             .also { onExit { it.deleteRecursively() } }
 
         private val optionsInit: Init<OptionsContext> = {
@@ -458,9 +458,9 @@ class DockerRunCommandLineTest {
             { with(Ubuntu) { dockerized { optionsInit() } }.exec() },
         ) { execVariant ->
             expecting {
-                CommandLine("cat", "host/${HtmlFile.name}").execVariant()
+                CommandLine("cat", "host/${HtmlFixture.name}").execVariant()
             } that {
-                io.output.ansiRemoved.isEqualTo(HtmlFile.text)
+                io.output.ansiRemoved.isEqualTo(HtmlFixture.text)
             }
         }
     }

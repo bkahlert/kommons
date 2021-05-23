@@ -1,7 +1,7 @@
 package koodies.exec
 
 import koodies.exec.IO.Meta
-import koodies.io.path.Locations
+import koodies.io.Locations
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat

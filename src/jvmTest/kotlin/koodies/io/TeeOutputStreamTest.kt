@@ -1,7 +1,7 @@
 package koodies.io
 
 import koodies.test.Assertion
-import koodies.test.TextFile
+import koodies.test.TextFixture
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -27,7 +27,7 @@ class TeeOutputStreamTest {
         }
     }
 
-    private val text = TextFile.text
+    private val text = TextFixture.text
     private fun streams() = listOf(TestStream(), TestStream(), TestStream())
     private fun withStream(block: TeeOutputStream.() -> Unit) = block
 

@@ -15,7 +15,7 @@ import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.State
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
-import koodies.io.path.Locations
+import koodies.io.Locations
 import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF

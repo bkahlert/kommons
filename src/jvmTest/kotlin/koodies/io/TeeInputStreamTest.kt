@@ -1,11 +1,10 @@
 package koodies.io
 
 import koodies.test.Assertion
-import koodies.test.TextFile
+import koodies.test.TextFixture
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
-import koodies.text.toByteArray
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.all
@@ -23,7 +22,7 @@ class TeeInputStreamTest {
         }
     }
 
-    private val text = TextFile.text
+    private val text = TextFixture.text
     private fun streams() = listOf(TestStream(), TestStream(), TestStream())
     private fun withStream(block: TeeInputStream.(ByteArray) -> Unit) = block
 
