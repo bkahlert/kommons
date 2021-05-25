@@ -1,5 +1,6 @@
 package koodies.io.path
 
+import koodies.io.Locations
 import koodies.io.copyToDirectory
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
@@ -7,8 +8,12 @@ import koodies.test.Fixtures.symbolicLink
 import koodies.test.HtmlFixture
 import koodies.test.UniqueId
 import koodies.test.withTempDir
+import koodies.time.Now
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -23,8 +28,11 @@ import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
+import java.nio.file.Path
 import kotlin.io.path.createDirectory
+import kotlin.io.path.div
 import kotlin.io.path.isSymbolicLink
+import kotlin.io.path.writeText
 
 class StdLibMissingKtTest {
 
@@ -201,6 +209,35 @@ class StdLibMissingKtTest {
                 that(dir.deleteRecursively()).not { exists() }
                 that(this@withTempDir).isEmpty()
             }
+        }
+    }
+
+    @Isolated
+    @Nested
+    inner class DeleteOnExit {
+
+        private val name = "koodies.onexit.does-not-work.txt"
+        private val markerFile: Path = Locations.Temp / name
+
+        @BeforeAll
+        fun setUp() {
+            markerFile.deleteOnExit(true)
+        }
+
+        @Test
+        fun `should clean up on shutdown`() {
+            expectThat(markerFile).not { exists() }
+        }
+
+        @AfterAll
+        fun tearDown() {
+            markerFile.writeText("""
+            This file was created $Now.
+            It used to be cleaned up by the koodies library
+            the moment the application in question shut down.
+            
+            The application was started by ${System.getProperty("sun.java.command")}.
+        """.trimIndent())
         }
     }
 }

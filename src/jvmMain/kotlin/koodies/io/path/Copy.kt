@@ -26,7 +26,6 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.notExists
 
-
 /**
  * Copies this path to the [target] recursively exactly as [File.copyRecursively] would do it.
  * (In short: A file `/src/file` or a directory `/src/dir` copied to `/dest/target` would then be located at `/dest/target`)

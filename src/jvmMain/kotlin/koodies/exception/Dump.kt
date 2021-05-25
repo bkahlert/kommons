@@ -1,5 +1,6 @@
 package koodies.exception
 
+import koodies.io.InternalLocations
 import koodies.io.Locations
 import koodies.io.path.isSubPathOf
 import koodies.io.path.randomFile
@@ -7,13 +8,13 @@ import koodies.io.path.withExtension
 import koodies.io.path.writeText
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
+import koodies.text.capitalize
 import koodies.text.withSuffix
 import java.io.IOException
 import java.nio.file.Path
-import java.util.Locale
 
 private object Dump {
-    val dumpDir = Locations.ExecTemp.path
+    val dumpDir: Path = InternalLocations.ExecTemp
     const val dumpPrefix = "koodies.dump."
     const val dumpSuffix = ".log"
 }
@@ -36,13 +37,13 @@ public fun Path.dump(
     val dumpedLines = (dumped ?: error("Dump seems empty")).lines()
     val recentLineCount = dumpedLines.size.coerceAtMost(10)
 
-    (errorMessage?.withSuffix(LF)?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } ?: "") +
+    (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
         "➜ A dump has been written to:$LF" +
         dumps.entries.joinToString("") { "  - ${it.value.toUri()} (${it.key})$LF" } +
         "➜ The last $recentLineCount lines are:$LF" +
         dumpedLines.takeLast(recentLineCount).map { "  $it$LF" }.joinToString("")
 }.recover { ex: Throwable ->
-    (errorMessage?.withSuffix(LF)?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } ?: "") +
+    (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
         "In the attempt to persist the corresponding dump the following error occurred:$LF" +
         "${ex.toCompactString()}$LF" +
         LF +

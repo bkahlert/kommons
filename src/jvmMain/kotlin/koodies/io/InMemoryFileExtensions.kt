@@ -51,7 +51,7 @@ public fun InMemoryFile.copyToDirectory(target: Path): Path = when (this) {
 public fun InMemoryFile.copyToTemp(
     base: String = name.asPath().nameWithoutExtension,
     extension: String = name.asPath().extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(Locations.FilesTemp.tempFile(base, extension))
+): Path = copyTo(InternalLocations.FilesTemp.tempFile(base, extension))
 
 /**
  * Returns this image as a bitmap. The image is automatically rasterized if necessary.

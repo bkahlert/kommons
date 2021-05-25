@@ -292,7 +292,8 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
  * For safety reasons, [recursively] must be explicitly set to `true`
  * if not-empty directories are to be deleted.
  */
-public fun Path.deleteOnExit(recursively: Boolean = false): Path = apply {
+@Suppress("NOTHING_TO_INLINE")
+public inline fun Path.deleteOnExit(recursively: Boolean = false): Path = apply {
     onExit {
         if (recursively) deleteRecursively()
         else delete()

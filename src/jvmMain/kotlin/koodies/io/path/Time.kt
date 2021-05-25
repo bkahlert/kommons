@@ -12,7 +12,7 @@ import kotlin.io.path.setLastModifiedTime
 import kotlin.time.Duration
 
 public fun Path.touch(): Path {
-    require(parent.exists())
+    parent.requireExists()
     if (exists()) setLastModifiedTime(Now.fileTime)
     else createFile()
     return this

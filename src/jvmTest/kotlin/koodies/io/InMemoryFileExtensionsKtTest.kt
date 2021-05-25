@@ -46,7 +46,7 @@ class InMemoryFileExtensionsKtTest {
         expecting { SvgFixture.copyToTemp().deleteOnExit() } that {
             fileName.pathString.startsWith("koodies").endsWith(".svg")
             hasContent(SvgFixture.contents.decodeToString())
-            parent.isEqualTo(Locations.FilesTemp.path)
+            parent.isEqualTo(InternalLocations.FilesTemp)
         }
     }
 

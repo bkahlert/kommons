@@ -6,6 +6,7 @@ import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.io.InternalLocations
 import koodies.io.Locations
 import koodies.io.path.pathString
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
@@ -67,8 +68,8 @@ class ExecutorTest {
 
         @Test
         fun `should exec using specified working directory`() {
-            val exec = CommandLine("pwd").exec(Locations.ExecTemp.path)
-            val tempPaths = setOf(Locations.ExecTemp.path.pathString, Locations.ExecTemp.path.toRealPath().pathString)
+            val exec = CommandLine("pwd").exec(InternalLocations.ExecTemp)
+            val tempPaths = setOf(InternalLocations.ExecTemp.pathString, InternalLocations.ExecTemp.toRealPath().pathString)
             expectThat(tempPaths).contains(exec.io.output.ansiRemoved)
         }
     }

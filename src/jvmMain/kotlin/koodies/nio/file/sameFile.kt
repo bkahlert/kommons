@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.io.Locations.Temp
+import koodies.io.Locations.Companion.Temp
 import java.nio.file.Path
 
 /**

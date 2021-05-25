@@ -4,7 +4,6 @@ import koodies.io.compress.TarArchiver.tar
 import koodies.io.file.isSiblingOf
 import koodies.io.file.lastModified
 import koodies.io.tempFile
-import koodies.jvm.deleteOnExit
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.UniqueId
@@ -398,8 +397,8 @@ class CopyKtTest {
 
 fun <T : Path> Assertion.Builder<T>.createsEqualTar(other: Path) =
     assert("is copy of $other") { self ->
-        val selfTar = deleteOnExit(self.tar(tempFile()))
-        val otherTar = deleteOnExit(other.tar(tempFile()))
+        val selfTar = self.tar(tempFile()).deleteOnExit(true)
+        val otherTar = other.tar(tempFile()).deleteOnExit(true)
 
         val selfBytes = selfTar.readBytes()
         val otherBytes = otherTar.readBytes()

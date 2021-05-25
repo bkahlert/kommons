@@ -97,10 +97,10 @@ public fun CharSequence.convertKebabCaseToCamelCase(): String {
     }
 }
 
-private fun CharSequence.convertCamelCase(separator: Char, transformator: (String) -> String): String =
+private fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String =
     camelCaseRegex
         .replace(this.toString().decapitalize(), "\${lowerLeftChar}$separator\${upperRightChar}")
-        .let(transformator)
+        .let(transform)
 
 /**
  * Given this string is using `camelCase` this method will return the string converted to `kebab-case`.
@@ -156,7 +156,7 @@ public fun CharSequence.containsLowerCase(): Boolean = any { it.isLowerCase() }
 
 public fun CharSequence.capitalize(): CharSequence = object : CharSequence {
     override val length: Int get() = this@capitalize.length
-    override fun get(index: Int): Char = this@capitalize[index].let { if (index == 0) it.uppercaseChar() else it }
+    override fun get(index: Int): Char = this@capitalize[index].let { if (index == 0) it.titlecaseChar() else it }
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
         this@capitalize.subSequence(startIndex, endIndex).capitalize()
 
@@ -171,6 +171,9 @@ public fun CharSequence.decapitalize(): CharSequence = object : CharSequence {
 
     override fun toString(): String = StringBuilder(this).toString()
 }
+
+public fun String.capitalize(): String = (this as CharSequence).capitalize().toString()
+public fun String.decapitalize(): String = (this as CharSequence).decapitalize().toString()
 
 
 public fun CharSequence.toUpperCase(): CharSequence = object : CharSequence {
@@ -190,7 +193,6 @@ public fun CharSequence.toLowerCase(): CharSequence = object : CharSequence {
 
     override fun toString(): String = StringBuilder(this).toString()
 }
-
 
 public fun String.toUpperCase(): String = (this as CharSequence).toUpperCase().toString()
 public fun String.toLowerCase(): String = (this as CharSequence).toLowerCase().toString()

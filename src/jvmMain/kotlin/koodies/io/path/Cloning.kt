@@ -1,19 +1,18 @@
 package koodies.io.path
 
-import koodies.io.Locations
+import koodies.io.InternalLocations
 import koodies.io.fileAlreadyExists
-import koodies.jvm.deleteOnExit
+import koodies.io.tempFile
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
-import kotlin.io.path.writeText
 
 public val cloneFileSupport: Boolean by lazy {
-    val file: Path = Locations.FilesTemp.tempFile().apply {
+    val file: Path = InternalLocations.FilesTemp.tempFile().apply {
         writeText("cloneFile test")
-        deleteOnExit(this)
+        deleteOnExit()
     }
-    val clone = deleteOnExit(file.resolveSibling("cloned"))
+    val clone = file.resolveSibling("cloned").deleteOnExit()
     Runtime.getRuntime()?.exec(arrayOf("cp", "-c", file.pathString, clone.pathString))
         ?.waitFor()
         ?.let { exitValue ->

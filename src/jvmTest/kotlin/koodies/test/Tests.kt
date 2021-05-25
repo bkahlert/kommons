@@ -6,9 +6,9 @@ import koodies.collections.asStream
 import koodies.debug.trace
 import koodies.exception.toCompactString
 import koodies.io.path.asPath
+import koodies.io.path.deleteOnExit
 import koodies.io.path.readLine
 import koodies.jvm.currentStackTrace
-import koodies.jvm.deleteOnExit
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
 import koodies.runtime.CallStackElement
@@ -32,6 +32,7 @@ import koodies.text.Semantics.BlockDelimiters.TEXT
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.TruncationStrategy.MIDDLE
+import koodies.text.decapitalize
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
@@ -62,7 +63,6 @@ import strikt.assertions.message
 import strikt.assertions.size
 import java.net.URI
 import java.nio.file.Path
-import java.util.Locale
 import java.util.stream.Stream
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
@@ -88,7 +88,7 @@ typealias IdeaWorkaroundTest = Test
  */
 typealias IdeaWorkaroundTestFactory = TestFactory
 
-private val root by lazy { deleteOnExit(createTempDirectory("koodies")) }
+private val root by lazy { createTempDirectory("koodies").deleteOnExit(true) }
 
 typealias Assertion<T> = Builder<T>.() -> Unit
 
@@ -294,7 +294,7 @@ object Tester {
         }
 
     private fun KCallable<*>.getPropertyName(callerMethodName: String): String =
-        "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.replaceFirstChar { it.lowercase(Locale.getDefault()) } } ?: name
+        "^$callerMethodName(?<arg>.+)$".toRegex().find(name)?.run { groupValue("arg")?.decapitalize() } ?: name
 
     private fun getLambdaBodyOrNull(
         callStackElement: CallStackElement,
@@ -943,7 +943,7 @@ class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>
  * @throws IllegalStateException if called from outside of a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir = root.resolve(uniqueId.value.toBaseName().withRandomSuffix()).createDirectories()
+    val tempDir: Path = root.resolve(uniqueId.value.toBaseName().withRandomSuffix()).createDirectories()
     tempDir.block()
     check(root.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".ansi.red.toString())

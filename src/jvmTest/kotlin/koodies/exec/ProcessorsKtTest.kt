@@ -5,7 +5,7 @@ import koodies.exec.ProcessingMode.Interactivity.Interactive
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
-import koodies.io.Locations.Temp
+import koodies.io.InternalLocations
 import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
@@ -219,4 +219,4 @@ class ProcessorsKtTest {
     }
 }
 
-private fun CommandLine.toExec() = toExec(false, emptyMap(), Temp, null)
+private fun CommandLine.toExec() = toExec(false, emptyMap(), InternalLocations.InternalTemp, null)

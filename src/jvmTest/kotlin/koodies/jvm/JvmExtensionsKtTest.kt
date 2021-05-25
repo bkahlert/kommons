@@ -1,5 +1,8 @@
 package koodies.jvm
 
+import koodies.debug.asEmoji
+import koodies.logging.InMemoryLogger
+import koodies.runtime.isDebugging
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -9,6 +12,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import java.util.Optional
 import kotlin.reflect.jvm.javaMethod
+
 class JvmExtensionsKtTest {
 
     @Nested
@@ -97,6 +101,15 @@ class JvmExtensionsKtTest {
                 Ancestors::class.java,
                 JvmExtensionsKtTest::class.java,
             )
+        }
+    }
+
+    @Nested
+    inner class IsDebugging {
+
+        @Test
+        fun InMemoryLogger.`should not throw`() {
+            logLine { "Debugging: ${isDebugging.asEmoji}" }
         }
     }
 }

@@ -28,13 +28,13 @@ import koodies.text.CharRanges.Alphanumeric
 import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
+import koodies.text.capitalize
 import koodies.text.randomString
 import koodies.text.spaced
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import koodies.time.seconds
 import java.nio.file.Path
-import java.util.Locale
 import kotlin.time.Duration
 
 public class DockerContainer(public val name: String) {
@@ -201,7 +201,7 @@ public class DockerContainer(public val name: String) {
             }.exec.logging(logger) {
                 noDetails("Checking status of ${container.name.formattedAs.input}")
             }.parse.columns<State, Failed>(3) { (_, state, status) ->
-                when (state.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }) {
+                when (state.capitalize()) {
                     Created::class.simpleName -> Created(status)
                     Restarting::class.simpleName -> Restarting(status)
                     Running::class.simpleName -> Running(status)

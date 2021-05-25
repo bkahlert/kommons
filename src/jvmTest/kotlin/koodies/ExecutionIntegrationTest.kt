@@ -12,8 +12,8 @@ import koodies.exec.error
 import koodies.exec.exitCode
 import koodies.exec.output
 import koodies.io.Locations
-import koodies.io.Locations.ls
 import koodies.io.copyTo
+import koodies.io.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
 import koodies.io.tempDir
@@ -188,7 +188,7 @@ class ExecutionIntegrationTest {
                 io.output.ansiRemoved { length.isEqualTo(HtmlFixture.text.length) }
             }
 
-            this.ls().map { it.fileName } check {
+            ls().map { it.fileName } check {
                 size { isEqualTo(1) }
                 this {
                     any { toStringMatchesCurlyPattern("sample.html") }

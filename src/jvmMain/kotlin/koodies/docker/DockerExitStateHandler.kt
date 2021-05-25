@@ -21,13 +21,13 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
+import koodies.text.capitalize
 import koodies.text.containsAll
 import koodies.text.rightSpaced
 import koodies.text.spaced
 import koodies.text.splitPascalCase
 import koodies.text.takeUnlessBlank
 import koodies.text.withoutSuffix
-import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.text.RegexOption.IGNORE_CASE
 
@@ -158,7 +158,7 @@ public object DockerExitStateHandler : ExitStateHandler {
                 // ThisIsAClassName -> This is a class name
                 protected inline val <reified T : KClass<*>> T.expectedErrorMessage: String?
                     get() = simpleName?.splitPascalCase()?.joinToString(" ")
-                        ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                        ?.capitalize()
 
                 private inline fun <reified T : Any> String.matches() = equals(T::class.expectedErrorMessage, ignoreCase = true)
 
