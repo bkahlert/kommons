@@ -15,7 +15,6 @@ import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.quoted
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
@@ -101,7 +100,7 @@ public open class ShellScript(
             "#!($it${
                 toString().replace("\\$LF", "").withoutTrailingLineSeparator.lines().joinToString(";") {
                     CommandLine.parseOrNull(it)?.commandLineParts?.joinToString(" ") ?: it
-                }.truncate(150, MIDDLE, " … ")
+                }.truncate(150, " … ")
             })"
         }
 

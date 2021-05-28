@@ -17,7 +17,7 @@ import koodies.text.randomString
  * - all possibly invalid characters replaced
  * - start with a letter
  */
-public fun String?.toBaseName(minLength: Int = 8): String {
+public fun CharSequence?.toBaseName(minLength: Int = 8): String {
     var firstCharReplaced = false
     val sanitizedChars: List<String> = this?.asCodePointSequence()?.withIndex()?.map { (index: Int, codePoint: CodePoint) ->
         if (index == 0 && !codePoint.isAtoz) {

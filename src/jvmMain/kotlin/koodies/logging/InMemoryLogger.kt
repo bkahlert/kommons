@@ -6,7 +6,6 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.padStartFixedLength
 import koodies.time.Now
 import java.io.OutputStream
@@ -24,7 +23,7 @@ public open class InMemoryLogger(
     outputStream: OutputStream? = null,
     private val start: Long = System.currentTimeMillis(),
     log: (String) -> Unit = {
-        val thread = currentThread.name.padStartFixedLength(30, strategy = MIDDLE)
+        val thread = currentThread.name.padStartFixedLength(30)
         val time = Now.passedSince(start).toString().padStartFixedLength(7)
         val prefix = "$thread: $time: "
         outputStream?.apply { write(it.prefixLinesWith(prefix = prefix).toByteArray()) }

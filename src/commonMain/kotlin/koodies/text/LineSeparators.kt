@@ -254,24 +254,13 @@ public object LineSeparators : Collection<String> {
         mapLines(ignoreTrailingSeparator) { "$prefix$it" }
 
     /**
-     * Breaks this character sequence to a sequence of strings of [maxLength].
-     *
-     * @param maxLength The maximum length of each returned line.
-     */
-    public fun CharSequence?.breakLines(maxLength: Int, ignoreTrailingSeparator: Boolean = true): String =
-        flatMapLines(ignoreTrailingSeparator) { line ->
-            line.chunked(maxLength)
-        }
-
-    /**
      * Returns a sequence of lines of which none is longer than [maxLineLength].
      */
     public fun CharSequence?.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
         if (this == null) return emptySequence()
-        val ansiString = this is AnsiString
         val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
         return lines.flatMap { line: String ->
-            if (ansiString) {
+            if (this is AnsiString) {
                 val seq: Sequence<AnsiString> = line.asAnsiString().chunkedSequence(maxLineLength)
                 if (ignoreTrailingSeparator) seq
                 else seq.iterator().run { if (!hasNext()) sequenceOf(AnsiString.EMPTY) else asSequence() }
@@ -288,7 +277,6 @@ public object LineSeparators : Collection<String> {
      */
     public fun CharSequence?.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
         linesOfLengthSequence(maxLineLength, ignoreTrailingSeparator).toList()
-
 
     /**
      * Returns a string consisting of lines of which none is longer than [maxLineLength].

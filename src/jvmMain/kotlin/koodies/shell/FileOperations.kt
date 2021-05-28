@@ -12,7 +12,7 @@ public class FileOperations(private val script: ScriptContext, private val path:
      * or the end of the file.
      */
     public fun removeLine(line: String, backupExtension: String = ".bak"): FileOperations {
-        script.line("perl -i$backupExtension -pe 's/$line(?:\\R|$)//smg' ${path.quoted}")
+        script.command("perl", "-i$backupExtension", "-pe", "s/\\Q$line\\E(?:\\R|$)//smg", path)
         return this
     }
 

@@ -3,6 +3,7 @@ package koodies.text
 import koodies.math.ceilDiv
 import koodies.math.floorDiv
 import koodies.regex.repeat
+import koodies.text.Semantics.formattedAs
 import koodies.text.Whitespaces.trailingWhitespaces
 
 /**
@@ -37,66 +38,91 @@ public fun <T> Collection<T>.joinToTruncatedString(
     }.toString()
 }
 
-/**
- * Different approaches on how to conduct the [truncate] operation.
- */
-public enum class TruncationStrategy(private val implementation: (CharSequence).(Int, CharSequence) -> CharSequence) {
+private fun requirePositiveColumns(maxColumns: Int) {
+    require(maxColumns > 0) {
+        "maxColumns ${maxColumns.formattedAs.input} must be positive."
+    }
+}
 
-    /**
-     * If the character sequence has more characters than specified,
-     * leading characters will be truncated.
-     */
-    START({ maxLength, marker ->
-        "$marker${subSequence(length - (maxLength - marker.length), length)}"
-    }),
-
-    /**
-     * If the character sequence has more characters than specified,
-     * centric characters will be truncated.
-     */
-    MIDDLE({ maxLength, marker ->
-        val maxX: Int = maxLength - marker.length
-        val left = subSequence(0, maxX ceilDiv 2)
-        val right = subSequence(length - (maxX floorDiv 2), length)
-        "$left$marker$right"
-    }),
-
-    /**
-     * If the character sequence has more characters than specified,
-     * trailing characters will be truncated.
-     */
-    END({ maxLength, marker ->
-        "${subSequence(0, maxLength - marker.length)}$marker"
-    });
-
-    /**
-     * Returns the given [text] truncated to [maxLength] characters including the [marker].
-     */
-    public fun truncate(text: String, maxLength: Int, marker: String = "…"): String =
-        if (text.length > maxLength) implementation(text, maxLength, marker).toString() else text
-
-    /**
-     * Returns the given [text] truncated to [maxLength] characters including the [marker].
-     */
-    public fun truncate(text: CharSequence, maxLength: Int, marker: String = "…"): CharSequence =
-        if (text.length > maxLength) implementation(text, maxLength, marker) else text
+private fun targetColumns(maxColumns: Int = 15, marker: String = "…"): Int {
+    requirePositiveColumns(maxColumns)
+    val markerColumns = marker.columns
+    require(maxColumns >= markerColumns) {
+        "maxColumns ${maxColumns.formattedAs.input} must not be less than ${markerColumns.formattedAs.input}/${marker.formattedAs.input}"
+    }
+    return maxColumns - markerColumns
 }
 
 /**
- * Returns `this` string truncated to [maxLength] characters including the [marker].
+ * Returns `this` string truncated from the center to [maxColumns] including the [marker].
  */
-public fun String.truncate(maxLength: Int = 15, strategy: TruncationStrategy = TruncationStrategy.END, marker: String = "…"): String =
-    strategy.truncate(this, maxLength, marker)
+public fun String.truncate(maxColumns: Int = 15, marker: String = "…"): String {
+    requirePositiveColumns(maxColumns)
+    return if (columns > maxColumns) {
+        val targetColumns = targetColumns(maxColumns, marker)
+        val left = truncateEnd(targetColumns ceilDiv 2, "")
+        val right = truncateStart(targetColumns floorDiv 2, "")
+        "$left$marker$right"
+    } else {
+        this
+    }
+}
 
 /**
- * Returns `this` character sequence truncated to [maxLength] characters including the [marker].
+ * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncate(maxLength: Int = 15, strategy: TruncationStrategy = TruncationStrategy.END, marker: String = "…"): CharSequence =
-    strategy.truncate(this, maxLength, marker)
+public fun CharSequence.truncate(maxColumns: Int = 15, marker: String = "…"): CharSequence =
+    if (columns > maxColumns) toString().truncate(maxColumns, marker) else this
+
+/**
+ * Returns `this` string truncated from the start to [maxColumns] including the [marker].
+ */
+public fun String.truncateStart(maxColumns: Int = 15, marker: String = "…"): String {
+    requirePositiveColumns(maxColumns)
+    if (columns > maxColumns) {
+        val targetColumns = targetColumns(maxColumns, marker)
+        for (i in 0 until length) {
+            val truncated = subSequence(i, length)
+            if (truncated.columns <= targetColumns) return "$marker$truncated"
+        }
+        return marker
+    } else {
+        return this
+    }
+}
+
+/**
+ * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
+ */
+public fun CharSequence.truncateStart(maxColumns: Int = 15, marker: String = "…"): CharSequence =
+    if (columns > maxColumns) toString().truncateStart(maxColumns, marker) else this
+
+/**
+ * Returns `this` string truncated from the end to [maxColumns] including the [marker].
+ */
+public fun String.truncateEnd(maxColumns: Int = 15, marker: String = "…"): String {
+    requirePositiveColumns(maxColumns)
+    if (columns > maxColumns) {
+        val targetColumns = targetColumns(maxColumns, marker)
+        for (i in length downTo 0) {
+            val truncated = subSequence(0, i)
+            if (truncated.columns <= targetColumns) return "$truncated$marker"
+        }
+        return marker
+    } else {
+        return this
+    }
+}
+
+/**
+ * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
+ */
+public fun CharSequence.truncateEnd(maxColumns: Int = 15, marker: String = "…"): CharSequence =
+    if (columns > maxColumns) toString().truncateEnd(maxColumns, marker) else this
 
 
 /**
- * Truncates this character sequence by [numberOfWhitespaces] by strategically removing whitespaces.
+ * Truncates `this` character sequence by [numberOfWhitespaces] by strategically removing whitespaces.
  *
  * The algorithm guarantees that word borders are respected, that is, two words never become one
  * (unless [minWhitespaceLength] is set to 0).
@@ -106,7 +132,7 @@ public fun CharSequence.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0
     toString().run { "${truncateTo(length - numberOfWhitespaces, startIndex, minWhitespaceLength)}" }
 
 /**
- * Truncates this string to [maxLength] by strategically removing whitespaces.
+ * Truncates `this` string to [maxLength] by strategically removing whitespaces.
  *
  * The algorithm guarantees that word borders are respected, that is, two words never become one
  * (unless [minWhitespaceLength] is set to 0).
@@ -129,23 +155,19 @@ public fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhite
 }
 
 /**
- * Returns this [CharSequence] truncated to [length] and if necessary padded from the start.
+ * Returns `this` character sequence truncated to [length] and if necessary padded from the start.
  */
 public fun CharSequence.padStartFixedLength(
     length: Int = 15,
-    strategy: TruncationStrategy = TruncationStrategy.END,
     marker: String = "…",
     padChar: Char = ' ',
-): CharSequence =
-    strategy.truncate(toString(), length, marker).padStart(length, padChar)
+): String = toString().truncate(length, marker).padStart(length, padChar)
 
 /**
- * Returns this [CharSequence] truncated to [length] and if necessary padded from the end.
+ * Returns `this` character sequence truncated to [length] and if necessary padded from the end.
  */
 public fun CharSequence.padEndFixedLength(
     length: Int = 15,
-    strategy: TruncationStrategy = TruncationStrategy.END,
     marker: String = "…",
     padChar: Char = ' ',
-): CharSequence =
-    strategy.truncate(toString(), length, marker).padEnd(length, padChar)
+): String = toString().truncate(length, marker).padEnd(length, padChar)

@@ -78,11 +78,14 @@ class BlockRenderingLoggerKtTest {
     }
 
     @Test
-    fun @receiver:Columns(60) InMemoryLogger.`should log status in same column`() {
+    fun @receiver:Columns(60) InMemoryLogger.`should log status on same column`() {
         blockLogging("caption") {
             logStatus("status") { "text" }
             blockLogging("nested") {
                 logStatus("status") { "text" }
+            }
+            blockLogging("nested") {
+                logStatus("🔴🟠🟡🟢🔵🟣") { "🟥🟧🟨🟩🟦🟪" }
             }
         }
 
@@ -91,6 +94,8 @@ class BlockRenderingLoggerKtTest {
             │   │   text                                                              ◀◀ status
             {{}}
             │   │   │   text                                                          ◀◀ status
+            {{}}
+            │   │   │   🟥🟧🟨🟩🟦🟪                                                  ◀◀ 🔴🟠🟡🟢🔵🟣 
             {{}}
         """.trimIndent())
     }

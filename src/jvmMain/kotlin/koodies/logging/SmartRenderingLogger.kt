@@ -2,9 +2,6 @@ package koodies.logging
 
 import koodies.asString
 import koodies.exception.toCompactString
-import koodies.logging.BlockRenderingLogger.Companion.DEFAULT_BORDER
-import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.text.ANSI.Formatter
 
 /**
@@ -93,25 +90,3 @@ public open class SmartRenderingLogger(
         ::logger to if (initialized) logger else "not initialized yet"
     }
 }
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
-@Deprecated("only use member function")
-@RenderingLoggingDsl
-public fun <R> logging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
-    border: Border = DEFAULT_BORDER,
-    block: FixedWidthRenderingLogger.() -> R,
-): R = SmartRenderingLogger(
-    caption,
-    { BACKGROUND.logText { it } },
-    contentFormatter,
-    decorationFormatter,
-    returnValueFormatter,
-    border,
-    prefix = BACKGROUND.prefix,
-).runLogging(block)

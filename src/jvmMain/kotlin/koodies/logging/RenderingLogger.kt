@@ -4,6 +4,7 @@ import koodies.asString
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
 import koodies.jvm.currentStackTrace
+import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.runtime.onExit
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
@@ -219,3 +220,24 @@ public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() 
 public fun <T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
     logResult { Result.success(returnValue) }
 }
+
+/**
+ * Creates a logger which serves for logging a sub-process and all of its corresponding events.
+ */
+@RenderingLoggingDsl
+public fun <R> logging(
+    caption: CharSequence,
+    contentFormatter: Formatter? = null,
+    decorationFormatter: Formatter? = null,
+    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
+    border: Border = BlockRenderingLogger.DEFAULT_BORDER,
+    block: FixedWidthRenderingLogger.() -> R,
+): R = SmartRenderingLogger(
+    caption,
+    { LoggingContext.BACKGROUND.logText { it } },
+    contentFormatter,
+    decorationFormatter,
+    returnValueFormatter,
+    border,
+    prefix = LoggingContext.BACKGROUND.prefix,
+).runLogging(block)

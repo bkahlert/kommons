@@ -31,7 +31,6 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.BlockDelimiters.TEXT
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.decapitalize
 import koodies.text.takeUnlessBlank
 import koodies.text.truncate
@@ -201,7 +200,7 @@ object Tester {
             append(this@displayName.displayName(transform))
             append(" ")
             append(TEXT.first)
-            append(valueOf(subject, transform).ansiRemoved.truncate(20, MIDDLE))
+            append(valueOf(subject, transform).ansiRemoved.truncate(20))
             append(TEXT.second)
             val that = getLambdaBodyOrNull(this@displayName, "that")
             if (that != null) {
@@ -232,7 +231,7 @@ object Tester {
             append(this@displayName.displayName(provide, null).displayName())
             append(" ")
             append(TEXT.first)
-            append(valueOf(provide).ansiRemoved.truncate(20, MIDDLE))
+            append(valueOf(provide).ansiRemoved.truncate(20))
             append(TEXT.second)
             val that = getLambdaBodyOrNull(this@displayName, "that")
             if (that != null) {
@@ -303,10 +302,10 @@ object Tester {
         val line = FilePeek(callStackElement.stackTraceElement).getCallerFileInfo().line
         if (explicitMethodName != null) {
             line.takeIf { it.contains(explicitMethodName) }?.let {
-                LambdaBody(explicitMethodName, it).body.trim().truncate(40, MIDDLE, " … ")
+                LambdaBody(explicitMethodName, it).body.trim().truncate(40, " … ")
             }
         } else {
-            LambdaBody(callStackElement.function, line).body.trim().truncate(40, MIDDLE, " … ")
+            LambdaBody(callStackElement.function, line).body.trim().truncate(40, " … ")
         }
     }.getOrNull()
 

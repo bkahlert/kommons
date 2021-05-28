@@ -33,7 +33,6 @@ class AnsiStringTest {
 
     companion object {
         val italicCyan = ANSI.Colors.cyan + ANSI.Style.italic
-        val nonAnsiString = "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean."
         val ansiString =
             AnsiString(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean."))
         val blankAnsiString = AnsiString("$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m")
@@ -259,7 +258,7 @@ class AnsiStringTest {
         @Suppress("SpellCheckingInspection", "LongLine")
         @TestFactory
         fun `should strip ANSI escape sequences off`() = listOf(
-            ansiString to nonAnsiString,
+            ansiString to ansiString.ansiRemoved,
             AnsiString("[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m.") to
                 "[  OK  ] Listening on udev Control Socket.",
             AnsiString("Text") to "Text",
@@ -425,10 +424,10 @@ class AnsiStringTest {
     inner class ChunkedSequence {
         @Test
         fun `should chunk non-ANSI string`() {
-            expectThat(nonAnsiString.chunkedSequence(26).toList()).containsExactly(
+            expectThat(ansiString.ansiRemoved.chunkedByColumnsSequence(26).toList()).containsExactly(
                 "Important: This line has n",
-                "o ANSI escapes.\nThis one's",
-                " bold!${CRLF}Last one is clean.",
+                "o ANSI escapes.\nThis one's ",
+                "bold!${CRLF}Last one is clean.",
             )
         }
 
@@ -446,7 +445,7 @@ class AnsiStringTest {
     inner class Plus {
         @Test
         fun `should create string from existing plus added string`() {
-            expectThat(nonAnsiString + "plus").isEqualTo(
+            expectThat(ansiString.ansiRemoved + "plus").isEqualTo(
                 "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.plus",
             )
         }

@@ -15,7 +15,6 @@ import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 
 /**
@@ -165,7 +164,7 @@ public sealed class LoggingOptions {
                         Formatter {
                             it.takeUnless { it is IO.Meta }?.ansiRemoved?.run {
                                 val step = substringAfter(":").trim().run {
-                                    takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength, strategy = MIDDLE)
+                                    takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength)
                                 }
                                 Symbols.PointNext + " $step"
                             } ?: ""

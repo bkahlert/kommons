@@ -20,7 +20,6 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols.Computation
 import koodies.text.Semantics.formattedAs
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 import java.io.InputStream
 import java.io.OutputStream
@@ -138,7 +137,7 @@ public class JavaExec(
     override fun toString(): String {
         val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Computation}"
         return "${this::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")") +
-            ", commandLine=${commandLine.shellCommand.toCompactString().truncate(50, MIDDLE, " … ")}" +
+            ", commandLine=${commandLine.shellCommand.toCompactString().truncate(50, " … ")}" +
             ", execTerminationCallback=${(execTerminationCallback != null).asEmoji}" +
             ", destroyOnShutdown=${destroyOnShutdown.asEmoji})"
     }

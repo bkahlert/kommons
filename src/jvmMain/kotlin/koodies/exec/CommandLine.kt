@@ -14,7 +14,6 @@ import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 import koodies.text.unquoted
 import org.codehaus.plexus.util.cli.shell.FormattingShell
@@ -74,7 +73,7 @@ public open class CommandLine(
      */
     public override val summary: String = multiLineShellCommand.run {
         if (length <= 60) {
-            commandLineParts.joinToString(" ").truncate(60, strategy = MIDDLE, marker = " … ")
+            commandLineParts.joinToString(" ").truncate(60, " … ")
                 .withoutTrailingLineSeparator
         } else {
             ShellScript {

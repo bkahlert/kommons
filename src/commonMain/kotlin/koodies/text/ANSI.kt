@@ -954,6 +954,7 @@ private object TokenizationCache {
  * - [subSequence] returns the same character sequence as an unformatted [String] would do—but with the formatting ANSI escape sequences intact.
  * the sub sequence. Also escape sequences are ignored from [length].
  */
+@Deprecated("use columns functions")
 public open class AnsiString private constructor(public val string: String) : CharSequence {
     public constructor(charSequence: CharSequence) : this("$charSequence")
 

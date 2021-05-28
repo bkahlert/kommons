@@ -9,7 +9,6 @@ import koodies.math.toBigInteger
 import koodies.runtime.isDebugging
 import koodies.text.ANSI.containsEscapeSequences
 import koodies.text.Semantics.formattedAs
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.truncate
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
@@ -131,7 +130,7 @@ public fun String.requireSaneInput() {
             "single quotes" to '\'',
         ).forEach { (name, char) ->
             require((first() == char) == (last() == char)) {
-                val annotatedInput = truncate(30, strategy = MIDDLE).let {
+                val annotatedInput = truncate(30).let {
                     val error = "$char".formattedAs.input
                     if ((first() == char)) error + it.substring(1, lastIndex)
                     else it.substring(0, lastIndex - 1) + error

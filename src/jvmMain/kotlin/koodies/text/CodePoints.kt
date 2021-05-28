@@ -1,7 +1,5 @@
 package koodies.text
 
-import org.jline.utils.WCWidth
-
 /**
  * Contains the name of this code point
  */
@@ -25,8 +23,3 @@ public val CodePoint.charCount: Int get() = Character.charCount(codePoint)
 
 public operator fun String.minus(amount: Int): String =
     asCodePointSequence().map { it - amount }.joinToString("")
-
-/**
- * Number of columns needed to represent the character described by this code point.
- */
-public val CodePoint.columns: Int get() = WCWidth.wcwidth(codePoint)

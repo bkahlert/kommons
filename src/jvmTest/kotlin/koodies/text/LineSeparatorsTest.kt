@@ -9,6 +9,7 @@ import koodies.test.Slow
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.tests
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
@@ -19,7 +20,6 @@ import koodies.text.LineSeparators.NEL
 import koodies.text.LineSeparators.PS
 import koodies.text.LineSeparators.REGEX
 import koodies.text.LineSeparators.autoDetect
-import koodies.text.LineSeparators.breakLines
 import koodies.text.LineSeparators.firstLineSeparator
 import koodies.text.LineSeparators.firstLineSeparatorLength
 import koodies.text.LineSeparators.flatMapLines
@@ -39,8 +39,6 @@ import koodies.text.LineSeparators.withTrailingLineSeparator
 import koodies.text.LineSeparators.withoutLeadingLineSeparator
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.LineSeparators.wrapLines
-import org.junit.jupiter.api.DynamicNode
-import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -434,52 +432,18 @@ class LineSeparatorsTest {
     }
 
     @Nested
-    inner class BreakLinesKtTest {
-
-        @Test
-        fun `should break do nothing on single short line`() {
-            expectThat("short line".breakLines(15)).isEqualTo("short line")
-        }
-
-        @Test
-        fun `should break do nothing on multiple short lines`() {
-            expectThat("short line\nshort line".breakLines(15)).isEqualTo("short line\nshort line")
-        }
-
-        @Test
-        fun `should break long line`() {
-            expectThat("very very long line".breakLines(15)).isEqualTo("very very long \nline")
-        }
-
-        @Test
-        fun `should break multiple long line`() {
-            expectThat("very very long line\nvery very long line".breakLines(15)).isEqualTo("very very long \nline\nvery very long \nline")
-        }
-
-        @Test
-        fun `should only break long line if mixed with short line`() {
-            expectThat("short line\nvery very long line\nshort line".breakLines(15)).isEqualTo("short line\nvery very long \nline\nshort line")
-        }
-
-        @Test
-        fun `should break long line in as many lines as needed`() {
-            expectThat("very very long line".breakLines(5)).isEqualTo("very \nvery \nlong \nline")
-        }
-    }
-
-
-    @Nested
     inner class LinesOfLengthKtTest {
 
         @Nested
         inner class NonAnsiString {
+
             @TestFactory
-            fun `should be split with maximum line length`(): List<DynamicNode> = listOf(
-                "sequence" to "${AnsiStringTest.nonAnsiString}$LF".linesOfLengthSequence(26).toList(),
-                "list" to "${AnsiStringTest.nonAnsiString}$LF".linesOfLength(26),
-            ).map { (method, lines) ->
-                DynamicTest.dynamicTest("using $method") {
-                    expectThat(lines).containsExactly(
+            fun `should be split with maximum line length`() = testEach<CharSequence.() -> List<CharSequence>>(
+                { linesOfLengthSequence(26).toList() },
+                { linesOfLength(26) },
+            ) { fn ->
+                expecting { "${AnsiStringTest.ansiString.ansiRemoved}$LF".fn().map { it.toString() } } that {
+                    containsExactly(
                         "Important: This line has n",
                         "o ANSI escapes.",
                         "This one's bold!",
@@ -490,12 +454,12 @@ class LineSeparatorsTest {
             }
 
             @TestFactory
-            fun `should be split with maximum line length with trailing line removed`(): List<DynamicNode> = listOf(
-                "sequence" to "${AnsiStringTest.nonAnsiString}$LF".linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
-                "list" to "${AnsiStringTest.nonAnsiString}$LF".linesOfLength(26, ignoreTrailingSeparator = true),
-            ).map { (method, lines) ->
-                DynamicTest.dynamicTest("using $method") {
-                    expectThat(lines).containsExactly(
+            fun `should be split with maximum line length with trailing line removed`() = testEach<CharSequence.() -> List<CharSequence>>(
+                { linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList() },
+                { linesOfLength(26, ignoreTrailingSeparator = true) },
+            ) { fn ->
+                expecting { "${AnsiStringTest.ansiString.ansiRemoved}$LF".fn().map { it.toString() } } that {
+                    containsExactly(
                         "Important: This line has n",
                         "o ANSI escapes.",
                         "This one's bold!",
@@ -505,15 +469,15 @@ class LineSeparatorsTest {
             }
         }
 
-
         @Nested
         inner class AnsiString {
+
             @TestFactory
-            fun `should be split with maximum line length`(): List<DynamicNode> = testEach(
-                "sequence" to (AnsiStringTest.ansiString + LF).linesOfLengthSequence(26).toList(),
-                "list" to (AnsiStringTest.ansiString + LF).linesOfLength(26),
-            ) { (method, lines) ->
-                expecting("using $method") { lines } that {
+            fun `should be split with maximum line length`() = testEach<koodies.text.AnsiString.() -> List<CharSequence>>(
+                { linesOfLengthSequence(26).toList() },
+                { linesOfLength(26) },
+            ) { fn ->
+                expecting { (AnsiStringTest.ansiString + LF).fn() } that {
                     @Suppress("SpellCheckingInspection")
                     containsExactly(
                         "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
@@ -526,11 +490,11 @@ class LineSeparatorsTest {
             }
 
             @TestFactory
-            fun `should be split with maximum line length with trailing line removed`(): List<DynamicNode> = testEach(
-                "sequence" to (AnsiStringTest.ansiString + LF).linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList(),
-                "list" to (AnsiStringTest.ansiString + LF).linesOfLength(26, ignoreTrailingSeparator = true),
-            ) { (method, lines) ->
-                expecting("using $method") { lines } that {
+            fun `should be split with maximum line length with trailing line removed`() = testEach<koodies.text.AnsiString.() -> List<CharSequence>>(
+                { linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList() },
+                { linesOfLength(26, ignoreTrailingSeparator = true) },
+            ) { fn ->
+                expecting { (AnsiStringTest.ansiString + LF).fn() } that {
                     @Suppress("SpellCheckingInspection")
                     containsExactly(
                         "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
@@ -548,7 +512,7 @@ class LineSeparatorsTest {
 
         @Test
         fun `should wrap non-ANSI lines`() {
-            expectThat(AnsiStringTest.nonAnsiString.wrapLines(26)).isEqualTo("""
+            expectThat(AnsiStringTest.ansiString.ansiRemoved.wrapLines(26)).isEqualTo("""
                 Important: This line has n
                 o ANSI escapes.
                 This one's bold!

@@ -12,7 +12,6 @@ import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.wrapLines
-import koodies.text.TruncationStrategy.MIDDLE
 import koodies.text.addColumn
 import koodies.text.joinToTruncatedString
 import koodies.text.takeUnlessBlank
@@ -138,7 +137,7 @@ public abstract class FixedWidthRenderingLogger(
             render(true) {
                 val leftColumn = wrapNonUriLines(statusInformationColumn).asAnsiString()
                 val statusColumn =
-                    items.asStatus().asAnsiString().truncate(maxLength = statusInformationColumns - 1, MIDDLE)
+                    items.asStatus().asAnsiString().truncate(maxColumns = statusInformationColumns - 1)
                 val twoColumns = leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding)
                 if (closed) twoColumns
                 else twoColumns.prefixLinesWith(prefix = prefix)
