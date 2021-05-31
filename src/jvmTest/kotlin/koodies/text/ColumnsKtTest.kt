@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.AnsiStringTest.Companion.ansiString
@@ -12,6 +13,40 @@ import strikt.assertions.isEqualTo
 import koodies.text.Unicode.escape as e
 
 class ColumnsKtTest {
+
+    @Nested
+    inner class MaxColumns {
+
+        @Test
+        fun `should return max columns on multi line`() {
+            expectThat("曲\nc".maxColumns()).isEqualTo(2)
+        }
+
+        @Test
+        fun `should return max columns on single line`() {
+            expectThat("曲c".maxColumns()).isEqualTo(3)
+        }
+
+        @Test
+        fun `should return max columns on empty line`() {
+            expectThat("".maxColumns()).isEqualTo(0)
+        }
+
+        @Test
+        fun `should return max columns on trailing line`() {
+            expectThat(LF.maxColumns()).isEqualTo(0)
+        }
+
+        @Test
+        fun `should return max columns on mixed ansi string line`() {
+            expectThat("def曲lt\n${"magenta".ansi.magenta}".maxColumns()).isEqualTo(7)
+        }
+
+        @Test
+        fun `should return max columns on ansi string`() {
+            expectThat("def曲lt\n${"magenta".ansi.magenta}".ansi.italic.asAnsiString().maxColumns()).isEqualTo(7)
+        }
+    }
 
     @Nested
     inner class NonAnsiString {

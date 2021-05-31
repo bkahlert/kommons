@@ -2,7 +2,7 @@ package koodies.logging
 
 import koodies.asString
 import koodies.exec.IO
-import koodies.regex.RegularExpressions
+import koodies.regex.RegularExpressions.uriRegex
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.ANSI.Text.Companion.ansi
@@ -135,9 +135,8 @@ public abstract class FixedWidthRenderingLogger(
     public open fun logStatus(items: List<CharSequence>, block: () -> CharSequence): Unit {
         block().takeUnlessBlank()?.let { contentFormatter(it) }?.run {
             render(true) {
-                val leftColumn = wrapNonUriLines(statusInformationColumn).asAnsiString()
-                val statusColumn =
-                    items.asStatus().asAnsiString().truncate(maxColumns = statusInformationColumns - 1)
+                val leftColumn = wrapNonUriLines(statusInformationColumn)
+                val statusColumn = items.asStatus().asAnsiString().truncate(maxColumns = statusInformationColumns - 1)
                 val twoColumns = leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding)
                 if (closed) twoColumns
                 else twoColumns.prefixLinesWith(prefix = prefix)
@@ -149,7 +148,7 @@ public abstract class FixedWidthRenderingLogger(
         logStatus(statuses.toList(), block)
 
     protected fun CharSequence.wrapNonUriLines(length: Int): CharSequence {
-        return if (RegularExpressions.uriRegex.containsMatchIn(this)) this else asAnsiString().wrapLines(length)
+        return if (uriRegex.containsMatchIn(this)) this else wrapLines(length)
     }
 
     /**

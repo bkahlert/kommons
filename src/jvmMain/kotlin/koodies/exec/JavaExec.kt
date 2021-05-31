@@ -66,7 +66,7 @@ public class JavaExec(
 ) : Exec {
     public companion object;
 
-    override val start: Instant = process.toHandle().info().startInstant().orElse(Now.instant)
+    override val start: Instant = Now.instant
     override val end: Instant? get() = (state as? ExitState)?.end
     override val pid: Long = process.pid()
     override fun waitFor(): ExitState = (_state as? ExitState) ?: onExit.join()

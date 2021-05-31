@@ -295,6 +295,12 @@ class JavaExecTest {
         }
 
         @Test
+        fun `should have runtime`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val exec = createCompletingExec(0)
+            expectThat(exec).exited.get { runtime }.isGreaterThan(Duration.ZERO)
+        }
+
+        @Test
         fun `should not be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val exec = createCompletingExec(0)
             expectThat(exec).exited.not { get { exec }.alive }
@@ -690,5 +696,4 @@ fun Builder<out ExitState>.io() =
 
 
 val Builder<Instant>.timePassed
-    get() =
-        get("time passed since now") { Now.passedSince(toEpochMilli()) }
+    get() = get("time passed since now") { Now.passedSince(toEpochMilli()) }

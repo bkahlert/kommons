@@ -7,17 +7,17 @@ import koodies.text.LineSeparators.lineSequence
  * Splits this character sequence into its lines and returns the length
  * of the longest of them.
  */
-public fun <T : CharSequence> T.maxLength(): Int =
-    lineSequence().maxLength<CharSequence>()
+public fun CharSequence.maxLength(): Int =
+    lineSequence().maxLength()
 
 /**
  * Returns the length of the longest character sequence.
  */
-public fun <T : CharSequence> Iterable<T>.maxLength(): Int =
+public fun Iterable<CharSequence>.maxLength(): Int =
     asSequence().maxLength()
 
 /**
  * Returns the length of the longest character sequence.
  */
-public fun <T : CharSequence> Sequence<T>.maxLength(): Int =
+public fun Sequence<CharSequence>.maxLength(): Int =
     maxOf { it.ansiRemoved.length }

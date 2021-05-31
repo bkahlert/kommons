@@ -5,10 +5,12 @@ import koodies.test.expectThrows
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.tests
+import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import strikt.api.Assertion.Builder
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
@@ -35,7 +37,7 @@ class TextWidthKtTest {
     }
 
     @TestFactory
-    fun `should calc zero columns for no-space characters`() = testEach(Unicode.zeroWidthSpace, Unicode.zeroWidthJoiner, Unicode.escape) {
+    fun `should calc zero columns for no-space characters`() = testEach(Unicode.zeroWidthSpace, Unicode.zeroWidthJoiner) {
         expecting { it.columns } that { isEqualTo(0) }
     }
 
@@ -46,11 +48,15 @@ class TextWidthKtTest {
         expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
     }
 
-    @Test
-    fun `should calculate width for complex text`() {
+    @TestFactory
+    fun `should calculate width for complex text`() = tests {
         val expected =
             "--------123456789012345678".replace("-", "").length
         expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".columns } that { isEqualTo(expected) }
+        expecting { "text        ".columns } that { isEqualTo(12) }
+        expecting { "🟥🟧🟨🟩🟦🟪".columns } that { isEqualTo(12) }
+        expecting { "text                                                ".columns } that { isEqualTo(52) }
+        expecting { "🟥🟧🟨🟩🟦🟪                                        ".columns } that { isEqualTo(52) }
     }
 
     @Test
@@ -349,4 +355,105 @@ class TextWidthKtTest {
             }
         }
     }
+
+    @Nested
+    inner class PadStartByColumns {
+
+        @TestFactory
+        fun `should pad`() = testEach<CharSequence.(Int) -> CharSequence>(
+            { padStartByColumns(it) },
+            { toString().padStartByColumns(it) },
+        ) { fn ->
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(20) } that {
+                toStringIsEqualTo("  ‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!")
+                columns.isEqualTo(20)
+            }
+        }
+
+        @TestFactory
+        fun `should pad with custom pad char`() = testEach<CharSequence.(Int, Char) -> CharSequence>(
+            { columns, padChar -> padStartByColumns(columns, padChar) },
+            { columns, padChar -> toString().padStartByColumns(columns, padChar) },
+        ) { fn ->
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(20, '⮕') } that {
+                toStringIsEqualTo("⮕‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!")
+                columns.isEqualTo(20)
+            }
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(21, '⮕') } that {
+                toStringIsEqualTo(" ⮕‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!")
+                columns.isEqualTo(21)
+            }
+        }
+
+        @TestFactory
+        fun `should not pad if wide enough already`() = testEach<CharSequence.(Int) -> CharSequence>(
+            { padStartByColumns(it) },
+            { toString().padStartByColumns(it) },
+        ) { fn ->
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(10) } that {
+                toStringIsEqualTo("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!")
+                columns.isEqualTo(18)
+            }
+        }
+
+        @TestFactory
+        fun `should throw on negative columns`() = testEach<CharSequence.(Int) -> CharSequence>(
+            { padStartByColumns(it) },
+            { toString().padStartByColumns(it) },
+        ) { fn ->
+            expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(-1) }
+        }
+    }
+
+    @Nested
+    inner class PadEndByColumns {
+
+        @TestFactory
+        fun `should pad`() = testEach<CharSequence.(Int) -> CharSequence>(
+            { padEndByColumns(it) },
+            { toString().padEndByColumns(it) },
+        ) { fn ->
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(20) } that {
+                toStringIsEqualTo("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!  ")
+                columns.isEqualTo(20)
+            }
+        }
+
+        @TestFactory
+        fun `should pad with custom pad char`() = testEach<CharSequence.(Int, Char) -> CharSequence>(
+            { columns, padChar -> padEndByColumns(columns, padChar) },
+            { columns, padChar -> toString().padEndByColumns(columns, padChar) },
+        ) { fn ->
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(20, '⮕') } that {
+                toStringIsEqualTo("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!⮕")
+                columns.isEqualTo(20)
+            }
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(21, '⮕') } that {
+                toStringIsEqualTo("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!⮕ ")
+                columns.isEqualTo(21)
+            }
+        }
+
+        @TestFactory
+        fun `should not pad if wide enough already`() = testEach<CharSequence.(Int) -> CharSequence>(
+            { padEndByColumns(it) },
+            { toString().padEndByColumns(it) },
+        ) { fn ->
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(10) } that {
+                toStringIsEqualTo("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!")
+                columns.isEqualTo(18)
+            }
+        }
+
+        @TestFactory
+        fun `should throw on negative columns`() = testEach<CharSequence.(Int) -> CharSequence>(
+            { padEndByColumns(it) },
+            { toString().padEndByColumns(it) },
+        ) { fn ->
+            expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(-1) }
+        }
+    }
 }
+
+val Builder<CharSequence>.columns
+    get() = get("columns") { columns }

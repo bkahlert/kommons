@@ -2,7 +2,6 @@ package koodies.text
 
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.Semantics.formattedAs
-import kotlin.math.round
 
 /**
  * Text width calculation.
@@ -33,7 +32,7 @@ public val CodePoint.columns: Int get() = string.columns
 /**
  * Number of columns needed to represent `this` character sequence.
  */
-public val CharSequence.columns: Int get() = round(TextWidth.calculateWidth(this).toDouble() / TextWidth.X_WIDTH).toInt()
+public val CharSequence.columns: Int get() = TextWidth.calculateWidth(this) / TextWidth.X_WIDTH
 
 /**
  * Returns the index where the given [column] starts.
@@ -205,3 +204,47 @@ public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (C
         }
     }
 }
+
+
+/**
+ * Returns a character sequence with content of this character sequence padded at the beginning
+ * to the specified number of [columns] with the specified [padChar] or space.
+ */
+public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence {
+    if (columns < 0) throw IllegalArgumentException("Desired number of columns ${this.columns.formattedAs.input} is less than zero.")
+    val actualColumns = this.columns
+    if (columns <= actualColumns) return this
+    return toString().reversed().padEndByColumns(columns, padChar).reversed()
+}
+
+/**
+ * Pads the string to the specified number of [columns] at the beginning with the specified [padChar] or space.
+ */
+public fun String.padStartByColumns(columns: Int, padChar: Char = ' '): String =
+    (this as CharSequence).padStartByColumns(columns, padChar).toString()
+
+/**
+ * Returns a character sequence with content of this character sequence padded at the end
+ * to the specified number of [columns] with the specified [padChar] or space.
+ */
+public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): CharSequence {
+    if (columns < 0) throw IllegalArgumentException("Desired number of columns ${columns.formattedAs.input} is less than zero.")
+    val actualColumns = this.columns
+    if (columns <= actualColumns) return this
+
+    val sb = StringBuilder(toString())
+    val padCharColumns = padChar.columns
+    var remaining = columns - actualColumns
+    while (remaining >= padCharColumns) {
+        sb.append(padChar)
+        remaining = columns - sb.columns
+    }
+    if (remaining > 0) sb.append(" ".repeat(remaining))
+    return sb
+}
+
+/**
+ * Pads the string to the specified number of [columns] at the end with the specified [padChar] or space.
+ */
+public fun String.padEndByColumns(columns: Int, padChar: Char = ' '): String =
+    (this as CharSequence).padEndByColumns(columns, padChar).toString()

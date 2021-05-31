@@ -22,7 +22,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncate()).isEqualTo("⮕⮕⮕⮕…⬅⬅⬅⬅")
+            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncate()).isEqualTo("⮕⮕⮕…⬅⬅⬅")
         }
 
         @Test
@@ -58,7 +58,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStart()).isEqualTo("…⬅⬅⬅⬅⬅⬅⬅⬅")
+            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStart()).isEqualTo("…⬅⬅⬅⬅⬅⬅⬅")
         }
 
         @Test
@@ -94,7 +94,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEnd()).isEqualTo("⮕⮕⮕⮕⮕⮕⮕⮕…")
+            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEnd()).isEqualTo("⮕⮕⮕⮕⮕⮕⮕…")
         }
 
         @Test

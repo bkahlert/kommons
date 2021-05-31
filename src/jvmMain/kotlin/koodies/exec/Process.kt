@@ -297,6 +297,11 @@ public interface Process : ReturnValue {
 }
 
 /**
+ * [Duration] the process took to execute.
+ */
+public val Process.runtime: Duration? get() = (state as? Exited)?.runtime
+
+/**
  * Returns whether `this` [Process] [isRunning].
  */
 public val Process.alive: Boolean get() = state is Running
