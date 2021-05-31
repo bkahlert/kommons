@@ -1,6 +1,5 @@
 package koodies.kaomoji
 
-import koodies.runtime.isIntelliJ
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
@@ -39,14 +38,14 @@ class KaomojiTest {
     inner class Thinking {
 
         private val kaomoji = Kaomoji.Bears.first()
-        private val left0 = if (isIntelliJ) "    " else kaomoji.ansi.hidden
+        private val blank = kaomoji.ansi.hidden
 
         @TestFactory
         fun `should render empty`() = testEach(null, "", "   ") {
             expecting { kaomoji.thinking(it) } that {
                 isEqualTo("""
-                    $left0   ͚͔˱ ❨ ( … )
-                    ・㉨・ ˙
+                    $blank  ̣ ˱ ❨ ( … )
+                    ・㉨・
                 """.trimIndent())
             }
         }
@@ -55,8 +54,8 @@ class KaomojiTest {
         fun `should render single line`() {
             expecting { kaomoji.thinking("oh no") } that {
                 isEqualTo("""
-                    $left0   ͚͔˱ ❨ ( oh no )
-                    ・㉨・ ˙
+                    $blank  ̣ ˱ ❨ ( oh no )
+                    ・㉨・
                 """.trimIndent())
             }
         }
@@ -65,9 +64,9 @@ class KaomojiTest {
         fun `should render two lines`() {
             expecting { kaomoji.thinking("oh no 1${LF}oh no 2") } that {
                 isEqualTo("""
-                    $left0       ⎛ oh no 1 ⎞
-                    $left0   ͚͔˱ ❨ ⎝ oh no 2 ⎠
-                    ・㉨・ ˙
+                    $blank       ⎛ oh no 1 ⎞
+                    $blank  ̣ ˱ ❨ ⎝ oh no 2 ⎠
+                    ・㉨・
                 """.trimIndent())
             }
         }
@@ -76,10 +75,10 @@ class KaomojiTest {
         fun `should render multi line`() {
             expecting { kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3") } that {
                 isEqualTo("""
-                    $left0       ⎛ oh no 1 ⎞
-                    $left0       ⎜ oh no 2 ⎟
-                    $left0   ͚͔˱ ❨ ⎝ oh no 3 ⎠
-                    ・㉨・ ˙
+                    $blank       ⎛ oh no 1 ⎞
+                    $blank       ⎜ oh no 2 ⎟
+                    $blank  ̣ ˱ ❨ ⎝ oh no 3 ⎠
+                    ・㉨・
                 """.trimIndent())
             }
         }
@@ -88,11 +87,11 @@ class KaomojiTest {
         fun `should render lines of different length`() {
             expecting { kaomoji.thinking("123${LF}${LF}1234567890${LF}1234") } that {
                 isEqualTo("""
-                    $left0       ⎛ 123        ⎞
-                    $left0       ⎜            ⎟
-                    $left0       ⎜ 1234567890 ⎟
-                    $left0   ͚͔˱ ❨ ⎝ 1234       ⎠
-                    ・㉨・ ˙
+                    $blank       ⎛ 123        ⎞
+                    $blank       ⎜            ⎟
+                    $blank       ⎜ 1234567890 ⎟
+                    $blank  ̣ ˱ ❨ ⎝ 1234       ⎠
+                    ・㉨・
                 """.trimIndent())
             }
         }
@@ -101,14 +100,40 @@ class KaomojiTest {
         fun `should render ANSI`() {
             expecting { kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234").ansiRemoved } that {
                 isEqualTo("""
-                    $left0       ⎛ 123        ⎞
-                    $left0       ⎜            ⎟
-                    $left0       ⎜ 1234567890 ⎟
-                    $left0   ͚͔˱ ❨ ⎝ 1234       ⎠
-                    ・㉨・ ˙
+                    $blank       ⎛ 123        ⎞
+                    $blank       ⎜            ⎟
+                    $blank       ⎜ 1234567890 ⎟
+                    $blank  ̣ ˱ ❨ ⎝ 1234       ⎠
+                    ・㉨・
                 """.trimIndent())
             }
         }
+    }
+
+    @TestFactory
+    fun `should have categories`() = testEach(
+        Kaomoji.Angry,
+        Kaomoji.Babies, Kaomoji.BadMood, Kaomoji.Bears, Kaomoji.Begging, Kaomoji.Blushing,
+        Kaomoji.Cats, Kaomoji.Celebrities, Kaomoji.Chasing, Kaomoji.Confused, Kaomoji.Crying, Kaomoji.Cute,
+        Kaomoji.Dancing, Kaomoji.Depressed, Kaomoji.Devils, Kaomoji.Disappointed, Kaomoji.Dog, Kaomoji.Drooling,
+        Kaomoji.Eating, Kaomoji.Evil, Kaomoji.Excited,
+        Kaomoji.FallingDown, Kaomoji.Feces, Kaomoji.Feminine, Kaomoji.Fish, Kaomoji.Fishing, Kaomoji.Flower, Kaomoji.Funny,
+        Kaomoji.Geek, Kaomoji.Glasses, Kaomoji.Greeting, Kaomoji.Grinning, Kaomoji.Gross,
+        Kaomoji.Happy, Kaomoji.Helpless, Kaomoji.Heroes, Kaomoji.Hide, Kaomoji.Hugging,
+        Kaomoji.Kissing,
+        Kaomoji.Laughing, Kaomoji.LennyFace, Kaomoji.Love,
+        Kaomoji.Magical, Kaomoji.MakeUpMyMind, Kaomoji.MiddleFinger, Kaomoji.Money, Kaomoji.Monkey, Kaomoji.Musical,
+        Kaomoji.Nervious,
+        Kaomoji.PeaceSign, Kaomoji.Pointing, Kaomoji.Proud, Kaomoji.Punching,
+        Kaomoji.Rabbits, Kaomoji.Rain, Kaomoji.RogerThat, Kaomoji.RollOver, Kaomoji.Running,
+        Kaomoji.Sad, Kaomoji.Salute, Kaomoji.Scared, Kaomoji.Screaming, Kaomoji.Sheep, Kaomoji.Shocked, Kaomoji.Shrugging, Kaomoji.Shy, Kaomoji.Sleeping,
+        Kaomoji.Smiling, Kaomoji.Smoking, Kaomoji.Sparkling, Kaomoji.Spinning, Kaomoji.StereoTypes, Kaomoji.Surprised, Kaomoji.Sweating,
+        Kaomoji.TableFlipping, Kaomoji.TakeABow, Kaomoji.ThatsIt, Kaomoji.ThumbsUp, Kaomoji.Tired, Kaomoji.Trembling, Kaomoji.TryMyBest, Kaomoji.TV,
+        Kaomoji.Unicode, Kaomoji.Upset,
+        Kaomoji.Vomitting,
+        Kaomoji.Weapons, Kaomoji.Weird, Kaomoji.Whales, Kaomoji.Why, Kaomoji.Winking, Kaomoji.Wizards, Kaomoji.Writing,
+    ) { category ->
+        expecting { category.random() } that { isA<Kaomoji>() }
     }
 
     @Nested

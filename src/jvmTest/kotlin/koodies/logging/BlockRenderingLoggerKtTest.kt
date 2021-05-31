@@ -205,11 +205,12 @@ class BlockRenderingLoggerKtTest {
         }
     }
 
-    private fun borderTest(solidPattern: String, dottedPattern: String, nonePattern: String, block: FixedWidthRenderingLogger.() -> Any) = listOf(
+    private fun borderTest(solidPattern: String, dottedPattern: String, nonePattern: String, block: FixedWidthRenderingLogger.() -> Any) = testEach(
         SOLID to solidPattern,
         DOTTED to dottedPattern,
         NONE to nonePattern,
-    ).testEach("border={}") { (border, expectation) ->
+        containerNamePattern = "border={}",
+    ) { (border, expectation) ->
         val label = border.name
         val logger = InMemoryLogger(caption = "$label caption", border = border).withUnclosedWarningDisabled.apply { block() }
         asserting { logger.expectThatLogged().toStringMatchesCurlyPattern(expectation) }

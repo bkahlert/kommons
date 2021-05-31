@@ -23,7 +23,7 @@ import koodies.test.UniqueId
 import koodies.test.asserting
 import koodies.test.testEach
 import koodies.test.withTempDir
-import koodies.text.containsEscapeSequences
+import koodies.text.containsAnsi
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.unit.bytes
 import koodies.unit.hasSize
@@ -247,7 +247,7 @@ class DockerTest {
                 """
             } asserting {
                 io.output.ansiKept
-                    .containsEscapeSequences()
+                    .containsAnsi()
                     .length.isGreaterThan(1000)
             }
         }

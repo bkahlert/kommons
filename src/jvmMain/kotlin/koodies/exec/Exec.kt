@@ -20,6 +20,7 @@ import koodies.logging.RenderingLogger
 import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
+import koodies.time.Now
 import java.nio.file.Path
 
 /**
@@ -169,11 +170,11 @@ public interface Exec : Process {
         public fun fallbackExitStateHandler(): ExitStateHandler = ExitStateHandler { pid, exitCode, io ->
             if (exitCode == 0) {
                 metaStream.emit(Terminated(this))
-                Succeeded(pid, io)
+                Succeeded(start, Now.instant, pid, io)
             } else {
                 val relevantFiles = commandLine.includedFiles
                 val dump = createDump("Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.input}")
-                Failed(pid, exitCode, io, relevantFiles.map { it.toUri() }, dump)
+                Failed(start, Now.instant, pid, exitCode, io, relevantFiles.map { it.toUri() }, dump)
             }
         }
 

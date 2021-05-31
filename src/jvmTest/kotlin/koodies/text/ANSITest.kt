@@ -9,7 +9,7 @@ import koodies.text.ANSI.Style.hidden
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.ANSI.colorize
-import koodies.text.ANSI.containsEscapeSequences
+import koodies.text.ANSI.containsAnsi
 import koodies.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ class ANSITest {
 
         @Test
         fun `should format`() {
-            expectThat(italicCyan("string")).containsEscapeSequences()
+            expectThat(italicCyan("string")).containsAnsi()
         }
     }
 
@@ -50,7 +50,7 @@ class ANSITest {
             ) { (ansi, plain) ->
             with { ansi.ansiRemoved }.then {
                 expecting { this } that { isEqualTo(plain) }
-                expecting { this } that { not { containsEscapeSequences() } }
+                expecting { this } that { not { containsAnsi() } }
             }
         }
     }
@@ -60,12 +60,12 @@ class ANSITest {
 
         @Test
         fun `should be true`() {
-            expectThat("string".bold()).containsEscapeSequences()
+            expectThat("string".bold()).containsAnsi()
         }
 
         @Test
         fun `should be false`() {
-            expectThat("string").not { containsEscapeSequences() }
+            expectThat("string").not { containsAnsi() }
         }
     }
 
@@ -175,7 +175,7 @@ class ANSITest {
 
         @Test
         fun `should colorize each character`() {
-            expectThat("colorized".colorize()).toStringIsEqualTo("colorized").get { filter { it == Unicode.escape }.count() }.isEqualTo(2 * 9)
+            expectThat("colorized".colorize()).toStringIsEqualTo("colorized").get { filter { it == Unicode.escape }.count() }.isEqualTo(18)
         }
     }
 
@@ -210,7 +210,7 @@ class ANSITest {
         @Test
         fun `should format hidden`() {
             expectThat("hidden".ansi.hidden)
-                .toStringIsEqualTo(if (isDeveloping) " ".repeat(("hidden".length * 1.35).toInt()) else hidden("hidden").toString(), false)
+                .toStringIsEqualTo(if (isDeveloping) " ".repeat("hidden".columns) else hidden("hidden").toString(), false)
         }
 
         @Test
@@ -220,9 +220,9 @@ class ANSITest {
     }
 }
 
-fun <T : CharSequence> Assertion.Builder<T>.containsEscapeSequences(): Assertion.Builder<T> =
+fun <T : CharSequence> Assertion.Builder<T>.containsAnsi(): Assertion.Builder<T> =
     assert("contains ANSI escape sequences") {
-        when (val actual = it.toString().containsEscapeSequences) {
+        when (val actual = it.toString().containsAnsi) {
             true -> pass()
             else -> fail(actual = actual)
         }

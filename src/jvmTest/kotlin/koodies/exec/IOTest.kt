@@ -17,7 +17,7 @@ import koodies.test.toStringIsEqualTo
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols
 import koodies.text.Unicode.characterTabulation
-import koodies.text.containsEscapeSequences
+import koodies.text.containsAnsi
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -46,7 +46,7 @@ class IOTest {
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().toStringIsEqualTo("Executing command arg")
+                expectThat(meta).containsAnsi().toStringIsEqualTo("Executing command arg")
             }
         }
 
@@ -63,7 +63,7 @@ class IOTest {
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().toStringIsEqualTo("${Symbols.Document} ${file.toUri()}")
+                expectThat(meta).containsAnsi().toStringIsEqualTo("${Symbols.Document} ${file.toUri()}")
             }
         }
 
@@ -80,7 +80,7 @@ class IOTest {
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().toStringIsEqualTo(text)
+                expectThat(meta).containsAnsi().toStringIsEqualTo(text)
             }
 
             @Test
@@ -102,7 +102,7 @@ class IOTest {
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().toStringIsEqualTo(dump)
+                expectThat(meta).containsAnsi().toStringIsEqualTo(dump)
             }
 
             @Test
@@ -124,7 +124,7 @@ class IOTest {
 
             @Test
             fun `should have formatted text`() {
-                expectThat(meta).containsEscapeSequences().matchesCurlyPattern("Process ${process.pid} terminated successfully at {}.")
+                expectThat(meta).containsAnsi().matchesCurlyPattern("Process ${process.pid} terminated successfully at {}.")
             }
         }
     }
@@ -141,7 +141,7 @@ class IOTest {
 
         @Test
         fun `should have formatted text`() {
-            expectThat(`in`).containsEscapeSequences().toStringIsEqualTo("in")
+            expectThat(`in`).containsAnsi().toStringIsEqualTo("in")
         }
     }
 
@@ -157,7 +157,7 @@ class IOTest {
 
         @Test
         fun `should have formatted text`() {
-            expectThat(out).containsEscapeSequences().toStringIsEqualTo("out")
+            expectThat(out).containsAnsi().toStringIsEqualTo("out")
         }
     }
 
@@ -177,7 +177,7 @@ class IOTest {
 
         @Test
         fun `should have formatted stacktrace`() {
-            expectThat(err).containsEscapeSequences().toStringMatchesCurlyPattern("""
+            expectThat(err).containsAnsi().toStringMatchesCurlyPattern("""
                 {}.RuntimeException: err
                 ${characterTabulation}at koodies.{}
                 {{}}
@@ -215,12 +215,12 @@ class IOTest {
 
         @Test
         fun `should remove ansi escape codes`() {
-            expectThat(IO_LIST.ansiRemoved).not { containsEscapeSequences() }
+            expectThat(IO_LIST.ansiRemoved).not { containsAnsi() }
         }
 
         @Test
         fun `should keep ansi escape codes`() {
-            expectThat(IO_LIST.ansiKept).containsEscapeSequences()
+            expectThat(IO_LIST.ansiKept).containsAnsi()
         }
 
         @Test

@@ -1,7 +1,6 @@
 package koodies.text
 
 import koodies.regex.or
-import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 
@@ -254,21 +253,15 @@ public object LineSeparators : Collection<String> {
         mapLines(ignoreTrailingSeparator) { "$prefix$it" }
 
     /**
-     * Returns a sequence of lines of which none is longer than [maxLineLength].
+     * Returns a sequence of lines of which none is longer than [maxLength].
      */
-    public fun CharSequence?.linesOfLengthSequence(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+    public fun CharSequence?.linesOfLengthSequence(maxLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
         if (this == null) return emptySequence()
         val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
         return lines.flatMap { line: String ->
-            if (this is AnsiString) {
-                val seq: Sequence<AnsiString> = line.asAnsiString().chunkedSequence(maxLineLength)
-                if (ignoreTrailingSeparator) seq
-                else seq.iterator().run { if (!hasNext()) sequenceOf(AnsiString.EMPTY) else asSequence() }
-            } else {
-                val seq = line.chunkedSequence(maxLineLength)
-                if (ignoreTrailingSeparator) seq
-                else seq.iterator().run { if (!hasNext()) sequenceOf("") else asSequence() }
-            }
+            val sequence = line.chunkedSequence(maxLength) { it }
+            if (ignoreTrailingSeparator) sequence
+            else sequence.iterator().run { if (!hasNext()) sequenceOf("") else asSequence() }
         }
     }
 
@@ -279,8 +272,32 @@ public object LineSeparators : Collection<String> {
         linesOfLengthSequence(maxLineLength, ignoreTrailingSeparator).toList()
 
     /**
-     * Returns a string consisting of lines of which none is longer than [maxLineLength].
+     * Returns a sequence of lines of which none occupies more than given [maxColumns].
      */
-    public fun CharSequence?.wrapLines(maxLineLength: Int): CharSequence =
-        linesOfLength(maxLineLength).joinToString(LF) { "$it" }
+    public fun CharSequence?.linesOfColumnsSequence(maxColumns: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+        if (this == null) return emptySequence()
+        val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
+        return lines.flatMap { line: String ->
+            val sequence = line.chunkedByColumnsSequence(maxColumns) { it }
+            if (ignoreTrailingSeparator) sequence
+            else sequence.iterator().run { if (!hasNext()) sequenceOf("") else asSequence() }
+        }
+    }
+
+    /**
+     * Returns a list of lines of which none occupies more than given [maxColumns].
+     */
+    public fun CharSequence?.linesOfColumns(maxColumns: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
+        linesOfColumnsSequence(maxColumns, ignoreTrailingSeparator).toList()
+
+    /**
+     * Returns a string consisting of lines of which each occupies exactly the given number of [columns].
+     *
+     * The last line is filled with whitespaces if necessary.
+     */
+    public fun CharSequence?.wrapLines(columns: Int): CharSequence =
+        this?.linesOfColumnsSequence(columns)?.joinToString(LF) {
+            val missingColumns = columns - it.columns
+            it.toString() + " ".repeat(missingColumns)
+        } ?: ""
 }

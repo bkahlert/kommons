@@ -10,6 +10,8 @@ import strikt.assertions.isEqualTo
 
 class TruncationKtTest {
 
+    private val longText = "1234567890".repeat(1000)
+
     @Nested
     inner class Truncate {
 
@@ -31,6 +33,11 @@ class TruncationKtTest {
         @Test
         fun `should truncate using custom marker`() {
             expectThat("12345678901234567890".truncate(marker = "...")).isEqualTo("123456...567890")
+        }
+
+        @Test
+        fun `should truncate long text`() {
+            expectThat(longText.truncate()).isEqualTo("1234567…4567890")
         }
 
         @Test
@@ -65,6 +72,11 @@ class TruncationKtTest {
         }
 
         @Test
+        fun `should truncate long text`() {
+            expectThat(longText.truncateStart()).isEqualTo("…78901234567890")
+        }
+
+        @Test
         fun `should throw if marker is wider than max length`() {
             expectThrows<IllegalArgumentException> {
                 "1234567890".truncateStart(maxColumns = 1, marker = "XX")
@@ -93,6 +105,11 @@ class TruncationKtTest {
         @Test
         fun `should truncate using custom marker`() {
             expectThat("12345678901234567890".truncateEnd(marker = "...")).isEqualTo("123456789012...")
+        }
+
+        @Test
+        fun `should truncate long text`() {
+            expectThat(longText.truncateEnd()).isEqualTo("12345678901234…")
         }
 
         @Test

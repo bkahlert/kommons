@@ -5,9 +5,6 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.ansiString
 import koodies.text.AnsiString.Companion.asAnsiString
-import koodies.text.AnsiString.Companion.getChar
-import koodies.text.AnsiString.Companion.render
-import koodies.text.AnsiString.Companion.subSequence
 import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.LF
@@ -34,8 +31,8 @@ class AnsiStringTest {
     companion object {
         val italicCyan = ANSI.Colors.cyan + ANSI.Style.italic
         val ansiString =
-            AnsiString(italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean."))
-        val blankAnsiString = AnsiString("$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m")
+            italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").tokenize()
+        val blankAnsiString = "$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m".tokenize()
     }
 
     @Suppress("SpellCheckingInspection")
@@ -75,7 +72,7 @@ class AnsiStringTest {
         @Test
         fun `should tokenize string`() {
             val tokens = string.tokenize()
-            expectThat(tokens.toList()).containsExactly(
+            expectThat(tokens.tokens.toList()).containsExactly(
                 "$e[3;36m" to 0,
                 "$e[4m" to 0,
                 "Important:" to 10,
@@ -90,39 +87,39 @@ class AnsiStringTest {
                 "$e[22m" to 0,
                 "${CRLF}Last one is clean." to 20,
                 "$e[23;39m" to 0)
-            expectThat(tokens.sumOf { it.second }).isEqualTo(78)
+            expectThat(tokens.tokens.sumOf { it.second }).isEqualTo(78)
             expectThat(string.length).isEqualTo(120)
         }
 
         @Test
         fun `should create ansi string from first n tokens`() {
             val tokens = string.tokenize()
-            expectThat(tokens.subSequence(0, 26)).isEqualTo(
+            expectThat(tokens.subSequence(0, 26).toString()).isEqualTo(
                 "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m")
         }
 
         @Test
         internal fun `should create ansi string from subSequence`() {
             val tokens = string.tokenize()
-            expectThat(tokens.subSequence(11, 25)).isEqualTo("$e[3;36mThis line has $e[23;39m")
+            expectThat(tokens.subSequence(11, 25).toString()).isEqualTo("$e[3;36mThis line has $e[23;39m")
         }
 
         @Test
         internal fun `should get char at specified position`() {
-            val tokens = string.tokenize()
-            expectThat(tokens.getChar(26)).isEqualTo('o')
+            val tokens = AnsiString(*string.tokenize().tokens)
+            expectThat(tokens[26]).isEqualTo('o')
         }
 
         @Test
         internal fun `should render string`() {
             val tokens = string.tokenize()
-            expectThat(tokens.render()).isEqualTo(string)
+            expectThat(tokens.toString()).isEqualTo(string)
         }
 
         @Test
         internal fun `should render string without ansi`() {
             val tokens = string.tokenize()
-            val subject: String = tokens.render(ansi = false)
+            val subject: String = tokens.toString(removeAnsi = true)
             val expected: String =
                 "Important: This line has no ANSI escapes.$LF" +
                     "This one's bold!$CRLF" +
@@ -137,13 +134,13 @@ class AnsiStringTest {
         @TestFactory
         fun `should return length`(): List<DynamicTest> {
             return listOf(
-                41 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m"),
-                40 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m"),
-                26 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;29;39m"),
-                11 to AnsiString("$e[3;36m$e[4mImportant:$e[24m $e[23;39m"),
-                10 to AnsiString("$e[3;36m$e[4mImportant:$e[23;24;39m"),
-                9 to AnsiString("$e[3;36m$e[4mImportant$e[23;24;39m"),
-                0 to AnsiString(""),
+                41 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m".tokenize(),
+                40 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m".tokenize(),
+                26 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;29;39m".tokenize(),
+                11 to "$e[3;36m$e[4mImportant:$e[24m $e[23;39m".tokenize(),
+                10 to "$e[3;36m$e[4mImportant:$e[23;24;39m".tokenize(),
+                9 to "$e[3;36m$e[4mImportant$e[23;24;39m".tokenize(),
+                0 to "".tokenize(),
             ).map { (expected, ansiString) ->
                 dynamicTest("${ansiString.quoted}.length should be $expected") {
                     expectThat(ansiString.length).isEqualTo(expected)
@@ -154,7 +151,7 @@ class AnsiStringTest {
 
     @Nested
     inner class Get {
-        val ansiString = AnsiString("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.")
+        val ansiString = "${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.".tokenize()
 
         @TestFactory
         fun `should char at position`(): List<DynamicTest> {
@@ -182,17 +179,17 @@ class AnsiStringTest {
 
     @Nested
     inner class SubSequence {
-        val ansiString = AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m")
+        val ansiString = "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m".tokenize()
 
         @TestFactory
         fun `should product right substring`() = testEach(
-            41 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m"),
-            40 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m"),
-            25 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m"),
-            11 to AnsiString("$e[3;36m$e[4mImportant:$e[24m $e[23;39m"),
-            10 to AnsiString("$e[3;36m$e[4mImportant:$e[23;39;24m"),
-            9 to AnsiString("$e[3;36m$e[4mImportant$e[23;39;24m"),
-            0 to AnsiString(""),
+            41 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m".tokenize(),
+            40 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m".tokenize(),
+            25 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m".tokenize(),
+            11 to "$e[3;36m$e[4mImportant:$e[24m $e[23;39m".tokenize(),
+            10 to "$e[3;36m$e[4mImportant:$e[23;39;24m".tokenize(),
+            9 to "$e[3;36m$e[4mImportant$e[23;39;24m".tokenize(),
+            0 to "".tokenize(),
         ) { (length, expected) ->
             group("$expected …") {
 
@@ -219,12 +216,12 @@ class AnsiStringTest {
 
         @TestFactory
         fun `should product right non zero start substring`() = testEach(
-            0 to AnsiString("$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m"),
-            1 to AnsiString("$e[3;36;4mmportant:$e[24m This line has $e[23;39m"),
-            9 to AnsiString("$e[3;36;4m:$e[24m This line has $e[23;39m"),
-            10 to AnsiString("$e[3;36;4m$e[24m This line has $e[23;39m"),
-            11 to AnsiString("$e[3;36mThis line has $e[23;39m"),
-            25 to AnsiString("$e[3;36m$e[23;39m"),
+            0 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m".tokenize(),
+            1 to "$e[3;36;4mmportant:$e[24m This line has $e[23;39m".tokenize(),
+            9 to "$e[3;36;4m:$e[24m This line has $e[23;39m".tokenize(),
+            10 to "$e[3;36;4m$e[24m This line has $e[23;39m".tokenize(),
+            11 to "$e[3;36mThis line has $e[23;39m".tokenize(),
+            25 to "$e[3;36m$e[23;39m".tokenize(),
         ) { (startIndex, expected) ->
             group("$expected …") {
 
@@ -257,18 +254,14 @@ class AnsiStringTest {
 
         @Suppress("SpellCheckingInspection", "LongLine")
         @TestFactory
-        fun `should strip ANSI escape sequences off`() = listOf(
+        fun `should strip ANSI escape sequences off`() = testEach(
             ansiString to ansiString.ansiRemoved,
-            AnsiString("[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m.") to
+            "[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m.".tokenize() to
                 "[  OK  ] Listening on udev Control Socket.",
-            AnsiString("Text") to "Text",
-            AnsiString("__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___") to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___"
-        ).flatMap { (ansiString, expected) ->
-            listOf(
-                dynamicTest("\"$ansiString\" should produce \"$expected\"") {
-                    expectThat(ansiString.unformatted).isEqualTo(expected)
-                }
-            )
+            "Text".tokenize() to "Text",
+            "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___".tokenize() to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___"
+        ) { (ansiString, expected) ->
+            expecting { ansiString.unformatted } that { isEqualTo(expected) }
         }
     }
 
@@ -354,7 +347,7 @@ class AnsiStringTest {
 
         @Test
         fun `should not throw on errors`() {
-            val subject = AnsiString("$e[4;m ← missing second code $e[24m").mapLines {
+            val subject = "$e[4;m ← missing second code $e[24m".tokenize().mapLines {
                 it.ansi.black
             }.mapLines {
                 "$it".replace("second", "second".ansi.magenta.toString())
@@ -366,6 +359,7 @@ class AnsiStringTest {
 
     @Nested
     inner class LineSequence {
+
         @Test
         fun `should split non-ANSI string`() {
             expectThat(ansiString.unformatted.lineSequence().toList()).containsExactly(expectedLines)

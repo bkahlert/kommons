@@ -75,14 +75,14 @@ class CodePointKtTest {
 
     @TestFactory
     fun columns() = testEach(
-        CodePoint("\u0006") to -1,
-        CodePoint("\u2406") to 1,
+        CodePoint("\u0006") to 0,
+        CodePoint("\u2406") to 2,
         CodePoint("${Unicode.zeroWidthJoiner}") to 0,
         CodePoint(" ") to 1,
         CodePoint("a") to 1,
-//        CodePoint("😀") to 2,
-//        CodePoint("🤓") to 2,
-        CodePoint(Unicode.lineFeed.toString()) to -1,
+        CodePoint("😀") to 2,
+        CodePoint("🤓") to 2,
+        CodePoint(Unicode.lineFeed.toString()) to 0,
         CodePoint("►") to 1,
         CodePoint("㍙") to 2,
     ) { (codePoint, expectedColumns) ->

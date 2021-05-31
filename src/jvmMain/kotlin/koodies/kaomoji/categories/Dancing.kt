@@ -15,7 +15,7 @@ package koodies.kaomoji.categories
 import koodies.kaomoji.Category
 import koodies.kaomoji.Kaomoji
 
-public object Dance : Category() {
+public object Dancing : Category() {
     public val `└|∵┌|`: Kaomoji by auto()
     public val `|┐∵|┘`: Kaomoji by auto()
     public val `(ノ‥)ノ`: Kaomoji by auto()

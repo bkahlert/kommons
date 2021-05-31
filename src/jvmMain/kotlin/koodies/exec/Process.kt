@@ -13,7 +13,6 @@ import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.withSuffix
-import koodies.time.Now
 import koodies.time.seconds
 import koodies.unit.milli
 import java.io.BufferedWriter
@@ -22,6 +21,7 @@ import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.file.Path
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
@@ -66,6 +66,16 @@ public interface Process : ReturnValue {
     public val errorStream: InputStream
 
     /**
+     * Moment the process started.
+     */
+    public val start: Instant
+
+    /**
+     * Moment the process terminated.
+     */
+    public val end: Instant?
+
+    /**
      * The identifier of this process.
      */
     public val pid: Long
@@ -79,6 +89,11 @@ public interface Process : ReturnValue {
      * - [Excepted] for processes that did not run properly
      */
     public sealed interface State : ReturnValue {
+
+        /**
+         * Moment the process started.
+         */
+        public val start: Instant
 
         /**
          * PID of the process.
@@ -101,6 +116,7 @@ public interface Process : ReturnValue {
          * State of a process that already started but not terminated, yet.
          */
         public class Running(
+            override val start: Instant,
             override val pid: Long,
             override val status: String = "Process $pid is running.",
         ) : State {
@@ -113,32 +129,23 @@ public interface Process : ReturnValue {
          * State of a process that terminated with an [exitCode].
          */
         public sealed class Exited(
-
-            /**
-             * PID of the terminated process at the time is was still running.
-             */
+            override val start: Instant,
+            override val end: Instant,
             override val pid: Long,
-
-            /**
-             * Code the terminated process terminated with.
-             */
-            public val exitCode: Int,
-
-            /**
-             * All [IO] that was logged while the process was running.
-             */
-            public val io: IOSequence<IO>,
-
-            ) : State {
+            override val exitCode: Int,
+            override val io: IOSequence<IO>,
+        ) : ExitState {
 
             /**
              * State of a process that [Exited] successfully.
              */
             public open class Succeeded(
+                start: Instant,
+                end: Instant,
                 pid: Long,
                 io: IOSequence<IO>,
-                override val status: String = "Process ${pid.formattedAs.input} terminated successfully at $Now.",
-            ) : ExitState, Exited(pid, 0, io) {
+                override val status: String = "Process ${pid.formattedAs.input} terminated successfully at $end.",
+            ) : ExitState, Exited(start, end, pid, 0, io) {
                 override val successful: Boolean = true
                 override fun toString(): String = status
             }
@@ -147,17 +154,18 @@ public interface Process : ReturnValue {
              * State of a process that [Exited] erroneously.
              */
             public open class Failed(
+                start: Instant,
+                end: Instant,
                 pid: Long,
                 exitCode: Int,
                 io: IOSequence<IO> = IOSequence.EMPTY,
-
                 private val relevantFiles: List<URI> = emptyList(),
                 /**
                  * Detailed information about the circumstances of a process's failed termination.
                  */
                 public val dump: String? = null,
                 override val status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
-            ) : ExitState, Exited(pid, exitCode, io) {
+            ) : ExitState, Exited(start, end, pid, exitCode, io) {
                 override val successful: Boolean = false
                 override val textRepresentation: String? get() = toString()
                 override fun toString(): String =
@@ -178,21 +186,11 @@ public interface Process : ReturnValue {
          * State of a process that did not run properly.
          */
         public class Excepted(
-
-            /**
-             * PID of the terminated process at the time is was still running.
-             */
-            public override val pid: Long,
-
-            /**
-             * Code the terminated process terminated with.
-             */
-            public override val exitCode: Int,
-
-            /**
-             * All [IO] that was logged so far.
-             */
-            public override val io: IOSequence<IO>,
+            override val start: Instant,
+            override val end: Instant,
+            override val pid: Long,
+            override val exitCode: Int,
+            override val io: IOSequence<IO>,
 
             /**
              * Unexpected exception that lead to a process's termination.
@@ -205,7 +203,7 @@ public interface Process : ReturnValue {
             public val dump: String,
 
             override val status: String = "Process excepted with ${exception.toCompactString()}",
-        ) : State, ExitState {
+        ) : ExitState {
             override val successful: Boolean = false
             override val textRepresentation: String = status
             override fun toString(): String = status
@@ -226,8 +224,24 @@ public interface Process : ReturnValue {
      */
     public interface ExitState : State {
 
-        public override val pid: Long
+        /**
+         * Moment the process terminated.
+         */
+        public val end: Instant
+
+        /**
+         * [Duration] the process took to execute.
+         */
+        public val runtime: Duration get() = Duration.milliseconds(end.toEpochMilli() - start.toEpochMilli())
+
+        /**
+         * Exit code the process terminated with.
+         */
         public val exitCode: Int
+
+        /**
+         * [IO] produced during the execution of the process.
+         */
         public val io: IOSequence<IO>
 
         /**

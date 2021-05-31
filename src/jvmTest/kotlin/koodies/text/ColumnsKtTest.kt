@@ -21,9 +21,9 @@ class ColumnsKtTest {
             expectThat(ansiString.ansiRemoved.wrapLines(26)
                 .addColumn(ansiString.ansiRemoved.wrapLines(26))).isEqualTo("""
                 Important: This line has n     Important: This line has n
-                o ANSI escapes.                o ANSI escapes.
-                This one's bold!               This one's bold!
-                Last one is clean.             Last one is clean.
+                o ANSI escapes.                o ANSI escapes.           
+                This one's bold!               This one's bold!          
+                Last one is clean.             Last one is clean.        
             """.trimIndent())
         }
 
@@ -32,8 +32,8 @@ class ColumnsKtTest {
             expectThat(ansiString.ansiRemoved.wrapLines(26)
                 .addColumn(ansiString.ansiRemoved.lines().dropLast(1).joinToString(LF).wrapLines(26))).isEqualTo("""
                 Important: This line has n     Important: This line has n
-                o ANSI escapes.                o ANSI escapes.
-                This one's bold!               This one's bold!
+                o ANSI escapes.                o ANSI escapes.           
+                This one's bold!               This one's bold!          
                 Last one is clean.             
             """.trimIndent())
         }
@@ -41,12 +41,12 @@ class ColumnsKtTest {
         @Test
         fun `should add more lines as second column`() {
             expectThat(ansiString.ansiRemoved.wrapLines(26)
-                .addColumn(("$ansiString.ansiRemoved\nThis is one too much.").wrapLines(26))).isEqualTo("""
+                .addColumn(("${ansiString.ansiRemoved}\nThis is one too much.").wrapLines(26))).isEqualTo("""
                 Important: This line has n     Important: This line has n
-                o ANSI escapes.                o ANSI escapes.
-                This one's bold!               This one's bold!
-                Last one is clean.             Last one is clean.
-                                               This is one too much.
+                o ANSI escapes.                o ANSI escapes.           
+                This one's bold!               This one's bold!          
+                Last one is clean.             Last one is clean.        
+                                               This is one too much.     
             """.trimIndent())
         }
 
@@ -55,9 +55,9 @@ class ColumnsKtTest {
             expectThat(ansiString.ansiRemoved.wrapLines(26).asAnsiString()
                 .addColumn(ansiString.wrapLines(26).asAnsiString())).isEqualTo("""
                 Important: This line has n     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                o ANSI escapes.                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                This one's bold!               $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                Last one is clean.             $e[3;36mLast one is clean.$e[23;39m
+                o ANSI escapes.                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
+                This one's bold!               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
+                Last one is clean.             $e[3;36mLast one is clean.$e[23;39m        
             """.trimIndent().asAnsiString())
         }
     }
@@ -70,9 +70,9 @@ class ColumnsKtTest {
             expectThat(ansiString.wrapLines(26).asAnsiString()
                 .addColumn(ansiString.wrapLines(26).asAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m             $e[3;36mLast one is clean.$e[23;39m
+                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
+                $e[3;36mLast one is clean.$e[23;39m             $e[3;36mLast one is clean.$e[23;39m        
             """.trimIndent().asAnsiString())
         }
 
@@ -81,8 +81,8 @@ class ColumnsKtTest {
             expectThat(ansiString.wrapLines(26).asAnsiString()
                 .addColumn(ansiString.lines().dropLast(1).joinToString(LF).asAnsiString().wrapLines(26).asAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m
+                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m             
             """.trimIndent().asAnsiString())
         }
@@ -92,10 +92,10 @@ class ColumnsKtTest {
             expectThat(ansiString.wrapLines(26).asAnsiString()
                 .addColumn(("$ansiString\nThis is one too much.").asAnsiString().wrapLines(26).asAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m             $e[3;36mLast one is clean.$e[23;39m
-                                               This is one too much.
+                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
+                $e[3;36mLast one is clean.$e[23;39m             $e[3;36mLast one is clean.$e[23;39m        
+                                               This is one too much.     
             """.trimIndent().asAnsiString())
         }
 
@@ -104,9 +104,9 @@ class ColumnsKtTest {
             expectThat(ansiString.wrapLines(26)
                 .addColumn(ansiString.ansiRemoved.wrapLines(26))).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     Important: This line has n
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                o ANSI escapes.
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               This one's bold!
-                $e[3;36mLast one is clean.$e[23;39m             Last one is clean.
+                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                o ANSI escapes.           
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m               This one's bold!          
+                $e[3;36mLast one is clean.$e[23;39m             Last one is clean.        
             """.trimIndent())
         }
     }
@@ -116,9 +116,9 @@ class ColumnsKtTest {
         expectThat(ansiString.wrapLines(26).asAnsiString()
             .addColumn(ansiString.wrapLines(26).asAnsiString(), paddingCharacter = '*')).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m*****$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m****************$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m***************$e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m*************$e[3;36mLast one is clean.$e[23;39m
+                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           *****$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m          *****$e[3;36mThis one's $e[1mbold!$e[23;39;22m          
+                $e[3;36mLast one is clean.$e[23;39m        *****$e[3;36mLast one is clean.$e[23;39m        
             """.trimIndent().asAnsiString())
     }
 
@@ -127,9 +127,9 @@ class ColumnsKtTest {
         expectThat(ansiString.wrapLines(26).asAnsiString()
             .addColumn(ansiString.wrapLines(26).asAnsiString(), paddingColumns = 10)).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m          $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                     $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m                    $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m                  $e[3;36mLast one is clean.$e[23;39m
+                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                     $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
+                $e[3;36mThis one's $e[1mbold!$e[23;39;22m                    $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
+                $e[3;36mLast one is clean.$e[23;39m                  $e[3;36mLast one is clean.$e[23;39m        
             """.trimIndent().asAnsiString())
     }
 }

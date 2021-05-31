@@ -9,8 +9,8 @@ import koodies.test.Slow
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.tests
-import koodies.text.ANSI.ansiRemoved
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.LAST_LINE_REGEX
@@ -29,6 +29,8 @@ import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.leadingLineSeparator
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
+import koodies.text.LineSeparators.linesOfColumns
+import koodies.text.LineSeparators.linesOfColumnsSequence
 import koodies.text.LineSeparators.linesOfLength
 import koodies.text.LineSeparators.linesOfLengthSequence
 import koodies.text.LineSeparators.mapLines
@@ -43,7 +45,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
-import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.containsExactly
@@ -434,75 +435,69 @@ class LineSeparatorsTest {
     @Nested
     inner class LinesOfLengthKtTest {
 
-        @Nested
-        inner class NonAnsiString {
-
-            @TestFactory
-            fun `should be split with maximum line length`() = testEach<CharSequence.() -> List<CharSequence>>(
-                { linesOfLengthSequence(26).toList() },
-                { linesOfLength(26) },
-            ) { fn ->
-                expecting { "${AnsiStringTest.ansiString.ansiRemoved}$LF".fn().map { it.toString() } } that {
-                    containsExactly(
-                        "Important: This line has n",
-                        "o ANSI escapes.",
-                        "This one's bold!",
-                        "Last one is clean.",
-                        "",
-                    )
-                }
-            }
-
-            @TestFactory
-            fun `should be split with maximum line length with trailing line removed`() = testEach<CharSequence.() -> List<CharSequence>>(
-                { linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList() },
-                { linesOfLength(26, ignoreTrailingSeparator = true) },
-            ) { fn ->
-                expecting { "${AnsiStringTest.ansiString.ansiRemoved}$LF".fn().map { it.toString() } } that {
-                    containsExactly(
-                        "Important: This line has n",
-                        "o ANSI escapes.",
-                        "This one's bold!",
-                        "Last one is clean.",
-                    )
-                }
+        @TestFactory
+        fun `should be split with maximum line length`() = testEach<CharSequence.() -> List<CharSequence>>(
+            { linesOfLengthSequence(3).toList() },
+            { linesOfLength(3) },
+        ) { fn ->
+            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
+                containsExactly(
+                    "123",
+                    "45曲",
+                    "789",
+                    "0",
+                    "",
+                )
             }
         }
 
-        @Nested
-        inner class AnsiString {
-
-            @TestFactory
-            fun `should be split with maximum line length`() = testEach<koodies.text.AnsiString.() -> List<CharSequence>>(
-                { linesOfLengthSequence(26).toList() },
-                { linesOfLength(26) },
-            ) { fn ->
-                expecting { (AnsiStringTest.ansiString + LF).fn() } that {
-                    @Suppress("SpellCheckingInspection")
-                    containsExactly(
-                        "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
-                        "$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m".asAnsiString(),
-                        "$e[3;36mThis one's $e[1mbold!$e[23;39;22m".asAnsiString(),
-                        "$e[3;36mLast one is clean.$e[23;39m".asAnsiString(),
-                        "".asAnsiString(),
-                    )
-                }
+        @TestFactory
+        fun `should be split with maximum line length with trailing line removed`() = testEach<CharSequence.() -> List<CharSequence>>(
+            { linesOfLengthSequence(3, ignoreTrailingSeparator = true).toList() },
+            { linesOfLength(3, ignoreTrailingSeparator = true) },
+        ) { fn ->
+            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
+                containsExactly(
+                    "123",
+                    "45曲",
+                    "789",
+                    "0",
+                )
             }
+        }
+    }
 
-            @TestFactory
-            fun `should be split with maximum line length with trailing line removed`() = testEach<koodies.text.AnsiString.() -> List<CharSequence>>(
-                { linesOfLengthSequence(26, ignoreTrailingSeparator = true).toList() },
-                { linesOfLength(26, ignoreTrailingSeparator = true) },
-            ) { fn ->
-                expecting { (AnsiStringTest.ansiString + LF).fn() } that {
-                    @Suppress("SpellCheckingInspection")
-                    containsExactly(
-                        "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
-                        "$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m".asAnsiString(),
-                        "$e[3;36mThis one's $e[1mbold!$e[23;39;22m".asAnsiString(),
-                        "$e[3;36mLast one is clean.$e[23;39m".asAnsiString(),
-                    )
-                }
+    @Nested
+    inner class LinesOfColumnsKtTest {
+
+        @TestFactory
+        fun `should be split into lines with columns`() = testEach<CharSequence.() -> List<CharSequence>>(
+            { linesOfColumnsSequence(3).toList() },
+            { linesOfColumns(3) },
+        ) { fn ->
+            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
+                containsExactly(
+                    "123",
+                    "45",
+                    "曲7",
+                    "890",
+                    "",
+                )
+            }
+        }
+
+        @TestFactory
+        fun `should be split into lines with columns with trailing line removed`() = testEach<CharSequence.() -> List<CharSequence>>(
+            { linesOfColumnsSequence(3, ignoreTrailingSeparator = true).toList() },
+            { linesOfColumns(3, ignoreTrailingSeparator = true) },
+        ) { fn ->
+            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
+                containsExactly(
+                    "123",
+                    "45",
+                    "曲7",
+                    "890",
+                )
             }
         }
     }
@@ -510,25 +505,26 @@ class LineSeparatorsTest {
     @Nested
     inner class WrapLinesKtTest {
 
+        private val space = " "
+
         @Test
         fun `should wrap non-ANSI lines`() {
-            expectThat(AnsiStringTest.ansiString.ansiRemoved.wrapLines(26)).isEqualTo("""
-                Important: This line has n
-                o ANSI escapes.
-                This one's bold!
-                Last one is clean.
-            """.trimIndent())
+            expectThat("12345曲7890".wrapLines(3)).toStringIsEqualTo("""
+                123
+                45$space
+                曲7
+                890
+            """.trimIndent(), removeAnsi = false)
         }
 
         @Test
         fun `should wrap ANSI lines`() {
-            @Suppress("SpellCheckingInspection")
-            expectThat(AnsiStringTest.ansiString.wrapLines(26)).isEqualTo("""
-                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
-                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m
-            """.trimIndent())
+            expectThat("${"12345".ansi.cyan}曲7890".ansi.bold.wrapLines(3)).toStringIsEqualTo("""
+                $e[1m$e[36m123$e[22;39m
+                $e[1;36m45$e[22;39m$space
+                $e[1;36m$e[39m曲7$e[22m
+                $e[1m890$e[22m
+            """.trimIndent(), removeAnsi = false)
         }
     }
 }
@@ -548,4 +544,4 @@ fun <T : CharSequence> Assertion.Builder<T>.isSingleLine() =
 fun <T : CharSequence> Assertion.Builder<T>.lines(
     ignoreTrailingSeparator: Boolean = false,
     keepDelimiters: Boolean = false,
-): DescribeableBuilder<List<String>> = get("lines %s") { lines(ignoreTrailingSeparator = ignoreTrailingSeparator, keepDelimiters = keepDelimiters) }
+): Assertion.Builder<List<String>> = get("lines %s") { lines(ignoreTrailingSeparator = ignoreTrailingSeparator, keepDelimiters = keepDelimiters) }

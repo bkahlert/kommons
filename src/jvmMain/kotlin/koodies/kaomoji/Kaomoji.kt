@@ -94,8 +94,15 @@ public data class Kaomoji(
      * Returns a thinking [Kaomoji] of the form:
      *
      * ```
-     *           ͚͔˱ ❨ ( something )
-     * (^～^) ˙
+     *        ̣ ˱ ❨ ( something )
+     * (^～^)
+     * ```
+     *
+     * ```
+     *             ⎛ something ⎞
+     *             ⎜           ⎟
+     *        ̣ ˱ ❨ ⎝ more      ⎠
+     * ・㉨・
      * ```
      */
     public fun thinking(text: String? = null): String {
@@ -104,30 +111,30 @@ public data class Kaomoji(
         return when (lines.size) {
             0 -> {
                 """
-                    $blank   ͚͔˱ ❨ ( … )
-                    $this ˙
+                    $blank  ̣ ˱ ❨ ( … )
+                    $this
                 """.trimIndent()
             }
             1 -> {
                 """
-                    $blank   ͚͔˱ ❨ ( $subject )
-                    $this ˙
+                    $blank  ̣ ˱ ❨ ( $subject )
+                    $this
                 """.trimIndent()
             }
             2 -> {
                 val max = lines.maxLength()
                 """
                     $blank       ⎛ ${lines.first().padEnd(max)} ⎞
-                    $blank   ͚͔˱ ❨ ⎝ ${lines.last().padEnd(max)} ⎠
-                    $this ˙
+                    $blank  ̣ ˱ ❨ ⎝ ${lines.last().padEnd(max)} ⎠
+                    $this
                 """.trimIndent()
             }
             else -> {
                 val max = lines.maxLength()
                 "$blank       ⎛ ${lines.first().padEnd(max)} ⎞$LF" +
                     lines.drop(1).dropLast(1).joinToString("") { "$blank       ⎜ ${it.padEnd(max)} ⎟$LF" } +
-                    "$blank   ͚͔˱ ❨ ⎝ ${lines.last().padEnd(max)} ⎠$LF" +
-                    this + " ˙"
+                    "$blank  ̣ ˱ ❨ ⎝ ${lines.last().padEnd(max)} ⎠$LF" +
+                    this
             }
         }
     }
@@ -226,461 +233,461 @@ public data class Kaomoji(
         /**
          * Selection of angry [Kaomoji]
          */
-        @Suppress("unused") public val Angry: koodies.kaomoji.categories.Angry = koodies.kaomoji.categories.Angry
-
-        /**
-         * Selection of bad mood [Kaomoji]
-         */
-        @Suppress("unused") public val BadMood: koodies.kaomoji.categories.BadMood = koodies.kaomoji.categories.BadMood
+        public val Angry: koodies.kaomoji.categories.Angry = koodies.kaomoji.categories.Angry
 
         /**
          * Selection of baby [Kaomoji]
          */
-        @Suppress("unused") public val Babies: koodies.kaomoji.categories.Babies = koodies.kaomoji.categories.Babies
+        public val Babies: koodies.kaomoji.categories.Babies = koodies.kaomoji.categories.Babies
+
+        /**
+         * Selection of bad mood [Kaomoji]
+         */
+        public val BadMood: koodies.kaomoji.categories.BadMood = koodies.kaomoji.categories.BadMood
 
         /**
          * Selection of bear [Kaomoji]
          */
-        @Suppress("unused") public val Bears: koodies.kaomoji.categories.Bears = koodies.kaomoji.categories.Bears
+        public val Bears: koodies.kaomoji.categories.Bears = koodies.kaomoji.categories.Bears
 
         /**
          * Selection of begging [Kaomoji]
          */
-        @Suppress("unused") public val Begging: koodies.kaomoji.categories.Begging = koodies.kaomoji.categories.Begging
+        public val Begging: koodies.kaomoji.categories.Begging = koodies.kaomoji.categories.Begging
 
         /**
          * Selection of blushing [Kaomoji]
          */
-        @Suppress("unused") public val Blushing: koodies.kaomoji.categories.Blushing = koodies.kaomoji.categories.Blushing
+        public val Blushing: koodies.kaomoji.categories.Blushing = koodies.kaomoji.categories.Blushing
 
         /**
          * Selection of cat [Kaomoji]
          */
-        @Suppress("unused") public val Cats: koodies.kaomoji.categories.Cats = koodies.kaomoji.categories.Cats
-
-        /**
-         * Selection of confused [Kaomoji]
-         */
-        @Suppress("unused") public val Confused: koodies.kaomoji.categories.Confused = koodies.kaomoji.categories.Confused
-
-        /**
-         * Selection of crying [Kaomoji]
-         */
-        @Suppress("unused") public val Crying: koodies.kaomoji.categories.Crying = koodies.kaomoji.categories.Crying
-
-        /**
-         * Selection of cute [Kaomoji]
-         */
-        @Suppress("unused") public val Cute: koodies.kaomoji.categories.Cute = koodies.kaomoji.categories.Cute
-
-        /**
-         * Selection of dancing [Kaomoji]
-         */
-        @Suppress("unused") public val Dancing: koodies.kaomoji.categories.Dance = koodies.kaomoji.categories.Dance
-
-        /**
-         * Selection of depressed [Kaomoji]
-         */
-        @Suppress("unused") public val Depressed: koodies.kaomoji.categories.Depressed = koodies.kaomoji.categories.Depressed
-
-        /**
-         * Selection of devil [Kaomoji]
-         */
-        @Suppress("unused") public val Devils: koodies.kaomoji.categories.Devil = koodies.kaomoji.categories.Devil
-
-        /**
-         * Selection of disappointed [Kaomoji]
-         */
-        @Suppress("unused") public val Disappointed: koodies.kaomoji.categories.Disappointed = koodies.kaomoji.categories.Disappointed
-
-        /**
-         * Selection of drooling [Kaomoji]
-         */
-        @Suppress("unused") public val Drooling: koodies.kaomoji.categories.Drooling = koodies.kaomoji.categories.Drooling
-
-        /**
-         * Selection of eating [Kaomoji]
-         */
-        @Suppress("unused") public val Eating: koodies.kaomoji.categories.Eating = koodies.kaomoji.categories.Eating
-
-        /**
-         * Selection of evil [Kaomoji]
-         */
-        @Suppress("unused") public val Evil: koodies.kaomoji.categories.Evil = koodies.kaomoji.categories.Evil
-
-        /**
-         * Selection of excited [Kaomoji]
-         */
-        @Suppress("unused") public val Excited: koodies.kaomoji.categories.Excited = koodies.kaomoji.categories.Excited
-
-        /**
-         * Selection of falling down [Kaomoji]
-         */
-        @Suppress("unused") public val FallingDown: koodies.kaomoji.categories.FallingDown = koodies.kaomoji.categories.FallingDown
-
-        /**
-         * Selection of feces-related [Kaomoji]
-         */
-        @Suppress("unused") public val Feces: koodies.kaomoji.categories.Feces = koodies.kaomoji.categories.Feces
-
-        /**
-         * Selection of feminine [Kaomoji]
-         */
-        @Suppress("unused") public val Feminine: koodies.kaomoji.categories.Feminine = koodies.kaomoji.categories.Feminine
-
-        /**
-         * Selection of table flipping [Kaomoji]
-         */
-        @Suppress("unused") public val TableFlipping: koodies.kaomoji.categories.TableFlipping = koodies.kaomoji.categories.TableFlipping
-
-        /**
-         * Selection of flower-related [Kaomoji]
-         */
-        @Suppress("unused") public val Flower: koodies.kaomoji.categories.Flower = koodies.kaomoji.categories.Flower
-
-        /**
-         * Selection of funny [Kaomoji]
-         */
-        @Suppress("unused") public val Funny: koodies.kaomoji.categories.Funny = koodies.kaomoji.categories.Funny
-
-        /**
-         * Selection of [Kaomoji] with glasses.
-         */
-        @Suppress("unused") public val Glasses: koodies.kaomoji.categories.Glasses = koodies.kaomoji.categories.Glasses
-
-        /**
-         * Selection of grin [Kaomoji]
-         */
-        @Suppress("unused") public val Grinning: koodies.kaomoji.categories.Grinning = koodies.kaomoji.categories.Grinning
-
-        /**
-         * Selection of gross [Kaomoji]
-         */
-        @Suppress("unused") public val Gross: koodies.kaomoji.categories.Gross = koodies.kaomoji.categories.Gross
-
-        /**
-         * Selection of happy [Kaomoji]
-         */
-        @Suppress("unused") public val Happy: koodies.kaomoji.categories.Happy = koodies.kaomoji.categories.Happy
-
-        /**
-         * Selection of greeting [Kaomoji]
-         */
-        @Suppress("unused") public val Greeting: koodies.kaomoji.categories.Greeting = koodies.kaomoji.categories.Greeting
-
-        /**
-         * Selection of helpless [Kaomoji]
-         */
-        @Suppress("unused") public val Helpless: koodies.kaomoji.categories.Helpless = koodies.kaomoji.categories.Helpless
-
-        /**
-         * Selection of hide [Kaomoji]
-         */
-        @Suppress("unused") public val Hide: koodies.kaomoji.categories.Hide = koodies.kaomoji.categories.Hide
-
-        /**
-         * Selection of hugging [Kaomoji]
-         */
-        @Suppress("unused") public val Hugging: koodies.kaomoji.categories.Hugging = koodies.kaomoji.categories.Hugging
-
-        /**
-         * Selection of kissing [Kaomoji]
-         */
-        @Suppress("unused") public val Kissing: koodies.kaomoji.categories.Kissing = koodies.kaomoji.categories.Kissing
-
-        /**
-         * Selection of laughing [Kaomoji]
-         */
-        @Suppress("unused") public val Laughing: koodies.kaomoji.categories.Laughing = koodies.kaomoji.categories.Laughing
-
-        /**
-         * Selection of lenny face [Kaomoji]
-         */
-        @Suppress("unused") public val LennyFace: koodies.kaomoji.categories.LennyFace = koodies.kaomoji.categories.LennyFace
-
-        /**
-         * Selection of love-related [Kaomoji]
-         */
-        @Suppress("unused") public val Love: koodies.kaomoji.categories.Love = koodies.kaomoji.categories.Love
-
-        /**
-         * Selection of magical [Kaomoji]
-         */
-        @Suppress("unused") public val Magical: koodies.kaomoji.categories.Magical = koodies.kaomoji.categories.Magical
-
-        /**
-         * Selection of make up my mind [Kaomoji]
-         */
-        @Suppress("unused") public val MakeUpMyMind: koodies.kaomoji.categories.MakeUpMyMind = koodies.kaomoji.categories.MakeUpMyMind
-
-        /**
-         * Selection of middle finger [Kaomoji]
-         */
-        @Suppress("unused") public val MiddleFinger: koodies.kaomoji.categories.MiddleFinger = koodies.kaomoji.categories.MiddleFinger
-
-        /**
-         * Selection of monkey [Kaomoji]
-         */
-        @Suppress("unused") public val Monkey: koodies.kaomoji.categories.Monkey = koodies.kaomoji.categories.Monkey
-
-        /**
-         * Selection of musical [Kaomoji]
-         */
-        @Suppress("unused") public val Musical: koodies.kaomoji.categories.Musical = koodies.kaomoji.categories.Musical
-
-        /**
-         * Selection of nervious [Kaomoji]
-         */
-        @Suppress("unused") public val Nervious: koodies.kaomoji.categories.Nervious = koodies.kaomoji.categories.Nervious
-
-        /**
-         * Selection of peace sign [Kaomoji]
-         */
-        @Suppress("unused") public val PeaceSign: koodies.kaomoji.categories.PeaceSign = koodies.kaomoji.categories.PeaceSign
-
-        /**
-         * Selection of proud [Kaomoji]
-         */
-        @Suppress("unused") public val Proud: koodies.kaomoji.categories.Proud = koodies.kaomoji.categories.Proud
-
-        /**
-         * Selection of punching [Kaomoji]
-         */
-        @Suppress("unused") public val Punching: koodies.kaomoji.categories.Punching = koodies.kaomoji.categories.Punching
-
-        /**
-         * Selection of rabbit [Kaomoji]
-         */
-        @Suppress("unused") public val Rabbits: koodies.kaomoji.categories.Rabbit = koodies.kaomoji.categories.Rabbit
-
-        /**
-         * Selection of roger that [Kaomoji]
-         */
-        @Suppress("unused") public val RogerThat: koodies.kaomoji.categories.RogerThat = koodies.kaomoji.categories.RogerThat
-
-        /**
-         * Selection of roll over [Kaomoji]
-         */
-        @Suppress("unused") public val RollOver: koodies.kaomoji.categories.RollOver = koodies.kaomoji.categories.RollOver
-
-        /**
-         * Selection of running [Kaomoji]
-         */
-        @Suppress("unused") public val Running: koodies.kaomoji.categories.Running = koodies.kaomoji.categories.Running
-
-        /**
-         * Selection of sad [Kaomoji]
-         */
-        @Suppress("unused") public val Sad: koodies.kaomoji.categories.Sad = koodies.kaomoji.categories.Sad
-
-        /**
-         * Selection of salute [Kaomoji]
-         */
-        @Suppress("unused") public val Salute: koodies.kaomoji.categories.Salute = koodies.kaomoji.categories.Salute
-
-        /**
-         * Selection of scared [Kaomoji]
-         */
-        @Suppress("unused") public val Scared: koodies.kaomoji.categories.Scared = koodies.kaomoji.categories.Scared
-
-        /**
-         * Selection of sheep [Kaomoji]
-         */
-        @Suppress("unused") public val Sheep: koodies.kaomoji.categories.Sheep = koodies.kaomoji.categories.Sheep
-
-        /**
-         * Selection of shocked [Kaomoji]
-         */
-        @Suppress("unused") public val Shocked: koodies.kaomoji.categories.Shocked = koodies.kaomoji.categories.Shocked
-
-        /**
-         * Selection of shrugging [Kaomoji]
-         */
-        @Suppress("unused") public val Shrugging: koodies.kaomoji.categories.Shrugging = koodies.kaomoji.categories.Shrugging
-
-        /**
-         * Selection of shy [Kaomoji]
-         */
-        @Suppress("unused") public val Shy: koodies.kaomoji.categories.Shy = koodies.kaomoji.categories.Shy
-
-        /**
-         * Selection of sleeping [Kaomoji]
-         */
-        @Suppress("unused") public val Sleeping: koodies.kaomoji.categories.Sleeping = koodies.kaomoji.categories.Sleeping
-
-        /**
-         * Selection of smiling [Kaomoji]
-         */
-        @Suppress("unused") public val Smiling: koodies.kaomoji.categories.Smiling = koodies.kaomoji.categories.Smiling
-
-        /**
-         * Selection of sparkling [Kaomoji]
-         */
-        @Suppress("unused") public val Sparkling: koodies.kaomoji.categories.Sparkling = koodies.kaomoji.categories.Sparkling
-
-        /**
-         * Selection of spinning [Kaomoji]
-         */
-        @Suppress("unused") public val Spinning: koodies.kaomoji.categories.Spinning = koodies.kaomoji.categories.Spinning
-
-        /**
-         * Selection of surprised [Kaomoji]
-         */
-        @Suppress("unused") public val Surprised: koodies.kaomoji.categories.Surprised = koodies.kaomoji.categories.Surprised
-
-        /**
-         * Selection of sweating [Kaomoji]
-         */
-        @Suppress("unused") public val Sweating: koodies.kaomoji.categories.Sweating = koodies.kaomoji.categories.Sweating
-
-        /**
-         * Selection of take abow [Kaomoji]
-         */
-        @Suppress("unused") public val TakeABow: koodies.kaomoji.categories.TakeABow = koodies.kaomoji.categories.TakeABow
-
-        /**
-         * Selection of thats it [Kaomoji]
-         */
-        @Suppress("unused") public val ThatsIt: koodies.kaomoji.categories.ThatsIt = koodies.kaomoji.categories.ThatsIt
-
-        /**
-         * Selection of thumbs up [Kaomoji]
-         */
-        @Suppress("unused") public val ThumbsUp: koodies.kaomoji.categories.ThumbsUp = koodies.kaomoji.categories.ThumbsUp
-
-        /**
-         * Selection of tired [Kaomoji]
-         */
-        @Suppress("unused") public val Tired: koodies.kaomoji.categories.Tired = koodies.kaomoji.categories.Tired
-
-        /**
-         * Selection of trembling [Kaomoji]
-         */
-        @Suppress("unused") public val Trembling: koodies.kaomoji.categories.Trembling = koodies.kaomoji.categories.Trembling
-
-        /**
-         * Selection of try my best [Kaomoji]
-         */
-        @Suppress("unused") public val TryMyBest: koodies.kaomoji.categories.TryMyBest = koodies.kaomoji.categories.TryMyBest
-
-        /**
-         * Selection of unicode [Kaomoji]
-         */
-        @Suppress("unused") public val Unicode: koodies.kaomoji.categories.Unicode = koodies.kaomoji.categories.Unicode
-
-        /**
-         * Selection of upset [Kaomoji]
-         */
-        @Suppress("unused") public val Upset: koodies.kaomoji.categories.Upset = koodies.kaomoji.categories.Upset
-
-        /**
-         * Selection of vomitting [Kaomoji]
-         */
-        @Suppress("unused") public val Vomitting: koodies.kaomoji.categories.Vomitting = koodies.kaomoji.categories.Vomitting
-
-        /**
-         * Selection of weird [Kaomoji]
-         */
-        @Suppress("unused") public val Weird: koodies.kaomoji.categories.Weird = koodies.kaomoji.categories.Weird
-
-        /**
-         * Selection of winking [Kaomoji]
-         */
-        @Suppress("unused") public val Winking: koodies.kaomoji.categories.Winking = koodies.kaomoji.categories.Winking
-
-        /**
-         * Selection of writing [Kaomoji]
-         */
-        @Suppress("unused") public val Writing: koodies.kaomoji.categories.Writing = koodies.kaomoji.categories.Writing
-
-        /**
-         * Selection of smoking [Kaomoji]
-         */
-        @Suppress("unused") public val Smoking: koodies.kaomoji.categories.Smoking = koodies.kaomoji.categories.Smoking
-
-        /**
-         * Selection of rain-related [Kaomoji]
-         */
-        @Suppress("unused") public val Rain: koodies.kaomoji.categories.Rain = koodies.kaomoji.categories.Rain
-
-        /**
-         * Selection of TV-related [Kaomoji]
-         */
-        @Suppress("unused") public val TV: koodies.kaomoji.categories.TV = koodies.kaomoji.categories.TV
-
-        /**
-         * Selection of fishing [Kaomoji]
-         */
-        @Suppress("unused") public val Fishing: koodies.kaomoji.categories.Fishing = koodies.kaomoji.categories.Fishing
-
-        /**
-         * Selection of fish [Kaomoji]
-         */
-        @Suppress("unused") public val Fish: koodies.kaomoji.categories.Fish = koodies.kaomoji.categories.Fish
-
-        /**
-         * Selection of whale [Kaomoji]
-         */
-        @Suppress("unused") public val Whales: koodies.kaomoji.categories.Whales = koodies.kaomoji.categories.Whales
-
-        /**
-         * Selection of weapon-related [Kaomoji]
-         */
-        @Suppress("unused") public val Weapons: koodies.kaomoji.categories.Weapons = koodies.kaomoji.categories.Weapons
-
-        /**
-         * Selection of money [Kaomoji]
-         */
-        @Suppress("unused") public val Money: koodies.kaomoji.categories.Money = koodies.kaomoji.categories.Money
-
-        /**
-         * Selection of screaming [Kaomoji]
-         */
-        @Suppress("unused") public val Screaming: koodies.kaomoji.categories.Screaming = koodies.kaomoji.categories.Screaming
-
-        /**
-         * Selection of why [Kaomoji]
-         */
-        @Suppress("unused") public val Why: koodies.kaomoji.categories.Why = koodies.kaomoji.categories.Why
-
-        /**
-         * Selection of geek [Kaomoji]
-         */
-        @Suppress("unused") public val Geek: koodies.kaomoji.categories.Geek = koodies.kaomoji.categories.Geek
-
-        /**
-         * Selection of pointing [Kaomoji]
-         */
-        @Suppress("unused") public val Pointing: koodies.kaomoji.categories.Pointing = koodies.kaomoji.categories.Pointing
-
-        /**
-         * Selection of chasing [Kaomoji]
-         */
-        @Suppress("unused") public val Chasing: koodies.kaomoji.categories.Chasing = koodies.kaomoji.categories.Chasing
+        public val Cats: koodies.kaomoji.categories.Cats = koodies.kaomoji.categories.Cats
 
         /**
          * Selection of celebrity [Kaomoji]
          */
-        @Suppress("unused") public val Celebrities: koodies.kaomoji.categories.Celebrities = koodies.kaomoji.categories.Celebrities
+        public val Celebrities: koodies.kaomoji.categories.Celebrities = koodies.kaomoji.categories.Celebrities
 
         /**
-         * Selection of hero [Kaomoji]
+         * Selection of chasing [Kaomoji]
          */
-        @Suppress("unused") public val Heroes: koodies.kaomoji.categories.Heroes = koodies.kaomoji.categories.Heroes
+        public val Chasing: koodies.kaomoji.categories.Chasing = koodies.kaomoji.categories.Chasing
+
+        /**
+         * Selection of confused [Kaomoji]
+         */
+        public val Confused: koodies.kaomoji.categories.Confused = koodies.kaomoji.categories.Confused
+
+        /**
+         * Selection of crying [Kaomoji]
+         */
+        public val Crying: koodies.kaomoji.categories.Crying = koodies.kaomoji.categories.Crying
+
+        /**
+         * Selection of cute [Kaomoji]
+         */
+        public val Cute: koodies.kaomoji.categories.Cute = koodies.kaomoji.categories.Cute
+
+        /**
+         * Selection of dancing [Kaomoji]
+         */
+        public val Dancing: koodies.kaomoji.categories.Dancing = koodies.kaomoji.categories.Dancing
+
+        /**
+         * Selection of depressed [Kaomoji]
+         */
+        public val Depressed: koodies.kaomoji.categories.Depressed = koodies.kaomoji.categories.Depressed
+
+        /**
+         * Selection of devil [Kaomoji]
+         */
+        public val Devils: koodies.kaomoji.categories.Devil = koodies.kaomoji.categories.Devil
+
+        /**
+         * Selection of disappointed [Kaomoji]
+         */
+        public val Disappointed: koodies.kaomoji.categories.Disappointed = koodies.kaomoji.categories.Disappointed
 
         /**
          * Selection of dog [Kaomoji]
          */
-        @Suppress("unused") public val Dog: koodies.kaomoji.categories.Dog = koodies.kaomoji.categories.Dog
+        public val Dog: koodies.kaomoji.categories.Dog = koodies.kaomoji.categories.Dog
+
+        /**
+         * Selection of drooling [Kaomoji]
+         */
+        public val Drooling: koodies.kaomoji.categories.Drooling = koodies.kaomoji.categories.Drooling
+
+        /**
+         * Selection of eating [Kaomoji]
+         */
+        public val Eating: koodies.kaomoji.categories.Eating = koodies.kaomoji.categories.Eating
+
+        /**
+         * Selection of evil [Kaomoji]
+         */
+        public val Evil: koodies.kaomoji.categories.Evil = koodies.kaomoji.categories.Evil
+
+        /**
+         * Selection of excited [Kaomoji]
+         */
+        public val Excited: koodies.kaomoji.categories.Excited = koodies.kaomoji.categories.Excited
+
+        /**
+         * Selection of falling down [Kaomoji]
+         */
+        public val FallingDown: koodies.kaomoji.categories.FallingDown = koodies.kaomoji.categories.FallingDown
+
+        /**
+         * Selection of feces-related [Kaomoji]
+         */
+        public val Feces: koodies.kaomoji.categories.Feces = koodies.kaomoji.categories.Feces
+
+        /**
+         * Selection of feminine [Kaomoji]
+         */
+        public val Feminine: koodies.kaomoji.categories.Feminine = koodies.kaomoji.categories.Feminine
+
+        /**
+         * Selection of fish [Kaomoji]
+         */
+        public val Fish: koodies.kaomoji.categories.Fish = koodies.kaomoji.categories.Fish
+
+        /**
+         * Selection of fishing [Kaomoji]
+         */
+        public val Fishing: koodies.kaomoji.categories.Fishing = koodies.kaomoji.categories.Fishing
+
+        /**
+         * Selection of flower-related [Kaomoji]
+         */
+        public val Flower: koodies.kaomoji.categories.Flower = koodies.kaomoji.categories.Flower
+
+        /**
+         * Selection of funny [Kaomoji]
+         */
+        public val Funny: koodies.kaomoji.categories.Funny = koodies.kaomoji.categories.Funny
+
+        /**
+         * Selection of geek [Kaomoji]
+         */
+        public val Geek: koodies.kaomoji.categories.Geek = koodies.kaomoji.categories.Geek
+
+        /**
+         * Selection of [Kaomoji] with glasses.
+         */
+        public val Glasses: koodies.kaomoji.categories.Glasses = koodies.kaomoji.categories.Glasses
+
+        /**
+         * Selection of greeting [Kaomoji]
+         */
+        public val Greeting: koodies.kaomoji.categories.Greeting = koodies.kaomoji.categories.Greeting
+
+        /**
+         * Selection of grin [Kaomoji]
+         */
+        public val Grinning: koodies.kaomoji.categories.Grinning = koodies.kaomoji.categories.Grinning
+
+        /**
+         * Selection of gross [Kaomoji]
+         */
+        public val Gross: koodies.kaomoji.categories.Gross = koodies.kaomoji.categories.Gross
+
+        /**
+         * Selection of happy [Kaomoji]
+         */
+        public val Happy: koodies.kaomoji.categories.Happy = koodies.kaomoji.categories.Happy
+
+        /**
+         * Selection of helpless [Kaomoji]
+         */
+        public val Helpless: koodies.kaomoji.categories.Helpless = koodies.kaomoji.categories.Helpless
+
+        /**
+         * Selection of hero [Kaomoji]
+         */
+        public val Heroes: koodies.kaomoji.categories.Heroes = koodies.kaomoji.categories.Heroes
+
+        /**
+         * Selection of hide [Kaomoji]
+         */
+        public val Hide: koodies.kaomoji.categories.Hide = koodies.kaomoji.categories.Hide
+
+        /**
+         * Selection of hugging [Kaomoji]
+         */
+        public val Hugging: koodies.kaomoji.categories.Hugging = koodies.kaomoji.categories.Hugging
+
+        /**
+         * Selection of kissing [Kaomoji]
+         */
+        public val Kissing: koodies.kaomoji.categories.Kissing = koodies.kaomoji.categories.Kissing
+
+        /**
+         * Selection of laughing [Kaomoji]
+         */
+        public val Laughing: koodies.kaomoji.categories.Laughing = koodies.kaomoji.categories.Laughing
+
+        /**
+         * Selection of lenny face [Kaomoji]
+         */
+        public val LennyFace: koodies.kaomoji.categories.LennyFace = koodies.kaomoji.categories.LennyFace
+
+        /**
+         * Selection of love-related [Kaomoji]
+         */
+        public val Love: koodies.kaomoji.categories.Love = koodies.kaomoji.categories.Love
+
+        /**
+         * Selection of magical [Kaomoji]
+         */
+        public val Magical: koodies.kaomoji.categories.Magical = koodies.kaomoji.categories.Magical
+
+        /**
+         * Selection of make up my mind [Kaomoji]
+         */
+        public val MakeUpMyMind: koodies.kaomoji.categories.MakeUpMyMind = koodies.kaomoji.categories.MakeUpMyMind
+
+        /**
+         * Selection of middle finger [Kaomoji]
+         */
+        public val MiddleFinger: koodies.kaomoji.categories.MiddleFinger = koodies.kaomoji.categories.MiddleFinger
+
+        /**
+         * Selection of money [Kaomoji]
+         */
+        public val Money: koodies.kaomoji.categories.Money = koodies.kaomoji.categories.Money
+
+        /**
+         * Selection of monkey [Kaomoji]
+         */
+        public val Monkey: koodies.kaomoji.categories.Monkey = koodies.kaomoji.categories.Monkey
+
+        /**
+         * Selection of musical [Kaomoji]
+         */
+        public val Musical: koodies.kaomoji.categories.Musical = koodies.kaomoji.categories.Musical
+
+        /**
+         * Selection of nervious [Kaomoji]
+         */
+        public val Nervious: koodies.kaomoji.categories.Nervious = koodies.kaomoji.categories.Nervious
+
+        /**
+         * Selection of peace sign [Kaomoji]
+         */
+        public val PeaceSign: koodies.kaomoji.categories.PeaceSign = koodies.kaomoji.categories.PeaceSign
+
+        /**
+         * Selection of pointing [Kaomoji]
+         */
+        public val Pointing: koodies.kaomoji.categories.Pointing = koodies.kaomoji.categories.Pointing
+
+        /**
+         * Selection of proud [Kaomoji]
+         */
+        public val Proud: koodies.kaomoji.categories.Proud = koodies.kaomoji.categories.Proud
+
+        /**
+         * Selection of punching [Kaomoji]
+         */
+        public val Punching: koodies.kaomoji.categories.Punching = koodies.kaomoji.categories.Punching
+
+        /**
+         * Selection of rabbit [Kaomoji]
+         */
+        public val Rabbits: koodies.kaomoji.categories.Rabbit = koodies.kaomoji.categories.Rabbit
+
+        /**
+         * Selection of rain-related [Kaomoji]
+         */
+        public val Rain: koodies.kaomoji.categories.Rain = koodies.kaomoji.categories.Rain
+
+        /**
+         * Selection of roger that [Kaomoji]
+         */
+        public val RogerThat: koodies.kaomoji.categories.RogerThat = koodies.kaomoji.categories.RogerThat
+
+        /**
+         * Selection of roll over [Kaomoji]
+         */
+        public val RollOver: koodies.kaomoji.categories.RollOver = koodies.kaomoji.categories.RollOver
+
+        /**
+         * Selection of running [Kaomoji]
+         */
+        public val Running: koodies.kaomoji.categories.Running = koodies.kaomoji.categories.Running
+
+        /**
+         * Selection of sad [Kaomoji]
+         */
+        public val Sad: koodies.kaomoji.categories.Sad = koodies.kaomoji.categories.Sad
+
+        /**
+         * Selection of salute [Kaomoji]
+         */
+        public val Salute: koodies.kaomoji.categories.Salute = koodies.kaomoji.categories.Salute
+
+        /**
+         * Selection of scared [Kaomoji]
+         */
+        public val Scared: koodies.kaomoji.categories.Scared = koodies.kaomoji.categories.Scared
+
+        /**
+         * Selection of screaming [Kaomoji]
+         */
+        public val Screaming: koodies.kaomoji.categories.Screaming = koodies.kaomoji.categories.Screaming
+
+        /**
+         * Selection of sheep [Kaomoji]
+         */
+        public val Sheep: koodies.kaomoji.categories.Sheep = koodies.kaomoji.categories.Sheep
+
+        /**
+         * Selection of shocked [Kaomoji]
+         */
+        public val Shocked: koodies.kaomoji.categories.Shocked = koodies.kaomoji.categories.Shocked
+
+        /**
+         * Selection of shrugging [Kaomoji]
+         */
+        public val Shrugging: koodies.kaomoji.categories.Shrugging = koodies.kaomoji.categories.Shrugging
+
+        /**
+         * Selection of shy [Kaomoji]
+         */
+        public val Shy: koodies.kaomoji.categories.Shy = koodies.kaomoji.categories.Shy
+
+        /**
+         * Selection of sleeping [Kaomoji]
+         */
+        public val Sleeping: koodies.kaomoji.categories.Sleeping = koodies.kaomoji.categories.Sleeping
+
+        /**
+         * Selection of smiling [Kaomoji]
+         */
+        public val Smiling: koodies.kaomoji.categories.Smiling = koodies.kaomoji.categories.Smiling
+
+        /**
+         * Selection of smoking [Kaomoji]
+         */
+        public val Smoking: koodies.kaomoji.categories.Smoking = koodies.kaomoji.categories.Smoking
+
+        /**
+         * Selection of sparkling [Kaomoji]
+         */
+        public val Sparkling: koodies.kaomoji.categories.Sparkling = koodies.kaomoji.categories.Sparkling
+
+        /**
+         * Selection of spinning [Kaomoji]
+         */
+        public val Spinning: koodies.kaomoji.categories.Spinning = koodies.kaomoji.categories.Spinning
 
         /**
          * Selection of stereo type [Kaomoji]
          */
-        @Suppress("unused") public val StereoTypes: koodies.kaomoji.categories.StereoTypes = koodies.kaomoji.categories.StereoTypes
+        public val StereoTypes: koodies.kaomoji.categories.StereoTypes = koodies.kaomoji.categories.StereoTypes
+
+        /**
+         * Selection of surprised [Kaomoji]
+         */
+        public val Surprised: koodies.kaomoji.categories.Surprised = koodies.kaomoji.categories.Surprised
+
+        /**
+         * Selection of sweating [Kaomoji]
+         */
+        public val Sweating: koodies.kaomoji.categories.Sweating = koodies.kaomoji.categories.Sweating
+
+        /**
+         * Selection of table flipping [Kaomoji]
+         */
+        public val TableFlipping: koodies.kaomoji.categories.TableFlipping = koodies.kaomoji.categories.TableFlipping
+
+        /**
+         * Selection of take abow [Kaomoji]
+         */
+        public val TakeABow: koodies.kaomoji.categories.TakeABow = koodies.kaomoji.categories.TakeABow
+
+        /**
+         * Selection of thats it [Kaomoji]
+         */
+        public val ThatsIt: koodies.kaomoji.categories.ThatsIt = koodies.kaomoji.categories.ThatsIt
+
+        /**
+         * Selection of thumbs up [Kaomoji]
+         */
+        public val ThumbsUp: koodies.kaomoji.categories.ThumbsUp = koodies.kaomoji.categories.ThumbsUp
+
+        /**
+         * Selection of tired [Kaomoji]
+         */
+        public val Tired: koodies.kaomoji.categories.Tired = koodies.kaomoji.categories.Tired
+
+        /**
+         * Selection of trembling [Kaomoji]
+         */
+        public val Trembling: koodies.kaomoji.categories.Trembling = koodies.kaomoji.categories.Trembling
+
+        /**
+         * Selection of try my best [Kaomoji]
+         */
+        public val TryMyBest: koodies.kaomoji.categories.TryMyBest = koodies.kaomoji.categories.TryMyBest
+
+        /**
+         * Selection of TV-related [Kaomoji]
+         */
+        public val TV: koodies.kaomoji.categories.TV = koodies.kaomoji.categories.TV
+
+        /**
+         * Selection of unicode [Kaomoji]
+         */
+        public val Unicode: koodies.kaomoji.categories.Unicode = koodies.kaomoji.categories.Unicode
+
+        /**
+         * Selection of upset [Kaomoji]
+         */
+        public val Upset: koodies.kaomoji.categories.Upset = koodies.kaomoji.categories.Upset
+
+        /**
+         * Selection of vomitting [Kaomoji]
+         */
+        public val Vomitting: koodies.kaomoji.categories.Vomitting = koodies.kaomoji.categories.Vomitting
+
+        /**
+         * Selection of weapon-related [Kaomoji]
+         */
+        public val Weapons: koodies.kaomoji.categories.Weapons = koodies.kaomoji.categories.Weapons
+
+        /**
+         * Selection of weird [Kaomoji]
+         */
+        public val Weird: koodies.kaomoji.categories.Weird = koodies.kaomoji.categories.Weird
+
+        /**
+         * Selection of whale [Kaomoji]
+         */
+        public val Whales: koodies.kaomoji.categories.Whales = koodies.kaomoji.categories.Whales
+
+        /**
+         * Selection of why [Kaomoji]
+         */
+        public val Why: koodies.kaomoji.categories.Why = koodies.kaomoji.categories.Why
+
+        /**
+         * Selection of winking [Kaomoji]
+         */
+        public val Winking: koodies.kaomoji.categories.Winking = koodies.kaomoji.categories.Winking
 
         /**
          * Selection of wizard [Kaomoji]
          */
-        @Suppress("unused") public val Wizards: koodies.kaomoji.categories.Wizards = koodies.kaomoji.categories.Wizards
+        public val Wizards: koodies.kaomoji.categories.Wizards = koodies.kaomoji.categories.Wizards
+
+        /**
+         * Selection of writing [Kaomoji]
+         */
+        public val Writing: koodies.kaomoji.categories.Writing = koodies.kaomoji.categories.Writing
     }
 }

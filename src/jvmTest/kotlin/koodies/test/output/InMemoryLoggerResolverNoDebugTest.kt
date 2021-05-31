@@ -7,7 +7,7 @@ import koodies.logging.expectThatLogged
 import koodies.test.SystemIORead
 import koodies.test.toStringContains
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.containsEscapeSequences
+import koodies.text.containsAnsi
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -47,7 +47,7 @@ class InMemoryLoggerResolverNoDebugTest {
             logLine { "line" }
             expectThat(toString())
                 .isNotEmpty()
-                .not { containsEscapeSequences() }
+                .not { containsAnsi() }
         }
 
         @Test
@@ -55,7 +55,7 @@ class InMemoryLoggerResolverNoDebugTest {
             logLine { "line" }
             expectThat(toString(keepEscapeSequences = true))
                 .isNotEmpty()
-                .containsEscapeSequences()
+                .containsAnsi()
         }
 
         @Nested

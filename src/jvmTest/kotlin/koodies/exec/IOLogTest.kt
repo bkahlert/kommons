@@ -11,7 +11,7 @@ import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.ansiRemoved
-import koodies.text.containsEscapeSequences
+import koodies.text.containsAnsi
 import koodies.time.poll
 import koodies.time.seconds
 import koodies.time.sleep
@@ -95,7 +95,7 @@ class IOLogTest {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }
                 .single().text
-                .containsEscapeSequences()
+                .containsAnsi()
                 .toStringIsEqualTo("""
                     Executing command arg
                     processing
@@ -111,7 +111,7 @@ class IOLogTest {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { it.pathString.endsWith("ansi-removed.log") }
                 .single().text
-                .not { containsEscapeSequences() }
+                .not { containsAnsi() }
                 .toStringIsEqualTo("""
                     Executing command arg
                     processing

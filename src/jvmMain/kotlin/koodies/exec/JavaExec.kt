@@ -21,9 +21,11 @@ import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.Symbols.Computation
 import koodies.text.Semantics.formattedAs
 import koodies.text.truncate
+import koodies.time.Now
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.concurrent.thread
@@ -64,12 +66,14 @@ public class JavaExec(
 ) : Exec {
     public companion object;
 
-    override val pid: Long by lazy { process.pid() }
+    override val start: Instant = process.toHandle().info().startInstant().orElse(Now.instant)
+    override val end: Instant? get() = (state as? ExitState)?.end
+    override val pid: Long = process.pid()
     override fun waitFor(): ExitState = (_state as? ExitState) ?: onExit.join()
     override fun stop(): Exec = also { process.destroy() }
     override fun kill(): Exec = also { process.destroyForcibly() }
 
-    private var _state: State = Running(pid)
+    private var _state: State = Running(start, pid)
 
     // onExit needs to be triggered at some point so it updates the state
     // consequently callbacks registered after that moment will likely not be triggered
@@ -112,7 +116,7 @@ public class JavaExec(
             val exitState: ExitState = if (throwable != null) {
                 val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
                 val dump = createDump("Process ${pid.formattedAs.input} terminated with ${cause.toCompactString()}.")
-                Excepted(pid, exitValue, io, cause, dump.ansiRemoved)
+                Excepted(start, Now.instant, pid, exitValue, io, cause, dump.ansiRemoved)
             } else {
                 kotlin.runCatching {
                     with(exitStateHandler ?: fallbackExitStateHandler()) { handle(pid, exitValue, io) }
@@ -121,7 +125,7 @@ public class JavaExec(
                     val formattedExitCode = exitValue.formattedAs.input
                     val formattedException = exception.message.formattedAs.error
                     val message = "Unexpected error terminating process $formattedPid with exit code $formattedExitCode:$LF\t$formattedException"
-                    Excepted(pid, exitValue, io, exception, createDump(message), message)
+                    Excepted(start, Now.instant, pid, exitValue, io, exception, createDump(message), message)
                 }
             }
             _state = exitState

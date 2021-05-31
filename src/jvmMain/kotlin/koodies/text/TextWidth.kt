@@ -23,5 +23,9 @@ internal actual object TextWidth {
     /**
      * Returns the width of the given [text].
      */
-    actual fun calculateWidth(text: CharSequence): Int = MONOSPACED_METRICS.stringWidth(text.replace(LineSeparators.REGEX, "").ansiRemoved)
+    actual fun calculateWidth(text: CharSequence): Int {
+        if (text.isEmpty()) return 0
+        val sanitized = text.replace(LineSeparators.REGEX, "").ansiRemoved
+        return MONOSPACED_METRICS.stringWidth(sanitized)
+    }
 }

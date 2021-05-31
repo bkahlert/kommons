@@ -29,7 +29,7 @@ public sealed class IO(
      * Formats a strings to like an output of this type.
      */
     private val formatAnsi: (AnsiString) -> String,
-) : AnsiString(text.toString(removeAnsi = false)) {
+) : AnsiString(*text.tokens) {
 
     /**
      * Contains this [text] with the format of this type applied.

@@ -41,7 +41,7 @@ fun Any.isFinal(): Boolean =
 
 
 plugins {
-    kotlin("multiplatform") version "1.5.0"
+    kotlin("multiplatform") version "1.5.20-M1"
     id("org.jetbrains.dokka") version "1.4.30"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.16"
@@ -59,7 +59,7 @@ allprojects {
     configurations.all {
         resolutionStrategy.eachDependency {
 
-            val kotlinVersion = "1.5.0"
+            val kotlinVersion = "1.5.20-M1"
             val kotlinModules = listOf(
                 "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
                 "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
@@ -161,7 +161,7 @@ kotlin {
                 implementation("io.strikt:strikt-core:0.30.1")
                 implementation("io.strikt:strikt-jvm:0.30.1")
 
-                implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0") {
+                implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.20-M1") {
                     because("filepeek takes 1.3")
                 }
             }

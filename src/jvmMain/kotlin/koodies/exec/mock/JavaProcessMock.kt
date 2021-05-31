@@ -31,6 +31,8 @@ public open class JavaProcessMock(
     private val exitCode: JavaProcessMock.() -> Int = { 0 },
 ) : JavaProcess() {
 
+    override fun toHandle(): ProcessHandle = ProcessHandleMock(this)
+
     private val pid: Long = 12345L
     override fun pid(): Long = pid
 

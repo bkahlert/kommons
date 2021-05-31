@@ -296,7 +296,7 @@ class RenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should render multi-line caption`() = listOf(
+    fun `should render multi-line caption`() = testEach(
         SOLID to """
             ╭──╴{}
             │
@@ -319,7 +319,8 @@ class RenderingLoggerKtTest {
             │
             ╰──╴✔︎{}
         """.trimIndent(),
-    ).testEach("border={}") { (border, expectation) ->
+        containerNamePattern = "border={}",
+    ) { (border, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
             logging(caption = "line #1\nline #2".ansi.red, border = border) {
                 logLine { "logged line" }

@@ -10,12 +10,14 @@ import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.SystemIOExclusive
 import koodies.test.output.TestLogger
 import koodies.test.toStringContainsAll
+import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.containsEscapeSequences
+import koodies.text.containsAnsi
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion.Builder
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
@@ -82,7 +84,7 @@ class InMemoryLoggerTest {
 
             expectThat(logger.toString())
                 .isNotEmpty()
-                .not { containsEscapeSequences() }
+                .not { containsAnsi() }
         }
 
         @Test
@@ -91,7 +93,7 @@ class InMemoryLoggerTest {
 
             expectThat(logger.toString(keepEscapeSequences = true))
                 .isNotEmpty()
-                .containsEscapeSequences()
+                .containsAnsi()
         }
 
         @Nested
@@ -119,7 +121,7 @@ class InMemoryLoggerTest {
             fun `should render open`() {
                 val logger = logger { logLine { "line" } }
 
-                expectThat(logger.toString()).isEqualTo("""
+                expectThat(logger.toString().endTrimmed).isEqualTo("""
                     ╭──╴caption
                     │
                     │   line
@@ -133,7 +135,7 @@ class InMemoryLoggerTest {
             fun `should use fallback return value if specified`() {
                 val logger = logger { logLine { "line" } }
 
-                expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE)).isEqualTo("""
+                expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE).endTrimmed).isEqualTo("""
                     ╭──╴caption
                     │
                     │   line
@@ -150,7 +152,7 @@ class InMemoryLoggerTest {
             fun `should render closed`() {
                 val logger = logger { logResult() }
 
-                expectThat(logger.toString()).isEqualTo("""
+                expectThat(logger.toString().endTrimmed).isEqualTo("""
                     ╭──╴caption
                     │
                     │
@@ -162,7 +164,7 @@ class InMemoryLoggerTest {
             fun `should ignore fallback return value if specified`() {
                 val logger = logger { logResult() }
 
-                expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE)).isEqualTo("""
+                expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE).endTrimmed).isEqualTo("""
                     ╭──╴caption
                     │
                     │
@@ -179,7 +181,7 @@ class InMemoryLoggerTest {
         fun `should not contain escape sequences`() {
             val logger = logger()
 
-            logger.expectThatLogged().not { containsEscapeSequences() }
+            logger.expectThatLogged().not { containsAnsi() }
         }
 
         @Nested
@@ -273,7 +275,7 @@ class InMemoryLoggerTest {
             @Test
             fun TestLogger.`should not contain escape sequences`() {
                 logLine { "line" }
-                expectLogged.not { containsEscapeSequences() }
+                expectLogged.not { containsAnsi() }
             }
 
             @Test
@@ -295,13 +297,20 @@ class InMemoryLoggerTest {
     }
 }
 
-val <T : InMemoryLogger> T.expectLogged
-    get() = expectThat(toString(fallbackReturnValue = null,
-        keepEscapeSequences = false,
-        lineSkip = 1).withoutTrailingLineSeparator)
+private val CharSequence.endTrimmed get() = mapLines { it.trimEnd() }
+
+val <T : InMemoryLogger> T.expectLogged: DescribeableBuilder<String>
+    get() {
+        val sanitized = toString(
+            fallbackReturnValue = null,
+            keepEscapeSequences = false,
+            lineSkip = 1,
+        ).withoutTrailingLineSeparator.endTrimmed
+        return expectThat(sanitized)
+    }
 
 fun <T : InMemoryLogger> T.expectThatLogged(closeIfOpen: Boolean = true) =
-    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }))
+    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }).endTrimmed)
 
 fun <T : InMemoryLogger> T.expectThatLogged(closeIfOpen: Boolean = true, block: Builder<String>.() -> Unit) =
-    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }), block)
+    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }).endTrimmed, block)

@@ -7,7 +7,7 @@ import koodies.math.BigInteger
 import koodies.math.BigIntegerConstants
 import koodies.math.toBigInteger
 import koodies.runtime.isDebugging
-import koodies.text.ANSI.containsEscapeSequences
+import koodies.text.ANSI.containsAnsi
 import koodies.text.Semantics.formattedAs
 import koodies.text.truncate
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
@@ -121,7 +121,7 @@ public fun String.checkNotBlank(lazyMessage: () -> Any): String = also{check(it.
  * spoiled with unusual characters such as escape sequences.
  */
 public fun String.requireSaneInput() {
-    require(!containsEscapeSequences) {
+    require(!containsAnsi) {
         "ANSI escape sequences detected: $xray"
     }
     if (length > 1) {

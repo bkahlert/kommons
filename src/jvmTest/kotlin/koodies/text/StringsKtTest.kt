@@ -26,10 +26,10 @@ class StringsKtTest {
     fun `should return length`() = tests {
         expecting { "red".length() } that { isEqualTo(3) }
         expecting { "red".ansi.red.length() } that { isEqualTo(3) }
-        expecting { "red".length(ignoreAnsi = true) } that { isEqualTo(3) }
-        expecting { "red".ansi.red.length(ignoreAnsi = true) } that { isEqualTo(3) }
-        expecting { "red".length(ignoreAnsi = false) } that { isEqualTo(3) }
-        expecting { "red".ansi.red.length(ignoreAnsi = false) } that { isEqualTo(13) }
+        expecting { "red".length(ansi = true) } that { isEqualTo(3) }
+        expecting { "red".ansi.red.length(ansi = true) } that { isEqualTo(3) }
+        expecting { "red".length(ansi = false) } that { isEqualTo(3) }
+        expecting { "red".ansi.red.length(ansi = false) } that { isEqualTo(13) }
     }
 
     @Nested
@@ -130,16 +130,16 @@ class StringsKtTest {
     fun `should pad start`() = tests {
         expecting { "red".padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
         expecting { "red".ansi.red.padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
-        expecting { "red".padStart(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
-        expecting { "red".ansi.red.padStart(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("XXred") }
+        expecting { "red".padStart(15, 'X', ansi = false) } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
+        expecting { "red".ansi.red.padStart(15, 'X', ansi = false) } that { toStringIsEqualTo("XXred") }
     }
 
     @TestFactory
     fun `should pad end`() = tests {
         expecting { "red".padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
         expecting { "red".ansi.red.padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
-        expecting { "red".padEnd(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
-        expecting { "red".ansi.red.padEnd(15, 'X', ignoreAnsi = false) } that { toStringIsEqualTo("redXX") }
+        expecting { "red".padEnd(15, 'X', ansi = false) } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
+        expecting { "red".ansi.red.padEnd(15, 'X', ansi = false) } that { toStringIsEqualTo("redXX") }
     }
 
     @TestFactory

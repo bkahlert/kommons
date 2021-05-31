@@ -8,7 +8,7 @@ import koodies.test.SvgFixture
 import koodies.test.UniqueId
 import koodies.test.expecting
 import koodies.test.withTempDir
-import koodies.text.containsEscapeSequences
+import koodies.text.containsAnsi
 import org.junit.jupiter.api.Test
 import strikt.assertions.endsWith
 import strikt.assertions.isEqualTo
@@ -72,7 +72,7 @@ class InMemoryFileExtensionsKtTest {
     fun `should create ASCII art`(uniqueId: UniqueId, logger: InMemoryLogger) = withTempDir(uniqueId) {
         val asciiArt = SvgFixture.toAsciiArt(logger)
         expecting { asciiArt } that {
-            containsEscapeSequences()
+            containsAnsi()
             length.isGreaterThan(1000)
         }
     }

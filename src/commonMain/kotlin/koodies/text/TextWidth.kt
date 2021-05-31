@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.Semantics.formattedAs
 import kotlin.math.round
 
@@ -65,9 +66,6 @@ public fun CharSequence.subSequenceByColumns(startColumn: Int, endColumn: Int): 
     val startIndex: Int = requireNotNull(findIndexByColumns(startColumn)) { "Requested start column ${startColumn.formattedAs.input} could not be found." }
     val endIndex: Int = requireNotNull(findIndexByColumns(endColumn)) { "Requested end column ${endColumn.formattedAs.input} could not be found." }
     return subSequence(startIndex, endIndex)
-    // TODO ANSI
-    // TODO wrap
-    // TODO wrap test RenderingLogger
 }
 
 /**
@@ -196,7 +194,7 @@ public fun CharSequence.chunkedByColumnsSequence(columns: Int): Sequence<String>
  */
 public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (CharSequence) -> R): Sequence<R> {
     require(columns > 0) { "Requested columns ${columns.formattedAs.input} must be greater than zero." }
-    var unprocessed = this
+    var unprocessed = asAnsiString()
     return generateSequence {
         if (unprocessed.isEmpty()) {
             null

@@ -16,6 +16,7 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.State
 import koodies.exec.Process.State.Excepted
 import koodies.text.ANSI.ansiRemoved
+import koodies.time.Now
 import koodies.time.seconds
 import kotlin.time.Duration
 
@@ -31,11 +32,11 @@ public open class DockerExec(
     override val state: State
         get() {
             return (exec.state as? ExitState) ?: when (container.state) {
-                is NotExistent, is Created, is Restarting, is Running, is Removing, is Paused -> State.Running(pid, format())
+                is NotExistent, is Created, is Restarting, is Running, is Removing, is Paused -> State.Running(start, pid, format())
                 is Exited, is Dead, is Error -> run {
                     val message = "Backed Docker exec no more running but no exit state is known."
                     val dump = createDump(message)
-                    Excepted(pid, -1, io, IllegalStateException(dump.ansiRemoved), dump, message).also { finalState = it }
+                    Excepted(start, Now.instant, pid, -1, io, IllegalStateException(dump.ansiRemoved), dump, message).also { finalState = it }
                 }
             }
         }
