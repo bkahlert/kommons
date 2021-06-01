@@ -1,9 +1,11 @@
 package koodies.logging
 
+import koodies.text.ANSI.Formatter
+
 /**
  * A logger that can be used if no logging is needed.
  */
-public object MutedRenderingLogger : BlockRenderingLogger("", null) {
+public object MutedRenderingLogger : BlockRenderingLogger("", log = { }) {
 
     init {
         withUnclosedWarningDisabled
@@ -13,23 +15,46 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null) {
     override fun logLine(block: () -> CharSequence): Unit = Unit
     override fun logStatus(items: List<CharSequence>, block: () -> CharSequence): Unit = Unit
     override fun <R> logResult(block: () -> Result<R>): R = block().getOrThrow()
-
-    override fun logException(block: () -> Throwable): Unit {
-    }
+    override fun logException(block: () -> Throwable): Unit = Unit
 
     override fun toString(): String = "log > /dev/null"
 
-    /**
-     * Creates a logger which serves for logging a sub-process and all of its corresponding events.
-     */
-    @RenderingLoggingDsl
-    public fun <R> logging(block: MutedRenderingLogger.() -> R): R = runLogging(block)
+    override fun <R> blockLogging(
+        caption: CharSequence,
+        contentFormatter: Formatter?,
+        decorationFormatter: Formatter?,
+        returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
+        border: Border,
+        block: FixedWidthRenderingLogger.() -> R,
+    ): R = runLogging(block)
 
-    /**
-     * Creates a logger which serves for logging a sub-process and all of its corresponding events.
-     *
-     * This logger uses at least one line per log event. If less room is available [compactLogging] is more suitable.
-     */
-    @RenderingLoggingDsl
-    public fun <R> blockLogging(block: MutedRenderingLogger.() -> R): R = runLogging(block)
+    override fun <R> compactLogging(
+        caption: CharSequence,
+        contentFormatter: Formatter?,
+        decorationFormatter: Formatter?,
+        returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
+        block: CompactRenderingLogger.() -> R,
+    ): R = COMPACT.runLogging(block)
+
+    override fun <R> logging(
+        caption: CharSequence,
+        contentFormatter: Formatter?,
+        decorationFormatter: Formatter?,
+        returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
+        border: Border,
+        block: FixedWidthRenderingLogger.() -> R,
+    ): R = runLogging(block)
+
+    private val COMPACT: CompactRenderingLogger = object : CompactRenderingLogger("log > /dev/null", log = { }) {
+        init {
+            withUnclosedWarningDisabled
+        }
+
+        override fun logText(block: () -> CharSequence): Unit = Unit
+        override fun logLine(block: () -> CharSequence): Unit = Unit
+        override fun <R> logResult(block: () -> Result<R>): R = block().getOrThrow()
+        override fun logException(block: () -> Throwable): Unit = Unit
+
+        override fun toString(): String = "log > /dev/null"
+    }
 }

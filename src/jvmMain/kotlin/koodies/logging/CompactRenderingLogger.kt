@@ -13,7 +13,7 @@ import koodies.text.Semantics.Symbols
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-public class CompactRenderingLogger(
+public open class CompactRenderingLogger(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
