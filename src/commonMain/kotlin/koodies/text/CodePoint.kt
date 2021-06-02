@@ -15,9 +15,9 @@ private const val ESCAPED_X = "\\x"
 private fun String.escape() = "$ESCAPED_X{$this}"
 
 /**
- * Representation of a [Unicode code point](http://www.unicode.org/glossary/#code_point)
+ * Representation of a [Unicode code point](https://unicode.org/glossary/#code_point)
  *
- * @see <a href="https://www.unicode.org/reports/tr18/">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
+ * @see <a href="https://unicode.org/reports/tr18/">Unicode® Technical Standard #18—UNICODE REGULAR EXPRESSIONS</a>
  */
 @JvmInline
 public value class CodePoint(

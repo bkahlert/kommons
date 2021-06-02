@@ -1,5 +1,7 @@
 package koodies.text
 
+import koodies.math.ceilDiv
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.Semantics.formattedAs
 
@@ -32,7 +34,10 @@ public val CodePoint.columns: Int get() = string.columns
 /**
  * Number of columns needed to represent `this` character sequence.
  */
-public val CharSequence.columns: Int get() = TextWidth.calculateWidth(this) / TextWidth.X_WIDTH
+public val CharSequence.columns: Int
+    get() = ansiRemoved.asGraphemeClusterSequence().sumOf {
+        TextWidth.calculateWidth(it.toString()) ceilDiv TextWidth.X_WIDTH
+    }
 
 /**
  * Returns the index where the given [column] starts.
