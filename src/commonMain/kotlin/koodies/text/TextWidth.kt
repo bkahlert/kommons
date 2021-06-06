@@ -36,7 +36,12 @@ public val CodePoint.columns: Int get() = string.columns
  */
 public val CharSequence.columns: Int
     get() = ansiRemoved.asGraphemeClusterSequence().sumOf {
-        TextWidth.calculateWidth(it.toString()) ceilDiv TextWidth.X_WIDTH
+        if (it.toString() in LineSeparators) 0
+        else when (it.codePoints.singleOrNull()?.codePoint) {
+            in 0..31 -> 0
+            in 0x7f..0x9f -> 0
+            else -> TextWidth.calculateWidth(it.toString()) ceilDiv TextWidth.X_WIDTH
+        }
     }
 
 /**
@@ -215,12 +220,8 @@ public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (C
  * Returns a character sequence with content of this character sequence padded at the beginning
  * to the specified number of [columns] with the specified [padChar] or space.
  */
-public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence {
-    if (columns < 0) throw IllegalArgumentException("Desired number of columns ${this.columns.formattedAs.input} is less than zero.")
-    val actualColumns = this.columns
-    if (columns <= actualColumns) return this
-    return toString().reversed().padEndByColumns(columns, padChar).reversed()
-}
+public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence =
+    toString().reversed().padEndByColumns(columns, padChar).reversed()
 
 /**
  * Pads the string to the specified number of [columns] at the beginning with the specified [padChar] or space.
@@ -233,7 +234,8 @@ public fun String.padStartByColumns(columns: Int, padChar: Char = ' '): String =
  * to the specified number of [columns] with the specified [padChar] or space.
  */
 public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): CharSequence {
-    if (columns < 0) throw IllegalArgumentException("Desired number of columns ${columns.formattedAs.input} is less than zero.")
+    require(columns >= 0) { "Desired number of columns ${columns.formattedAs.input} is less than zero." }
+    require(padChar.columns > 0) { "Desired pad character ${padChar.formattedAs.input} is ${padChar.columns.formattedAs.input} columns but must be greater 0." }
     val actualColumns = this.columns
     if (columns <= actualColumns) return this
 

@@ -9,7 +9,6 @@ import koodies.io.path.randomDirectory
 import koodies.io.path.randomPath
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
-import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.text
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.tests
@@ -58,7 +57,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { readText() }).all { isEqualTo(text) }
+            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { readText() }).all { isEqualTo(data.decodeToString()) }
         }
 
         @Test
@@ -68,13 +67,13 @@ class ClassPathsKtTest {
 
         @TestFactory
         fun `should support different notations`() = testEach(
-            Fixture61C285F09D95930D0AE298B00AF09F918B0A.path,
-            "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-        ) { expecting { useClassPaths(this) { readText() } } that { all { isEqualTo(text) } } }
+            Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString,
+            "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+        ) { expecting { useClassPaths(this) { readText() } } that { all { isEqualTo(data.decodeToString()) } } }
 
         @Test
         fun `should map read-only root`() {
@@ -83,7 +82,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(
+            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(
                 1)
         }
 
@@ -124,7 +123,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { readText() }).isEqualTo(text)
+            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { readText() }).isEqualTo(data.decodeToString())
         }
 
         @Test
@@ -134,13 +133,13 @@ class ClassPathsKtTest {
 
         @TestFactory
         fun `should support different notations`() = testEach(
-            Fixture61C285F09D95930D0AE298B00AF09F918B0A.path,
-            "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.path}",
-        ) { expecting { useClassPath(this) { readText() } } that { isEqualTo(text) } }
+            Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString,
+            "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
+        ) { expecting { useClassPath(this) { readText() } } that { isEqualTo(data.decodeToString()) } }
 
         @Test
         fun `should map read-only root`() {
@@ -149,7 +148,7 @@ class ClassPathsKtTest {
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
+            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
         }
 
         @Test
@@ -198,22 +197,22 @@ class ClassPathsKtTest {
 
     @TestFactory
     fun `use required class path`() = tests {
-        expecting { useRequiredClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) { readText() } } that { isEqualTo(text) }
+        expecting { useRequiredClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { readText() } } that { isEqualTo(data.decodeToString()) }
         expectThrows<NoSuchFileException> { useRequiredClassPath("invalid.file") {} }
     }
 
     @TestFactory
     fun `read class path`() = tests {
-        expecting { readClassPathText(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(text) }
-        expecting { readClassPathBytes(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(data) }
+        expecting { readClassPathText(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) } that { isEqualTo(data.decodeToString()) }
+        expecting { readClassPathBytes(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) } that { isEqualTo(data) }
         expecting { readClassPathText("invalid.file") } that { isNull() }
         expecting { readClassPathBytes("invalid.file") } that { isNull() }
     }
 
     @TestFactory
     fun `require class path`() = tests {
-        expecting { requireClassPathText(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(text) }
-        expecting { requireClassPathBytes(Fixture61C285F09D95930D0AE298B00AF09F918B0A.path) } that { isEqualTo(data) }
+        expecting { requireClassPathText(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) } that { isEqualTo(data.decodeToString()) }
+        expecting { requireClassPathBytes(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) } that { isEqualTo(data) }
         expectThrows<NoSuchFileException> { requireClassPathText("invalid.file") }
         expectThrows<NoSuchFileException> { requireClassPathBytes("invalid.file") }
     }

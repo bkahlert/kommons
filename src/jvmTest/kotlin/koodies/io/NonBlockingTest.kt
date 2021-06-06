@@ -26,6 +26,7 @@ class NonBlockingTest {
 
     @Nested
     inner class NonBlockingInputStream {
+
         @Test
         fun `should produce same byte sequence as ByteArrayInputStream`() {
             val input = "A𝌪𝌫𝌬𝌭𝌮Z"
@@ -37,6 +38,7 @@ class NonBlockingTest {
 
     @Nested
     inner class NonBlockingInputStreamReader {
+
         @Test
         fun `should produce same byte sequence as ByteArrayInputStreamReader`() {
             val input = "A𝌪𝌫𝌬𝌭𝌮Z"
@@ -70,7 +72,7 @@ class NonBlockingTest {
         @Test
         fun InMemoryLogger.`should be equally readable like any other byte input stream`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
-            val inputStream = slowInputStream(10.seconds, Duration.ZERO to input)
+            val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
 
             val readFromSlowInput =
                 NonBlocking.nonBlocking(randomString(), BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8))).readAll(8.seconds)

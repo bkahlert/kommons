@@ -13,7 +13,6 @@ import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeBytes
 import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
-import koodies.test.ClassPathFixture
 import koodies.text.ANSI
 import koodies.text.ANSI.resetLines
 import koodies.text.quoted
@@ -30,7 +29,7 @@ import kotlin.io.path.readBytes
  * @see copyToTemp
  */
 public fun InMemoryFile.copyTo(target: Path): Path = when (this) {
-    is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyTo(target))
+    is ClassPath -> useClassPath(pathString, fun Path.(): Path = this.copyTo(target))
     else -> target.withDirectoriesCreated().writeBytes(data)
 } ?: error("Error copying ${name.quoted} to ${target.quoted}")
 
@@ -41,7 +40,7 @@ public fun InMemoryFile.copyTo(target: Path): Path = when (this) {
  * @see copyToTemp
  */
 public fun InMemoryFile.copyToDirectory(target: Path): Path = when (this) {
-    is ClassPathFixture -> useClassPath(path, fun Path.(): Path = this.copyToDirectory(target))
+    is ClassPath -> useClassPath(pathString, fun Path.(): Path = this.copyToDirectory(target))
     else -> target.resolve(name).withDirectoriesCreated().writeBytes(data)
 } ?: error("Error copying ${name.quoted} to ${target.quoted}")
 

@@ -42,7 +42,7 @@ class TextWidthKtTest {
     }
 
     @TestFactory
-    fun `should calc zero columns for line separators`() = testEach(*LineSeparators.toTypedArray()) {
+    fun `should calc 0 columns for line separators`() = testEach(*LineSeparators.toTypedArray()) {
         expecting { it.first().columns } that { isEqualTo(0) }
         expecting { it.columns } that { isEqualTo(0) }
         expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
@@ -371,6 +371,13 @@ class TextWidthKtTest {
         }
 
         @TestFactory
+        fun `should pad control characters`() = tests {
+            val string = "a\u0003b".repeat(5)
+            expecting { string.padStartByColumns(1) } that { isEqualTo(string) }
+            expecting { string.padStartByColumns(11) } that { isEqualTo(" $string") }
+        }
+
+        @TestFactory
         fun `should pad with custom pad char`() = testEach<CharSequence.(Int, Char) -> CharSequence>(
             { columns, padChar -> padStartByColumns(columns, padChar) },
             { columns, padChar -> toString().padStartByColumns(columns, padChar) },
@@ -403,6 +410,16 @@ class TextWidthKtTest {
         ) { fn ->
             expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(-1) }
         }
+
+        @TestFactory
+        fun `should throw in pad character with zero columns`() = testEach<CharSequence.(Char) -> CharSequence>(
+            { padStartByColumns(10, it) },
+            { toString().padStartByColumns(10, it) },
+        ) { fn ->
+            (0 until 32).forEach {
+                expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(Unicode[it].char!!) }
+            }
+        }
     }
 
     @Nested
@@ -417,6 +434,13 @@ class TextWidthKtTest {
                 toStringIsEqualTo("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!  ")
                 columns.isEqualTo(20)
             }
+        }
+
+        @TestFactory
+        fun `should pad control characters`() = tests {
+            val string = "a\u0003b".repeat(5)
+            expecting { string.padEndByColumns(1) } that { isEqualTo(string) }
+            expecting { string.padEndByColumns(11) } that { isEqualTo("$string ") }
         }
 
         @TestFactory
@@ -451,6 +475,16 @@ class TextWidthKtTest {
             { toString().padEndByColumns(it) },
         ) { fn ->
             expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(-1) }
+        }
+
+        @TestFactory
+        fun `should throw in pad character with zero columns`() = testEach<CharSequence.(Char) -> CharSequence>(
+            { padEndByColumns(10, it) },
+            { toString().padEndByColumns(10, it) },
+        ) { fn ->
+            (0 until 32).forEach {
+                expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(Unicode[it].char!!) }
+            }
         }
     }
 }

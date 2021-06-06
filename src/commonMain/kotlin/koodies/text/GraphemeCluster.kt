@@ -11,14 +11,16 @@ import kotlin.jvm.JvmInline
  * @see <a href="https://unicode.org/reports/tr29/">Unicode® Technical Standard #18—UNICODE TEXT SEGMENTATION</a>
  */
 @JvmInline
-public value class GraphemeCluster private constructor(public val graphemes: List<CodePoint>) {
+public value class GraphemeCluster private constructor(public val codePoints: List<CodePoint>) {
     private constructor(grapheme: CodePoint) : this(listOf(grapheme))
 
     override fun toString(): String {
-        return graphemes.joinToString("") { grapheme -> grapheme.toString() }
+        return codePoints.joinToString("") { grapheme -> grapheme.toString() }
     }
 
     public companion object {
+
+        internal val lineSeparatorCodePoints = LineSeparators.filter { it.length == 1 }.mapNotNull { it.asCodePoint() }
 
         /**
          * Returns a description of the grapheme and the given [offset].
@@ -27,8 +29,13 @@ public value class GraphemeCluster private constructor(public val graphemes: Lis
          */
         @Suppress("NOTHING_TO_INLINE")
         internal inline fun Iterator<CodePoint>.readGraphemeCluster(firstCodePoint: CodePoint): Pair<GraphemeCluster, CodePoint?> {
-            if (firstCodePoint.codePoint < 32 || (firstCodePoint.codePoint in 0x7f..0x9f)) {
-                return GraphemeCluster(firstCodePoint) to if (hasNext()) next() else null
+            if (firstCodePoint.codePoint < 32 || firstCodePoint.codePoint in 0x7f..0x9f || firstCodePoint in lineSeparatorCodePoints) {
+                val secondCodePoint = if (hasNext()) next() else null
+                if (firstCodePoint.char == '\r' && secondCodePoint?.char == '\n') {
+                    val thirdCodePoint = if (hasNext()) next() else null
+                    return GraphemeCluster(listOf(firstCodePoint, secondCodePoint)) to thirdCodePoint
+                }
+                return GraphemeCluster(firstCodePoint) to secondCodePoint
             }
 
             val graphemeCluster = StringBuilder(firstCodePoint.toString())
@@ -38,13 +45,13 @@ public value class GraphemeCluster private constructor(public val graphemes: Lis
             while (hasNext()) {
                 val codePoint = next()
                 graphemeCluster.append(codePoint.toString())
-                (codePoint == Unicode.zeroWidthJoiner.codePoint || TextWidth.calculateWidth(graphemeCluster) == width).also { sameWidth ->
-                    if (sameWidth) {
-                        graphemes.add(codePoint)
-                    } else {
-                        remainder = codePoint
-                        return GraphemeCluster(graphemes) to remainder
-                    }
+                val zwj = codePoint == Unicode.zeroWidthJoiner.codePoint
+                val sameWidth = TextWidth.calculateWidth(graphemeCluster) == width
+                if (zwj || sameWidth) {
+                    graphemes.add(codePoint)
+                } else {
+                    remainder = codePoint
+                    return GraphemeCluster(graphemes) to remainder
                 }
             }
             return GraphemeCluster(graphemes) to remainder

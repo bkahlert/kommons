@@ -1,6 +1,9 @@
 package koodies.text
 
 import koodies.test.testEach
+import koodies.text.LineSeparators.CR
+import koodies.text.LineSeparators.CRLF
+import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
@@ -31,20 +34,28 @@ class GraphemeClusterTest {
         ) { fn ->
             expecting { "$e".fn() } that {
                 hasSize(1)
-                first().get { graphemes } and {
+                first().get { codePoints } and {
                     hasSize(1)
                     first().isEqualTo(Unicode.escape.codePoint)
                 }
             }
             expecting { "${e}M".fn() } that {
                 hasSize(2)
-                first().get { graphemes } and {
+                first().get { codePoints } and {
                     hasSize(1)
                     first().isEqualTo(Unicode.escape.codePoint)
                 }
-                last().get { graphemes } and {
+                last().get { codePoints } and {
                     hasSize(1)
                     first().isEqualTo("M".asCodePoint())
+                }
+            }
+            expecting { CRLF.fn() } that {
+                hasSize(1)
+                first().get { codePoints } and {
+                    hasSize(2)
+                    first().isEqualTo(CR.asCodePoint())
+                    last().isEqualTo(LF.asCodePoint())
                 }
             }
         }
@@ -114,7 +125,7 @@ class GraphemeClusterTest {
         "${e}M" to 2,
         "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!" to 17,
         "🟥🟧🟨🟩🟦🟪" to 6,
-        "👨🏾‍" to 3,
+        "👨🏾‍" to 1,
     ) { (string, expectedCount) ->
         expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
     }
@@ -128,7 +139,7 @@ class GraphemeClusterTest {
         "🟥🟧🟨🟩🟦🟪" to listOf(1, 1, 1, 1, 1, 1),
         "👨🏾‍" to listOf(3),
     ) { (string, expectedCount) ->
-        expecting { string.mapGraphemeClusters { it.graphemes.size } } that {
+        expecting { string.mapGraphemeClusters { it.codePoints.size } } that {
             isEqualTo(expectedCount)
             get { sumOf { it } }.isEqualTo(string.codePointCount)
         }

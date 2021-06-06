@@ -34,7 +34,7 @@
         <module name="koodies.jvmTest"/>
         <extension name="coverage">
             <pattern>
-                <option name="PATTERN" value="koodies.test.*"/>
+                <option name="PATTERN" value="koodies.io.*"/>
                 <option name="ENABLED" value="true"/>
             </pattern>
         </extension>

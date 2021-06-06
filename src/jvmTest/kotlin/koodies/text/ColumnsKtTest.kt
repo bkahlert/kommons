@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.test.expecting
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.asAnsiString
@@ -8,6 +9,7 @@ import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.wrapLines
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import koodies.text.Unicode.escape as e
@@ -45,6 +47,14 @@ class ColumnsKtTest {
         @Test
         fun `should return max columns on ansi string`() {
             expectThat("def曲lt\n${"magenta".ansi.magenta}".ansi.italic.asAnsiString().maxColumns()).isEqualTo(7)
+        }
+
+        @TestFactory
+        fun `should return max columns on broken ansi`() {
+            expecting { "${e}m".maxColumns() } that { isEqualTo(1) }
+            expecting { "${e}[".maxColumns() } that { isEqualTo(1) }
+            expecting { "${e}m".asAnsiString().maxColumns() } that { isEqualTo(1) }
+            expecting { "${e}[".asAnsiString().maxColumns() } that { isEqualTo(1) }
         }
     }
 
@@ -166,5 +176,17 @@ class ColumnsKtTest {
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m                    $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m                  $e[3;36mLast one is clean.$e[23;39m        
             """.trimIndent().asAnsiString())
+    }
+
+    @Test
+    fun `should handle control characters`() {
+        val string = "ab".repeat(5)
+        val lines = string.wrapLines(5)
+        expecting { lines.addColumn(lines) } that {
+            isEqualTo("""
+                ababa     ababa
+                babab     babab
+            """.trimIndent())
+        }
     }
 }
