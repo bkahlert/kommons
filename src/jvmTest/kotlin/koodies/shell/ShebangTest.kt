@@ -13,69 +13,69 @@ class ShebangTest {
     fun `should add to script`() = testEach({
         ShellScript {
             shebang
-            !"echo 'shebang'"
+            echo("shebang")
         }
     }, {
         ShellScript {
             shebang()
-            !"echo 'shebang'"
+            echo("shebang")
         }
     }) { scriptFactory ->
-        expecting { scriptFactory() } that { linesAreEqualTo("#!/bin/sh", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "") }
     }
 
     @TestFactory
     fun `should support custom interpreter`() = testEach({
         ShellScript {
             shebang("/my/custom/interpreter")
-            !"echo 'shebang'"
+            echo("shebang")
         }
     }, {
         ShellScript {
             shebang(Path.of("/my/custom/interpreter"))
-            !"echo 'shebang'"
+            echo("shebang")
         }
     }) { scriptFactory ->
-        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter", "'echo' 'shebang'", "") }
     }
 
     @TestFactory
     fun `should support custom interpreter with arguments`() = testEach({
         ShellScript {
             shebang("/my/custom/interpreter", "arg1", "-arg2")
-            !"echo 'shebang'"
+            echo("shebang")
         }
     }, {
         ShellScript {
             shebang(Path.of("/my/custom/interpreter"), "arg1", "-arg2")
-            !"echo 'shebang'"
+            echo("shebang")
         }
     }) { scriptFactory ->
-        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter arg1 -arg2", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter arg1 -arg2", "'echo' 'shebang'", "") }
     }
 
     @TestFactory
     fun `should always insert in first line`() = testEach({
         ShellScript {
-            !"echo 'shebang'"
+            echo("shebang")
             shebang("/my/custom/interpreter")
             ""
         }
     }, {
         ShellScript {
-            !"echo 'shebang'"
+            echo("shebang")
             shebang(Path.of("/my/custom/interpreter"))
             ""
         }
     }) { scriptFactory ->
-        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/my/custom/interpreter", "'echo' 'shebang'", "") }
     }
 
     @TestFactory
     fun `should override existing shebang`() = testEach({
         ShellScript {
             shebang
-            !"echo 'shebang'"
+            echo("shebang")
             shebang("/my/custom/interpreter")
             shebang("/I/win")
             ""
@@ -83,13 +83,13 @@ class ShebangTest {
     }, {
         ShellScript {
             shebang
-            !"echo 'shebang'"
+            echo("shebang")
             shebang(Path.of("/my/custom/interpreter"))
             shebang(Path.of("/I/win"))
             ""
         }
     }) { scriptFactory ->
-        expecting { scriptFactory() } that { linesAreEqualTo("#!/I/win", "echo 'shebang'", "") }
+        expecting { scriptFactory() } that { linesAreEqualTo("#!/I/win", "'echo' 'shebang'", "") }
     }
 }
 

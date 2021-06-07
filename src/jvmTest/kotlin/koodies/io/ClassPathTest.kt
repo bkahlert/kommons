@@ -1,16 +1,25 @@
 package koodies.io
 
+import koodies.io.path.deleteOnExit
+import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.io.path.text
+import koodies.test.UniqueId
 import koodies.test.expectThrows
 import koodies.test.expecting
 import koodies.test.testEach
+import koodies.test.tests
 import koodies.test.toStringIsEqualTo
+import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.Assertion
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
+import strikt.assertions.isGreaterThanOrEqualTo
+import strikt.assertions.size
+import strikt.java.fileName
+import strikt.java.parent
 
 class ClassPathTest {
 
@@ -56,16 +65,85 @@ class ClassPathTest {
             expecting { data.size } that { isGreaterThan(10) }
         }
 
-        @Test
-        fun `should nest`() {
+        @TestFactory
+        fun `should nest`() = tests {
             expecting { META_INF.dir("services").file("org.junit.jupiter.api.extension.Extension") } that {
                 toStringIsEqualTo("META-INF/services/org.junit.jupiter.api.extension.Extension")
             }
+
+            expecting { resources.a.b.c } that { toStringIsEqualTo("a/b/c") }
+            expecting { resources.a.b.c.file } that { toStringIsEqualTo("a/b/c/file") }
         }
 
         @Test
         fun `should throw if not exist`() {
             expectThrows<Throwable> { META_INF.file("I dont exist") }
+        }
+    }
+
+    @Nested
+    inner class CopyFile {
+
+        @Test
+        fun `should copy file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expecting { META_INF.Services.JUnitExtensions.copyTo(resolve("test.txt")) } that {
+                fileName.toStringIsEqualTo("test.txt")
+                text.contains("koodies.debug.DebugCondition")
+            }
+        }
+
+        @Test
+        fun `should copy file to directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expecting { META_INF.Services.JUnitExtensions.copyToDirectory(this) } that {
+                fileName.toStringIsEqualTo("org.junit.jupiter.api.extension.Extension")
+                text.contains("koodies.debug.DebugCondition")
+            }
+        }
+
+        @Test
+        fun `should copy file to temp`() {
+            expecting { META_INF.Services.JUnitExtensions.copyToTemp().deleteOnExit() } that {
+                parent.isEqualTo(InternalLocations.FilesTemp)
+                text.contains("koodies.debug.DebugCondition")
+            }
+        }
+    }
+
+    @Nested
+    inner class CopyDirectory {
+
+        @Test
+        fun `should copy directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expecting { META_INF.Services.copyTo(resolve("srv")) } that {
+                fileName.toStringIsEqualTo("srv")
+                get { listDirectoryEntriesRecursively() }.size.isGreaterThanOrEqualTo(2)
+            }
+        }
+
+        @Test
+        fun `should copy directory to directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expecting { META_INF.Services.copyToDirectory(this) } that {
+                fileName.toStringIsEqualTo("services")
+                get { listDirectoryEntriesRecursively() }.size.isGreaterThanOrEqualTo(2)
+            }
+        }
+
+        @Test
+        fun `should copy directory to temp`() {
+            expecting { META_INF.Services.copyToTemp().deleteOnExit() } that {
+                parent.isEqualTo(InternalLocations.FilesTemp)
+                get { listDirectoryEntriesRecursively() }.size.isGreaterThanOrEqualTo(2)
+            }
+        }
+    }
+
+    private object resources : ClassPathDirectory("") {
+        object a : Dir("a") {
+            object b : Dir("b") {
+                object c : Dir("c") {
+                    object file : File("file")
+                }
+            }
         }
     }
 
@@ -75,7 +153,3 @@ class ClassPathTest {
         }
     }
 }
-
-val <T : InMemoryFile> Assertion.Builder<T>.name get() = get("name %s") { name }
-val <T : InMemoryTextFile> Assertion.Builder<T>.text get() = get("text %s") { text }
-val <T : InMemoryFile> Assertion.Builder<T>.data get() = get("data %s") { data }

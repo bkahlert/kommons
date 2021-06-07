@@ -42,7 +42,8 @@ public open class CommandLine(
     protected open val exitStateHandler: ExitStateHandler? = null,
 ) : Executable<Exec>, List<String> by listOf(command, *arguments.toTypedArray()) {
 
-    public constructor(command: String, vararg arguments: String) : this(command, arguments.toList())
+    public constructor(command: CharSequence, vararg arguments: CharSequence) : this(command.toString(), arguments.map { it.toString() }.toList())
+    public constructor(command: CharSequence, arguments: Iterable<CharSequence>) : this(command.toString(), arguments.map { it.toString() }.toList())
     public constructor(commandLine: CommandLine) : this(commandLine.command, commandLine.arguments)
 
     /**

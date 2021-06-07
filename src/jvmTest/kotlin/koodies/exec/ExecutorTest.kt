@@ -54,7 +54,7 @@ class ExecutorTest {
 
         @Test
         fun `should exec shell script`() {
-            val exec = ShellScript { !"echo 'Hello, Shell Script!' | cat" }.exec()
+            val exec = ShellScript { "echo 'Hello, Shell Script!' | cat" }.exec()
             expectThat(exec.io.output.ansiRemoved)
                 .isEqualTo("Hello, Shell Script!")
         }

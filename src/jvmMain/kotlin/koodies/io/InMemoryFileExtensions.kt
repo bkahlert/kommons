@@ -3,7 +3,6 @@ package koodies.io
 import koodies.docker.DockerImage
 import koodies.docker.docker
 import koodies.exec.output
-import koodies.io.file.quoted
 import koodies.io.path.asPath
 import koodies.io.path.copyTo
 import koodies.io.path.copyToDirectory
@@ -15,7 +14,6 @@ import koodies.logging.MutedRenderingLogger
 import koodies.logging.RenderingLogger
 import koodies.text.ANSI
 import koodies.text.ANSI.resetLines
-import koodies.text.quoted
 import java.nio.file.Path
 import kotlin.io.path.isReadable
 import kotlin.io.path.isRegularFile
@@ -28,10 +26,8 @@ import kotlin.io.path.readBytes
  * @see copyToDirectory
  * @see copyToTemp
  */
-public fun InMemoryFile.copyTo(target: Path): Path = when (this) {
-    is ClassPath -> useClassPath(pathString, fun Path.(): Path = this.copyTo(target))
-    else -> target.withDirectoriesCreated().writeBytes(data)
-} ?: error("Error copying ${name.quoted} to ${target.quoted}")
+public fun InMemoryFile.copyTo(target: Path): Path =
+    target.withDirectoriesCreated().writeBytes(data)
 
 /**
  * Copies `this` in-memory file to the specified [target] directory.
@@ -39,13 +35,12 @@ public fun InMemoryFile.copyTo(target: Path): Path = when (this) {
  * @see copyTo
  * @see copyToTemp
  */
-public fun InMemoryFile.copyToDirectory(target: Path): Path = when (this) {
-    is ClassPath -> useClassPath(pathString, fun Path.(): Path = this.copyToDirectory(target))
-    else -> target.resolve(name).withDirectoriesCreated().writeBytes(data)
-} ?: error("Error copying ${name.quoted} to ${target.quoted}")
+public fun InMemoryFile.copyToDirectory(target: Path): Path =
+    target.resolve(name).withDirectoriesCreated().writeBytes(data)
 
 /**
- * Copies `this` in-memory file to the specified [target].
+ * Copies `this` in-memory file to a temporary directory—the name based on the
+ * optional [base] and [extension].
  */
 public fun InMemoryFile.copyToTemp(
     base: String = name.asPath().nameWithoutExtension,

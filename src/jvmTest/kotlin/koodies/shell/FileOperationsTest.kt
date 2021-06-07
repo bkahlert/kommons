@@ -22,6 +22,7 @@ class FileOperationsTest {
 
     @Nested
     inner class RemoveLine {
+
         private fun Path.file(lineSeparator: String): Path =
             resolve("${LineSeparators.Names[lineSeparator].toBaseName()}.txt").apply {
                 appendText("line 1$lineSeparator")
@@ -30,7 +31,6 @@ class FileOperationsTest {
                 appendText("last line")
             }
 
-
         @TestFactory
         fun InMemoryLoggerFactory.`should remove intermediary line`(uniqueId: UniqueId) = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
             withTempDir(uniqueId) {
@@ -38,7 +38,7 @@ class FileOperationsTest {
                 val fixture = file(lineSeparator)
                 ShellScript { file(fixture) { removeLine("line 2") } }.exec.logging(logger)
                 if (lineSeparator !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
-                    expectThat(fixture).hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line")
+                    expecting { fixture } that { hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line") }
                 }
             }
         }
@@ -49,13 +49,14 @@ class FileOperationsTest {
                 val logger = createLogger(lineSeparator.replaceNonPrintableCharacters())
                 val fixture = file(lineSeparator)
                 ShellScript { file(fixture) { removeLine("last line") } }.exec.logging(logger)
-                expectThat(fixture).hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator")
+                expecting { fixture } that { hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator") }
             }
         }
     }
 
     @Nested
     inner class AppendLine {
+
         private fun Path.file(): Path =
             resolve("file.txt").apply {
                 appendText("""

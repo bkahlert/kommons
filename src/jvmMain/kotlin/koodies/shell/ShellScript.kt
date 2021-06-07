@@ -21,6 +21,7 @@ import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
 import koodies.toBaseName
 import org.codehaus.plexus.util.cli.Commandline
+import org.intellij.lang.annotations.Language
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
@@ -35,13 +36,23 @@ public open class ShellScript(
     /**
      * Optional name of this script.
      */
-    public val name: String? = null,
+    public val name: String?,
 
     /**
      * The content of this script.
      */
-    content: CharSequence? = null,
+    @Language("Shell Script") content: CharSequence?,
 ) : Iterable<String>, Executable<Exec> {
+
+    public constructor(
+
+        /**
+         * The content of this script.
+         */
+        @Language("Shell Script") content: CharSequence?,
+    ) : this(null, content)
+
+    public constructor() : this(null, null)
 
     /**
      * The content of this script.
@@ -58,21 +69,6 @@ public open class ShellScript(
      */
     override fun iterator(): Iterator<String> {
         return lines.toList().iterator()
-    }
-
-    // TOOD -> toString
-    public fun build(name: String? = this.name): String {
-        var echoNameCommandAdded = false
-        val echoNameCommand = bannerEchoingCommand(name)
-        val script = lines.joinToString("") { line ->
-            if (!echoNameCommandAdded && line.isShebang()) {
-                echoNameCommandAdded = true
-                line + LF + echoNameCommand
-            } else {
-                line + LF
-            }
-        }
-        return if (echoNameCommandAdded) script else echoNameCommand + script
     }
 
     override fun toCommandLine(
@@ -204,35 +200,41 @@ public open class ShellScript(
         /**
          * Adds `this` character sequence as a separate line to this script.
          */
-        public operator fun CharSequence.not(): String = lines {
+        public operator fun @receiver:Language("Shell Script") CharSequence.not(): String = lines {
             lines.add(this@not.toString())
         }
 
         /**
          * Adds the given [words] concatenated with a whitespace to this script.
          */
-        public fun line(vararg words: CharSequence): String = lines {
+        public fun line(@Language("Shell Script") vararg words: CharSequence): String = lines {
             lines.add(words.joinToString(" "))
         }
 
         /**
          * Adds the given [line] to this script.
          */
-        public fun line(line: CharSequence): String = lines {
+        public fun line(@Language("Shell Script") line: CharSequence): String = lines {
             lines.add(line.toString())
         }
 
         /**
          * Adds the given [lines] to this script.
          */
-        public fun lines(lines: Iterable<CharSequence>): String = lines {
+        public fun lines(@Language("Shell Script") lines: Iterable<CharSequence>): String = lines {
             lines.forEach { line(it) }
         }
 
         /**
          * Adds a [CommandLine] build with the given [command] and [arguments] to this script.
          */
-        public fun command(command: String, vararg arguments: String): String =
+        public fun command(command: CharSequence, arguments: Iterable<CharSequence>): String =
+            command(CommandLine(command, arguments))
+
+        /**
+         * Adds a [CommandLine] build with the given [command] and [arguments] to this script.
+         */
+        public fun command(command: CharSequence, vararg arguments: CharSequence): String =
             command(CommandLine(command, *arguments))
 
         /**
@@ -247,6 +249,9 @@ public open class ShellScript(
          */
         public operator fun Executable<*>.not(): String =
             command(toCommandLine())
+
+        /** Add an echo command with the given [arguments] */
+        public fun echo(vararg arguments: Any): String = command("echo", arguments.map { it.toString() })
 
         /**
          * Initializes a [FileOperations] builder for the file specified by [path] and
@@ -300,7 +305,7 @@ public open class ShellScript(
          * Adds `exit [code]` to this script.
          */
         public fun exit(code: Int): String =
-            lines { lines.add("exit $code") }
+            command("exit", code.toString())
 
         /**
          * Adds the given [text] as a comment to this script.
@@ -346,7 +351,7 @@ public open class ShellScript(
          *
          * If [name] is `null` an empty string is returned.
          */
-        public fun bannerEchoingCommand(name: String?): String = name?.takeIf { it.isNotBlank() }?.let { "echo ${banner(name).quoted}$LF" } ?: ""
+        public fun bannerEchoingCommand(name: String?): String = name?.takeIf { it.isNotBlank() }?.let { "echo '${banner(name)}'$LF" } ?: ""
 
         /**
          * Whether this byte array starts with `0x23 0x21` (`!#`).

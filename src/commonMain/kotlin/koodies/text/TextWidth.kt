@@ -40,7 +40,14 @@ public val CharSequence.columns: Int
         else when (it.codePoints.singleOrNull()?.codePoint) {
             in 0..31 -> 0
             in 0x7f..0x9f -> 0
-            else -> TextWidth.calculateWidth(it.toString()) ceilDiv TextWidth.X_WIDTH
+            else -> {
+                val width = TextWidth.calculateWidth(it.toString())
+                when {
+                    width == 0 -> 0
+                    width <= TextWidth.X_WIDTH + 1 -> 1
+                    else -> width ceilDiv TextWidth.X_WIDTH
+                }
+            }
         }
     }
 

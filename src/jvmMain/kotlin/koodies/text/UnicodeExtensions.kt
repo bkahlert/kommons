@@ -2,7 +2,8 @@ package koodies.text
 
 import koodies.collections.Dictionary
 import koodies.collections.dictOf
-import koodies.number.ApproximationMode
+import koodies.math.RoundingMode
+import koodies.math.RoundingMode.CEILING
 import koodies.runtime.asSystemResourceUrl
 import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.Emojis.Emoji
@@ -20,11 +21,11 @@ dictOf("unicode.dict.tsv".asSystemResourceUrl().loadTabSeparatedValues(skipLines
 
 public operator fun Unicode.get(codePoint: Long): String = UnicodeDict.get(codePoint)
 
-public fun Instant.asEmoji(approximationMode: ApproximationMode = ApproximationMode.Ceil): Emoji {
+public fun Instant.asEmoji(roundingMode: RoundingMode = CEILING): Emoji {
     val zonedDateTime: ZonedDateTime = atZone(ZoneId.systemDefault())
     val hour = zonedDateTime.hour
     val minute = zonedDateTime.minute
-    val closest = (approximationMode.calc(minute.toDouble(), 30.0) / 30.0).toInt()
+    val closest = (roundingMode(minute.toDouble(), 30.0) / 30.0).toInt()
     return listOf(FullHoursDictionary[hour - 1], HalfHoursDictionary[hour - 1], FullHoursDictionary[hour])[closest]
 }
 

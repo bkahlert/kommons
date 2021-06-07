@@ -78,8 +78,8 @@ class ExecutionIntegrationTest {
     fun `should process shell script`() {
 
         val shellScript = ShellScript {
-            !"echo 'Hello, World!'"
-            !"echo 'Hello, Back!'"
+            echo("Hello, World!")
+            echo("Hello, Back!")
         }
 
         // can also be executed with builder
@@ -96,9 +96,9 @@ class ExecutionIntegrationTest {
     fun `should nicely log`() {
 
         ShellScript {
-            !"echo 'Countdown!'"
-            (10 downTo 0).forEach { !"echo '$it'" }
-            !"echo 'Take Off'"
+            echo("Countdown!")
+            (10 downTo 0).forEach { echo(it) }
+            echo("Take Off")
         }.exec.logging {
             block {
                 caption { "countdown" }
@@ -140,8 +140,8 @@ class ExecutionIntegrationTest {
     fun `should handle errors`() {
 
         ShellScript {
-            !"echo 'Countdown!'"
-            (10 downTo 7).forEach { !"echo '$it'" }
+            echo("Countdown!")
+            (10 downTo 7).forEach { echo(it) }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
         }.exec.logging { block { border { Border.NONE } } } check {

@@ -4,12 +4,14 @@ import koodies.io.file.pathString
 import koodies.io.path.deleteOnExit
 import koodies.io.path.hasContent
 import koodies.logging.InMemoryLogger
+import koodies.test.Slow
 import koodies.test.SvgFixture
 import koodies.test.UniqueId
 import koodies.test.expecting
 import koodies.test.withTempDir
 import koodies.text.containsAnsi
 import org.junit.jupiter.api.Test
+import strikt.api.Assertion
 import strikt.assertions.endsWith
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
@@ -42,7 +44,7 @@ class InMemoryFileExtensionsKtTest {
     }
 
     @Test
-    fun `should copy to temp`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should copy to temp`() {
         expecting { SvgFixture.copyToTemp().deleteOnExit() } that {
             fileName.pathString.startsWith("koodies").endsWith(".svg")
             hasContent(SvgFixture.contents.decodeToString())
@@ -68,7 +70,7 @@ class InMemoryFileExtensionsKtTest {
         expecting { dir.asImageOrNull() } that { isNull() }
     }
 
-    @Test
+    @Slow @Test
     fun `should create ASCII art`(uniqueId: UniqueId, logger: InMemoryLogger) = withTempDir(uniqueId) {
         val asciiArt = SvgFixture.toAsciiArt(logger)
         expecting { asciiArt } that {
@@ -77,3 +79,7 @@ class InMemoryFileExtensionsKtTest {
         }
     }
 }
+
+val <T : InMemoryFile> Assertion.Builder<T>.name get() = get("name %s") { name }
+val <T : InMemoryTextFile> Assertion.Builder<T>.text get() = get("text %s") { text }
+val <T : InMemoryFile> Assertion.Builder<T>.data get() = get("data %s") { data }

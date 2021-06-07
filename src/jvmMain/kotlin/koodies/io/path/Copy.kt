@@ -142,7 +142,7 @@ private fun InputStream.contentEquals(otherStream: InputStream): Boolean {
  *    (Since files are copied top-down, the [lastModified] attribute might be—although preserved—again be updated.
  *
  * Should `targetDirectory` already exist and contain a directory with the same name as this path,
- * an exception is thrown to avoid serious data loss.
+ * an exception is thrown to avoid data loss.
  *
  * @see copyTo
  */

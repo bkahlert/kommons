@@ -20,7 +20,6 @@ import koodies.unit.bytes
 import koodies.unit.kilo
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively
 import org.junit.jupiter.api.parallel.Isolated
@@ -37,8 +36,7 @@ import kotlin.time.toJavaDuration
 @Disabled
 abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputStream, Duration) -> Reader) {
 
-    @Slow
-    @RepeatedTest(3)
+    @Slow @Test
     fun InMemoryLogger.`should not block`() {
         val slowInputStream = slowInputStream(1.seconds, "Hel", "lo$LF", "World!$LF")
         val reader = readerFactory(slowInputStream, 5.seconds)
@@ -68,8 +66,7 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
         ).all { prefixes("World!") }
     }
 
-    @Slow
-    @RepeatedTest(3)
+    @Slow @Test
     fun InMemoryLogger.`should read characters that are represented by two chars`() {
         val slowInputStream = slowInputStream(1.seconds, "𝌪𝌫𝌬𝌭𝌮", "𝌯𝌰$LF", "𝌱𝌲𝌳𝌴𝌵$LF")
         val reader = readerFactory(slowInputStream, 0.5.seconds)
@@ -130,30 +127,12 @@ abstract class SharedReaderTest(val readerFactory: BlockRenderingLogger.(InputSt
     @Isolated
     @Nested
     inner class Benchmark {
-        private val size = 10.kilo.bytes
+        private val size = 5.kilo.bytes
         private val input = HtmlFixture.text
         private val expected: String = StringBuilder().apply { (size / input.length).wholeBytes.toInt() * { append(input);append(LF) } }.toString()
 
         @Slow @Test
-        fun InMemoryLogger.`should quickly read boot sequence using custom forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val reader = readerFactory(expected.byteInputStream(), 1.seconds)
-
-            val read = mutableListOf<String>()
-            kotlin.runCatching {
-                assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
-                    reader.forEachLine {
-                        read.add(it)
-                    }
-                }
-            }.onFailure {
-                dump("Test failed.") { read.joinToString(LF) }
-            }
-
-            expectThat(read.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
-        }
-
-        @Slow @Test
-        fun InMemoryLogger.`should quickly read boot sequence using foreign forEachLine`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun InMemoryLogger.`should quickly read`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val read = ByteArrayOutputStream()
             val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), 1.seconds)
 

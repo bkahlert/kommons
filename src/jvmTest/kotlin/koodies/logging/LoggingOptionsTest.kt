@@ -677,20 +677,20 @@ class LoggingOptionsTest {
     }
 
     private fun countDownAndStart() = ShellScript {
-        !"echo 'Countdown!'"
-        (10 downTo 0).forEach { !"echo '$it'" }
-        !"echo 'Take Off'"
+        echo("Countdown!")
+        (10 downTo 0).forEach { echo(it) }
+        echo("Take Off")
     }
 
     private fun countDownAndBoom() = ShellScript {
-        !"echo 'Countdown!'"
-        (10 downTo 5).forEach { !"echo '$it'" }
+        echo("Countdown!")
+        (10 downTo 5).forEach { echo(it) }
         !">&2 echo '4'"
-        (3 downTo 0).forEach { !"echo '$it'" }
-        !"exit 1"
+        (3 downTo 0).forEach { echo(it) }
+        exit(1)
     }
 
     private fun justStart() = ShellScript {
-        !"echo 'Take Off'"
+        echo("Take Off")
     }
 }

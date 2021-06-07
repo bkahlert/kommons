@@ -50,13 +50,12 @@ class TextWidthKtTest {
 
     @TestFactory
     fun `should calculate width for complex text`() = tests {
-        val expected =
-            "--------123456789012345678".replace("-", "").length
-        expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".columns } that { isEqualTo(expected) }
+        expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".columns } that { isEqualTo(18) }
         expecting { "text        ".columns } that { isEqualTo(12) }
         expecting { "🟥🟧🟨🟩🟦🟪".columns } that { isEqualTo(12) }
         expecting { "text                                                ".columns } that { isEqualTo(52) }
         expecting { "🟥🟧🟨🟩🟦🟪                                        ".columns } that { isEqualTo(52) }
+        expecting { "ℹ".columns } that { isEqualTo(1) }
     }
 
     @Test
