@@ -21,6 +21,8 @@ import org.junit.jupiter.api.extension.ExecutionCondition
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.Extensions
+import org.junit.jupiter.api.extension.ParameterContext
+import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
 import kotlin.annotation.AnnotationTarget.CLASS
@@ -32,6 +34,12 @@ import kotlin.reflect.KClass
  * If no Docker is available this test is skipped.
  *
  * The [Timeout] is automatically increased to 2 minutes.
+ *
+ * Also a parameter of type [DockerContainer] is provided with the following properties:
+ * - Before the test starts, the container is checked to not be in [Running] state. Otherwise the container will be force removed.
+ * - After the test finished, the container is checked to not be in [Running] state. If it is it will be force removed.
+ * - The default [mode] [FailAndKill] leads to a failing tests if the container is still running. Specify [ThanksForCleaningUp] to change that behaviour.
+ * checks
  */
 @Slow
 @Retention(RUNTIME)
@@ -50,7 +58,7 @@ enum class CleanUpMode {
     ThanksForCleaningUp, FailAndKill
 }
 
-class TestContainerCheck : BeforeEachCallback, AfterEachCallback {
+class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParameterResolver<DockerContainer>() {
 
     private val ExtensionContext.logger: FixedWidthRenderingLogger
         get() = conditionallyVerboseLogger(withAnnotation<ContainersTestFactory, Boolean> { logging } ?: withAnnotation<ContainersTest, Boolean> { logging })
@@ -87,6 +95,9 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback {
             }
         }
     }
+
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): DockerContainer =
+        extensionContext.uniqueContainer()
 
     private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId)
 
