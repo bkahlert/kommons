@@ -26,7 +26,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", log = { }) {
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
         border: Border,
         block: FixedWidthRenderingLogger.() -> R,
-    ): R = runLogging(block)
+    ): R = this.block()
 
     override fun <R> compactLogging(
         caption: CharSequence,
@@ -34,7 +34,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", log = { }) {
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
         block: CompactRenderingLogger.() -> R,
-    ): R = COMPACT.runLogging(block)
+    ): R = COMPACT.block()
 
     override fun <R> logging(
         caption: CharSequence,
@@ -43,7 +43,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", log = { }) {
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
         border: Border,
         block: FixedWidthRenderingLogger.() -> R,
-    ): R = runLogging(block)
+    ): R = this.block()
 
     private val COMPACT: CompactRenderingLogger = object : CompactRenderingLogger("log > /dev/null", log = { }) {
         init {

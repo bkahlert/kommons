@@ -68,13 +68,12 @@ object TestLogging {
     fun factoryFor(extensionContext: ExtensionContext, parameterContext: ParameterContext): InMemoryLoggerFactory =
         TestLoggerFactory(extensionContext, parameterContext)
 
-
-    private val streams = synchronizedMapOf<String, ByteArrayOutputStream>()
+    private val uniqueIdToOutputStreamMappings = synchronizedMapOf<String, ByteArrayOutputStream>()
 
     init {
         onExit {
-            val count = streams.size
-            val size = streams.values.sumOf { it.size() }.bytes
+            val count = uniqueIdToOutputStreamMappings.size
+            val size = uniqueIdToOutputStreamMappings.values.sumOf { it.size() }.bytes
             println("$count tests logged a total of $size".wrapWithBorder())
         }
     }
@@ -87,7 +86,7 @@ object TestLogging {
     ): TestLogger {
         val isVerbose = extensionContext.isVerbose || parameterContext.isVerbose
         val stored = ByteArrayOutputStream()
-        streams[extensionContext.uniqueId] = stored
+        uniqueIdToOutputStreamMappings[extensionContext.uniqueId] = stored
         val outputStream = if (isVerbose) TeeOutputStream(stored, System.out) else stored
         return TestLogger(
             extensionContext,
