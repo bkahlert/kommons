@@ -4,7 +4,6 @@ import koodies.asString
 import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
 import koodies.jvm.currentStackTrace
-import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.runtime.onExit
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
@@ -16,8 +15,6 @@ import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.contracts.InvocationKind.EXACTLY_ONCE
-import kotlin.contracts.contract
 
 /**
  * Logger interface to implement loggers that don't just log
@@ -196,48 +193,3 @@ public open class RenderingLogger(
         }
     }
 }
-
-@DslMarker
-public annotation class RenderingLoggingDsl
-
-@RenderingLoggingDsl
-public inline fun <R, L : RenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
-    contract { callsInPlace(block, EXACTLY_ONCE) }
-    return apply { runLogging(block) }
-}
-
-@RenderingLoggingDsl
-public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
-    contract { callsInPlace(block, EXACTLY_ONCE) }
-    val result: Result<R> = kotlin.runCatching { block() }
-    logResult { result }
-    return result.getOrThrow()
-}
-
-/**
- * Logs the given [returnValue] as the value that is returned from the logging span.
- */
-public fun <T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
-    logResult { Result.success(returnValue) }
-}
-
-/**
- * Creates a logger which serves for logging a sub-process and all of its corresponding events.
- */
-@RenderingLoggingDsl
-public fun <R> logging(
-    caption: CharSequence,
-    contentFormatter: Formatter? = null,
-    decorationFormatter: Formatter? = null,
-    returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
-    border: Border = BlockRenderingLogger.DEFAULT_BORDER,
-    block: FixedWidthRenderingLogger.() -> R,
-): R = SmartRenderingLogger(
-    caption,
-    { LoggingContext.BACKGROUND.logText { it } },
-    contentFormatter,
-    decorationFormatter,
-    returnValueFormatter,
-    border,
-    prefix = LoggingContext.BACKGROUND.prefix,
-).runLogging(block)
