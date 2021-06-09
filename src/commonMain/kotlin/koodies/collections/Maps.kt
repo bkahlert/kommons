@@ -26,14 +26,15 @@ public fun <K, V, `K'`> Map<K, V>.matchKeysBy(transform: K.() -> `K'`): Map<K, V
     }
 }
 
-public fun <V> Map<String?, V>.matchKeysByIgnoringCase(): Map<String?, V> {
-    val transform: (String?) -> String? = { it?.toLowerCase() }
+public fun <K : String?, V> Map<K, V>.matchKeysByIgnoringCase(): Map<K, V> {
+    @Suppress("UNCHECKED_CAST")
+    val transform: (K) -> K = { it?.toLowerCase() as K }
     val delegate = mapKeys { transform(it.key) }
-    return object : Map<String?, V> by this {
-        override fun containsKey(key: String?): Boolean = delegate.containsKey(transform(key))
-        override fun get(key: String?): V? = delegate[transform(key)]
-        override val keys: Set<String?> = delegate.keys
-        override val entries: Set<Map.Entry<String?, V>> = delegate.entries
+    return object : Map<K, V> by this {
+        override fun containsKey(key: K): Boolean = delegate.containsKey(transform(key))
+        override fun get(key: K): V? = delegate[transform(key)]
+        override val keys: Set<K> = delegate.keys
+        override val entries: Set<Map.Entry<K, V>> = delegate.entries
         override fun toString(): String = entries.toString()
     }
 }
