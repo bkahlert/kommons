@@ -61,11 +61,11 @@ class DockerContainerTest {
     inner class ToString {
 
         @ContainersTestFactory @IdeaWorkaroundTestFactory
-        fun `should contain actual state`(testContainers: TestContainers) = listOf<Pair<String, (TestContainers) -> DockerContainer>>(
+        fun `should contain actual state`(testContainers: TestContainers) = testEach<Pair<String, (TestContainers) -> DockerContainer>>(
             "not existent" to { it.newNotExistentContainer().apply { state } },
             "▶ running" to { it.newRunningTestContainer() },
             "✔︎ exited" to { it.newExitedTestContainer() },
-        ).testEach("{}") { (state, provider) ->
+        ) { (state, provider) ->
             val container = provider(testContainers)
             expecting { container.toString() } that { matchesCurlyPattern("DockerContainer { name = {}⦀{}state = $state }") }
         }
@@ -99,8 +99,8 @@ class DockerContainerTest {
 
             @TestFactory
             fun `should sanitize illegal name`() = ILLEGAL_NAMES.testEach {
-                expecting { DockerContainer.from(it) } that { name.length.isGreaterThanOrEqualTo(8) }
-                expecting { DockerContainer { it.sanitized } } that { name.length.isGreaterThanOrEqualTo(8) }
+                expecting { DockerContainer.from(it) } that { name.length.isGreaterThanOrEqualTo(1) }
+                expecting { DockerContainer { it.sanitized } } that { name.length.isGreaterThanOrEqualTo(1) }
             }
 
             @TestFactory
@@ -164,8 +164,8 @@ class DockerContainerTest {
 
         @Test
         fun `should fill to short name`() {
-            expectThat(DockerContainer.from("abc")).name.length.isEqualTo(8)
-            expectThat(DockerContainer { "abc".sanitized }).name.length.isEqualTo(8)
+            expectThat(DockerContainer.from("")).name.length.isEqualTo(1)
+            expectThat(DockerContainer { "".sanitized }).name.length.isEqualTo(1)
         }
 
         @Test

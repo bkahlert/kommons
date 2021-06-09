@@ -344,7 +344,7 @@ public class DockerContainer(public val name: String) {
         /**
          * Valid length of a Docker container (name).
          */
-        private val LENGTH_RANGE: IntRange = 8..128
+        private val LENGTH_RANGE: IntRange = 1..128
 
 
         /**
@@ -374,7 +374,7 @@ public class DockerContainer(public val name: String) {
                     else -> '_'
                 }
             }.joinToString("",
-                postfix = (8 - nameWithSuffix.length)
+                postfix = (LENGTH_RANGE.first - nameWithSuffix.length)
                     .takeIf { it > 0 }?.let {
                         randomString(it, Alphanumeric)
                     } ?: "")
