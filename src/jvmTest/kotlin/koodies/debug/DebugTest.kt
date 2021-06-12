@@ -1,19 +1,15 @@
 package koodies.debug
 
-import koodies.exec.IO
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
 import koodies.test.SystemIORead
-import koodies.test.toStringContains
-import koodies.text.ANSI.ansiRemoved
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.junit.platform.commons.support.AnnotationSupport
-import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.contains
-import strikt.assertions.isA
-import strikt.assertions.isFailure
+import strikt.assertions.isEmpty
 import strikt.assertions.isNotNull
 
 class DebugTest {
@@ -26,18 +22,16 @@ class DebugTest {
     @SystemIORead
     @Test
     fun InMemoryLogger.`should not automatically log to console without @Debug`(output: CapturedOutput) {
-        logLine { IO.Output typed "☎Σ⊂⊂(☉ω☉∩)" }
-        logResult { Result.success(Unit) }
+        logLine { "test" }
 
-        expectThatLogged().contains("☎Σ⊂⊂(☉ω☉∩)")
-        expectThat(output.ansiRemoved).not { toStringContains("☎Σ⊂⊂(☉ω☉∩)") }
+        expectThatLogged().contains("test")
+        expectThat(output).isEmpty()
     }
 
     @Test
     fun InMemoryLogger.`should not catch exceptions`() {
-        logLine { IO.Output typed "(*｀へ´*)" }
-
-        expectCatching { logResult<Any> { Result.failure(IllegalStateException("test")) } }
-            .isFailure().isA<IllegalStateException>()
+        expectThrows<RuntimeException> {
+            logResult<Any> { Result.failure(RuntimeException("test")) }
+        }
     }
 }

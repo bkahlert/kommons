@@ -28,7 +28,7 @@ import strikt.assertions.startsWith
 class InMemoryLoggerTest {
 
     private fun logger(outputStream: ByteArrayOutputStream? = null, init: InMemoryLogger.() -> Unit = {}): InMemoryLogger =
-        InMemoryLogger("caption", SOLID, outputStream = outputStream).withUnclosedWarningDisabled.apply(init)
+        InMemoryLogger("caption", null, SOLID, outputStream = outputStream).withUnclosedWarningDisabled.apply(init)
 
     @SystemIOExclusive
     @Test
@@ -59,20 +59,12 @@ class InMemoryLoggerTest {
 
     @Test
     fun `should not log border if specified`() {
-        val logger = InMemoryLogger("test", DOTTED).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
+        val logger = InMemoryLogger("test", null, DOTTED).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
         logger.expectThatLogged().matchesCurlyPattern("""
             ▶ test
             · line
             ✔︎
         """.trimIndent())
-    }
-
-    @Test
-    fun `should be clearable`() {
-        val logger = InMemoryLogger("test", DOTTED).withUnclosedWarningDisabled.apply { runLogging { logLine { "line" } } }
-        logger.clear()
-        logger.logLine { "single logged line" }
-        logger.expectThatLogged(closeIfOpen = false).isEqualTo("· single logged line")
     }
 
     @Nested

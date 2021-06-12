@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.math.ceilDiv
+import koodies.math.floorDiv
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.Semantics.formattedAs
@@ -16,6 +17,11 @@ internal expect object TextWidth {
     val X_WIDTH: Int
 
     /**
+     * The width by which one column can vary.
+     */
+    val COLUMN_SLACK: Int
+
+    /**
      * Returns the width of the given [text].
      */
     fun calculateWidth(text: CharSequence): Int
@@ -24,7 +30,7 @@ internal expect object TextWidth {
 /**
  * Number of columns needed to represent `this` character.
  */
-public val Char.columns: Int get() = toString().columns
+public val Char.columns: Int get() = codePoint.columns
 
 /**
  * Number of columns needed to represent the character described by this code point.
@@ -32,24 +38,31 @@ public val Char.columns: Int get() = toString().columns
 public val CodePoint.columns: Int get() = string.columns
 
 /**
- * Number of columns needed to represent `this` character sequence.
+ * Number of columns needed to represent `this` grapheme cluster.
  */
-public val CharSequence.columns: Int
-    get() = ansiRemoved.asGraphemeClusterSequence().sumOf {
-        if (it.toString() in LineSeparators) 0
-        else when (it.codePoints.singleOrNull()?.codePoint) {
+public val GraphemeCluster.columns: Int
+    get() {
+        val string = toString()
+        return if (string in LineSeparators) 0
+        else when (codePoints.singleOrNull()?.codePoint) {
             in 0..31 -> 0
             in 0x7f..0x9f -> 0
             else -> {
-                val width = TextWidth.calculateWidth(it.toString())
+                val width = TextWidth.calculateWidth(string)
                 when {
                     width == 0 -> 0
-                    width <= TextWidth.X_WIDTH + 1 -> 1
-                    else -> width ceilDiv TextWidth.X_WIDTH
+                    width <= TextWidth.X_WIDTH + TextWidth.COLUMN_SLACK -> 1
+                    else -> 2
                 }
             }
         }
     }
+
+/**
+ * Number of columns needed to represent `this` character sequence.
+ */
+public val CharSequence.columns: Int
+    get() = ansiRemoved.asGraphemeClusterSequence().sumOf { it.columns }
 
 /**
  * Returns the index where the given [column] starts.
@@ -262,3 +275,101 @@ public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): Char
  */
 public fun String.padEndByColumns(columns: Int, padChar: Char = ' '): String =
     (this as CharSequence).padEndByColumns(columns, padChar).toString()
+
+
+// TRUNCATION
+
+private fun requirePositiveColumns(maxColumns: Int) {
+    require(maxColumns > 0) {
+        "maxColumns ${maxColumns.formattedAs.input} must be positive."
+    }
+}
+
+private fun targetColumns(maxColumns: Int = 15, marker: String = "…"): Int {
+    requirePositiveColumns(maxColumns)
+    val markerColumns = marker.columns
+    require(maxColumns >= markerColumns) {
+        "maxColumns ${maxColumns.formattedAs.input} must not be less than ${markerColumns.formattedAs.input}/${marker.formattedAs.input}"
+    }
+    return maxColumns - markerColumns
+}
+
+
+/**
+ * Returns `this` string truncated from the center to [maxColumns] including the [marker].
+ */
+public fun String.truncateByColumns(maxColumns: Int = 15, marker: String = "…"): String {
+    requirePositiveColumns(maxColumns)
+    return if (length > 2 * maxColumns || columns > maxColumns) {
+        val targetColumns = targetColumns(maxColumns, marker)
+        val left = truncateEndByColumns(targetColumns ceilDiv 2, "")
+        val right = truncateStartByColumns(targetColumns floorDiv 2, "")
+        "$left$marker$right"
+    } else {
+        this
+    }
+}
+
+/**
+ * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
+ */
+public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence =
+    if (length > 2 * maxColumns || columns > maxColumns) toString().truncateByColumns(maxColumns, marker) else this
+
+/**
+ * Returns `this` string truncated from the start to [maxColumns] including the [marker].
+ */
+public fun String.truncateStartByColumns(maxColumns: Int = 15, marker: String = "…"): String {
+    requirePositiveColumns(maxColumns)
+    return when {
+        length > 3 * maxColumns -> { // save CPU by trashing obviously too much text
+            takeLast(3 * maxColumns).truncateStartByColumns(maxColumns, marker)
+        }
+        columns > maxColumns -> {
+            val targetColumns = targetColumns(maxColumns, marker)
+            for (i in 0 until length) {
+                val truncated = subSequence(i, length)
+                if (truncated.columns <= targetColumns) return "$marker$truncated"
+            }
+            marker
+        }
+        else -> {
+            this
+        }
+    }
+}
+
+/**
+ * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
+ */
+public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence =
+    if (length > 2 * maxColumns || columns > maxColumns) toString().truncateStartByColumns(maxColumns, marker) else this
+
+/**
+ * Returns `this` string truncated from the end to [maxColumns] including the [marker].
+ */
+public fun String.truncateEndByColumns(maxColumns: Int = 15, marker: String = "…"): String {
+    requirePositiveColumns(maxColumns)
+    return when {
+        length > 3 * maxColumns -> { // save CPU by trashing obviously too much text
+            take(3 * maxColumns).truncateEndByColumns(maxColumns, marker)
+        }
+        columns > maxColumns -> {
+            val targetColumns = targetColumns(maxColumns, marker)
+            for (i in length downTo 0) {
+                val truncated = subSequence(0, i)
+                if (truncated.columns <= targetColumns) return "$truncated$marker"
+            }
+            marker
+        }
+        else -> {
+            this
+        }
+    }
+}
+
+/**
+ * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
+ */
+public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence =
+    if (length > 2 * maxColumns || columns > maxColumns) toString().truncateEndByColumns(maxColumns, marker) else this

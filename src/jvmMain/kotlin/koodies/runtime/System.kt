@@ -10,7 +10,7 @@ import koodies.runtime.AnsiSupport.ANSI8
 import koodies.text.anyContainsAny
 import java.util.Locale
 
-internal val jvmArgs: List<String>
+private val jvmArgs: List<String>
     get() = contextClassLoader.loadClassOrNull("java.lang.management.ManagementFactory")?.let {
         val runtimeMxBean: Any = it.getMethod("getRuntimeMXBean").invoke(null)
         val runtimeMxBeanClass: Class<*> = contextClassLoader.loadClass("java.lang.management.RuntimeMXBean")
@@ -18,10 +18,10 @@ internal val jvmArgs: List<String>
         (inputArgs as? List<*>)?.map { arg -> arg.toString() }
     } ?: emptyList()
 
-internal val jvmJavaAgents: List<String>
+private val jvmJavaAgents: List<String>
     get() = jvmArgs.filter { it.startsWith("-javaagent") }
 
-internal val intellijTraits: List<String> = listOf("jetbrains", "intellij", "idea", "idea_rt.jar")
+private val intellijTraits: List<String> = listOf("jetbrains", "intellij", "idea", "idea_rt.jar")
 
 public val isIntelliJ: Boolean
     get() = runCatching { jvmJavaAgents.anyContainsAny(intellijTraits) }.getOrElse { false }

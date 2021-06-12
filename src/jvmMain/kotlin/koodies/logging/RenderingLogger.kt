@@ -13,6 +13,7 @@ import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
+import koodies.tracing.OpenTelemetrySpan
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -22,8 +23,11 @@ import kotlin.concurrent.withLock
  */
 public open class RenderingLogger(
     public val caption: String,
+    private val parent: RenderingLogger?,
     log: ((String) -> Unit)? = null,
 ) {
+
+    public open val span: OpenTelemetrySpan = OpenTelemetrySpan(caption, parent?.span)
 
     protected open var initialized: Boolean = false
 
@@ -31,9 +35,12 @@ public open class RenderingLogger(
      * Contains whether this logger is open, that is,
      * at least one logging call was received but no result, yet.
      */
-    public open var open: Boolean
-        get() = isOpen(this)
-        protected set(value) = setOpen(this, value)
+    public open val open: Boolean get() = isOpen(this)
+
+    protected fun <T> close(result: Result<T>) {
+        setOpen(this, false)
+        span.end(result)
+    }
 
     /**
      * Contains whether this logger is closed, that is,
@@ -48,7 +55,10 @@ public open class RenderingLogger(
      * - recognise first logging call
      */
     private val logLock by lazy {
-        ReentrantLock().also { open = true }.also { initialized = true }
+        val lock = ReentrantLock()
+        setOpen(this, true)
+        initialized = true
+        lock
     }
 
     protected val log: (String) -> Unit by lazy { log ?: { print(it) } }
@@ -100,7 +110,7 @@ public open class RenderingLogger(
         val result = block()
         val formattedResult = ReturnValue.format(result)
         render(true) { formattedResult }
-        open = false
+        close(result)
         return result.getOrThrow()
     }
 

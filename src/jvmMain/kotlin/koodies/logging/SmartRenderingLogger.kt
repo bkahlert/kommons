@@ -11,6 +11,7 @@ import koodies.text.ANSI.Formatter
 public open class SmartRenderingLogger(
     // TODO extract proper logger interface and solely delegate; no inheritance
     caption: CharSequence,
+    parent: RenderingLogger?,
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
@@ -22,6 +23,7 @@ public open class SmartRenderingLogger(
     prefix: String,
 ) : FixedWidthRenderingLogger(
     caption.toString(),
+    null,
     { error("Implementation misses to delegate log messages; consider refactoring") },
     contentFormatter,
     decorationFormatter,
@@ -38,6 +40,7 @@ public open class SmartRenderingLogger(
     private val logger: RenderingLogger by lazy {
         if (!loggingResult) BlockRenderingLogger(
             caption,
+            parent,
             log,
             contentFormatter,
             decorationFormatter,
@@ -46,7 +49,7 @@ public open class SmartRenderingLogger(
             statusInformationColumn,
             statusInformationPadding,
             statusInformationColumns)
-        else CompactRenderingLogger(caption, contentFormatter, decorationFormatter, returnValueFormatter, log)
+        else CompactRenderingLogger(caption, parent, contentFormatter, decorationFormatter, returnValueFormatter, log)
     }
 
     override fun render(trailingNewline: Boolean, block: () -> CharSequence) {

@@ -38,6 +38,7 @@ public sealed class LoggingOptions {
         override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
             BlockRenderingLogger(
                 caption ?: fallbackCaption,
+                parent,
                 logTextCallOrNull(parent),
                 contentFormatter,
                 decorationFormatter,
@@ -76,6 +77,7 @@ public sealed class LoggingOptions {
         override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
             CompactRenderingLogger(
                 caption ?: fallbackCaption,
+                parent,
                 contentFormatter,
                 decorationFormatter,
                 returnValueFormatter,
@@ -111,6 +113,7 @@ public sealed class LoggingOptions {
         override fun newLogger(parent: RenderingLogger?, fallbackCaption: String): RenderingLogger =
             SmartRenderingLogger(
                 caption ?: fallbackCaption,
+                parent,
                 logTextCallOrNull(parent),
                 contentFormatter,
                 decorationFormatter,

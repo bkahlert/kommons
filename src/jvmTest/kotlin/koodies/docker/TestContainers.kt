@@ -248,7 +248,7 @@ class TestContainers(
                 exit 0
             """.trimIndent())).also { container ->
             poll {
-                with(container) { with(logger) { state } } is Exited
+                with(container) { with(logger) { containerState } } is Exited
             }.every(0.5.seconds).forAtMost(5.seconds) { timeout ->
                 fail { "Could not provide exited test container $container within $timeout." }
             }
@@ -260,7 +260,7 @@ class TestContainers(
     internal fun newRunningTestContainer(duration: Duration = 30.seconds): DockerContainer =
         newRunningContainer(duration).also { container ->
             poll {
-                with(container) { with(logger) { state } } is Running
+                with(container) { with(logger) { containerState } } is Running
             }.every(0.5.seconds).forAtMost(5.seconds) { duration ->
                 fail { "Could not provide stopped test container $container within $duration." }
             }

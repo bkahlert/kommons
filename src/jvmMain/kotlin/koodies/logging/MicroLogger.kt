@@ -14,11 +14,12 @@ import kotlin.concurrent.withLock
 
 public class MicroLogger(
     private val symbol: String,
+    parent: RenderingLogger?,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
-) : RenderingLogger("", log) {
+) : RenderingLogger("", parent, log) {
 
     private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
@@ -70,7 +71,7 @@ public class MicroLogger(
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
-        open = false
+        close(result)
         return result.getOrThrow()
     }
 

@@ -15,11 +15,12 @@ import kotlin.concurrent.withLock
 
 public open class CompactRenderingLogger(
     caption: CharSequence,
+    parent: RenderingLogger?,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
-) : RenderingLogger(caption.toString(), log) {
+) : RenderingLogger(caption.toString(), parent, log) {
 
     private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
@@ -74,7 +75,7 @@ public open class CompactRenderingLogger(
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
-        open = false
+        close(result)
         return result.getOrThrow()
     }
 
@@ -102,5 +103,5 @@ public open class CompactRenderingLogger(
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         block: MicroLogger.() -> R,
-    ): R = MicroLogger(caption?.toString() ?: "", contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
+    ): R = MicroLogger(caption?.toString() ?: "", this, contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
 }

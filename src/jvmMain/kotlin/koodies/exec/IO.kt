@@ -175,6 +175,18 @@ public sealed class IO(
     }
 }
 
+/** Contains the [IO.Meta] of this [Exec] with [ansiRemoved]. */
+public val Exec.meta: String get() = io.meta.ansiRemoved
+
+/** Contains the [IO.Input] of this [Exec] with [ansiRemoved]. */
+public val Exec.input: String get() = io.input.ansiRemoved
+
+/** Contains the [IO.Output] of this [Exec] with [ansiRemoved]. */
+public val Exec.output: String get() = io.output.ansiRemoved
+
+/** Contains the [IO.Error] of this [Exec] with [ansiRemoved]. */
+public val Exec.error: String get() = io.error.ansiRemoved
+
 /**
  * Read optimized [Sequence] of [IO] that can be used
  * as a lazily populating sequence of [IO] or

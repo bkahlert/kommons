@@ -63,7 +63,7 @@ public object Processors {
  *
  * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
-public fun <E : Exec> E.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString())): Processor<E> {
+public fun <E : Exec> E.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString(), null)): Processor<E> {
     addPostTerminationCallback { exitState ->
         if (async) logger.logReturnValue(exitState)
     }

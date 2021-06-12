@@ -73,7 +73,8 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
     private val exclusiveOut by baseMessageStream.map { (logger, message) -> messages.record(Pair(logger, message)); print(message) }
     public fun <R> runExclusive(block: FixedWidthRenderingLogger.() -> R): R =
         koodies.runWrapping({ muted = true }, { muted = false }) {
-            BlockRenderingLogger(caption, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(block)
+            BlockRenderingLogger(caption, this, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(
+                block)
         }
 
     init {

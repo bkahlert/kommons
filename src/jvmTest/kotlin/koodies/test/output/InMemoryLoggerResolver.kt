@@ -1,5 +1,7 @@
 package koodies.test.output
 
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.sdk.trace.data.SpanData
 import koodies.collections.synchronizedMapOf
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream
@@ -7,7 +9,6 @@ import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.InMemoryLogger
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.RenderingLoggingDsl
 import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
@@ -17,6 +18,8 @@ import koodies.test.store
 import koodies.test.testName
 import koodies.text.ANSI.Formatter
 import koodies.text.styling.wrapWithBorder
+import koodies.time.Now
+import koodies.tracing.TestTelemetry
 import koodies.unit.bytes
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -54,11 +57,12 @@ class InMemoryLoggerResolver : ParameterResolver, AfterEachCallback {
         }
 
     override fun afterEach(extensionContext: ExtensionContext) {
-        extensionContext.logTestResult()
+        extensionContext.endSpanAndLogTestResult()
     }
 }
 
 object TestLogging {
+
     fun testLoggerFor(extensionContext: ExtensionContext, parameterContext: ParameterContext): TestLogger =
         newLogger(extensionContext, parameterContext, extensionContext.testName, Border.NONE)
 
@@ -118,31 +122,47 @@ class TestLogger(
     outputStream: OutputStream?,
 ) : InMemoryLogger(
     caption = caption,
+    parent = null,
     border = border,
     width = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(null),
     outputStream = outputStream,
 ) {
     init {
         withUnclosedWarningDisabled
-        saveTo(extensionContext)
+        extensionContext.store<InMemoryLoggerResolver>().put(extensionContext.element, this)
     }
 
     /**
-     * Stores a reference to `this` logger in the given [extensionContext].
+     * Contains all [SpanData] processed so far.
      */
-    private fun saveTo(extensionContext: ExtensionContext): TestLogger =
-        also { extensionContext.store<InMemoryLoggerResolver>().put(extensionContext.element, this) }
+    val trace: List<SpanData> get() = TestTelemetry[span.traceId]
+
+    /**
+     * Ends this [Span] and returns all processed [SpanData].
+     */
+    fun end(): List<SpanData> {
+        span.end(Result.success(Unit), Now.instant)
+        return trace
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <R> logResult(block: () -> Result<R>): R =
-        if (!closed) super.logResult(block) else Unit as R
+        if (!closed) {
+            super.logResult(block)
+        } else {
+            span.end(block())
+            Unit as R
+        }
 
     fun logTestResult(extensionContext: ExtensionContext) {
         check(this.extensionContext === extensionContext) {
             ::logTestResult.name + " must only be called after a test it is responsible for."
         }
         val result = this.extensionContext.executionException.map { Result.failure<Any>(it) }.orElseGet { Result.success(Unit) }
-        if (result.exceptionOrNull() is AssertionError) return
+        result.exceptionOrNull()?.takeIf { it is AssertionError }?.let {
+            span.end(result)
+            return
+        }
         kotlin.runCatching { logResult { result } }
     }
 
@@ -150,9 +170,9 @@ class TestLogger(
 }
 
 /**
- * Logs an eventually stored test result.
+ * Ends the test [Span] and logs an eventually stored test result.
  */
-fun ExtensionContext.logTestResult() {
+fun ExtensionContext.endSpanAndLogTestResult() {
     store<InMemoryLoggerResolver>().get(element, TestLogger::class.java)?.logTestResult(this)
 }
 
@@ -166,7 +186,7 @@ val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store<InMemoryLogg
 /**
  * Logs the given [block] in a new span with the active test logger if any.
  */
-@RenderingLoggingDsl fun <R> ExtensionContext.logging(
+fun <R> ExtensionContext.logging(
     caption: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
@@ -176,6 +196,7 @@ val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store<InMemoryLogg
 ): R =
     SmartRenderingLogger(
         caption,
+        testLocalLogger,
         { (testLocalLogger ?: BACKGROUND).logText { it } },
         contentFormatter,
         decorationFormatter,

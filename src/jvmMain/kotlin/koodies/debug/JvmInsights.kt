@@ -38,7 +38,7 @@ public val StackTraceElement.highlightedMethod: String
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val <T : Thread> T.trace: Thread
-    get() = apply { println(xray({ highlightedName }, null)) }
+    get() = apply { println(xray(null, { highlightedName }, null)) }
 
 /**
  * Helper function that supports
@@ -47,8 +47,8 @@ public val <T : Thread> T.trace: Thread
  * while still returning `this`.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T : Thread> T.trace(transform: T.() -> Any?): T =
-    apply { println(xray({ highlightedName }, { transform().toString() })) }
+public fun <T : Thread> T.trace(description: CharSequence? = null, transform: T.() -> Any?): T =
+    apply { println(xray(description, { highlightedName }, { transform().toString() })) }
 
 /**
  * Helper property that supports

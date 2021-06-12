@@ -12,8 +12,6 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
 
 Koodies is hosted on GitHub with releases provided on Maven Central.
 
-### Maven Central
-
 * **Gradle** `implementation("com.bkahlert:koodies:${project.version}")`
 
 * **Maven**
@@ -682,4 +680,12 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
     ```
 
 ----
-**Releasing?** 👉 [RELEASING.md](RELEASING.md)
+**Upgrading**
+
+```shell
+# upgrade gradle
+./gradlew wrapper --gradle-version=7.0.2 --distribution-type=bin
+```
+
+**Releasing**  
+[RELEASING.md](RELEASING.md)

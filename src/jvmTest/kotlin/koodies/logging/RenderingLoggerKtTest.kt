@@ -224,7 +224,7 @@ class RenderingLoggerKtTest {
     @Suppress("UNREACHABLE_CODE")
     @Test
     fun `should show full exception only on outermost logger`() {
-        val logger = InMemoryLogger("root", DOTTED).withUnclosedWarningDisabled
+        val logger = InMemoryLogger("root", null, DOTTED).withUnclosedWarningDisabled
         expect {
             catching {
                 logger.logging("level 0") {
@@ -261,7 +261,7 @@ class RenderingLoggerKtTest {
     @Suppress("UNREACHABLE_CODE")
     @Test
     fun `should show full exception logger already closed`() {
-        val logger = InMemoryLogger("root", DOTTED).withUnclosedWarningDisabled
+        val logger = InMemoryLogger("root", null, DOTTED).withUnclosedWarningDisabled
         expect {
             catching {
                 logger.logging("level 0") {
@@ -333,9 +333,13 @@ class RenderingLoggerKtTest {
     @Nested
     inner class LoggingAfterResult {
 
-        private fun createLogger(caption: String, init: RenderingLogger.() -> Unit): Pair<ByteArrayOutputStream, RenderingLogger> {
+        private fun createLogger(
+            caption: String,
+            parent: RenderingLogger? = null,
+            init: RenderingLogger.() -> Unit,
+        ): Pair<ByteArrayOutputStream, RenderingLogger> {
             val baos = ByteArrayOutputStream()
-            return baos to RenderingLogger(caption) {
+            return baos to RenderingLogger(caption, parent) {
                 if (isDebugging) print(it)
                 baos.write(it.ansiRemoved.toByteArray())
             }.apply(init)
@@ -401,7 +405,7 @@ class RenderingLoggerKtTest {
 
         @Test
         fun `should contain closed state`() {
-            val logger = RenderingLogger("test")
+            val logger = RenderingLogger("test", null)
             expectThat(logger).toStringMatchesCurlyPattern("""
                 RenderingLogger { open = false{}caption = test }
             """.trimIndent())

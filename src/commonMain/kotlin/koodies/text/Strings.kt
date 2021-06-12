@@ -6,9 +6,9 @@ import koodies.text.LineSeparators.LF
 import kotlin.random.Random
 
 public object CharRanges {
-    public val Numeric: CharRange = ('0'..'9')
-    public val LowerCaseAtoZ: CharRange = ('a'..'z')
-    public val UpperCaseAtoZ: CharRange = ('A'..'Z')
+    public val Numeric: CharRange = '0'..'9'
+    public val LowerCaseAtoZ: CharRange = 'a'..'z'
+    public val UpperCaseAtoZ: CharRange = 'A'..'Z'
 
     public val Alphanumeric: CharArray = (Numeric + LowerCaseAtoZ + UpperCaseAtoZ).toCharArray()
     public val UpperCaseAlphanumeric: CharArray = (Numeric + UpperCaseAtoZ).toCharArray()

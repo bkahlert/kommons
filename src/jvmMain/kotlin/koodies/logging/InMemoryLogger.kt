@@ -17,6 +17,7 @@ import java.io.OutputStream
  */
 public open class InMemoryLogger(
     caption: CharSequence = "💾",
+    parent: RenderingLogger? = null,
     border: Border = Border.DEFAULT,
     width: Int? = null,
     private val captured: MutableList<String> = synchronizedListOf(),
@@ -31,6 +32,7 @@ public open class InMemoryLogger(
     },
 ) : BlockRenderingLogger(
     caption = caption,
+    parent = parent,
     log = log,
     border = border,
     width = width,
@@ -38,14 +40,6 @@ public open class InMemoryLogger(
 
     private fun assemble(lineSkip: Int, vararg additionalLines: String): String =
         captured.drop(lineSkip).plus(additionalLines).joinToString(LF)
-
-    /**
-     * Clears the captured strings.
-     */
-    public fun clear(): Unit {
-        captured.clear()
-        open = true
-    }
 
     override fun toString(): String = toString(NO_RETURN_VALUE, false)
     public fun toString(

@@ -47,12 +47,12 @@ public class DockerContainer(public val name: String) {
     /**
      * Current state of this container.
      */
-    public val state: State get() = DEBUGGING_ONLY.state
+    public val containerState: State get() = DEBUGGING_ONLY.containerState
 
     /**
      * Current state of this container—queried using `this` [RenderingLogger].
      */
-    public val RenderingLogger.state: State get() = queryState(this@DockerContainer, this).also { cachedState = it }
+    public val RenderingLogger.containerState: State get() = queryState(this@DockerContainer, this).also { cachedState = it }
 
     /**
      * Last known state of this container.
@@ -60,14 +60,14 @@ public class DockerContainer(public val name: String) {
     public var cachedState: State? = null
         private set
 
-    public val exists: Boolean get() = state !is NotExistent
-    public val isCreated: Boolean get() = state is Created
-    public val isRestarting: Boolean get() = state is Restarting
-    public val isRunning: Boolean get() = state is Running
-    public val isRemoving: Boolean get() = state is Removing
-    public val isPaused: Boolean get() = state is Paused
-    public val isExited: Boolean get() = state is Exited
-    public val isDead: Boolean get() = state is Dead
+    public val exists: Boolean get() = containerState !is NotExistent
+    public val isCreated: Boolean get() = containerState is Created
+    public val isRestarting: Boolean get() = containerState is Restarting
+    public val isRunning: Boolean get() = containerState is Running
+    public val isRemoving: Boolean get() = containerState is Removing
+    public val isPaused: Boolean get() = containerState is Paused
+    public val isExited: Boolean get() = containerState is Exited
+    public val isDead: Boolean get() = containerState is Dead
 
     public sealed class State(override val successful: Boolean?, override val symbol: String) : ReturnValue {
 
@@ -177,7 +177,7 @@ public class DockerContainer(public val name: String) {
 
     override fun toString(): String = asString {
         ::name.name to name
-        ::state.name to cachedState
+        "state" to cachedState
     }
 
     override fun equals(other: Any?): Boolean {

@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package koodies.text
 
 import koodies.collections.too
@@ -10,67 +12,121 @@ import koodies.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.platform.launcher.TestExecutionListener
+import org.junit.platform.launcher.TestPlan
 import strikt.api.Assertion.Builder
+import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThan
+import strikt.assertions.isLessThan
 
 class TextWidthKtTest {
 
-    @Test
-    fun `should calculate zero columns for empty string`() {
-        expecting { "".columns } that { isEqualTo(0) }
-    }
-
-    @TestFactory
-    fun `should calc one column for basic letters and digits`() = testEach("A", "a", "Ö", "ß", "4") {
-        expecting { it.columns } that { isEqualTo(1) }
-    }
-
-    @TestFactory
-    fun `should calc one column for small width code points`() = testEach(Whitespaces.HAIR_SPACE, Whitespaces.THIN_SPACE) {
-        expecting { it.columns } that { isEqualTo(1) }
-    }
-
-    @TestFactory
-    fun `should calc two columns for wide characters`() = testEach("한", "글", "⮕", "😀") { // TODO "👩‍👩‍👧‍👧"
-        expecting { it.columns } that { isEqualTo(2) }
-    }
-
-    @TestFactory
-    fun `should calc zero columns for no-space characters`() = testEach(Unicode.zeroWidthSpace, Unicode.zeroWidthJoiner) {
-        expecting { it.columns } that { isEqualTo(0) }
-    }
-
-    @TestFactory
-    fun `should calc 0 columns for line separators`() = testEach(*LineSeparators.toTypedArray()) {
-        expecting { it.first().columns } that { isEqualTo(0) }
-        expecting { it.columns } that { isEqualTo(0) }
-        expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
-    }
-
-    @TestFactory
-    fun `should calculate width for complex text`() = tests {
-        expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".columns } that { isEqualTo(18) }
-        expecting { "text        ".columns } that { isEqualTo(12) }
-        expecting { "🟥🟧🟨🟩🟦🟪".columns } that { isEqualTo(12) }
-        expecting { "text                                                ".columns } that { isEqualTo(52) }
-        expecting { "🟥🟧🟨🟩🟦🟪                                        ".columns } that { isEqualTo(52) }
-        expecting { "ℹ".columns } that { isEqualTo(1) }
+    class AwtInitializer : TestExecutionListener {
+        override fun testPlanExecutionStarted(testPlan: TestPlan) {
+            TextWidth.calculateWidth("indirect AWT initialization")
+        }
     }
 
     @Test
-    fun `should ignore ANSI`() {
-        expecting { "red".ansi.red.columns } that { isEqualTo(3) }
+    fun `should have positive x width`() {
+        expecting { TextWidth.X_WIDTH } that { isGreaterThan(0) }
+    }
+
+    @Test
+    fun `should have slack smaller x width`() {
+        expecting { TextWidth.COLUMN_SLACK } that { isLessThan(TextWidth.X_WIDTH) }
     }
 
     @TestFactory
-    fun `should provide columns for code points`() = tests {
-        expecting { "A".asCodePoint()!!.columns } that { isEqualTo(1) }
-        expecting { "⮕".asCodePoint()!!.columns } that { isEqualTo(2) }
+    fun `should calc smaller width for one-column string than two-column string`() = testEach("한", "글", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
+        expecting { TextWidth.calculateWidth("A") } that { isLessThan(TextWidth.calculateWidth(it)) }
+        expecting { TextWidth.calculateWidth("—") } that { isLessThan(TextWidth.calculateWidth(it)) }
+        expecting { TextWidth.calculateWidth("‾͟͟͞") } that { isLessThan(TextWidth.calculateWidth(it)) }
+        expecting { TextWidth.calculateWidth("—̳͟͞͞") } that { isLessThan(TextWidth.calculateWidth(it)) }
+    }
+
+    @Nested
+    inner class Columns {
+
+        @Test
+        fun `should calculate zero columns for empty string`() {
+            expecting { "".columns } that { isEqualTo(0) }
+        }
+
+        @TestFactory
+        fun `should calc one column for basic letters and digits`() = testEach("A", "a", "Ö", "ß", "4") {
+            expecting { it.columns } that { isEqualTo(1) }
+        }
+
+        @TestFactory
+        fun `should calc one for combined letter`() = testEach("‾͟͟͞", "—̳͟͞͞") {
+            expecting { it.columns } that { isEqualTo(1) }
+        }
+
+        @TestFactory
+        fun `should calc one column for small width code points`() = testEach(Whitespaces.HAIR_SPACE, Whitespaces.THIN_SPACE) {
+            expecting { it.columns } that { isEqualTo(1) }
+        }
+
+        @TestFactory
+        fun `should calc two columns for wide characters`() = testEach("한", "글", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
+            expecting { it.columns } that { isEqualTo(2) }
+        }
+
+        @TestFactory
+        fun `should calc two columns for wide XXX`() = testEach("👩‍👩‍👧‍👧") {
+            expecting { it.columns } that { isEqualTo(2) }
+        }
+
+        @TestFactory
+        fun `should calc zero columns for no-space characters`() = testEach(Unicode.zeroWidthSpace, Unicode.zeroWidthJoiner) {
+            expecting { it.columns } that { isEqualTo(0) }
+        }
+
+        @TestFactory
+        fun `should calc 0 columns for line separators`() = testEach(*LineSeparators.toTypedArray()) {
+            expecting { it.first().columns } that { isEqualTo(0) }
+            expecting { it.columns } that { isEqualTo(0) }
+            expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
+        }
+
+        @TestFactory
+        fun `should calc columns for complex text`() = tests {
+            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".columns } that { isEqualTo(18) }
+            expecting { "text        ".columns } that { isEqualTo(12) }
+            expecting { "🟥🟧🟨🟩🟦🟪".columns } that { isEqualTo(12) }
+            expecting { "text                                                ".columns } that { isEqualTo(52) }
+            expecting { "🟥🟧🟨🟩🟦🟪                                        ".columns } that { isEqualTo(52) }
+            expecting { "ℹ".columns } that { isEqualTo(1) }
+        }
+
+        @Test
+        fun `should ignore ANSI`() {
+            expecting { "red".ansi.red.columns } that { isEqualTo(3) }
+        }
+
+        @TestFactory
+        fun `should provide columns for code points`() = tests {
+            expecting { "A".asCodePoint()!!.columns } that { isEqualTo(1) }
+            expecting { "⮕".asCodePoint()!!.columns } that { isEqualTo(2) }
+        }
+
+        @TestFactory
+        fun `should provide columns for grapheme cluster`() = tests {
+            expecting { "A".asGraphemeCluster()!!.columns } that { isEqualTo(1) }
+            expecting { "👩‍👩‍👧‍👧".asGraphemeCluster()!!.columns } that { isEqualTo(2) }
+        }
     }
 
     @Nested
     inner class FindIndex {
+
+        @Test
+        fun `should find`() {
+            expectThat("‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".findIndexByColumns(2)).isEqualTo(5)
+        }
 
         @TestFactory
         fun `should find index`() = testEach(
@@ -483,6 +539,117 @@ class TextWidthKtTest {
         ) { fn ->
             (0 until 32).forEach {
                 expectThrows<IllegalArgumentException> { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn(Unicode[it].char!!) }
+            }
+        }
+    }
+
+
+    private val longText = "1234567890".repeat(1000)
+
+    @Nested
+    inner class TruncateByColumns {
+
+        @Test
+        fun `should truncate from center`() {
+            expectThat("12345678901234567890".truncateByColumns()).isEqualTo("1234567…4567890")
+        }
+
+        @Test
+        fun `should truncate using columns`() {
+            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncateByColumns()).isEqualTo("⮕⮕⮕…⬅⬅⬅")
+        }
+
+        @Test
+        fun `should not truncate if not necessary`() {
+            expectThat("1234567890".truncateByColumns()).isEqualTo("1234567890")
+        }
+
+        @Test
+        fun `should truncate using custom marker`() {
+            expectThat("12345678901234567890".truncateByColumns(marker = "...")).isEqualTo("123456...567890")
+        }
+
+        @Test
+        fun `should truncate long text`() {
+            expectThat(longText.truncateByColumns()).isEqualTo("1234567…4567890")
+        }
+
+        @Test
+        fun `should throw if marker is wider than max length`() {
+            expectThrows<IllegalArgumentException> {
+                "1234567890".truncateByColumns(maxColumns = 1, marker = "XX")
+            }
+        }
+    }
+
+    @Nested
+    inner class TruncateStart {
+
+        @Test
+        fun `should truncate from start`() {
+            expectThat("12345678901234567890".truncateStartByColumns()).isEqualTo("…78901234567890")
+        }
+
+        @Test
+        fun `should truncate using columns`() {
+            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStartByColumns()).isEqualTo("…⬅⬅⬅⬅⬅⬅⬅")
+        }
+
+        @Test
+        fun `should not truncate if not necessary`() {
+            expectThat("1234567890".truncateStartByColumns()).isEqualTo("1234567890")
+        }
+
+        @Test
+        fun `should truncate using custom marker`() {
+            expectThat("12345678901234567890".truncateStartByColumns(marker = "...")).isEqualTo("...901234567890")
+        }
+
+        @Test
+        fun `should truncate long text`() {
+            expectThat(longText.truncateStartByColumns()).isEqualTo("…78901234567890")
+        }
+
+        @Test
+        fun `should throw if marker is wider than max length`() {
+            expectThrows<IllegalArgumentException> {
+                "1234567890".truncateStartByColumns(maxColumns = 1, marker = "XX")
+            }
+        }
+    }
+
+    @Nested
+    inner class TruncateEnd {
+
+        @Test
+        fun `should truncate from end`() {
+            expectThat("12345678901234567890".truncateEndByColumns()).isEqualTo("12345678901234…")
+        }
+
+        @Test
+        fun `should truncate using columns`() {
+            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEndByColumns()).isEqualTo("⮕⮕⮕⮕⮕⮕⮕…")
+        }
+
+        @Test
+        fun `should not truncate if not necessary`() {
+            expectThat("1234567890".truncateEndByColumns()).isEqualTo("1234567890")
+        }
+
+        @Test
+        fun `should truncate using custom marker`() {
+            expectThat("12345678901234567890".truncateEndByColumns(marker = "...")).isEqualTo("123456789012...")
+        }
+
+        @Test
+        fun `should truncate long text`() {
+            expectThat(longText.truncateEndByColumns()).isEqualTo("12345678901234…")
+        }
+
+        @Test
+        fun `should throw if marker is wider than max length`() {
+            expectThrows<IllegalArgumentException> {
+                "1234567890".truncateEndByColumns(maxColumns = 1, marker = "XX")
             }
         }
     }

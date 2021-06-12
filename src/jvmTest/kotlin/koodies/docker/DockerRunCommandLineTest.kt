@@ -27,7 +27,7 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
 import koodies.io.tempDir
 import koodies.logging.InMemoryLogger
-import koodies.logging.expectLogged
+import koodies.logging.RenderingLogger
 import koodies.runtime.onExit
 import koodies.shell.ShellScript
 import koodies.test.BuilderFixture
@@ -35,18 +35,19 @@ import koodies.test.HtmlFixture
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.expecting
-import koodies.test.output.TestLogger
 import koodies.test.test
 import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
-import koodies.text.toStringMatchesCurlyPattern
+import koodies.text.ANSI.ansiRemoved
+import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
+import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -376,22 +377,19 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun TestLogger.`should exec logging using specified image`() = testEach<Executable<Exec>.() -> DockerExec>(
-        { dockerized(Ubuntu).exec.logging(this@`should exec logging using specified image`) },
-        { dockerized { "ubuntu" }.exec.logging(this@`should exec logging using specified image`) },
-        { with(Ubuntu) { dockerized.exec.logging(this@`should exec logging using specified image`) } },
-        { with(Ubuntu) { with(dockerized) { logging() } } },
+    fun `should exec logging using specified image`() = testEach<Executable<Exec>.(RenderingLogger) -> DockerExec>(
+        { dockerized(Ubuntu).exec.logging(it) },
+        { dockerized { "ubuntu" }.exec.logging(it) },
+        { with(Ubuntu) { dockerized.exec.logging(it) } },
     ) { execVariant ->
         expecting {
-            clear()
-            CommandLine("printenv", "HOME").execVariant()
+            InMemoryLogger().also { CommandLine("printenv", "HOME").execVariant(it) }.toString().ansiRemoved.lines()
         } that {
-            expectLogged.toStringMatchesCurlyPattern("""
-                · Executing {}
-                · /root
-                · Process {} terminated {}
-                ✔︎
-            """.trimIndent())
+            any { matchesCurlyPattern("{}▶ docker run ubuntu printenv HOME") }
+            any { matchesCurlyPattern("{}Executing {}") }
+            any { matchesCurlyPattern("{}/root") }
+            any { matchesCurlyPattern("{}Process {} terminated {}") }
+            any { matchesCurlyPattern("{}✔︎") }
         }
     }
 

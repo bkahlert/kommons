@@ -21,8 +21,8 @@ class TruncationKtTest {
         }
 
         @Test
-        fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncate()).isEqualTo("⮕⮕⮕…⬅⬅⬅")
+        fun `should truncate using code points`() {
+            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncate(6)).isEqualTo("👨🏾👨…👨🏾")
         }
 
         @Test
@@ -43,7 +43,7 @@ class TruncationKtTest {
         @Test
         fun `should throw if marker is wider than max length`() {
             expectThrows<IllegalArgumentException> {
-                "1234567890".truncate(maxColumns = 1, marker = "XX")
+                "1234567890".truncate(maxCodePoints = 1, marker = "XX")
             }
         }
     }
@@ -57,8 +57,8 @@ class TruncationKtTest {
         }
 
         @Test
-        fun `should truncate using columns`() {
-            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStart()).isEqualTo("…⬅⬅⬅⬅⬅⬅⬅")
+        fun `should truncate using code points`() {
+            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncateStart(4)).isEqualTo("…🏾👨🏾")
         }
 
         @Test
@@ -79,7 +79,7 @@ class TruncationKtTest {
         @Test
         fun `should throw if marker is wider than max length`() {
             expectThrows<IllegalArgumentException> {
-                "1234567890".truncateStart(maxColumns = 1, marker = "XX")
+                "1234567890".truncateStart(maxCodePoints = 1, marker = "XX")
             }
         }
     }
@@ -94,7 +94,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEnd()).isEqualTo("⮕⮕⮕⮕⮕⮕⮕…")
+            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncateEnd(4)).isEqualTo("👨🏾👨…")
         }
 
         @Test
@@ -115,7 +115,7 @@ class TruncationKtTest {
         @Test
         fun `should throw if marker is wider than max length`() {
             expectThrows<IllegalArgumentException> {
-                "1234567890".truncateEnd(maxColumns = 1, marker = "XX")
+                "1234567890".truncateEnd(maxCodePoints = 1, marker = "XX")
             }
         }
     }

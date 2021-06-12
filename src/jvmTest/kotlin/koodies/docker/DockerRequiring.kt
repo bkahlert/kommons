@@ -67,7 +67,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
         pullRequiredImages()
 
         with(context.uniqueContainer()) {
-            if (logger.state is Running) {
+            if (logger.containerState is Running) {
                 logger.logLine { "Container $name is (still) running and will be removed forcibly." }
                 remove(force = true)
             }
@@ -79,16 +79,16 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
         with(uniqueContainer()) {
             when (withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
                 ThanksForCleaningUp -> {
-                    if (logger.state is Running) remove(force = true, logger = logger)
+                    if (logger.containerState is Running) remove(force = true, logger = logger)
                 }
                 FailAndKill -> {
-                    check(logger.state !is Running) {
+                    check(logger.containerState !is Running) {
                         remove(true)
                         "Container $name was still running and had to be removed forcibly."
                     }
                 }
                 else -> {
-                    if (logger.state is Running) {
+                    if (logger.containerState is Running) {
                         logger.logLine { "Container $name is still running… just saying".formattedAs.debug }
                     }
                 }

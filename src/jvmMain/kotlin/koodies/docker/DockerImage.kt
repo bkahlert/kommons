@@ -157,15 +157,16 @@ public open class DockerImage(
     /**
      * Contains a list of tags available on [Docker Hub](https://registry.hub.docker.com).
      */
-    public val tagsOnDockerHub: List<String> by lazy {
-        val fullPath = repoAndPath.joinToString("/")
-        val page = 1
-        val pageSize = 100
-        val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
-        InternalLocations.ExecTemp.curlJq(null) {
-            "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"
-        }.io.output.ansiRemoved.lines()
-    }
+    public val tagsOnDockerHub: List<String>
+        get() {
+            val fullPath = repoAndPath.joinToString("/")
+            val page = 1
+            val pageSize = 100
+            val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
+            return InternalLocations.ExecTemp.curlJq(null) {
+                "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"
+            }.io.output.ansiRemoved.lines()
+        }
 
     /**
      * Returns a [DockerRunCommandLine] that runs `this` [Executable]
@@ -191,7 +192,7 @@ public open class DockerImage(
     public fun Executable<Exec>.dockerized(options: Init<OptionsContext>): DockerRunCommandLine =
         dockerized(this@DockerImage, Options(options))
 
-    private val string by lazy { repoAndPath.joinToString("/") + specifier }
+    private val string = repoAndPath.joinToString("/") + specifier
     override val length: Int = string.length
     override fun get(index: Int): Char = string[index]
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = string.subSequence(startIndex, endIndex)
@@ -265,11 +266,10 @@ public open class DockerImage(
      * - `DockerImage { "bkahlert/libguestfs@sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
      */
     @Suppress("SpellCheckingInspection")
-    public companion object :
-        StatelessBuilder.PostProcessing<ImageContext, CharSequence, DockerImage>(ImageContext, {
-            if (this is DockerImage) DockerImage(repository, path, tag, digest)
-            else parse(toString())
-        }) {
+    public companion object : StatelessBuilder.PostProcessing<ImageContext, CharSequence, DockerImage>(ImageContext, {
+        if (this is DockerImage) DockerImage(repository, path, tag, digest)
+        else parse(toString())
+    }) {
 
         /**
          * Pattern that the [repository] and all [path] elements match.

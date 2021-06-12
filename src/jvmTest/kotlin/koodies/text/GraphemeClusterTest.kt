@@ -1,13 +1,16 @@
 package koodies.text
 
+import koodies.test.expecting
 import koodies.test.testEach
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
 import strikt.assertions.first
+import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
@@ -60,6 +63,23 @@ class GraphemeClusterTest {
             }
         }
 
+        @Test
+        fun `should handle multi-codepoint cluster`() {
+            expecting { "‾͟͟͞".toGraphemeClusterList() } that {
+                get(0) and {
+                    get { codePoints } and {
+                        containsExactly(
+                            CodePoint("‾"),
+                            CodePoint("͟"),
+                            CodePoint("͟"),
+                            CodePoint("͞"),
+                        )
+                    }
+                }
+                hasSize(1)
+            }
+        }
+
         @TestFactory
         fun `should handle multi-codepoint clusters`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
@@ -67,23 +87,23 @@ class GraphemeClusterTest {
         ) { fn ->
             expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn() } that {
                 containsExactly(
-                    "‾͟͟͞".toGraphemeClusterList().first(),
-                    "(".toGraphemeClusterList().first(),
-                    "(".toGraphemeClusterList().first(),
-                    "(".toGraphemeClusterList().first(),
-                    "ꎤ".toGraphemeClusterList().first(),
-                    " ".toGraphemeClusterList().first(),
-                    "✧".toGraphemeClusterList().first(),
-                    "曲".toGraphemeClusterList().first(),
-                    "✧".toGraphemeClusterList().first(),
-                    ")̂".toGraphemeClusterList().first(),
-                    "—̳͟͞͞".toGraphemeClusterList().first(),
-                    "O".toGraphemeClusterList().first(),
-                    " ".toGraphemeClusterList().first(),
-                    "H".toGraphemeClusterList().first(),
-                    "I".toGraphemeClusterList().first(),
-                    "T".toGraphemeClusterList().first(),
-                    "!".toGraphemeClusterList().first(),
+                    "‾͟͟͞".toGraphemeClusterList().single(),
+                    "(".toGraphemeClusterList().single(),
+                    "(".toGraphemeClusterList().single(),
+                    "(".toGraphemeClusterList().single(),
+                    "ꎤ".toGraphemeClusterList().single(),
+                    " ".toGraphemeClusterList().single(),
+                    "✧".toGraphemeClusterList().single(),
+                    "曲".toGraphemeClusterList().single(),
+                    "✧".toGraphemeClusterList().single(),
+                    ")̂".toGraphemeClusterList().single(),
+                    "—̳͟͞͞".toGraphemeClusterList().single(),
+                    "O".toGraphemeClusterList().single(),
+                    " ".toGraphemeClusterList().single(),
+                    "H".toGraphemeClusterList().single(),
+                    "I".toGraphemeClusterList().single(),
+                    "T".toGraphemeClusterList().single(),
+                    "!".toGraphemeClusterList().single(),
                 )
             }
         }
@@ -112,7 +132,9 @@ class GraphemeClusterTest {
         "曲",
         "🟥",
         "‾͟͟͞",
-        "👨🏾‍",
+        "😀",
+        "👨🏾",
+        "👩‍👩‍👧‍👧",
     ) { input ->
         val graphemeCluster = input.asGraphemeClusterSequence().single()
         expecting { graphemeCluster.toString() } that { isEqualTo(input) }
@@ -125,7 +147,9 @@ class GraphemeClusterTest {
         "${e}M" to 2,
         "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!" to 17,
         "🟥🟧🟨🟩🟦🟪" to 6,
-        "👨🏾‍" to 1,
+        "😀" to 1,
+        "👨🏾" to 1,
+        "👩‍👩‍👧‍👧" to 1,
     ) { (string, expectedCount) ->
         expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
     }

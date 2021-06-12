@@ -1,4 +1,6 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import kotlin.text.toBoolean as kotlinToBoolean
 
 
@@ -56,9 +58,9 @@ allprojects {
     apply { plugin("maven-publish") }
     apply { plugin("com.github.ben-manes.versions") }
     apply { plugin("se.patrikerdes.use-latest-versions") }
+
     configurations.all {
         resolutionStrategy.eachDependency {
-
             val kotlinVersion = "1.5.20-M1"
             val kotlinModules = listOf(
                 "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
@@ -102,6 +104,14 @@ kotlin {
             maxHeapSize = "512m"
             failFast = false
             ignoreFailures = true
+
+            testLogging {
+                events = setOf(TestLogEvent.FAILED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR)
+                exceptionFormat = TestExceptionFormat.FULL
+                showExceptions = true
+                showCauses = true
+                showStackTraces = true
+            }
         }
 
         val anySetUpTest = tasks.withType<Test>().first()
@@ -145,11 +155,20 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
                 implementation("org.jline:jline-reader:3.19.0")
+
+                implementation("io.opentelemetry:opentelemetry-api:1.2.0")
+                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.2.0")
+                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.2.0")
             }
         }
 
         val jvmTest by getting {
             dependencies {
+                implementation("io.opentelemetry:opentelemetry-sdk:1.2.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.2.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.2.0")
+                implementation("io.grpc:grpc-okhttp:1.38.0")
+
                 implementation(kotlin("test-junit5"))
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
@@ -193,7 +212,7 @@ kotlin {
 tasks.register<Copy>("assembleReadme") {
     from(projectDir)
     into(projectDir)
-    include("README.template.md")
+    setIncludes(listOf("README.template.md"))
     rename { "README.md" }
     expand("project" to project)
     shouldRunAfter(tasks.final)

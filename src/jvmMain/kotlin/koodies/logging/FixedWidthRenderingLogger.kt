@@ -15,7 +15,7 @@ import koodies.text.LineSeparators.wrapLines
 import koodies.text.addColumn
 import koodies.text.joinToTruncatedString
 import koodies.text.takeUnlessBlank
-import koodies.text.truncate
+import koodies.text.truncateByColumns
 import koodies.text.withPrefix
 
 /**
@@ -23,6 +23,7 @@ import koodies.text.withPrefix
  */
 public abstract class FixedWidthRenderingLogger(
     caption: String,
+    parent: RenderingLogger?,
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
@@ -33,7 +34,7 @@ public abstract class FixedWidthRenderingLogger(
     statusInformationColumns: Int? = null,
     width: Int? = null,
     public open val prefix: String = "",
-) : RenderingLogger(caption, log) {
+) : RenderingLogger(caption, parent, log) {
 
     public enum class Border {
         SOLID {
@@ -136,7 +137,7 @@ public abstract class FixedWidthRenderingLogger(
         block().takeUnlessBlank()?.let { contentFormatter(it) }?.run {
             render(true) {
                 val leftColumn = wrapNonUriLines(statusInformationColumn)
-                val statusColumn = items.asStatus().asAnsiString().truncate(maxColumns = statusInformationColumns - 1)
+                val statusColumn = items.asStatus().asAnsiString().truncateByColumns(maxColumns = statusInformationColumns - 1)
                 val twoColumns = leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding)
                 if (closed) twoColumns
                 else twoColumns.prefixLinesWith(prefix = prefix)
@@ -166,6 +167,7 @@ public abstract class FixedWidthRenderingLogger(
         block: FixedWidthRenderingLogger.() -> R,
     ): R = BlockRenderingLogger(
         caption,
+        this,
         { logText { it } },
         contentFormatter,
         decorationFormatter,
@@ -190,6 +192,7 @@ public abstract class FixedWidthRenderingLogger(
         block: CompactRenderingLogger.() -> R,
     ): R = CompactRenderingLogger(
         caption,
+        this,
         contentFormatter,
         decorationFormatter,
         returnValueFormatter,
@@ -209,6 +212,7 @@ public abstract class FixedWidthRenderingLogger(
         block: FixedWidthRenderingLogger.() -> R,
     ): R = SmartRenderingLogger(
         caption,
+        this,
         { logText { it } },
         contentFormatter,
         decorationFormatter,

@@ -1,2 +1,4 @@
+koodies.text.TextWidthKtTest$AwtInitializer
+koodies.tracing.TestTelemetry
 koodies.test.junit.TestExecutionReporter
 koodies.test.Verbosity

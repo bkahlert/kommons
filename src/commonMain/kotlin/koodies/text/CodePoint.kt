@@ -472,7 +472,7 @@ private fun String.singleCodePoint(): Int? {
 public fun String.isValidCodePoint(): Boolean = asCodePoint() != null
 
 /**
- * If this string represents exactly one valid Unicode code point, returns this Unicode code point.
+ * If this string represents exactly one valid Unicode code point, returns it.
  * In all other cases, returns `null`.
  */
 public fun String.asCodePoint(): CodePoint? = singleCodePoint()?.takeIf { it.isUsableCodePoint() }?.let { CodePoint(it) }

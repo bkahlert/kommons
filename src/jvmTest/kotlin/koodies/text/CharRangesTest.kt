@@ -1,6 +1,6 @@
 package koodies.text
 
-
+import koodies.test.testEach
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -11,7 +11,7 @@ import strikt.assertions.isTrue
 class CharRangesTest {
 
     @TestFactory
-    fun `alphanumeric contains`() = listOf(
+    fun `alphanumeric contains`() = testEach(
         CharRanges.LowerCaseAtoZ to
             (listOf('a', 'b', 'c') to
                 listOf('A', '1', '$')),
@@ -21,7 +21,7 @@ class CharRangesTest {
         CharRanges.Numeric to
             (listOf('1', '2', '3') to
                 listOf('A', 'a', '$')),
-    ).flatMap { (characterRange, expectations) ->
+    ) { (characterRange, expectations) ->
         val (contained, notContained) = expectations
         listOf(
             dynamicContainer("contained in $characterRange",

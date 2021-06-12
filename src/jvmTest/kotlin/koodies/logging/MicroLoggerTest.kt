@@ -8,7 +8,7 @@ class MicroLoggerTest {
 
     @Test
     fun InMemoryLogger.`should micro log`() {
-        MicroLogger("🤠", null, null, null, { logText { it } }).runLogging {
+        MicroLogger("🤠", this, null, null, null, { logText { it } }).runLogging {
             logStatus { IO.Output typed "ABC" }
             logLine { "" }
             logLine { "123" }

@@ -1,5 +1,7 @@
 package koodies.text
 
+import koodies.collections.PeekingIterator
+import koodies.collections.peekingIterator
 import koodies.text.GraphemeCluster.Companion.readGraphemeCluster
 import kotlin.jvm.JvmInline
 
@@ -28,36 +30,43 @@ public value class GraphemeCluster private constructor(public val codePoints: Li
          * The [Pair.second] component is the number of code points this grapheme consists of.
          */
         @Suppress("NOTHING_TO_INLINE")
-        internal inline fun Iterator<CodePoint>.readGraphemeCluster(firstCodePoint: CodePoint): Pair<GraphemeCluster, CodePoint?> {
+        internal inline fun PeekingIterator<CodePoint>.readGraphemeCluster(): GraphemeCluster {
+            val firstCodePoint: CodePoint = next()
             if (firstCodePoint.codePoint < 32 || firstCodePoint.codePoint in 0x7f..0x9f || firstCodePoint in lineSeparatorCodePoints) {
-                val secondCodePoint = if (hasNext()) next() else null
-                if (firstCodePoint.char == '\r' && secondCodePoint?.char == '\n') {
-                    val thirdCodePoint = if (hasNext()) next() else null
-                    return GraphemeCluster(listOf(firstCodePoint, secondCodePoint)) to thirdCodePoint
-                }
-                return GraphemeCluster(firstCodePoint) to secondCodePoint
+                return if (firstCodePoint.char == '\r' && peekOrNull()?.char == '\n') GraphemeCluster(listOf(firstCodePoint, next()))
+                else GraphemeCluster(firstCodePoint)
             }
 
             val graphemeCluster = StringBuilder(firstCodePoint.toString())
             val graphemes = mutableListOf(firstCodePoint)
-            var remainder: CodePoint? = null
-            val width = TextWidth.calculateWidth(graphemeCluster)
+            val maxWidth = TextWidth.calculateWidth(graphemeCluster) + TextWidth.COLUMN_SLACK
+            var isEmoji = false
+
             while (hasNext()) {
-                val codePoint = next()
+                val codePoint = peek()
                 graphemeCluster.append(codePoint.toString())
-                val zwj = codePoint == Unicode.zeroWidthJoiner.codePoint
-                val sameWidth = TextWidth.calculateWidth(graphemeCluster) == width
-                if (zwj || sameWidth) {
-                    graphemes.add(codePoint)
+                if (isEmoji) {
+                    if (codePoint.isWhitespace) isEmoji = false
                 } else {
-                    remainder = codePoint
-                    return GraphemeCluster(graphemes) to remainder
+                    if (codePoint == Unicode.zeroWidthJoiner.codePoint) isEmoji = true
+                }
+
+                if (isEmoji || TextWidth.calculateWidth(graphemeCluster) <= maxWidth) {
+                    graphemes.add(next())
+                } else {
+                    return GraphemeCluster(graphemes)
                 }
             }
-            return GraphemeCluster(graphemes) to remainder
+            return GraphemeCluster(graphemes)
         }
     }
 }
+
+/**
+ * If this character sequence represents a single grapheme cluster, returns it.
+ * In all other cases, returns `null`.
+ */
+public fun CharSequence.asGraphemeCluster(): GraphemeCluster? = asGraphemeClusterSequence().singleOrNull()
 
 /**
  * Returns a lazily propagated sequence containing the [GraphemeCluster] instances this string consists of.
@@ -67,14 +76,10 @@ public value class GraphemeCluster private constructor(public val codePoints: Li
  */
 public fun CharSequence.asGraphemeClusterSequence(): Sequence<GraphemeCluster> {
     if (isEmpty()) return emptySequence()
-    val codePoints: Iterator<CodePoint> = asCodePointSequence().iterator()
-    var remainder: CodePoint? = codePoints.next()
+    val codePoints: PeekingIterator<CodePoint> = asCodePointSequence().peekingIterator()
     return generateSequence {
-        remainder?.let {
-            val (graphemeCluster, currentRemainder) = codePoints.readGraphemeCluster(it)
-            remainder = currentRemainder
-            graphemeCluster
-        }
+        if (codePoints.hasNext()) codePoints.readGraphemeCluster()
+        else null
     }
 }
 

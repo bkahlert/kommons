@@ -1,0 +1,60 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Jaeger" type="docker-deploy" factoryName="docker-image" server-name="Docker">
+    <deployment type="docker-image">
+      <settings>
+        <option name="imageTag" value="jaegertracing/all-in-one:latest" />
+        <option name="containerName" value="jaeger" />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="COLLECTOR_ZIPKIN_HOST_PORT" />
+              <option name="value" value=":9411" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="portBindings">
+          <list>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="5775" />
+              <option name="hostPort" value="5775" />
+              <option name="protocol" value="udp" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="6831" />
+              <option name="hostPort" value="6831" />
+              <option name="protocol" value="udp" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="6832" />
+              <option name="hostPort" value="6832" />
+              <option name="protocol" value="udp" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="5778" />
+              <option name="hostPort" value="5778" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="16686" />
+              <option name="hostPort" value="16686" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="14268" />
+              <option name="hostPort" value="14268" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="14250" />
+              <option name="hostPort" value="14250" />
+            </DockerPortBindingImpl>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="9411" />
+              <option name="hostPort" value="9411" />
+            </DockerPortBindingImpl>
+          </list>
+        </option>
+      </settings>
+    </deployment>
+    <method v="2">
+      <option name="LaunchBrowser.Before.Run" url="http://localhost:16686/" />
+    </method>
+  </configuration>
+</component>

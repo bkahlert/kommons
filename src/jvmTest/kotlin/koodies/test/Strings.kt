@@ -13,7 +13,7 @@ import strikt.api.DescribeableBuilder
 import strikt.assertions.hasSize
 
 fun <T> Builder<T>.toStringIsEqualTo(expected: String, removeAnsi: Boolean = true): Builder<T> =
-    if (removeAnsi) with({ toString().ansiRemoved }) { toStringIsEqualTo(expected, false) }
+    if (removeAnsi) with({ toString().ansiRemoved }) { toStringIsEqualTo(expected.ansiRemoved, false) }
     else assert("is equal to %s", expected) {
         when (val actual = it.toString()) {
             expected -> pass()
@@ -25,8 +25,9 @@ inline val <T> Builder<T>.string: Builder<String>
     get() =
         get("to string") { toString() }
 
-infix fun <T> Builder<T>.toStringContains(expected: String): Builder<T> =
-    assert("contains %s", expected) {
+fun <T> Builder<T>.toStringContains(expected: String, removeAnsi: Boolean = true): Builder<T> =
+    if (removeAnsi) with({ toString().ansiRemoved }) { toStringContains(expected.ansiRemoved, false) }
+    else assert("contains %s", expected) {
         when (val actual = it.toString().contains(expected)) {
             true -> pass()
             else -> fail(actual = actual)

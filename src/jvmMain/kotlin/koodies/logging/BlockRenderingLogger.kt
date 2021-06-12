@@ -11,6 +11,7 @@ import kotlin.properties.Delegates
 
 public open class BlockRenderingLogger(
     caption: CharSequence,
+    parent: RenderingLogger?,
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
@@ -20,7 +21,9 @@ public open class BlockRenderingLogger(
     statusInformationPadding: Int? = null,
     statusInformationColumns: Int? = null,
     width: Int? = null,
-) : FixedWidthRenderingLogger(caption.toString(),
+) : FixedWidthRenderingLogger(
+    caption.toString(),
+    parent,
     log,
     contentFormatter,
     decorationFormatter,
@@ -71,7 +74,7 @@ public open class BlockRenderingLogger(
         val returnValue = ReturnValue.of(result)
         val formatted = if (closed) returnValueFormatter(returnValue.withSymbol(Computation)).format() else getBlockEnd(returnValue)
         formatted.takeUnlessEmpty()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
-        open = false
+        close(result)
         return result.getOrThrow()
     }
 
@@ -81,7 +84,7 @@ public open class BlockRenderingLogger(
             if (closed) message
             else message.prefixLinesWith(prefix, ignoreTrailingSeparator = false)
         }
-        open = false
+        close<Any?>(Result.failure(block()))
     }
 
     override fun toString(): String = asString {

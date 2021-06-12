@@ -16,8 +16,8 @@ import koodies.text.Semantics.Symbols.Negative
 import koodies.text.Semantics.Symbols.OK
 import koodies.text.Unicode.NBSP
 import koodies.text.endsWithRandomSuffix
-import koodies.text.matchesCurlyPattern
 import koodies.text.spaced
+import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -62,12 +62,12 @@ class DockerContainerTest {
 
         @ContainersTestFactory @IdeaWorkaroundTestFactory
         fun `should contain actual state`(testContainers: TestContainers) = testEach<Pair<String, (TestContainers) -> DockerContainer>>(
-            "not existent" to { it.newNotExistentContainer().apply { state } },
+            "not existent" to { it.newNotExistentContainer().apply { containerState } },
             "▶ running" to { it.newRunningTestContainer() },
             "✔︎ exited" to { it.newExitedTestContainer() },
         ) { (state, provider) ->
             val container = provider(testContainers)
-            expecting { container.toString() } that { matchesCurlyPattern("DockerContainer { name = {}⦀{}state = $state }") }
+            expecting { container } that { toStringMatchesCurlyPattern("DockerContainer { name = {}⦀{}state = $state }") }
         }
     }
 
@@ -441,14 +441,14 @@ class DockerContainerTest {
 
 inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<DockerContainer> =
     compose("status") {
-        get { BACKGROUND.state }.isA<T>()
+        get { BACKGROUND.containerState }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
 inline fun <reified T : State> Builder<DockerContainer>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<DockerContainer> =
     compose("status") {
-        get { BACKGROUND.state }.isA<T>().statusAssertion()
+        get { BACKGROUND.containerState }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
 val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }

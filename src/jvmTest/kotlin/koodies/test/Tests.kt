@@ -411,6 +411,18 @@ inline fun <reified T> ExtensionContext.store(clazz: Class<T> = T::class.java): 
  */
 
 /**
+ * Extracts the actual subject from `this` [Builder].
+ *
+ * ***Hint:** Consider refactoring your test instead making us of this extension.*
+ */
+inline val <reified T : Any> Builder<T>.actual: T
+    get() {
+        var actual: T? = null
+        get { actual = this }
+        return actual ?: error("Failed to extract actual from $this")
+    }
+
+/**
  * JUnit extension that checks if [expecting] or [expectCatching]
  * where incorrectly used.
  *
@@ -1061,13 +1073,6 @@ class TesterTest {
             """,
         )).map { (label, expected) -> dynamicTest("👆 $expected") { strikt.api.expectThat(label).isEqualTo(expected) } }.asStream()
     }
-
-    private inline val <reified T : Any> Builder<T>.actual: T
-        get() {
-            var actual: T? = null
-            get { actual = this }
-            return actual ?: error("Failed to extract actual from $this")
-        }
 
     @Nested
     inner class PlainAssertionsTest {

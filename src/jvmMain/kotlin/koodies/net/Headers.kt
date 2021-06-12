@@ -13,9 +13,8 @@ public fun URL.headers(connectTimeout: Duration = 5.seconds, readTimeout: Durati
 
     val headers: MutableMap<String, MutableList<String>> = mutableMapOf()
     headerFields.forEach { (key, values) ->
-        headers.getOrPut(key) { mutableListOf() }.addAll(values)
+        headers.getOrPut(key ?: "status") { mutableListOf() }.addAll(values)
     }
-    headers.putIfAbsent("status", headerFields[null] ?: mutableListOf())
     headers.matchKeysByIgnoringCase()
 }
 

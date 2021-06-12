@@ -2,7 +2,7 @@ package koodies.logging
 
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.text.ANSI.Formatter
-import koodies.tracing.runTracing
+import koodies.tracing.runExceptionRecording
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 
@@ -17,9 +17,7 @@ public inline fun <R, L : RenderingLogger> L.applyLogging(crossinline block: L.(
 public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
     contract { callsInPlace(block, EXACTLY_ONCE) }
 
-    val result: Result<R> = kotlin.runCatching {
-        runTracing(caption, block)
-    }
+    val result: Result<R> = runCatching { span.runExceptionRecording { block() } }
 
     logResult { result }
     return result.getOrThrow()
@@ -45,6 +43,7 @@ public fun <R> logging(
     block: FixedWidthRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(
     caption,
+    null,
     { LoggingContext.BACKGROUND.logText { it } },
     contentFormatter,
     decorationFormatter,

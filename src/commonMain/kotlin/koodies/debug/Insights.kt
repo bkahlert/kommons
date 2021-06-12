@@ -19,6 +19,7 @@ import koodies.text.Unicode.replacementSymbol
 import koodies.text.asCodePointSequence
 
 public class XRay<T>(
+    private val description: CharSequence?,
     private val subject: T,
     private val stringifier: T.() -> String,
     private val transform: (T.() -> Any)?,
@@ -49,7 +50,7 @@ public class XRay<T>(
                 receiver?.endsWith(".XRay") == true ||
                 function == "trace" ||
                 function == "xray"
-        }.run { ".⃦⃥ͥ ".formattedAs.debug + "($file:$line) ".formattedAs.meta }
+        }.run { ".⃦⃥ͥ ".formattedAs.debug + "($file:$line) ".formattedAs.meta + (description?.let { "$it " } ?: "").formattedAs.debug }
         source + run {
             transform?.let {
                 subject.selfString() + " " + subject.it().transformedString()
@@ -66,14 +67,14 @@ public class XRay<T>(
      * Returns an instance that applies the given [transform] to [subject].
      */
     public fun transform(transform: T.() -> String): XRay<T> =
-        XRay(subject, stringifier, transform)
+        XRay(description, subject, stringifier, transform)
 
     /**
      * Returns an instance that applies the given [transform] to
      * the code points the stringified [subject] consists of.
      */
     private fun xray(transform: CodePoint.() -> String): XRay<T> =
-        XRay(subject, stringifier) {
+        XRay(description, subject, stringifier) {
             val sb = StringBuilder()
             asString(subject).asCodePointSequence().forEach { sb.append(it.transform()) }
             sb.toString()
@@ -109,10 +110,13 @@ public class XRay<T>(
     }
 }
 
-public val <T> T.xray: XRay<T> get() = XRay(this, stringifier = { toString() }, transform = null)
-public fun <T> T.xray(): XRay<T> = XRay(this, stringifier = { toString() }, transform = null)
-public fun <T> T.xray(transform: T.() -> String): XRay<out T> = XRay(this, stringifier = { toString() }, transform = transform)
-public fun <T> T.xray(stringifier: T.() -> String, transform: (T.() -> String)?): XRay<out T> = XRay(this, stringifier = stringifier, transform = transform)
+public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = { toString() }, transform = null)
+public fun <T> T.xray(description: CharSequence? = null): XRay<T> = XRay(description, this, stringifier = { toString() }, transform = null)
+public fun <T> T.xray(description: CharSequence? = null, transform: (T.() -> Any)?): XRay<out T> =
+    XRay(description, this, stringifier = { toString() }, transform = transform)
+
+public fun <T> T.xray(description: CharSequence? = null, stringifier: T.() -> String, transform: (T.() -> Any)?): XRay<out T> =
+    XRay(description, this, stringifier = stringifier, transform = transform)
 
 /**
  * Helper property that supports
@@ -168,8 +172,8 @@ public val <T> T.trace: T
  * at the property `prop` of that value are printed.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T> T.trace(transform: T.() -> Any?): T =
-    apply { println(xray(transform = { transform().toString() })) }
+public fun <T> T.trace(description: CharSequence? = null, transform: (T.() -> Any)? = null): T =
+    apply { println(xray(description, transform = transform)) }
 
 
 public val CallStackElement.highlightedMethod: String

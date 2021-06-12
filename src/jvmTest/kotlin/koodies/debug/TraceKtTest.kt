@@ -26,11 +26,11 @@ public val <T : Assertion.Builder<V>, V> T.trace: T
  */
 @Suppress("RedundantVisibilityModifier")
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T : Assertion.Builder<V>, V> T.trace(transform: V.() -> Any?): T =
+public fun <T : Assertion.Builder<V>, V> T.trace(description: CharSequence? = null, transform: (V.() -> Any)?): T =
     also {
         get {
             val subject: V = this
             @Suppress("DEPRECATION")
-            subject.trace(transform)
+            subject.trace(description, transform)
         }
     }

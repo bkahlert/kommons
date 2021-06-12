@@ -37,7 +37,7 @@ class IOTest {
         inner class Starting {
 
             private val commandLine = CommandLine("command", "arg")
-            private val meta = IO.Meta.Starting(commandLine)
+            private val meta = Starting(commandLine)
 
             @Test
             fun `should have original text`() {
@@ -54,7 +54,7 @@ class IOTest {
         inner class File {
 
             private val file = "file".asPath()
-            private val meta = IO.Meta typed file
+            private val meta = Meta typed file
 
             @Test
             fun `should have original text`() {
@@ -71,7 +71,7 @@ class IOTest {
         inner class Text {
 
             private val text = "text"
-            private val meta = IO.Meta.Text(text)
+            private val meta = Text(text)
 
             @Test
             fun `should have original text`() {
@@ -85,7 +85,7 @@ class IOTest {
 
             @Test
             fun `should throw on blank`() {
-                expectCatching { IO.Meta typed "    " }.isFailure()
+                expectCatching { Meta typed "    " }.isFailure()
             }
         }
 
@@ -93,7 +93,7 @@ class IOTest {
         inner class Dump {
 
             private val dump = "dump"
-            private val meta = IO.Meta.Dump(dump)
+            private val meta = Dump(dump)
 
             @Test
             fun `should have original text`() {
@@ -107,7 +107,7 @@ class IOTest {
 
             @Test
             fun `should throw on non-dump`() {
-                expectCatching { IO.Meta.Dump("whatever") }.isFailure()
+                expectCatching { Dump("whatever") }.isFailure()
             }
         }
 
@@ -115,7 +115,7 @@ class IOTest {
         inner class Terminated {
 
             private val process = JavaExec(JavaProcessMock(MutedRenderingLogger), Locations.Temp, CommandLine("echo", JavaProcessMock::class.simpleName!!))
-            private val meta = IO.Meta.Terminated(process)
+            private val meta = Terminated(process)
 
             @Test
             fun `should have original text`() {
@@ -132,7 +132,7 @@ class IOTest {
     @Nested
     inner class Input {
 
-        private val `in` = IO.Input typed "in"
+        private val `in` = Input typed "in"
 
         @Test
         fun `should have original text`() {
@@ -148,7 +148,7 @@ class IOTest {
     @Nested
     inner class Output {
 
-        private val out = IO.Output typed "out"
+        private val out = Output typed "out"
 
         @Test
         fun `should have original text`() {
@@ -164,7 +164,7 @@ class IOTest {
     @Nested
     inner class Error {
 
-        private val err = IO.Error(RuntimeException("err"))
+        private val err = Error(RuntimeException("err"))
 
         @Test
         fun `should have plain stacktrace`() {
