@@ -31,7 +31,7 @@ class DebugTest {
     @Test
     fun InMemoryLogger.`should not catch exceptions`() {
         expectThrows<RuntimeException> {
-            logResult<Any> { Result.failure(RuntimeException("test")) }
+            logResult<Any>(Result.failure(RuntimeException("test")))
         }
     }
 }

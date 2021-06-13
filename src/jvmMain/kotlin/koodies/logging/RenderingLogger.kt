@@ -17,13 +17,19 @@ import koodies.tracing.OpenTelemetrySpan
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+// TODO make interface
+// TODO replace log with parent
+// TODO make logging only with use/withspan function
+// TODO delete ⏳️
+// TODO separate tracing and logging/rendering
+
 /**
  * Logger interface to implement loggers that don't just log
  * but render log messages to provide easier understandable feedback.
  */
 public open class RenderingLogger(
     public val caption: String,
-    private val parent: RenderingLogger?,
+    protected val parent: RenderingLogger?,
     log: ((String) -> Unit)? = null,
 ) {
 
@@ -37,7 +43,7 @@ public open class RenderingLogger(
      */
     public open val open: Boolean get() = isOpen(this)
 
-    protected fun <T> close(result: Result<T>) {
+    public fun <T> close(result: Result<T>) {
         setOpen(this, false)
         span.end(result)
     }
@@ -106,24 +112,12 @@ public open class RenderingLogger(
     /**
      * Logs the result of the process this logger is used for.
      */
-    public open fun <R> logResult(block: () -> Result<R>): R {
-        val result = block()
+    public open fun <R> logResult(result: Result<R>): R {
         val formattedResult = ReturnValue.format(result)
         render(true) { formattedResult }
         close(result)
         return result.getOrThrow()
     }
-
-    /**
-     * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
-     */
-    public fun logResult(): Unit = logResult { Result.success(Unit) }
-
-    /**
-     * Explicitly logs a [Throwable]. The behaviour is the same as simply throwing it,
-     * which is covered by [logResult] with a failed [Result].
-     */
-    public open fun logException(block: () -> Throwable): Unit = logResult { Result.failure(block()) }
 
     override fun toString(): String = asString {
         ::open to open

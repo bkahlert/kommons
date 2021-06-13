@@ -3,6 +3,7 @@ package koodies.test.output
 import koodies.debug.CapturedOutput
 import koodies.logging.InMemoryLogger
 import koodies.logging.expectThatLogged
+import koodies.logging.logResult
 import koodies.test.SystemIORead
 import koodies.text.containsAnsi
 import koodies.text.matchesCurlyPattern
@@ -28,7 +29,7 @@ class InMemoryLoggerResolverNoDebugTest {
     @Test
     fun InMemoryLogger.`should not catch exceptions`() {
         expectThrows<RuntimeException> {
-            logResult<Any> { Result.failure(RuntimeException("test")) }
+            logResult<Any>(Result.failure(RuntimeException("test")))
         }
     }
 

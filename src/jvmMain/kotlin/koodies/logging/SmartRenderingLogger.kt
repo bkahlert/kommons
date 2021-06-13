@@ -73,13 +73,9 @@ public open class SmartRenderingLogger(
         }
     }
 
-    override fun <R> logResult(block: () -> Result<R>): R {
-        loggingResult = ReturnValue.of(block()).successful != null
-        return logger.logResult(block)
-    }
-
-    override fun logException(block: () -> Throwable) {
-        logger.logException(block)
+    override fun <R> logResult(result: Result<R>): R {
+        loggingResult = ReturnValue.of(result).successful != null
+        return logger.logResult(result)
     }
 
     override fun toString(): String = asString {

@@ -146,11 +146,11 @@ class TestLogger(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <R> logResult(block: () -> Result<R>): R =
+    override fun <R> logResult(result: Result<R>): R =
         if (!closed) {
-            super.logResult(block)
+            super.logResult(result)
         } else {
-            span.end(block())
+            span.end(result)
             Unit as R
         }
 
@@ -163,7 +163,7 @@ class TestLogger(
             span.end(result)
             return
         }
-        kotlin.runCatching { logResult { result } }
+        kotlin.runCatching { logResult(result) }
     }
 
     override fun toString(): String = toString(SUCCESSFUL_RETURN_VALUE, false)

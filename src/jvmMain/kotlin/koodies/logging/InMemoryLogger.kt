@@ -73,11 +73,9 @@ public open class InMemoryLogger(
             "logLine { … }"
                 to { logLine { LOG_MESSAGE } },
             "logResult { … }"
-                to { @Suppress("RemoveExplicitTypeArguments") logResult<String> { Result.success("result") } },
+                to { @Suppress("RemoveExplicitTypeArguments") logResult("result") },
             "logResult()"
                 to { logResult() },
-            "logException { … }"
-                to { kotlin.runCatching { logException { RuntimeException("log exception") } } },
         )
     }
 }

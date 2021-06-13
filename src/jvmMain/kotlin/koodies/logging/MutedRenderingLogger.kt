@@ -17,8 +17,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
     override fun logText(block: () -> CharSequence): Unit = Unit
     override fun logLine(block: () -> CharSequence): Unit = Unit
     override fun logStatus(items: List<CharSequence>, block: () -> CharSequence): Unit = Unit
-    override fun <R> logResult(block: () -> Result<R>): R = block().getOrThrow()
-    override fun logException(block: () -> Throwable): Unit = Unit
+    override fun <R> logResult(result: Result<R>): R = result.getOrThrow()
 
     override fun toString(): String = "log > /dev/null"
 
@@ -55,8 +54,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
 
         override fun logText(block: () -> CharSequence): Unit = Unit
         override fun logLine(block: () -> CharSequence): Unit = Unit
-        override fun <R> logResult(block: () -> Result<R>): R = block().getOrThrow()
-        override fun logException(block: () -> Throwable): Unit = Unit
+        override fun <R> logResult(result: Result<R>): R = result.getOrThrow()
 
         override fun toString(): String = "log > /dev/null"
     }

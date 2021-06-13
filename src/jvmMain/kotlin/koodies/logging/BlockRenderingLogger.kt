@@ -69,22 +69,22 @@ public open class BlockRenderingLogger(
         override val symbol: String = symbol
     }
 
-    override fun <R> logResult(block: () -> Result<R>): R {
-        val result = block()
+    override fun <R> logResult(result: Result<R>): R {
+        if (parent == null) {
+            result.exceptionOrNull()?.let {
+                render(true) {
+                    val message = IO.Error(it).formatted
+                    if (closed) message
+                    else message.prefixLinesWith(prefix, ignoreTrailingSeparator = false)
+                }
+            }
+        }
+
         val returnValue = ReturnValue.of(result)
         val formatted = if (closed) returnValueFormatter(returnValue.withSymbol(Computation)).format() else getBlockEnd(returnValue)
         formatted.takeUnlessEmpty()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
         close(result)
         return result.getOrThrow()
-    }
-
-    override fun logException(block: () -> Throwable): Unit = block().let {
-        render(true) {
-            val message = IO.Error(it).formatted
-            if (closed) message
-            else message.prefixLinesWith(prefix, ignoreTrailingSeparator = false)
-        }
-        close<Any?>(Result.failure(block()))
     }
 
     override fun toString(): String = asString {

@@ -5,29 +5,17 @@ import koodies.tracing.Span.State
 import java.time.Instant
 import kotlin.reflect.KClass
 
-@JvmInline
-public value class TraceId(public val value: String) {
-    public val valid: Boolean get() = value.any { it != '0' }
-    override fun toString(): String = value
-}
-
-@JvmInline
-public value class SpanId(public val value: String) {
-    public val valid: Boolean get() = value.any { it != '0' }
-    override fun toString(): String = value
-}
-
 public interface Span {
 
-    public val name: CharSequence
+    public val name: String
     public val parent: Span?
     public val state: State
 
     public val traceId: TraceId
     public val spanId: SpanId
 
-    public fun event(name: CharSequence, vararg attributes: Pair<CharSequence, Any?>)
-    public fun exception(exception: Throwable, vararg attributes: Pair<CharSequence, Any?>)
+    public fun event(name: String, vararg attributes: Pair<String, String>)
+    public fun exception(exception: Throwable, vararg attributes: Pair<String, String>)
     public fun <R> end(result: Result<R>, timestamp: Instant = Now.instant)
 
     public sealed class State(private vararg val allowedPreviousStates: KClass<out State>) {

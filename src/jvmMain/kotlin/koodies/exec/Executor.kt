@@ -96,14 +96,14 @@ public data class Executor<E : Exec>(
                 exec.process(processingMode, processor = processor ?: Processors.loggingProcessor(processLogger))
             }
             Async -> {
-                processLogger.logResult {
+                processLogger.logResult(
                     Result.success<ReturnValue>(object : ReturnValue {
                         override val successful: Boolean? = null
                         override val symbol: String = " "
                         override val textRepresentation: String? = null
                         override fun format(): String = " "
                     })
-                }
+                )
                 exec.process(processingMode, processor = processor ?: exec.terminationLoggingProcessor(processLogger))
             }
         }

@@ -69,18 +69,13 @@ public open class CompactRenderingLogger(
     public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.Output typed "" }): Unit =
         logStatus(statuses.toList(), block)
 
-    override fun <R> logResult(block: () -> Result<R>): R {
-        val result = block()
+    override fun <R> logResult(result: Result<R>): R {
         val formattedResult = returnValueFormatter(ReturnValue.of(result)).format()
         loggingResult = true
         render(true) { formattedResult }
         loggingResult = false
         close(result)
         return result.getOrThrow()
-    }
-
-    override fun logException(block: () -> Throwable) {
-        render(true) { ReturnValue.of(block()).format() }
     }
 
     override fun toString(): String = asString {

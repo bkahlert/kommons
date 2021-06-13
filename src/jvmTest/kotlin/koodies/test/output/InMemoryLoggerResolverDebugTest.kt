@@ -39,7 +39,7 @@ class InMemoryLoggerResolverDebugTest {
             logLine { "test" }
 
             expectThrows<RuntimeException> {
-                logResult<Any> { Result.failure(RuntimeException("test")) }
+                logResult<Any>(Result.failure(RuntimeException("test")))
             }
 
             expectThatLogged().contains("test")

@@ -60,15 +60,13 @@ class CompactRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log exception`() {
-        compactLogging("caption") {
-            logException { RuntimeException("exception") }
-        }
+        kotlin.runCatching { compactLogging("caption") { throw RuntimeException("exception") } }
 
         expectThatLogged().matchesCurlyPattern(
             """
                 ╭──╴{}
                 │
-                │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) ✔︎
+                │   caption ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{})
                 │
                 ╰──╴✔︎{}
             """.trimIndent())
@@ -128,19 +126,19 @@ class CompactRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log multiple entries`() {
-        compactLogging("caption") {
-            logText { "text" }
-            logLine { "line" }
-            logException { RuntimeException("exception") }
-            logStatus("status") { "line" }
-            "result"
+        kotlin.runCatching {
+            compactLogging("caption") {
+                logText { "text" }
+                logLine { "line" }
+                throw RuntimeException("exception")
+            }
         }
 
         expectThatLogged().matchesCurlyPattern(
             """
                 ╭──╴{}
                 │
-                │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{}) line (◀◀ status) ✔︎
+                │   caption text line ϟ RuntimeException: exception at.(CompactRenderingLoggerKtTest.kt:{})
                 │
                 ╰──╴✔︎{}
             """.trimIndent())

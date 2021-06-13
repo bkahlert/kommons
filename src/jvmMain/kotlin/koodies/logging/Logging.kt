@@ -19,15 +19,14 @@ public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() 
 
     val result: Result<R> = runCatching { span.runExceptionRecording { block() } }
 
-    logResult { result }
-    return result.getOrThrow()
+    return logResult(result)
 }
 
 /**
  * Logs the given [returnValue] as the value that is returned from the logging span.
  */
-public fun <T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
-    logResult { Result.success(returnValue) }
+public inline fun <reified T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
+    logResult(returnValue)
 }
 
 /**
@@ -51,3 +50,13 @@ public fun <R> logging(
     border,
     prefix = LoggingContext.BACKGROUND.prefix,
 ).runLogging(block)
+
+/**
+ * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
+ */
+public inline fun <reified T : RenderingLogger, reified R> T.logResult(result: R): R = logResult(Result.success(result))
+
+/**
+ * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
+ */
+public inline fun <reified T : RenderingLogger> T.logResult(): Unit = logResult(Result.success(Unit))

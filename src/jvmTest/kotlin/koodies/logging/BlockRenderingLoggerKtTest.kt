@@ -10,7 +10,6 @@ import koodies.test.output.Bordered
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
-import koodies.text.Unicode.characterTabulation
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -287,14 +286,15 @@ class BlockRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Bordered(SOLID) InMemoryLogger.`should log exception SOLID`() {
-            logException { RuntimeException("exception") }
+            kotlin.runCatching { blockLogging("caption") { throw RuntimeException("exception") } }
 
             expectThatLogged().matchesCurlyPattern(
                 """
-                    ╭──╴{}
-                    │
-                    │   java.lang.RuntimeException: exception
-                    │   ${characterTabulation}at koodies.logging.{}
+                    {{}}
+                    │   ╭──╴caption
+                    │   │
+                    │   ϟ
+                    │   ╰──╴RuntimeException: exception at.(BlockRenderingLoggerKtTest.kt:{})
                     {{}}
                 """.trimIndent()
             )
@@ -302,13 +302,13 @@ class BlockRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Bordered(DOTTED) InMemoryLogger.`should log exception DOTTED`() {
-            logException { RuntimeException("exception") }
+            kotlin.runCatching { blockLogging("caption") { throw RuntimeException("exception") } }
 
             expectThatLogged().matchesCurlyPattern(
                 """
+                    {{}}
                     ▶ {}
-                    · java.lang.RuntimeException: exception
-                    · ${characterTabulation}at koodies.logging.{}
+                    · ϟ RuntimeException: exception at.(BlockRenderingLoggerKtTest.kt:{})
                     {{}}
                 """.trimIndent()
             )
@@ -316,13 +316,12 @@ class BlockRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Bordered(NONE) InMemoryLogger.`should log exception NONE`() {
-            logException { RuntimeException("exception") }
+            kotlin.runCatching { blockLogging("caption") { throw RuntimeException("exception") } }
 
             expectThatLogged().matchesCurlyPattern(
                 """
-                    {}
-                    java.lang.RuntimeException: exception
-                    ${characterTabulation}at koodies.logging.{}
+                    {{}}
+                    ϟ RuntimeException: exception at.(BlockRenderingLoggerKtTest.kt:{})
                     {{}}
                 """.trimIndent()
             )

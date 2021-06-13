@@ -10,6 +10,7 @@ import koodies.test.output.TestLogger
 import koodies.text.isMultiLine
 import koodies.time.seconds
 import koodies.unit.milli
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -22,6 +23,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.size
 
+@Disabled
 @Execution(CONCURRENT)
 class TracingKtTest {
 

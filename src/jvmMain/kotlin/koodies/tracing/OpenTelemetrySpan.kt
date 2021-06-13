@@ -15,9 +15,10 @@ import koodies.tracing.Span.State.Started
 import java.time.Instant
 
 public class OpenTelemetrySpan(
-    override val name: CharSequence,
+    override val name: String,
     override val parent: OpenTelemetrySpan? = null,
 ) : Span {
+    public constructor(name: CharSequence, parent: OpenTelemetrySpan? = null) : this(name.ansiRemoved, parent)
 
     private lateinit var scope: Scope
     private val span: io.opentelemetry.api.trace.Span by lazy {
@@ -45,11 +46,11 @@ public class OpenTelemetrySpan(
     override val traceId: TraceId by lazy { TraceId(span.spanContext.traceId) }
     override val spanId: SpanId by lazy { SpanId(span.spanContext.spanId) }
 
-    override fun event(name: CharSequence, vararg attributes: Pair<CharSequence, Any?>) {
-        span.addEvent(name.ansiRemoved, attributesOf(*attributes))
+    override fun event(name: String, vararg attributes: Pair<String, String>) {
+        span.addEvent(name, attributesOf(*attributes))
     }
 
-    override fun exception(exception: Throwable, vararg attributes: Pair<CharSequence, Any?>) {
+    override fun exception(exception: Throwable, vararg attributes: Pair<String, String>) {
         span.recordException(exception, attributesOf(*attributes))
     }
 
@@ -88,7 +89,17 @@ public class OpenTelemetrySpan(
 }
 
 @Suppress("NOTHING_TO_INLINE")
-public inline fun attributesOf(vararg attributes: Pair<CharSequence, Any?>): Attributes =
+public inline fun attributesOf(vararg attributes: Pair<String, String>): Attributes =
     Attributes.builder().apply {
-        attributes.forEach { (key, value) -> put(key.ansiRemoved, value.toString().ansiRemoved) }
+        attributes.forEach { (key, value) -> put(key, value) }
     }.build()
+
+public fun Span.event(name: CharSequence, vararg attributes: Pair<CharSequence, Any>): Unit =
+    event(name.ansiRemoved, *attributes.map { (key, value) ->
+        key.ansiRemoved to value.toString().ansiRemoved
+    }.toTypedArray())
+
+public fun Span.event(name: CharSequence, description: CharSequence, vararg attributes: Pair<CharSequence, Any>): Unit =
+    event(name.ansiRemoved, "description" to description.ansiRemoved, *attributes.map { (key, value) ->
+        key.ansiRemoved to value.toString().ansiRemoved
+    }.toTypedArray())
