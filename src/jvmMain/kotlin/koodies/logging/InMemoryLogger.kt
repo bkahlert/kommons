@@ -5,7 +5,7 @@ import koodies.jvm.currentThread
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.padStartFixedLength
 import koodies.time.Now
 import java.io.OutputStream
@@ -16,8 +16,8 @@ import java.io.OutputStream
  * to the specified [outputStream].
  */
 public open class InMemoryLogger(
-    caption: CharSequence = "💾",
-    parent: RenderingLogger? = null,
+    name: CharSequence = "💾",
+    parent: SimpleRenderingLogger? = null,
     border: Border = Border.DEFAULT,
     width: Int? = null,
     private val captured: MutableList<String> = synchronizedListOf(),
@@ -28,10 +28,10 @@ public open class InMemoryLogger(
         val time = Now.passedSince(start).toString().padStartFixedLength(7)
         val prefix = "$thread: $time: "
         outputStream?.apply { write(it.prefixLinesWith(prefix = prefix).toByteArray()) }
-        captured.add(it.withoutTrailingLineSeparator)
+        captured.add(it.removeTrailingLineSeparator)
     },
 ) : BlockRenderingLogger(
-    caption = caption,
+    name = name,
     parent = parent,
     log = log,
     border = border,
@@ -67,7 +67,7 @@ public open class InMemoryLogger(
 
         private const val LOG_MESSAGE: String = "log message"
 
-        public val LOG_OPERATIONS: Array<Pair<String, RenderingLogger.() -> Unit>> = arrayOf(
+        public val LOG_OPERATIONS: Array<Pair<String, SimpleRenderingLogger.() -> Unit>> = arrayOf(
             "logText { … }"
                 to { logText { LOG_MESSAGE } },
             "logLine { … }"

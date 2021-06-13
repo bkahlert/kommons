@@ -3,7 +3,7 @@ package koodies.io.file
 import koodies.io.path.copyTo
 import koodies.io.path.delete
 import koodies.io.path.hasContent
-import koodies.io.path.randomFile
+import koodies.io.randomFile
 import koodies.io.path.writeText
 import koodies.test.UniqueId
 import koodies.test.tests

@@ -4,11 +4,8 @@ import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.test.Slow
+import koodies.logging.SimpleRenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.output.Columns
-import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
@@ -20,11 +17,11 @@ class SmartRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log using compact logger if only result logged`() {
-        logging("caption") { }
+        logging("name") { }
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
             │
-            │   caption ✔︎
+            │   name ✔︎
             │
             ╰──╴✔︎
         """.trimIndent())
@@ -32,11 +29,11 @@ class SmartRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log using block logger if not only result logged`() {
-        logging("caption") { logText { "text" } }
+        logging("name") { logText { "text" } }
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
             │
-            │   ╭──╴caption
+            │   ╭──╴name
             │   │
             │   │   text
             │   │
@@ -50,7 +47,7 @@ class SmartRenderingLoggerKtTest {
     inner class RenderingAsBlock {
         @Test
         fun InMemoryLogger.`should log`() {
-            logging("caption") {
+            logging("name") {
                 logLine { "line" }
                 logStatus { "text" }
             }
@@ -58,7 +55,7 @@ class SmartRenderingLoggerKtTest {
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
                 │
-                │   ╭──╴caption
+                │   ╭──╴name
                 │   │
                 │   │   line
                 │   │   text {} ▮▮
@@ -71,7 +68,7 @@ class SmartRenderingLoggerKtTest {
 
         @Test
         fun InMemoryLogger.`should log nested`() {
-            logging("caption") {
+            logging("name") {
                 logLine { "outer 1" }
                 logLine { "outer 2" }
                 logging("nested") {
@@ -86,7 +83,7 @@ class SmartRenderingLoggerKtTest {
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
                 │
-                │   ╭──╴caption
+                │   ╭──╴name
                 │   │
                 │   │   outer 1
                 │   │   outer 2
@@ -108,7 +105,7 @@ class SmartRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Columns(60) InMemoryLogger.`should log status in same column`() {
-            logging("caption") {
+            logging("name") {
                 logStatus("status") { "text" }
                 logging("nested") {
                     logStatus("status") { "text" }
@@ -126,26 +123,26 @@ class SmartRenderingLoggerKtTest {
     }
 
 
-    private fun borderTest(borderPattern: String, noBorderPattern: String, block: RenderingLogger.() -> Any) = testEach(
+    private fun borderTest(borderPattern: String, noBorderPattern: String, block: SimpleRenderingLogger.() -> Any) = testEach(
         SOLID to borderPattern,
         DOTTED to noBorderPattern,
         containerNamePattern = "border={}") { (border, expectation) ->
         val label = border.name
-        val logger = InMemoryLogger(caption = "InMemoryLogger", border = SOLID).withUnclosedWarningDisabled
-            .apply { logging(caption = "$label caption", border = border) { block() } }
+        val logger = InMemoryLogger(name = "InMemoryLogger", border = SOLID).withUnclosedWarningDisabled
+            .apply { logging(name = "$label name", border = border) { block() } }
         expecting { logger.toString(fallbackReturnValue = null) } that { toStringMatchesCurlyPattern(expectation) }
     }
 
     @TestFactory
-    fun `should log captionX`() = borderTest(
+    fun `should log nameX`() = borderTest(
         """
             ╭──╴InMemoryLogger
             │
-            │   SOLID caption ✔︎
+            │   SOLID name ✔︎
         """.trimIndent(), """
             ╭──╴InMemoryLogger
             │
-            │   DOTTED caption ✔︎
+            │   DOTTED name ✔︎
         """.trimIndent()) { }
 
     @TestFactory
@@ -153,7 +150,7 @@ class SmartRenderingLoggerKtTest {
         """
             ╭──╴InMemoryLogger
             │
-            │   ╭──╴SOLID caption
+            │   ╭──╴SOLID name
             │   │
             │   │   text
             │   │
@@ -161,7 +158,7 @@ class SmartRenderingLoggerKtTest {
         """.trimIndent(), """
             ╭──╴InMemoryLogger
             │
-            │   ▶ DOTTED caption
+            │   ▶ DOTTED name
             │   · text
             │   ✔︎
         """.trimIndent()) {
@@ -173,7 +170,7 @@ class SmartRenderingLoggerKtTest {
         """
             ╭──╴InMemoryLogger
             │
-            │   ╭──╴SOLID caption
+            │   ╭──╴SOLID name
             │   │
             │   │   line
             │   │
@@ -181,7 +178,7 @@ class SmartRenderingLoggerKtTest {
         """.trimIndent(), """
             ╭──╴InMemoryLogger
             │
-            │   ▶ DOTTED caption
+            │   ▶ DOTTED name
             │   · line
             │   ✔︎
         """.trimIndent()) {
@@ -191,8 +188,8 @@ class SmartRenderingLoggerKtTest {
     @Nested
     inner class ReturnException {
 
-        private fun InMemoryLogger.testLog(border: Border, init: RenderingLogger.() -> Any) {
-            logging(caption = border.name, border = border) {
+        private fun InMemoryLogger.testLog(border: Border, init: SimpleRenderingLogger.() -> Any) {
+            logging(name = border.name, border = border) {
                 init()
             }
         }
@@ -283,9 +280,9 @@ class SmartRenderingLoggerKtTest {
     @Nested
     inner class ThrowingException {
 
-        private fun InMemoryLogger.testLog(border: Border, init: RenderingLogger.() -> Any) {
+        private fun InMemoryLogger.testLog(border: Border, init: SimpleRenderingLogger.() -> Any) {
             kotlin.runCatching {
-                logging(caption = border.name, border = border) {
+                logging(name = border.name, border = border) {
                     init()
                 }
             }
@@ -370,51 +367,6 @@ class SmartRenderingLoggerKtTest {
                     │   line
                     │   ϟ RuntimeException: exception{}
                 """.trimIndent())
-            }
-        }
-    }
-
-    @Nested
-    inner class LoggingAfterResult {
-
-        @Slow @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
-            val logger = createLogger(opName)
-            var delegate: RenderingLogger? = null
-            logger.logging("test") {
-                delegate = this
-                logLine { "line" }
-            }
-            delegate?.op()
-            expecting { logger } that {
-                toStringMatchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴test
-                    │   │
-                    │   │   line
-                    │   │
-                    │   ╰──╴✔︎
-                    │   ⏳️ {}
-                    {{}}""".trimIndent())
-            }
-        }
-
-        @Slow @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged message and result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
-            val logger = createLogger(opName)
-            var delegate: RenderingLogger? = null
-            logger.logging("test") {
-                delegate = this
-            }
-            delegate?.op()
-            expecting { logger } that {
-                toStringMatchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   test ✔︎
-                    │   ⏳️ {}
-                    {{}}""".trimIndent())
             }
         }
     }

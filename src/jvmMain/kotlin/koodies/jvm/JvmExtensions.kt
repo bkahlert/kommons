@@ -1,6 +1,6 @@
 package koodies.jvm
 
-import koodies.io.InternalLocations.InternalTemp
+import koodies.io.Koodies.InternalTemp
 import koodies.io.path.appendLine
 import koodies.io.path.delete
 import koodies.runtime.onExit

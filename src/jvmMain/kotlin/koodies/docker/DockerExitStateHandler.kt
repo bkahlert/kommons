@@ -27,7 +27,6 @@ import koodies.text.rightSpaced
 import koodies.text.spaced
 import koodies.text.splitPascalCase
 import koodies.text.takeUnlessBlank
-import koodies.text.withoutSuffix
 import koodies.time.Now
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -62,7 +61,7 @@ public object DockerExitStateHandler : ExitStateHandler {
         }.ansiRemoved
 
         if (errorMessage.containsAll("connect", "Docker", "daemon", ignoreCase = true)) {
-            return ConnectivityProblem(start, end, pid, io, exitCode, errorMessage.withoutSuffix("."))
+            return ConnectivityProblem(start, end, pid, io, exitCode, errorMessage.removeSuffix("."))
         }
 
         val (error, message) = errorMessage.split(messageSplitRegex, limit = 2)

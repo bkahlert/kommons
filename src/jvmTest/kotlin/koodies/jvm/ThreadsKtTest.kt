@@ -52,8 +52,8 @@ class ThreadsKtTest {
         fun `should start immediately`() = listOf(
             "without explicit executor" to { finished: AtomicBoolean -> completableFuture { finished.set(true) } },
             "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture { finished.set(true) } },
-        ).map { (caption, exec) ->
-            dynamicTest(caption) {
+        ).map { (name, exec) ->
+            dynamicTest(name) {
                 val finished = AtomicBoolean(false)
                 measureTime {
                     exec(finished)
@@ -68,8 +68,8 @@ class ThreadsKtTest {
         fun `should start delayed`() = listOf(
             "without explicit executor" to { finished: AtomicBoolean -> completableFuture(0.5.seconds) { finished.set(true) } },
             "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture(0.5.seconds) { finished.set(true) } },
-        ).map { (caption, exec) ->
-            dynamicTest(caption) {
+        ).map { (name, exec) ->
+            dynamicTest(name) {
                 val finished = AtomicBoolean(false)
                 measureTime {
                     exec(finished)
@@ -84,8 +84,8 @@ class ThreadsKtTest {
         fun `should block until value is returned`() = listOf(
             "without explicit executor" to { finished: AtomicBoolean -> completableFuture { finished.set(true); "Hello World" } },
             "with explicit executor" to { finished: AtomicBoolean -> executor.completableFuture { finished.set(true); "Hello World" } },
-        ).map { (caption: String, exec: (AtomicBoolean) -> CompletableFuture<String>) ->
-            dynamicTest(caption) {
+        ).map { (name: String, exec: (AtomicBoolean) -> CompletableFuture<String>) ->
+            dynamicTest(name) {
                 val finished = AtomicBoolean(false)
                 val value = exec(finished).get()
                 expectThat(value).isEqualTo("Hello World")

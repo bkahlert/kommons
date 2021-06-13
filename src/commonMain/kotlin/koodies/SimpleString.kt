@@ -4,7 +4,6 @@ import koodies.regex.RegularExpressions
 import koodies.regex.get
 import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbols
-import koodies.text.withoutPrefix
 import kotlin.reflect.KClass
 
 /**
@@ -52,7 +51,7 @@ private fun String.formatParams(limit: Int = 1): String =
  */
 private val String.simpleClassName: String
     get() {
-        val stringWithoutPossibleClassPrefix = withoutPrefix("class ")
+        val stringWithoutPossibleClassPrefix = removePrefix("class ")
         return RegularExpressions.lambdaRegex("lambda").matchEntire(stringWithoutPossibleClassPrefix)
             ?.let { lambdaResult ->
                 val returnType = lambdaResult["lambdaIreturnItype"]?.trim() ?: Symbols.Unknown

@@ -129,7 +129,7 @@ public enum class BinaryPrefix(
         "${factor.toString().padStart(26)} (scale: ${factor.scale.toString().padStart(2)}, " +
         "precision: ${factor.precision.toString().padStart(3)})"
 }
-
+// TODO refactor so that only one import is offered when typing "3."
 /**
  * Denotes `this` number as prefixed with [BinaryPrefix.Yobi], that is multiplied by 2⁸⁰.
  */

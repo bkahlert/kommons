@@ -2,7 +2,6 @@ package koodies.io.path
 
 import koodies.collections.head
 import koodies.text.takeUnlessBlank
-import koodies.text.withoutSuffix
 import java.nio.file.Path
 import java.util.Locale
 import kotlin.io.path.extension
@@ -18,7 +17,7 @@ public class Extensions(private val path: Path) : List<String> by path.fileNameP
     public fun remove(extensions: String, vararg more: String): Path {
         val normalized = normalizedExtensionString(extensions, *more)
         require(path.fileName.pathString.endsWith(normalized))
-        return path.resolveSibling(path.fileName.pathString.withoutSuffix(normalized))
+        return path.resolveSibling(path.fileName.pathString.removeSuffix(normalized))
     }
 
     public fun hasExtension(extensions: String, vararg more: String): Boolean {

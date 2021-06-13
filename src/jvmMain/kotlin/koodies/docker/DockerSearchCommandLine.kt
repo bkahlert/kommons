@@ -17,7 +17,7 @@ import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options.Companion.OptionsContext
 import koodies.exec.parse
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.or
 import koodies.text.Semantics.formattedAs
 
@@ -125,7 +125,7 @@ public open class DockerSearchCommandLine(
             automated: Boolean? = null,
             official: Boolean? = null,
             limit: Int = 100,
-            logger: RenderingLogger = BACKGROUND,
+            logger: SimpleRenderingLogger = BACKGROUND,
         ): List<DockerSeachResult> {
             val commandLine = DockerSearchCommandLine {
                 options {

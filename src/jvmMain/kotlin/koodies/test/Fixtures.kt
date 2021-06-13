@@ -5,9 +5,9 @@ import koodies.io.compress.Compressor.compress
 import koodies.io.copyToDirectory
 import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
-import koodies.io.path.randomDirectory
-import koodies.io.path.randomPath
 import koodies.io.path.renameTo
+import koodies.io.randomDirectory
+import koodies.io.randomPath
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 import java.nio.file.Files

@@ -8,17 +8,12 @@ import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
 import koodies.io.path.isEmpty
 import koodies.io.path.listDirectoryEntriesRecursively
-import koodies.io.path.randomDirectory
-import koodies.io.path.randomFile
-import koodies.io.path.randomPath
 import koodies.io.path.requireTempSubPath
 import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.or
 import koodies.shell.ShellScript
 import koodies.text.Semantics.formattedAs
-import koodies.time.days
-import koodies.time.hours
-import koodies.time.minutes
+import koodies.text.randomString
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -34,7 +29,7 @@ import kotlin.time.Duration
 public interface Locations {
 
     /**
-     * Working directory, that is, the directory in which this binary can be found.
+     * Working directory, that is, the directory in which this binary is located.
      */
     public val WorkingDirectory: Path get() = Companion.WorkingDirectory
 
@@ -51,7 +46,7 @@ public interface Locations {
     public companion object {
 
         /**
-         * Working directory, that is, the directory in which this binary can be found.
+         * Working directory, that is, the directory in which this binary is located.
          */
         public val WorkingDirectory: Path = FileSystems.getDefault().getPath("").toAbsolutePath()
 
@@ -67,26 +62,45 @@ public interface Locations {
     }
 }
 
-internal object InternalLocations : Locations {
-
-    /**
-     * Directory in which Koodies-specific data can be stored.
-     */
-    internal val InternalTemp: Path by Locations.Temp.autoCleaning("com.bkahlert.koodies", 30.days, 1000)
-
-    /**
-     * Directory in which Exec-specific data can be stored.
-     */
-    internal val ExecTemp: Path by InternalTemp.autoCleaning("exec", 1.hours, 1000)
-
-    /**
-     * Directory in which files can be stored.
-     */
-    internal val FilesTemp: Path by InternalTemp.autoCleaning("files", 10.minutes, 20)
+/**
+ * Returns this [Path] with a path segment added.
+ *
+ * The path segment is created based on [base] and [extension] and a random
+ * string in between.
+ *
+ * The newly created [Path] is guaranteed to not already exist.
+ */
+public tailrec fun Path.randomPath(base: String = randomString(4), extension: String = ""): Path {
+    val minLength = 6
+    val length = base.length + extension.length
+    val randomSuffix = randomString((minLength - length).coerceAtLeast(3))
+    val randomPath = resolve("$base-$randomSuffix$extension")
+    return randomPath.takeUnless { it.exists() } ?: randomPath(base, extension)
 }
 
+
+/*
+ * Random directories / files
+ */
+
 /**
- * Creates a temporary directory inside of [Locations.autoCleaning].
+ * Creates a random directory inside this [Path].
+ *
+ * Eventually missing directories are automatically created.
+ */
+public fun Path.randomDirectory(base: String = randomString(4), extension: String = "-tmp"): Path =
+    randomPath(base, extension).createDirectories()
+
+/**
+ * Creates a random file inside this [Path].
+ *
+ * Eventually missing directories are automatically created.
+ */
+public fun Path.randomFile(base: String = randomString(4), extension: String = ".tmp"): Path =
+    randomPath(base, extension).apply { parent.createDirectories() }.createFile()
+
+/**
+ * Creates a temporary directory inside of [Locations.Temp].
  *
  * The POSIX permissions are set to `700`.
  */
@@ -97,8 +111,13 @@ public fun tempDir(base: String = "", extension: String = ""): Path {
     }
 }
 
+
+/*
+ * Temporary directories / files
+ */
+
 /**
- * Creates a temporary file inside of [Locations.autoCleaning].
+ * Creates a temporary file inside of [Locations.Temp].
  *
  * The POSIX permissions are set to `700`.
  */
@@ -113,6 +132,9 @@ public fun tempFile(base: String = "", extension: String = ""): Path {
  * Creates a temporary directory inside `this` temporary directory.
  *
  * The POSIX permissions are set to `700`.
+ *
+ * Attempting to create a temporary directory outside of [Locations.Temp] will
+ * throw an [IllegalArgumentException].
  */
 public fun Path.tempDir(base: String = "", extension: String = ""): Path =
     requireTempSubPath().randomDirectory(base, extension)
@@ -121,22 +143,28 @@ public fun Path.tempDir(base: String = "", extension: String = ""): Path =
  * Creates a temporary file inside `this` temporary directory.
  *
  * The POSIX permissions are set to `700`.
+ *
+ * Attempting to create a temporary directory outside of [Locations.Temp] will
+ * throw an [IllegalArgumentException].
  */
 public fun Path.tempFile(base: String = "", extension: String = ""): Path =
     requireTempSubPath().randomFile(base, extension)
 
 /**
- * Creates a temporary directory, runs the given [block] inside of it
- * and deletes it and all of its content right after.
- *
- * The POSIX permissions are set to `700`.
+ * Runs the given [block] with a temporary directory that
+ * is automatically deleted on completion.
  */
-public fun <T> withTempDir(base: String = "", extension: String = "", block: Path.() -> T): T =
+public fun <T> runWithTempDir(base: String = "", extension: String = "", block: Path.() -> T): T =
     Locations.Temp.tempDir(base, extension).run {
         val returnValue: T = block()
         deleteRecursively()
         returnValue
     }
+
+
+/*
+ * Misc
+ */
 
 /**
  * Resolves [glob] using the system's `ls` command line tool.

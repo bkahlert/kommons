@@ -1,6 +1,6 @@
 package koodies.jvm
 
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.runWrapping
 import koodies.time.seconds
 import koodies.time.sleep
@@ -51,7 +51,7 @@ public fun daemon(
 /**
  * [Thread] that drains your battery and can only be stopped by calling [stop].
  */
-public class BusyThread private constructor(private var stopped: AtomicBoolean, private val logger: RenderingLogger? = null) : Thread({
+public class BusyThread private constructor(private var stopped: AtomicBoolean, private val logger: SimpleRenderingLogger? = null) : Thread({
     while (!stopped.get()) {
         logger?.logLine { "THREAD stopped? $stopped" }
         try {
@@ -63,7 +63,7 @@ public class BusyThread private constructor(private var stopped: AtomicBoolean, 
         }
     }
 }) {
-    public constructor(logger: RenderingLogger? = null) : this(AtomicBoolean(false), logger)
+    public constructor(logger: SimpleRenderingLogger? = null) : this(AtomicBoolean(false), logger)
 
     init {
         start()

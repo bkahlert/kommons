@@ -17,8 +17,8 @@ import koodies.exec.Process.ExitState
 import koodies.exec.parse
 import koodies.io.path.pathString
 import koodies.logging.LoggingContext.Companion.DEBUGGING_ONLY
-import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValue
+import koodies.logging.SimpleRenderingLogger
 import koodies.lowerSentenceCaseName
 import koodies.map
 import koodies.or
@@ -50,9 +50,9 @@ public class DockerContainer(public val name: String) {
     public val containerState: State get() = DEBUGGING_ONLY.containerState
 
     /**
-     * Current state of this container—queried using `this` [RenderingLogger].
+     * Current state of this container—queried using `this` [SimpleRenderingLogger].
      */
-    public val RenderingLogger.containerState: State get() = queryState(this@DockerContainer, this).also { cachedState = it }
+    public val SimpleRenderingLogger.containerState: State get() = queryState(this@DockerContainer, this).also { cachedState = it }
 
     /**
      * Last known state of this container.
@@ -110,7 +110,7 @@ public class DockerContainer(public val name: String) {
     public fun start(
         attach: Boolean = true,
         interactive: Boolean = false,
-        logger: RenderingLogger = DEBUGGING_ONLY,
+        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
     ): ExitState =
         DockerStartCommandLine {
             options { this.attach by attach; this.interactive by interactive }
@@ -125,7 +125,7 @@ public class DockerContainer(public val name: String) {
     public fun stop(
         timeout: Duration? = 5.seconds,
         async: Boolean = false,
-        logger: RenderingLogger = DEBUGGING_ONLY,
+        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
     ): ExitState =
         DockerStopCommandLine {
             options { this.timeout by timeout }
@@ -144,7 +144,7 @@ public class DockerContainer(public val name: String) {
     public fun kill(
         signal: String? = null,
         async: Boolean = false,
-        logger: RenderingLogger = DEBUGGING_ONLY,
+        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
     ): ExitState =
         DockerKillCommandLine {
             options { this.signal by signal }
@@ -164,7 +164,7 @@ public class DockerContainer(public val name: String) {
      * @param link remove the specified link associated with the container
      * @param volumes remove anonymous volumes associated with the container
      */
-    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false, logger: RenderingLogger = DEBUGGING_ONLY): ExitState {
+    public fun remove(force: Boolean = false, link: Boolean = false, volumes: Boolean = false, logger: SimpleRenderingLogger = DEBUGGING_ONLY): ExitState {
         val dockerRemoveCommandLine = DockerRemoveCommandLine {
             options { this.force by force; this.link by link; this.volumes by volumes }
             this.containers by listOf(name)
@@ -195,7 +195,7 @@ public class DockerContainer(public val name: String) {
 
     public companion object : StatelessBuilder.Returning<ContainerContext, DockerContainer>(ContainerContext) {
 
-        private fun queryState(container: DockerContainer, logger: RenderingLogger = DEBUGGING_ONLY): State =
+        private fun queryState(container: DockerContainer, logger: SimpleRenderingLogger = DEBUGGING_ONLY): State =
             DockerPsCommandLine {
                 options { all by true; container.run { exactName(name) } }
             }.exec.logging(logger) {
@@ -216,7 +216,7 @@ public class DockerContainer(public val name: String) {
         /**
          * Lists locally available instances this containers.
          */
-        public fun list(logger: RenderingLogger = DEBUGGING_ONLY): List<DockerContainer> =
+        public fun list(logger: SimpleRenderingLogger = DEBUGGING_ONLY): List<DockerContainer> =
             DockerPsCommandLine {
                 options { all by true }
             }.exec.logging(logger) {
@@ -235,7 +235,7 @@ public class DockerContainer(public val name: String) {
             vararg containers: DockerContainer,
             attach: Boolean = true,
             interactive: Boolean = false,
-            logger: RenderingLogger = DEBUGGING_ONLY,
+            logger: SimpleRenderingLogger = DEBUGGING_ONLY,
         ): ExitState {
             val names: List<String> = containers.map { it.name }
             return DockerStartCommandLine {
@@ -253,7 +253,7 @@ public class DockerContainer(public val name: String) {
         public fun stop(
             vararg containers: DockerContainer,
             timeout: Duration = 5.seconds,
-            logger: RenderingLogger = DEBUGGING_ONLY,
+            logger: SimpleRenderingLogger = DEBUGGING_ONLY,
         ): ExitState {
             val names: List<String> = containers.map { it.name }
             return DockerStopCommandLine {
@@ -271,7 +271,7 @@ public class DockerContainer(public val name: String) {
             vararg containers: DockerContainer,
             signal: String? = null,
             async: Boolean = false,
-            logger: RenderingLogger = DEBUGGING_ONLY,
+            logger: SimpleRenderingLogger = DEBUGGING_ONLY,
         ): ExitState {
             val names: List<String> = containers.map { it.name }
             return DockerKillCommandLine {
@@ -294,7 +294,7 @@ public class DockerContainer(public val name: String) {
             force: Boolean = false,
             link: Boolean = false,
             volumes: Boolean = false,
-            logger: RenderingLogger = DEBUGGING_ONLY,
+            logger: SimpleRenderingLogger = DEBUGGING_ONLY,
         ): ExitState {
             val names: List<String> = containers.map { it.name }
             val dockerRemoveCommandLine = DockerRemoveCommandLine {

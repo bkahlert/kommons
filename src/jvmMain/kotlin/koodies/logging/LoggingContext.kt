@@ -7,12 +7,9 @@ import koodies.runtime.isTesting
 import koodies.runtime.onExit
 import koodies.takeIfDebugging
 import koodies.text.ANSI.Formatter.Companion.fromScratch
-import koodies.text.LineSeparators
-import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.Semantics.FieldDelimiters
-import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.wrapWithBorder
 import koodies.time.Now
@@ -34,17 +31,17 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
         override fun toString(): String {
             return use {
                 groupBy({ it.first }) { it.second }.map { (logger, messages) ->
-                    logger.caption to messages.joinToString("").withoutTrailingLineSeparator
+                    logger.name to messages.joinToString("").removeTrailingLineSeparator
                 }.joinToString(FieldDelimiters.FIELD)
             }
         }
     }
 
-    public val RenderingLogger.logged: String
+    public val SimpleRenderingLogger.logged: String
         get() = messages.joinMessages {
             val logger = this@logged
             if (logger == first) second else ""
-        }.withoutTrailingLineSeparator
+        }.removeTrailingLineSeparator
 
     public var mostRecent: FixedWidthRenderingLogger = this
         private set
@@ -58,22 +55,15 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
         if (!muted) print(message)
     }
 
-    override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit {
-        val message = if (closed) {
-            val prefix = Symbols.Computation + " "
-            val message = block().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
-            if (trailingNewline || !message.hasTrailingLineSeparator) message + LineSeparators.LF else message
-        } else {
-            val message = block().toString()
-            if (trailingNewline) message + LineSeparators.LF else message
-        }
+    override fun render(block: () -> CharSequence): Unit {
+        val message = block().toString()
         defaultOut(message)
     }
 
     private val exclusiveOut by baseMessageStream.map { (logger, message) -> messages.record(Pair(logger, message)); print(message) }
     public fun <R> runExclusive(block: FixedWidthRenderingLogger.() -> R): R =
         koodies.runWrapping({ muted = true }, { muted = false }) {
-            BlockRenderingLogger(caption, this, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(
+            BlockRenderingLogger(name, this, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(
                 block)
         }
 
@@ -88,7 +78,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
     override fun toString(): String = asString {
         ::startup to startup
         ::messages to messages
-        ::mostRecent to mostRecent.caption
+        ::mostRecent to mostRecent.name
         ::muted to muted
     }
 

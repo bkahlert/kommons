@@ -1,6 +1,9 @@
 package koodies.io.path
 
 import koodies.io.copyToDirectory
+import koodies.io.randomDirectory
+import koodies.io.randomFile
+import koodies.io.randomPath
 import koodies.test.HtmlFixture
 import koodies.test.UniqueId
 import koodies.test.withTempDir

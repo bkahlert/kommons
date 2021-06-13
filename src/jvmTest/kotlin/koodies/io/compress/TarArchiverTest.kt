@@ -5,7 +5,7 @@ import koodies.io.compress.TarArchiver.untar
 import koodies.io.path.addExtensions
 import koodies.io.path.getSize
 import koodies.io.path.hasSameFiles
-import koodies.io.path.randomPath
+import koodies.io.randomPath
 import koodies.io.path.removeExtensions
 import koodies.io.path.renameTo
 import koodies.io.path.touch

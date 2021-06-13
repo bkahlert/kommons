@@ -27,7 +27,7 @@ class MicroLoggerTest {
     @Test
     fun InMemoryLogger.`should micro inside of compact scope`() {
 
-        compactLogging("caption") {
+        compactLogging("name") {
             logLine { "something" }
             compactLogging("🤠") {
                 logStatus { IO.Output typed "ABC" }
@@ -41,7 +41,7 @@ class MicroLoggerTest {
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
             │
-            │   caption something (🤠 ABC ˃ 123 ˃ ✔︎) something ✔︎
+            │   name something (🤠 ABC ˃ 123 ˃ ✔︎) something ✔︎
             │
             ╰──╴✔︎
         """.trimIndent())

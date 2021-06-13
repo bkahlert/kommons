@@ -2,7 +2,6 @@ package koodies.test
 
 import koodies.runtime.CallStackElement
 import koodies.text.withPrefix
-import koodies.text.withoutSuffix
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.platform.engine.UniqueId.Segment
 import org.junit.platform.engine.UniqueId.parse
@@ -91,7 +90,7 @@ class UniqueId private constructor(
                 .filter { it.isNotBlank() && it != UniqueId::class.qualifiedName }
                 .joinToString("") { "-" + formatClass(it) }
 
-            return value.split("(").let { it.first().replace(" ", "_") + formatArgs(it.last().withoutSuffix(")")) }
+            return value.split("(").let { it.first().replace(" ", "_") + formatArgs(it.last().removeSuffix(")")) }
         }
     }
 }

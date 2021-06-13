@@ -1,20 +1,15 @@
 package koodies.logging
 
 import koodies.exec.IO
-import koodies.io.ByteArrayOutputStream
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.runtime.isDebugging
+import koodies.logging.SimpleRenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.Smoke
 import koodies.test.output.Columns
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.ANSI.ansiRemoved
-import koodies.text.LineSeparators
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -23,12 +18,11 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 
 @Smoke
-class RenderingLoggerKtTest {
+class SimpleRenderingLoggerKtTest {
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log`() {
@@ -217,7 +211,7 @@ class RenderingLoggerKtTest {
             │   │
             │   │   nested 1                                          {}                                      ▮▮
             │   ϟ{}
-            │   ╰──╴IllegalStateException: an exception at.(${RenderingLoggerKtTest::class.simpleName}.kt:{}){}
+            │   ╰──╴IllegalStateException: an exception at.({}Test.kt:{}){}
         """.trimIndent(), ignoreTrailingLines = true)
     }
 
@@ -296,7 +290,7 @@ class RenderingLoggerKtTest {
     }
 
     @TestFactory
-    fun `should render multi-line caption`() = testEach(
+    fun `should render multi-line name`() = testEach(
         SOLID to """
             ╭──╴{}
             │
@@ -322,7 +316,7 @@ class RenderingLoggerKtTest {
         containerNamePattern = "border={}",
     ) { (border, expectation) ->
         val logger: InMemoryLogger = InMemoryLogger().applyLogging {
-            logging(caption = "line #1\nline #2".ansi.red, border = border) {
+            logging(name = "line #1\nline #2".ansi.red, border = border) {
                 logLine { "logged line" }
             }
         }
@@ -331,83 +325,13 @@ class RenderingLoggerKtTest {
     }
 
     @Nested
-    inner class LoggingAfterResult {
-
-        private fun createLogger(
-            caption: String,
-            parent: RenderingLogger? = null,
-            init: RenderingLogger.() -> Unit,
-        ): Pair<ByteArrayOutputStream, RenderingLogger> {
-            val baos = ByteArrayOutputStream()
-            return baos to RenderingLogger(caption, parent) {
-                if (isDebugging) print(it)
-                baos.write(it.ansiRemoved.toByteArray())
-            }.apply(init)
-        }
-
-        @TestFactory
-        fun `should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
-            val (out, logger) = createLogger(opName) {
-                logLine { "line" }
-                logResult()
-            }
-
-            logger.op()
-
-            expecting { out } that {
-                toStringMatchesCurlyPattern("""
-                    line
-                    ✔︎
-                    ⏳️ {}
-                """.trimIndent())
-            }
-        }
-
-        @TestFactory
-        fun `should log after logged message and result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
-            val (out, logger) = createLogger(opName) {
-                logResult()
-            }
-
-            logger.op()
-
-            expecting { out } that {
-                toStringMatchesCurlyPattern("""
-                    ✔︎
-                    ⏳️ {}
-                """.trimIndent())
-            }
-        }
-
-        @Test
-        fun `should log multi-line after logged result`() {
-            val (out, logger) = createLogger("multi-line") {
-                logResult()
-            }
-
-            logger.logLine { "line 1\nline 2" }
-            logger.logText { "text 1\ntext 2" }
-
-            expectThat(out.toString())
-                .endsWith(LineSeparators.LF)
-                .matchesCurlyPattern("""
-                    ✔︎
-                    ⏳️ line 1
-                    ⏳️ line 2
-                    ⏳️ text 1
-                    ⏳️ text 2
-                """.trimIndent())
-        }
-    }
-
-    @Nested
     inner class ToString {
 
         @Test
         fun `should contain closed state`() {
-            val logger = RenderingLogger("test", null)
+            val logger = SimpleRenderingLogger("test", null)
             expectThat(logger).toStringMatchesCurlyPattern("""
-                RenderingLogger { open = false{}caption = test }
+                SimpleRenderingLogger { open = false{}name = test }
             """.trimIndent())
         }
     }

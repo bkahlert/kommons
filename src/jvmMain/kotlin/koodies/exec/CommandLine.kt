@@ -13,7 +13,7 @@ import koodies.io.path.executable
 import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.truncate
 import koodies.text.unquoted
 import org.codehaus.plexus.util.cli.shell.FormattingShell
@@ -75,7 +75,7 @@ public open class CommandLine(
     public override val summary: String = multiLineShellCommand.run {
         if (length <= 60) {
             commandLineParts.joinToString(" ").truncate(60, " … ")
-                .withoutTrailingLineSeparator
+                .removeTrailingLineSeparator
         } else {
             ShellScript {
                 shebang
@@ -177,7 +177,7 @@ public open class CommandLine(
          * that would generate the same string again.
          */
         public fun parseOrNull(commandLine: CharSequence): CommandLine? {
-            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").withoutTrailingLineSeparator)
+            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").removeTrailingLineSeparator)
             val rawCommandline = plexusCommandLine.rawCommandline
             return rawCommandline.takeIf { it.isNotEmpty() }
                 ?.let { CommandLine(it.first(), it.drop(1)) }

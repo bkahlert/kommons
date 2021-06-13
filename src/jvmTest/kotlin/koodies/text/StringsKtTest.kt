@@ -68,25 +68,6 @@ class StringsKtTest {
     }
 
     @Nested
-    inner class WithPrefixKtTest {
-
-        @Test
-        fun `should prepend prefix if missing`() {
-            expectThat("foo".withPrefix("bar")).isEqualTo("barfoo")
-        }
-
-        @Test
-        fun `should fully prepend prefix if partially present`() {
-            expectThat("rfoo".withPrefix("bar")).isEqualTo("barrfoo")
-        }
-
-        @Test
-        fun `should not prepend prefix if present`() {
-            expectThat("barfoo".withPrefix("bar")).isEqualTo("barfoo")
-        }
-    }
-
-    @Nested
     inner class WithRandomSuffixKtTest {
 
         @TestFactory
@@ -104,6 +85,25 @@ class StringsKtTest {
                 matches(Regex("$it--[0-9a-zA-Z]{4}"))
                 endsWithRandomSuffix()
             }
+        }
+    }
+
+    @Nested
+    inner class WithPrefixKtTest {
+
+        @Test
+        fun `should prepend prefix if missing`() {
+            expectThat("foo".withPrefix("bar")).isEqualTo("barfoo")
+        }
+
+        @Test
+        fun `should fully prepend prefix if partially present`() {
+            expectThat("rfoo".withPrefix("bar")).isEqualTo("barrfoo")
+        }
+
+        @Test
+        fun `should not prepend prefix if present`() {
+            expectThat("barfoo".withPrefix("bar")).isEqualTo("barfoo")
         }
     }
 

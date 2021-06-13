@@ -5,7 +5,6 @@ import koodies.io.file.asReadOnly
 import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.toMappedPath
 import koodies.jvm.contextClassLoader
-import koodies.text.withoutPrefix
 import java.net.URI
 import java.nio.file.FileSystem
 import java.nio.file.LinkOption
@@ -36,7 +35,7 @@ public fun ClassLoader.loadClassOrNull(name: String): Class<*>? = kotlin.runCatc
  * >java.nio.file.Path for a classpath resource</a>
  */
 public inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
-    val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
+    val normalizedPath = path.removePrefix("classpath:").removePrefix("/")
     return contextClassLoader.getResources(normalizedPath).asSequence().map { url ->
         url.toMappedPath { classPath -> classPath.asReadOnly().transform() }
     }.toList()
@@ -56,7 +55,7 @@ public inline fun <reified T> useClassPaths(path: String, crossinline transform:
  * @see useClassPaths
  */
 public inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
-    val normalizedPath = path.withoutPrefix("classpath:", ignoreCase = true).withoutPrefix("/")
+    val normalizedPath = path.removePrefix("classpath:").removePrefix("/")
     return contextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
 }
 

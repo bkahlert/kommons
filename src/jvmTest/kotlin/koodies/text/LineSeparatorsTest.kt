@@ -35,11 +35,12 @@ import koodies.text.LineSeparators.linesOfLength
 import koodies.text.LineSeparators.linesOfLengthSequence
 import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.prefixLinesWith
+import koodies.text.LineSeparators.removeLeadingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.LineSeparators.trailingLineSeparator
 import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withTrailingLineSeparator
-import koodies.text.LineSeparators.withoutLeadingLineSeparator
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
 import koodies.text.LineSeparators.wrapLines
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -171,8 +172,8 @@ class LineSeparatorsTest {
         expecting { "${lineSeparator}line".hasLeadingLineSeparator } that { isTrue() }
         expecting { "X${lineSeparator}line".hasLeadingLineSeparator } that { isFalse() }
 
-        expecting { "${lineSeparator}line".withoutLeadingLineSeparator } that { isEqualTo("line") }
-        expecting { "X${lineSeparator}line".withoutLeadingLineSeparator } that { isEqualTo("X${lineSeparator}line") }
+        expecting { "${lineSeparator}line".removeLeadingLineSeparator } that { isEqualTo("line") }
+        expecting { "X${lineSeparator}line".removeLeadingLineSeparator } that { isEqualTo("X${lineSeparator}line") }
 
 
         expecting { "line$lineSeparator".trailingLineSeparator } that { isEqualTo(lineSeparator) }
@@ -181,8 +182,12 @@ class LineSeparatorsTest {
         expecting { "line$lineSeparator".hasTrailingLineSeparator } that { isTrue() }
         expecting { "line${lineSeparator}X".hasTrailingLineSeparator } that { isFalse() }
 
-        expecting { "line$lineSeparator".withoutTrailingLineSeparator } that { isEqualTo("line") }
-        expecting { "line${lineSeparator}X".withoutTrailingLineSeparator } that { isEqualTo("line${lineSeparator}X") }
+        expecting { "line$lineSeparator".removeTrailingLineSeparator } that { isEqualTo("line") }
+        expecting { "line${lineSeparator}X".removeTrailingLineSeparator } that { isEqualTo("line${lineSeparator}X") }
+
+
+        expecting { "line$lineSeparator".runIgnoringTrailingLineSeparator { "[$it]" } } that { isEqualTo("[line]$lineSeparator") }
+        expecting { "line${lineSeparator}X".runIgnoringTrailingLineSeparator { "[$it]" } } that { isEqualTo("[line${lineSeparator}X]") }
 
 
         group("firstLineSeparatorAndLength") {

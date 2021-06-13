@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.io.InternalLocations
+import koodies.io.Koodies
 import koodies.io.fileAlreadyExists
 import koodies.io.tempFile
 import java.nio.file.Path
@@ -8,7 +8,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 
 public val cloneFileSupport: Boolean by lazy {
-    val file: Path = InternalLocations.FilesTemp.tempFile().apply {
+    val file: Path = Koodies.FilesTemp.tempFile().apply {
         writeText("cloneFile test")
         deleteOnExit()
     }

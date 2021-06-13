@@ -1,7 +1,7 @@
 package koodies.io.file
 
-import koodies.io.path.randomDirectory
-import koodies.io.path.randomFile
+import koodies.io.randomDirectory
+import koodies.io.randomFile
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested

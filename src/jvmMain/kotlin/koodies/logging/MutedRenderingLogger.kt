@@ -22,7 +22,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
     override fun toString(): String = "log > /dev/null"
 
     override fun <R> blockLogging(
-        caption: CharSequence,
+        name: CharSequence,
         contentFormatter: Formatter?,
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
@@ -31,7 +31,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
     ): R = this.block()
 
     override fun <R> compactLogging(
-        caption: CharSequence,
+        name: CharSequence,
         contentFormatter: Formatter?,
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
@@ -39,7 +39,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
     ): R = COMPACT.block()
 
     override fun <R> logging(
-        caption: CharSequence,
+        name: CharSequence,
         contentFormatter: Formatter?,
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,

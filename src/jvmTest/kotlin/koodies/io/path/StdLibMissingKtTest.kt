@@ -2,6 +2,7 @@ package koodies.io.path
 
 import koodies.io.Locations
 import koodies.io.copyToDirectory
+import koodies.io.randomFile
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.Fixtures.symbolicLink

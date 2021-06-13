@@ -91,7 +91,7 @@ public object LineSeparators : Collection<String> {
     public val MAX_LENGTH: Int by lazy { ALL.maxOf { it.length } }
 
     /**
-     * If this [CharSequence] consists of more than one line this property is `true`.
+     * If this character sequence consists of more than one line this property is `true`.
      */
     public val CharSequence?.isMultiline: Boolean get() = lines().size > 1
 
@@ -130,7 +130,7 @@ public object LineSeparators : Collection<String> {
 
 
     /**
-     * Auto-detects the line separator used in the given [charSequence].
+     * Auto-detects the line separator used in the given character sequence.
      */
     public fun autoDetect(charSequence: CharSequence): String {
         val histogram: MutableMap<String, Int?> = associateWith { null }.toMutableMap()
@@ -154,57 +154,63 @@ public object LineSeparators : Collection<String> {
         fold(charSequence.toString()) { acc, sep -> acc.replace(sep, DEFAULT) }
 
     /**
-     * If this [CharSequence] starts with one of the [LineSeparators] this property includes it.
+     * If this character sequence starts with one of the [LineSeparators] this property includes it.
      */
     public val CharSequence.leadingLineSeparator: String? get() :String? = ALL.firstOrNull { startsWith(it) }
 
     /**
-     * If this [CharSequence] starts with one of the [LineSeparators] this property is `true`.
+     * If this character sequence starts with one of the [LineSeparators] this property is `true`.
      */
     public val CharSequence.hasLeadingLineSeparator: Boolean get() = leadingLineSeparator != null
 
     /**
-     * If this [String] starts with one of the [LineSeparators] this property contains this [String] without it.
+     * If this character sequence starts with one of the [LineSeparators] this property contains this string without it.
      */
-    public val String.withoutLeadingLineSeparator: String
-        get() = (this as CharSequence).leadingLineSeparator?.let { lineBreak -> removePrefix(lineBreak) } ?: this
+    public val CharSequence.removeLeadingLineSeparator: String
+        get() = leadingLineSeparator?.let { removePrefix(it).toString() } ?: toString()
 
     /**
-     * If this [CharSequence] ends with one of the [LineSeparators] this property includes it.
+     * If this character sequence ends with one of the [LineSeparators] this property includes it.
      */
-    public val CharSequence?.trailingLineSeparator: String? get() :String? = if (this != null) ALL.firstOrNull { endsWith(it) } else null
+    public val CharSequence.trailingLineSeparator: String? get() :String? = ALL.firstOrNull { endsWith(it) }
 
     /**
-     * If this [CharSequence] ends with one of the [LineSeparators] this property is `true`.
+     * If this character sequence ends with one of the [LineSeparators] this property is `true`.
      */
-    public val CharSequence?.hasTrailingLineSeparator: Boolean get() = trailingLineSeparator != null
+    public val CharSequence.hasTrailingLineSeparator: Boolean get() = trailingLineSeparator != null
 
     /**
-     * If this [String] ends with one of the [LineSeparators] this property contains this [String] without it.
+     * If this character sequence ends with one of the [LineSeparators] this property contains this string without it.
      */
-    public val String.withoutTrailingLineSeparator: String
-        get() = (this as CharSequence).trailingLineSeparator?.let { lineBreak -> removeSuffix(lineBreak) } ?: this
+    public val CharSequence.removeTrailingLineSeparator: String
+        get() = trailingLineSeparator?.let { removeSuffix(it).toString() } ?: toString()
 
     /**
-     * If this [String] does not end with one of the [LineSeparators] this string appended
+     * If this string does not end with one of the [LineSeparators] this string appended
      * with the given [lineSeparator] (default: [autoDetect]) is returned.
      *
      * If [append] is set to false, `this` string is returned unchanged, which is handy
      * if the needed behaviour is dynamic.
      */
-    public fun String.withTrailingLineSeparator(append: Boolean = true, lineSeparator: String = autoDetect(this)): String =
-        if (append && !hasTrailingLineSeparator) this + lineSeparator else this
+    public fun CharSequence.withTrailingLineSeparator(append: Boolean = true, lineSeparator: String = autoDetect(this)): String =
+        if (append && !hasTrailingLineSeparator) toString() + lineSeparator else toString()
 
     /**
-     * If this [CharSequence] [isMultiline] this property contains the first line's line separator.
+     * If this character sequence [isMultiline] this property contains the first line's line separator.
      */
     public val CharSequence.firstLineSeparator: String?
         get() = lineSequence(keepDelimiters = true).firstOrNull()?.trailingLineSeparator
 
     /**
-     * If this [CharSequence] [isMultiline] this property contains the first line's line separator length.
+     * If this character sequence [isMultiline] this property contains the first line's line separator length.
      */
     public val CharSequence.firstLineSeparatorLength: Int get() = firstLineSeparator?.length ?: 0
+
+    /**
+     * Applies the specified [block] on this character sequence without an eventually existing [trailingLineSeparator].
+     */
+    public fun CharSequence.runIgnoringTrailingLineSeparator(block: (CharSequence) -> CharSequence): String =
+        trailingLineSeparator?.let { removeSuffix(it).let(block).toString() + trailingLineSeparator } ?: toString()
 
     /**
      * Maps each line of this character sequence using [transform].
@@ -213,13 +219,15 @@ public object LineSeparators : Collection<String> {
      *
      * If this character sequence has a trailing line that trailing line is left unchanged.
      */
-    public fun CharSequence?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
-        (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
-            lines().map(transform)
-                .let { if (trailingLineSeparator) it.dropLast(1) else it }
-                .joinToString(LF)
-                .let { if (trailingLineSeparator) it + LF else it }
-        }
+    public fun CharSequence?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String {
+        if (this == null) return ""
+        val mappedLines = lines().map(transform)
+        val trailingLineSeparator = hasTrailingLineSeparator && ignoreTrailingSeparator
+        return mappedLines
+            .let { if (trailingLineSeparator) it.dropLast(1) else it }
+            .joinToString(LF)
+            .let { if (trailingLineSeparator) it + LF else it }
+    }
 
     /**
      * Maps each line of this string using [transform].
@@ -238,16 +246,18 @@ public object LineSeparators : Collection<String> {
      *
      * If this character sequence has a trailing line that trailing line is left unchanged.
      */
-    public fun <T : CharSequence?> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String =
-        (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
+    public fun <T : CharSequence?> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String {
+        if (this == null) return ""
+        return (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
             lines().map { line -> transform(line).joinToString(LF) }
                 .let { if (trailingLineSeparator) it.dropLast(1) else it }
                 .joinToString(LF)
                 .let { if (trailingLineSeparator) it + LF else it }
         }
+    }
 
     /**
-     * Returns the [String] of what all lines of text are prefixed with the given [prefix].
+     * Returns this character sequence with all lines of text it consists of prefixed with the given [prefix].
      */
     public fun CharSequence?.prefixLinesWith(prefix: CharSequence, ignoreTrailingSeparator: Boolean = true): String =
         mapLines(ignoreTrailingSeparator) { "$prefix$it" }

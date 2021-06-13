@@ -14,10 +14,10 @@ import koodies.exec.Executable
 import koodies.exec.Process.ExitState
 import koodies.exec.output
 import koodies.exec.parse
-import koodies.io.InternalLocations
+import koodies.io.Koodies
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.LoggingContext.Companion.DEBUGGING_ONLY
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.or
 import koodies.requireSaneInput
 import koodies.text.LineSeparators.lines
@@ -112,9 +112,9 @@ public open class DockerImage(
     public val isPulled: Boolean get() = with(DEBUGGING_ONLY) { isPulled }
 
     /**
-     * Current pulled state of this image—queried using `this` [RenderingLogger].
+     * Current pulled state of this image—queried using `this` [SimpleRenderingLogger].
      */
-    public val RenderingLogger.isPulled: Boolean
+    public val SimpleRenderingLogger.isPulled: Boolean
         get() = DockerImageListCommandLine {
             image by this@DockerImage
         }.exec.logging(this) {
@@ -129,7 +129,7 @@ public open class DockerImage(
      */
     public fun pull(
         allTags: Boolean = false,
-        logger: RenderingLogger = DEBUGGING_ONLY,
+        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
     ): ExitState =
         DockerImagePullCommandLine {
             options { this.allTags by allTags }
@@ -145,7 +145,7 @@ public open class DockerImage(
      */
     public fun remove(
         force: Boolean = false,
-        logger: RenderingLogger = DEBUGGING_ONLY,
+        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
     ): ExitState =
         DockerImageRemoveCommandLine {
             options { this.force by force }
@@ -163,7 +163,7 @@ public open class DockerImage(
             val page = 1
             val pageSize = 100
             val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
-            return InternalLocations.ExecTemp.curlJq(null) {
+            return Koodies.ExecTemp.curlJq(null) {
                 "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"
             }.io.output.ansiRemoved.lines()
         }
@@ -296,7 +296,7 @@ public open class DockerImage(
         /**
          * Lists locally available images.
          */
-        public fun list(ignoreIntermediateImages: Boolean = true, logger: RenderingLogger = DEBUGGING_ONLY): List<DockerImage> =
+        public fun list(ignoreIntermediateImages: Boolean = true, logger: SimpleRenderingLogger = DEBUGGING_ONLY): List<DockerImage> =
             DockerImageListCommandLine {
                 options { all by !ignoreIntermediateImages }
             }.exec.logging(logger) {

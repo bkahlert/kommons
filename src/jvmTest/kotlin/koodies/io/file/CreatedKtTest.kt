@@ -1,6 +1,6 @@
 package koodies.io.file
 
-import koodies.io.path.randomFile
+import koodies.io.randomFile
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.time.Now

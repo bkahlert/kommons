@@ -198,8 +198,8 @@ class ReturnValueKtTest {
     }
 }
 
-private fun InMemoryLoggerFactory.render(border: Border, captionSuffix: String, block: RenderingLogger.() -> Any?): String {
-    val logger = createLogger(captionSuffix, border)
+private fun InMemoryLoggerFactory.render(border: Border, nameSuffix: String, block: SimpleRenderingLogger.() -> Any?): String {
+    val logger = createLogger(nameSuffix, border)
     logger.runLogging(block)
     return logger.toString()
 }

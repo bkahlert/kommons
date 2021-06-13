@@ -7,7 +7,6 @@ import koodies.io.path.pathString
 import koodies.text.LineSeparators.LF
 import koodies.text.joinToCamelCase
 import koodies.text.withSuffix
-import koodies.text.withoutSuffix
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
@@ -54,7 +53,7 @@ class FilePeek2(
 
         val pkg = stackTraceElement.className.split(".").dropLast(1)
         val fileName = stackTraceElement.fileName ?: error("Unknown filename in $stackTraceElement")
-        val fileNames: List<String> = listOf(fileName, fileName.withoutSuffix(".kt").withSuffix("Kt.kt"))
+        val fileNames: List<String> = listOf(fileName, fileName.removeSuffix(".kt").withSuffix("Kt.kt"))
         val sourceFileDir = sourceDir.resolve(Path.of(pkg.head, *pkg.tail.toTypedArray()))
         val sourceFile: Path = fileNames.map { sourceFileDir.resolve(it) }.single { it.exists() }
 

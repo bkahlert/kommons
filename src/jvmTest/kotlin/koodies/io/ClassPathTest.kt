@@ -103,7 +103,7 @@ class ClassPathTest {
         @Test
         fun `should copy file to temp`() {
             expecting { META_INF.Services.JUnitExtensions.copyToTemp().deleteOnExit() } that {
-                parent.isEqualTo(InternalLocations.FilesTemp)
+                parent.isEqualTo(Koodies.FilesTemp)
                 text.contains("koodies.debug.DebugCondition")
             }
         }
@@ -130,8 +130,8 @@ class ClassPathTest {
 
         @Test
         fun `should copy directory to temp`() {
-            expecting { META_INF.Services.copyToTemp().deleteOnExit() } that {
-                parent.isEqualTo(InternalLocations.FilesTemp)
+            expecting { META_INF.Services.copyToTemp().deleteOnExit(recursively = true) } that {
+                parent.isEqualTo(Koodies.FilesTemp)
                 get { listDirectoryEntriesRecursively() }.size.isGreaterThanOrEqualTo(2)
             }
         }

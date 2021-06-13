@@ -15,14 +15,6 @@ public object CharRanges {
 }
 
 /**
- * Returns the length of this character sequence.
- * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- * @return number of characters
- */
-public fun CharSequence.length(ansi: Boolean = true): Int =
-    if (ansi) ansiRemoved.length else length
-
-/**
  * Creates a random string of the specified [length] made up of the specified [allowedCharacters].
  */
 public fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRanges.Alphanumeric): String =
@@ -30,11 +22,8 @@ public fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRan
         repeat(length) { append(allowedCharacters[Random.nextInt(0, allowedCharacters.size)]) }
     }.toString()
 
-/**
- * Returns this [CharSequence] with the [prefix] prepended if it is not already there.
- */
-public fun CharSequence.withPrefix(prefix: String): String =
-    if (startsWith(prefix)) toString() else prefix + toString()
+private const val randomSuffixLength = 4
+private val randomSuffixMatcher: Regex = Regex(".*--[0-9a-zA-Z]{$randomSuffixLength}\$")
 
 /**
  * Returns this [CharSequence] with a random suffix of two dashes dash and four alpha-numeric characters.
@@ -44,32 +33,11 @@ public fun CharSequence.withRandomSuffix(): String {
     return "$this--${randomString(length = randomSuffixLength, allowedCharacters = CharRanges.Alphanumeric)}"
 }
 
-private const val randomSuffixLength = 4
-private val randomSuffixMatcher: Regex = Regex(".*--[0-9a-zA-Z]{$randomSuffixLength}\$")
-
-
 /**
- * If this character sequence starts with the given [prefix], returns a new character sequence
- * with the prefix removed. Otherwise, returns a new character sequence with the same characters.
+ * Returns this [CharSequence] with the [prefix] prepended if it is not already there.
  */
-public fun CharSequence.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): CharSequence {
-    if (startsWith(prefix, ignoreCase = ignoreCase)) {
-        return subSequence(prefix.length, length)
-    }
-    return subSequence(0, length)
-}
-
-/**
- * If this string starts with the given [prefix], returns a copy of this string
- * with the prefix removed. Otherwise, returns this string.
- */
-public fun String.withoutPrefix(prefix: CharSequence, ignoreCase: Boolean = false): String {
-    if (startsWith(prefix, ignoreCase = ignoreCase)) {
-        return substring(prefix.length)
-    }
-    return this
-}
-
+public fun CharSequence.withPrefix(prefix: String): String =
+    if (startsWith(prefix)) toString() else prefix + toString()
 
 /**
  * Returns this [CharSequence] with the [suffix] appended if it is not already there.
@@ -79,40 +47,12 @@ public fun CharSequence.withSuffix(suffix: String): String =
 
 
 /**
- * If this character sequence ends with the given [suffix], returns a new character sequence
- * with the suffix removed. Otherwise, returns a new character sequence with the same characters.
+ * Returns the length of this character sequence.
+ * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
+ * @return number of characters
  */
-public fun CharSequence.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): CharSequence {
-    if (endsWith(suffix, ignoreCase = ignoreCase)) {
-        return subSequence(0, length - suffix.length)
-    }
-    return subSequence(0, length)
-}
-
-/**
- * If this string ends with the given [suffix], returns a copy of this string
- * with the suffix removed. Otherwise, returns this string.
- */
-public fun String.withoutSuffix(suffix: CharSequence, ignoreCase: Boolean = false): String {
-    if (endsWith(suffix, ignoreCase = ignoreCase)) {
-        return substring(0, length - suffix.length)
-    }
-    return this
-}
-
-/**
- * Removes from a string both the given [Pair.first] and [Pair.second] if and only if
- * it starts with the [Pair.first] and ends with the [Pair.second].
- * Otherwise returns this string unchanged.
- */
-public fun String.removeSurrounding(prefixSuffixPair: Pair<CharSequence, CharSequence>): String {
-    val (prefix, suffix) = prefixSuffixPair
-    if ((length >= prefix.length + suffix.length) && startsWith(prefix) && endsWith(suffix)) {
-        return substring(prefix.length, length - suffix.length)
-    }
-    return this
-}
-
+public fun CharSequence.length(ansi: Boolean = true): Int =
+    if (ansi) ansiRemoved.length else length
 
 /**
  * Returns a character sequence with content of this character sequence padded at the beginning

@@ -27,7 +27,8 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
 import koodies.io.tempDir
 import koodies.logging.InMemoryLogger
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
+import koodies.logging.capturing
 import koodies.runtime.onExit
 import koodies.shell.ShellScript
 import koodies.test.BuilderFixture
@@ -40,14 +41,12 @@ import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
-import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -377,19 +376,21 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun `should exec logging using specified image`() = testEach<Executable<Exec>.(RenderingLogger) -> DockerExec>(
+    fun InMemoryLogger.`should exec logging using specified image`() = testEach<Executable<Exec>.(SimpleRenderingLogger) -> DockerExec>(
         { dockerized(Ubuntu).exec.logging(it) },
         { dockerized { "ubuntu" }.exec.logging(it) },
         { with(Ubuntu) { dockerized.exec.logging(it) } },
     ) { execVariant ->
         expecting {
-            InMemoryLogger().also { CommandLine("printenv", "HOME").execVariant(it) }.toString().ansiRemoved.lines()
+            capturing { CommandLine("printenv", "HOME").execVariant(it) }
         } that {
-            any { matchesCurlyPattern("{}▶ docker run ubuntu printenv HOME") }
-            any { matchesCurlyPattern("{}Executing {}") }
-            any { matchesCurlyPattern("{}/root") }
-            any { matchesCurlyPattern("{}Process {} terminated {}") }
-            any { matchesCurlyPattern("{}✔︎") }
+            matchesCurlyPattern("""
+                ▶ docker run ubuntu printenv HOME
+                · Executing {}
+                · /root
+                · Process {} terminated {}
+                ✔︎
+            """.trimIndent())
         }
     }
 

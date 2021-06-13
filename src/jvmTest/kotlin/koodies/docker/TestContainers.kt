@@ -11,8 +11,8 @@ import koodies.exec.CommandLine
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.RenderingLogger
 import koodies.logging.ReturnValues
+import koodies.logging.SimpleRenderingLogger
 import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
 import koodies.test.UniqueId
@@ -345,7 +345,7 @@ interface TestImageProvider {
 class TestImage(
     private val lock: ReentrantLock,
     image: DockerImage,
-    private val logger: RenderingLogger,
+    private val logger: SimpleRenderingLogger,
 ) : DockerImage(
     image.repository,
     image.path,

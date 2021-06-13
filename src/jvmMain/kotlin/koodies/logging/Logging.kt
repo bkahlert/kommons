@@ -9,12 +9,12 @@ import kotlin.contracts.contract
 @DslMarker
 public annotation class RenderingLoggingDsl
 
-public inline fun <R, L : RenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
+public inline fun <R, L : SimpleRenderingLogger> L.applyLogging(crossinline block: L.() -> R): L {
     contract { callsInPlace(block, EXACTLY_ONCE) }
     return apply { runLogging(block) }
 }
 
-public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
+public inline fun <T : SimpleRenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
     contract { callsInPlace(block, EXACTLY_ONCE) }
 
     val result: Result<R> = runCatching { span.runExceptionRecording { block() } }
@@ -25,7 +25,7 @@ public inline fun <T : RenderingLogger, R> T.runLogging(crossinline block: T.() 
 /**
  * Logs the given [returnValue] as the value that is returned from the logging span.
  */
-public inline fun <reified T : RenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
+public inline fun <reified T : SimpleRenderingLogger> T.logReturnValue(returnValue: ReturnValue) {
     logResult(returnValue)
 }
 
@@ -34,14 +34,14 @@ public inline fun <reified T : RenderingLogger> T.logReturnValue(returnValue: Re
  */
 @RenderingLoggingDsl
 public fun <R> logging(
-    caption: CharSequence,
+    name: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = BlockRenderingLogger.DEFAULT_BORDER,
     block: FixedWidthRenderingLogger.() -> R,
 ): R = SmartRenderingLogger(
-    caption,
+    name,
     null,
     { LoggingContext.BACKGROUND.logText { it } },
     contentFormatter,
@@ -54,9 +54,9 @@ public fun <R> logging(
 /**
  * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
  */
-public inline fun <reified T : RenderingLogger, reified R> T.logResult(result: R): R = logResult(Result.success(result))
+public inline fun <reified T : SimpleRenderingLogger, reified R> T.logResult(result: R): R = logResult(Result.success(result))
 
 /**
  * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
  */
-public inline fun <reified T : RenderingLogger> T.logResult(): Unit = logResult(Result.success(Unit))
+public inline fun <reified T : SimpleRenderingLogger> T.logResult(): Unit = logResult(Result.success(Unit))

@@ -22,8 +22,8 @@ import koodies.text.withPrefix
  * Logger interface with the ability to render its log with a border.
  */
 public abstract class FixedWidthRenderingLogger(
-    caption: String,
-    parent: RenderingLogger?,
+    name: String,
+    parent: SimpleRenderingLogger?,
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
@@ -34,17 +34,17 @@ public abstract class FixedWidthRenderingLogger(
     statusInformationColumns: Int? = null,
     width: Int? = null,
     public open val prefix: String = "",
-) : RenderingLogger(caption, parent, log) {
+) : SimpleRenderingLogger(name, parent, log) {
 
     public enum class Border {
         SOLID {
             override fun prefix(formatter: Formatter?): String = formatter.invoke("│").toString() + "   "
 
-            override fun header(caption: String, formatter: Formatter?): String =
+            override fun header(name: String, formatter: Formatter?): String =
                 koodies.builder.buildList {
-                    val captionLines = caption.asAnsiString().lines()
-                    +(formatter("╭──╴").toString() + formatter(captionLines.first()).ansi.bold)
-                    captionLines.drop(1).forEach {
+                    val nameLines = name.asAnsiString().lines()
+                    +(formatter("╭──╴").toString() + formatter(nameLines.first()).ansi.bold)
+                    nameLines.drop(1).forEach {
                         +"${prefix(formatter)}${formatter(it).ansi.bold}"
                     }
                     +formatter.invoke("│").toString()
@@ -74,11 +74,11 @@ public abstract class FixedWidthRenderingLogger(
             private fun whitePlaySymbol(formatter: Formatter?) = formatter("▷").toString()
 
             override fun prefix(formatter: Formatter?): String = formatter("·").toString() + " "
-            override fun header(caption: String, formatter: Formatter?): String {
+            override fun header(name: String, formatter: Formatter?): String {
                 return koodies.builder.buildList {
-                    val captionLines = caption.asAnsiString().lines()
-                    +"${playSymbol(formatter)} ${formatter(captionLines.first()).ansi.bold}"
-                    captionLines.drop(1).forEach {
+                    val nameLines = name.asAnsiString().lines()
+                    +"${playSymbol(formatter)} ${formatter(nameLines.first()).ansi.bold}"
+                    nameLines.drop(1).forEach {
                         +"${whitePlaySymbol(formatter)} ${formatter(it).ansi.bold}"
                     }
                 }.joinToString(LF)
@@ -90,13 +90,13 @@ public abstract class FixedWidthRenderingLogger(
         },
         NONE {
             override fun prefix(formatter: Formatter?): String = ""
-            override fun header(caption: String, formatter: Formatter?): String = caption.ansi.bold.done
+            override fun header(name: String, formatter: Formatter?): String = name.ansi.bold.done
             override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String =
                 resultValueFormatter(returnValue).format()
         };
 
         public abstract fun prefix(formatter: Formatter?): String
-        public abstract fun header(caption: String, formatter: Formatter?): String
+        public abstract fun header(name: String, formatter: Formatter?): String
         public abstract fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String
 
         public companion object {
@@ -135,12 +135,11 @@ public abstract class FixedWidthRenderingLogger(
      */
     public open fun logStatus(items: List<CharSequence>, block: () -> CharSequence): Unit {
         block().takeUnlessBlank()?.let { contentFormatter(it) }?.run {
-            render(true) {
+            render {
                 val leftColumn = wrapNonUriLines(statusInformationColumn)
                 val statusColumn = items.asStatus().asAnsiString().truncateByColumns(maxColumns = statusInformationColumns - 1)
                 val twoColumns = leftColumn.addColumn(statusColumn, columnWidth = statusInformationColumn + statusInformationPadding)
-                if (closed) twoColumns
-                else twoColumns.prefixLinesWith(prefix = prefix)
+                twoColumns.prefixLinesWith(prefix) + LF
             }
         }
     }
@@ -159,14 +158,14 @@ public abstract class FixedWidthRenderingLogger(
      */
     @RenderingLoggingDsl
     public open fun <R> blockLogging(
-        caption: CharSequence,
+        name: CharSequence,
         contentFormatter: Formatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         border: Border = this.border,
         block: FixedWidthRenderingLogger.() -> R,
     ): R = BlockRenderingLogger(
-        caption,
+        name,
         this,
         { logText { it } },
         contentFormatter,
@@ -185,13 +184,13 @@ public abstract class FixedWidthRenderingLogger(
      */
     @RenderingLoggingDsl
     public open fun <R> compactLogging(
-        caption: CharSequence,
+        name: CharSequence,
         contentFormatter: Formatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         block: CompactRenderingLogger.() -> R,
     ): R = CompactRenderingLogger(
-        caption,
+        name,
         this,
         contentFormatter,
         decorationFormatter,
@@ -204,14 +203,14 @@ public abstract class FixedWidthRenderingLogger(
      */
     @RenderingLoggingDsl
     public open fun <R> logging(
-        caption: CharSequence,
+        name: CharSequence,
         contentFormatter: Formatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         border: Border = this.border,
         block: FixedWidthRenderingLogger.() -> R,
     ): R = SmartRenderingLogger(
-        caption,
+        name,
         this,
         { logText { it } },
         contentFormatter,
@@ -226,7 +225,7 @@ public abstract class FixedWidthRenderingLogger(
 
     override fun toString(): String = asString {
         ::open to open
-        ::caption to caption
+        ::name to name
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
         ::returnValueFormatter to returnValueFormatter

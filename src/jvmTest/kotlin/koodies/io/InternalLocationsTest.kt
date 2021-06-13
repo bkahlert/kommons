@@ -11,7 +11,7 @@ class InternalLocationsTest {
 
     @Test
     fun `should resolve InternalTemp`() {
-        expectThat(InternalLocations.InternalTemp) {
+        expectThat(Koodies.InternalTemp) {
             toStringContains("koodies")
             isInside(Locations.Temp)
         }
@@ -19,7 +19,7 @@ class InternalLocationsTest {
 
     @Test
     fun `should resolve ExecTemp`() {
-        expectThat(InternalLocations.ExecTemp) {
+        expectThat(Koodies.ExecTemp) {
             last().pathString.isEqualTo("exec")
             isInside(Locations.Temp)
         }
@@ -27,7 +27,7 @@ class InternalLocationsTest {
 
     @Test
     fun `should resolve FilesTemp`() {
-        expectThat(InternalLocations.FilesTemp) {
+        expectThat(Koodies.FilesTemp) {
             last().pathString.isEqualTo("files")
             isInside(Locations.Temp)
         }

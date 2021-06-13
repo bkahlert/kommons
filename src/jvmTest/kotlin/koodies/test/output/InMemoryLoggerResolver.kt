@@ -85,7 +85,7 @@ object TestLogging {
     private fun newLogger(
         extensionContext: ExtensionContext,
         parameterContext: ParameterContext,
-        caption: String,
+        name: String,
         border: Border?,
     ): TestLogger {
         val isVerbose = extensionContext.isVerbose || parameterContext.isVerbose
@@ -95,7 +95,7 @@ object TestLogging {
         return TestLogger(
             extensionContext,
             parameterContext,
-            caption,
+            name,
             border ?: parameterContext.findAnnotation(Bordered::class.java).map { it.value }.orElse(Border.DEFAULT),
             outputStream,
         )
@@ -117,11 +117,11 @@ object TestLogging {
 class TestLogger(
     private val extensionContext: ExtensionContext,
     parameterContext: ParameterContext,
-    caption: String,
+    name: String,
     border: Border,
     outputStream: OutputStream?,
 ) : InMemoryLogger(
-    caption = caption,
+    name = name,
     parent = null,
     border = border,
     width = parameterContext.findAnnotation(Columns::class.java).map { it.value }.orElse(null),
@@ -187,7 +187,7 @@ val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store<InMemoryLogg
  * Logs the given [block] in a new span with the active test logger if any.
  */
 fun <R> ExtensionContext.logging(
-    caption: CharSequence,
+    name: CharSequence,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
@@ -195,7 +195,7 @@ fun <R> ExtensionContext.logging(
     block: FixedWidthRenderingLogger.() -> R,
 ): R =
     SmartRenderingLogger(
-        caption,
+        name,
         testLocalLogger,
         { (testLocalLogger ?: BACKGROUND).logText { it } },
         contentFormatter,

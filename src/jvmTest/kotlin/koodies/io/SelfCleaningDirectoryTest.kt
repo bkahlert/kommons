@@ -18,30 +18,30 @@ import strikt.java.isDirectory
 import java.nio.file.Path
 import kotlin.time.Duration
 
-class AutoCleaningDirectoryTest {
+class SelfCleaningDirectoryTest {
 
     @Test
     fun `should be sub directory`() {
-        expecting { Locations.Temp.autoCleaning("com.bkahlert.koodies.app-specific") } that {
-            isEqualTo(AutoCleaningDirectory(Locations.Temp.resolve("com.bkahlert.koodies.app-specific")))
+        expecting { Locations.Temp.selfCleaning("com.bkahlert.koodies.app-specific") } that {
+            isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("com.bkahlert.koodies.app-specific")))
             toStringContains("com.bkahlert.koodies.app-specific")
         }
     }
 
     @Test
     fun `should throw on non-temp location`() {
-        expectThrows<IllegalArgumentException> { AutoCleaningDirectory(Locations.WorkingDirectory.resolve("directory")) }
+        expectThrows<IllegalArgumentException> { SelfCleaningDirectory(Locations.WorkingDirectory.resolve("directory")) }
     }
 
     @Test
     fun `should throw if already exists but no directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val path = resolve("file").also { it.touch() }
-        expectThrows<IllegalArgumentException> { AutoCleaningDirectory(path) }
+        expectThrows<IllegalArgumentException> { SelfCleaningDirectory(path) }
     }
 
     @Test
     fun `should create if not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { autoCleaning(uniqueId.value) } that {
+        expecting { selfCleaning(uniqueId.value) } that {
             path.exists()
             path.isDirectory()
         }
@@ -49,25 +49,25 @@ class AutoCleaningDirectoryTest {
 
     @Test
     fun `should set POSIX permissions to 700`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { autoCleaning(uniqueId.value).path } that {
+        expecting { selfCleaning(uniqueId.value).path } that {
             permissions.containsExactlyInAnyOrder(OWNER_ALL_PERMISSIONS)
         }
     }
 
     @Test
     fun `should not delete files younger than 1h by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { autoCleaning("test") } that { keepAge.isEqualTo(1.hours) }
+        expecting { selfCleaning("test") } that { keepAge.isEqualTo(1.hours) }
     }
 
     @Test
     fun `should keep at most 100 files by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { autoCleaning("test") } that { keepCount.isEqualTo(100) }
+        expecting { selfCleaning("test") } that { keepCount.isEqualTo(100) }
     }
 }
 
-val Assertion.Builder<AutoCleaningDirectory>.path: DescribeableBuilder<Path>
+val Assertion.Builder<SelfCleaningDirectory>.path: DescribeableBuilder<Path>
     get() = get("path") { path }
-val Assertion.Builder<AutoCleaningDirectory>.keepAge: DescribeableBuilder<Duration>
+val Assertion.Builder<SelfCleaningDirectory>.keepAge: DescribeableBuilder<Duration>
     get() = get("keep age") { keepAge }
-val Assertion.Builder<AutoCleaningDirectory>.keepCount: DescribeableBuilder<Int>
+val Assertion.Builder<SelfCleaningDirectory>.keepCount: DescribeableBuilder<Int>
     get() = get("keep count") { keepCount }

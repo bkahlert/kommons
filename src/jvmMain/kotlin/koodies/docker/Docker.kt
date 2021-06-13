@@ -14,9 +14,9 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.moveTo
 import koodies.io.path.pathString
-import koodies.io.path.randomDirectory
+import koodies.io.randomDirectory
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.map
 import koodies.or
 import koodies.regex.RegularExpressions
@@ -75,7 +75,7 @@ public object Docker {
          * - `info["server.server-version"]`
          * - `info["server", "server-version"]`
          */
-        public operator fun RenderingLogger.get(vararg keys: String): String? =
+        public operator fun SimpleRenderingLogger.get(vararg keys: String): String? =
             with(keys.flatMap { it.split(".") }.map { it.unify() }.toMutableList()) {
                 DockerInfoCommandLine {}.exec.logging(this@get) {
                     noDetails("Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}")
@@ -124,7 +124,7 @@ public object Docker {
         automated: Boolean? = null,
         official: Boolean? = null,
         limit: Int = 100,
-        logger: RenderingLogger = BACKGROUND,
+        logger: SimpleRenderingLogger = BACKGROUND,
     ): List<DockerSeachResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, logger)
 
     /**
@@ -143,7 +143,7 @@ public object Docker {
         workingDirectory: Path,
         command: Any? = null,
         vararg arguments: Any,
-        logger: RenderingLogger? = BACKGROUND,
+        logger: SimpleRenderingLogger? = BACKGROUND,
         inputStream: InputStream? = null,
     ): DockerExec = execute(image, workingDirectory, logger, inputStream) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
 
@@ -161,7 +161,7 @@ public object Docker {
     public fun exec(
         image: DockerImage,
         workingDirectory: Path,
-        logger: RenderingLogger? = BACKGROUND,
+        logger: SimpleRenderingLogger? = BACKGROUND,
         inputStream: InputStream? = null,
         scriptInit: ScriptInitWithWorkingDirectory,
     ): DockerExec = execute(image, workingDirectory, logger, inputStream) { workDir -> ShellScript { scriptInit(workDir) } }
@@ -180,7 +180,7 @@ public object Docker {
     private fun execute(
         image: DockerImage,
         workingDirectory: Path,
-        logger: RenderingLogger? = BACKGROUND,
+        logger: SimpleRenderingLogger? = BACKGROUND,
         inputStream: InputStream? = null,
         executableProvider: (ContainerPath) -> Executable<Exec>,
     ): DockerExec {
@@ -213,7 +213,7 @@ public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) 
  * of the created process.
  */
 public fun Path.docker(
-    image: String, command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null,
+    image: String, command: Any? = null, vararg arguments: Any, logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null,
 ): DockerExec =
     Docker.exec(DockerImage { image }, this, command, *arguments, logger = logger, inputStream = inputStream)
 
@@ -232,7 +232,7 @@ public fun Path.docker(
     imageInit: DockerImageInit,
     command: Any? = null,
     vararg arguments: Any,
-    logger: RenderingLogger? = BACKGROUND,
+    logger: SimpleRenderingLogger? = BACKGROUND,
     inputStream: InputStream? = null,
 ): DockerExec =
     Docker.exec(DockerImage(imageInit), this, command, *arguments, logger = logger, inputStream = inputStream)
@@ -252,7 +252,7 @@ public fun Path.docker(
     image: DockerImage,
     command: Any? = null,
     vararg arguments: Any,
-    logger: RenderingLogger? = BACKGROUND,
+    logger: SimpleRenderingLogger? = BACKGROUND,
     inputStream: InputStream? = null,
 ): DockerExec =
     Docker.exec(image, this, command, *arguments, logger = logger, inputStream = inputStream)
@@ -270,7 +270,7 @@ public fun Path.docker(
  */
 public fun Path.docker(
     image: String,
-    logger: RenderingLogger? = BACKGROUND,
+    logger: SimpleRenderingLogger? = BACKGROUND,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -289,7 +289,7 @@ public fun Path.docker(
  */
 public fun Path.docker(
     imageInit: DockerImageInit,
-    logger: RenderingLogger? = BACKGROUND,
+    logger: SimpleRenderingLogger? = BACKGROUND,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -308,7 +308,7 @@ public fun Path.docker(
  */
 public fun Path.docker(
     image: DockerImage,
-    logger: RenderingLogger? = BACKGROUND,
+    logger: SimpleRenderingLogger? = BACKGROUND,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -330,7 +330,7 @@ public fun Path.docker(
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null): DockerExec =
+public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null): DockerExec =
     docker(DockerImage { "ubuntu" }, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
@@ -344,7 +344,7 @@ public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: Rend
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.ubuntu(logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+public fun Path.ubuntu(logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
     docker(DockerImage { "ubuntu" }, logger, inputStream, scriptInit)
 
 
@@ -363,7 +363,12 @@ public fun Path.ubuntu(logger: RenderingLogger? = BACKGROUND, inputStream: Input
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null): DockerExec =
+public fun Path.busybox(
+    command: Any? = null,
+    vararg arguments: Any,
+    logger: SimpleRenderingLogger? = BACKGROUND,
+    inputStream: InputStream? = null,
+): DockerExec =
     docker(DockerImage { "busybox" }, command, *arguments, logger = logger, inputStream = inputStream)
 
 /**
@@ -377,7 +382,7 @@ public fun Path.busybox(command: Any? = null, vararg arguments: Any, logger: Ren
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.busybox(logger: RenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+public fun Path.busybox(logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
     docker(DockerImage { "busybox" }, logger, inputStream, scriptInit)
 
 
@@ -395,7 +400,7 @@ private val curlJqImage = DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
-public fun Path.curlJq(logger: RenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
+public fun Path.curlJq(logger: SimpleRenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
     docker(curlJqImage, logger, null, scriptInit)
 
 /**
@@ -406,14 +411,14 @@ public fun Path.curlJq(logger: RenderingLogger? = BACKGROUND, scriptInit: Script
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  */
-public fun Path.curl(vararg arguments: Any, logger: RenderingLogger? = BACKGROUND): DockerExec =
+public fun Path.curl(vararg arguments: Any, logger: SimpleRenderingLogger? = BACKGROUND): DockerExec =
     docker(curlJqImage, "curl", *arguments, logger = logger)
 
 /**
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
-public fun Path.download(uri: String, fileName: String? = null, logger: RenderingLogger? = BACKGROUND): Path =
+public fun Path.download(uri: String, fileName: String? = null, logger: SimpleRenderingLogger? = BACKGROUND): Path =
     if (fileName != null) {
         resolve(fileName).also { curl("--location", uri, "-o", fileName, logger = logger) }
     } else {
@@ -430,7 +435,7 @@ public fun Path.download(uri: String, fileName: String? = null, logger: Renderin
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
-public fun Path.download(uri: URI, fileName: String? = null, logger: RenderingLogger? = BACKGROUND): Path =
+public fun Path.download(uri: URI, fileName: String? = null, logger: SimpleRenderingLogger? = BACKGROUND): Path =
     download(uri.toString(), fileName, logger)
 
 private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }
@@ -446,7 +451,11 @@ private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathSt
  * and processes the [IO] with the given [processor].
  */
 @Suppress("SpellCheckingInspection")
-public fun Path.dockerPi(name: String = "dockerpi".withRandomSuffix(), logger: RenderingLogger? = BACKGROUND, processor: DockerExec.(IO) -> Unit): DockerExec =
+public fun Path.dockerPi(
+    name: String = "dockerpi".withRandomSuffix(),
+    logger: SimpleRenderingLogger? = BACKGROUND,
+    processor: DockerExec.(IO) -> Unit,
+): DockerExec =
     DockerRunCommandLine {
         image { "lukechilds" / "dockerpi" tag "vm" }
         options {

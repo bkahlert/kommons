@@ -9,7 +9,7 @@ import koodies.text.takeUnlessBlank
 
 /**
  * Implementors of this interface gain control on
- * how it is displayed by [RenderingLogger].
+ * how it is displayed by [SimpleRenderingLogger].
  */
 public interface ReturnValue : Symbolizable {
 
@@ -45,7 +45,7 @@ public interface ReturnValue : Symbolizable {
          * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
          * for any other value.
          *
-         * This extension function is only valid in the context of an existing [RenderingLogger].
+         * This extension function is only valid in the context of an existing [SimpleRenderingLogger].
          */
         public fun of(value: Any?): ReturnValue =
             when (value) {

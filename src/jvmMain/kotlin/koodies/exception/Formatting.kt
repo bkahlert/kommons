@@ -5,7 +5,6 @@ import koodies.exec.Process
 import koodies.math.toHexadecimalString
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
-import koodies.text.withoutSuffix
 import java.nio.file.Path
 
 // TODO merge with simpleString
@@ -22,7 +21,7 @@ public fun Any?.toCompactString(): String = when (this) {
         else -> {
             val string = toString()
             if (string in LineSeparators) string.replaceNonPrintableCharacters()
-            else string.lines().joinToString(separator = "⏎").withoutSuffix("⏎")
+            else string.lines().joinToString(separator = "⏎").removeSuffix("⏎")
         }
     }
 }

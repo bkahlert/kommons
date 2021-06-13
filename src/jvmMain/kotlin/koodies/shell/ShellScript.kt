@@ -14,7 +14,7 @@ import koodies.text.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.quoted
 import koodies.text.truncate
 import koodies.text.withRandomSuffix
@@ -94,7 +94,7 @@ public open class ShellScript(
     public override val summary: String
         get() = (name?.let { "${it.ansi.italic.quoted}: " } ?: "").let {
             "#!($it${
-                toString().replace("\\$LF", "").withoutTrailingLineSeparator.lines().joinToString(";") {
+                toString().replace("\\$LF", "").removeTrailingLineSeparator.lines().joinToString(";") {
                     CommandLine.parseOrNull(it)?.commandLineParts?.joinToString(" ") ?: it
                 }.truncate(150, " … ")
             })"
@@ -280,7 +280,7 @@ public open class ShellScript(
             val baseName = shellScript.name.toBaseName()
             val fileName = "$baseName.sh"
             val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
-            val finalScript = shellScript.toString().withoutTrailingLineSeparator
+            val finalScript = shellScript.toString().removeTrailingLineSeparator
             lines.add(finalScript.wrapMultiline(
                 """
                 (

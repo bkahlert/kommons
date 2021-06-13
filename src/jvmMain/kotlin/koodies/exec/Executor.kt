@@ -9,8 +9,7 @@ import koodies.logging.LoggingOptions
 import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
 import koodies.logging.LoggingOptions.SmartLoggingOptions
 import koodies.logging.MutedRenderingLogger
-import koodies.logging.RenderingLogger
-import koodies.logging.ReturnValue
+import koodies.logging.SimpleRenderingLogger
 import koodies.logging.runLogging
 import java.nio.file.Path
 
@@ -43,13 +42,13 @@ public data class Executor<E : Exec>(
      * Logger used to log the execution of [executable]
      * (default: `null`; no logging).
      */
-    private val logger: RenderingLogger? = null,
+    private val logger: SimpleRenderingLogger? = null,
 
     /**
-     * Caption used if the execution is [logging]
+     * Name used if the execution is [logging]
      * (default: [Executable.summary]; only applies if a [logger] is set).
      */
-    private val caption: String = executable.summary,
+    private val name: String = executable.summary,
 
     /**
      * Options applied if the execution is [logging]
@@ -87,7 +86,7 @@ public data class Executor<E : Exec>(
         execTerminationCallback: ExecTerminationCallback? = null,
     ): E {
 
-        val processLogger: RenderingLogger = loggingOptions?.newLogger(logger, caption) ?: MutedRenderingLogger
+        val processLogger: SimpleRenderingLogger = loggingOptions?.newLogger(logger, name) ?: MutedRenderingLogger
 
         val exec: E = executable.toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 
@@ -96,14 +95,6 @@ public data class Executor<E : Exec>(
                 exec.process(processingMode, processor = processor ?: Processors.loggingProcessor(processLogger))
             }
             Async -> {
-                processLogger.logResult(
-                    Result.success<ReturnValue>(object : ReturnValue {
-                        override val successful: Boolean? = null
-                        override val symbol: String = " "
-                        override val textRepresentation: String? = null
-                        override fun format(): String = " "
-                    })
-                )
                 exec.process(processingMode, processor = processor ?: exec.terminationLoggingProcessor(processLogger))
             }
         }
@@ -119,7 +110,7 @@ public data class Executor<E : Exec>(
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
      */
     public fun logging(
-        logger: RenderingLogger = this.logger ?: BACKGROUND,
+        logger: SimpleRenderingLogger = this.logger ?: BACKGROUND,
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptionsInit: LoggingOptionsContext.(Executable<E>) -> Unit = { smart },
@@ -136,7 +127,7 @@ public data class Executor<E : Exec>(
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
      */
     public fun processing(
-        logger: RenderingLogger? = this.logger ?: BACKGROUND,
+        logger: SimpleRenderingLogger? = this.logger ?: BACKGROUND,
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         loggingOptionsInit: LoggingOptionsContext.(Executable<E>) -> Unit = { smart },
@@ -217,9 +208,9 @@ public interface Executable<out E : Exec> {
 
     /**
      * Executor that allows to execute this [Executable] [Executor.logging]
-     * using `this` [RenderingLogger].
+     * using `this` [SimpleRenderingLogger].
      *
      * @see exec
      */
-    public val <T : RenderingLogger> T?.logging: Executor<out E> get() = Executor(this@Executable, logger = this)
+    public val <T : SimpleRenderingLogger> T?.logging: Executor<out E> get() = Executor(this@Executable, logger = this)
 }

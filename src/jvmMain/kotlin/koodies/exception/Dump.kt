@@ -1,11 +1,11 @@
 package koodies.exception
 
-import koodies.io.InternalLocations
+import koodies.io.Koodies
 import koodies.io.Locations
 import koodies.io.path.isSubPathOf
-import koodies.io.path.randomFile
 import koodies.io.path.withExtension
 import koodies.io.path.writeText
+import koodies.io.randomFile
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.capitalize
@@ -14,7 +14,7 @@ import java.io.IOException
 import java.nio.file.Path
 
 private object Dump {
-    val dumpDir: Path = InternalLocations.ExecTemp
+    val dumpDir: Path = Koodies.ExecTemp
     const val dumpPrefix = "koodies.dump."
     const val dumpSuffix = ".log"
 }

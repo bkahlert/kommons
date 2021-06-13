@@ -6,28 +6,29 @@ import koodies.exec.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.LineSeparators.prefixLinesWith
+import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.LineSeparators.withTrailingLineSeparator
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
-import koodies.text.Semantics.Symbols
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 public open class CompactRenderingLogger(
-    caption: CharSequence,
-    parent: RenderingLogger?,
+    name: CharSequence,
+    parent: SimpleRenderingLogger?,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
-) : RenderingLogger(caption.toString(), parent, log) {
+) : SimpleRenderingLogger(name.toString(), parent, log) {
 
     private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
     private val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
 
+    private val joinElement = decorationFormatter(" ")
+
     init {
-        require(caption.isNotBlank()) { "No blank caption allowed." }
+        require(name.isNotBlank()) { "No blank name allowed." }
     }
 
     private val messages: MutableList<CharSequence> = synchronizedListOf()
@@ -35,16 +36,12 @@ public open class CompactRenderingLogger(
 
     private var loggingResult: Boolean = false
 
-    override fun render(trailingNewline: Boolean, block: () -> CharSequence): Unit = lock.withLock {
+    override fun render(block: () -> CharSequence): Unit = lock.withLock {
         when {
-            closed -> {
-                val prefix = decorationFormatter(Symbols.Computation).toString() + " "
-                logWithLock { block().toString().prefixLinesWith(prefix) }
-            }
             loggingResult -> {
                 val paddingAndMessages =
-                    messages.joinToString(" ") { "$it".withoutTrailingLineSeparator }.let { if (it.isNotBlank()) " $it" else "" }
-                logWithLock { caption.ansi.bold.done + paddingAndMessages + " " + block().toString().withTrailingLineSeparator() }
+                    messages.joinToString(joinElement) { "$it".removeTrailingLineSeparator }.let { if (it.isNotBlank()) "$joinElement$it" else "" }
+                log { name.ansi.bold.done + paddingAndMessages + joinElement + block().toString().withTrailingLineSeparator() }
             }
             else -> {
                 messages.add(block())
@@ -53,17 +50,17 @@ public open class CompactRenderingLogger(
     }
 
     override fun logText(block: () -> CharSequence) {
-        block.format(contentFormatter) { render(false) { this } }
+        block.format(contentFormatter) { render { this } }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        block.format(contentFormatter) { render(false) { this } }
+        block.format(contentFormatter) { render { this + LF } }
     }
 
     public fun logStatus(items: List<CharSequence>, block: () -> CharSequence) {
         val message: CharSequence? = block.format(contentFormatter) { lines().joinToString(", ") }
         val status: CharSequence? = items.format(contentFormatter) { lines().joinToString(", ", "(", ")") }
-        (status?.let { "$message $status" } ?: message)?.let { render(false) { it } }
+        (status?.let { "$message $status" } ?: message)?.let { render { it } }
     }
 
     public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.Output typed "" }): Unit =
@@ -72,7 +69,7 @@ public open class CompactRenderingLogger(
     override fun <R> logResult(result: Result<R>): R {
         val formattedResult = returnValueFormatter(ReturnValue.of(result)).format()
         loggingResult = true
-        render(true) { formattedResult }
+        render { formattedResult + LF }
         loggingResult = false
         close(result)
         return result.getOrThrow()
@@ -80,7 +77,7 @@ public open class CompactRenderingLogger(
 
     override fun toString(): String = asString {
         ::open to open
-        ::caption to caption
+        ::name to name
         ::messages to messages.map { it.ansiRemoved }
         ::loggingResult to loggingResult
         ::open to open
@@ -93,10 +90,10 @@ public open class CompactRenderingLogger(
      */
     @RenderingLoggingDsl
     public fun <R> compactLogging(
-        caption: CharSequence? = null,
+        name: CharSequence? = null,
         contentFormatter: Formatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         block: MicroLogger.() -> R,
-    ): R = MicroLogger(caption?.toString() ?: "", this, contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
+    ): R = MicroLogger(name?.toString() ?: "", this, contentFormatter, decorationFormatter, returnValueFormatter) { logText { it } }.runLogging(block)
 }

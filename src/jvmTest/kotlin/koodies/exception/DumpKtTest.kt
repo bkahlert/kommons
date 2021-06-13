@@ -2,7 +2,7 @@ package koodies.exception
 
 import koodies.io.path.hasContent
 import koodies.io.path.pathString
-import koodies.io.path.randomPath
+import koodies.io.randomPath
 import koodies.io.path.writeText
 import koodies.regex.RegularExpressions
 import koodies.regex.findAllValues

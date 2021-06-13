@@ -3,6 +3,9 @@ package koodies.io.path
 import koodies.io.compress.TarArchiver.tar
 import koodies.io.file.isSiblingOf
 import koodies.io.file.lastModified
+import koodies.io.randomDirectory
+import koodies.io.randomFile
+import koodies.io.randomPath
 import koodies.io.tempFile
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile

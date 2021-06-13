@@ -6,12 +6,12 @@ import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.logging.InMemoryLogger.Companion.NO_RETURN_VALUE
 import koodies.logging.InMemoryLogger.Companion.SUCCESSFUL_RETURN_VALUE
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
+import koodies.logging.SimpleRenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.SystemIOExclusive
 import koodies.test.output.TestLogger
 import koodies.test.toStringContainsAll
 import koodies.text.LineSeparators.mapLines
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.containsAnsi
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -28,7 +28,7 @@ import strikt.assertions.startsWith
 class InMemoryLoggerTest {
 
     private fun logger(outputStream: ByteArrayOutputStream? = null, init: InMemoryLogger.() -> Unit = {}): InMemoryLogger =
-        InMemoryLogger("caption", null, SOLID, outputStream = outputStream).withUnclosedWarningDisabled.apply(init)
+        InMemoryLogger("name", null, SOLID, outputStream = outputStream).withUnclosedWarningDisabled.apply(init)
 
     @SystemIOExclusive
     @Test
@@ -38,7 +38,7 @@ class InMemoryLoggerTest {
         logger(outputStream) { logLine { "abc" } }
 
         expectThat(capturedOutput).isEmpty()
-        expectThat(outputStream).toStringContainsAll("caption", "abc")
+        expectThat(outputStream).toStringContainsAll("name", "abc")
     }
 
     @Test
@@ -46,7 +46,7 @@ class InMemoryLoggerTest {
         val logger = logger { logLine { "abc" } }
 
         logger.expectThatLogged()
-            .contains("caption")
+            .contains("name")
             .contains("abc")
     }
 
@@ -54,7 +54,7 @@ class InMemoryLoggerTest {
     fun `should use BlockRenderingLogger to log`() {
         val logger = logger { logLine { "line" } }
 
-        logger.expectThatLogged().startsWith("╭──╴caption")
+        logger.expectThatLogged().startsWith("╭──╴name")
     }
 
     @Test
@@ -114,7 +114,7 @@ class InMemoryLoggerTest {
                 val logger = logger { logLine { "line" } }
 
                 expectThat(logger.toString().endTrimmed).isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │   line
                     ╵
@@ -128,7 +128,7 @@ class InMemoryLoggerTest {
                 val logger = logger { logLine { "line" } }
 
                 expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE).endTrimmed).isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │   line
                     │
@@ -145,7 +145,7 @@ class InMemoryLoggerTest {
                 val logger = logger { logResult() }
 
                 expectThat(logger.toString().endTrimmed).isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │
                     ╰──╴✔︎
@@ -157,7 +157,7 @@ class InMemoryLoggerTest {
                 val logger = logger { logResult() }
 
                 expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE).endTrimmed).isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │
                     ╰──╴✔︎
@@ -202,7 +202,7 @@ class InMemoryLoggerTest {
                 val openLogger = logger { logLine { "line" } }
 
                 openLogger.expectThatLogged().isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │   line
                     │
@@ -215,7 +215,7 @@ class InMemoryLoggerTest {
                 val openLogger = logger { logLine { "line" } }
 
                 openLogger.expectThatLogged(closeIfOpen = false).isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │   line
                 """.trimIndent())
@@ -230,7 +230,7 @@ class InMemoryLoggerTest {
                 val closedLogger = logger { logResult() }
 
                 closedLogger.expectThatLogged().isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │
                     ╰──╴✔︎
@@ -242,7 +242,7 @@ class InMemoryLoggerTest {
                 val closedLogger = logger { logResult() }
 
                 closedLogger.expectThatLogged(closeIfOpen = false).isEqualTo("""
-                    ╭──╴caption
+                    ╭──╴name
                     │
                     │
                     ╰──╴✔︎
@@ -297,7 +297,7 @@ val <T : InMemoryLogger> T.expectLogged: DescribeableBuilder<String>
             fallbackReturnValue = null,
             keepEscapeSequences = false,
             lineSkip = 1,
-        ).withoutTrailingLineSeparator.endTrimmed
+        ).removeTrailingLineSeparator.endTrimmed
         return expectThat(sanitized)
     }
 

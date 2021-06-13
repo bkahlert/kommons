@@ -5,14 +5,14 @@ import koodies.debug.debug
 import koodies.exec.IO
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.MutedRenderingLogger
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
+import koodies.logging.SimpleRenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.text.ANSI
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.quoted
 import koodies.time.Now
 import koodies.time.seconds
@@ -62,7 +62,7 @@ public class NonBlockingReader(
      */
     override fun readLine(): String? = if (reader == null) null else
         logger.logging(
-            caption = NonBlockingReader::class.simpleName + "." + ::readLine.name + "()",
+            name = NonBlockingReader::class.simpleName + "." + ::readLine.name + "()",
             decorationFormatter = { ANSI.Colors.cyan(it) }
         ) {
 
@@ -82,7 +82,7 @@ public class NonBlockingReader(
                         lastReadLineDueTimeout = false
                         lastReadLine = "$unfinishedLine"
                         unfinishedLine.clear()
-                        lastReadLine!!.withoutTrailingLineSeparator
+                        lastReadLine!!.removeTrailingLineSeparator
                     }
                 }
                 logLine { IO.Meta typed "${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milli.seconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}" }
@@ -97,7 +97,7 @@ public class NonBlockingReader(
                         unfinishedLine.append(charArray)
                         logLine { IO.Meta typed "Line Completed: ${lastReadLine.quoted}" }
                         if (!lineAlreadyRead) {
-                            return@logging lastReadLine!!.withoutTrailingLineSeparator
+                            return@logging lastReadLine!!.removeTrailingLineSeparator
                         }
                     }
                     if (!lineAlreadyRead) {
@@ -111,7 +111,7 @@ public class NonBlockingReader(
                     // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                     lastReadLineDueTimeout = true
                     lastReadLine = "$unfinishedLine"
-                    return@logging lastReadLine!!.withoutTrailingLineSeparator
+                    return@logging lastReadLine!!.removeTrailingLineSeparator
                 }
             }
             @Suppress("UNREACHABLE_CODE")

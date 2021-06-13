@@ -1,155 +1,85 @@
 package koodies.logging
 
-import koodies.exec.Process.State.Exited.Failed
-import koodies.exec.hasState
+import koodies.exec.Exec
+import koodies.exec.Executable
+import koodies.exec.Executor
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
+import koodies.test.tests
 import koodies.text.ANSI
 import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
+import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEmpty
+import org.junit.jupiter.api.TestFactory
+
 
 class LoggingOptionsTest {
+
+    private fun InMemoryLogger.testLogOfSyncAndAsyncExec(
+        expectedCurlyPattern: String,
+        executable: Executable<Exec>,
+        invocation: Executor<out Exec>.(SimpleRenderingLogger) -> Exec,
+    ): List<DynamicNode> {
+        return tests {
+            expecting { capturing { executable.exec.invocation(it) } } that { matchesCurlyPattern(expectedCurlyPattern) }
+            expecting { capturing { executable.exec.async.invocation(it).waitFor() } } that { matchesCurlyPattern(expectedCurlyPattern) }
+        }
+    }
 
     @Nested
     inner class BlockLog {
 
-        @Nested
-        inner class Sync {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.logging(this) {
-                    block {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
+        @TestFactory
+        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                ╭──╴name
+                │
+                │   Executing {}
+                │   Countdown!
+                │   10
+                │   9
+                │   8
+                │   7
+                │   6
+                │   5
+                │   4
+                │   3
+                │   2
+                │   1
+                │   0
+                │   Take Off
+                │   Process {} terminated successfully at {}
+                │
+                ╰──╴✔︎
+            """.trimIndent(), countDownAndStart()) {
+            logging(it) {
+                block {
+                    name { "name" }
+                    contentFormatter { fromScratch { random } }
+                    decorationFormatter { fromScratch { brightYellow } }
+                    border = SOLID
                 }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   │   Executing {}
-                    │   │   Countdown!
-                    │   │   10
-                    │   │   9
-                    │   │   8
-                    │   │   7
-                    │   │   6
-                    │   │   5
-                    │   │   4
-                    │   │   3
-                    │   │   2
-                    │   │   1
-                    │   │   0
-                    │   │   Take Off
-                    │   │   Process {} terminated successfully at {}
-                    │   │
-                    │   ╰──╴✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.logging(this) {
-                    block {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   │   Executing {}
-                    │   │   Take Off
-                    │   │   Process {} terminated successfully at {}
-                    │   │
-                    │   ╰──╴✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
             }
         }
 
-        @Nested
-        inner class Async {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.async.logging(this) {
-                    block {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   ╵
-                    │   ╵
-                    │   ⏳️ Executing {}
-                    │   ⏳️ Countdown!
-                    │   ⏳️ 10
-                    │   ⏳️ 9
-                    │   ⏳️ 8
-                    │   ⏳️ 7
-                    │   ⏳️ 6
-                    │   ⏳️ 5
-                    │   ⏳️ 4
-                    │   ⏳️ 3
-                    │   ⏳️ 2
-                    │   ⏳️ 1
-                    │   ⏳️ 0
-                    │   ⏳️ Take Off
-                    │   ⏳️ Process {} terminated successfully at {}
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.async.logging(this) {
-                    block {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   ╵
-                    │   ╵
-                    │   ⏳️ Executing {}
-                    │   ⏳️ Take Off
-                    │   ⏳️ Process {} terminated successfully at {}
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                ╭──╴name
+                │
+                │   Executing {}
+                │   Take Off
+                │   Process {} terminated successfully at {}
+                │
+                ╰──╴✔︎
+            """.trimIndent(), justStart()) {
+            logging(it) {
+                block {
+                    name { "name" }
+                    contentFormatter { fromScratch { random } }
+                    decorationFormatter { fromScratch { brightYellow } }
+                    border = SOLID
+                }
             }
         }
     }
@@ -159,99 +89,27 @@ class LoggingOptionsTest {
 
         private val formatter: ANSI.Formatter = ANSI.Formatter { it.ansi.inverse.magenta }
 
-        @Nested
-        inner class Sync {
-
-            @Test
-            fun InMemoryLogger.`should compact log`() {
-                countDownAndStart().exec.logging(this) {
-                    compact {
-                        caption { "caption" }
-                        contentFormatter { formatter }
-                    }
+        @TestFactory
+        fun InMemoryLogger.`should compact log`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name Executing {} Countdown! 10 9 8 7 6 5 4 3 2 1 0 Take Off Process {} terminated successfully at {} ✔︎
+            """.trimIndent(), countDownAndStart()) {
+            logging(it) {
+                compact {
+                    name { "name" }
+                    contentFormatter { formatter }
                 }
-                expectThatLogged().matchesCurlyPattern("""
-                        ╭──╴{}
-                        │
-                        │   caption Executing {} Countdown! 10 9 8 7 6 5 4 3 2 1 0 Take Off Process {} terminated successfully at {} ✔︎
-                        │
-                        ╰──╴✔︎
-                    """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.logging(this) {
-                    compact {
-                        caption { "caption" }
-                        contentFormatter { formatter }
-                    }
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                        ╭──╴{}
-                        │
-                        │   caption Executing {} Take Off Process {} terminated successfully at {} ✔︎
-                        │
-                        ╰──╴✔︎
-                    """.trimIndent())
             }
         }
 
-        @Nested
-        inner class Async {
-
-            @Test
-            fun InMemoryLogger.`should compact log`() {
-                countDownAndStart().exec.async.logging(this) {
-                    compact {
-                        caption { "caption" }
-                        contentFormatter { formatter }
-                    }
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                        ╭──╴{}
-                        │
-                        │   caption 
-                        │   ⏳️ Executing {}
-                        │   ⏳️ Countdown!
-                        │   ⏳️ 10
-                        │   ⏳️ 9
-                        │   ⏳️ 8
-                        │   ⏳️ 7
-                        │   ⏳️ 6
-                        │   ⏳️ 5
-                        │   ⏳️ 4
-                        │   ⏳️ 3
-                        │   ⏳️ 2
-                        │   ⏳️ 1
-                        │   ⏳️ 0
-                        │   ⏳️ Take Off
-                        │   ⏳️ Process {} terminated successfully at {}
-                        │   ⏳️ ✔︎
-                        │
-                        ╰──╴✔︎
-                    """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.async.logging(this) {
-                    compact {
-                        caption { "caption" }
-                        contentFormatter { formatter }
-                    }
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                        ╭──╴{}
-                        │
-                        │   caption 
-                        │   ⏳️ Executing {}
-                        │   ⏳️ Take Off
-                        │   ⏳️ Process {} terminated successfully at {}
-                        │   ⏳️ ✔︎
-                        │
-                        ╰──╴✔︎
-                    """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name Executing {} Take Off Process {} terminated successfully at {} ✔︎
+            """.trimIndent(), justStart()) {
+            logging(it) {
+                compact {
+                    name { "name" }
+                    contentFormatter { formatter }
+                }
             }
         }
     }
@@ -260,138 +118,55 @@ class LoggingOptionsTest {
     @Nested
     inner class SmartLog {
 
-        @Nested
-        inner class Sync {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.logging(this) {
-                    smart {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
+        @TestFactory
+        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                ╭──╴name
+                │
+                │   Executing {}
+                │   Countdown!
+                │   10
+                │   9
+                │   8
+                │   7
+                │   6
+                │   5
+                │   4
+                │   3
+                │   2
+                │   1
+                │   0
+                │   Take Off
+                │   Process {} terminated successfully at {}
+                │
+                ╰──╴✔︎
+            """.trimIndent(), countDownAndStart()) {
+            logging(it) {
+                smart {
+                    name { "name" }
+                    contentFormatter { fromScratch { random } }
+                    decorationFormatter { fromScratch { brightYellow } }
+                    border = SOLID
                 }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   │   Executing {}
-                    │   │   Countdown!
-                    │   │   10
-                    │   │   9
-                    │   │   8
-                    │   │   7
-                    │   │   6
-                    │   │   5
-                    │   │   4
-                    │   │   3
-                    │   │   2
-                    │   │   1
-                    │   │   0
-                    │   │   Take Off
-                    │   │   Process {} terminated successfully at {}
-                    │   │
-                    │   ╰──╴✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.logging(this) {
-                    smart {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   │   Executing {}
-                    │   │   Take Off
-                    │   │   Process {} terminated successfully at {}
-                    │   │
-                    │   ╰──╴✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
             }
         }
 
-
-        @Nested
-        inner class Async {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.async.logging(this) {
-                    smart {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   ╵
-                    │   ╵
-                    │   ⏳️ Executing {}
-                    │   ⏳️ Countdown!
-                    │   ⏳️ 10
-                    │   ⏳️ 9
-                    │   ⏳️ 8
-                    │   ⏳️ 7
-                    │   ⏳️ 6
-                    │   ⏳️ 5
-                    │   ⏳️ 4
-                    │   ⏳️ 3
-                    │   ⏳️ 2
-                    │   ⏳️ 1
-                    │   ⏳️ 0
-                    │   ⏳️ Take Off
-                    │   ⏳️ Process {} terminated successfully at {}
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.async.logging(this) {
-                    smart {
-                        caption { "caption" }
-                        contentFormatter { fromScratch { random } }
-                        decorationFormatter { fromScratch { brightYellow } }
-                        border = SOLID
-                    }
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   ╭──╴caption
-                    │   │
-                    │   ╵
-                    │   ╵
-                    │   ⏳️ Executing {}
-                    │   ⏳️ Take Off
-                    │   ⏳️ Process {} terminated successfully at {}
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                ╭──╴name
+                │
+                │   Executing {}
+                │   Take Off
+                │   Process {} terminated successfully at {}
+                │
+                ╰──╴✔︎
+            """.trimIndent(), justStart()) {
+            logging(it) {
+                smart {
+                    name { "name" }
+                    contentFormatter { fromScratch { random } }
+                    decorationFormatter { fromScratch { brightYellow } }
+                    border = SOLID
+                }
             }
         }
     }
@@ -399,83 +174,22 @@ class LoggingOptionsTest {
     @Nested
     inner class SummaryLog {
 
-        @Nested
-        inner class Sync {
 
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.logging(this) {
-                    summary("caption")
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption ➜ Countdown! ➜ 10 ➜ 9 ➜ 8 ➜ 7 ➜ 6 ➜ 5 ➜ 4 ➜ 3 ➜ 2 ➜ 1 ➜ 0 ➜ Take Off ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.logging(this) {
-                    summary("caption")
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption ➜ Take Off ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name ➜ Countdown! ➜ 10 ➜ 9 ➜ 8 ➜ 7 ➜ 6 ➜ 5 ➜ 4 ➜ 3 ➜ 2 ➜ 1 ➜ 0 ➜ Take Off ✔︎
+                """.trimIndent(), countDownAndStart()) {
+            logging(it) {
+                summary("name")
             }
         }
 
-        @Nested
-        inner class Async {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.async.logging(this) {
-                    summary("caption")
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption 
-                    │   ⏳️ ➜ Countdown!
-                    │   ⏳️ ➜ 10
-                    │   ⏳️ ➜ 9
-                    │   ⏳️ ➜ 8
-                    │   ⏳️ ➜ 7
-                    │   ⏳️ ➜ 6
-                    │   ⏳️ ➜ 5
-                    │   ⏳️ ➜ 4
-                    │   ⏳️ ➜ 3
-                    │   ⏳️ ➜ 2
-                    │   ⏳️ ➜ 1
-                    │   ⏳️ ➜ 0
-                    │   ⏳️ ➜ Take Off
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.async.logging(this) {
-                    summary("caption")
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption 
-                    │   ⏳️ ➜ Take Off
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name ➜ Take Off ✔︎
+            """.trimIndent(), justStart()) {
+            logging(it) {
+                summary("name")
             }
         }
     }
@@ -483,69 +197,21 @@ class LoggingOptionsTest {
     @Nested
     inner class NoDetailsLog {
 
-        @Nested
-        inner class Sync {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.logging(this) {
-                    noDetails("caption")
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.logging(this) {
-                    noDetails("caption")
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name ✔︎
+            """.trimIndent(), countDownAndStart()) {
+            logging(it) {
+                noDetails("name")
             }
         }
 
-        @Nested
-        inner class Async {
-
-            @Test
-            fun InMemoryLogger.`should format multiple messages`() {
-                countDownAndStart().exec.async.logging(this) {
-                    noDetails("caption")
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption 
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should format immediate result`() {
-                justStart().exec.async.logging(this) {
-                    noDetails("caption")
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    ╭──╴{}
-                    │
-                    │   caption 
-                    │   ⏳️ ✔︎
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+        @TestFactory
+        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name ✔︎
+            """.trimIndent(), justStart()) {
+            logging(it) {
+                noDetails("name")
             }
         }
     }
@@ -553,125 +219,32 @@ class LoggingOptionsTest {
     @Nested
     inner class ErrorsOnlyLog {
 
-        @Nested
-        inner class Sync {
-
-            @Test
-            fun InMemoryLogger.`should be empty if no error occurs`() {
-                countDownAndStart().exec.logging(this) {
-                    errorsOnly("caption")
-                }
-                expectThatLogged().isEmpty()
-            }
-
-            @Test
-            fun InMemoryLogger.`should display ERR`() {
-                countDownAndBoom().exec.logging(this) {
-                    errorsOnly("caption")
-                }
-                expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    │   caption: 4
-                    │   ϟ Process {} terminated with exit code {}
-                    │   ➜ A dump has been written to:
-                    │     - file://{}
-                    │     - file://{}
-                    │   ➜ The last 10 lines are:
-                    │     8
-                    {{}}
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should display failed`() {
-                expectThat(
-                    countDownAndBoom().exec.logging(this) {
-                        errorsOnly("caption")
-                    })
-                    .hasState<Failed>()
-                expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    │   caption: 4
-                    │   ϟ Process {} terminated with exit code {}
-                    │   ➜ A dump has been written to:
-                    │     - file://{}
-                    │     - file://{}
-                    │   ➜ The last 10 lines are:
-                    │     8
-                    {{}}
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should hide regular result`() {
-                countDownAndStart().exec.logging(this) {
-                    errorsOnly("caption")
-                }
-                expectThatLogged().isEmpty()
+        @TestFactory
+        fun InMemoryLogger.`should be empty if no error occurs`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
+            logging(it) {
+                errorsOnly("name")
             }
         }
 
-        @Nested
-        inner class Async {
-
-            @Test
-            fun InMemoryLogger.`should be empty if no error occurs`() {
-                countDownAndStart().exec.async.logging(this) {
-                    errorsOnly("caption")
-                }.waitFor()
-                expectThatLogged().isEmpty()
+        @TestFactory
+        fun InMemoryLogger.`should display ERR`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+                name: 4
+                ϟ Process {} terminated with exit code {}
+                ➜ A dump has been written to:
+                  - file://{}
+                  - file://{}
+                ➜ The last 10 lines are:
+                {{}}
+            """.trimIndent(), countDownAndBoom()) {
+            logging(it) {
+                errorsOnly("name")
             }
+        }
 
-            @Test
-            fun InMemoryLogger.`should display ERR`() {
-                countDownAndBoom().exec.async.logging(this) {
-                    errorsOnly("caption")
-                }.waitFor()
-                expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    │   caption: 4
-                    │   ϟ Process {} terminated with exit code {}
-                    │   ➜ A dump has been written to:
-                    │     - file://{}
-                    │     - file://{}
-                    │   ➜ The last 10 lines are:
-                    {{}}
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should display failed`() {
-                expectThat(
-                    countDownAndBoom().exec.async.logging(this) {
-                        errorsOnly("caption")
-                    }.waitFor())
-                    .isA<Failed>()
-                expectThatLogged().matchesCurlyPattern("""
-                    {{}}
-                    │   caption: 4
-                    │   ϟ Process {} terminated with exit code {}
-                    │   ➜ A dump has been written to:
-                    │     - file://{}
-                    │     - file://{}
-                    │   ➜ The last 10 lines are:
-                    {{}}
-                """.trimIndent())
-            }
-
-            @Test
-            fun InMemoryLogger.`should hide regular result`() {
-                countDownAndStart().exec.async.logging(this) {
-                    errorsOnly("caption")
-                }.waitFor()
-                expectThatLogged().isEmpty()
-            }
-
-            @Test
-            fun InMemoryLogger.`should hide incomplete`() {
-                justStart().exec.async.logging(this) {
-                    errorsOnly("caption")
-                }.waitFor()
-                expectThatLogged().isEmpty()
+        @TestFactory
+        fun InMemoryLogger.`should hide regular result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
+            logging(it) {
+                errorsOnly("name")
             }
         }
     }

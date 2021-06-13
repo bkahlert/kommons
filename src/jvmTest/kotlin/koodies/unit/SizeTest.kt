@@ -1,7 +1,7 @@
 package koodies.unit
 
 import koodies.io.path.getSize
-import koodies.io.path.randomFile
+import koodies.io.randomFile
 import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir

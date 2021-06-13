@@ -4,7 +4,7 @@ import koodies.debug.asEmoji
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.JavaExec
-import koodies.io.InternalLocations
+import koodies.io.Koodies
 import koodies.text.Semantics.Symbols
 
 /**
@@ -13,7 +13,7 @@ import koodies.text.Semantics.Symbols
 public open class ExecMock(
     private val process: JavaProcessMock,
     private val name: String? = null,
-) : Exec by JavaExec(process, InternalLocations.ExecTemp, CommandLine("echo", ExecMock::class.simpleName!!)) {
+) : Exec by JavaExec(process, Koodies.ExecTemp, CommandLine("echo", ExecMock::class.simpleName!!)) {
 
     override fun toString(): String {
         val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Symbols.Computation})"

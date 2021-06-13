@@ -11,7 +11,7 @@ import koodies.io.path.pathString
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeBytes
 import koodies.logging.MutedRenderingLogger
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.text.ANSI
 import koodies.text.ANSI.resetLines
 import java.nio.file.Path
@@ -45,14 +45,14 @@ public fun InMemoryFile.copyToDirectory(target: Path): Path =
 public fun InMemoryFile.copyToTemp(
     base: String = name.asPath().nameWithoutExtension,
     extension: String = name.asPath().extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(InternalLocations.FilesTemp.tempFile(base, extension))
+): Path = copyTo(Koodies.FilesTemp.tempFile(base, extension))
 
 /**
  * Returns this image as a bitmap. The image is automatically rasterized if necessary.
  */
-public fun InMemoryImage.rasterize(logger: RenderingLogger = MutedRenderingLogger): ByteArray =
+public fun InMemoryImage.rasterize(logger: SimpleRenderingLogger = MutedRenderingLogger): ByteArray =
     if (isBitmap) data
-    else withTempDir {
+    else runWithTempDir {
         val rasterized = "image.png"
         docker(LibRSvg, "-z", 5, "--output", rasterized, logger = logger, inputStream = data.inputStream())
         resolve(rasterized).readBytes()
@@ -61,7 +61,7 @@ public fun InMemoryImage.rasterize(logger: RenderingLogger = MutedRenderingLogge
 /**
  * Renders this image to a sequence of [ANSI] escape codes.
  */
-public fun InMemoryImage.toAsciiArt(logger: RenderingLogger = MutedRenderingLogger): String = withTempDir {
+public fun InMemoryImage.toAsciiArt(logger: SimpleRenderingLogger = MutedRenderingLogger): String = runWithTempDir {
     val fileName = resolve(this@toAsciiArt.baseName).writeBytes(rasterize(logger)).fileName
     docker(Chafa, logger = logger) { "/opt/bin/chafa -c full -w 9 $fileName" }
         .io.output.ansiKept.resetLines()

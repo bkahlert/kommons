@@ -4,14 +4,13 @@ import koodies.asString
 import koodies.exec.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.Semantics.Symbols.Computation
 import koodies.text.takeUnlessEmpty
-import kotlin.properties.Delegates
 
 public open class BlockRenderingLogger(
-    caption: CharSequence,
-    parent: RenderingLogger?,
+    name: CharSequence,
+    parent: SimpleRenderingLogger?,
     log: ((String) -> Unit)? = null,
     contentFormatter: Formatter? = null,
     decorationFormatter: Formatter? = null,
@@ -22,7 +21,7 @@ public open class BlockRenderingLogger(
     statusInformationColumns: Int? = null,
     width: Int? = null,
 ) : FixedWidthRenderingLogger(
-    caption.toString(),
+    name.toString(),
     parent,
     log,
     contentFormatter,
@@ -35,32 +34,22 @@ public open class BlockRenderingLogger(
     width,
     border.prefix(decorationFormatter)) {
 
-
-    private fun getBlockStart(): String = border.header(caption, decorationFormatter)
-
-    override var initialized: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
-        if (!oldValue && newValue) {
-            render(true) { getBlockStart() }
-        }
-    }
+    override fun onStart(): Unit = render { border.header(name, decorationFormatter) + LF }
 
     protected fun getBlockEnd(returnValue: ReturnValue): CharSequence = border.footer(returnValue, returnValueFormatter, decorationFormatter)
 
     override fun logText(block: () -> CharSequence) {
-        contentFormatter(block()).takeIf { it.isNotBlank() }?.run {
-            render(false) {
-                if (closed) this
-                else asAnsiString().prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = true)
+        block.format(contentFormatter) {
+            render {
+                prefixLinesWith(prefix)
             }
         }
     }
 
     override fun logLine(block: () -> CharSequence) {
-        contentFormatter(block()).takeIf { it.isNotBlank() }?.run {
-            render(true) {
-                val wrapped = wrapNonUriLines(totalColumns)
-                if (closed) wrapped
-                else wrapped.prefixLinesWith(prefix = prefix, ignoreTrailingSeparator = false)
+        block.format(contentFormatter) {
+            render {
+                wrapNonUriLines(totalColumns).prefixLinesWith(prefix, false) + LF
             }
         }
     }
@@ -72,24 +61,24 @@ public open class BlockRenderingLogger(
     override fun <R> logResult(result: Result<R>): R {
         if (parent == null) {
             result.exceptionOrNull()?.let {
-                render(true) {
-                    val message = IO.Error(it).formatted
+                render {
+                    val message = IO.Error(it).formatted + LF
                     if (closed) message
-                    else message.prefixLinesWith(prefix, ignoreTrailingSeparator = false)
+                    else message.prefixLinesWith(prefix)
                 }
             }
         }
 
         val returnValue = ReturnValue.of(result)
-        val formatted = if (closed) returnValueFormatter(returnValue.withSymbol(Computation)).format() else getBlockEnd(returnValue)
-        formatted.takeUnlessEmpty()?.let { render(true) { it.asAnsiString().wrapNonUriLines(totalColumns) } }
+        val formatted = getBlockEnd(returnValue)
+        formatted.takeUnlessEmpty()?.let { render { it.asAnsiString().wrapNonUriLines(totalColumns).toString() + LF } }
         close(result)
         return result.getOrThrow()
     }
 
     override fun toString(): String = asString {
         ::open to open
-        ::caption to caption
+        ::name to name
         ::contentFormatter to contentFormatter
         ::decorationFormatter to decorationFormatter
         ::border to border

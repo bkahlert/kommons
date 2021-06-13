@@ -22,7 +22,7 @@ import kotlin.time.Duration
  * this directory is required to be located somewhere inside of [Locations.Temp]
  * if not explicitly specified otherwise.
  */
-public data class AutoCleaningDirectory(
+public data class SelfCleaningDirectory(
 
     /**
      * Location of this temporary directory.
@@ -81,10 +81,10 @@ public data class AutoCleaningDirectory(
  * if not explicitly specified otherwise.
  */
 @Suppress("NOTHING_TO_INLINE")
-public inline fun Path.autoCleaning(
+public inline fun Path.selfCleaning(
     directoryName: String,
     keepAge: Duration = 1.hours,
     keepCount: Int = 100,
     enforceTempContainment: Boolean = true,
-): AutoCleaningDirectory =
-    AutoCleaningDirectory(resolve(directoryName), keepAge, keepCount, enforceTempContainment)
+): SelfCleaningDirectory =
+    SelfCleaningDirectory(resolve(directoryName), keepAge, keepCount, enforceTempContainment)

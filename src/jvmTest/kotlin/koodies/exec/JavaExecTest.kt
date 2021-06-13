@@ -13,7 +13,7 @@ import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.io.path.pathString
-import koodies.io.path.randomPath
+import koodies.io.randomPath
 import koodies.jvm.wait
 import koodies.shell.ShellScript
 import koodies.test.Slow

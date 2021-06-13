@@ -5,8 +5,6 @@ import koodies.io.path.asPath
 import koodies.io.path.copyToDirectory
 import koodies.io.path.isCopyOf
 import koodies.io.path.listDirectoryEntriesRecursively
-import koodies.io.path.randomDirectory
-import koodies.io.path.randomPath
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
 import koodies.test.UniqueId
@@ -71,8 +69,6 @@ class ClassPathsKtTest {
             "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
-            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
-            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
         ) { expecting { useClassPaths(this) { readText() } } that { all { isEqualTo(data.decodeToString()) } } }
 
         @Test
@@ -137,8 +133,6 @@ class ClassPathsKtTest {
             "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
-            "ClassPath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
-            "ClassPath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
         ) { expecting { useClassPath(this) { readText() } } that { isEqualTo(data.decodeToString()) } }
 
         @Test

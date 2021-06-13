@@ -7,7 +7,6 @@ import koodies.text.Semantics.BlockDelimiters.INTROSPECTION
 import koodies.text.Semantics.FieldDelimiters.FIELD
 import koodies.text.Semantics.formattedAs
 import koodies.text.asCodePoint
-import koodies.text.removeSurrounding
 import koodies.text.wrap
 import koodies.toSimpleString
 import java.util.Locale
@@ -35,7 +34,11 @@ public inline val Byte?.debug: String
         }.toString()
     }.let { it.wrap(INTROSPECTION.first.formattedAs.debug, INTROSPECTION.second.formattedAs.debug) }
 public val Array<*>?.debug: String
-    get() = this?.joinToString(",") { it.debug.removeSurrounding(INTROSPECTION.map { it.formattedAs.debug }) }
+    get() = this?.joinToString(",") {
+        with(INTROSPECTION.map { it.formattedAs.debug }) {
+            it.debug.removeSurrounding(first, second)
+        }
+    }
         .let { it.wrap("【".formattedAs.debug, "】".formattedAs.debug) }
 public inline val Boolean?.debug: String get() = asEmoji
 public inline val Any?.debug: String

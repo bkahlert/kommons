@@ -1,7 +1,5 @@
 package koodies.io
 
-import koodies.text.withoutPrefix
-
 public open class InMemoryImage(
     override val name: String,
     override val data: ByteArray,
@@ -10,7 +8,7 @@ public open class InMemoryImage(
     public constructor(name: String, data: String) : this(name, data.encodeToByteArray())
 
     public val baseName: String get() = name.substringBeforeLast(".")
-    public val extension: String get() = name.withoutPrefix(baseName).withoutPrefix(".")
+    public val extension: String get() = name.removePrefix(baseName).removePrefix(".")
 
     init {
         require(extension in EXTENSIONS) { error("$extension is none of the supported extensions: $EXTENSIONS") }

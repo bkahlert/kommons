@@ -1,5 +1,6 @@
 package koodies.io.path
 
+import koodies.io.randomFile
 import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.unit.bytes

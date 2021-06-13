@@ -101,7 +101,7 @@ class ExecutionIntegrationTest {
             echo("Take Off")
         }.exec.logging {
             block {
-                caption { "countdown" }
+                name { "countdown" }
                 contentFormatter { Formatter { "${"->".ansi.red} $it" } }
                 decorationFormatter { Colors.brightRed }
                 border = SOLID
@@ -239,25 +239,25 @@ class ExecutionIntegrationTest {
 
         with(executable) {
             logging("existing logging context") {
-                exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.brightBlue(it) }; border = SOLID } }
+                exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.brightBlue(it) }; border = SOLID } }
             }
         }
 
         logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightMagenta(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
+            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
         }
         logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightBlue(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
+            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
         }
         logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightMagenta(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
+            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
         }
         logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightBlue(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { caption by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
+            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
         }
 
         expectThatLogged().matchesCurlyPattern("""

@@ -14,7 +14,7 @@ import koodies.exec.Processors.ioProcessingThreadPool
 import koodies.exec.Processors.noopProcessor
 import koodies.jvm.completableFuture
 import koodies.logging.BlockRenderingLogger
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.logging.logReturnValue
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
@@ -45,7 +45,7 @@ public object Processors {
     /**
      * A [Processor] that prints the encountered [IO] using the specified [logger].
      */
-    public fun <E : Exec> loggingProcessor(logger: RenderingLogger): Processor<E> = { io ->
+    public fun <E : Exec> loggingProcessor(logger: SimpleRenderingLogger): Processor<E> = { io ->
         logger.logLine { io }
     }
 
@@ -59,11 +59,11 @@ public object Processors {
 }
 
 /**
- * Creates a [Processor] that processes [IO] by logging it using the `this` [RenderingLogger].
+ * Creates a [Processor] that processes [IO] by logging it using the `this` [SimpleRenderingLogger].
  *
  * Returns a [Processors.loggingProcessor] if `this` is `null`.
  */
-public fun <E : Exec> E.terminationLoggingProcessor(logger: RenderingLogger = BlockRenderingLogger(toString(), null)): Processor<E> {
+public fun <E : Exec> E.terminationLoggingProcessor(logger: SimpleRenderingLogger = BlockRenderingLogger(toString(), null)): Processor<E> {
     addPostTerminationCallback { exitState ->
         if (async) logger.logReturnValue(exitState)
     }

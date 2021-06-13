@@ -3,12 +3,9 @@ package koodies.logging
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.logging.InMemoryLogger.Companion.LOG_OPERATIONS
-import koodies.logging.RenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.test.Slow
+import koodies.logging.SimpleRenderingLogger.Companion.withUnclosedWarningDisabled
 import koodies.test.output.Bordered
 import koodies.test.output.Columns
-import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
@@ -20,7 +17,7 @@ class BlockRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log`() {
-        blockLogging("caption") {
+        blockLogging("name") {
             logLine { "line" }
             logStatus { "text" }
         }
@@ -28,7 +25,7 @@ class BlockRenderingLoggerKtTest {
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
             │
-            │   ╭──╴caption
+            │   ╭──╴name
             │   │
             │   │   line
             │   │   text {} ▮▮
@@ -41,7 +38,7 @@ class BlockRenderingLoggerKtTest {
 
     @Test
     fun InMemoryLogger.`should log nested`() {
-        blockLogging("caption") {
+        blockLogging("name") {
             logLine { "outer 1" }
             logLine { "outer 2" }
             blockLogging("nested") {
@@ -56,7 +53,7 @@ class BlockRenderingLoggerKtTest {
         expectThatLogged().matchesCurlyPattern("""
             ╭──╴{}
             │
-            │   ╭──╴caption
+            │   ╭──╴name
             │   │
             │   │   outer 1
             │   │   outer 2
@@ -78,7 +75,7 @@ class BlockRenderingLoggerKtTest {
 
     @Test
     fun @receiver:Columns(60) InMemoryLogger.`should log status on same column`() {
-        blockLogging("caption") {
+        blockLogging("name") {
             logStatus("status") { "text" }
             blockLogging("nested") {
                 logStatus("status") { "text" }
@@ -214,7 +211,7 @@ class BlockRenderingLoggerKtTest {
         containerNamePattern = "border={}",
     ) { (border, expectation) ->
         val label = border.name
-        val logger = InMemoryLogger(caption = "$label caption", border = border).withUnclosedWarningDisabled.apply { block() }
+        val logger = InMemoryLogger(name = "$label name", border = border).withUnclosedWarningDisabled.apply { block() }
         asserting { logger.expectThatLogged().toStringMatchesCurlyPattern(expectation) }
     }
 
@@ -222,19 +219,19 @@ class BlockRenderingLoggerKtTest {
     fun `should not log without any log event`() = borderTest("", "", "") {}
 
     @TestFactory
-    fun `should log caption on first log`() = borderTest(
+    fun `should log name on first log`() = borderTest(
         """
-            ╭──╴SOLID caption
+            ╭──╴SOLID name
             │
             │   line
             │
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ DOTTED caption
+            ▶ DOTTED name
             · line
             ✔︎
         """.trimIndent(), """
-            NONE caption
+            NONE name
             line
             ✔︎
         """.trimIndent()) {
@@ -244,17 +241,17 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log text`() = borderTest(
         """
-            ╭──╴SOLID caption
+            ╭──╴SOLID name
             │
             │   text
             │
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ DOTTED caption
+            ▶ DOTTED name
             · text
             ✔︎
         """.trimIndent(), """
-            NONE caption
+            NONE name
             text
             ✔︎
         """.trimIndent()) {
@@ -264,17 +261,17 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log line`() = borderTest(
         """
-            ╭──╴SOLID caption
+            ╭──╴SOLID name
             │
             │   line
             │
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ DOTTED caption
+            ▶ DOTTED name
             · line
             ✔︎
         """.trimIndent(), """
-            NONE caption
+            NONE name
             line
             ✔︎
         """.trimIndent()) {
@@ -286,12 +283,12 @@ class BlockRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Bordered(SOLID) InMemoryLogger.`should log exception SOLID`() {
-            kotlin.runCatching { blockLogging("caption") { throw RuntimeException("exception") } }
+            kotlin.runCatching { blockLogging("name") { throw RuntimeException("exception") } }
 
             expectThatLogged().matchesCurlyPattern(
                 """
                     {{}}
-                    │   ╭──╴caption
+                    │   ╭──╴name
                     │   │
                     │   ϟ
                     │   ╰──╴RuntimeException: exception at.(BlockRenderingLoggerKtTest.kt:{})
@@ -302,7 +299,7 @@ class BlockRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Bordered(DOTTED) InMemoryLogger.`should log exception DOTTED`() {
-            kotlin.runCatching { blockLogging("caption") { throw RuntimeException("exception") } }
+            kotlin.runCatching { blockLogging("name") { throw RuntimeException("exception") } }
 
             expectThatLogged().matchesCurlyPattern(
                 """
@@ -316,7 +313,7 @@ class BlockRenderingLoggerKtTest {
 
         @Test
         fun @receiver:Bordered(NONE) InMemoryLogger.`should log exception NONE`() {
-            kotlin.runCatching { blockLogging("caption") { throw RuntimeException("exception") } }
+            kotlin.runCatching { blockLogging("name") { throw RuntimeException("exception") } }
 
             expectThatLogged().matchesCurlyPattern(
                 """
@@ -331,17 +328,17 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log status`() = borderTest(
         """
-            ╭──╴SOLID caption
+            ╭──╴SOLID name
             │
             │   line {} ◀◀ status
             │
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ DOTTED caption
+            ▶ DOTTED name
             · line {} ◀◀ status
             ✔︎
         """.trimIndent(), """
-            NONE caption
+            NONE name
             line {} ◀◀ status
             ✔︎
         """.trimIndent()) {
@@ -351,69 +348,24 @@ class BlockRenderingLoggerKtTest {
     @TestFactory
     fun `should log result`() = borderTest(
         """
-            ╭──╴SOLID caption
+            ╭──╴SOLID name
             │
             │
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ DOTTED caption
+            ▶ DOTTED name
             ✔︎
         """.trimIndent(), """
-            NONE caption
+            NONE name
             ✔︎
         """.trimIndent()) {
         logResult { Result.success("result") }
     }
 
     @TestFactory
-    fun `should log incomplete result`() = borderTest(
-        """
-            ╭──╴SOLID caption
-            │
-            ╵
-            ╵
-            ⏳️
-        """.trimIndent(), """
-            ▶ DOTTED caption
-            ⏳️
-        """.trimIndent(), """
-            NONE caption
-            ⏳️
-        """.trimIndent()) {
-        logResult {
-            Result.success(InMemoryLogger.NO_RETURN_VALUE)
-        }
-    }
-
-    @TestFactory
-    fun `should log multiple results`() = borderTest(
-        """
-            ╭──╴SOLID caption
-            │
-            │
-            ╰──╴✔︎
-            ⏳️ ✔︎
-            ⏳️ ✔︎
-        """.trimIndent(), """
-            ▶ DOTTED caption
-            ✔︎
-            ⏳️ ✔︎
-            ⏳️ ✔︎
-        """.trimIndent(), """
-            NONE caption
-            ✔︎
-            ⏳️ ✔︎
-            ⏳️ ✔︎
-        """.trimIndent()) {
-        logResult()
-        logResult()
-        logResult()
-    }
-
-    @TestFactory
     fun `should log multiple entries`() = borderTest(
         """
-            ╭──╴SOLID caption
+            ╭──╴SOLID name
             │
             │   text
             │   line
@@ -421,13 +373,13 @@ class BlockRenderingLoggerKtTest {
             │
             ╰──╴✔︎
         """.trimIndent(), """
-            ▶ DOTTED caption
+            ▶ DOTTED name
             · text
             · line
             · line {} ◀◀ status
             ✔︎
         """.trimIndent(), """
-            NONE caption
+            NONE name
             text
             line
             line {} ◀◀ status
@@ -436,60 +388,5 @@ class BlockRenderingLoggerKtTest {
         logText { "text" }
         logLine { "line" }
         logStatus("status") { "line" }
-    }
-
-    @Suppress("SpellCheckingInspection")
-    @Nested
-    inner class LoggingAfterResult {
-
-        @Slow @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
-            val logger = createLogger(opName)
-            var delegate: FixedWidthRenderingLogger? = null
-            logger.blockLogging("test") {
-                delegate = this
-                logLine { "line" }
-            }
-            delegate?.op()
-            expecting { logger } that {
-                toStringMatchesCurlyPattern(
-                    """
-                        ╭──╴{}
-                        │
-                        │   ╭──╴test
-                        │   │
-                        │   │   line
-                        │   │
-                        │   ╰──╴✔︎
-                        │   ⏳️ {}
-                        {{}}
-                    """.trimIndent()
-                )
-            }
-        }
-
-        @Slow @TestFactory
-        fun InMemoryLoggerFactory.`should log after logged message and result`() = testEach(*LOG_OPERATIONS) { (opName, op) ->
-            val logger = createLogger(opName)
-            var delegate: FixedWidthRenderingLogger? = null
-            logger.blockLogging("test") {
-                delegate = this
-            }
-            delegate?.op()
-            expecting { logger } that {
-                toStringMatchesCurlyPattern(
-                    """
-                        ╭──╴{}
-                        │
-                        │   ╭──╴test
-                        │   │
-                        │   │
-                        │   ╰──╴✔︎
-                        │   ⏳️ {}
-                        {{}}
-                    """.trimIndent()
-                )
-            }
-        }
     }
 }

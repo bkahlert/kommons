@@ -38,7 +38,7 @@ public open class ClassPath(public val pathString: String) {
      * @see copyToTemp
      */
     public fun copyTo(target: Path, overwrite: Boolean = false): Path =
-        useClassPath(pathString, fun Path.(): Path = this.copyTo(target, overwrite = overwrite))
+        useClassPath(pathString, fun Path.(): Path = copyTo(target, overwrite = overwrite))
             ?: error("Error copying ${fileName.quoted} to ${target.quoted}")
 
     /**
@@ -58,7 +58,7 @@ public open class ClassPath(public val pathString: String) {
     public fun copyToTemp(
         base: String = nativePath.nameWithoutExtension,
         extension: String = nativePath.extensionOrNull?.let { ".$it" } ?: "",
-    ): Path = copyTo(InternalLocations.FilesTemp.tempFile(base, extension), overwrite = true)
+    ): Path = copyTo(Koodies.FilesTemp.tempFile(base, extension), overwrite = true)
 }
 
 /**

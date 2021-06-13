@@ -9,7 +9,7 @@ import koodies.exec.Process.State.Running
 import koodies.logging.ReturnValue
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CRLF
-import koodies.text.LineSeparators.withoutTrailingLineSeparator
+import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.withSuffix
@@ -346,7 +346,7 @@ public fun OutputStream.enter(vararg input: String, delay: Duration = 10.milli.s
     val stdin = BufferedWriter(OutputStreamWriter(this))
     input.forEach {
         TimeUnit.MILLISECONDS.sleep(delay.inWholeMilliseconds)
-        stdin.write(it.withoutTrailingLineSeparator.withSuffix(CRLF))
+        stdin.write(it.removeTrailingLineSeparator.withSuffix(CRLF))
         stdin.flush()
     }
 }

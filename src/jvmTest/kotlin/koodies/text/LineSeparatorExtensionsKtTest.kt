@@ -1,10 +1,10 @@
 package koodies.text
 
 import koodies.io.path.hasContent
-import koodies.io.path.randomDirectory
-import koodies.io.path.randomFile
-import koodies.io.path.randomPath
 import koodies.io.path.writeText
+import koodies.io.randomDirectory
+import koodies.io.randomFile
+import koodies.io.randomPath
 import koodies.io.tempFile
 import koodies.test.UniqueId
 import koodies.test.expecting

@@ -16,7 +16,7 @@ import koodies.exec.Process.State
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.io.Locations
-import koodies.logging.RenderingLogger
+import koodies.logging.SimpleRenderingLogger
 import koodies.shell.ShellScript
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
@@ -154,7 +154,7 @@ import java.nio.file.Path
  * with no known limitations (provided, a shell is installed at all):
  * - [synchronously][ProcessingMode.Synchronicity.Sync]
  * - [asynchronously][ProcessingMode.Synchronicity.Async]
- * - [logging][RenderingLogger]
+ * - [logging][SimpleRenderingLogger]
  * - [interactively][ProcessingMode.Interactivity]
  * - [dockerized][Docker]
  */
