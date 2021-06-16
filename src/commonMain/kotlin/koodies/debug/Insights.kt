@@ -62,6 +62,10 @@ public class XRay<T>(
     override fun get(index: Int): Char = string[index]
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = string.subSequence(startIndex, endIndex)
     override fun toString(): String = string
+    public fun print(): T {
+        println(toString())
+        return subject
+    }
 
     /**
      * Returns an instance that applies the given [transform] to [subject].
@@ -110,7 +114,56 @@ public class XRay<T>(
     }
 }
 
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * passing `this` to an instance of [XRay] while returning `this` on [XRay.print].
+ *
+ * **Example**
+ * ```kotlin
+ * chain().of.endless().xray.breaks.print().calls()
+ * ```
+ *
+ * … does the same as …
+ *
+ * ```kotlin
+ * chain().of.endless().calls()
+ * ```
+ *
+ * … with the only difference that the return value of
+ *
+ * ```kotlin
+ * chain().of.endless()
+ * ```
+ *
+ * will be printed.
+ */
 public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = { toString() }, transform = null)
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * passing `this` to an instance of [XRay] while returning `this` on [XRay.print].
+ *
+ * **Example**
+ * ```kotlin
+ * chain().of.endless().xray("optional label").breaks.print().calls()
+ * ```
+ *
+ * … does the same as …
+ *
+ * ```kotlin
+ * chain().of.endless().calls()
+ * ```
+ *
+ * … with the only difference that the return value of
+ *
+ * ```kotlin
+ * chain().of.endless()
+ * ```
+ *
+ * will be printed.
+ */
 public fun <T> T.xray(description: CharSequence? = null): XRay<T> = XRay(description, this, stringifier = { toString() }, transform = null)
 public fun <T> T.xray(description: CharSequence? = null, transform: (T.() -> Any)?): XRay<out T> =
     XRay(description, this, stringifier = { toString() }, transform = transform)

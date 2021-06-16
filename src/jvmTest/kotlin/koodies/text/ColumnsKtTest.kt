@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.test.expecting
+import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.asAnsiString
@@ -188,5 +189,38 @@ class ColumnsKtTest {
                 babab     babab
             """.trimIndent())
         }
+    }
+
+    @Test
+    fun `should format multiple plain text columns`() {
+        val plainText = ansiString.ansiRemoved
+        val linedUp = formatColumns(plainText to 50, plainText to 30, plainText to 10)
+        expectThat(linedUp).isEqualTo("""
+            Important: This line has no ANSI escapes.              Important: This line has no AN     Important:
+            This one's bold!                                       SI escapes.                         This line
+            Last one is clean.                                     This one's bold!                    has no AN
+                                                                   Last one is clean.                 SI escapes
+                                                                                                      .         
+                                                                                                      This one's
+                                                                                                       bold!    
+                                                                                                      Last one i
+                                                                                                      s clean.  
+        """.trimIndent())
+    }
+
+    @Test
+    fun `should format multiple ansi columns`() {
+        val linedUp = formatColumns(ansiString to 50, ansiString.ansiRemoved.asAnsiString() to 30, ansiString to 10)
+        expectThat(linedUp).toStringIsEqualTo("""
+            $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m              Important: This line has no AN     $e[3;36m$e[4mImportant:$e[23;39;24m
+            $e[3;36mThis one's $e[1mbold!$e[23;39;22m                                       SI escapes.                        $e[3;36;4m$e[24m This line$e[23;39m
+            $e[3;36mLast one is clean.$e[23;39m                                     This one's bold!                   $e[3;36m has $e[9mno$e[29m AN$e[23;39m
+                                                                   Last one is clean.                 $e[3;36mSI escapes$e[23;39m
+                                                                                                      $e[3;36m.$e[23;39m         
+                                                                                                      $e[3;36mThis one's$e[23;39m
+                                                                                                      $e[3;36m $e[1mbold!$e[23;39;22m    
+                                                                                                      $e[3;36mLast one i$e[23;39m
+                                                                                                      $e[3;36ms clean.$e[23;39m  
+        """.trimIndent())
     }
 }

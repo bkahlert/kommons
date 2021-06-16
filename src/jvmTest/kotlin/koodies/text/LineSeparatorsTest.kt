@@ -9,7 +9,6 @@ import koodies.test.Slow
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.tests
-import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.CRLF
@@ -22,7 +21,6 @@ import koodies.text.LineSeparators.REGEX
 import koodies.text.LineSeparators.autoDetect
 import koodies.text.LineSeparators.firstLineSeparator
 import koodies.text.LineSeparators.firstLineSeparatorLength
-import koodies.text.LineSeparators.flatMapLines
 import koodies.text.LineSeparators.hasLeadingLineSeparator
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.isMultiline
@@ -121,43 +119,31 @@ class LineSeparatorsTest {
 
     @TestFactory
     fun lineOperations() = testEach(
-        "lineSequence" to { input: CharSequence, ignoreTrailSep: Boolean, keepDelimiters: Boolean ->
-            input.lineSequence(ignoreTrailingSeparator = ignoreTrailSep, keepDelimiters = keepDelimiters).toList()
+        "lineSequence" to { input: CharSequence, keepDelimiters: Boolean ->
+            input.lineSequence(keepDelimiters = keepDelimiters).toList()
         },
-        "lines" to { input: CharSequence, ignoreTrailSep: Boolean, keepDelimiters: Boolean ->
-            input.lines(ignoreTrailingSeparator = ignoreTrailSep, keepDelimiters = keepDelimiters).toList()
+        "lines" to { input: CharSequence, keepDelimiters: Boolean ->
+            input.lines(keepDelimiters = keepDelimiters).toList()
         },
-        containerNamePattern = "{}(…)") { (_: String, operation: (CharSequence, Boolean, Boolean) -> Iterable<String>) ->
+        containerNamePattern = "{}(…)") { (_: String, operation: (CharSequence, Boolean) -> Iterable<String>) ->
         val multiLineTrail = "1${CR}2${CRLF}3$PS"
         val multiLine = "1${CR}2${CRLF}3"
         val singleLine = "1"
         val empty = ""
-        fun lineTest(input: String, ignoreTrailSep: Boolean, keepDelimiters: Boolean, vararg lines: String) =
-            expecting("input: " + input.replaceNonPrintableCharacters()) { operation(input, ignoreTrailSep, keepDelimiters) } that { containsExactly(*lines) }
+        fun lineTest(input: String, keepDelimiters: Boolean, vararg lines: String) =
+            expecting("input: " + input.replaceNonPrintableCharacters()) { operation(input, keepDelimiters) } that { containsExactly(*lines) }
 
         group("keep trailing line separator + ignore delimiters") {
-            lineTest(multiLineTrail, false, false, "1", "2", "3", "")
-            lineTest(multiLine, false, false, "1", "2", "3")
-            lineTest(singleLine, false, false, "1")
-            lineTest(empty, false, false, "")
+            lineTest(multiLineTrail, false, "1", "2", "3", "")
+            lineTest(multiLine, false, "1", "2", "3")
+            lineTest(singleLine, false, "1")
+            lineTest(empty, false, "")
         }
         group("keep trailing line separator + keep delimiters") {
-            lineTest(multiLineTrail, false, true, "1$CR", "2$CRLF", "3$PS", "")
-            lineTest(multiLine, false, true, "1$CR", "2$CRLF", "3")
-            lineTest(singleLine, false, true, "1")
-            lineTest(empty, false, true, "")
-        }
-        group("ignore trailing line separator + ignore delimiters") {
-            lineTest(multiLineTrail, true, false, "1", "2", "3")
-            lineTest(multiLine, true, false, "1", "2", "3")
-            lineTest(singleLine, true, false, "1")
-            lineTest(empty, true, false, lines = emptyArray())
-        }
-        group("ignore trailing line separator + keep delimiters") {
-            lineTest(multiLineTrail, true, true, "1$CR", "2$CRLF", "3$PS")
-            lineTest(multiLine, true, true, "1$CR", "2$CRLF", "3")
-            lineTest(singleLine, true, true, "1")
-            lineTest(empty, true, true, lines = emptyArray())
+            lineTest(multiLineTrail, true, "1$CR", "2$CRLF", "3$PS", "")
+            lineTest(multiLine, true, "1$CR", "2$CRLF", "3")
+            lineTest(singleLine, true, "1")
+            lineTest(empty, true, "")
         }
     }
 
@@ -185,9 +171,10 @@ class LineSeparatorsTest {
         expecting { "line$lineSeparator".removeTrailingLineSeparator } that { isEqualTo("line") }
         expecting { "line${lineSeparator}X".removeTrailingLineSeparator } that { isEqualTo("line${lineSeparator}X") }
 
-
-        expecting { "line$lineSeparator".runIgnoringTrailingLineSeparator { "[$it]" } } that { isEqualTo("[line]$lineSeparator") }
-        expecting { "line${lineSeparator}X".runIgnoringTrailingLineSeparator { "[$it]" } } that { isEqualTo("[line${lineSeparator}X]") }
+        @Suppress("DEPRECATION")
+        expecting { "line$lineSeparator".runIgnoringTrailingLineSeparator { "[$this]" } } that { isEqualTo("[line]$lineSeparator") }
+        @Suppress("DEPRECATION")
+        expecting { "line${lineSeparator}X".runIgnoringTrailingLineSeparator { "[$this]" } } that { isEqualTo("[line${lineSeparator}X]") }
 
 
         group("firstLineSeparatorAndLength") {
@@ -341,18 +328,18 @@ class LineSeparatorsTest {
 
         @Test
         fun `should transform single line`() {
-            expectThat("AB".mapLines(ignoreTrailingSeparator = true, transform)).isEqualTo("ABBA")
+            expectThat("AB".mapLines(transform)).isEqualTo("ABBA")
         }
 
         @Test
         fun `should transform multi line`() {
             @Suppress("SpellCheckingInspection")
-            expectThat("AB\nBA".mapLines(ignoreTrailingSeparator = true, transform)).isEqualTo("ABBA\nBAAB")
+            expectThat("AB\nBA".mapLines(transform)).isEqualTo("ABBA\nBAAB")
         }
 
         @Test
         fun `should keep trailing line`() {
-            expectThat("AB\nBA$LF".mapLines { "X" }).isEqualTo("X\nX$LF")
+            expectThat("AB\nBA$LF".mapLines { "X" }).isEqualTo("X\nX\nX")
         }
 
         @Test
@@ -361,51 +348,8 @@ class LineSeparatorsTest {
         }
 
         @Test
-        fun `should map empty string and keep trailing line`() {
-            expectThat(LF.mapLines { "X" }).isEqualTo("X$LF")
-        }
-
-        @Test
-        fun `should map trailing empty line if not ignored`() {
-            expectThat(LF.mapLines(ignoreTrailingSeparator = false) { "X" }).isEqualTo("X\nX")
-        }
-    }
-
-    @Nested
-    inner class FlatMapLinesKtTest {
-
-        val transform = { s: CharSequence -> listOf("$s" + s.reversed(), "${s.reversed()}" + "$s") }
-
-        @Test
-        fun `should transform single line`() {
-            @Suppress("SpellCheckingInspection")
-            expectThat("AB".flatMapLines(ignoreTrailingSeparator = true, transform)).isEqualTo("ABBA\nBAAB")
-        }
-
-        @Test
-        fun `should transform multi line`() {
-            @Suppress("SpellCheckingInspection")
-            expectThat("AB\nBA".flatMapLines(ignoreTrailingSeparator = true, transform)).isEqualTo("ABBA\nBAAB\nBAAB\nABBA")
-        }
-
-        @Test
-        fun `should keep trailing line`() {
-            expectThat("AB\nBA$LF".flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY$LF")
-        }
-
-        @Test
-        fun `should map empty string`() {
-            expectThat("".flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY")
-        }
-
-        @Test
-        fun `should map empty string and keep trailing line`() {
-            expectThat(LF.flatMapLines { listOf("X", "Y") }).isEqualTo("X\nY$LF")
-        }
-
-        @Test
-        fun `should map trailing empty line if not ignored`() {
-            expectThat(LF.flatMapLines(ignoreTrailingSeparator = false) { listOf("X", "Y") }).isEqualTo("X\nY\nX\nY")
+        fun `should map two empty lines`() {
+            expectThat(LF.mapLines { "X" }).isEqualTo("X\nX")
         }
     }
 
@@ -414,26 +358,8 @@ class LineSeparatorsTest {
 
         @Test
         fun `should add prefix to each line`() {
-            val prefixedLines = "12345     12345\nsnake    snake".prefixLinesWith("ab ", ignoreTrailingSeparator = true)
+            val prefixedLines = "12345     12345\nsnake    snake".prefixLinesWith("ab ")
             expectThat(prefixedLines).isEqualTo("ab 12345     12345\nab snake    snake")
-        }
-
-        @Test
-        fun `should do nothing on empty prefix`() {
-            val prefixedLines = "12345     12345\nsnake    snake".prefixLinesWith("", ignoreTrailingSeparator = true)
-            expectThat(prefixedLines).isEqualTo("12345     12345\nsnake    snake")
-        }
-
-        @Test
-        fun `should keep trailing new line`() {
-            val prefixedLines = "12345     12345\nsnake    snake$LF".prefixLinesWith("ab ", ignoreTrailingSeparator = true)
-            expectThat(prefixedLines).isEqualTo("ab 12345     12345\nab snake    snake$LF")
-        }
-
-        @Test
-        fun `should prefix trailing new line if not ignored`() {
-            val prefixedLines = "12345     12345\nsnake    snake$LF".prefixLinesWith("ab ", ignoreTrailingSeparator = false)
-            expectThat(prefixedLines).isEqualTo("ab 12345     12345\nab snake    snake\nab ")
         }
     }
 
@@ -452,21 +378,6 @@ class LineSeparatorsTest {
                     "789",
                     "0",
                     "",
-                )
-            }
-        }
-
-        @TestFactory
-        fun `should be split with maximum line length with trailing line removed`() = testEach<CharSequence.() -> List<CharSequence>>(
-            { linesOfLengthSequence(3, ignoreTrailingSeparator = true).toList() },
-            { linesOfLength(3, ignoreTrailingSeparator = true) },
-        ) { fn ->
-            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
-                containsExactly(
-                    "123",
-                    "45曲",
-                    "789",
-                    "0",
                 )
             }
         }
@@ -490,21 +401,6 @@ class LineSeparatorsTest {
                 )
             }
         }
-
-        @TestFactory
-        fun `should be split into lines with columns with trailing line removed`() = testEach<CharSequence.() -> List<CharSequence>>(
-            { linesOfColumnsSequence(3, ignoreTrailingSeparator = true).toList() },
-            { linesOfColumns(3, ignoreTrailingSeparator = true) },
-        ) { fn ->
-            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
-                containsExactly(
-                    "123",
-                    "45",
-                    "曲7",
-                    "890",
-                )
-            }
-        }
     }
 
     @Nested
@@ -512,24 +408,46 @@ class LineSeparatorsTest {
 
         private val space = " "
 
-        @Test
-        fun `should wrap non-ANSI lines`() {
-            expectThat("12345曲7890".wrapLines(3)).toStringIsEqualTo("""
+        @Nested
+        inner class NonAnsi {
+
+            private val text = "12345曲7890"
+
+            @Test
+            fun `should wrap non-ANSI lines`() {
+                expectThat(text.wrapLines(3)).isEqualTo("""
                 123
                 45$space
                 曲7
                 890
-            """.trimIndent(), removeAnsi = false)
+            """.trimIndent())
+            }
+
+            @Test
+            fun `should wrap non-ANSI lines idempotent`() {
+                expectThat(text.wrapLines(3).wrapLines(3)).isEqualTo(text.wrapLines(3))
+            }
         }
 
-        @Test
-        fun `should wrap ANSI lines`() {
-            expectThat("${"12345".ansi.cyan}曲7890".ansi.bold.wrapLines(3)).toStringIsEqualTo("""
+        @Nested
+        inner class Ansi {
+
+            private val text = "${"12345".ansi.cyan}曲7890".ansi.bold
+
+            @Test
+            fun `should wrap ANSI lines`() {
+                expectThat(text.wrapLines(3)).isEqualTo("""
                 $e[1m$e[36m123$e[22;39m
                 $e[1;36m45$e[22;39m$space
                 $e[1;36m$e[39m曲7$e[22m
                 $e[1m890$e[22m
-            """.trimIndent(), removeAnsi = false)
+            """.trimIndent())
+            }
+
+            @Test
+            fun `should wrap ANSI lines idempotent`() {
+                expectThat(text.wrapLines(3).wrapLines(3)).isEqualTo(text.wrapLines(3))
+            }
         }
     }
 }
@@ -547,6 +465,5 @@ fun <T : CharSequence> Assertion.Builder<T>.isSingleLine() =
     }
 
 fun <T : CharSequence> Assertion.Builder<T>.lines(
-    ignoreTrailingSeparator: Boolean = false,
     keepDelimiters: Boolean = false,
-): Assertion.Builder<List<String>> = get("lines %s") { lines(ignoreTrailingSeparator = ignoreTrailingSeparator, keepDelimiters = keepDelimiters) }
+): Assertion.Builder<List<String>> = get("lines %s") { lines(keepDelimiters) }

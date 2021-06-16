@@ -25,8 +25,8 @@ fun ExtensionContext.conditionallyVerboseLogger(
  * Runs the specified [block] with this [RenderingLogger] and returns the intercepted
  * log messages.
  */
-fun InMemoryLogger.capturing(block: (SimpleRenderingLogger) -> Unit): String {
+fun InMemoryLogger.capturing(block: FixedWidthRenderingLogger.(FixedWidthRenderingLogger) -> Unit): String {
     val captured = StringBuilder()
-    InMemoryLogger("capturing ${name.formattedAs.input}", this) { logText { it }; captured.append(it) }.applyLogging(block)
+    kotlin.runCatching { InMemoryLogger("capturing ${name.formattedAs.input}", this) { logText { it }; captured.append(it) }.applyLogging { this.block(this) } }
     return captured.ansiRemoved.lines().drop(2).dropLast(2).joinToString(LF) { it.removePrefix("│   ") }
 }

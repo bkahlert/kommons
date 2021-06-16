@@ -363,6 +363,7 @@ class IllegalUsageException(function: String, caller: URI) : IllegalArgumentExce
  *
  * ```
  */
+@Deprecated("remove; too magic")
 inline val Extension.namespaced: ReadOnlyProperty<Any?, ExtensionContext.() -> Store>
     get() {
         val namespace = Namespace.create(this::class.java)
@@ -391,6 +392,7 @@ inline val Extension.namespaced: ReadOnlyProperty<Any?, ExtensionContext.() -> S
  *
  * ```
  */
+@Deprecated("remove; too magic")
 inline fun <reified T : Any> namespaced(): ReadOnlyProperty<Any?, ExtensionContext.() -> Store> {
     val namespace = Namespace.create(T::class.java)
     return ReadOnlyProperty<Any?, ExtensionContext.() -> Store> { _, _ ->
@@ -402,6 +404,7 @@ inline fun <reified T : Any> namespaced(): ReadOnlyProperty<Any?, ExtensionConte
  * Returns the [ExtensionContext.Store] that uses
  * the class of [T] as the key for the [Namespace] needed to access and scope the store.
  */
+@Deprecated("remove; too magic")
 inline fun <reified T> ExtensionContext.store(clazz: Class<T> = T::class.java): Store =
     getStore(Namespace.create(clazz))
 

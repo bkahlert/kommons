@@ -24,6 +24,6 @@ public interface RenderingLogger {
      */
     public val closed: Boolean // TODO rename to ended
 
-    public fun log(lazyMessage: () -> String)
+    public fun log(lazyMessage: () -> CharSequence)
     public fun <T> close(result: Result<T>)
 }

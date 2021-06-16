@@ -226,13 +226,27 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
      *
      * Eventually existing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed.
      *
-     * ***Note:** Accessing this property triggers the construction
+     * ***Note:** This operation is potentially expensive as triggers the construction
      * of a string representing all encompassed [IO].*
      *
      * @see ansiRemoved
      * @see ansiKept
      */
     override fun toString(): String = ansiRemoved
+
+    /**
+     * Returns all encompassed [IO] merged to a string.
+     *
+     * Whether eventually existing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) are removed
+     * can be specified with [removeAnsi].
+     *
+     * ***Note:** This operation is potentially expensive as triggers the construction
+     * of a string representing all encompassed [IO].*
+     *
+     * @see ansiRemoved
+     * @see ansiKept
+     */
+    public fun toString(removeAnsi: Boolean): String = if (removeAnsi) ansiRemoved else ansiKept
 
     public companion object {
 

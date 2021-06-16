@@ -6,6 +6,7 @@ import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbolizable
 import koodies.text.Semantics.Symbols
 import koodies.text.takeUnlessBlank
+import koodies.tracing.Span
 
 /**
  * Implementors of this interface gain control on
@@ -41,7 +42,7 @@ public interface ReturnValue : Symbolizable {
          * Converts any value to a [ReturnValue] used to compute its representation
          * based on whether it implements [ReturnValue] or not.
          *
-         * If [ReturnValue] is implemented this implementation is used. Otherwise
+         * If [ReturnValue] is implemented its implementation is used. Otherwise
          * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
          * for any other value.
          *
@@ -52,9 +53,18 @@ public interface ReturnValue : Symbolizable {
                 is ReturnValue -> value
                 is Result<*> -> value.fold({ of(it) }, { of(it) })
                 is Throwable -> ExceptionReturnValue(value)
+                is Span.State.Ended.Succeeded -> of(value.value)
+                is Span.State.Ended.Failed -> of(value.exception)
                 else -> AnyReturnValue(value)
             }
 
+        /**
+         * Computes the representation of the given [returnValue] as a result of a [Span].
+         *
+         * If [ReturnValue] is implemented its implementation is used. Otherwise
+         * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
+         * for any other value.
+         */
         public fun format(returnValue: Any?): String = of(returnValue).format()
     }
 }

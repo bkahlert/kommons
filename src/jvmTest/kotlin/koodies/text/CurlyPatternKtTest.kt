@@ -169,11 +169,6 @@ class CurlyPatternKtTest {
     }
 
     @Test
-    fun `should allow to ignore trailing lines`() {
-        expectThat("ab".ansi.red.toString() + "c").not { matchesCurlyPattern("abc\nxxx\nyyy", ignoreTrailingLines = true) }
-    }
-
-    @Test
     fun `should unify whitespace`() {
         expectThat("A B C").toStringMatchesCurlyPattern("A {} C")
     }
@@ -248,7 +243,6 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
     unifyWhitespaces: Boolean = true,
     trimEnd: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
-    ignoreTrailingLines: Boolean = false,
 ): Assertion.Builder<T> = assert(if (curlyPattern.isMultiline) "matches curly pattern\n$curlyPattern" else "matches curly pattern $curlyPattern") { actual ->
     val preprocessor = compositionOf(
         true to { s: String -> unify(s) },
@@ -258,13 +252,8 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
         trimEnd to { s: String -> s.mapLines { it.trimEnd() } },
         trimmed to { s: String -> s.trim() },
     )
-    var processedActual = preprocessor("$actual")
-    var processedPattern = preprocessor(curlyPattern)
-    if (ignoreTrailingLines) {
-        val lines = processedActual.lines().size.coerceAtMost(processedPattern.lines().size)
-        processedActual = processedActual.lines().take(lines).joinToString(LF)
-        processedPattern = processedPattern.lines().take(lines).joinToString(LF)
-    }
+    val processedActual = preprocessor("$actual")
+    val processedPattern = preprocessor(curlyPattern)
     if (processedActual.matchesCurlyPattern(preprocessor.invoke(curlyPattern))) pass()
     else {
         if (processedActual.lines().size == processedPattern.lines().size) {
@@ -288,12 +277,12 @@ fun <T> Assertion.Builder<T>.toStringMatchesCurlyPattern(
     removeTrailingBreak: Boolean = true,
     removeAnsi: Boolean = true,
     trimmed: Boolean = removeTrailingBreak,
-    ignoreTrailingLines: Boolean = false,
-): Assertion.Builder<String> = get { toString() }.matchesCurlyPattern(expected,
-    removeTrailingBreak,
-    removeAnsi,
-    trimmed,
-    trimmed = ignoreTrailingLines)
+): Assertion.Builder<String> = get { toString() }.matchesCurlyPattern(
+    curlyPattern = expected,
+    removeTrailingBreak = removeTrailingBreak,
+    removeAnsi = removeAnsi,
+    trimmed = trimmed,
+)
 
 private fun String.highlightTooManyLinesTo(other: String): String {
     val lines = lines()

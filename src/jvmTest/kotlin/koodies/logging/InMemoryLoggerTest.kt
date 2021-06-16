@@ -113,7 +113,7 @@ class InMemoryLoggerTest {
             fun `should render open`() {
                 val logger = logger { logLine { "line" } }
 
-                expectThat(logger.toString().endTrimmed).isEqualTo("""
+                expectThat(logger.toString().lineEndsTrimmed).isEqualTo("""
                     ╭──╴name
                     │
                     │   line
@@ -127,7 +127,7 @@ class InMemoryLoggerTest {
             fun `should use fallback return value if specified`() {
                 val logger = logger { logLine { "line" } }
 
-                expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE).endTrimmed).isEqualTo("""
+                expectThat(logger.toString(fallbackReturnValue = SUCCESSFUL_RETURN_VALUE).lineEndsTrimmed).isEqualTo("""
                     ╭──╴name
                     │
                     │   line
@@ -144,7 +144,7 @@ class InMemoryLoggerTest {
             fun `should render closed`() {
                 val logger = logger { logResult() }
 
-                expectThat(logger.toString().endTrimmed).isEqualTo("""
+                expectThat(logger.toString().lineEndsTrimmed).isEqualTo("""
                     ╭──╴name
                     │
                     │
@@ -156,7 +156,7 @@ class InMemoryLoggerTest {
             fun `should ignore fallback return value if specified`() {
                 val logger = logger { logResult() }
 
-                expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE).endTrimmed).isEqualTo("""
+                expectThat(logger.toString(fallbackReturnValue = NO_RETURN_VALUE).lineEndsTrimmed).isEqualTo("""
                     ╭──╴name
                     │
                     │
@@ -289,7 +289,7 @@ class InMemoryLoggerTest {
     }
 }
 
-private val CharSequence.endTrimmed get() = mapLines { it.trimEnd() }
+val CharSequence.lineEndsTrimmed get() = mapLines { it.trimEnd() }
 
 val <T : InMemoryLogger> T.expectLogged: DescribeableBuilder<String>
     get() {
@@ -297,12 +297,12 @@ val <T : InMemoryLogger> T.expectLogged: DescribeableBuilder<String>
             fallbackReturnValue = null,
             keepEscapeSequences = false,
             lineSkip = 1,
-        ).removeTrailingLineSeparator.endTrimmed
+        ).removeTrailingLineSeparator.lineEndsTrimmed
         return expectThat(sanitized)
     }
 
 fun <T : InMemoryLogger> T.expectThatLogged(closeIfOpen: Boolean = true) =
-    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }).endTrimmed)
+    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }).lineEndsTrimmed)
 
 fun <T : InMemoryLogger> T.expectThatLogged(closeIfOpen: Boolean = true, block: Builder<String>.() -> Unit) =
-    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }).endTrimmed, block)
+    expectThat(toString(SUCCESSFUL_RETURN_VALUE.takeIf { closeIfOpen }).lineEndsTrimmed, block)

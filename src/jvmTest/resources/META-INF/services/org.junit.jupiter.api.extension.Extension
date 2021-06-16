@@ -1,3 +1,4 @@
+koodies.tracing.TestTelemetry
 koodies.test.UniqueIdResolver
 koodies.test.IllegalUsageCheck
 koodies.debug.DebugCondition

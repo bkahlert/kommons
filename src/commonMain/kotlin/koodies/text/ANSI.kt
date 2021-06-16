@@ -35,7 +35,7 @@ import kotlin.text.contains as containsNonAnsiAware
  */
 public object ANSI {
 
-    private val level by lazy { if (isDebugging) NONE else ansiSupport }
+    private val level by lazy { if (false && isDebugging) NONE else ansiSupport }
 
     /**
      * Contains `this` character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
@@ -964,7 +964,7 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
         public val EMPTY: AnsiString = AnsiString()
 
         public val CharSequence.ansiString: AnsiString get() = AnsiStringCache.getOrPut(this)
-        public fun <T : CharSequence> T.asAnsiString(): AnsiString = AnsiStringCache.getOrPut(this)
+        public fun <T : CharSequence> T?.asAnsiString(): AnsiString = this?.let { AnsiStringCache.getOrPut(it) } ?: EMPTY
 
         public fun CharSequence.tokenize(): AnsiString = TokenizationCache.getOrPut(this) {
             val tokens = mutableListOf<Token>()

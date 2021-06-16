@@ -64,9 +64,7 @@ public abstract class FixedWidthRenderingLogger(
                     false -> {
                         processReturnValue.symbol + LF + formatter("╰──╴").toString() + (processReturnValue.textRepresentation ?: "")
                     }
-                }.asAnsiString().mapLines {
-                    it.ansi.bold
-                }
+                }.asAnsiString().mapLines { it.ansi.bold }
             }
         },
         DOTTED {

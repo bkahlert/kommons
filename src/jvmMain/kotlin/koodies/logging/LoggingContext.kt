@@ -9,6 +9,7 @@ import koodies.takeIfDebugging
 import koodies.text.ANSI.Formatter.Companion.fromScratch
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.wrapWithBorder
@@ -90,7 +91,7 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
 
     public companion object {
         public val BACKGROUND: LoggingContext = LoggingContext("background") {
-            val message = it.prefixLinesWith(IO.ERASE_MARKER)
+            val message = it.runIgnoringTrailingLineSeparator { prefixLinesWith(IO.ERASE_MARKER) }
             print(message)
         }
 

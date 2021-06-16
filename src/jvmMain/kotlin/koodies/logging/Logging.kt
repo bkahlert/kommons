@@ -2,7 +2,6 @@ package koodies.logging
 
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.text.ANSI.Formatter
-import koodies.tracing.runExceptionRecording
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 
@@ -17,7 +16,8 @@ public inline fun <R, L : SimpleRenderingLogger> L.applyLogging(crossinline bloc
 public inline fun <T : SimpleRenderingLogger, R> T.runLogging(crossinline block: T.() -> R): R {
     contract { callsInPlace(block, EXACTLY_ONCE) }
 
-    val result: Result<R> = runCatching { span.runExceptionRecording { block() } }
+//    val result: Result<R> = runCatching { span.runExceptionRecording { block() } }
+    val result: Result<R> = runCatching(block)
 
     return logResult(result)
 }
@@ -54,9 +54,10 @@ public fun <R> logging(
 /**
  * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
  */
-public inline fun <reified T : SimpleRenderingLogger, reified R> T.logResult(result: R): R = logResult(Result.success(result))
+public inline fun <T : SimpleRenderingLogger, reified R> T.logResult(result: R): R = logResult(Result.success(result))
 
 /**
  * Logs [Unit], that is *no result*, as the result of the process this logger is used for.
  */
-public inline fun <reified T : SimpleRenderingLogger> T.logResult(): Unit = logResult(Result.success(Unit))
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T : SimpleRenderingLogger> T.logResult(): Unit = logResult(Result.success(Unit))

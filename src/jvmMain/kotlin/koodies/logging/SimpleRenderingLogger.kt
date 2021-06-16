@@ -9,11 +9,11 @@ import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.mapLines
+import koodies.text.LineSeparators.withTrailingLineSeparator
 import koodies.text.Semantics.formattedAs
-import koodies.tracing.OpenTelemetrySpan
+import koodies.text.takeUnlessBlank
 
 // TODO remove InMemoryLogger.NO_RETURN_VALUE
-// TODO delete ⏳️
 // TODO merge render & log
 // TODO replace log with parent
 
@@ -31,7 +31,7 @@ public open class SimpleRenderingLogger(
     private val log: ((String) -> Unit)? = null,
 ) : RenderingLogger {
 
-    public open val span: OpenTelemetrySpan = OpenTelemetrySpan(name, parent?.span)
+//    public open val span: OpenTelemetrySpan = OpenTelemetrySpan(name, parent?.span)
 
     final override var started: Boolean = false
         private set
@@ -52,7 +52,7 @@ public open class SimpleRenderingLogger(
 
     override fun <T> close(result: Result<T>) {
         setOpen(this, false)
-        span.end(result)
+//        span.end(result)
     }
 
     /**
@@ -62,10 +62,11 @@ public open class SimpleRenderingLogger(
     override val closed: Boolean
         get() = started && !open
 
-    override fun log(lazyMessage: () -> String) {
+    override fun log(lazyMessage: () -> CharSequence) {
         lazyInit()
-        val message = lazyMessage()
-        log?.invoke(message) ?: print(message)
+        lazyMessage().takeUnlessBlank()?.apply {
+            log?.invoke(withTrailingLineSeparator(LF)) ?: print(withTrailingLineSeparator(LF))
+        }
     }
 
     /**
@@ -73,7 +74,7 @@ public open class SimpleRenderingLogger(
      * the given [block].
      */
     public open fun render(block: () -> CharSequence): Unit =
-        log { block().toString() }
+        log(block)
 
     /**
      * Logs raw text.
@@ -87,14 +88,13 @@ public open class SimpleRenderingLogger(
      * Logs a line of text.
      */
     public open fun logLine(block: () -> CharSequence): Unit =
-        render { "${block()}$LF" }
+        render(block)
 
     /**
      * Logs the result of the process this logger is used for.
      */
     public open fun <R> logResult(result: Result<R>): R {
-        val formattedResult = ReturnValue.format(result)
-        render { formattedResult + LF }
+        render { ReturnValue.format(result) }
         close(result)
         return result.getOrThrow()
     }

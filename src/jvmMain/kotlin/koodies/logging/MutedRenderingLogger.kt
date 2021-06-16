@@ -1,7 +1,6 @@
 package koodies.logging
 
 import koodies.text.ANSI.Formatter
-import koodies.tracing.OpenTelemetrySpan
 
 /**
  * A logger that can be used if no logging is needed.
@@ -12,7 +11,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
         withUnclosedWarningDisabled
     }
 
-    override val span: OpenTelemetrySpan = OpenTelemetrySpan("", null)
+//    override val span: OpenTelemetrySpan = OpenTelemetrySpan("", null)
 
     override fun logText(block: () -> CharSequence): Unit = Unit
     override fun logLine(block: () -> CharSequence): Unit = Unit

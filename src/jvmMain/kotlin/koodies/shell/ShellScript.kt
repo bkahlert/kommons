@@ -311,7 +311,7 @@ public open class ShellScript(
          * Adds the given [text] as a comment to this script.
          */
         public fun comment(text: String): String =
-            lines { lines.add(text.prefixLinesWith(prefix = "# ")) }
+            lines { lines.add(text.prefixLinesWith("# ")) }
 
         /**
          * Adds `echo "[password]" | sudo -S [command]` to this script.

@@ -6,6 +6,7 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.padStartFixedLength
 import koodies.time.Now
 import java.io.OutputStream
@@ -27,7 +28,7 @@ public open class InMemoryLogger(
         val thread = currentThread.name.padStartFixedLength(30)
         val time = Now.passedSince(start).toString().padStartFixedLength(7)
         val prefix = "$thread: $time: "
-        outputStream?.apply { write(it.prefixLinesWith(prefix = prefix).toByteArray()) }
+        outputStream?.apply { write(it.runIgnoringTrailingLineSeparator { prefixLinesWith(prefix) }.toByteArray()) }
         captured.add(it.removeTrailingLineSeparator)
     },
 ) : BlockRenderingLogger(
@@ -64,18 +65,5 @@ public open class InMemoryLogger(
         public val NO_RETURN_VALUE: ReturnValue = object : ReturnValue {
             override val successful: Boolean? = null
         }
-
-        private const val LOG_MESSAGE: String = "log message"
-
-        public val LOG_OPERATIONS: Array<Pair<String, SimpleRenderingLogger.() -> Unit>> = arrayOf(
-            "logText { … }"
-                to { logText { LOG_MESSAGE } },
-            "logLine { … }"
-                to { logLine { LOG_MESSAGE } },
-            "logResult { … }"
-                to { @Suppress("RemoveExplicitTypeArguments") logResult("result") },
-            "logResult()"
-                to { logResult() },
-        )
     }
 }

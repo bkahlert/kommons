@@ -1,11 +1,11 @@
 package koodies.logging
 
 import koodies.asString
-import koodies.exec.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
+import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.takeUnlessEmpty
 
 public open class BlockRenderingLogger(
@@ -34,24 +34,23 @@ public open class BlockRenderingLogger(
     width,
     border.prefix(decorationFormatter)) {
 
-    override fun onStart(): Unit = render { border.header(name, decorationFormatter) + LF }
+    override fun onStart(): Unit = render { border.header(name, decorationFormatter) }
 
     protected fun getBlockEnd(returnValue: ReturnValue): CharSequence = border.footer(returnValue, returnValueFormatter, decorationFormatter)
 
     override fun logText(block: () -> CharSequence) {
         block.format(contentFormatter) {
             render {
-                prefixLinesWith(prefix)
+                runIgnoringTrailingLineSeparator {
+                    wrapNonUriLines(totalColumns).prefixLinesWith(prefix)
+                }
             }
         }
     }
 
+    // TODO merge with logText
     override fun logLine(block: () -> CharSequence) {
-        block.format(contentFormatter) {
-            render {
-                wrapNonUriLines(totalColumns).prefixLinesWith(prefix, false) + LF
-            }
-        }
+        return logText(block)
     }
 
     private fun ReturnValue.withSymbol(symbol: String) = object : ReturnValue by this {
@@ -59,16 +58,6 @@ public open class BlockRenderingLogger(
     }
 
     override fun <R> logResult(result: Result<R>): R {
-        if (parent == null) {
-            result.exceptionOrNull()?.let {
-                render {
-                    val message = IO.Error(it).formatted + LF
-                    if (closed) message
-                    else message.prefixLinesWith(prefix)
-                }
-            }
-        }
-
         val returnValue = ReturnValue.of(result)
         val formatted = getBlockEnd(returnValue)
         formatted.takeUnlessEmpty()?.let { render { it.asAnsiString().wrapNonUriLines(totalColumns).toString() + LF } }

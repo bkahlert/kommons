@@ -1,7 +1,6 @@
 package koodies.test.output
 
 import io.opentelemetry.api.trace.Span
-import io.opentelemetry.sdk.trace.data.SpanData
 import koodies.collections.synchronizedMapOf
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream
@@ -13,13 +12,12 @@ import koodies.logging.ReturnValue
 import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
 import koodies.runtime.onExit
+import koodies.test.executionResult
 import koodies.test.isVerbose
 import koodies.test.store
 import koodies.test.testName
 import koodies.text.ANSI.Formatter
 import koodies.text.styling.wrapWithBorder
-import koodies.time.Now
-import koodies.tracing.TestTelemetry
 import koodies.unit.bytes
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -132,25 +130,12 @@ class TestLogger(
         extensionContext.store<InMemoryLoggerResolver>().put(extensionContext.element, this)
     }
 
-    /**
-     * Contains all [SpanData] processed so far.
-     */
-    val trace: List<SpanData> get() = TestTelemetry[span.traceId]
-
-    /**
-     * Ends this [Span] and returns all processed [SpanData].
-     */
-    fun end(): List<SpanData> {
-        span.end(Result.success(Unit), Now.instant)
-        return trace
-    }
-
     @Suppress("UNCHECKED_CAST")
     override fun <R> logResult(result: Result<R>): R =
         if (!closed) {
             super.logResult(result)
         } else {
-            span.end(result)
+//            span.end(result)
             Unit as R
         }
 
@@ -158,11 +143,8 @@ class TestLogger(
         check(this.extensionContext === extensionContext) {
             ::logTestResult.name + " must only be called after a test it is responsible for."
         }
-        val result = this.extensionContext.executionException.map { Result.failure<Any>(it) }.orElseGet { Result.success(Unit) }
-        result.exceptionOrNull()?.takeIf { it is AssertionError }?.let {
-            span.end(result)
-            return
-        }
+        val result = extensionContext.executionResult
+        if (result.exceptionOrNull() is AssertionError) return
         kotlin.runCatching { logResult(result) }
     }
 

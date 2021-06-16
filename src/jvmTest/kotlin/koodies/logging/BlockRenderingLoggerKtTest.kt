@@ -116,12 +116,13 @@ class BlockRenderingLoggerKtTest {
         }
 
         @Test
-        fun @receiver:Columns(20) InMemoryLogger.`should not wrap long text`() {
-            logText { "X".repeat(totalColumns + 100) }
+        fun @receiver:Columns(20) InMemoryLogger.`should wrap long text`() {
+            logText { "X".repeat(totalColumns + 1) }
             expectThatLogged().matchesCurlyPattern("""
                 ╭──╴{}
                 │
-                │   ${"X".repeat(totalColumns + 100)}
+                │   ${"X".repeat(totalColumns)}
+                │   X
                 │
                 ╰──╴✔︎
             """.trimIndent())

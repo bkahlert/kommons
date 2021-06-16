@@ -2,16 +2,17 @@ package koodies.tracing
 
 import koodies.builder.buildMap
 import koodies.text.ANSI.ansiRemoved
+import koodies.tracing.Span.AttributeKeys
 
-public interface Event {
+private interface Event {
     public val name: String
     public val attributes: Map<String, String>
 }
 
-public fun Span.record(event: Event): Unit =
+private fun Span.record(event: Event): Unit =
     event(event.name.ansiRemoved, *event.attributes.map { (key, value) -> key.ansiRemoved to value.ansiRemoved }.toTypedArray())
 
-public open class OpenTelemetryEvent(
+private open class OpenTelemetryEvent(
     name: CharSequence,
     description: CharSequence?,
     vararg attributes: Pair<CharSequence, Any>,
@@ -20,7 +21,7 @@ public open class OpenTelemetryEvent(
 
     override val name: String = name.ansiRemoved
     override val attributes: Map<String, String> = buildMap {
-        description?.also { put("description", it.ansiRemoved) }
+        description?.also { put(AttributeKeys.Description, it.ansiRemoved) }
         attributes.forEach { (key, value) -> put(key.ansiRemoved, value.toString().ansiRemoved) }
     }
 }

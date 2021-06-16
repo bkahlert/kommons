@@ -12,19 +12,36 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
-import koodies.docker.DockerImage
-import koodies.docker.DockerRunCommandLine
-import koodies.net.headers
+import koodies.collections.synchronizedMapOf
+import koodies.io.ByteArrayOutputStream
+import koodies.io.TeeOutputStream
+import koodies.logging.FixedWidthRenderingLogger.Border
+import koodies.logging.InMemoryLogger
+import koodies.logging.lineEndsTrimmed
+import koodies.test.executionResult
+import koodies.test.get
+import koodies.test.isVerbose
 import koodies.test.output.TestLogger
-import koodies.text.Semantics.formattedAs
+import koodies.test.output.endSpanAndLogTestResult
+import koodies.test.put
+import koodies.test.testName
+import koodies.text.LineSeparators.mapLines
+import koodies.tracing.Span.State.Started
+import koodies.tracing.rendering.Renderer
+import koodies.tracing.rendering.toRenderer
+import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.ExtensionContext.Namespace
+import org.junit.jupiter.api.extension.ExtensionContext.Store
+import org.junit.jupiter.api.extension.ParameterContext
+import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestPlan
-import strikt.api.Assertion
+import strikt.api.Assertion.Builder
 import strikt.api.expectThat
-import java.net.URI
 import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
 
-class TestTelemetry : TestExecutionListener {
+class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>(), AfterEachCallback {
 
     private lateinit var batchExporter: BatchSpanProcessor
 
@@ -59,10 +76,39 @@ class TestTelemetry : TestExecutionListener {
         }
     }
 
-    companion object {
-        const val ENABLED: Boolean = false
+    private val ExtensionContext.store: Store get() = getStore(Namespace.create(TestTelemetry::class.java, requiredTestMethod))
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Span {
+        val name = extensionContext.testName
+        val border = Border.DEFAULT
+        val isVerbose = extensionContext.isVerbose || parameterContext.isVerbose
+        val stored = ByteArrayOutputStream()
+        val outputStream = if (isVerbose) TeeOutputStream(stored, System.out) else stored
+        val logger = TestLogger(extensionContext, parameterContext, name, border, outputStream)
+        val renderer = logger.toRenderer()
 
-        private val traces = mutableMapOf<String, MutableList<SpanData>>()
+        @Suppress("JoinDeclarationAndAssignment")
+        lateinit var span: OpenTelemetrySpan
+        span = OpenTelemetrySpan(name, null, object : Renderer by renderer {
+            override fun start(name: CharSequence, started: Started) {
+                renderer.start(name, started)
+                logs[checkNotNull(span.traceId)] = logger
+            }
+        })
+        extensionContext.store.put(span)
+        return span
+    }
+
+    override fun afterEach(extensionContext: ExtensionContext) {
+        val span: OpenTelemetrySpan? = extensionContext.store.get()
+        span?.end(extensionContext.executionResult)
+        extensionContext.endSpanAndLogTestResult()
+    }
+
+
+    companion object {
+        const val ENABLED: Boolean = true
+
+        private val traces = synchronizedMapOf<TraceId, MutableList<SpanData>>()
 
         private object InMemoryStoringSpanProcessor : SpanProcessor {
             override fun isStartRequired(): Boolean = false
@@ -70,52 +116,42 @@ class TestTelemetry : TestExecutionListener {
             override fun isEndRequired(): Boolean = true
             override fun onEnd(span: ReadableSpan) {
                 val spanData = span.toSpanData()
-                traces.getOrPut(spanData.traceId) { mutableListOf() }.add(spanData)
+                traces.getOrPut(TraceId(spanData.traceId)) { mutableListOf() }.add(spanData)
             }
         }
 
+        /**
+         * Returns the trace recorded for the given [spanId].
+         */
         operator fun get(traceId: TraceId): List<SpanData> =
-            traces.getOrDefault(traceId.value, emptyList())
+            traces.getOrDefault(traceId, emptyList())
+
+        private val logs = synchronizedMapOf<TraceId, InMemoryLogger>()
+        fun logs(traceId: TraceId?) = logs[traceId]?.toString(null, false, 1)?.mapLines { it.removePrefix("│   ") } ?: ""
     }
 }
 
-private object Jaeger : DockerImage("jaegertracing", listOf("all-in-one")) {
+/**
+ * Ends this spans and returns a [Builder] to run assertions on the recorded [SpanData].
+ */
+fun Span.endAndExpect() =
+    expectThat(TestTelemetry[end()])
 
-    val restEndpoint = URI.create("http://localhost:16686")
-    val protobufEndpoint = URI.create("http://localhost:14250")
-    val isRunning: Boolean
-        get() = kotlin.runCatching {
-            restEndpoint.headers()["status"]?.any { it.contains("200 OK") } ?: false
-        }.onFailure { it.printStackTrace() }.getOrDefault(false)
-
-    fun startLocally(): String {
-        if (isRunning) return protobufEndpoint.toString()
-        check(protobufEndpoint.host == "localhost") { "Can only locally but ${protobufEndpoint.formattedAs.input} was specified." }
-
-        DockerRunCommandLine {
-            image by this@Jaeger
-            options {
-                name { "jaeger" }
-                detached { on }
-                publish {
-                    +"5775:5775/udp"
-                    +"6831:6831/udp"
-                    +"6832:6832/udp"
-                    +"5778:5778"
-                    +"16686:${restEndpoint.port}"
-                    +"14268:14268"
-                    +"14250:${protobufEndpoint.port}"
-                    +"9411:9411"
-                }
-            }
-        }.exec.logging()
-
-        return protobufEndpoint.toString()
-    }
+/**
+ * Ends this spans and runs the specified [assertions] on the recorded [SpanData].
+ */
+fun Span.endAndExpect(assertions: Builder<List<SpanData>>.() -> Unit) {
+    expectThat(TestTelemetry[end()], assertions)
 }
 
-fun TestLogger.expectThatTraced(): Assertion.Builder<List<SpanData>> =
-    expectThat(end())
+/**
+ * Returns a [Builder] to run assertions on what was rendered.
+ */
+fun Span.expectThatRendered() =
+    expectThat(TestTelemetry.logs(traceId).lineEndsTrimmed)
 
-fun TestLogger.expectThatTraced(assertions: Assertion.Builder<List<SpanData>>.() -> Unit) =
-    expectThat(end(), assertions)
+/**
+ * Runs the specified [assertions] on what was rendered.
+ */
+fun Span.expectThatRendered(assertions: Builder<String>.() -> Unit) =
+    expectThat(TestTelemetry.logs(traceId).lineEndsTrimmed, assertions)

@@ -14,6 +14,7 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
+import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.matchesCurlyPattern
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
@@ -42,7 +43,7 @@ class LoggingContextTest {
     fun setup() {
         root = LoggingContext("test") {
             out.write(it.toByteArray())
-            print(it.prefixLinesWith(IO.ERASE_MARKER))
+            print(it.runIgnoringTrailingLineSeparator { prefixLinesWith(IO.ERASE_MARKER) })
         }
     }
 

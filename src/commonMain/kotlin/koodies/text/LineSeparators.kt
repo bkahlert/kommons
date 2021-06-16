@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.regex.or
+import koodies.text.LineSeparators.autoDetect
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 
@@ -99,34 +100,17 @@ public object LineSeparators : Collection<String> {
      * Splits this character sequence to a sequence of lines delimited by any of the [LineSeparators].
      *
      * If the lines returned do include terminating line separators is specified by [keepDelimiters].
-     *
-     * If the last last is empty, it will be ignored unless [ignoreTrailingSeparator] is provided.
      */
-    public fun CharSequence?.lineSequence(
-        ignoreTrailingSeparator: Boolean = false,
-        keepDelimiters: Boolean = false,
-    ): Sequence<String> =
-        this?.splitToSequence(
-            delimiters = ALL,
-            keepDelimiters = keepDelimiters,
-            ignoreTrailingSeparator = ignoreTrailingSeparator
-        ) ?: emptySequence()
+    public fun CharSequence?.lineSequence(keepDelimiters: Boolean = false): Sequence<String> =
+        this?.splitToSequence(delimiters = ALL, keepDelimiters = keepDelimiters) ?: emptySequence()
 
     /**
      * Splits this character sequence to a list of lines delimited by any of the [LineSeparators].
      *
      * If the lines returned do include terminating line separators is specified by [keepDelimiters].
-     *
-     * If the last last is empty, it will be ignored unless [ignoreTrailingSeparator] is provided.
      */
-    public fun CharSequence?.lines(
-        ignoreTrailingSeparator: Boolean = false,
-        keepDelimiters: Boolean = false,
-    ): List<String> =
-        this?.lineSequence(
-            ignoreTrailingSeparator = ignoreTrailingSeparator,
-            keepDelimiters = keepDelimiters
-        )?.toList() ?: emptyList()
+    public fun CharSequence?.lines(keepDelimiters: Boolean = false): List<String> =
+        lineSequence(keepDelimiters = keepDelimiters).toList()
 
 
     /**
@@ -192,7 +176,7 @@ public object LineSeparators : Collection<String> {
      * If [append] is set to false, `this` string is returned unchanged, which is handy
      * if the needed behaviour is dynamic.
      */
-    public fun CharSequence.withTrailingLineSeparator(append: Boolean = true, lineSeparator: String = autoDetect(this)): String =
+    public fun CharSequence.withTrailingLineSeparator(lineSeparator: String = autoDetect(this), append: Boolean = true): String =
         if (append && !hasTrailingLineSeparator) toString() + lineSeparator else toString()
 
     /**
@@ -209,96 +193,59 @@ public object LineSeparators : Collection<String> {
     /**
      * Applies the specified [block] on this character sequence without an eventually existing [trailingLineSeparator].
      */
-    public fun CharSequence.runIgnoringTrailingLineSeparator(block: (CharSequence) -> CharSequence): String =
-        trailingLineSeparator?.let { removeSuffix(it).let(block).toString() + trailingLineSeparator } ?: toString()
+    @Deprecated("check if this string having a trailing line separator is correct and avoid the need to call this method")
+    public fun CharSequence.runIgnoringTrailingLineSeparator(block: CharSequence.() -> CharSequence): String =
+        trailingLineSeparator?.let { removeSuffix(it).run(block).toString() + it } ?: run(block).toString()
 
     /**
-     * Maps each line of this character sequence using [transform].
-     *
-     * If this character sequence consists of but a single line this line is mapped.
-     *
-     * If this character sequence has a trailing line that trailing line is left unchanged.
+     * Maps each line of this character sequence using the specified [transform].
      */
-    public fun CharSequence?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String {
+    public fun CharSequence?.mapLines(transform: (CharSequence) -> CharSequence): String {
         if (this == null) return ""
-        val mappedLines = lines().map(transform)
-        val trailingLineSeparator = hasTrailingLineSeparator && ignoreTrailingSeparator
-        return mappedLines
-            .let { if (trailingLineSeparator) it.dropLast(1) else it }
-            .joinToString(LF)
-            .let { if (trailingLineSeparator) it + LF else it }
-    }
-
-    /**
-     * Maps each line of this string using [transform].
-     *
-     * If this string consists of but a single line this line is mapped.
-     *
-     * If this string has a trailing line that trailing line is left unchanged.
-     */
-    public fun String?.mapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> CharSequence): String =
-        (this as? CharSequence).mapLines(ignoreTrailingSeparator, transform)
-
-    /**
-     * Flat maps each line of this character sequence using [transform].
-     *
-     * If this character sequence consists of but a single line this line is mapped.
-     *
-     * If this character sequence has a trailing line that trailing line is left unchanged.
-     */
-    public fun <T : CharSequence?> T.flatMapLines(ignoreTrailingSeparator: Boolean = true, transform: (CharSequence) -> Iterable<T>): String {
-        if (this == null) return ""
-        return (hasTrailingLineSeparator && ignoreTrailingSeparator).let { trailingLineSeparator ->
-            lines().map { line -> transform(line).joinToString(LF) }
-                .let { if (trailingLineSeparator) it.dropLast(1) else it }
-                .joinToString(LF)
-                .let { if (trailingLineSeparator) it + LF else it }
-        }
+        return lines().joinToString(DEFAULT, transform = transform)
     }
 
     /**
      * Returns this character sequence with all lines of text it consists of prefixed with the given [prefix].
      */
-    public fun CharSequence?.prefixLinesWith(prefix: CharSequence, ignoreTrailingSeparator: Boolean = true): String =
-        mapLines(ignoreTrailingSeparator) { "$prefix$it" }
+    public fun CharSequence?.prefixLinesWith(prefix: CharSequence): String =
+        mapLines { "$prefix$it" }
 
     /**
      * Returns a sequence of lines of which none is longer than [maxLength].
      */
-    public fun CharSequence?.linesOfLengthSequence(maxLength: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+    public fun CharSequence?.linesOfLengthSequence(maxLength: Int): Sequence<CharSequence> {
         if (this == null) return emptySequence()
-        val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
+        val lines = lineSequence()
         return lines.flatMap { line: String ->
-            val sequence = line.chunkedSequence(maxLength) { it }
-            if (ignoreTrailingSeparator) sequence
-            else sequence.iterator().run { if (!hasNext()) sequenceOf("") else asSequence() }
+            val iterator = line.chunkedSequence(maxLength) { it }.iterator()
+            if (iterator.hasNext()) iterator.asSequence() else sequenceOf("")
         }
     }
 
     /**
      * Returns a list of lines of which none is longer than [maxLineLength].
      */
-    public fun CharSequence?.linesOfLength(maxLineLength: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
-        linesOfLengthSequence(maxLineLength, ignoreTrailingSeparator).toList()
+    public fun CharSequence?.linesOfLength(maxLineLength: Int): List<CharSequence> =
+        linesOfLengthSequence(maxLineLength).toList()
 
     /**
      * Returns a sequence of lines of which none occupies more than given [maxColumns].
      */
-    public fun CharSequence?.linesOfColumnsSequence(maxColumns: Int, ignoreTrailingSeparator: Boolean = false): Sequence<CharSequence> {
+    public fun CharSequence?.linesOfColumnsSequence(maxColumns: Int): Sequence<CharSequence> {
         if (this == null) return emptySequence()
-        val lines = lineSequence(ignoreTrailingSeparator = ignoreTrailingSeparator)
+        val lines = lineSequence()
         return lines.flatMap { line: String ->
-            val sequence = line.chunkedByColumnsSequence(maxColumns) { it }
-            if (ignoreTrailingSeparator) sequence
-            else sequence.iterator().run { if (!hasNext()) sequenceOf("") else asSequence() }
+            val iterator = line.chunkedByColumnsSequence(maxColumns) { it }.iterator()
+            if (iterator.hasNext()) iterator.asSequence() else sequenceOf("")
         }
     }
 
     /**
      * Returns a list of lines of which none occupies more than given [maxColumns].
      */
-    public fun CharSequence?.linesOfColumns(maxColumns: Int, ignoreTrailingSeparator: Boolean = false): List<CharSequence> =
-        linesOfColumnsSequence(maxColumns, ignoreTrailingSeparator).toList()
+    public fun CharSequence?.linesOfColumns(maxColumns: Int): List<CharSequence> =
+        linesOfColumnsSequence(maxColumns).toList()
 
     /**
      * Returns a string consisting of lines of which each occupies exactly the given number of [columns].

@@ -24,7 +24,8 @@ public open class NonBlockingLineReader(
         val fullyRead: StringBuilder = StringBuilder()
         val read = lineBuffer.toString(Charsets.UTF_8)
 
-        read.lines(keepDelimiters = true, ignoreTrailingSeparator = true)
+        read.lines(keepDelimiters = true)
+            .let { if (it.isNotEmpty() && it.last().isEmpty()) it.dropLast(1) else it }
             .filter { line -> line.hasTrailingLineSeparator || done }
             .forEach { line ->
                 fullyRead.append(line)

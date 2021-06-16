@@ -9,8 +9,6 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.LineSeparators.withTrailingLineSeparator
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 public open class CompactRenderingLogger(
     name: CharSequence,
@@ -32,11 +30,9 @@ public open class CompactRenderingLogger(
     }
 
     private val messages: MutableList<CharSequence> = synchronizedListOf()
-    private val lock = ReentrantLock()
-
     private var loggingResult: Boolean = false
 
-    override fun render(block: () -> CharSequence): Unit = lock.withLock {
+    override fun render(block: () -> CharSequence) {
         when {
             loggingResult -> {
                 val paddingAndMessages =
@@ -53,9 +49,7 @@ public open class CompactRenderingLogger(
         block.format(contentFormatter) { render { this } }
     }
 
-    override fun logLine(block: () -> CharSequence) {
-        block.format(contentFormatter) { render { this + LF } }
-    }
+    override fun logLine(block: () -> CharSequence): Unit = logText(block)
 
     public fun logStatus(items: List<CharSequence>, block: () -> CharSequence) {
         val message: CharSequence? = block.format(contentFormatter) { lines().joinToString(", ") }

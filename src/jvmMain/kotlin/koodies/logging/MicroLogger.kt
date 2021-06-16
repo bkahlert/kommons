@@ -6,10 +6,7 @@ import koodies.exec.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.removeTrailingLineSeparator
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 public class MicroLogger(
     private val symbol: String,
@@ -27,11 +24,9 @@ public class MicroLogger(
     private val joinElement = decorationFormatter(" ˃ ")
 
     private val messages: MutableList<CharSequence> = synchronizedListOf()
-    private val lock = ReentrantLock()
-
     private var loggingResult: Boolean = false
 
-    override fun render(block: () -> CharSequence): Unit = lock.withLock {
+    override fun render(block: () -> CharSequence) {
         when {
             loggingResult -> {
                 val prefix = "(" + (symbol.trim().takeUnless { it.isEmpty() }?.let { "$it " } ?: "")
@@ -56,16 +51,15 @@ public class MicroLogger(
     public fun logStatus(items: List<CharSequence>, block: () -> CharSequence) {
         val message: CharSequence? = block.format(contentFormatter) { lines().joinToString(", ") }
         val status: CharSequence? = items.format(contentFormatter) { lines().size.let { "($it)" } }
-        (status?.let { "$message $status" } ?: message)?.let { render { "$it$LF" } }
+        (status?.let { "$message $status" } ?: message)?.let { render { it } }
     }
 
     public fun logStatus(vararg statuses: CharSequence, block: () -> CharSequence = { IO.Output typed "" }): Unit =
         logStatus(statuses.toList(), block)
 
     override fun <R> logResult(result: Result<R>): R {
-        val formattedResult: String = returnValueFormatter(ReturnValue.of(result)).format()
         loggingResult = true
-        render { formattedResult }
+        render { returnValueFormatter(ReturnValue.of(result)).format() }
         loggingResult = false
         close(result)
         return result.getOrThrow()

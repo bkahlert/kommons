@@ -4,6 +4,7 @@ import koodies.collections.zipWithDefault
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
+import koodies.text.LineSeparators.wrapLines as lineSepWrapLines
 
 /**
  * Splits this character sequence into its lines and returns the columns
@@ -97,3 +98,117 @@ public fun CharSequence.addColumn(
         paddingCharacter = paddingCharacter,
         paddingColumns = paddingWidth,
     ).toString()
+
+/**
+ * Returns a string that consists of the given [columns]
+ * formatted next to each other. Each element specifies
+ * the text to be formatted and the number of columns
+ * to be used.
+ *
+ * **Example**
+ * ```
+ * Line 1
+ * Line 1.1
+ * Line 2
+ * ```
+ * and
+ * ```
+ * Line a
+ * Line a.b
+ * Line c
+ * Line d
+ * ```
+ * and
+ * ```
+ *    ɑ
+ *   β
+ *  ɣ
+ * ```
+ * will result in
+ * ```
+ * Line 1       Line 1          ɑ
+ * Line 1.1     Line a.b       β
+ * Line 2       Line c        ɣ
+ *              Line d
+ * ```
+ */
+public fun formatColumns(
+    vararg columns: Pair<AnsiString?, Int>,
+    paddingCharacter: Char = ' ',
+    paddingColumns: Int = 5,
+    wrapLines: CharSequence?.(Int) -> CharSequence = { lineSepWrapLines(it) },
+): AnsiString {
+    val columnsWithMaxColumns = columns.map { (text, maxColumns) ->
+        when {
+            text == null -> AnsiString.EMPTY
+            text.columns <= maxColumns -> text.asAnsiString()
+            else -> text.wrapLines(maxColumns).asAnsiString()
+        } to maxColumns
+    }
+    return when (columnsWithMaxColumns.size) {
+        0 -> AnsiString.EMPTY
+        1 -> columnsWithMaxColumns.single().let { (text, maxColumns) -> text.wrapLines(maxColumns).asAnsiString() }
+        else -> {
+            var linedUp = AnsiString.EMPTY
+            var summed = columns.first().second
+            columnsWithMaxColumns.windowed(2, 1, false) { window ->
+                val (leftText, _) = window.first()
+                val (rightText, rightMaxColumns) = window.last()
+                linedUp = (linedUp.takeUnless { it.isEmpty() } ?: leftText)
+                    .addColumn(rightText, summed, paddingCharacter, paddingColumns)
+                    .also { summed += rightMaxColumns + paddingColumns }
+            }
+            linedUp
+        }
+    }
+}
+
+/**
+ * Returns a string that consists of the given [columns]
+ * formatted next to each other. Each element specifies
+ * the text to be formatted and the number of columns
+ * to be used.
+ *
+ * **Example**
+ * ```
+ * Line 1
+ * Line 1.1
+ * Line 2
+ * ```
+ * and
+ * ```
+ * Line a
+ * Line a.b
+ * Line c
+ * Line d
+ * ```
+ * and
+ * ```
+ *    ɑ
+ *   β
+ *  ɣ
+ * ```
+ * will result in
+ * ```
+ * Line 1       Line 1          ɑ
+ * Line 1.1     Line a.b       β
+ * Line 2       Line c        ɣ
+ *              Line d
+ * ```
+ */
+public fun formatColumns(
+    vararg columns: Pair<CharSequence?, Int>,
+    paddingCharacter: Char = ' ',
+    paddingColumns: Int = 5,
+    wrapLines: CharSequence?.(Int) -> CharSequence = { lineSepWrapLines(it) },
+): String =
+    when (columns.size) {
+        0 -> ""
+        1 -> columns.first().let { (text, maxColumns) -> text.wrapLines(maxColumns).toString() }
+        else -> formatColumns(
+            columns = columns.map { (text, maxColumns) -> text?.asAnsiString() to maxColumns }.toTypedArray(),
+            paddingCharacter = paddingCharacter,
+            paddingColumns = paddingColumns,
+            wrapLines = wrapLines,
+        ).toString()
+    }

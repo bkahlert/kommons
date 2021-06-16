@@ -190,29 +190,22 @@ class SimpleRenderingLoggerKtTest {
 
     @Test
     fun @receiver:Columns(100) InMemoryLogger.`should log exception`() {
-        kotlin.runCatching {
-            logStatus { "outer 1" }
-            logStatus { "outer 2" }
+        val logged = capturing {
+            logText { "outer 1" }
             logging("nested log") {
-                logStatus { "nested 1" }
+                logText { "nested 1" }
                 if ("1".toInt() == 1) throw IllegalStateException("an exception")
             }
-            logStatus { "☎Σ⊂⊂(☉ω☉∩)" }
-            logStatus { "☎Σ⊂⊂(☉ω☉∩)" }
-            logResult { Result.success("success") }
         }
 
-        expectThatLogged().matchesCurlyPattern("""
-            ╭──╴{}
+        logged.matchesCurlyPattern("""
+            outer 1
+            ╭──╴nested log
             │
-            │   outer 1                                               {}                                      ▮▮
-            │   outer 2                                               {}                                      ▮▮
-            │   ╭──╴nested log
-            │   │
-            │   │   nested 1                                          {}                                      ▮▮
-            │   ϟ{}
-            │   ╰──╴IllegalStateException: an exception at.({}Test.kt:{}){}
-        """.trimIndent(), ignoreTrailingLines = true)
+            │   nested 1
+            ϟ
+            ╰──╴IllegalStateException: an exception at.(SimpleRenderingLoggerKtTest.kt:{})
+        """.trimIndent())
     }
 
     @Suppress("UNREACHABLE_CODE")

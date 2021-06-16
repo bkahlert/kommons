@@ -22,7 +22,6 @@ public fun String.splitAndMap(delimiter: String, ignoreCase: Boolean = false, li
 public fun CharSequence.splitToSequence(
     delimiters: Array<String>,
     keepDelimiters: Boolean = false,
-    ignoreTrailingSeparator: Boolean = false,
     ignoreCase: Boolean = false,
     limit: Int = 0,
 ): Sequence<String> =
@@ -31,15 +30,6 @@ public fun CharSequence.splitToSequence(
             if (!keepDelimiters) map { substring(it) }
             else windowed(size = 2, step = 1, partialWindows = true) { ranges ->
                 substring(if (ranges.size == 2) ranges[0].first until ranges[1].first else ranges[0])
-            }
-        }
-        .run {
-            if (!ignoreTrailingSeparator) this
-            else iterator().run {
-                generateSequence {
-                    val current = if (hasNext()) next() else null
-                    current?.takeIf { hasNext() || current.isNotEmpty() }
-                }
             }
         }
 
