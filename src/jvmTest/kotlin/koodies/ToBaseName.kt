@@ -79,8 +79,18 @@ class BaseNameKtTest {
         }
 
         @Test
-        fun `should create random string in case of null`() {
-            expectThat(null.toBaseName()).hasLength(8)
+        fun `should produce same basename for same input`() {
+            expectThat("abc".toBaseName()).isEqualTo("abc".toBaseName())
+        }
+
+        @Test
+        fun `should produce same basename for high length`() {
+            expectThat("abc".toBaseName(1000)).isEqualTo("abc".toBaseName(1000))
+        }
+
+        @Test
+        fun `should return constant for null`() {
+            expectThat(null.toBaseName()).isEqualTo(null.toBaseName())
         }
     }
 }

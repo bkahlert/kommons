@@ -3,8 +3,8 @@ package koodies.logging
 import koodies.asString
 import koodies.exec.IO
 import koodies.regex.RegularExpressions.uriRegex
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.LF
@@ -25,7 +25,7 @@ public abstract class FixedWidthRenderingLogger(
     name: String,
     parent: SimpleRenderingLogger?,
     log: ((String) -> Unit)? = null,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     public val border: Border = BlockRenderingLogger.DEFAULT_BORDER,
@@ -38,46 +38,46 @@ public abstract class FixedWidthRenderingLogger(
 
     public enum class Border {
         SOLID {
-            override fun prefix(formatter: Formatter?): String = formatter.invoke("│").toString() + "   "
+            override fun prefix(formatter: Formatter?): String = formatter.format("│").toString() + "   "
 
             override fun header(name: String, formatter: Formatter?): String =
                 koodies.builder.buildList {
                     val nameLines = name.asAnsiString().lines()
-                    +(formatter("╭──╴").toString() + formatter(nameLines.first()).ansi.bold)
+                    +(formatter.format("╭──╴").toString() + formatter.format(nameLines.first()).ansi.bold)
                     nameLines.drop(1).forEach {
-                        +"${prefix(formatter)}${formatter(it).ansi.bold}"
+                        +"${prefix(formatter)}${formatter.format(it).ansi.bold}"
                     }
-                    +formatter.invoke("│").toString()
+                    +formatter.format("│").toString()
                 }.joinToString(LF)
 
             override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String {
                 val processReturnValue = resultValueFormatter(returnValue)
                 return when (returnValue.successful) {
                     true -> {
-                        formatter("│").toString() + LF + formatter("╰──╴").toString() + processReturnValue.format()
+                        formatter.format("│").toString() + LF + formatter.format("╰──╴").toString() + processReturnValue.format()
                     }
                     null -> {
-                        val halfLine = formatter("╵").toString()
+                        val halfLine = formatter.format("╵").toString()
                         val formatted: String = processReturnValue.symbol + (processReturnValue.textRepresentation?.withPrefix(" ") ?: "")
                         halfLine + LF + halfLine + (formatted.takeUnlessBlank()?.let { "$LF$it" } ?: "")
                     }
                     false -> {
-                        processReturnValue.symbol + LF + formatter("╰──╴").toString() + (processReturnValue.textRepresentation ?: "")
+                        processReturnValue.symbol + LF + formatter.format("╰──╴").toString() + (processReturnValue.textRepresentation ?: "")
                     }
                 }.asAnsiString().mapLines { it.ansi.bold }
             }
         },
         DOTTED {
-            private fun playSymbol(formatter: Formatter?) = formatter("▶").toString()
-            private fun whitePlaySymbol(formatter: Formatter?) = formatter("▷").toString()
+            private fun playSymbol(formatter: Formatter?) = formatter.format("▶").toString()
+            private fun whitePlaySymbol(formatter: Formatter?) = formatter.format("▷").toString()
 
-            override fun prefix(formatter: Formatter?): String = formatter("·").toString() + " "
+            override fun prefix(formatter: Formatter?): String = formatter.format("·").toString() + " "
             override fun header(name: String, formatter: Formatter?): String {
                 return koodies.builder.buildList {
                     val nameLines = name.asAnsiString().lines()
-                    +"${playSymbol(formatter)} ${formatter(nameLines.first()).ansi.bold}"
+                    +"${playSymbol(formatter)} ${formatter.format(nameLines.first()).ansi.bold}"
                     nameLines.drop(1).forEach {
-                        +"${whitePlaySymbol(formatter)} ${formatter(it).ansi.bold}"
+                        +"${whitePlaySymbol(formatter)} ${formatter.format(it).ansi.bold}"
                     }
                 }.joinToString(LF)
             }
@@ -98,6 +98,7 @@ public abstract class FixedWidthRenderingLogger(
         public abstract fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String
 
         public companion object {
+            private fun Formatter?.format(text: CharSequence): CharSequence = (this ?: Formatter.PassThrough).invoke(text)
             public val DEFAULT: Border = SOLID
             public fun from(border: Boolean?): Border = when (border) {
                 true -> SOLID
@@ -107,7 +108,7 @@ public abstract class FixedWidthRenderingLogger(
         }
     }
 
-    public val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
+    public val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.PassThrough
     public val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
     public val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
     public val statusInformationColumn: Int by lazy {
@@ -157,7 +158,7 @@ public abstract class FixedWidthRenderingLogger(
     @RenderingLoggingDsl
     public open fun <R> blockLogging(
         name: CharSequence,
-        contentFormatter: Formatter? = this.contentFormatter,
+        contentFormatter: FilteringFormatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         border: Border = this.border,
@@ -183,7 +184,7 @@ public abstract class FixedWidthRenderingLogger(
     @RenderingLoggingDsl
     public open fun <R> compactLogging(
         name: CharSequence,
-        contentFormatter: Formatter? = this.contentFormatter,
+        contentFormatter: FilteringFormatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         block: CompactRenderingLogger.() -> R,
@@ -202,7 +203,7 @@ public abstract class FixedWidthRenderingLogger(
     @RenderingLoggingDsl
     public open fun <R> logging(
         name: CharSequence,
-        contentFormatter: Formatter? = this.contentFormatter,
+        contentFormatter: FilteringFormatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         border: Border = this.border,

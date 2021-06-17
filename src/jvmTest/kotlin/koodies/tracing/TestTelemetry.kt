@@ -13,26 +13,9 @@ import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import koodies.collections.synchronizedMapOf
-import koodies.io.ByteArrayOutputStream
-import koodies.io.TeeOutputStream
-import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.logging.InMemoryLogger
-import koodies.logging.lineEndsTrimmed
-import koodies.test.executionResult
-import koodies.test.get
-import koodies.test.isVerbose
-import koodies.test.output.TestLogger
-import koodies.test.output.endSpanAndLogTestResult
-import koodies.test.put
 import koodies.test.testName
-import koodies.text.LineSeparators.mapLines
-import koodies.tracing.Span.State.Started
-import koodies.tracing.rendering.Renderer
-import koodies.tracing.rendering.toRenderer
-import org.junit.jupiter.api.extension.AfterEachCallback
+import koodies.tracing.OpenTelemetrySpan.Companion.toAttributes
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace
-import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 import org.junit.platform.launcher.TestExecutionListener
@@ -41,7 +24,11 @@ import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
 
-class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>(), AfterEachCallback {
+/**
+ * [OpenTelemetry] integration in JUnit that run OpenTelemetry
+ * along a test plan execution and provides means to assess recorded data.
+ */
+class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>() {
 
     private lateinit var batchExporter: BatchSpanProcessor
 
@@ -56,7 +43,7 @@ class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>(),
             val tracerProvider = SdkTracerProvider.builder()
                 .addSpanProcessor(InMemoryStoringSpanProcessor)
                 .addSpanProcessor(batchExporter)
-                .setResource(Resource.create(attributesOf("service.name" to "koodies-test")))
+                .setResource(mapOf("service.name" to "koodies-test").toResource())
                 .build()
 
             val openTelemetry: OpenTelemetryAPI = OpenTelemetrySdk.builder()
@@ -76,36 +63,11 @@ class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>(),
         }
     }
 
-    private val ExtensionContext.store: Store get() = getStore(Namespace.create(TestTelemetry::class.java, requiredTestMethod))
-    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Span {
-        val name = extensionContext.testName
-        val border = Border.DEFAULT
-        val isVerbose = extensionContext.isVerbose || parameterContext.isVerbose
-        val stored = ByteArrayOutputStream()
-        val outputStream = if (isVerbose) TeeOutputStream(stored, System.out) else stored
-        val logger = TestLogger(extensionContext, parameterContext, name, border, outputStream)
-        val renderer = logger.toRenderer()
-
-        @Suppress("JoinDeclarationAndAssignment")
-        lateinit var span: OpenTelemetrySpan
-        span = OpenTelemetrySpan(name, null, object : Renderer by renderer {
-            override fun start(name: CharSequence, started: Started) {
-                renderer.start(name, started)
-                logs[checkNotNull(span.traceId)] = logger
-            }
-        })
-        extensionContext.store.put(span)
-        return span
-    }
-
-    override fun afterEach(extensionContext: ExtensionContext) {
-        val span: OpenTelemetrySpan? = extensionContext.store.get()
-        span?.end(extensionContext.executionResult)
-        extensionContext.endSpanAndLogTestResult()
-    }
-
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Span =
+        OpenTelemetrySpan(extensionContext.testName).also { it.start() }
 
     companion object {
+
         const val ENABLED: Boolean = true
 
         private val traces = synchronizedMapOf<TraceId, MutableList<SpanData>>()
@@ -126,9 +88,25 @@ class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>(),
         operator fun get(traceId: TraceId): List<SpanData> =
             traces.getOrDefault(traceId, emptyList())
 
-        private val logs = synchronizedMapOf<TraceId, InMemoryLogger>()
-        fun logs(traceId: TraceId?) = logs[traceId]?.toString(null, false, 1)?.mapLines { it.removePrefix("│   ") } ?: ""
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun Map<out CharSequence, CharSequence>.toResource(): Resource =
+            Resource.create(toAttributes())
     }
+}
+
+private val noopTraceId = TraceId("0".repeat(32))
+val TraceId.Companion.NOOP get() = noopTraceId
+
+private val noopSpanId = SpanId("0".repeat(16))
+val SpanId.Companion.NOOP get() = noopSpanId
+
+/**
+ * Ends the current spans and returns a [Builder] to run assertions on the recorded [SpanData].
+ */
+fun endCurrentAndExpect(assertions: Builder<List<SpanData>>.() -> Unit) {
+    val currentSpan = io.opentelemetry.api.trace.Span.current()
+    currentSpan.end()
+    expectThat(TestTelemetry[currentSpan.traceId], assertions)
 }
 
 /**
@@ -143,15 +121,3 @@ fun Span.endAndExpect() =
 fun Span.endAndExpect(assertions: Builder<List<SpanData>>.() -> Unit) {
     expectThat(TestTelemetry[end()], assertions)
 }
-
-/**
- * Returns a [Builder] to run assertions on what was rendered.
- */
-fun Span.expectThatRendered() =
-    expectThat(TestTelemetry.logs(traceId).lineEndsTrimmed)
-
-/**
- * Runs the specified [assertions] on what was rendered.
- */
-fun Span.expectThatRendered(assertions: Builder<String>.() -> Unit) =
-    expectThat(TestTelemetry.logs(traceId).lineEndsTrimmed, assertions)

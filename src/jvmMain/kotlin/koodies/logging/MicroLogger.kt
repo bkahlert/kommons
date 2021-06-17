@@ -3,6 +3,7 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.exec.IO
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
@@ -11,13 +12,13 @@ import koodies.text.LineSeparators.removeTrailingLineSeparator
 public class MicroLogger(
     private val symbol: String,
     parent: SimpleRenderingLogger?,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
 ) : SimpleRenderingLogger("", parent, log) {
 
-    private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
+    private val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
     private val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
 

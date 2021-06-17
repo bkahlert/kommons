@@ -6,7 +6,7 @@ import koodies.docker.DockerRequiring
 import koodies.test.allContainerJavaClasses
 import koodies.test.allTestJavaMethods
 import koodies.test.withAnnotation
-import koodies.text.ANSI.Formatter.Companion.fromScratch
+import koodies.text.ANSI.FilteringFormatter.Companion.fromScratch
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF

@@ -134,8 +134,8 @@ public object LineSeparators : Collection<String> {
     /**
      * Replaces all lines separators by [DEFAULT].
      */
-    public fun unify(charSequence: CharSequence): String =
-        fold(charSequence.toString()) { acc, sep -> acc.replace(sep, DEFAULT) }
+    public fun unify(charSequence: CharSequence, lineSeparator: String = DEFAULT): String =
+        fold(charSequence.toString()) { acc, sep -> acc.replace(sep, lineSeparator) }
 
     /**
      * If this character sequence starts with one of the [LineSeparators] this property includes it.

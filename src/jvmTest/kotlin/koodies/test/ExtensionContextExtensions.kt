@@ -85,12 +85,14 @@ val Optional<Method>?.isTest get() = this?.orElse(null).isTest
 val Method?.isTest get() = isA<Test>() || isA<TestFactory>() || isA<TestTemplate>()
 
 
-/** Puts the given [obj] in this [Store] using the objects [KClass] as its key. */
+/**
+ * Puts the given [obj] in this [Store] using the objects [KClass] as its key.
+ */
 inline fun <reified T> Store.put(obj: T): Unit = put(T::class.java, obj)
 
 /**
  * Gets the previously [put] instance of type [T] from this [Store].
  *
  * ***Important:** [T] must be the exact same type as used in [put].*
- * */
+ */
 inline fun <reified T> Store.get(): T? = get(T::class.java, T::class.java)

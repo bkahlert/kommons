@@ -14,8 +14,9 @@ import koodies.logging.runLogging
 import koodies.runtime.onExit
 import koodies.test.executionResult
 import koodies.test.isVerbose
-import koodies.test.store
+import koodies.test.storeForNamespace
 import koodies.test.testName
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.styling.wrapWithBorder
 import koodies.unit.bytes
@@ -127,7 +128,7 @@ class TestLogger(
 ) {
     init {
         withUnclosedWarningDisabled
-        extensionContext.store<InMemoryLoggerResolver>().put(extensionContext.element, this)
+        extensionContext.storeForNamespace<InMemoryLoggerResolver>().put(extensionContext.element, this)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -155,7 +156,7 @@ class TestLogger(
  * Ends the test [Span] and logs an eventually stored test result.
  */
 fun ExtensionContext.endSpanAndLogTestResult() {
-    store<InMemoryLoggerResolver>().get(element, TestLogger::class.java)?.logTestResult(this)
+    storeForNamespace<InMemoryLoggerResolver>().get(element, TestLogger::class.java)?.logTestResult(this)
 }
 
 /**
@@ -163,14 +164,14 @@ fun ExtensionContext.endSpanAndLogTestResult() {
  * is the case if an [InMemoryLogger] was requested by specifying
  * a test parameter of that type—or `null` otherwise.
  */
-val ExtensionContext.testLocalLogger: InMemoryLogger? get() = store<InMemoryLoggerResolver>().get(element, TestLogger::class.java)
+val ExtensionContext.testLocalLogger: InMemoryLogger? get() = storeForNamespace<InMemoryLoggerResolver>().get(element, TestLogger::class.java)
 
 /**
  * Logs the given [block] in a new span with the active test logger if any.
  */
 fun <R> ExtensionContext.logging(
     name: CharSequence,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = Border.DEFAULT,

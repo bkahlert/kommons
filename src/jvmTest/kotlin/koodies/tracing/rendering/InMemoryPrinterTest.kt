@@ -12,7 +12,7 @@ class InMemoryPrinterTest {
     }
 
     @Test
-    fun `should be remove trailing line`() {
+    fun `should remove trailing line`() {
         expectThat(InMemoryPrinter().apply {
             invoke("foo")
         }).toStringIsEqualTo("""
@@ -27,6 +27,17 @@ class InMemoryPrinterTest {
             invoke("bar")
         }).toStringIsEqualTo("""
             foo
+            bar
+        """.trimIndent())
+    }
+
+    @Test
+    fun `should not collect if disabled`() {
+        expectThat(InMemoryPrinter(enabled = false).apply {
+            invoke("foo")
+            enabled = true
+            invoke("bar")
+        }).toStringIsEqualTo("""
             bar
         """.trimIndent())
     }

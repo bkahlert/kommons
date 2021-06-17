@@ -1,6 +1,6 @@
 package koodies.text.styling
 
-import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.asCodePointSequence
@@ -224,7 +224,7 @@ public fun <T : CharSequence> T.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
-    formatter: Formatter = Formatter.PassThrough,
+    formatter: FilteringFormatter = FilteringFormatter.PassThrough,
 ): String {
     val block = this.lines().center(border[5])
     if (block.isEmpty()) return toString()
@@ -254,7 +254,7 @@ public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
-    formatter: Formatter = Formatter.PassThrough,
+    formatter: FilteringFormatter = FilteringFormatter.PassThrough,
 ): String = joinToString(LF).wrapWithBorder(border, padding, margin, formatter)
 
 public class Draw(public val text: CharSequence) {
@@ -268,7 +268,7 @@ public class Draw(public val text: CharSequence) {
          *  └────────┘
          * ```
          */
-        public fun light(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun light(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(Light, padding, margin, formatter)
 
         /**
@@ -278,7 +278,7 @@ public class Draw(public val text: CharSequence) {
          *  ┗━━━━━━━━┛
          * ```
          */
-        public fun heavy(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun heavy(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(Heavy, padding, margin, formatter)
 
         /**
@@ -288,7 +288,7 @@ public class Draw(public val text: CharSequence) {
          *  ██████████
          * ```
          */
-        public fun block(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun block(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(Block, padding, margin, formatter)
 
         /**
@@ -298,7 +298,7 @@ public class Draw(public val text: CharSequence) {
          *  ╚════════╝
          * ```
          */
-        public fun double(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun double(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(Double, padding, margin, formatter)
 
         /**
@@ -308,7 +308,7 @@ public class Draw(public val text: CharSequence) {
          *  ╰────────╯
          * ```
          */
-        public fun rounded(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun rounded(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(Rounded, padding, margin, formatter)
 
         /**
@@ -318,7 +318,7 @@ public class Draw(public val text: CharSequence) {
          *  └┈┄┄┄┄┄┄┄┘
          * ```
          */
-        public fun lightDotted(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun lightDotted(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(LightDotted, padding, margin, formatter)
 
         /**
@@ -328,7 +328,7 @@ public class Draw(public val text: CharSequence) {
          *  ┗╍╍╍╍╍╍╍╍┛
          * ```
          */
-        public fun heavyDotted(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun heavyDotted(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(HeavyDotted, padding, margin, formatter)
 
         /**
@@ -338,7 +338,7 @@ public class Draw(public val text: CharSequence) {
          *   ▽▽▽▽▽▽▽▽
          * ```
          */
-        public fun spikedOutward(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun spikedOutward(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(SpikedOutward, padding, margin, formatter)
 
 
@@ -349,7 +349,7 @@ public class Draw(public val text: CharSequence) {
          *  ◺△△△△△△△△◿
          * ```
          */
-        public fun spikedInward(padding: Int = 0, margin: Int = 0, formatter: Formatter = Formatter.PassThrough): String =
+        public fun spikedInward(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.PassThrough): String =
             text.wrapWithBorder(SpikedInward, padding, margin, formatter)
     }
 }

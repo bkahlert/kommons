@@ -317,8 +317,13 @@ class LineSeparatorsTest {
     }
 
     @TestFactory
-    fun `each unify each line separator`() = LineSeparators.testEach { lineSeparator ->
+    fun `should unify each line separator using LF by default`() = LineSeparators.testEach { lineSeparator ->
         expecting { unify("abc${lineSeparator}def") } that { isEqualTo("abc${LF}def") }
+    }
+
+    @TestFactory
+    fun `should unify each line separator using specified line separator`() = LineSeparators.testEach { lineSeparator ->
+        expecting { unify("abc${lineSeparator}def", NEL) } that { isEqualTo("abc${NEL}def") }
     }
 
     @Nested

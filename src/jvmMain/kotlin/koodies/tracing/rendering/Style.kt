@@ -2,99 +2,72 @@ package koodies.tracing.rendering
 
 import koodies.logging.ReturnValue
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.Formatter.Companion.invoke
-import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.ANSI.Formatter.Companion.PassThrough
 import koodies.text.LineSeparators
-import koodies.text.LineSeparators.lines
-import koodies.text.LineSeparators.mapLines
-import koodies.text.prefixWith
-import koodies.text.takeUnlessBlank
-import koodies.text.withPrefix
+import koodies.text.takeUnlessEmpty
 
+/**
+ * A style is a simple generalization attempt
+ * to improve separation of concern.
+ *
+ * This component assumes that what needs to be styled consists of
+ * a start and end element and 0 or more content elements.
+ */
 public interface Style {
     public val indent: Int
-    public fun header(name: CharSequence, formatter: Formatter?): CharSequence
-    public fun line(text: CharSequence, formatter: Formatter?): CharSequence
-    public fun parentLine(text: CharSequence, formatter: Formatter?): CharSequence = line(text, formatter)
-    public fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): CharSequence
-}
 
-public sealed class Styles : Style {
+    /**
+     * Styles the introducing first element.
+     *
+     * The optional [decorationFormatter] will be applied on all
+     * "decoration" added.
+     */
+    public fun start(
+        element: CharSequence,
+        decorationFormatter: Formatter = PassThrough,
+    ): CharSequence?
 
-    public object Rounded : Styles() {
-        override val indent: Int = line("") { it }.length
+    /**
+     * Styles a content element.
+     *
+     * The optional [decorationFormatter] will be applied on all
+     * "decoration" added.
+     */
+    public fun content(
+        element: CharSequence,
+        decorationFormatter: Formatter = PassThrough,
+    ): CharSequence?
 
-        override fun header(name: CharSequence, formatter: Formatter?): CharSequence =
-            koodies.builder.buildList {
-                val nameLines = name.asAnsiString().lines()
-                +(formatter("╭──╴").toString() + formatter(nameLines.first()).ansi.bold)
-                nameLines.drop(1).forEach {
-                    +"${formatter.invoke("│").toString() + "   "}${formatter(it).ansi.bold}"
-                }
-                +formatter.invoke("│").toString()
-            }.joinToString(LineSeparators.LF)
+    /**
+     * Styles an element to be inserted in its parent which
+     * is necessary for nested layouts.
+     *
+     * The optional [decorationFormatter] will be applied on all
+     * "decoration" added.
+     */
+    public fun parent(
+        element: CharSequence,
+        decorationFormatter: Formatter = PassThrough,
+    ): CharSequence? = content(element, decorationFormatter)
 
-        override fun line(text: CharSequence, formatter: Formatter?): CharSequence =
-            formatter.invoke("│").toString() + "   " + text
+    /**
+     * Styles the finalizing last element.
+     *
+     * The optional [decorationFormatter] will be applied on all
+     * "decoration" added.
+     */
+    public fun end(
+        element: ReturnValue,
+        resultValueFormatter: (ReturnValue) -> ReturnValue?,
+        decorationFormatter: Formatter = PassThrough,
+    ): CharSequence?
 
-        override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): CharSequence {
-            val processReturnValue = resultValueFormatter(returnValue)
-            return when (returnValue.successful) {
-                true -> {
-                    formatter("│").toString() + LineSeparators.LF + formatter("╰──╴").toString() + processReturnValue.format()
-                }
-                null -> {
-                    val halfLine = formatter("╵").toString()
-                    val formatted: String = processReturnValue.symbol + (processReturnValue.textRepresentation?.withPrefix(" ") ?: "")
-                    halfLine + LineSeparators.LF + halfLine + (formatted.takeUnlessBlank()?.let { "${LineSeparators.LF}$it" } ?: "")
-                }
-                false -> {
-                    processReturnValue.symbol + LineSeparators.LF + formatter("╰──╴").toString() + (processReturnValue.textRepresentation ?: "")
-                }
-            }.asAnsiString().mapLines { it.ansi.bold }
-        }
-    }
+    public fun buildString(block: StringBuilder.() -> Unit): CharSequence? =
+        StringBuilder().apply(block).takeUnlessEmpty()
 
-    public object Dotted : Styles() {
-        override val indent: Int = line("") { it }.length
+    public fun StringBuilder.append(vararg text: CharSequence?): StringBuilder =
+        apply { text.forEach { if (it != null) append(it) } }
 
-        private fun playSymbol(formatter: Formatter?) = formatter("▶").toString()
-        private fun whitePlaySymbol(formatter: Formatter?) = formatter("▷").toString()
-
-        override fun header(name: CharSequence, formatter: Formatter?): String {
-            return koodies.builder.buildList {
-                val nameLines = name.asAnsiString().lines()
-                +"${playSymbol(formatter)} ${formatter(nameLines.first()).ansi.bold}"
-                nameLines.drop(1).forEach {
-                    +"${whitePlaySymbol(formatter)} ${formatter(it).ansi.bold}"
-                }
-            }.joinToString(LineSeparators.LF)
-        }
-
-        override fun line(text: CharSequence, formatter: Formatter?): CharSequence =
-            formatter("·").toString() + " " + text
-
-        override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): CharSequence =
-            resultValueFormatter(returnValue).format().let { if (returnValue.successful == false) it.ansi.red else it }.ansi.bold.done
-    }
-
-    public object None : Styles() {
-        private val prefix = "    "
-        override val indent: Int = prefix.length
-        override fun header(name: CharSequence, formatter: Formatter?): CharSequence = formatter.invoke(name)
-        override fun line(text: CharSequence, formatter: Formatter?): CharSequence = formatter.invoke(text)
-        override fun parentLine(text: CharSequence, formatter: Formatter?): CharSequence = line(text, formatter).prefixWith(prefix)
-        override fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): CharSequence =
-            resultValueFormatter(returnValue).format()
-    }
-
-    public companion object {
-        public val DEFAULT: Style = None
-        public fun from(border: Boolean?): Style = when (border) {
-            true -> Rounded
-            false -> Dotted
-            null -> None
-        }
-    }
+    public fun StringBuilder.appendLine(vararg text: CharSequence?): StringBuilder =
+        apply { append(*text, LineSeparators.DEFAULT) }
 }

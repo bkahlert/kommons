@@ -38,7 +38,7 @@ public val StackTraceElement.highlightedMethod: String
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val <T : Thread> T.trace: Thread
-    get() = apply { println(xray(null, { highlightedName }, null)) }
+    get() = trace()
 
 /**
  * Helper function that supports
@@ -47,8 +47,8 @@ public val <T : Thread> T.trace: Thread
  * while still returning `this`.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T : Thread> T.trace(description: CharSequence? = null, transform: T.() -> Any?): T =
-    apply { println(xray(description, { highlightedName }, { transform().toString() })) }
+public fun <T : Thread> T.trace(description: CharSequence? = null, transform: (T.() -> Any)? = null): T =
+    xray(description, { highlightedName }, transform).print()
 
 /**
  * Helper property that supports
@@ -57,7 +57,18 @@ public fun <T : Thread> T.trace(description: CharSequence? = null, transform: T.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Array<StackTraceElement>.trace: Array<StackTraceElement>
-    get() = also { println(joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF) { it.highlightedMethod }) }
+    get() = trace()
+
+/**
+ * Helper property that supports
+ * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
+ * by printing `this` stacktrace and highlighting the method names.
+ */
+@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
+public fun Array<StackTraceElement>.trace(
+    description: CharSequence? = null,
+    transform: (Array<StackTraceElement>.() -> Any)? = null,
+): Array<StackTraceElement> = xray(description, { joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF) { it.highlightedMethod } }, transform).print()
 
 /**
  * Helper property that supports

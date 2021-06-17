@@ -3,6 +3,7 @@ package koodies.logging
 import koodies.asString
 import koodies.collections.synchronizedListOf
 import koodies.exec.IO
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
@@ -13,13 +14,13 @@ import koodies.text.LineSeparators.withTrailingLineSeparator
 public open class CompactRenderingLogger(
     name: CharSequence,
     parent: SimpleRenderingLogger?,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     log: ((String) -> Unit)? = null,
 ) : SimpleRenderingLogger(name.toString(), parent, log) {
 
-    private val contentFormatter: Formatter = contentFormatter ?: Formatter.PassThrough
+    private val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.PassThrough
     private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
     private val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
 
@@ -85,7 +86,7 @@ public open class CompactRenderingLogger(
     @RenderingLoggingDsl
     public fun <R> compactLogging(
         name: CharSequence? = null,
-        contentFormatter: Formatter? = this.contentFormatter,
+        contentFormatter: FilteringFormatter? = this.contentFormatter,
         decorationFormatter: Formatter? = this.decorationFormatter,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)? = this.returnValueFormatter,
         block: MicroLogger.() -> R,

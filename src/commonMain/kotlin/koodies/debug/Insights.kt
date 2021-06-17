@@ -21,7 +21,7 @@ import koodies.text.asCodePointSequence
 public class XRay<T>(
     private val description: CharSequence?,
     private val subject: T,
-    private val stringifier: T.() -> String,
+    private val stringifier: (T.() -> String)?,
     private val transform: (T.() -> Any)?,
 ) : CharSequence {
 
@@ -32,16 +32,22 @@ public class XRay<T>(
         else -> subject.toString()
     }
 
-    private fun <T> T.selfString(): String = if (subject.stringifier().isMultiline) {
-        "${selfBrackets.first}$LF${asString(this)}$LF${selfBrackets.second}"
-    } else {
-        "${selfBrackets.first} ${asString(this)} ${selfBrackets.second}"
+    private fun <T> T.selfString(): String {
+        val selfString = stringifier?.let { it(subject) } ?: asString(subject)
+        return if (selfString.isMultiline) {
+            "${selfBrackets.first}$LF$selfString$LF${selfBrackets.second}"
+        } else {
+            "${selfBrackets.first} $selfString ${selfBrackets.second}"
+        }
     }
 
-    private fun <T> T.transformedString(): String = if (asString(this).isMultiline) {
-        "${transformedBrackets.first}$LF${asString(this)}$LF${transformedBrackets.second}"
-    } else {
-        "${transformedBrackets.first} ${asString(this)} ${transformedBrackets.second}"
+    private fun <T> T.transformedString(): String {
+        val transformedString = asString(this)
+        return if (transformedString.isMultiline) {
+            "${transformedBrackets.first}$LF$transformedString$LF${transformedBrackets.second}"
+        } else {
+            "${transformedBrackets.first} $transformedString ${transformedBrackets.second}"
+        }
     }
 
     private val string: String = run {
@@ -138,7 +144,7 @@ public class XRay<T>(
  *
  * will be printed.
  */
-public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = { toString() }, transform = null)
+public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = null, transform = null)
 
 /**
  * Helper property that supports
@@ -164,9 +170,9 @@ public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = { toString
  *
  * will be printed.
  */
-public fun <T> T.xray(description: CharSequence? = null): XRay<T> = XRay(description, this, stringifier = { toString() }, transform = null)
+public fun <T> T.xray(description: CharSequence? = null): XRay<T> = XRay(description, this, stringifier = null, transform = null)
 public fun <T> T.xray(description: CharSequence? = null, transform: (T.() -> Any)?): XRay<out T> =
-    XRay(description, this, stringifier = { toString() }, transform = transform)
+    XRay(description, this, stringifier = null, transform = transform)
 
 public fun <T> T.xray(description: CharSequence? = null, stringifier: T.() -> String, transform: (T.() -> Any)?): XRay<out T> =
     XRay(description, this, stringifier = stringifier, transform = transform)

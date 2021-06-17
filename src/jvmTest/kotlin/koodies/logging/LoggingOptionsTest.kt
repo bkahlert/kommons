@@ -7,7 +7,8 @@ import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.shell.ShellScript
 import koodies.test.tests
 import koodies.text.ANSI
-import koodies.text.ANSI.Formatter.Companion.fromScratch
+import koodies.text.ANSI.FilteringFormatter.Companion.fromScratch
+import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.DynamicNode
@@ -57,7 +58,7 @@ class LoggingOptionsTest {
                 block {
                     name { "name" }
                     contentFormatter { fromScratch { random } }
-                    decorationFormatter { fromScratch { brightYellow } }
+                    decorationFormatter { Formatter.fromScratch { brightYellow } }
                     border = SOLID
                 }
             }
@@ -77,7 +78,7 @@ class LoggingOptionsTest {
                 block {
                     name { "name" }
                     contentFormatter { fromScratch { random } }
-                    decorationFormatter { fromScratch { brightYellow } }
+                    decorationFormatter { Formatter.fromScratch { brightYellow } }
                     border = SOLID
                 }
             }
@@ -87,7 +88,7 @@ class LoggingOptionsTest {
     @Nested
     inner class CompactLog {
 
-        private val formatter: ANSI.Formatter = ANSI.Formatter { it.ansi.inverse.magenta }
+        private val formatter: ANSI.FilteringFormatter = ANSI.FilteringFormatter { it.ansi.inverse.magenta }
 
         @TestFactory
         fun InMemoryLogger.`should compact log`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
@@ -144,7 +145,7 @@ class LoggingOptionsTest {
                 smart {
                     name { "name" }
                     contentFormatter { fromScratch { random } }
-                    decorationFormatter { fromScratch { brightYellow } }
+                    decorationFormatter { Formatter.fromScratch { brightYellow } }
                     border = SOLID
                 }
             }
@@ -164,7 +165,7 @@ class LoggingOptionsTest {
                 smart {
                     name { "name" }
                     contentFormatter { fromScratch { random } }
-                    decorationFormatter { fromScratch { brightYellow } }
+                    decorationFormatter { Formatter.fromScratch { brightYellow } }
                     border = SOLID
                 }
             }

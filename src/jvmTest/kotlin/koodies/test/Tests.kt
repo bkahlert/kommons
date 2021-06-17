@@ -48,7 +48,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
 import org.junit.jupiter.api.extension.ExtensionContext.Store
@@ -342,36 +341,6 @@ class IllegalUsageException(function: String, caller: URI) : IllegalArgumentExce
 /*
  * JUNIT EXTENSIONS
  */
-
-/**
- * Provides an accessor for the [ExtensionContext.Store] that uses
- * `this` [Extension] as the key for the [Namespace] needed to access and scope the store.
- *
- * **Usage**
- * ```kotlin
- * class MyExtension: AnyJUnitExtension {
- *
- *     // implementation of an store accessor with name store
- *     val store: ExtensionContext.() -> Store by namespaced
- *
- *     fun anyCallback(context: ExtensionContext) {
- *
- *         // using store (here: with a subsequent get call)
- *         context.store.get(…)
- *     }
- * }
- *
- * ```
- */
-@Deprecated("remove; too magic")
-inline val Extension.namespaced: ReadOnlyProperty<Any?, ExtensionContext.() -> Store>
-    get() {
-        val namespace = Namespace.create(this::class.java)
-        return ReadOnlyProperty<Any?, ExtensionContext.() -> Store> { _, _ ->
-            { getStore(namespace) }
-        }
-    }
-
 /**
  * Provides an accessor for the [ExtensionContext.Store] that uses
  * the class of [T] as the key for the [Namespace] needed to access and scope the store.
@@ -381,7 +350,7 @@ inline val Extension.namespaced: ReadOnlyProperty<Any?, ExtensionContext.() -> S
  * class MyExtension: AnyJUnitExtension {
  *
  *     // implementation of an store accessor with name store
- *     val store: ExtensionContext.() -> Store by namespaced<AnyClass>()
+ *     val store: ExtensionContext.() -> Store by storeForNamespace<AnyClass>()
  *
  *     fun anyCallback(context: ExtensionContext) {
  *
@@ -392,21 +361,59 @@ inline val Extension.namespaced: ReadOnlyProperty<Any?, ExtensionContext.() -> S
  *
  * ```
  */
-@Deprecated("remove; too magic")
-inline fun <reified T : Any> namespaced(): ReadOnlyProperty<Any?, ExtensionContext.() -> Store> {
-    val namespace = Namespace.create(T::class.java)
-    return ReadOnlyProperty<Any?, ExtensionContext.() -> Store> { _, _ ->
-        { getStore(namespace) }
+fun storeForNamespace(): ReadOnlyProperty<Any, ExtensionContext.() -> Store> =
+    ReadOnlyProperty<Any, ExtensionContext.() -> Store> { thisRef, _ ->
+        { getStore(Namespace.create(thisRef::class.java)) }
     }
-}
+
+/**
+ * Provides an accessor for the [ExtensionContext.Store] that uses
+ * the class of [T] and the current test as the keys for the [Namespace] needed to access and scope the store.
+ *
+ * An exception is thrown if no test is current.
+ *
+ * **Usage**
+ * ```kotlin
+ * class MyExtension: AnyJUnitExtension {
+ *
+ *     // implementation of an store accessor with name store
+ *     val store: ExtensionContext.() -> Store by storeForNamespaceAndTest()
+ *
+ *     fun anyCallback(context: ExtensionContext) {
+ *
+ *         // using store (here: with a subsequent get call)
+ *         context.store().get(…)
+ *     }
+ * }
+ *
+ * ```
+ */
+fun storeForNamespaceAndTest(): ReadOnlyProperty<Any, ExtensionContext.() -> Store> =
+    ReadOnlyProperty<Any, ExtensionContext.() -> Store> { thisRef, _ ->
+        { getStore(Namespace.create(thisRef::class.java, requiredTestMethod)) }
+    }
 
 /**
  * Returns the [ExtensionContext.Store] that uses
  * the class of [T] as the key for the [Namespace] needed to access and scope the store.
+ *
+ * [additionalParts] can be provided to render the namespace more specific, just keep
+ * in mind that the order is significant and parts are compared with [Object.equals].
  */
-@Deprecated("remove; too magic")
-inline fun <reified T> ExtensionContext.store(clazz: Class<T> = T::class.java): Store =
-    getStore(Namespace.create(clazz))
+inline fun <reified T> ExtensionContext.storeForNamespace(
+    clazz: Class<T> = T::class.java,
+    vararg additionalParts: Any,
+): Store = getStore(Namespace.create(clazz, *additionalParts))
+
+/**
+ * Returns the [ExtensionContext.Store] that uses
+ * the class of [T] and the current test as the keys for the [Namespace] needed to access and scope the store.
+ *
+ * An exception is thrown if no test is current.
+ */
+inline fun <reified T> ExtensionContext.storeForNamespaceAndTest(
+    clazz: Class<T> = T::class.java,
+): Store = storeForNamespace(clazz, requiredTestMethod)
 
 
 /*
@@ -460,9 +467,11 @@ class IllegalUsageCheck : AfterEachCallback {
     }
 
     companion object {
+        private val store by storeForNamespaceAndTest()
+
         var ExtensionContext.illegalUsageExpected: Boolean
-            get() = store<IllegalUsageCheck>().get("expect-illegal-usage-exception") == true
-            set(value) = store<IllegalUsageCheck>().put("expect-illegal-usage-exception", value)
+            get() = store().get<Boolean>() == true
+            set(value) = store().put(value)
 
         val illegalUsages = mutableMapOf<UniqueId, IllegalUsageException>()
     }

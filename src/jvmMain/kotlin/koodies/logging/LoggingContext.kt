@@ -6,7 +6,7 @@ import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
 import koodies.runtime.isTesting
 import koodies.runtime.onExit
 import koodies.takeIfDebugging
-import koodies.text.ANSI.Formatter.Companion.fromScratch
+import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
@@ -64,7 +64,13 @@ public class LoggingContext(name: String, print: (String) -> Unit) : FixedWidthR
     private val exclusiveOut by baseMessageStream.map { (logger, message) -> messages.record(Pair(logger, message)); print(message) }
     public fun <R> runExclusive(block: FixedWidthRenderingLogger.() -> R): R =
         koodies.runWrapping({ muted = true }, { muted = false }) {
-            BlockRenderingLogger(name, this, exclusiveOut, contentFormatter, fromScratch { formattedAs.warning }, returnValueFormatter, SOLID).runLogging(
+            BlockRenderingLogger(name,
+                this,
+                exclusiveOut,
+                contentFormatter,
+                Formatter.fromScratch { formattedAs.warning },
+                returnValueFormatter,
+                SOLID).runLogging(
                 block)
         }
 

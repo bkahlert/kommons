@@ -32,7 +32,7 @@ import koodies.test.UniqueId
 import koodies.test.asserting
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
-import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.resetLines
 import koodies.text.matchesCurlyPattern
@@ -102,7 +102,7 @@ class ExecutionIntegrationTest {
         }.exec.logging {
             block {
                 name { "countdown" }
-                contentFormatter { Formatter { "${"->".ansi.red} $it" } }
+                contentFormatter { FilteringFormatter { "${"->".ansi.red} $it" } }
                 decorationFormatter { Colors.brightRed }
                 border = SOLID
             }

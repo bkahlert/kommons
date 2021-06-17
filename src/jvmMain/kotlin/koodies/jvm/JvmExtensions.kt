@@ -16,7 +16,7 @@ import kotlin.concurrent.withLock
 /**
  * If a value [Optional.isPresent], returns the value. Otherwise returns `null`.
  */
-public fun <T> Optional<T>?.orNull(): T? = this?.orElse(null)
+public inline fun <reified T> Optional<T>?.orNull(): T? = this?.orElse(null)
 
 /**
  * Enclosing class of `this` class, if any. `null` otherwise.

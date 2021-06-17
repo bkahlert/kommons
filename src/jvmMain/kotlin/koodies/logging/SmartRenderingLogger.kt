@@ -2,6 +2,7 @@ package koodies.logging
 
 import koodies.asString
 import koodies.exception.toCompactString
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 
 /**
@@ -13,7 +14,7 @@ public open class SmartRenderingLogger(
     name: CharSequence,
     parent: SimpleRenderingLogger?,
     log: ((String) -> Unit)? = null,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = Border.DEFAULT,
@@ -69,7 +70,7 @@ public open class SmartRenderingLogger(
             is FixedWidthRenderingLogger -> logger.logStatus(items, block)
             is CompactRenderingLogger -> logger.logStatus(items, block)
             is MicroLogger -> logger.logStatus(items, block)
-            else -> logger.logText { block().toString() + items.format(Formatter.fromScratch { red }) { toCompactString() } }
+            else -> logger.logText { block().toString() + items.format(FilteringFormatter.fromScratch { red }) { toCompactString() } }
         }
     }
 

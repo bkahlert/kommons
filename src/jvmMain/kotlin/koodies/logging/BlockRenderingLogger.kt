@@ -1,6 +1,7 @@
 package koodies.logging
 
 import koodies.asString
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.LF
@@ -12,7 +13,7 @@ public open class BlockRenderingLogger(
     name: CharSequence,
     parent: SimpleRenderingLogger?,
     log: ((String) -> Unit)? = null,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = DEFAULT_BORDER,

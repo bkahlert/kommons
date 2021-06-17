@@ -1,5 +1,6 @@
 package koodies.logging
 
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 
 /**
@@ -22,7 +23,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
 
     override fun <R> blockLogging(
         name: CharSequence,
-        contentFormatter: Formatter?,
+        contentFormatter: FilteringFormatter?,
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
         border: Border,
@@ -31,7 +32,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
 
     override fun <R> compactLogging(
         name: CharSequence,
-        contentFormatter: Formatter?,
+        contentFormatter: FilteringFormatter?,
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
         block: CompactRenderingLogger.() -> R,
@@ -39,7 +40,7 @@ public object MutedRenderingLogger : BlockRenderingLogger("", null, log = { }) {
 
     override fun <R> logging(
         name: CharSequence,
-        contentFormatter: Formatter?,
+        contentFormatter: FilteringFormatter?,
         decorationFormatter: Formatter?,
         returnValueFormatter: ((ReturnValue) -> ReturnValue)?,
         border: Border,

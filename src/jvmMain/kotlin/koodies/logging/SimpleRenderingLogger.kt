@@ -5,8 +5,8 @@ import koodies.collections.synchronizedMapOf
 import koodies.collections.synchronizedSetOf
 import koodies.jvm.currentStackTrace
 import koodies.runtime.onExit
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.Formatter.Companion.invoke
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.withTrailingLineSeparator
@@ -104,13 +104,12 @@ public open class SimpleRenderingLogger(
         ::name to name
     }
 
-    /**
-     * Helper method than can be applied on [CharSequence] returning lambdas
-     * to format them using the provided [f] and passing them to [transform]
-     * only in case the result was not blank.
-     */
     protected fun <T> (() -> CharSequence).format(f: Formatter?, transform: String.() -> T?): T? {
-        return f(this()).takeUnless { it.isBlank() }?.toString()?.transform()
+        return (f ?: Formatter.PassThrough).invoke(this()).takeUnless { it.isBlank() }?.toString()?.transform()
+    }
+
+    protected fun <T> (() -> CharSequence).format(f: FilteringFormatter?, transform: String.() -> T?): T? {
+        return (f ?: FilteringFormatter.PassThrough).invoke(this()).takeUnless { it.isNullOrBlank() }?.toString()?.transform()
     }
 
     public companion object {
@@ -121,9 +120,9 @@ public open class SimpleRenderingLogger(
          * only in case the result was not blank.
          */
         @JvmStatic
-        protected fun <T : CharSequence, R> List<T>.format(f: Formatter?, transform: String.() -> R?): R? {
+        protected fun <T : CharSequence, R> List<T>.format(f: FilteringFormatter?, transform: String.() -> R?): R? {
             if (isEmpty()) return null
-            return f(asStatus()).takeUnless { it.isBlank() }?.toString()?.transform()
+            return (f ?: FilteringFormatter.PassThrough).invoke(asStatus()).takeUnless { it.isNullOrBlank() }?.toString()?.transform()
         }
 
         private fun Array<StackTraceElement>?.asString() = (this ?: emptyArray()).joinToString("") { "$LF\t\tat $it" }

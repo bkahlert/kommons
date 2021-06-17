@@ -8,6 +8,7 @@ import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.ansiSupport
 import koodies.runtime.isDebugging
 import koodies.runtime.isDeveloping
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.ColoredText
 import koodies.text.ANSI.Text.Companion.ansi
@@ -23,7 +24,6 @@ import koodies.text.Semantics.formattedAs
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
-import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random.Default.nextDouble
 import koodies.text.Unicode.controlSequenceIntroducer as c
@@ -35,7 +35,7 @@ import kotlin.text.contains as containsNonAnsiAware
  */
 public object ANSI {
 
-    private val level by lazy { if (false && isDebugging) NONE else ansiSupport }
+    private val level by lazy { if (isDebugging) NONE else ansiSupport }
 
     /**
      * Contains `this` character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
@@ -118,9 +118,29 @@ public object ANSI {
         return toString().mapLines { "$it$reset" }
     }
 
-    public fun interface Formatter {
-        public operator fun invoke(text: CharSequence): CharSequence
-        public operator fun plus(other: Formatter): Formatter = Formatter { other(this(it)) }
+    public fun interface FilteringFormatter {
+        public operator fun invoke(text: CharSequence): CharSequence?
+        public operator fun plus(other: FilteringFormatter): FilteringFormatter = FilteringFormatter { invoke(it)?.let(other::invoke) }
+
+        public companion object {
+
+            /**
+             * Returns a new formatter that is provided with the initial text freed
+             * from any previous formatting and wrapped in a [ANSI.Text] for convenient
+             * customizations.
+             */
+            public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter = FilteringFormatter { it.ansiRemoved.ansi.transform() }
+
+            /**
+             * A formatter that leaves the [text] unchanged.
+             */
+            public val PassThrough: FilteringFormatter = FilteringFormatter { text -> text }
+        }
+    }
+
+    public fun interface Formatter : FilteringFormatter {
+        override operator fun invoke(text: CharSequence): CharSequence
+        public operator fun plus(other: Formatter): Formatter = Formatter { invoke(it).let(other::invoke) }
 
         public companion object {
 
@@ -130,18 +150,6 @@ public object ANSI {
              * customizations.
              */
             public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.ansiRemoved.ansi.transform() }
-
-            /**
-             * `Null`-safe formatter function that delegates to the actual formatter if
-             * it's not `null` but if it is, the [text] is simply passed-through.
-             */
-            public operator fun Formatter?.invoke(text: CharSequence): CharSequence = (this ?: PassThrough).invoke(text)
-
-            /**
-             * `Null`-safe formatter extension that delegates to the actual formatter if
-             * it's not `null` but if it is, the resulting formatter is just the [other] one.
-             */
-            public operator fun Formatter?.plus(other: Formatter): Formatter = this?.let { it + other } ?: other
 
             /**
              * A formatter that leaves the [text] unchanged.
@@ -160,6 +168,9 @@ public object ANSI {
     private open class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
         override fun invoke(text: CharSequence): String = ansiCode.format(text)
         override operator fun plus(other: Formatter): Formatter =
+            (other as? AnsiCodeFormatter)?.ansiCode?.plus(ansiCode)?.let { AnsiCodeFormatter(it) } ?: super.plus(other)
+
+        override operator fun plus(other: FilteringFormatter): FilteringFormatter =
             (other as? AnsiCodeFormatter)?.ansiCode?.plus(ansiCode)?.let { AnsiCodeFormatter(it) } ?: super.plus(other)
     }
 
@@ -191,17 +202,62 @@ public object ANSI {
         public val brightCyan: Colorizer get() = AnsiColorCodeFormatter(ansi16(96))
         public val brightWhite: Colorizer get() = AnsiColorCodeFormatter(ansi16(97))
 
+        /**
+         * Creates a [Colorizer] for a random color from the given [hue] and [variance]
+         * with a fixed saturation and value.
+         *
+         * - A variance of 0 will always return the same color.
+         * - A variance of 180 will return every possible color.
+         *
+         * @see <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSL and HSV</a>
+         */
         public fun random(hue: Int, variance: Double = 60.0): Colorizer =
             random(hue.toDouble(), variance)
 
+        /**
+         * Creates a [Colorizer] for a random color from the given [hue] and [variance]
+         * with a fixed saturation and value.
+         *
+         * - A variance of 0 will always return the same color.
+         * - A variance of 180 will return every possible color.
+         *
+         * @see <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSL and HSV</a>
+         */
         public fun random(hue: Double, variance: Double = 60.0): Colorizer =
             random((hue - variance)..(hue + variance))
 
-        public fun random(range: ClosedRange<Double> = 0.0..360.0): Colorizer =
-            AnsiColorCodeFormatter(hsv((nextDouble(range.start, range.endInclusive).mod(360.0)).toInt(), 82, 89))
+        /**
+         * Creates a [Colorizer] for a random color in the specified [hueRange].
+         *
+         * @see <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSL and HSV</a>
+         */
+        public fun random(hueRange: ClosedRange<Double> = 0.0..360.0): Colorizer =
+            hsv(nextDouble(hueRange.start, hueRange.endInclusive))
+
+        /**
+         * Creates a [Colorizer] for a gray color with the specified [brightness] (0..1).
+         *
+         * - A brightness of 0.0 will return black.
+         * - A brightness of 1.0 will return white.
+         *
+         * @see <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSL and HSV</a>
+         */
+        public fun gray(brightness: Double): Colorizer =
+            hsv(180.0, 0.0, brightness)
+
+        /**
+         * Creates a [Colorizer] for an HSV color for the given [hue] (0..360),
+         * [saturation] (0..1) and [value] (0..1).
+         *
+         * @see <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSL and HSV</a>
+         */
+        public fun hsv(hue: Double, saturation: Double = .82, value: Double = .89): Colorizer =
+            AnsiColorCodeFormatter(hsv(hue.mod(360.0).toInt(), (saturation * 100.0).mod(100.0).toInt(), (value * 100.0).mod(100.0).toInt()))
 
 
-        private fun Colorizer.format(bg: Colorizer?, text: CharSequence): CharSequence = if (bg == null) this(text) else this.on(bg)(text)
+        private fun Colorizer.format(bg: Colorizer?, text: CharSequence): CharSequence =
+            if (bg == null) this(text) else this.on(bg)(text)
+
         public fun CharSequence.black(backgroundColor: Colorizer? = null): CharSequence = black.format(backgroundColor, this)
         public fun CharSequence.red(backgroundColor: Colorizer? = null): CharSequence = red.format(backgroundColor, this)
         public fun CharSequence.green(backgroundColor: Colorizer? = null): CharSequence = green.format(backgroundColor, this)
@@ -240,16 +296,6 @@ public object ANSI {
          * @param v The value, in the range \[0,100]
          */
         private fun hsv(h: Int, s: Int, v: Int): AnsiColorCode = color(HSV(h, s, v))
-
-        /**
-         * Create a grayscale color code from a fraction in the range \[0, 1].
-         *
-         * @param fraction The fraction of white in the color. 0 is pure black, 1 is pure white.
-         */
-        private fun gray(fraction: Double): AnsiColorCode {
-            require(fraction in 0.0..1.0) { "fraction must be in the range [0, 1]" }
-            return round(255 * fraction).toInt().let { rgb(it, it, it) }
-        }
 
         private fun ansi16(code: Int): AnsiColorCode =
             if (level == NONE) DisabledAnsiColorCode else Ansi16ColorCode(code)
@@ -293,7 +339,7 @@ public object ANSI {
 
     public open class Preview(
         protected val text: CharSequence,
-        protected open val formatter: Formatter = Formatter.PassThrough,
+        protected open val formatter: FilteringFormatter = FilteringFormatter.PassThrough,
         public val done: String = formatter(text).toString(),
     ) : CharSequence by done {
         @Deprecated("use done", ReplaceWith("this.done"))
@@ -326,10 +372,13 @@ public object ANSI {
         public fun random(hue: Int, variance: Double = 60.0): T = color(Colors.random(hue, variance))
         public fun random(hue: Double, variance: Double = 60.0): T = color(Colors.random(hue, variance))
         public fun random(range: ClosedRange<Double> = 0.0..360.0): T = color(Colors.random(range))
+        public fun gray(brightness: Double): T = color(Colors.gray(brightness))
+        public fun hsv(hue: Double, saturation: Double = .82, value: Double = .89): T = color(Colors.hsv(hue, saturation, value))
     }
 
     public interface Styleable<T : CharSequence> {
         public fun style(formatter: Formatter): T
+        public fun style(formatter: FilteringFormatter): T?
 
         public val bold: T get() = style(Style.bold)
         public val dim: T get() = style(Style.dim)
@@ -340,16 +389,18 @@ public object ANSI {
         public val strikethrough: T get() = style(Style.strikethrough)
     }
 
-    public class Text private constructor(text: CharSequence, formatter: Formatter = Formatter.PassThrough) :
+    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter = FilteringFormatter.PassThrough) :
         Preview(text, formatter),
         Colorable<ColoredText>,
         Styleable<Text> {
         override fun color(colorizer: Colorizer): ColoredText = ColoredText(text, colorizer)
         override fun style(formatter: Formatter): Text = Text(formatter(text))
+        override fun style(formatter: FilteringFormatter): Text? = formatter(text)?.let(::Text)
 
         public class ColoredText(text: CharSequence, private val colorizer: Colorizer) : Preview(text, colorizer),
             Styleable<Text> {
             override fun style(formatter: Formatter): Text = Text(text, colorizer + formatter)
+            override fun style(formatter: FilteringFormatter): Text = Text(text, colorizer + formatter)
             public val bg: Text get() = Text(text, colorizer.bg)
             public val on: ForegroundColoredText get() = ForegroundColoredText(text, colorizer)
         }

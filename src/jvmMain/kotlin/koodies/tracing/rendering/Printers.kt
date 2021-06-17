@@ -8,11 +8,16 @@ public typealias Printer = (CharSequence) -> Unit
  * A printer that collects the arguments of all invocations
  * and provides access to them via [toString].
  */
-public class InMemoryPrinter : Printer {
+public class InMemoryPrinter(
+    /**
+     * Whether this printer is allowed to collect.
+     */
+    public var enabled: Boolean = true,
+) : Printer {
     private val printed = StringBuilder()
 
     override fun invoke(text: CharSequence) {
-        printed.appendLine(text.toString())
+        if (enabled) printed.appendLine(text.toString())
     }
 
     override fun toString(): String = printed.toString().removeTrailingLineSeparator

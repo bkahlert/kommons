@@ -4,6 +4,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.trace.SpanBuilder
 import io.opentelemetry.api.trace.TracerProvider
 import io.opentelemetry.context.propagation.ContextPropagators
+import koodies.tracing.OpenTelemetry.NOOP
 import koodies.tracing.OpenTelemetry.register
 import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
 import io.opentelemetry.api.trace.Tracer as TracerAPI
@@ -13,6 +14,8 @@ import io.opentelemetry.api.trace.Tracer as TracerAPI
  *
  * The actual implementation to be used can be specified using [register].
  * If none is explicitly registered, [GlobalOpenTelemetry.get] is used.
+ *
+ * For an implementation that never traces, use [NOOP].
  */
 public object OpenTelemetry : OpenTelemetryAPI {
     private var instance: OpenTelemetryAPI? = null
@@ -25,6 +28,11 @@ public object OpenTelemetry : OpenTelemetryAPI {
 
     override fun getTracerProvider(): TracerProvider = instanceOrDefault.tracerProvider
     override fun getPropagators(): ContextPropagators = instanceOrDefault.propagators
+
+    /**
+     * [OpenTelemetryAPI] that does nothing.
+     */
+    public object NOOP : OpenTelemetryAPI by OpenTelemetryAPI.noop()
 }
 
 /**
@@ -37,4 +45,9 @@ public object Tracer : TracerAPI {
     private val instance: TracerAPI get() = OpenTelemetry.tracerProvider.get("com.bkahlert.koodies", "1.5.1")
 
     override fun spanBuilder(spanName: String): SpanBuilder = instance.spanBuilder(spanName)
+
+    /**
+     * [TracerAPI] that does nothing.
+     */
+    public object NOOP : TracerAPI by OpenTelemetry.NOOP.tracerProvider.get("com.bkahlert.koodies", "0.0.1")
 }

@@ -18,7 +18,7 @@ class SemanticsTest {
         fun `should provide symbols`() = test(Semantics) {
             expecting { Symbols.OK } that { isEqualTo("✔$variationSelector15".ansi.green.done) }
             expecting { Symbols.Negative } that { isEqualTo("━".ansi.red.done) }
-            expecting { Symbols.Error } that { isEqualTo("ϟ".ansi.red.done) }
+            expecting { Symbols.Error } that { isEqualTo("ϟ".ansi.bold.red.done) }
             expecting { Symbols.PointNext } that { isEqualTo("➜".ansi.italic.gray.done) }
             expecting { Symbols.Document } that { isEqualTo("📄") }
             expecting { Symbols.Null } that { isEqualTo("␀".ansi.brightYellow.done) }

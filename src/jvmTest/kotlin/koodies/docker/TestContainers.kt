@@ -17,7 +17,9 @@ import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
 import koodies.test.UniqueId
 import koodies.test.UniqueId.Companion.id
-import koodies.test.store
+import koodies.test.get
+import koodies.test.put
+import koodies.test.storeForNamespaceAndTest
 import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
@@ -125,6 +128,7 @@ annotation class ContainersTest(
  * to create containers with a specific state.
  */
 class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), AfterEachCallback {
+    private val store: ExtensionContext.() -> Store by storeForNamespaceAndTest()
 
     private val ExtensionContext.provider: TestContainersProvider
         get() = (withAnnotation<ContainersTestFactory, KClass<out TestContainersProvider>> { provider }
@@ -136,12 +140,9 @@ class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), Af
         get() = conditionallyVerboseLogger(withAnnotation<ContainersTestFactory, Boolean> { logging } ?: withAnnotation<ContainersTest, Boolean> { logging })
 
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): TestContainers =
-        context.provider.testContainersFor(context.id, context.logger).also { context.save(it) }
+        context.provider.testContainersFor(context.id, context.logger).also { context.store().put(it) }
 
-    override fun afterEach(context: ExtensionContext) = context.load()?.release() ?: Unit
-
-    private fun ExtensionContext.load(): TestContainers? = store<ContainersTestExtension>().get(element, TestContainers::class.java)
-    private fun ExtensionContext.save(testContainers: TestContainers): Unit = store<ContainersTestExtension>().put(element, testContainers)
+    override fun afterEach(context: ExtensionContext) = context.store().get<TestContainers>()?.release() ?: Unit
 }
 
 /**

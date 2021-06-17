@@ -2,7 +2,7 @@ package koodies.test.output
 
 import koodies.debug.CapturedOutput
 import koodies.runWrapping
-import koodies.test.store
+import koodies.test.storeForNamespace
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -55,7 +55,7 @@ class OutputCaptureExtension :
         private inline fun <reified T : Any> ExtensionContext.Store.getSingleton(): T =
             getOrComputeIfAbsent(T::class.java)
 
-        private val ExtensionContext.outputCapture get() = store<OutputCaptureExtension>().getSingleton<OutputCapture>()
+        private val ExtensionContext.outputCapture get() = storeForNamespace<OutputCaptureExtension>().getSingleton<OutputCapture>()
         private fun ExtensionContext.pushCapture() = outputCapture.push()
         private fun ExtensionContext.popCapture() = outputCapture.pop()
     }

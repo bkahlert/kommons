@@ -1,96 +1,82 @@
 package koodies.tracing.rendering
 
-import koodies.exception.toCompactString
-import koodies.logging.FixedWidthRenderingLogger
-import koodies.logging.SmartRenderingLogger
-import koodies.logging.logResult
-import koodies.text.Semantics.formattedAs
+import koodies.time.Now
 import koodies.toBaseName
+import koodies.tracing.Span
 import koodies.tracing.Span.State.Ended
-import koodies.tracing.Span.State.Ended.Failed
-import koodies.tracing.Span.State.Ended.Succeeded
-import koodies.tracing.Span.State.Started
+import koodies.tracing.SpanId
+import koodies.tracing.TraceId
+import java.time.Instant
 
+/**
+ * Component to render events of a [Span].
+ */
 public interface Renderer {
-    public fun start(name: CharSequence, started: Started)
-    public fun event(name: CharSequence, description: CharSequence, attributes: Map<CharSequence, CharSequence> = emptyMap())
-    public fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence> = emptyMap())
-    public fun spanning(name: CharSequence): Renderer
+
+    public fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant = Now.instant)
+    public fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence> = emptyMap(), timestamp: Instant = Now.instant)
+    public fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence> = emptyMap(), timestamp: Instant = Now.instant)
     public fun end(ended: Ended)
 
+    public fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings = { this }): Renderer
+    public fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer
+    public val muted: Renderer get() = noop()
+
     public companion object {
-        public val NOOP: Renderer = object : Renderer {
-            override fun start(name: CharSequence, started: Started): Unit = Unit
-            override fun event(name: CharSequence, description: CharSequence, attributes: Map<CharSequence, CharSequence>): Unit = Unit
-            override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>): Unit = Unit
-            override fun spanning(name: CharSequence): Renderer = this
+
+        public fun noop(): Renderer = object : Renderer {
+            override fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant): Unit = Unit
+            override fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence>, timestamp: Instant): Unit = Unit
+            override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>, timestamp: Instant): Unit = Unit
             override fun end(ended: Ended): Unit = Unit
+
+            override fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings): Renderer = noop()
+            override fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer = noop()
         }
     }
 }
 
 /**
- * Renders an event using the given [description] and optional [attributes].
+ * Renders an event using the given [name], [description] and optional [attributes].
  *
  * Attributes with a `null` value are removed and rendered using the provided [transform],
  * that calls [CharSequence.toString] by default.
  */
-@Suppress("NOTHING_TO_INLINE")
-public inline fun <T : Renderer> T.event(
+public inline fun Renderer.event(
+    name: CharSequence,
     description: CharSequence,
     vararg attributes: Pair<CharSequence, Any?>,
-    transform: Any.() -> CharSequence = { toString() },
-): Unit = event(description.toBaseName(), description,
-    *attributes.mapNotNull { (key, value) -> value?.let { key to it.transform() } }.toMap())
+    timestamp: Instant = Now.instant,
+    transform: (Any) -> CharSequence = { (it as? CharSequence) ?: it.toString() },
+): Unit = event(
+    name,
+    listOf(Span.Description to description, *attributes).mapNotNull { (key, value) -> value?.let { key to transform(it) } }.toMap(),
+    timestamp,
+)
+
+/**
+ * Renders an event using the given [description], optional [attributes] and [timestamp] (default: now).
+ *
+ * Attributes with a `null` value are removed; and together with the [description] rendered using the provided [transform].
+ *
+ * ***Note:** This is a convenience method to facilitate migrating from an existing logger. The effectively required event name is derived from the description.
+ * This can lead to a high cardinality (esp. if the description contains variables).
+ * If too many different event names are created the value of the recorded data for later analysis is considerably reduced.
+ * Consider using [event] instead.*
+ */
+public inline fun Renderer.log(
+    description: CharSequence,
+    vararg attributes: Pair<CharSequence, Any?>,
+    timestamp: Instant = Now.instant,
+    transform: (Any) -> CharSequence = { (it as? CharSequence) ?: it.toString() },
+): Unit = event(description.toBaseName(), description, *attributes, timestamp = timestamp, transform = transform)
 
 /**
  * Renders the given [exception] using the optional [attributes].
  */
-@Suppress("NOTHING_TO_INLINE")
-public inline fun <T : Renderer> T.exception(
+public inline fun Renderer.exception(
     exception: Throwable,
     vararg attributes: Pair<CharSequence, Any?>,
-    transform: Any.() -> CharSequence = { toString() },
-): Unit = exception(exception,
-    *attributes.mapNotNull { (key, value) -> value?.let { key to it.transform() } }.toMap())
-
-public fun <T : FixedWidthRenderingLogger> T.toRenderer(): Renderer {
-    return object : Renderer {
-
-        private lateinit var name: CharSequence
-        override fun start(name: CharSequence, started: Started) {
-            this.name = name
-        }
-
-        override fun event(name: CharSequence, description: CharSequence, attributes: Map<CharSequence, CharSequence>) {
-            logLine { description }
-        }
-
-        override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>) {
-            logLine { exception.toCompactString().formattedAs.error }
-        }
-
-        override fun spanning(name: CharSequence): Renderer {
-            return SmartRenderingLogger(
-                name,
-                this@toRenderer,
-                { logText { it } },
-                this@toRenderer.contentFormatter,
-                this@toRenderer.decorationFormatter,
-                this@toRenderer.returnValueFormatter,
-                this@toRenderer.border,
-                statusInformationColumn,
-                statusInformationPadding,
-                statusInformationColumns,
-                prefix,
-            ).toRenderer()
-        }
-
-        override fun end(ended: Ended) {
-            when (ended) {
-                is Succeeded -> ended.value?.let { logResult(it) } ?: logResult()
-                is Failed -> logResult(ended.exception)
-            }
-        }
-    }
-}
+    timestamp: Instant = Now.instant,
+    transform: (Any) -> CharSequence = { (it as? CharSequence) ?: it.toString() },
+): Unit = exception(exception, attributes.mapNotNull { (key, value) -> value?.let { key to transform(it) } }.toMap(), timestamp = timestamp)

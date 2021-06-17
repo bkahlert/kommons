@@ -1,6 +1,7 @@
 package koodies.logging
 
 import koodies.logging.FixedWidthRenderingLogger.Border
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
@@ -35,7 +36,7 @@ public inline fun <reified T : SimpleRenderingLogger> T.logReturnValue(returnVal
 @RenderingLoggingDsl
 public fun <R> logging(
     name: CharSequence,
-    contentFormatter: Formatter? = null,
+    contentFormatter: FilteringFormatter? = null,
     decorationFormatter: Formatter? = null,
     returnValueFormatter: ((ReturnValue) -> ReturnValue)? = null,
     border: Border = BlockRenderingLogger.DEFAULT_BORDER,
