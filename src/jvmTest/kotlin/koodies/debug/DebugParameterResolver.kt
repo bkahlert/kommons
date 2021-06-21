@@ -1,6 +1,6 @@
 package koodies.debug
 
-import koodies.test.isVerbose
+import koodies.junit.isVerbose
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver

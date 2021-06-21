@@ -1,8 +1,8 @@
 package koodies.debug
 
+import koodies.junit.TestName.Companion.testName
 import koodies.test.allTests
 import koodies.test.isA
-import koodies.test.testName
 import koodies.text.quoted
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled

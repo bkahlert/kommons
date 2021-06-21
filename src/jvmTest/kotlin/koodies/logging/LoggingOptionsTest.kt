@@ -22,18 +22,16 @@ class LoggingOptionsTest {
         expectedCurlyPattern: String,
         executable: Executable<Exec>,
         invocation: Executor<out Exec>.(SimpleRenderingLogger) -> Exec,
-    ): List<DynamicNode> {
-        return tests {
-            expecting { capturing { executable.exec.invocation(it) } } that { matchesCurlyPattern(expectedCurlyPattern) }
-            expecting { capturing { executable.exec.async.invocation(it).waitFor() } } that { matchesCurlyPattern(expectedCurlyPattern) }
-        }
+    ): List<DynamicNode> = tests {
+        expecting { capturing { executable.exec.invocation(it) } } that { matchesCurlyPattern(expectedCurlyPattern) }
+        expecting { capturing { executable.exec.async.invocation(it).waitFor() } } that { matchesCurlyPattern(expectedCurlyPattern) }
     }
 
     @Nested
     inner class BlockLog {
 
         @TestFactory
-        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
                 ╭──╴name
                 │
                 │   Executing {}
@@ -65,7 +63,7 @@ class LoggingOptionsTest {
         }
 
         @TestFactory
-        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 ╭──╴name
                 │
                 │   Executing {}
@@ -88,10 +86,10 @@ class LoggingOptionsTest {
     @Nested
     inner class CompactLog {
 
-        private val formatter: ANSI.FilteringFormatter = ANSI.FilteringFormatter { it.ansi.inverse.magenta }
+        private val formatter: ANSI.FilteringFormatter = ANSI.FilteringFormatter { it.toString().ansi.inverse.magenta }
 
         @TestFactory
-        fun InMemoryLogger.`should compact log`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should compact log`() = testLogOfSyncAndAsyncExec("""
                 name Executing {} Countdown! 10 9 8 7 6 5 4 3 2 1 0 Take Off Process {} terminated successfully at {} ✔︎
             """.trimIndent(), countDownAndStart()) {
             logging(it) {
@@ -103,7 +101,7 @@ class LoggingOptionsTest {
         }
 
         @TestFactory
-        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 name Executing {} Take Off Process {} terminated successfully at {} ✔︎
             """.trimIndent(), justStart()) {
             logging(it) {
@@ -120,7 +118,7 @@ class LoggingOptionsTest {
     inner class SmartLog {
 
         @TestFactory
-        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
                 ╭──╴name
                 │
                 │   Executing {}
@@ -152,7 +150,7 @@ class LoggingOptionsTest {
         }
 
         @TestFactory
-        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 ╭──╴name
                 │
                 │   Executing {}
@@ -177,7 +175,7 @@ class LoggingOptionsTest {
 
 
         @TestFactory
-        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
                 name ➜ Countdown! ➜ 10 ➜ 9 ➜ 8 ➜ 7 ➜ 6 ➜ 5 ➜ 4 ➜ 3 ➜ 2 ➜ 1 ➜ 0 ➜ Take Off ✔︎
                 """.trimIndent(), countDownAndStart()) {
             logging(it) {
@@ -186,7 +184,7 @@ class LoggingOptionsTest {
         }
 
         @TestFactory
-        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 name ➜ Take Off ✔︎
             """.trimIndent(), justStart()) {
             logging(it) {
@@ -199,7 +197,7 @@ class LoggingOptionsTest {
     inner class NoDetailsLog {
 
         @TestFactory
-        fun InMemoryLogger.`should format multiple messages`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
                 name ✔︎
             """.trimIndent(), countDownAndStart()) {
             logging(it) {
@@ -208,7 +206,7 @@ class LoggingOptionsTest {
         }
 
         @TestFactory
-        fun InMemoryLogger.`should format immediate result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 name ✔︎
             """.trimIndent(), justStart()) {
             logging(it) {
@@ -221,14 +219,14 @@ class LoggingOptionsTest {
     inner class ErrorsOnlyLog {
 
         @TestFactory
-        fun InMemoryLogger.`should be empty if no error occurs`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
+        fun InMemoryLogger.`should be empty if no error occurs`() = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
             logging(it) {
                 errorsOnly("name")
             }
         }
 
         @TestFactory
-        fun InMemoryLogger.`should display ERR`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("""
+        fun InMemoryLogger.`should display ERR`() = testLogOfSyncAndAsyncExec("""
                 name: 4
                 ϟ Process {} terminated with exit code {}
                 ➜ A dump has been written to:
@@ -243,7 +241,7 @@ class LoggingOptionsTest {
         }
 
         @TestFactory
-        fun InMemoryLogger.`should hide regular result`(): List<DynamicNode> = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
+        fun InMemoryLogger.`should hide regular result`() = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
             logging(it) {
                 errorsOnly("name")
             }

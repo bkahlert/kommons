@@ -14,7 +14,6 @@ import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLogging
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
 import koodies.text.truncate
 
@@ -145,7 +144,7 @@ public sealed class LoggingOptions {
 
     public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptions>() {
 
-        public val DEFAULT_CONTENT_FORMATTER: FilteringFormatter = FilteringFormatter.PassThrough
+        public val DEFAULT_CONTENT_FORMATTER: FilteringFormatter = FilteringFormatter.ToString
         public val DEFAULT_DECORATION_FORMATTER: Formatter = Colors.brightBlue
         public val DEFAULT_RESULT_FORMATTER: (ReturnValue) -> ReturnValue = { it }
 
@@ -167,12 +166,13 @@ public sealed class LoggingOptions {
                     this.name by name
                     contentFormatter {
                         FilteringFormatter {
-                            it.takeUnless { it is IO.Meta }?.ansiRemoved?.run {
+                            if (it is IO.Meta) ""
+                            else it.toString().run {
                                 val step = substringAfter(":").trim().run {
                                     takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength)
                                 }
                                 Symbols.PointNext + " $step"
-                            } ?: ""
+                            }
                         }
                     }
                 }

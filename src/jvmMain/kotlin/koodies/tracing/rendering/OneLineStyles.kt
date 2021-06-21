@@ -7,7 +7,6 @@ import koodies.text.ANSI.Text.Companion.ansi
 public object OneLineStyles {
 
     public object Brackets : Style {
-        override val indent: Int = 0
 
         private val prefix = "❰❰"
         private val infix = "❱"

@@ -8,6 +8,8 @@ import koodies.exception.toCompactString
 import koodies.io.path.asPath
 import koodies.io.path.deleteOnExit
 import koodies.io.path.readLine
+import koodies.junit.UniqueId
+import koodies.junit.UniqueId.Companion.id
 import koodies.jvm.currentStackTrace
 import koodies.logging.SLF4J
 import koodies.regex.groupValue
@@ -25,7 +27,6 @@ import koodies.test.Tester.expectingDisplayName
 import koodies.test.Tester.findCaller
 import koodies.test.Tester.property
 import koodies.test.Tester.throwingDisplayName
-import koodies.test.UniqueId.Companion.id
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.BlockDelimiters.TEXT

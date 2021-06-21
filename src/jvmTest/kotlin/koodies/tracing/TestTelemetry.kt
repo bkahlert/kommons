@@ -1,5 +1,6 @@
 package koodies.tracing
 
+import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.ContextPropagators
@@ -13,14 +14,10 @@ import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import koodies.collections.synchronizedMapOf
-import koodies.test.testName
-import koodies.tracing.OpenTelemetrySpan.Companion.toAttributes
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ParameterContext
-import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestPlan
 import strikt.api.Assertion.Builder
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
 
@@ -28,7 +25,7 @@ import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
  * [OpenTelemetry] integration in JUnit that run OpenTelemetry
  * along a test plan execution and provides means to assess recorded data.
  */
-class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>() {
+class TestTelemetry : TestExecutionListener {
 
     private lateinit var batchExporter: BatchSpanProcessor
 
@@ -62,9 +59,6 @@ class TestTelemetry : TestExecutionListener, TypeBasedParameterResolver<Span>() 
             batchExporter.shutdown()
         }
     }
-
-    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Span =
-        OpenTelemetrySpan(extensionContext.testName).also { it.start() }
 
     companion object {
 
@@ -100,24 +94,34 @@ val TraceId.Companion.NOOP get() = noopTraceId
 private val noopSpanId = SpanId("0".repeat(16))
 val SpanId.Companion.NOOP get() = noopSpanId
 
-/**
- * Ends the current spans and returns a [Builder] to run assertions on the recorded [SpanData].
- */
-fun endCurrentAndExpect(assertions: Builder<List<SpanData>>.() -> Unit) {
-    val currentSpan = io.opentelemetry.api.trace.Span.current()
-    currentSpan.end()
-    expectThat(TestTelemetry[currentSpan.traceId], assertions)
-}
 
 /**
- * Ends this spans and returns a [Builder] to run assertions on the recorded [SpanData].
+ * Returns a [Builder] to run assertions on the recorded [SpanData].
  */
-fun Span.endAndExpect() =
-    expectThat(TestTelemetry[end()])
+fun TraceId.expectTraced(): DescribeableBuilder<List<SpanData>> =
+    expectThat(TestTelemetry[this])
 
 /**
  * Ends this spans and runs the specified [assertions] on the recorded [SpanData].
  */
-fun Span.endAndExpect(assertions: Builder<List<SpanData>>.() -> Unit) {
-    expectThat(TestTelemetry[end()], assertions)
-}
+fun TraceId.expectTraced(assertions: Builder<List<SpanData>>.() -> Unit): Unit =
+    expectThat(TestTelemetry[this], assertions)
+
+
+/**
+ * Ends this spans and returns a [Builder] to run assertions on the recorded [SpanData].
+ */
+fun endAndExpect(): DescribeableBuilder<List<SpanData>> =
+    Span.current().run {
+        end()
+        expectThat(TestTelemetry[traceId])
+    }
+
+/**
+ * Ends this spans and runs the specified [assertions] on the recorded [SpanData].
+ */
+fun endAndExpect(assertions: Builder<List<SpanData>>.() -> Unit): Unit =
+    Span.current().run {
+        end()
+        expectThat(TestTelemetry[TraceId.current], assertions)
+    }

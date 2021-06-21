@@ -8,11 +8,11 @@ import koodies.io.path.hasContent
 import koodies.io.path.pathString
 import koodies.io.path.writeBytes
 import koodies.io.randomFile
+import koodies.junit.UniqueId
 import koodies.logging.InMemoryLogger
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
-import koodies.test.UniqueId
 import koodies.test.string
 import koodies.test.testEach
 import koodies.test.tests

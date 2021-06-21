@@ -1,6 +1,6 @@
-koodies.tracing.TestTelemetry
 koodies.tracing.TestSpanParameterResolver
-koodies.test.UniqueIdResolver
+koodies.junit.TestNameResolver
+koodies.junit.UniqueIdResolver
 koodies.test.IllegalUsageCheck
 koodies.debug.DebugCondition
 koodies.debug.DebugParameterResolver

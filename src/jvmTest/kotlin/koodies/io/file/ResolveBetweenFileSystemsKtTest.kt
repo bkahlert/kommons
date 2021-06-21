@@ -2,7 +2,7 @@ package koodies.io.file
 
 import koodies.io.randomDirectory
 import koodies.io.randomFile
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

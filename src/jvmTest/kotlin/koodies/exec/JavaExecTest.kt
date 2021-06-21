@@ -14,11 +14,11 @@ import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.io.path.pathString
 import koodies.io.randomPath
+import koodies.junit.UniqueId
 import koodies.jvm.wait
 import koodies.shell.ShellScript
 import koodies.test.Slow
 import koodies.test.Smoke
-import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.toStringContainsAll
 import koodies.test.withTempDir

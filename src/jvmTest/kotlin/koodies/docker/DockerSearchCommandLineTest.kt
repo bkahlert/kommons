@@ -5,8 +5,8 @@ import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.DockerSeachResult
 import koodies.docker.DockerSearchCommandLine.Options
 import koodies.docker.TestImages.BusyBox
+import koodies.junit.UniqueId
 import koodies.test.BuilderFixture
-import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion

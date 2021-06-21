@@ -3,8 +3,8 @@ package koodies.docker
 import koodies.builder.Init
 import koodies.docker.MountOptionContext.Type.tmpfs
 import koodies.docker.MountOptionContext.Type.volume
+import koodies.junit.UniqueId
 import koodies.test.SystemIOExclusive
-import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested

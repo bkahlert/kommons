@@ -1,7 +1,7 @@
 package koodies.logging
 
+import koodies.junit.isVerbose
 import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.test.isVerbose
 import koodies.test.output.testLocalLogger
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF

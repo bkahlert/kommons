@@ -1,37 +1,40 @@
 package koodies.tracing.rendering
 
-import koodies.time.Now
+import io.opentelemetry.api.common.Attributes
 import koodies.toBaseName
-import koodies.tracing.Span
-import koodies.tracing.Span.State.Ended
+import koodies.tracing.CurrentSpan
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
-import java.time.Instant
+import koodies.tracing.toAttributes
 
 /**
  * Component to render events of a [Span].
  */
 public interface Renderer {
 
-    public fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant = Now.instant)
-    public fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence> = emptyMap(), timestamp: Instant = Now.instant)
-    public fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence> = emptyMap(), timestamp: Instant = Now.instant)
-    public fun end(ended: Ended)
+    public fun start(traceId: TraceId, spanId: SpanId, name: CharSequence)
+    public fun event(name: CharSequence, attributes: Attributes = Attributes.empty())
+    public fun exception(exception: Throwable, attributes: Attributes = Attributes.empty())
+    public fun <R> end(result: Result<R>)
 
-    public fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings = { this }): Renderer
-    public fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer
+    public fun customizedChild(customize: Settings.() -> Settings = { this }): Renderer
+    public fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer
+    public fun printChild(text: CharSequence)
     public val muted: Renderer get() = noop()
 
     public companion object {
 
         public fun noop(): Renderer = object : Renderer {
-            override fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant): Unit = Unit
-            override fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence>, timestamp: Instant): Unit = Unit
-            override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>, timestamp: Instant): Unit = Unit
-            override fun end(ended: Ended): Unit = Unit
+            override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit = Unit
+            override fun event(name: CharSequence, attributes: Attributes): Unit = Unit
+            override fun exception(exception: Throwable, attributes: Attributes): Unit = Unit
+            override fun <R> end(result: Result<R>): Unit = Unit
 
-            override fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings): Renderer = noop()
-            override fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer = noop()
+            override fun customizedChild(customize: Settings.() -> Settings): Renderer = noop()
+            override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer = noop()
+            override fun printChild(text: CharSequence): Unit = Unit
+
+            override fun toString(): String = "NOOP"
         }
     }
 }
@@ -42,20 +45,17 @@ public interface Renderer {
  * Attributes with a `null` value are removed and rendered using the provided [transform],
  * that calls [CharSequence.toString] by default.
  */
-public inline fun Renderer.event(
+public fun Renderer.event(
     name: CharSequence,
     description: CharSequence,
     vararg attributes: Pair<CharSequence, Any?>,
-    timestamp: Instant = Now.instant,
-    transform: (Any) -> CharSequence = { (it as? CharSequence) ?: it.toString() },
 ): Unit = event(
     name,
-    listOf(Span.Description to description, *attributes).mapNotNull { (key, value) -> value?.let { key to transform(it) } }.toMap(),
-    timestamp,
+    arrayOf(CurrentSpan.Description to description, *attributes).toAttributes(),
 )
 
 /**
- * Renders an event using the given [description], optional [attributes] and [timestamp] (default: now).
+ * Renders an event using the given [description] and optional [attributes].
  *
  * Attributes with a `null` value are removed; and together with the [description] rendered using the provided [transform].
  *
@@ -67,16 +67,12 @@ public inline fun Renderer.event(
 public inline fun Renderer.log(
     description: CharSequence,
     vararg attributes: Pair<CharSequence, Any?>,
-    timestamp: Instant = Now.instant,
-    transform: (Any) -> CharSequence = { (it as? CharSequence) ?: it.toString() },
-): Unit = event(description.toBaseName(), description, *attributes, timestamp = timestamp, transform = transform)
+): Unit = event(description.toBaseName(), description, *attributes)
 
 /**
  * Renders the given [exception] using the optional [attributes].
  */
-public inline fun Renderer.exception(
+public fun Renderer.exception(
     exception: Throwable,
     vararg attributes: Pair<CharSequence, Any?>,
-    timestamp: Instant = Now.instant,
-    transform: (Any) -> CharSequence = { (it as? CharSequence) ?: it.toString() },
-): Unit = exception(exception, attributes.mapNotNull { (key, value) -> value?.let { key to transform(it) } }.toMap(), timestamp = timestamp)
+): Unit = exception(exception, attributes.toAttributes())

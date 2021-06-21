@@ -119,7 +119,7 @@ public object ANSI {
     }
 
     public fun interface FilteringFormatter {
-        public operator fun invoke(text: CharSequence): CharSequence?
+        public operator fun invoke(value: Any): CharSequence?
         public operator fun plus(other: FilteringFormatter): FilteringFormatter = FilteringFormatter { invoke(it)?.let(other::invoke) }
 
         public companion object {
@@ -129,17 +129,17 @@ public object ANSI {
              * from any previous formatting and wrapped in a [ANSI.Text] for convenient
              * customizations.
              */
-            public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter = FilteringFormatter { it.ansiRemoved.ansi.transform() }
+            public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter = FilteringFormatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
              * A formatter that leaves the [text] unchanged.
              */
-            public val PassThrough: FilteringFormatter = FilteringFormatter { text -> text }
+            public val ToString: FilteringFormatter = FilteringFormatter { text -> text.toString() }
         }
     }
 
     public fun interface Formatter : FilteringFormatter {
-        override operator fun invoke(text: CharSequence): CharSequence
+        override operator fun invoke(value: Any): CharSequence
         public operator fun plus(other: Formatter): Formatter = Formatter { invoke(it).let(other::invoke) }
 
         public companion object {
@@ -149,12 +149,12 @@ public object ANSI {
              * from any previous formatting and wrapped in a [ANSI.Text] for convenient
              * customizations.
              */
-            public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.ansiRemoved.ansi.transform() }
+            public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
              * A formatter that leaves the [text] unchanged.
              */
-            public val PassThrough: Formatter = Formatter { text -> text }
+            public val ToString: Formatter = Formatter { text -> text.toString() }
         }
     }
 
@@ -166,7 +166,7 @@ public object ANSI {
     }
 
     private open class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
-        override fun invoke(text: CharSequence): String = ansiCode.format(text)
+        override fun invoke(value: Any): String = ansiCode.format(value.toString())
         override operator fun plus(other: Formatter): Formatter =
             (other as? AnsiCodeFormatter)?.ansiCode?.plus(ansiCode)?.let { AnsiCodeFormatter(it) } ?: super.plus(other)
 
@@ -339,7 +339,7 @@ public object ANSI {
 
     public open class Preview(
         protected val text: CharSequence,
-        protected open val formatter: FilteringFormatter = FilteringFormatter.PassThrough,
+        protected open val formatter: FilteringFormatter = FilteringFormatter.ToString,
         public val done: String = formatter(text).toString(),
     ) : CharSequence by done {
         @Deprecated("use done", ReplaceWith("this.done"))
@@ -389,7 +389,7 @@ public object ANSI {
         public val strikethrough: T get() = style(Style.strikethrough)
     }
 
-    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter = FilteringFormatter.PassThrough) :
+    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter = FilteringFormatter.ToString) :
         Preview(text, formatter),
         Colorable<ColoredText>,
         Styleable<Text> {

@@ -1,10 +1,23 @@
 package koodies.tracing
 
+import io.opentelemetry.api.trace.Span
 import koodies.text.ANSI.ansiRemoved
 
+/**
+ * ID of a span.
+ */
 @JvmInline
-public value class SpanId(public val value: CharSequence) {
-    public val valid: Boolean get() = value.any { it != '0' }
+public value class SpanId(private val value: CharSequence) : CharSequence {
+
+    /**
+     * Whether this ID is valid.
+     */
+    internal val valid: Boolean get() = value.any { it != '0' }
+
+    override val length: Int get() = value.length
+    override fun get(index: Int): Char = value[index]
+    override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = value.subSequence(startIndex, endIndex)
+
     override fun toString(): String = value.ansiRemoved
 
     public companion object {
@@ -12,12 +25,12 @@ public value class SpanId(public val value: CharSequence) {
          * ID of the currently active [Span].
          */
         public inline val current: SpanId
-            get() = io.opentelemetry.api.trace.Span.current().spanId
+            get() = Span.current().spanId
     }
 }
 
 /**
  * The span ID of this span.
  */
-public inline val io.opentelemetry.api.trace.Span.spanId: SpanId
+public inline val Span.spanId: SpanId
     get() = SpanId(spanContext.spanId)

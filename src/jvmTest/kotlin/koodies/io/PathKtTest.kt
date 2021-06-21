@@ -1,7 +1,7 @@
 package koodies.io
 
 import koodies.io.path.withDirectoriesCreated
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

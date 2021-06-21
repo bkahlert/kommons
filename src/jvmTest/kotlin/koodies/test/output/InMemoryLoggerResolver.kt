@@ -4,6 +4,8 @@ import io.opentelemetry.api.trace.Span
 import koodies.collections.synchronizedMapOf
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream
+import koodies.junit.TestName.Companion.testName
+import koodies.junit.isVerbose
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.InMemoryLogger
@@ -13,9 +15,7 @@ import koodies.logging.SmartRenderingLogger
 import koodies.logging.runLogging
 import koodies.runtime.onExit
 import koodies.test.executionResult
-import koodies.test.isVerbose
 import koodies.test.storeForNamespace
-import koodies.test.testName
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.styling.wrapWithBorder

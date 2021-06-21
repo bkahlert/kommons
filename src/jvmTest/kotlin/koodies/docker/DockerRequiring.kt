@@ -3,11 +3,11 @@ package koodies.docker
 import koodies.docker.CleanUpMode.FailAndKill
 import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.DockerContainer.State.Existent.Running
+import koodies.junit.TestName.Companion.testName
+import koodies.junit.UniqueId.Companion.simplifiedId
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
-import koodies.test.UniqueId.Companion.simplifiedId
-import koodies.test.testName
 import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import koodies.text.quoted

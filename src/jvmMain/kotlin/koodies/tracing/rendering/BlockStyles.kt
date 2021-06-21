@@ -8,9 +8,13 @@ import koodies.text.LineSeparators.lines
 import koodies.text.prefixWith
 import koodies.text.withPrefix
 
+public interface BlockStyle : Style {
+    public val indent: Int
+}
+
 public object BlockStyles {
 
-    public object Rounded : Style {
+    public object Rounded : BlockStyle {
 
         // @formatter:off
         private val topLeft =          "╭──╴"
@@ -19,7 +23,7 @@ public object BlockStyles {
         private val bottomLeft =       "╰──╴"
         // @formatter:on
 
-        override val indent: Int = content("") { it }?.length ?: 0
+        override val indent: Int = content("") { it.toString() }?.length ?: 0
 
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
             val startElements = element.asAnsiString().lines()
@@ -61,13 +65,13 @@ public object BlockStyles {
         }
     }
 
-    public object Dotted : Style {
+    public object Dotted : BlockStyle {
 
         private val playSymbol = "▶"
         private val whitePlaySymbol = "▷"
         private val dot = "·"
 
-        override val indent: Int = content("") { it }?.length ?: 0
+        override val indent: Int = content("") { it.toString() }?.length ?: 0
 
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
             val startElements = element.asAnsiString().lines()
@@ -90,7 +94,7 @@ public object BlockStyles {
             }
     }
 
-    public object None : Style {
+    public object None : BlockStyle {
         private val prefix = "    "
         override val indent: Int = prefix.length
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence = element
@@ -101,7 +105,7 @@ public object BlockStyles {
             resultValueFormatter(element)?.format()
     }
 
-    public val DEFAULT: Style = Rounded
+    public val DEFAULT: BlockStyle = Rounded
     public fun from(border: Boolean?): Style = when (border) {
         true -> Rounded
         false -> Dotted

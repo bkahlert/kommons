@@ -3,9 +3,9 @@ package koodies.io.file
 import koodies.io.path.copyTo
 import koodies.io.path.delete
 import koodies.io.path.hasContent
-import koodies.io.randomFile
 import koodies.io.path.writeText
-import koodies.test.UniqueId
+import koodies.io.randomFile
+import koodies.junit.UniqueId
 import koodies.test.tests
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF

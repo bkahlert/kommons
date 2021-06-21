@@ -98,7 +98,7 @@ public abstract class FixedWidthRenderingLogger(
         public abstract fun footer(returnValue: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue, formatter: Formatter?): String
 
         public companion object {
-            private fun Formatter?.format(text: CharSequence): CharSequence = (this ?: Formatter.PassThrough).invoke(text)
+            private fun Formatter?.format(text: CharSequence): CharSequence = (this ?: Formatter.ToString).invoke(text)
             public val DEFAULT: Border = SOLID
             public fun from(border: Boolean?): Border = when (border) {
                 true -> SOLID
@@ -108,8 +108,8 @@ public abstract class FixedWidthRenderingLogger(
         }
     }
 
-    public val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.PassThrough
-    public val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
+    public val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.ToString
+    public val decorationFormatter: Formatter = decorationFormatter ?: Formatter.ToString
     public val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
     public val statusInformationColumn: Int by lazy {
         val value = width ?: (statusInformationColumn?.let { it - prefix.length }) ?: 100

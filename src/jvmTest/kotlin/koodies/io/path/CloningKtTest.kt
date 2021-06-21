@@ -1,7 +1,7 @@
 package koodies.io.path
 
 import koodies.io.randomFile
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.withTempDir
 import koodies.text.withRandomSuffix
 import org.junit.jupiter.api.Test

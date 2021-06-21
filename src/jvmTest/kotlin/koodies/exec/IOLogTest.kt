@@ -5,8 +5,8 @@ import koodies.exec.IO.Meta.Starting
 import koodies.io.path.pathString
 import koodies.io.path.text
 import koodies.io.path.writeText
+import koodies.junit.UniqueId
 import koodies.jvm.daemon
-import koodies.test.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF

@@ -1,4 +1,4 @@
-package koodies.test
+package koodies.junit
 
 import koodies.runtime.CallStackElement
 import koodies.text.withPrefix

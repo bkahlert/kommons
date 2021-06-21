@@ -3,11 +3,11 @@ package koodies.io.path
 import koodies.io.Locations
 import koodies.io.copyToDirectory
 import koodies.io.randomFile
+import koodies.junit.UniqueId
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.Fixtures.symbolicLink
 import koodies.test.HtmlFixture
-import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.time.Now
 import org.junit.jupiter.api.AfterAll

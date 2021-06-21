@@ -161,7 +161,7 @@ public sealed class IO(
          * Marker that when appears at the beginning of a text
          * will be filtered out.
          */
-        public val ERASE_MARKER: String = Style.hidden("﹗").toString()
+        public val ERASE_MARKER: String = Style.hidden.invoke("﹗").toString()
 
         /**
          * Filters text that starts with [ERASE_MARKER].

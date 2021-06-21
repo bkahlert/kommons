@@ -1,53 +1,50 @@
 package koodies.tracing.rendering
 
+import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Tracer
 import koodies.asString
 import koodies.exception.toCompactString
 import koodies.logging.ReturnValue
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
-import koodies.time.Now
-import koodies.tracing.Span.State.Ended
-import koodies.tracing.SpanContext
+import koodies.tracing.CurrentSpan
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
 import koodies.tracing.TracingDsl
 import koodies.tracing.spanning
-import java.time.Instant
 
 /**
  * Renderer that renders event their primary attribute
  * as specified in [Settings.layout] in a single line.
  */
 public class OneLineRenderer(
-    private val name: CharSequence,
     private val settings: Settings,
     private val printer: Printer,
 ) : Renderer {
 
     private val messages = mutableListOf<CharSequence>()
 
-    override fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant) {
-        settings.contentFormatter(name)
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+        settings.contentFormatter.invoke(name)
             ?.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
 
-    override fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence>, timestamp: Instant) {
+    override fun event(name: CharSequence, attributes: Attributes) {
         attributes[settings.layout.primaryAttributeKey]
-            ?.let { settings.contentFormatter(it) }
+            ?.let { settings.contentFormatter.invoke(it) }
             ?.let { settings.oneLineStyle.content(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
 
-    override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>, timestamp: Instant) {
-        settings.contentFormatter(exception.toCompactString())
+    override fun exception(exception: Throwable, attributes: Attributes) {
+        settings.contentFormatter.invoke(exception.toCompactString())
             ?.let { settings.oneLineStyle.content(it, settings.decorationFormatter)?.ansi?.red }
             ?.also { messages.add(it) }
     }
 
-    override fun end(ended: Ended) {
-        ReturnValue.of(ended)
+    override fun <R> end(result: Result<R>) {
+        ReturnValue.of(result)
             .let { settings.oneLineStyle.end(it, settings.returnValueFormatter, settings.decorationFormatter) }
             ?.also { messages.add(it) }
 
@@ -56,17 +53,18 @@ public class OneLineRenderer(
             ?.let(printer)
     }
 
-    override fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings): Renderer =
-        nestedRenderer { settings, printer -> OneLineRenderer(name, settings.customize(), printer) }
+    override fun customizedChild(customize: Settings.() -> Settings): Renderer =
+        injectedChild { settings, printer -> OneLineRenderer(settings.customize(), printer) }
 
-    override fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer =
-        provider(settings) {
-            settings.oneLineStyle.parent(it, settings.decorationFormatter)
-                ?.also { messages.add(it) }
-        }
+    override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer =
+        provider(settings, ::printChild)
+
+    override fun printChild(text: CharSequence) {
+        settings.oneLineStyle.parent(text, settings.decorationFormatter)
+            ?.also { messages.add(it) }
+    }
 
     override fun toString(): String = asString {
-        ::name to name
         ::settings to settings
         ::printer to printer
     }
@@ -82,7 +80,6 @@ public class OneLineRenderer(
 public fun <R> spanningLine(
     name: CharSequence,
     customize: Settings.() -> Settings = { this },
-    timestamp: Instant = Now.instant,
     tracer: Tracer = koodies.tracing.Tracer,
-    block: SpanContext.() -> R,
-): R = spanning(name, { settings, printer -> OneLineRenderer(name, customize(settings), printer) }, timestamp, tracer, block)
+    block: CurrentSpan.() -> R,
+): R = spanning(name, { settings, printer -> OneLineRenderer(customize(settings), printer) }, tracer, block)

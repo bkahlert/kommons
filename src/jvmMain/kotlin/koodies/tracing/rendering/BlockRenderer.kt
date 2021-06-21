@@ -1,5 +1,6 @@
 package koodies.tracing.rendering
 
+import io.opentelemetry.api.common.Attributes
 import koodies.asString
 import koodies.logging.ReturnValue
 import koodies.regex.RegularExpressions
@@ -11,27 +12,23 @@ import koodies.text.formatColumns
 import koodies.text.maxColumns
 import koodies.text.takeUnlessEmpty
 import koodies.toSimpleClassName
-import koodies.tracing.Span.Companion.Description
-import koodies.tracing.Span.State.Ended
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
-import java.time.Instant
 
 /**
  * Renderer that renders events along one or more columns,
  * each displaying one customizable event attribute.
  */
 public class BlockRenderer(
-    private val name: CharSequence,
     private val settings: Settings,
     private val printer: Printer,
 ) : Renderer {
 
-    override fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant) {
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         settings.blockStyle.start(name, settings.decorationFormatter)?.let(printer)
     }
 
-    override fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence>, timestamp: Instant) {
+    override fun event(name: CharSequence, attributes: Attributes) {
         val extractedColumns = settings.layout.extract(attributes)
         if (extractedColumns.none { it.first != null }) return
         extractedColumns
@@ -42,37 +39,40 @@ public class BlockRenderer(
             .forEach(printer)
     }
 
-    override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>, timestamp: Instant) {
+    override fun exception(exception: Throwable, attributes: Attributes) {
         val formatted = exception.stackTraceToString()
-        if (attributes.isEmpty()) {
+        if (attributes.isEmpty) {
             (if (formatted.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(formatted, settings.layout.totalWidth) else formatted)
                 .lineSequence()
                 .mapNotNull { settings.blockStyle.content(it, settings.decorationFormatter) }
                 .map { it.ansi.red }
                 .forEach(printer)
-        } else event(exception::class.toSimpleClassName(), mapOf(Description to formatted, *attributes.toList().toTypedArray()), timestamp)
+        } else {
+            event(exception::class.toSimpleClassName(), Attributes.builder().putAll(attributes).put(settings.layout.primaryAttributeKey, formatted).build())
+        }
     }
 
-    override fun end(ended: Ended) {
-        val returnValue = ReturnValue.of(ended)
+    override fun <R> end(result: Result<R>) {
+        val returnValue = ReturnValue.of(result)
         val formatted = settings.blockStyle.end(returnValue, settings.returnValueFormatter, settings.decorationFormatter)
         formatted?.takeUnlessEmpty()
             ?.let { if (it.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(it, settings.layout.totalWidth) else formatted }
             ?.let(printer)
     }
 
-    override fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings): Renderer =
-        nestedRenderer { settings, printer -> BlockRenderer(name, settings.customize(), printer) }
+    override fun customizedChild(customize: Settings.() -> Settings): Renderer =
+        injectedChild { settings, printer -> BlockRenderer(settings.customize(), printer) }
 
-    override fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer =
-        provider(settings.copy(layout = settings.layout.shrinkBy(settings.blockStyle.indent))) {
-            it.lineSequence()
-                .mapNotNull { settings.blockStyle.parent(it, settings.decorationFormatter) }
-                .forEach(printer)
-        }
+    override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer =
+        provider(settings.copy(layout = settings.layout.shrinkBy(settings.blockStyle.indent)), ::printChild)
+
+    override fun printChild(text: CharSequence) {
+        text.lineSequence()
+            .mapNotNull { settings.blockStyle.parent(it, settings.decorationFormatter) }
+            .forEach(printer)
+    }
 
     override fun toString(): String = asString {
-        ::name to name
         ::settings to settings
         ::printer to printer
     }

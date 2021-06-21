@@ -26,16 +26,6 @@ val ExtensionContext.executionResult: Result<Unit>
     get() = executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit)
 
 /**
- * Name of the current test.
- */
-val ExtensionContext.testName: String
-    get() :String {
-        val separator = " ➜ "
-        val name = element.map { parent.map { it.testName }.orElse("") + separator + displayName }.orElse("")
-        return if (name.startsWith(separator)) name.substring(separator.length) else name
-    }
-
-/**
  * The container of this test method.
  */
 val ExtensionContext.ancestor: Class<*>?

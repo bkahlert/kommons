@@ -6,10 +6,7 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
 import koodies.text.matchesCurlyPattern
-import koodies.time.Now
-import koodies.tracing.Span
-import koodies.tracing.Span.State.Ended.Failed
-import koodies.tracing.Span.State.Ended.Succeeded
+import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -26,25 +23,25 @@ class OneLineRendererTest {
     private val options: Settings = Settings()
 
     @Test
-    fun Span.`should render`() {
+    fun TestSpan.`should render`() {
         val rendered = capturing {
-            OneLineRenderer("One Two Three", options.copy(
-                contentFormatter = { it.ansi.underline },
-                decorationFormatter = { it.ansi.brightMagenta },
+            OneLineRenderer(options.copy(
+                contentFormatter = { it.toString().ansi.underline },
+                decorationFormatter = { it.toString().ansi.brightMagenta },
             ), it).run {
-                start()
+                start("One Two Three")
 
                 log(ansi11)
-                nestedRenderer("child").apply {
-                    start()
+                customizedChild().apply {
+                    start("child")
                     exception(RuntimeException("Now Panic!"))
                     log(plain11)
-                    end(Succeeded(object : ReturnValue {
+                    end(Result.success(object : ReturnValue {
                         override val successful: Boolean? = null
-                    }, Now.instant))
+                    }))
                 }
 
-                end(Succeeded("Done", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered)
@@ -52,28 +49,28 @@ class OneLineRendererTest {
     }
 
     @TestFactory
-    fun Span.`should only render on end`() = tests {
-        expecting { capturing { OneLineRenderer("name", options, it).start() } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer("name", options, it).log("event") } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer("name", options, it).exception(RuntimeException("exception")) } } that { isEmpty() }
+    fun TestSpan.`should only render on end`() = tests {
+        expecting { capturing { OneLineRenderer(options, it).start("name") } } that { isEmpty() }
+        expecting { capturing { OneLineRenderer(options, it).log("event") } } that { isEmpty() }
+        expecting { capturing { OneLineRenderer(options, it).exception(RuntimeException("exception")) } } that { isEmpty() }
         expecting {
             capturing {
-                OneLineRenderer("name", options, it).apply {
-                    start()
-                    end(Succeeded("success", Now.instant))
+                OneLineRenderer(options, it).apply {
+                    start("name")
+                    end(Result.success(true))
                 }
             }
         } that { ansiRemoved.isEqualTo("❰❰ name ❱ ✔︎ ❱❱") }
     }
 
     @Test
-    fun Span.`should ignore non-primary attributes`() {
+    fun TestSpan.`should ignore non-primary attributes`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
+            OneLineRenderer(options, it).run {
+                start("name")
                 log("event", "key" to "value")
                 exception(RuntimeException("exception"), "key" to "value")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered) {
@@ -83,71 +80,71 @@ class OneLineRendererTest {
     }
 
     @Test
-    fun Span.`should render event`() {
+    fun TestSpan.`should render event`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
+            OneLineRenderer(options, it).run {
+                start("name")
                 log("event", "key" to "value")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).ansiRemoved.contains("❱ event ❱")
     }
 
     @Test
-    fun Span.`should render exception`() {
+    fun TestSpan.`should render exception`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
+            OneLineRenderer(options, it).run {
+                start("name")
                 exception(RuntimeException("exception"), "key" to "value")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("❰❰ name ❱ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ❱ ✔︎ ❱❱")
     }
 
     @Test
-    fun Span.`should render success`() {
+    fun TestSpan.`should render success`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
-                end(Succeeded("success", Now.instant))
+            OneLineRenderer(options, it).run {
+                start("name")
+                end(Result.success(true))
             }
         }
         expectThat(rendered).ansiRemoved.endsWith("❱ ✔︎ ❱❱")
     }
 
     @Test
-    fun Span.`should render failure`() {
+    fun TestSpan.`should render failure`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
-                end(Failed(RuntimeException("test"), Now.instant))
+            OneLineRenderer(options, it).run {
+                start("name")
+                end(Result.failure<Unit>(RuntimeException("test")))
             }
         }
         expectThat(rendered).matchesCurlyPattern("❰❰ name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{}) ❱❱")
     }
 
     @Test
-    fun Span.`should not render event without primary attribute`() {
+    fun TestSpan.`should not render event without primary attribute`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).apply {
-                start()
+            OneLineRenderer(options, it).apply {
+                start("name")
                 event("unknown", emptyMap())
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("❰❰ name ❱ ✔︎ ❱❱")
     }
 
     @Test
-    fun Span.`should render as single line`() {
+    fun TestSpan.`should render as single line`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
+            OneLineRenderer(options, it).run {
+                start("name")
                 log("event\n2nd line")
                 exception(RuntimeException("exception\n2nd line"))
-                end(Succeeded("success\n2nd line", Now.instant))
+                end(Result.success("success\n2nd line"))
             }
         }
         expectThat(rendered) {
@@ -157,53 +154,53 @@ class OneLineRendererTest {
     }
 
     @Test
-    fun Span.`should be nestable`() {
+    fun TestSpan.`should be nestable`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).run {
-                start()
+            OneLineRenderer(options, it).run {
+                start("name")
                 log("event")
-                nestedRenderer("child").apply {
-                    start()
+                customizedChild().apply {
+                    start("child")
                     log("child event")
-                    end(Succeeded("success", Now.instant))
+                    end(Result.success(true))
                 }
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("❰❰ name ❱ event ❱  child » child event » ✔︎  ❱ ✔︎ ❱❱")
     }
 
     @Test
-    fun Span.`should be customizable`() {
+    fun TestSpan.`should be customizable`() {
         val rendered = capturing {
-            OneLineRenderer("name", options, it).apply {
-                start()
+            OneLineRenderer(options, it).apply {
+                start("name")
                 log("foo")
-                nestedRenderer("child") { copy(contentFormatter = { "!$it!" }) }.apply {
-                    start()
+                customizedChild { copy(contentFormatter = { "!$it!" }) }.apply {
+                    start("child")
                     log("bar")
-                    end(Succeeded("success", Now.instant))
+                    end(Result.success(true))
                 }
                 log("baz")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).contains("!bar!")
     }
 
     @Test
-    fun Span.`should inherit customizations`() {
+    fun TestSpan.`should inherit customizations`() {
         val rendered = capturing {
-            OneLineRenderer("name", options.copy(contentFormatter = { "!$it!" }), it).apply {
-                start()
+            OneLineRenderer(options.copy(contentFormatter = { "!$it!" }), it).apply {
+                start("name")
                 log("foo")
-                nestedRenderer("child").apply {
-                    start()
+                customizedChild().apply {
+                    start("child")
                     log("bar")
-                    end(Succeeded("success", Now.instant))
+                    end(Result.success(true))
                 }
                 log("baz")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered) {

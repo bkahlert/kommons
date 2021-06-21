@@ -3,8 +3,8 @@ package koodies.shell
 import koodies.debug.replaceNonPrintableCharacters
 import koodies.io.path.appendText
 import koodies.io.path.hasContent
+import koodies.junit.UniqueId
 import koodies.logging.InMemoryLogger
-import koodies.test.UniqueId
 import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.test.withTempDir

@@ -79,87 +79,87 @@ class ANSITest {
 
         @Test
         fun `should colorize black`() {
-            expectThat("black".ansi.black).toStringIsEqualTo(ANSI.Colors.black("black").toString(), false)
+            expectThat("black".ansi.black).toStringIsEqualTo(ANSI.Colors.black.invoke("black").toString(), false)
         }
 
         @Test
         fun `should colorize red`() {
-            expectThat("red".ansi.red).toStringIsEqualTo(ANSI.Colors.red("red").toString(), false)
+            expectThat("red".ansi.red).toStringIsEqualTo(ANSI.Colors.red.invoke("red").toString(), false)
         }
 
         @Test
         fun `should colorize green`() {
-            expectThat("green".ansi.green).toStringIsEqualTo(ANSI.Colors.green("green").toString(), false)
+            expectThat("green".ansi.green).toStringIsEqualTo(ANSI.Colors.green.invoke("green").toString(), false)
         }
 
         @Test
         fun `should colorize yellow`() {
-            expectThat("yellow".ansi.yellow).toStringIsEqualTo(ANSI.Colors.yellow("yellow").toString(), false)
+            expectThat("yellow".ansi.yellow).toStringIsEqualTo(ANSI.Colors.yellow.invoke("yellow").toString(), false)
         }
 
         @Test
         fun `should colorize blue`() {
-            expectThat("blue".ansi.blue).toStringIsEqualTo(ANSI.Colors.blue("blue").toString(), false)
+            expectThat("blue".ansi.blue).toStringIsEqualTo(ANSI.Colors.blue.invoke("blue").toString(), false)
         }
 
         @Test
         fun `should colorize magenta`() {
-            expectThat("magenta".ansi.magenta).toStringIsEqualTo(ANSI.Colors.magenta("magenta").toString(), false)
+            expectThat("magenta".ansi.magenta).toStringIsEqualTo(ANSI.Colors.magenta.invoke("magenta").toString(), false)
         }
 
         @Test
         fun `should colorize cyan`() {
-            expectThat("cyan".ansi.cyan).toStringIsEqualTo(ANSI.Colors.cyan("cyan").toString(), false)
+            expectThat("cyan".ansi.cyan).toStringIsEqualTo(ANSI.Colors.cyan.invoke("cyan").toString(), false)
         }
 
         @Test
         fun `should colorize white`() {
-            expectThat("white".ansi.white).toStringIsEqualTo(ANSI.Colors.white("white").toString(), false)
+            expectThat("white".ansi.white).toStringIsEqualTo(ANSI.Colors.white.invoke("white").toString(), false)
         }
 
         @Test
         fun `should colorize gray`() {
-            expectThat("gray".ansi.gray).toStringIsEqualTo(ANSI.Colors.gray("gray").toString(), false)
+            expectThat("gray".ansi.gray).toStringIsEqualTo(ANSI.Colors.gray.invoke("gray").toString(), false)
         }
 
         @Test
         fun `should colorize brightRed`() {
-            expectThat("brightRed".ansi.brightRed).toStringIsEqualTo(ANSI.Colors.brightRed("brightRed").toString(), false)
+            expectThat("brightRed".ansi.brightRed).toStringIsEqualTo(ANSI.Colors.brightRed.invoke("brightRed").toString(), false)
         }
 
         @Test
         fun `should colorize brightGreen`() {
-            expectThat("brightGreen".ansi.brightGreen).toStringIsEqualTo(ANSI.Colors.brightGreen("brightGreen").toString(), false)
+            expectThat("brightGreen".ansi.brightGreen).toStringIsEqualTo(ANSI.Colors.brightGreen.invoke("brightGreen").toString(), false)
         }
 
         @Test
         fun `should colorize brightYellow`() {
-            expectThat("brightYellow".ansi.brightYellow).toStringIsEqualTo(ANSI.Colors.brightYellow("brightYellow").toString(), false)
+            expectThat("brightYellow".ansi.brightYellow).toStringIsEqualTo(ANSI.Colors.brightYellow.invoke("brightYellow").toString(), false)
         }
 
         @Test
         fun `should colorize brightBlue`() {
-            expectThat("brightBlue".ansi.brightBlue).toStringIsEqualTo(ANSI.Colors.brightBlue("brightBlue").toString(), false)
+            expectThat("brightBlue".ansi.brightBlue).toStringIsEqualTo(ANSI.Colors.brightBlue.invoke("brightBlue").toString(), false)
         }
 
         @Test
         fun `should colorize brightMagenta`() {
-            expectThat("brightMagenta".ansi.brightMagenta).toStringIsEqualTo(ANSI.Colors.brightMagenta("brightMagenta").toString(), false)
+            expectThat("brightMagenta".ansi.brightMagenta).toStringIsEqualTo(ANSI.Colors.brightMagenta.invoke("brightMagenta").toString(), false)
         }
 
         @Test
         fun `should colorize brightCyan`() {
-            expectThat("brightCyan".ansi.brightCyan).toStringIsEqualTo(ANSI.Colors.brightCyan("brightCyan").toString(), false)
+            expectThat("brightCyan".ansi.brightCyan).toStringIsEqualTo(ANSI.Colors.brightCyan.invoke("brightCyan").toString(), false)
         }
 
         @Test
         fun `should colorize brightWhite`() {
-            expectThat("brightWhite".ansi.brightWhite).toStringIsEqualTo(ANSI.Colors.brightWhite("brightWhite").toString(), false)
+            expectThat("brightWhite".ansi.brightWhite).toStringIsEqualTo(ANSI.Colors.brightWhite.invoke("brightWhite").toString(), false)
         }
 
         @Test
         fun `should colorize background`() {
-            expectThat("cyan bg".ansi.cyan.bg).toStringIsEqualTo(ANSI.Colors.cyan.bg("cyan bg").toString(), false)
+            expectThat("cyan bg".ansi.cyan.bg).toStringIsEqualTo(ANSI.Colors.cyan.bg.invoke("cyan bg").toString(), false)
         }
 
         @Test
@@ -189,22 +189,22 @@ class ANSITest {
 
         @Test
         fun `should format dim`() {
-            expectThat("dim".ansi.dim).toStringIsEqualTo(Style.dim("dim").toString(), false)
+            expectThat("dim".ansi.dim).toStringIsEqualTo(Style.dim.invoke("dim").toString(), false)
         }
 
         @Test
         fun `should format italic`() {
-            expectThat("italic".ansi.italic).toStringIsEqualTo(Style.italic("italic").toString(), false)
+            expectThat("italic".ansi.italic).toStringIsEqualTo(Style.italic.invoke("italic").toString(), false)
         }
 
         @Test
         fun `should format underline`() {
-            expectThat("underline".ansi.underline).toStringIsEqualTo(Style.underline("underline").toString(), false)
+            expectThat("underline".ansi.underline).toStringIsEqualTo(Style.underline.invoke("underline").toString(), false)
         }
 
         @Test
         fun `should format inverse`() {
-            expectThat("inverse".ansi.inverse).toStringIsEqualTo(Style.inverse("inverse").toString(), false)
+            expectThat("inverse".ansi.inverse).toStringIsEqualTo(Style.inverse.invoke("inverse").toString(), false)
         }
 
         @Test
@@ -215,7 +215,7 @@ class ANSITest {
 
         @Test
         fun `should format strikethrough`() {
-            expectThat("strikethrough".ansi.strikethrough).toStringIsEqualTo(Style.strikethrough("strikethrough").toString(), false)
+            expectThat("strikethrough".ansi.strikethrough).toStringIsEqualTo(Style.strikethrough.invoke("strikethrough").toString(), false)
         }
     }
 }

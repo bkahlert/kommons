@@ -3,7 +3,7 @@ package koodies.io
 import koodies.io.path.deleteOnExit
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.text
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.expectThrows
 import koodies.test.expecting
 import koodies.test.testEach

@@ -6,7 +6,6 @@ import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbolizable
 import koodies.text.Semantics.Symbols
 import koodies.text.takeUnlessBlank
-import koodies.tracing.Span
 
 /**
  * Implementors of this interface gain control on
@@ -53,8 +52,6 @@ public interface ReturnValue : Symbolizable {
                 is ReturnValue -> value
                 is Result<*> -> value.fold({ of(it) }, { of(it) })
                 is Throwable -> ExceptionReturnValue(value)
-                is Span.State.Ended.Succeeded -> of(value.value)
-                is Span.State.Ended.Failed -> of(value.exception)
                 else -> AnyReturnValue(value)
             }
 

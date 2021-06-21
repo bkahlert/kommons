@@ -1,7 +1,7 @@
 package koodies.io.file
 
 import koodies.io.randomFile
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.withTempDir
 import koodies.time.Now
 import koodies.time.toFileTime
@@ -10,7 +10,6 @@ import strikt.api.expectThat
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import kotlin.time.Duration
-import kotlin.time.minutes
 
 class CreatedKtTest {
 

@@ -1,6 +1,6 @@
-package koodies.test
+package koodies.junit
 
-import koodies.test.UniqueId.Companion.id
+import koodies.junit.UniqueId.Companion.id
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver

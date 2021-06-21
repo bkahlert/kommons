@@ -2,8 +2,8 @@ package koodies.exec
 
 import koodies.collections.synchronizedListOf
 import koodies.exec.Process.State.Exited.Failed
+import koodies.junit.UniqueId
 import koodies.shell.ShellScript
-import koodies.test.UniqueId
 import koodies.test.tests
 import koodies.test.withTempDir
 import org.junit.jupiter.api.DynamicNode

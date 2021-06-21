@@ -8,6 +8,8 @@ import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.TestImages.HelloWorld
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
+import koodies.junit.UniqueId
+import koodies.junit.UniqueId.Companion.id
 import koodies.logging.FixedWidthRenderingLogger
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.LoggingContext.Companion.BACKGROUND
@@ -15,8 +17,6 @@ import koodies.logging.ReturnValues
 import koodies.logging.SimpleRenderingLogger
 import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
-import koodies.test.UniqueId
-import koodies.test.UniqueId.Companion.id
 import koodies.test.get
 import koodies.test.put
 import koodies.test.storeForNamespaceAndTest

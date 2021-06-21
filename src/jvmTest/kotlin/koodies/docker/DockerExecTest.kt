@@ -17,9 +17,9 @@ import koodies.exec.alive
 import koodies.exec.enter
 import koodies.exec.exitCode
 import koodies.exec.hasState
+import koodies.junit.UniqueId
 import koodies.test.Slow
 import koodies.test.Smoke
-import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.poll

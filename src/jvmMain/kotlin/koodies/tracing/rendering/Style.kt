@@ -2,7 +2,7 @@ package koodies.tracing.rendering
 
 import koodies.logging.ReturnValue
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.Formatter.Companion.PassThrough
+import koodies.text.ANSI.Formatter.Companion.ToString
 import koodies.text.LineSeparators
 import koodies.text.takeUnlessEmpty
 
@@ -14,7 +14,6 @@ import koodies.text.takeUnlessEmpty
  * a start and end element and 0 or more content elements.
  */
 public interface Style {
-    public val indent: Int
 
     /**
      * Styles the introducing first element.
@@ -24,7 +23,7 @@ public interface Style {
      */
     public fun start(
         element: CharSequence,
-        decorationFormatter: Formatter = PassThrough,
+        decorationFormatter: Formatter = ToString,
     ): CharSequence?
 
     /**
@@ -35,7 +34,7 @@ public interface Style {
      */
     public fun content(
         element: CharSequence,
-        decorationFormatter: Formatter = PassThrough,
+        decorationFormatter: Formatter = ToString,
     ): CharSequence?
 
     /**
@@ -47,7 +46,7 @@ public interface Style {
      */
     public fun parent(
         element: CharSequence,
-        decorationFormatter: Formatter = PassThrough,
+        decorationFormatter: Formatter = ToString,
     ): CharSequence? = content(element, decorationFormatter)
 
     /**
@@ -59,7 +58,7 @@ public interface Style {
     public fun end(
         element: ReturnValue,
         resultValueFormatter: (ReturnValue) -> ReturnValue?,
-        decorationFormatter: Formatter = PassThrough,
+        decorationFormatter: Formatter = ToString,
     ): CharSequence?
 
     public fun buildString(block: StringBuilder.() -> Unit): CharSequence? =

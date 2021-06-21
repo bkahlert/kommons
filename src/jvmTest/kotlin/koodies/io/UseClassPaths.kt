@@ -5,9 +5,9 @@ import koodies.io.path.asPath
 import koodies.io.path.copyToDirectory
 import koodies.io.path.isCopyOf
 import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.junit.UniqueId
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A
 import koodies.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
-import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.withTempDir

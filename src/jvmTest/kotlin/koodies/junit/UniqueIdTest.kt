@@ -1,7 +1,9 @@
-package koodies.test
+package koodies.junit
 
 import koodies.runtime.CallStackElement
 import koodies.test.TesterTest.PlainAssertionsTest
+import koodies.test.testEach
+import koodies.test.toStringIsEqualTo
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest

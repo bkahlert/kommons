@@ -3,10 +3,7 @@ package koodies.tracing.rendering
 import koodies.logging.ReturnValue
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
-import koodies.time.Now
-import koodies.tracing.Span
-import koodies.tracing.Span.State.Ended.Failed
-import koodies.tracing.Span.State.Ended.Succeeded
+import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 
@@ -18,28 +15,28 @@ class CompactRendererTest {
     private val options: Settings = Settings()
 
     @Test
-    fun Span.`should render`() {
+    fun TestSpan.`should render`() {
         val rendered = capturing {
-            CompactRenderer("One Two Three", options.copy(
-                contentFormatter = { it.ansi.underline },
-                decorationFormatter = { it.ansi.brightMagenta },
+            CompactRenderer(options.copy(
+                contentFormatter = { it.toString().ansi.underline },
+                decorationFormatter = { it.toString().ansi.brightMagenta },
             ), it).run {
-                start()
+                start("One Two Three")
 
                 log(ansi11)
-                nestedRenderer("one-liner").apply {
-                    start()
-                    end(Failed(RuntimeException("message"), Now.instant))
+                customizedChild().apply {
+                    start("one-liner")
+                    end(Result.failure<Unit>(RuntimeException("message")))
                 }
-                nestedRenderer("block").apply {
-                    start()
+                customizedChild().apply {
+                    start("block")
                     log(plain11)
-                    end(Succeeded(object : ReturnValue {
+                    end(Result.success(object : ReturnValue {
                         override val successful: Boolean? = null
-                    }, Now.instant))
+                    }))
                 }
 
-                end(Succeeded("Done", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
@@ -59,11 +56,11 @@ class CompactRendererTest {
     }
 
     @Test
-    fun Span.`should render one-line on immediate end`() {
+    fun TestSpan.`should render one-line on immediate end`() {
         val rendered = capturing {
-            CompactRenderer("name", options, it).run {
-                start()
-                end(Succeeded("success", Now.instant))
+            CompactRenderer(options, it).run {
+                start("name")
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
@@ -72,12 +69,55 @@ class CompactRendererTest {
     }
 
     @Test
-    fun Span.`should render block on event`() {
+    fun TestSpan.`should render one-line on immediate nested end`() {
         val rendered = capturing {
-            CompactRenderer("name", options, it).run {
-                start()
+            CompactRenderer(options, it).run {
+                start("parent")
+                customizedChild().run {
+                    start("child")
+                    end(Result.success(true))
+                }
+                end(Result.success(true))
+            }
+        }
+        expectThat(rendered).matchesCurlyPattern("""
+            ❰❰ parent ❱  child » ✔︎  ❱ ✔︎ ❱❱
+        """.trimIndent())
+    }
+
+    @Test
+    fun TestSpan.`should render block on delayed nested end`() {
+        val rendered = capturing {
+            CompactRenderer(options, it).run {
+                start("parent")
+                customizedChild().run {
+                    start("child")
+                    log("delay")
+                    end(Result.success(true))
+                }
+                end(Result.success(true))
+            }
+        }
+        expectThat(rendered).matchesCurlyPattern("""
+            ╭──╴parent
+            │
+            │   ╭──╴child
+            │   │
+            │   │   delay                                    
+            │   │
+            │   ╰──╴✔︎
+            │
+            ╰──╴✔︎
+        """.trimIndent())
+    }
+
+    @Test
+    fun TestSpan.`should render block on event`() {
+        val rendered = capturing {
+            CompactRenderer(options, it).run {
+                start("name")
                 log("event", "key" to "value")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
@@ -90,12 +130,12 @@ class CompactRendererTest {
     }
 
     @Test
-    fun Span.`should render block on exception`() {
+    fun TestSpan.`should render block on exception`() {
         val rendered = capturing {
-            CompactRenderer("name", options, it).run {
-                start()
+            CompactRenderer(options, it).run {
+                start("name")
                 exception(RuntimeException("exception"), "key" to "value")
-                end(Succeeded("success", Now.instant))
+                end(Result.success(true))
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
@@ -103,6 +143,27 @@ class CompactRendererTest {
             │
             │   java.lang.RuntimeException: exception
             {{}}
+            ╰──╴✔︎
+        """.trimIndent())
+    }
+
+    @Test
+    fun TestSpan.`should render block on injected child`() {
+        val rendered = capturing {
+            CompactRenderer(options, it).run {
+                start("parent")
+                injectedChild { settings, printer -> OneLineRenderer(settings, printer) }.run {
+                    start("child")
+                    end(Result.success(true))
+                }
+                end(Result.success(true))
+            }
+        }
+        expectThat(rendered).matchesCurlyPattern("""
+            ╭──╴parent
+            │
+            │   ❰❰ child ❱ ✔︎ ❱❱
+            │
             ╰──╴✔︎
         """.trimIndent())
     }

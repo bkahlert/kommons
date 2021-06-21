@@ -6,7 +6,7 @@ import koodies.io.randomDirectory
 import koodies.io.randomFile
 import koodies.io.randomPath
 import koodies.io.tempFile
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.expecting
 import koodies.test.tests
 import koodies.test.withTempDir

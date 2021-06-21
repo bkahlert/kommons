@@ -6,7 +6,7 @@ import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
 import koodies.io.Koodies
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF

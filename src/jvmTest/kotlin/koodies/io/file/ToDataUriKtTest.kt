@@ -1,8 +1,8 @@
 package koodies.io.file
 
 import koodies.io.copyToDirectory
+import koodies.junit.UniqueId
 import koodies.test.HtmlFixture
-import koodies.test.UniqueId
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

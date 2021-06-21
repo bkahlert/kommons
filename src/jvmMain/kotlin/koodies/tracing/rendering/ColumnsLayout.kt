@@ -1,7 +1,9 @@
 package koodies.tracing.rendering
 
+import io.opentelemetry.api.common.AttributeKey
+import io.opentelemetry.api.common.Attributes
 import koodies.text.Semantics.formattedAs
-import koodies.tracing.Span
+import koodies.tracing.CurrentSpan
 import kotlin.math.floor
 
 /**
@@ -12,7 +14,7 @@ public data class ColumnsLayout(
     /**
      * The columns to be used.
      */
-    public val columns: List<Column> = listOf(Column(Span.Description, 80)),
+    public val columns: List<Column> = listOf(Column(CurrentSpan.Description, 80)),
 
     /**
      * The gap between two neighbouring columns.
@@ -31,7 +33,7 @@ public data class ColumnsLayout(
         /**
          * The columns to be used.
          */
-        vararg columns: Pair<CharSequence, Int> = arrayOf(Span.Description to 80),
+        vararg columns: Pair<CharSequence, Int> = arrayOf(CurrentSpan.Description to 80),
 
         /**
          * The gap between two neighbouring columns.
@@ -52,12 +54,12 @@ public data class ColumnsLayout(
     /**
      * The column with the highest importance.
      */
-    public val primaryAttributeKey: CharSequence get() = columns.maxByOrNull { it.width }?.name ?: columns.first().name
+    public val primaryAttributeKey: AttributeKey<String> get() = AttributeKey.stringKey(columns.maxByOrNull { it.width }?.name ?: columns.first().name)
 
     /**
      * Contains the [columns] scaled proportionally.
      */
-    public val scaled: Map<CharSequence, Int> = run {
+    public val scaled: Map<String, Int> = run {
         if (columns.isEmpty()) emptyMap()
         else {
             val gaps = (columns.size - 1).coerceAtLeast(0) * gap
@@ -74,13 +76,15 @@ public data class ColumnsLayout(
      * Extracts the column attribute keys contained in [columns] from the given [attributes]
      * mapped to their scaled column size. Attribute keys not present in the given [attributes] are mapped to `null`.
      */
-    public fun extract(attributes: Map<CharSequence, CharSequence>): List<Pair<CharSequence?, Int>> =
-        scaled.map { (attributeKey, width) ->
+    public fun extract(attributes: Attributes): List<Pair<Any?, Int>> {
+        val map: Map<String, Any> = attributes.asMap().mapKeys { (key, _) -> key.key }
+        return scaled.map { (attributeKey, width) ->
             when {
-                attributes.containsKey(attributeKey) -> attributes[attributeKey] to width
-                else -> null to width
-            }
+                map.containsKey(attributeKey) -> map[attributeKey]
+                else -> null
+            } to width
         }
+    }
 
     /**
      * Returns a copy of this configuration [columns] narrower.
@@ -99,8 +103,8 @@ public data class ColumnsLayout(
     }
 
     /** A column specified by its [name] and its [width]. */
-    public data class Column(public val name: CharSequence, public val width: Int) {
-        public constructor(spec: Pair<CharSequence, Int>) : this(spec.first, spec.second)
+    public data class Column(public val name: String, public val width: Int) {
+        public constructor(spec: Pair<CharSequence, Int>) : this(spec.first.toString(), spec.second)
     }
 
     private companion object {

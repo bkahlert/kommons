@@ -3,10 +3,10 @@ package koodies.io
 import koodies.io.file.pathString
 import koodies.io.path.deleteOnExit
 import koodies.io.path.hasContent
+import koodies.junit.UniqueId
 import koodies.logging.InMemoryLogger
 import koodies.test.Slow
 import koodies.test.SvgFixture
-import koodies.test.UniqueId
 import koodies.test.expecting
 import koodies.test.withTempDir
 import koodies.text.containsAnsi

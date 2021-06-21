@@ -5,14 +5,14 @@ import koodies.io.compress.TarArchiver.untar
 import koodies.io.path.addExtensions
 import koodies.io.path.getSize
 import koodies.io.path.hasSameFiles
-import koodies.io.randomPath
 import koodies.io.path.removeExtensions
 import koodies.io.path.renameTo
 import koodies.io.path.touch
 import koodies.io.path.writeText
+import koodies.io.randomPath
+import koodies.junit.UniqueId
 import koodies.test.Fixtures.archiveWithTwoFiles
 import koodies.test.Fixtures.directoryWithTwoFiles
-import koodies.test.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Test

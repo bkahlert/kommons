@@ -2,7 +2,7 @@ package koodies.io
 
 import koodies.io.path.Defaults.OWNER_ALL_PERMISSIONS
 import koodies.io.path.touch
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.expectThrows
 import koodies.test.expecting
 import koodies.test.toStringContains

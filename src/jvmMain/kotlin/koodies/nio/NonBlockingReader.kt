@@ -63,7 +63,7 @@ public class NonBlockingReader(
     override fun readLine(): String? = if (reader == null) null else
         logger.logging(
             name = NonBlockingReader::class.simpleName + "." + ::readLine.name + "()",
-            decorationFormatter = { ANSI.Colors.cyan(it) }
+            decorationFormatter = { ANSI.Colors.cyan.invoke(it) }
         ) {
 
             var latestReadMoment = calculateLatestReadMoment()

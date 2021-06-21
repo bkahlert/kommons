@@ -2,12 +2,12 @@ package koodies.io
 
 import koodies.exception.dump
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
+import koodies.junit.UniqueId
 import koodies.logging.BlockRenderingLogger
 import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.HtmlFixture
 import koodies.test.Slow
-import koodies.test.UniqueId
 import koodies.test.notContainsLineSeparator
 import koodies.test.prefixes
 import koodies.test.withTempDir

@@ -3,9 +3,9 @@ package koodies.io
 import koodies.io.path.age
 import koodies.io.path.isInside
 import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.junit.UniqueId
 import koodies.test.HtmlFixture
 import koodies.test.TextFixture
-import koodies.test.UniqueId
 import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.withTempDir

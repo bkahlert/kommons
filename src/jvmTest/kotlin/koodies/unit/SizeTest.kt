@@ -2,7 +2,7 @@ package koodies.unit
 
 import koodies.io.path.getSize
 import koodies.io.randomFile
-import koodies.test.UniqueId
+import koodies.junit.UniqueId
 import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested

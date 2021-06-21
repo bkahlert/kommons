@@ -7,9 +7,9 @@ import koodies.io.randomDirectory
 import koodies.io.randomFile
 import koodies.io.randomPath
 import koodies.io.tempFile
+import koodies.junit.UniqueId
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
-import koodies.test.UniqueId
 import koodies.test.hasSameFileName
 import koodies.test.withTempDir
 import koodies.time.days

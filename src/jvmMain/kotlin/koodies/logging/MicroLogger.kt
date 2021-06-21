@@ -18,8 +18,8 @@ public class MicroLogger(
     log: ((String) -> Unit)? = null,
 ) : SimpleRenderingLogger("", parent, log) {
 
-    private val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.PassThrough
-    private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.PassThrough
+    private val contentFormatter: FilteringFormatter = contentFormatter ?: FilteringFormatter.ToString
+    private val decorationFormatter: Formatter = decorationFormatter ?: Formatter.ToString
     private val returnValueFormatter: (ReturnValue) -> ReturnValue = returnValueFormatter ?: { it }
 
     private val joinElement = decorationFormatter(" ˃ ")

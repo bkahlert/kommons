@@ -105,11 +105,11 @@ public open class SimpleRenderingLogger(
     }
 
     protected fun <T> (() -> CharSequence).format(f: Formatter?, transform: String.() -> T?): T? {
-        return (f ?: Formatter.PassThrough).invoke(this()).takeUnless { it.isBlank() }?.toString()?.transform()
+        return (f ?: Formatter.ToString).invoke(this()).takeUnless { it.isBlank() }?.toString()?.transform()
     }
 
     protected fun <T> (() -> CharSequence).format(f: FilteringFormatter?, transform: String.() -> T?): T? {
-        return (f ?: FilteringFormatter.PassThrough).invoke(this()).takeUnless { it.isNullOrBlank() }?.toString()?.transform()
+        return (f ?: FilteringFormatter.ToString).invoke(this()).takeUnless { it.isNullOrBlank() }?.toString()?.transform()
     }
 
     public companion object {
@@ -122,7 +122,7 @@ public open class SimpleRenderingLogger(
         @JvmStatic
         protected fun <T : CharSequence, R> List<T>.format(f: FilteringFormatter?, transform: String.() -> R?): R? {
             if (isEmpty()) return null
-            return (f ?: FilteringFormatter.PassThrough).invoke(asStatus()).takeUnless { it.isNullOrBlank() }?.toString()?.transform()
+            return (f ?: FilteringFormatter.ToString).invoke(asStatus()).takeUnless { it.isNullOrBlank() }?.toString()?.transform()
         }
 
         private fun Array<StackTraceElement>?.asString() = (this ?: emptyArray()).joinToString("") { "$LF\t\tat $it" }

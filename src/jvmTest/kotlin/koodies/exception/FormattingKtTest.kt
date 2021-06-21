@@ -1,7 +1,7 @@
 package koodies.exception
 
+import koodies.junit.UniqueId
 import koodies.shell.ShellScript
-import koodies.test.UniqueId
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF

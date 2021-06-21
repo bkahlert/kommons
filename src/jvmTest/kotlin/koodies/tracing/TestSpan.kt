@@ -1,12 +1,15 @@
 package koodies.tracing
 
+import io.opentelemetry.api.common.AttributeKey
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.Span
+import koodies.junit.TestName.Companion.testName
+import koodies.junit.isVerbose
 import koodies.jvm.currentThread
 import koodies.jvm.orNull
 import koodies.test.get
-import koodies.test.isVerbose
 import koodies.test.put
 import koodies.test.storeForNamespaceAndTest
-import koodies.test.testName
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
@@ -15,7 +18,6 @@ import koodies.text.padStartFixedLength
 import koodies.time.Now
 import koodies.time.minutes
 import koodies.time.seconds
-import koodies.tracing.Span.State.Ended
 import koodies.tracing.rendering.BlockRenderer
 import koodies.tracing.rendering.InMemoryPrinter
 import koodies.tracing.rendering.Printer
@@ -35,20 +37,13 @@ import org.opentest4j.TestAbortedException
 import org.opentest4j.TestSkippedException
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
-import java.time.Instant
 import kotlin.time.Duration
 
 class TestSpan(
-    name: CharSequence,
-    private val clientPrinter: InMemoryPrinter,
-    printToConsole: Boolean,
-    private val renderer: TestRenderer = TestRenderer(name, clientPrinter, printToConsole),
-) : Span by OpenTelemetrySpan(name, renderer = renderer) {
-
-    fun reportTestResult(exception: Throwable?) {
-        end(exception)
-        renderer.reportTestResult(exception)
-    }
+    span: Span,
+    renderer: Renderer,
+    private val clientPrinter: Printer,
+) : CurrentSpan by RenderingSpan(span, renderer) {
 
     /**
      * Returns a [Builder] to run assertions on what was rendered.
@@ -72,19 +67,25 @@ class TestSpan(
 class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), AfterEachCallback {
     private val store: ExtensionContext.() -> Store by storeForNamespaceAndTest()
 
+    private data class CleanUp(val job: () -> Unit)
+
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): TestSpan {
+        val name = extensionContext.testName
+        val printToConsole = extensionContext.isVerbose || parameterContext.isVerbose
         val clientPrinter = InMemoryPrinter()
-        return TestSpan(
-            name = extensionContext.testName,
-            clientPrinter = clientPrinter,
-            printToConsole = extensionContext.isVerbose || parameterContext.isVerbose
-        )
-            .also { extensionContext.store().put(it) }
-            .also { it.start() }
+        val (span, renderer) = (null as? Span?).newChildSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
+        val scope = span.makeCurrent()
+        extensionContext.store().put(CleanUp {
+            scope.close()
+            span.end()
+            renderer.end(extensionContext.executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit))
+        })
+
+        return TestSpan(span, renderer, clientPrinter)
     }
 
     override fun afterEach(extensionContext: ExtensionContext) {
-        extensionContext.store().get<TestSpan>()?.reportTestResult(extensionContext.executionException.orNull())
+        extensionContext.store().get<CleanUp>()?.run { job() }
     }
 }
 
@@ -95,7 +96,6 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), AfterE
  * are passed to the given [printer].
  */
 class TestRenderer(
-    private val name: CharSequence,
     printer: Printer,
     printToConsole: Boolean,
 ) : Renderer {
@@ -103,35 +103,36 @@ class TestRenderer(
     private val testOnlyPrinter: Printer = if (printToConsole) TestPrinter() else run { {} }
     private val printer: Printer = TeePrinter(testOnlyPrinter, printer)
 
-    override fun start(traceId: TraceId, spanId: SpanId, timestamp: Instant) {
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         testOnlyPrinter(TestPrinter.TestIO.Start(name, traceId, spanId))
     }
 
-    override fun event(name: CharSequence, attributes: Map<CharSequence, CharSequence>, timestamp: Instant) {
-        printer("$name: $attributes")
+    override fun event(name: CharSequence, attributes: Attributes) {
+        attributes.get(AttributeKey.stringKey(CurrentSpan.Description))?.let(printer)
+            ?: printer("$name: $attributes")
     }
 
-    override fun exception(exception: Throwable, attributes: Map<CharSequence, CharSequence>, timestamp: Instant) {
+    override fun exception(exception: Throwable, attributes: Attributes) {
         printer("$exception: $attributes")
     }
 
-    override fun end(ended: Ended) {
-        // not interested in any client-side triggered end result, but in the test result
-    }
-
-    fun reportTestResult(exception: Throwable?) {
-        when (exception) {
+    override fun <R> end(result: Result<R>) {
+        when (val exception = result.exceptionOrNull()) {
             null -> testOnlyPrinter(TestPrinter.TestIO.Pass)
             else -> testOnlyPrinter(TestPrinter.TestIO.Fail(exception))
         }
     }
 
-    override fun nestedRenderer(name: CharSequence, customize: Settings.() -> Settings): Renderer {
-        return BlockRenderer(name, Settings().customize()) { printer(it) }
+    override fun customizedChild(customize: Settings.() -> Settings): Renderer {
+        return BlockRenderer(Settings().customize(), ::printChild)
     }
 
-    override fun nestedRenderer(provider: (Settings, Printer) -> Renderer): Renderer {
-        return provider(Settings()) { printer(it) }
+    override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer {
+        return provider(Settings(), ::printChild)
+    }
+
+    override fun printChild(text: CharSequence) {
+        printer(text)
     }
 }
 
@@ -217,8 +218,8 @@ class TestPrinter : Printer {
     }
 
     private companion object {
-        private val formatter = Formatter { it.ansi.color(Colors.gray(.45)) }
-        val CharSequence.meta: CharSequence get() = formatter(this)
+        private val formatter = Formatter { it.toString().ansi.color(Colors.gray(.45)) }
+        val CharSequence.meta: CharSequence get() = formatter.invoke(this)
         val headerLine = StringBuilder().apply {
             append("─".repeat(41))
             append("┬".repeat(1))

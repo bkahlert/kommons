@@ -17,6 +17,7 @@ import koodies.io.ls
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
 import koodies.io.tempDir
+import koodies.junit.UniqueId
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
 import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
@@ -28,7 +29,6 @@ import koodies.shell.ShellScript
 import koodies.test.HtmlFixture
 import koodies.test.Smoke
 import koodies.test.SvgFixture
-import koodies.test.UniqueId
 import koodies.test.asserting
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
@@ -239,25 +239,41 @@ class ExecutionIntegrationTest {
 
         with(executable) {
             logging("existing logging context") {
-                exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.brightBlue(it) }; border = SOLID } }
+                exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.brightBlue.invoke(it) }; border = SOLID } }
             }
         }
 
-        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightMagenta(it) }) {
+        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightMagenta.invoke(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
+            executable.exec.logging(this) {
+                smart {
+                    name by "command line logging context"; decorationFormatter by { Colors.magenta.invoke(it) }; border = SOLID
+                }
+            }
         }
-        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightBlue(it) }) {
+        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightBlue.invoke(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
+            executable.exec.logging(this) {
+                smart {
+                    name by "command line logging context"; decorationFormatter by { Colors.blue.invoke(it) }; border = DOTTED
+                }
+            }
         }
-        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightMagenta(it) }) {
+        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightMagenta.invoke(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.magenta(it) }; border = SOLID } }
+            executable.exec.logging(this) {
+                smart {
+                    name by "command line logging context"; decorationFormatter by { Colors.magenta.invoke(it) }; border = SOLID
+                }
+            }
         }
-        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightBlue(it) }) {
+        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightBlue.invoke(it) }) {
             logLine { "abc" }
-            executable.exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.blue(it) }; border = DOTTED } }
+            executable.exec.logging(this) {
+                smart {
+                    name by "command line logging context"; decorationFormatter by { Colors.blue.invoke(it) }; border = DOTTED
+                }
+            }
         }
 
         expectThatLogged().matchesCurlyPattern("""

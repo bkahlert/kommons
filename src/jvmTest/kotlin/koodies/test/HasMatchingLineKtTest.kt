@@ -2,6 +2,7 @@ package koodies.test
 
 import koodies.io.path.writeText
 import koodies.io.randomFile
+import koodies.junit.UniqueId
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

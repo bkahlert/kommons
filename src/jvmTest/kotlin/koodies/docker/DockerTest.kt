@@ -14,12 +14,12 @@ import koodies.io.copyTo
 import koodies.io.path.asPath
 import koodies.io.path.getSize
 import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.junit.UniqueId
 import koodies.logging.InMemoryLogger
 import koodies.test.HtmlFixture
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.Smoke
 import koodies.test.SvgFixture
-import koodies.test.UniqueId
 import koodies.test.asserting
 import koodies.test.testEach
 import koodies.test.withTempDir
