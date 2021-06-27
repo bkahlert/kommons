@@ -2,7 +2,6 @@ package koodies.tracing
 
 import koodies.test.actual
 import koodies.text.matchesCurlyPattern
-import koodies.toBaseName
 import org.junit.jupiter.api.Test
 import strikt.assertions.all
 import strikt.assertions.contains
@@ -26,8 +25,14 @@ class TestSpanTest {
                 spanName.contains("should trace")
                 events and {
                     size.isEqualTo(2)
-                    get(0) and { eventName.isEqualTo("event -1".toBaseName()) }
-                    get(1) and { eventName.isEqualTo("event n+1".toBaseName()) }
+                    get(0) and {
+                        eventName.isEqualTo("log")
+                        eventDescription.isEqualTo("event -1")
+                    }
+                    get(1) and {
+                        eventName.isEqualTo("log")
+                        eventDescription.isEqualTo("event n+1")
+                    }
                 }
             }
             get(0) and {
@@ -36,7 +41,10 @@ class TestSpanTest {
                 spanName.isEqualTo("SPAN A")
                 events and {
                     size.isEqualTo(1)
-                    get(0) and { eventName.isEqualTo("event α".toBaseName()) }
+                    get(0) and {
+                        eventName.isEqualTo("log")
+                        eventDescription.isEqualTo("event α")
+                    }
                 }
             }
         }
@@ -48,13 +56,13 @@ class TestSpanTest {
         spanning("SPAN A") { log("event α") }
         log("event n+1")
         expectThatRendered().matchesCurlyPattern("""
-            event--1: {description="event -1"}
+            event -1
             ╭──╴SPAN A
             │
             │   event α                                                                 
             │
             ╰──╴✔︎
-            event-n_1: {description="event n+1"}
+            event n+1
         """.trimIndent())
     }
 }

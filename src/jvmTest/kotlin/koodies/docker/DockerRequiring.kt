@@ -5,12 +5,12 @@ import koodies.docker.CleanUpMode.ThanksForCleaningUp
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.junit.TestName.Companion.testName
 import koodies.junit.UniqueId.Companion.simplifiedId
-import koodies.logging.FixedWidthRenderingLogger
-import koodies.logging.conditionallyVerboseLogger
 import koodies.test.Slow
 import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import koodies.text.quoted
+import koodies.tracing.spanning
+import koodies.tracing.tracing
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -60,15 +60,14 @@ enum class CleanUpMode {
 
 class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParameterResolver<DockerContainer>() {
 
-    private val ExtensionContext.logger: FixedWidthRenderingLogger
-        get() = conditionallyVerboseLogger(withAnnotation<ContainersTestFactory, Boolean> { logging } ?: withAnnotation<ContainersTest, Boolean> { logging })
-
     override fun beforeEach(context: ExtensionContext) = with(context) {
         pullRequiredImages()
 
         with(context.uniqueContainer()) {
-            if (logger.containerState is Running) {
-                logger.logLine { "Container $name is (still) running and will be removed forcibly." }
+            if (containerState is Running) {
+                tracing {
+                    log("Container $name is (still) running and will be removed forcibly.")
+                }
                 remove(force = true)
             }
         }
@@ -79,17 +78,19 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
         with(uniqueContainer()) {
             when (withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
                 ThanksForCleaningUp -> {
-                    if (logger.containerState is Running) remove(force = true, logger = logger)
+                    if (containerState is Running) remove(force = true)
                 }
                 FailAndKill -> {
-                    check(logger.containerState !is Running) {
+                    check(containerState !is Running) {
                         remove(true)
                         "Container $name was still running and had to be removed forcibly."
                     }
                 }
                 else -> {
-                    if (logger.containerState is Running) {
-                        logger.logLine { "Container $name is still running… just saying".formattedAs.debug }
+                    if (containerState is Running) {
+                        tracing {
+                            log("Container $name is still running… just saying".formattedAs.debug)
+                        }
                     }
                 }
             }
@@ -102,9 +103,9 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
     private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId)
 
     private fun ExtensionContext.pullRequiredImages() =
-        logger.logging("Pulling required images") {
-            val missing = requiredDockerImages() subtract DockerImage.list(logger = logger)
-            missing.forEach { it.pull(logger = logger) }
+        spanning("Pulling required images") {
+            val missing = requiredDockerImages() subtract DockerImage.list()
+            missing.forEach { it.pull() }
         }
 
     private fun ExtensionContext.requiredDockerImages(): List<DockerImage> =

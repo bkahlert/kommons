@@ -1,7 +1,6 @@
 package koodies.io
 
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
-import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingCharReader
 import koodies.number.times
 import koodies.test.Slow
@@ -10,6 +9,7 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.styling.Borders
 import koodies.text.styling.wrapWithBorder
 import koodies.time.seconds
+import koodies.tracing.TestSpan
 import koodies.unit.milli
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -27,18 +27,18 @@ import java.io.InputStreamReader
 class NonBlockingCharReaderTest {
 
     @Test
-    fun InMemoryLogger.`should read null if empty`() {
+    fun TestSpan.`should read null if empty`() {
         val reader = NonBlockingCharReader("".byteInputStream(), 100.milli.seconds)
-        5 times { expectThat(reader.read(CharArray(1), 0, this)).isLessThanOrEqualTo(0) }
-        10 times { expectThat(reader.read(CharArray(1), 0, this)).isEqualTo(-1) }
+        5 times { expectThat(reader.read(CharArray(1), 0)).isLessThanOrEqualTo(0) }
+        10 times { expectThat(reader.read(CharArray(1), 0)).isEqualTo(-1) }
     }
 
     @Test
-    fun InMemoryLogger.`should return null if source is closed`() {
+    fun TestSpan.`should return null if source is closed`() {
         val reader = NonBlockingCharReader("123".byteInputStream(), 100.milli.seconds)
         expectThat(reader.readText()).isEqualTo("123")
-        5 times { expectThat(reader.read(CharArray(1), 0, this)).isLessThanOrEqualTo(0) }
-        10 times { expectThat(reader.read(CharArray(1), 0, this)).isEqualTo(-1) }
+        5 times { expectThat(reader.read(CharArray(1), 0)).isLessThanOrEqualTo(0) }
+        10 times { expectThat(reader.read(CharArray(1), 0)).isEqualTo(-1) }
     }
 
     @Test
@@ -49,7 +49,7 @@ class NonBlockingCharReaderTest {
     }
 
     @Slow @Test
-    fun InMemoryLogger.`should read in a non-greedy fashion resp just as much as needed to avoid blocking`() {
+    fun TestSpan.`should read in a non-greedy fashion resp just as much as needed to avoid blocking`() {
         val inputStream = slowInputStream(
             0.seconds,
             1.seconds to "123",

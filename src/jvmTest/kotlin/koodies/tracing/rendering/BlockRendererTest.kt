@@ -2,7 +2,6 @@ package koodies.tracing.rendering
 
 import io.opentelemetry.api.common.AttributeKey.stringKey
 import io.opentelemetry.api.common.Attributes
-import koodies.logging.ReturnValue
 import koodies.test.Smoke
 import koodies.test.expectThrows
 import koodies.test.testEach
@@ -19,7 +18,6 @@ import koodies.tracing.NOOP
 import koodies.tracing.SpanId
 import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
-import koodies.tracing.log
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -42,7 +40,7 @@ class BlockRendererTest {
 
     @Smoke @TestFactory
     fun TestSpan.`should render using styles`() = testEach(
-        BlockStyles.Rounded to """
+        BlockStyles.Solid to """
             ╭──╴One Two Three
             │
             │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
@@ -63,9 +61,8 @@ class BlockRendererTest {
             │   │   │                                         DIAM NONUMY EIRMOD.
             │   │   ϟ
             │   │   ╰──╴RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
-            │   ╵
-            │   ╵
-            │   ⏳️
+            │   ϟ
+            │   ╰──╴RuntimeException: message at.(BlockRendererTest.kt:{})
             │
             ╰──╴✔︎
         """.trimIndent(),
@@ -86,7 +83,7 @@ class BlockRendererTest {
             · · ·  EIRMOD.                                 ADIPSCING ELITR, SED
             · · ·                                           DIAM NONUMY EIRMOD.
             · · ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
-            · ⏳️
+            · ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
         """.trimIndent(),
         BlockStyles.None to """
@@ -106,7 +103,7 @@ class BlockRendererTest {
                     M NONUMY EIRMOD.                     ADIPSCING ELITR, SED
                                                           DIAM NONUMY EIRMOD.
                     ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
-                ⏳️
+                ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
         """.trimIndent(),
     ) { (style, expected) ->
@@ -117,21 +114,20 @@ class BlockRendererTest {
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.toString().ansi.brightRed },
                 returnValueFormatter = { it },
-            ), printer).apply {
+                printer = printer,
+            )).apply {
 
                 start("One Two Three")
                 log(ansi80, "status" to plain80)
-                customizedChild().apply {
+                nestedRenderer().apply {
                     start("child-span")
                     log(ansi80, "status" to plain80)
-                    customizedChild().apply {
+                    nestedRenderer().apply {
                         start("child-span")
                         log(ansi80, "status" to plain80)
                         end(Result.failure<Unit>(RuntimeException("Now Panic!")))
                     }
-                    end(Result.success(object : ReturnValue {
-                        override val successful: Boolean? = null
-                    }))
+                    end(Result.failure<Unit>(RuntimeException("message")))
                 }
 
                 end(Result.success(true))
@@ -145,13 +141,13 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should render name`() {
-            val rendered = capturing { BlockRenderer(settings, it).start("name") }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).start("name") }
             expectThat(rendered.ansiRemoved).isEqualTo("name")
         }
 
         @Test
         fun TestSpan.`should render multi-line name`() {
-            val rendered = capturing { BlockRenderer(settings, it).start("line #1\nline #2") }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).start("line #1\nline #2") }
             expectThat(rendered.ansiRemoved).isEqualTo("""
                 line #1
                 line #2
@@ -164,13 +160,13 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should render success`() {
-            val rendered = capturing { BlockRenderer(settings, it).end(Result.success(true)) }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).end(Result.success(true)) }
             expectThat(rendered.ansiRemoved).isEqualTo("✔︎")
         }
 
         @Test
         fun TestSpan.`should render exception`() {
-            val rendered = capturing { BlockRenderer(settings, it).end(Result.failure<Unit>(RuntimeException("failed"))) }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).end(Result.failure<Unit>(RuntimeException("failed"))) }
             expectThat(rendered.ansiRemoved).matchesCurlyPattern("ϟ RuntimeException: failed at.(BlockRendererTest.kt:{})")
         }
     }
@@ -180,25 +176,25 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should render one plain event`() {
-            val rendered = capturing { BlockRenderer(settings, it).log(plain80) }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).log(plain80) }
             expectThat(rendered).isEqualTo(plain80)
         }
 
         @Test
         fun TestSpan.`should render one ansi event`() {
-            val rendered = capturing { BlockRenderer(settings, it).log(ansi80) }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).log(ansi80) }
             expectThat(rendered).isEqualTo(ansi80)
         }
 
         @Test
         fun TestSpan.`should not render event without matching column`() {
-            val rendered = capturing { BlockRenderer(settings, it).event("unknown") }
+            val rendered = capturing { BlockRenderer(settings.copy(printer = it)).event("unknown") }
             expectThat(rendered).isEmpty()
         }
 
         @Test
         fun TestSpan.`should wrap too long plain event`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40)), it).log(plain80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(plain80) }
             expectThat(rendered).isEqualTo("""
                 Lorem ipsum dolor sit amet, consetetur s
                 adipscing elitr, sed diam nonumy eirmod.
@@ -207,7 +203,7 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should wrap too long ansi event`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40)), it).log(ansi80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(ansi80) }
             expectThat(rendered).isEqualTo("""
                 [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m amet, [94mconsetetur s[39m
                 [94madipscing[39m elitr, sed diam nonumy eirmod.
@@ -218,7 +214,7 @@ class BlockRendererTest {
         fun TestSpan.`should not wrap links`() {
             val rendered =
                 capturing {
-                    BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40)), it)
+                    BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it))
                         .log("http://1234567890.1234567890.1234567890.1234567890")
                 }
             expectThat(rendered).isEqualTo("http://1234567890.1234567890.1234567890.1234567890")
@@ -232,7 +228,7 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should render one plain event`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout), it).log(plain80, "status" to plain80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(plain80, "status" to plain80) }
             expectThat(rendered).isEqualTo("""
                 Lorem ipsu     Lorem ipsum dolor sit ame
                 m dolor si     t, consetetur sadipscing 
@@ -247,7 +243,7 @@ class BlockRendererTest {
 
         @Smoke @Test
         fun TestSpan.`should render one ansi event`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout), it).log(ansi80, "status" to ansi80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, "status" to ansi80) }
             expectThat(rendered).isEqualTo("""
                 [4m[3mLorem ipsu[24;23m     [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m ame
                 [4;3mm [36mdolor[39m si[24;23m     t, [94mconsetetur sadipscing[39m 
@@ -262,13 +258,14 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should not render event without matching column`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout), it).event("unknown", Attributes.of(stringKey("key"), "value")) }
+            val rendered =
+                capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).event("unknown", Attributes.of(stringKey("key"), "value")) }
             expectThat(rendered).isEmpty()
         }
 
         @Test
         fun TestSpan.`should leave column empty on missing attribute`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout), it).log(ansi80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80) }
             expectThat(rendered).isEqualTo("""
                                [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m ame
                                t, [94mconsetetur sadipscing[39m 
@@ -281,7 +278,7 @@ class BlockRendererTest {
         fun TestSpan.`should not wrap links`() {
             val rendered =
                 capturing {
-                    BlockRenderer(settings.copy(layout = twoColsLayout), it).log(plain80,
+                    BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(plain80,
                         "status" to "http://1234567890.1234567890.1234567890.1234567890")
                 }
             expectThat(rendered).isEqualTo("""
@@ -295,7 +292,8 @@ class BlockRendererTest {
         @Test
         fun TestSpan.`should handle more than two columns`() {
             val format = ColumnsLayout("status" to 10, "duration" to 10, CurrentSpan.Description to 40, maxColumns = 60)
-            val rendered = capturing { BlockRenderer(settings.copy(layout = format), it).log(plain80, "status" to "foo-bar", "duration" to 2.seconds) }
+            val rendered =
+                capturing { BlockRenderer(settings.copy(layout = format, printer = it)).log(plain80, "status" to "foo-bar", "duration" to 2.seconds) }
             expectThat(rendered).isEqualTo("""
                 foo-bar       2.00s        Lorem ipsum dolor sit amet, conse
                                            tetur sadipscing elitr, sed diam 
@@ -308,7 +306,7 @@ class BlockRendererTest {
         fun TestSpan.`should render exception`() {
             val rendered =
                 capturing {
-                    BlockRenderer(settings.copy(layout = twoColsLayout), it)
+                    BlockRenderer(settings.copy(layout = twoColsLayout, printer = it))
                         .exception(RuntimeException("ex"), Attributes.of(stringKey("status"), plain80))
                 }
             expectThat(rendered).matchesCurlyPattern("""
@@ -321,7 +319,7 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should render exception spanning all columns if no attributes provided`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout), it).exception(RuntimeException("ex")) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).exception(RuntimeException("ex")) }
             expectThat(rendered) {
                 startsWith("java.lang.RuntimeException: ex".ansi.red)
                 lines().any { length.isGreaterThan(40) }
@@ -331,7 +329,7 @@ class BlockRendererTest {
         @Test
         fun TestSpan.`should log second columns on same column even if using wide characters`() {
             val rendered = capturing {
-                BlockRenderer(settings.copy(layout = twoColsLayout), it).apply {
+                BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).apply {
                     log("🔴🟠🟡🟢🔵🟣", "status" to "🟥🟧🟨🟩🟦🟪")
                     log("1234567890".repeat(7))
                 }
@@ -352,10 +350,10 @@ class BlockRendererTest {
         @Test
         fun TestSpan.`should increase left padding`() {
             val rendered = capturing {
-                BlockRenderer(settings, it).apply {
+                BlockRenderer(settings.copy(printer = it)).apply {
                     log("1234567890".repeat(10))
-                    customizedChild().apply {
-                        customizedChild().apply {
+                    nestedRenderer().apply {
+                        nestedRenderer().apply {
                             log("1234567890".repeat(10))
                         }
                         log("1234567890".repeat(10))
@@ -379,11 +377,11 @@ class BlockRendererTest {
         fun TestSpan.`should throw if left column has no more space`() {
             expectThrows<IllegalArgumentException> {
                 capturing {
-                    BlockRenderer(settings.copy(layout = ColumnsLayout("description" to 6, "right" to 5)), it).apply {
+                    BlockRenderer(settings.copy(layout = ColumnsLayout("description" to 6, "right" to 5), printer = it)).apply {
                         log("1234567890", "right" to "1234567890")
-                        customizedChild().apply {
+                        nestedRenderer().apply {
                             log("1234567890", "right" to "1234567890")
-                            customizedChild().apply {
+                            nestedRenderer().apply {
                                 log("1234567890", "right" to "1234567890")
                             }
                         }
@@ -395,9 +393,9 @@ class BlockRendererTest {
         @Test
         fun TestSpan.`should be customizable`() {
             val rendered = capturing {
-                BlockRenderer(settings, it).apply {
+                BlockRenderer(settings.copy(printer = it)).apply {
                     log("foo")
-                    customizedChild { copy(contentFormatter = { ">> $it <<" }) }.apply {
+                    nestedRenderer { it(copy(contentFormatter = { "!$it!" })) }.apply {
                         log("bar")
                     }
                     log("baz")
@@ -405,7 +403,7 @@ class BlockRendererTest {
             }
             expectThat(rendered).matchesCurlyPattern("""
                 foo
-                    >> bar <<
+                    !bar!
                 baz
             """.trimIndent())
         }

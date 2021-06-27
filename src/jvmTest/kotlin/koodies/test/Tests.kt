@@ -29,8 +29,6 @@ import koodies.test.Tester.property
 import koodies.test.Tester.throwingDisplayName
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.Semantics.BlockDelimiters.TEXT
-import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.decapitalize
 import koodies.text.takeUnlessBlank
@@ -135,22 +133,6 @@ object Tester {
     }
 
     /**
-     * Returns the name used to display [transform] applied to [subject].
-     *
-     * If an exception is thrown while computing the display name, the exception is returned instead.
-     */
-    private fun <T, R> valueOf(subject: T, transform: (T) -> R): String =
-        kotlin.runCatching { transform(subject).toCompactString() }.getOrElse { "${Symbols.Error} ${it.toCompactString()}" }
-
-    /**
-     * Returns the name used to display the value returned by [provideSubject].
-     *
-     * If an exception is thrown while computing the display name, the exception is returned instead.
-     */
-    private fun <R> valueOf(provideSubject: () -> R): String =
-        kotlin.runCatching { provideSubject().toCompactString() }.getOrElse { "${Symbols.Error} ${it.toCompactString()}" }
-
-    /**
      * Returns the display name for an asserting test.
      */
     fun <T> CallStackElement.assertingDisplayName(assertion: Assertion<T>): String =
@@ -173,14 +155,14 @@ object Tester {
     /**
      * Returns the display name for an [subject] expecting test.
      */
-    fun <T, R> CallStackElement.expectingDisplayName(subject: T, transform: (T) -> R): String =
-        this.displayName("❔", subject, transform)
+    fun <T, R> CallStackElement.expectingDisplayName(transform: (T) -> R): String =
+        this.displayName("❔", transform)
 
     /**
      * Returns the display name for an [subject] catching test.
      */
-    fun <T, R> CallStackElement.catchingDisplayName(subject: T, transform: (T) -> R): String =
-        this.displayName("❓", subject, transform)
+    fun <T, R> CallStackElement.catchingDisplayName(transform: (T) -> R): String =
+        this.displayName("❓", transform)
 
     /**
      * Returns the display name for an [E] throwing test.
@@ -194,14 +176,10 @@ object Tester {
     /**
      * Returns the display name for a test involving [transform] applied to [subject].
      */
-    private fun <T, R> CallStackElement.displayName(symbol: String, subject: T, transform: (T) -> R): String =
+    private fun <T, R> CallStackElement.displayName(symbol: String, transform: (T) -> R): String =
         StringBuilder(symbol).apply {
             append(" ")
             append(this@displayName.displayName(transform))
-            append(" ")
-            append(TEXT.first)
-            append(valueOf(subject, transform).ansiRemoved.truncate(20))
-            append(TEXT.second)
             val that = getLambdaBodyOrNull(this@displayName, "that")
             if (that != null) {
                 append(" ")
@@ -229,10 +207,6 @@ object Tester {
         StringBuilder(symbol).apply {
             append(" ")
             append(this@displayName.displayName(provide, null).displayName())
-            append(" ")
-            append(TEXT.first)
-            append(valueOf(provide).ansiRemoved.truncate(20))
-            append(TEXT.second)
             val that = getLambdaBodyOrNull(this@displayName, "that")
             if (that != null) {
                 append(" ")
@@ -671,7 +645,7 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
     fun <R> expecting(description: String? = null, action: T.() -> R): InCompleteExpectationBuilder<R> {
         var additionalAssertion: Assertion<R>? = null
         val caller = findCaller()
-        val test = dynamicTest(description ?: caller.expectingDisplayName(subject, action), caller.callerSource) {
+        val test = dynamicTest(description ?: caller.expectingDisplayName(action), caller.callerSource) {
             strikt.api.expectThat(subject).with(action, additionalAssertion ?: throw IllegalUsageException("expecting", caller.callerSource))
         }
         callback(test)
@@ -689,7 +663,7 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
     fun <R> expectCatching(action: T.() -> R): InCompleteExpectationBuilder<Result<R>> {
         var additionalAssertion: Assertion<Result<R>>? = null
         val caller = findCaller()
-        val test = dynamicTest(findCaller().catchingDisplayName(subject, action), caller.callerSource) {
+        val test = dynamicTest(findCaller().catchingDisplayName(action), caller.callerSource) {
             strikt.api.expectCatching { subject.action() }.and(additionalAssertion ?: throw IllegalUsageException("expectCatching", caller.callerSource))
         }
         callback(test)
@@ -913,7 +887,7 @@ class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>
         val errorMessage = "expecting { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
         return InCompleteExpectationBuilder { assertion: Assertion<R> ->
             buildErrors.remove(errorMessage)
-            strikt.api.expectThat(subject).with(description?.takeUnlessBlank() ?: "with".property(action) + findCaller().expectingDisplayName(subject,
+            strikt.api.expectThat(subject).with(description?.takeUnlessBlank() ?: "with".property(action) + findCaller().expectingDisplayName(
                 action),
                 action,
                 assertion)
@@ -1038,13 +1012,13 @@ class TesterTest {
                 ❕ isEqualTo("subject")
             """,
             !"""
-                ❔ length 〝7〞 isGreaterThan(5)
+                ❔ length isGreaterThan(5)
             """,
             !"""
-                ❔ length 〝7〞
+                ❔ length
             """,
             !"""
-                ❓ length 〝7〞 isSuccess()
+                ❓ length isSuccess()
             """,
             !"""
                 ❗ RuntimeException
@@ -1070,13 +1044,13 @@ class TesterTest {
                 ❕ isEqualTo("subject")
             """,
             !"""
-                ❔ ❮ "subject".length ❯ 〝7〞 isGreaterThan(5)
+                ❔ ❮ "subject".length ❯ isGreaterThan(5)
             """,
             !"""
-                ❔ ❮ "subject".length ❯ 〝7〞
+                ❔ ❮ "subject".length ❯
             """,
             !"""
-                ❓ ❮ "subject".length ❯ 〝7〞 isSuccess()
+                ❓ ❮ "subject".length ❯ isSuccess()
             """,
             !"""
                 ❗ RuntimeException

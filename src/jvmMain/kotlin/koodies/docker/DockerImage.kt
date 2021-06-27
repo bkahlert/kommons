@@ -12,17 +12,16 @@ import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState
+import koodies.exec.RendererProviders
 import koodies.exec.output
 import koodies.exec.parse
 import koodies.io.Koodies
-import koodies.logging.FixedWidthRenderingLogger
-import koodies.logging.LoggingContext.Companion.DEBUGGING_ONLY
-import koodies.logging.SimpleRenderingLogger
 import koodies.or
 import koodies.requireSaneInput
 import koodies.text.LineSeparators.lines
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
+import koodies.tracing.rendering.RendererProvider
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -97,46 +96,48 @@ public open class DockerImage(
      */
     public fun list(
         ignoreIntermediateImages: Boolean = true,
-        logger: FixedWidthRenderingLogger = DEBUGGING_ONLY,
+        provider: RendererProvider? = null,
     ): List<DockerImage> =
         DockerImageListCommandLine {
             options { all by !ignoreIntermediateImages }
             image by this@DockerImage
-        }.exec.logging(logger) {
-            summary("Listing ${this@DockerImage.formattedAs.input} images")
-        }.parseImages()
+        }.exec.logging(
+            name = "Listing ${this@DockerImage.formattedAs.input} images",
+            renderer = provider ?: RendererProviders.summary(),
+        ).parseImages()
 
     /**
      * Checks if this image is pulled.
      */
-    public val isPulled: Boolean get() = with(DEBUGGING_ONLY) { isPulled }
+    public val isPulled: Boolean get() = RendererProviders.noDetails().isPulled
 
     /**
-     * Current pulled state of this image—queried using `this` [SimpleRenderingLogger].
+     * Current pulled state of this image—queried using `this` [RendererProvider].
      */
-    public val SimpleRenderingLogger.isPulled: Boolean
+    public val RendererProvider.isPulled: Boolean
         get() = DockerImageListCommandLine {
             image by this@DockerImage
-        }.exec.logging(this) {
-            summary("Checking if ${this@DockerImage.formattedAs.input} is pulled")
-        }.parseImages().isNotEmpty()
+        }.exec.logging(
+            name = "Checking if ${this@DockerImage.formattedAs.input} is pulled",
+            renderer = this,
+        ).parseImages().isNotEmpty()
 
     /**
-     * Pulls this image from [Docker Hub](https://hub.docker.com/)
-     * while logging progress using `this` logger.
+     * Pulls this image from [Docker Hub](https://hub.docker.com/).
      *
      * Enabled [allTags] to download all tagged images in the repository.
      */
     public fun pull(
         allTags: Boolean = false,
-        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
+        provider: RendererProvider = RendererProviders.noDetails(),
     ): ExitState =
         DockerImagePullCommandLine {
             options { this.allTags by allTags }
             image by this@DockerImage
-        }.exec.logging(logger) {
-            summary("Pulling ${this@DockerImage.formattedAs.input}")
-        }.waitFor()
+        }.exec.logging(
+            name = "Pulling ${this@DockerImage.formattedAs.input}",
+            renderer = provider,
+        ).waitFor()
 
     /**
      * Removes this image from the locally stored images.
@@ -145,14 +146,15 @@ public open class DockerImage(
      */
     public fun remove(
         force: Boolean = false,
-        logger: SimpleRenderingLogger = DEBUGGING_ONLY,
+        provider: RendererProvider = RendererProviders.noDetails(),
     ): ExitState =
         DockerImageRemoveCommandLine {
             options { this.force by force }
             image by this@DockerImage
-        }.exec.logging(logger) {
-            noDetails("Removing ${this@DockerImage.formattedAs.input}")
-        }.waitFor()
+        }.exec.logging(
+            name = "Removing ${this@DockerImage.formattedAs.input}",
+            renderer = provider,
+        ).waitFor()
 
     /**
      * Contains a list of tags available on [Docker Hub](https://registry.hub.docker.com).
@@ -296,12 +298,16 @@ public open class DockerImage(
         /**
          * Lists locally available images.
          */
-        public fun list(ignoreIntermediateImages: Boolean = true, logger: SimpleRenderingLogger = DEBUGGING_ONLY): List<DockerImage> =
+        public fun list(
+            ignoreIntermediateImages: Boolean = true,
+            provider: RendererProvider = RendererProviders.noDetails(),
+        ): List<DockerImage> =
             DockerImageListCommandLine {
                 options { all by !ignoreIntermediateImages }
-            }.exec.logging(logger) {
-                noDetails("Listing images")
-            }.parseImages()
+            }.exec.logging(
+                name = "Listing images",
+                renderer = provider,
+            ).parseImages()
     }
 }
 

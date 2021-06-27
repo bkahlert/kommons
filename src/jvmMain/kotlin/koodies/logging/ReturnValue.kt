@@ -16,14 +16,9 @@ public interface ReturnValue : Symbolizable {
     /**
      * Whether this return value represents a successful state.
      */
-    public val successful: Boolean?
+    public val successful: Boolean
 
-    override val symbol: String
-        get() = when (successful) {
-            true -> Symbols.OK
-            null -> Symbols.Computation
-            false -> Symbols.Error
-        }
+    override val symbol: String get() = if (successful) Symbols.OK else Symbols.Error
 
     /**
      * Text representing this return value.
@@ -72,13 +67,9 @@ public interface ReturnValue : Symbolizable {
  */
 public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableListOf<E>(*elements), ReturnValue {
     private val unsuccessful: List<ReturnValue> get() = map { ReturnValue.of(it) }.filter { it.successful == false }
-    override val successful: Boolean?
-        get() = fold(true) { acc: Boolean?, el: E ->
-            when (ReturnValue.of(el).successful) {
-                true -> acc
-                null -> if (acc == true) null else acc
-                false -> false
-            }
+    override val successful: Boolean
+        get() = fold(true) { acc: Boolean, el: E ->
+            if (ReturnValue.of(el).successful) acc else false
         }
 
     override val textRepresentation: String?
@@ -107,7 +98,7 @@ public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableList
  */
 @JvmInline
 public value class AnyReturnValue(private val value: Any?) : ReturnValue {
-    override val successful: Boolean?
+    override val successful: Boolean
         get() = if (value is ReturnValue) {
             value.successful
         } else {

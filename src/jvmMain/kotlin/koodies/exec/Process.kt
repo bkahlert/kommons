@@ -31,7 +31,7 @@ import kotlin.time.Duration
 /**
  * Platform independent representation of a running program.
  */
-public interface Process : ReturnValue {
+public interface Process {
 
     /**
      * Stream of this program's meta logs.
@@ -88,7 +88,7 @@ public interface Process : ReturnValue {
      * - [Exited] for processes that terminated with an [exitCode]
      * - [Excepted] for processes that did not run properly
      */
-    public sealed interface State : ReturnValue {
+    public sealed interface State {
 
         /**
          * Moment the process started.
@@ -106,13 +106,6 @@ public interface Process : ReturnValue {
         public val status: String
 
         /**
-         * Whether this state represents a successful or failed state.
-         *
-         * Can be `null` if currently unknown (i.e. while running).
-         */
-        public override val successful: Boolean?
-
-        /**
          * State of a process that already started but not terminated, yet.
          */
         public class Running(
@@ -120,8 +113,6 @@ public interface Process : ReturnValue {
             override val pid: Long,
             override val status: String = "Process $pid is running.",
         ) : State {
-            override val successful: Boolean? = null
-            override val textRepresentation: String? = "async computation"
             override fun toString(): String = status
         }
 
@@ -144,7 +135,7 @@ public interface Process : ReturnValue {
                 end: Instant,
                 pid: Long,
                 io: IOSequence<IO>,
-                override val status: String = "Process ${pid.formattedAs.input} terminated successfully at $end.",
+                override val status: String = "Process ${pid.formattedAs.input} terminated successfully at $end",
             ) : ExitState, Exited(start, end, pid, 0, io) {
                 override val successful: Boolean = true
                 override fun toString(): String = status
@@ -164,7 +155,7 @@ public interface Process : ReturnValue {
                  * Detailed information about the circumstances of a process's failed termination.
                  */
                 public val dump: String? = null,
-                override val status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}.",
+                override val status: String = "Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.error}",
             ) : ExitState, Exited(start, end, pid, exitCode, io) {
                 override val successful: Boolean = false
                 override val textRepresentation: String? get() = toString()
@@ -222,7 +213,7 @@ public interface Process : ReturnValue {
      * - [Running] for already started and not yet terminated processes
      * - [Exited] for started and no more running processes
      */
-    public interface ExitState : State {
+    public interface ExitState : State, ReturnValue {
 
         /**
          * Moment the process terminated.
@@ -256,15 +247,6 @@ public interface Process : ReturnValue {
             public fun Exec.handle(pid: Long, exitCode: Int, io: IOSequence<IO>): ExitState
         }
     }
-
-    /**
-     * Whether the process terminated successfully or failed.
-     *
-     * `null` is the process has not terminated, yet.
-     */
-    override val successful: Boolean? get() = state.successful
-    override val symbol: String get() = state.symbol
-    override val textRepresentation: String? get() = state.textRepresentation
 
     /**
      * A completable future that returns an instances of this process once
@@ -322,7 +304,17 @@ public val Process.exitCodeOrNull: Int? get() = (state as? Exited)?.exitCode
  *
  * Throws an [IllegalStateException] if the process has not [Exited].
  */
-public val Process.exitCode: Int get() = (state as? Exited)?.exitCode ?: throw ISE("Process $pid has not terminated.")
+public val Process.exitCode: Int get() = exitCodeOrNull ?: throw ISE("Process $pid has not terminated.")
+
+/**
+ * Returns `this` process terminated successfully.
+ */
+public val Process.successfulOrNull: Boolean? get() = (state as? Exited)?.successful
+
+/**
+ * Returns `this` process terminated successfully.
+ */
+public val Process.successful: Boolean get() = successfulOrNull ?: throw ISE("Process $pid has not terminated.")
 
 /**
  * Writes the given [input] strings with a slight delay between

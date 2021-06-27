@@ -8,9 +8,11 @@ import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.RendererProviders
 import koodies.exec.error
 import koodies.exec.exitCode
 import koodies.exec.output
+import koodies.exec.successful
 import koodies.io.Locations
 import koodies.io.copyTo
 import koodies.io.ls
@@ -18,13 +20,6 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
 import koodies.io.tempDir
 import koodies.junit.UniqueId
-import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
-import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.logging.InMemoryLogger
-import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.expectThatLogged
-import koodies.logging.logged
 import koodies.shell.ShellScript
 import koodies.test.HtmlFixture
 import koodies.test.Smoke
@@ -32,11 +27,16 @@ import koodies.test.SvgFixture
 import koodies.test.asserting
 import koodies.test.withTempDir
 import koodies.text.ANSI.Colors
-import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.resetLines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.tracing.TestSpan
+import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.BlockStyles.Dotted
+import koodies.tracing.rendering.BlockStyles.None
+import koodies.tracing.rendering.BlockStyles.Solid
+import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
@@ -61,21 +61,13 @@ class ExecutionIntegrationTest {
 
             io.output.ansiRemoved { isEqualTo("Hello, World!") }
 
-            io.ansiRemoved {
-                matchesCurlyPattern("""
-                    Executing echo Hello, World!
-                    Hello, World!
-                    Process {} terminated successfully at {}
-                """.trimIndent())
-            }
-
             exitCode { isEqualTo(0) }
             successful { isTrue() }
         }
     }
 
     @Test
-    fun `should process shell script`() {
+    fun TestSpan.`should process shell script`() {
 
         val shellScript = ShellScript {
             echo("Hello, World!")
@@ -88,32 +80,37 @@ class ExecutionIntegrationTest {
 
             counter { isEqualTo(2) }
 
-            BACKGROUND { logged.contains("#!(echo Hello, World!;echo Hello, Back!) ✔︎") }
+            expectThatRendered().matchesCurlyPattern("""
+                ╭──╴#!(echo Hello, World!;echo Hello, Back!)
+                │
+                │   Hello, World!                                                              
+                │   Hello, Back!                                                               
+                │
+                ╰──╴✔︎
+            """.trimIndent())
         }
     }
 
     @Test
-    fun `should nicely log`() {
+    fun TestSpan.`should nicely log`() {
 
         ShellScript {
             echo("Countdown!")
             (10 downTo 0).forEach { echo(it) }
             echo("Take Off")
-        }.exec.logging {
-            block {
-                name { "countdown" }
-                contentFormatter { FilteringFormatter { "${"->".ansi.red} $it" } }
-                decorationFormatter { Colors.brightRed }
-                border = SOLID
-            }
-        } check {
+        }.exec.logging(name = "countdown",
+            renderer = RendererProviders.block {
+                copy(
+                    contentFormatter = { "${"->".ansi.red} $it" },
+                    decorationFormatter = Colors.brightRed,
+                    blockStyle = BlockStyles.Solid,
+                )
+            }) check {
 
-            BACKGROUND {
-                logged.toStringMatchesCurlyPattern("""
+            expectThatRendered().matchesCurlyPattern("""
                 {{}}
                 ╭──╴countdown
                 │
-                │   -> Executing {}
                 │   -> Countdown!
                 │   -> 10
                 │   -> 9
@@ -127,12 +124,10 @@ class ExecutionIntegrationTest {
                 │   -> 1
                 │   -> 0
                 │   -> Take Off
-                │   -> Process {} terminated successfully at {}
                 │
                 ╰──╴✔︎
                 {{}}
             """.trimIndent())
-            }
         }
     }
 
@@ -144,13 +139,12 @@ class ExecutionIntegrationTest {
             (10 downTo 7).forEach { echo(it) }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
-        }.exec.logging { block { border { Border.NONE } } } check {
+        }.exec.logging(renderer = RendererProviders.noDetails { copy(blockStyle = None) }) check {
 
             state { isA<Failed>() }
 
             io.ansiRemoved {
                 matchesCurlyPattern("""
-                Executing {}
                 Countdown!
                 10
                 9
@@ -161,8 +155,7 @@ class ExecutionIntegrationTest {
                 ➜ A dump has been written to:
                   - {}koodies.dump.{}.log (unchanged)
                   - {}koodies.dump.{}.ansi-removed.log (ANSI escape/control sequences removed)
-                ➜ The last 8 lines are:
-                  Executing {}
+                ➜ The last 7 lines are:
                   Countdown!
                   10
                   9
@@ -225,7 +218,7 @@ class ExecutionIntegrationTest {
         resolve("koodies.png") asserting { exists() }
 
         // run a shell script
-        docker("rafib/awesome-cli-binaries", logger = null) {
+        docker("rafib/awesome-cli-binaries", renderer = null) {
             """
                /opt/bin/chafa -c full -w 9 koodies.png
             """
@@ -233,105 +226,90 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun InMemoryLogger.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun TestSpan.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         val executable: Executable<Exec> = CommandLine("echo", "test")
 
         with(executable) {
-            logging("existing logging context") {
-                exec.logging(this) { smart { name by "command line logging context"; decorationFormatter by { Colors.brightBlue.invoke(it) }; border = SOLID } }
+            spanning("existing logging context") {
+                exec.logging(
+                    name = "command line logging context",
+                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Solid) }
+                )
             }
         }
 
-        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightMagenta.invoke(it) }) {
-            logLine { "abc" }
-            executable.exec.logging(this) {
-                smart {
-                    name by "command line logging context"; decorationFormatter by { Colors.magenta.invoke(it) }; border = SOLID
-                }
-            }
+        spanning("existing logging context", { it(copy(blockStyle = Solid, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
+            log("abc")
+            executable.exec.logging(
+                name = "command line logging context",
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid) }
+            )
         }
-        logging("existing logging context", border = SOLID, decorationFormatter = { Colors.brightBlue.invoke(it) }) {
-            logLine { "abc" }
-            executable.exec.logging(this) {
-                smart {
-                    name by "command line logging context"; decorationFormatter by { Colors.blue.invoke(it) }; border = DOTTED
-                }
-            }
+        spanning("existing logging context", { it(copy(blockStyle = Solid, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
+            log("abc")
+            executable.exec.logging(
+                name = "command line logging context",
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted) }
+            )
         }
-        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightMagenta.invoke(it) }) {
-            logLine { "abc" }
-            executable.exec.logging(this) {
-                smart {
-                    name by "command line logging context"; decorationFormatter by { Colors.magenta.invoke(it) }; border = SOLID
-                }
-            }
+        spanning("existing logging context", { it(copy(blockStyle = Dotted, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
+            log("abc")
+            executable.exec.logging(
+                name = "command line logging context",
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid) }
+            )
         }
-        logging("existing logging context", border = DOTTED, decorationFormatter = { Colors.brightBlue.invoke(it) }) {
-            logLine { "abc" }
-            executable.exec.logging(this) {
-                smart {
-                    name by "command line logging context"; decorationFormatter by { Colors.blue.invoke(it) }; border = DOTTED
-                }
-            }
+        spanning("existing logging context", { it(copy(blockStyle = Dotted, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
+            log("abc")
+            executable.exec.logging(
+                name = "command line logging context",
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted) }
+            )
         }
 
-        expectThatLogged().matchesCurlyPattern("""
-            ╭──╴{}
+        expectThatRendered().matchesCurlyPattern("""
+            ╭──╴existing logging context
             │
-            │   ╭──╴existing logging context
+            │   ╭──╴command line logging context
             │   │
-            │   │   ╭──╴command line logging context
-            │   │   │
-            │   │   │   Executing echo test
-            │   │   │   test
-            │   │   │   Process {} terminated successfully at {}.
-            │   │   │
-            │   │   ╰──╴✔︎
+            │   │   test                                                                            
             │   │
             │   ╰──╴✔︎
-            │   ╭──╴existing logging context
+            │
+            ╰──╴✔︎
+            ╭──╴existing logging context
+            │
+            │   abc                                                                             
+            │   ╭──╴command line logging context
             │   │
-            │   │   abc
-            │   │   ╭──╴command line logging context
-            │   │   │
-            │   │   │   Executing echo test
-            │   │   │   test
-            │   │   │   Process {} terminated successfully at {}.
-            │   │   │
-            │   │   ╰──╴✔︎
+            │   │   test                                                                            
             │   │
             │   ╰──╴✔︎
-            │   ╭──╴existing logging context
-            │   │
-            │   │   abc
-            │   │   ▶ command line logging context
-            │   │   · Executing echo test
-            │   │   · test
-            │   │   · Process {} terminated successfully at {}.
-            │   │   ✔︎
-            │   │
-            │   ╰──╴✔︎
-            │   ▶ existing logging context
-            │   · abc
-            │   · ╭──╴command line logging context
-            │   · │
-            │   · │   Executing echo test
-            │   · │   test
-            │   · │   Process {} terminated successfully at {}.
-            │   · │
-            │   · ╰──╴✔︎
-            │   ✔︎
-            │   ▶ existing logging context
-            │   · abc
-            │   · ▶ command line logging context
-            │   · · Executing echo test
-            │   · · test
-            │   · · Process {} terminated successfully at {}.
-            │   · ✔︎
+            │
+            ╰──╴✔︎
+            ╭──╴existing logging context
+            │
+            │   abc                                                                             
+            │   ▶ command line logging context
+            │   · test                                                                            
             │   ✔︎
             │
             ╰──╴✔︎
+            ▶ existing logging context
+            · abc                                                                             
+            · ╭──╴command line logging context
+            · │
+            · │   test                                                                            
+            · │
+            · ╰──╴✔︎
+            ✔︎
+            ▶ existing logging context
+            · abc                                                                             
+            · ▶ command line logging context
+            · · test                                                                            
+            · ✔︎
+            ✔︎
         """.trimIndent())
     }
 }

@@ -35,8 +35,7 @@ import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
 
 /**
- * [DockerCommandLine] that runs a command specified by its [redirects], [environment], [workingDirectory],
- * [command] and [arguments] using the specified [image] using the specified [options]
+ * Integration of [Docker] `run` that runs the specified [executable] using the specified [image] using the specified [options].
  */
 public class DockerRunCommandLine(
 

@@ -1,8 +1,10 @@
 package koodies.exec
 
+import io.opentelemetry.context.Context
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
 import koodies.collections.synchronizedSetOf
+import koodies.exec.Process.ExitState
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.exec.ProcessingMode.Interactivity
 import koodies.exec.ProcessingMode.Interactivity.Interactive
@@ -10,21 +12,18 @@ import koodies.exec.ProcessingMode.Interactivity.Interactive.Companion.Interacti
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
-import koodies.exec.Processors.ioProcessingThreadPool
 import koodies.exec.Processors.noopProcessor
 import koodies.jvm.completableFuture
-import koodies.logging.BlockRenderingLogger
-import koodies.logging.SimpleRenderingLogger
-import koodies.logging.logReturnValue
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
-import koodies.runtime.isDebugging
+import koodies.tracing.CurrentSpan
+import koodies.tracing.rendering.RendererProvider
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Semaphore
 import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
@@ -38,18 +37,6 @@ public typealias Processor<E> = E.(IO) -> Unit
 public object Processors {
 
     /**
-     * Thread pool used for processing the [IO] of [Exec].
-     */
-    public var ioProcessingThreadPool: ExecutorService = Executors.newCachedThreadPool()
-
-    /**
-     * A [Processor] that prints the encountered [IO] using the specified [logger].
-     */
-    public fun <E : Exec> loggingProcessor(logger: SimpleRenderingLogger): Processor<E> = { io ->
-        logger.logLine { io }
-    }
-
-    /**
      * A [Processor] that does nothing with the [IO].
      *
      * This processor is suited if the [Exec]'s input and output streams
@@ -59,23 +46,11 @@ public object Processors {
 }
 
 /**
- * Creates a [Processor] that processes [IO] by logging it using the `this` [SimpleRenderingLogger].
- *
- * Returns a [Processors.loggingProcessor] if `this` is `null`.
- */
-public fun <E : Exec> E.terminationLoggingProcessor(logger: SimpleRenderingLogger = BlockRenderingLogger(toString(), null)): Processor<E> {
-    addPostTerminationCallback { exitState ->
-        if (async) logger.logReturnValue(exitState)
-    }
-    return Processors.loggingProcessor(logger)
-}
-
-/**
  * Just consumes the [IO] / depletes the input and output streams
  * so they get logged.
  */
 public inline fun <reified E : Exec> E.processSilently(): E =
-    process({ async }, noopProcessor())
+    process(LoggingOptions(null, RendererProviders.NOOP), { async }, noopProcessor())
 
 private val asynchronouslyProcessed: MutableSet<Exec> = synchronizedSetOf()
 
@@ -88,7 +63,30 @@ public var Exec.async: Boolean
         if (value) asynchronouslyProcessed.add(this) else asynchronouslyProcessed.remove(this)
     }
 
-public data class ProcessingMode(val synchronicity: Synchronicity, val interactivity: Interactivity) {
+/**
+ * Options for the way the processing of an [Exec] is logged.
+ */
+public data class LoggingOptions(
+
+    /**
+     * Name of what is being executed.
+     */
+    public val name: String? = null,
+
+    /**
+     * Renderer to use for logging.
+     */
+    public val renderer: RendererProvider = { it(this) },
+) {
+    public fun spanning(exec: Exec, block: CurrentSpan.() -> ExitState) {
+        koodies.tracing.spanning(name ?: exec.commandLine.summary, renderer = renderer, block = block)
+    }
+}
+
+public data class ProcessingMode(
+    val synchronicity: Synchronicity,
+    val interactivity: Interactivity,
+) {
 
     public val isSync: Boolean get() = synchronicity == Sync
 
@@ -127,9 +125,10 @@ public data class ProcessingMode(val synchronicity: Synchronicity, val interacti
  * printed to the console.
  */
 public fun <E : Exec> E.process(
-    mode: ProcessingModeContext.() -> ProcessingMode,
+    loggingOptions: LoggingOptions,
+    modeInit: ProcessingModeContext.() -> ProcessingMode,
     processor: Processor<E>,
-): E = process(ProcessingMode(mode), processor)
+): E = process(loggingOptions, ProcessingMode(modeInit), processor)
 
 /**
  * Attaches to the [Exec.outputStream] and [Exec.errorStream]
@@ -139,13 +138,56 @@ public fun <E : Exec> E.process(
  * printed to the console.
  */
 public fun <E : Exec> E.process(
-    mode: ProcessingMode = ProcessingMode(Sync, NonInteractive(null)),
+    loggingOptions: LoggingOptions = LoggingOptions(),
+    mode: ProcessingMode = ProcessingMode { sync },
     processor: Processor<E>,
 ): E = when (mode.synchronicity) {
-    Sync -> processSynchronously(mode.interactivity, processor)
-    Async -> processAsynchronously(mode.interactivity, processor)
+    Sync -> processSynchronously(loggingOptions, mode.interactivity, processor)
+    Async -> processAsynchronously(loggingOptions, mode.interactivity, processor)
 }
 
+/**
+ * Attaches to the [Process.inputStream] and [Process.errorStream]
+ * of the specified [Process] and passed all [IO] to the specified [processor]
+ * **synchronously**.
+ *
+ * If no [processor] is specified a [Processors.eventRecordingProcessor] prints
+ * all [IO] to the console.
+ */
+public fun <P : Exec> P.processSynchronously(
+    loggingOptions: LoggingOptions = LoggingOptions(),
+    interactivity: Interactivity = NonInteractive(null),
+    processor: Processor<P> = noopProcessor(),
+): P = apply {
+    loggingOptions.spanning(this) {
+        metaStream.subscribe { processor(this@apply, it) }
+
+        val readers = listOf(
+            NonBlockingLineReader(outputStream) { line ->
+                val output = IO.Output typed line
+                event(event = output)
+                processor(this@apply, output)
+            },
+            NonBlockingLineReader(errorStream) { line ->
+                val error = IO.Error typed line
+                event(event = error)
+                processor(this@apply, error)
+            },
+        )
+
+        if (interactivity is NonInteractive && interactivity.execInputStream != null) {
+            interactivity.execInputStream.copyTo(inputStream)
+            inputStream.close()
+        }
+        while (readers.any { !it.done }) {
+            readers.filter { !it.done }.forEach { ioReader ->
+                ioReader.use { ioReader.read() }
+            }
+        }
+
+        onExit.join()
+    }
+}
 
 /**
  * Attaches to the [Exec.outputStream] and [Exec.errorStream]
@@ -157,88 +199,73 @@ public fun <E : Exec> E.process(
  * TODO try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <E : Exec> E.processAsynchronously(
+    loggingOptions: LoggingOptions = LoggingOptions(),
     interactivity: Interactivity = NonInteractive(null),
     processor: Processor<E> = noopProcessor(),
 ): E = apply {
+    val preparationMutex = Semaphore(0) // block until preparation has completed; Exec.onExit must not be called until callbacks are registered
+    val exitStateMutex = Semaphore(0)
+    val exitStateProcessedMutex = Semaphore(0)
+    val threadPool = Context.taskWrapping(Executors.newCachedThreadPool())
+    threadPool.completableFuture {
+        loggingOptions.spanning(this) {
+            async = true
+            metaStream.subscribe { processor(this@apply, it) }
 
-    async = true
-    metaStream.subscribe { processor(this, it) }
-
-    val (execInputStream: InputStream?, nonBlockingReader: Boolean) = when (interactivity) {
-        is Interactive -> null to interactivity.nonBlocking
-        is NonInteractive -> interactivity.execInputStream to false
-    }
-
-    val inputProvider = execInputStream?.run {
-        ioProcessingThreadPool.completableFuture {
-            use { execInputStream ->
-                var bytesCopied: Long = 0
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                var bytes = execInputStream.read(buffer)
-                while (bytes >= 0) {
-                    inputStream.write(buffer, 0, bytes)
-                    bytesCopied += bytes
-                    bytes = execInputStream.read(buffer)
-                }
+            val (execInputStream: InputStream?, nonBlockingReader: Boolean) = when (interactivity) {
+                is Interactive -> null to interactivity.nonBlocking
+                is NonInteractive -> interactivity.execInputStream to false
             }
-            inputStream.close()
-        }.thenPropagateException("stdin")
-    }
 
-    val outputConsumer = ioProcessingThreadPool.completableFuture {
-        outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
-            processor(this, IO.Output typed line)
+            val inputProvider = execInputStream?.run {
+                threadPool.completableFuture {
+                    use { execInputStream ->
+                        var bytesCopied: Long = 0
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var bytes = execInputStream.read(buffer)
+                        while (bytes >= 0) {
+                            inputStream.write(buffer, 0, bytes)
+                            bytesCopied += bytes
+                            bytes = execInputStream.read(buffer)
+                        }
+                    }
+                    inputStream.close()
+                }.thenPropagateException("stdin")
+            }
+
+            val outputConsumer = threadPool.completableFuture {
+                outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
+                    val output = IO.Output typed line
+                    event(event = output)
+                    processor(this@apply, output)
+                }
+            }.thenPropagateException("stdout")
+
+            val errorConsumer = threadPool.completableFuture {
+                errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
+                    val error = IO.Error typed line
+                    event(event = error)
+                    processor(this@apply, error)
+                }
+            }.thenPropagateException("stderr")
+
+            addPreTerminationCallback {
+                CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).join()
+            }
+
+            lateinit var exitState: ExitState
+            addPostTerminationCallback {
+                exitState = it
+                exitStateMutex.release()
+                exitStateProcessedMutex.acquire()
+            }
+            preparationMutex.release()
+            exitStateMutex.acquire()
+            exitState
         }
-    }.thenPropagateException("stdout")
-
-    val errorConsumer = ioProcessingThreadPool.completableFuture {
-        errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
-            processor(this, IO.Error typed line)
-        }
-    }.thenPropagateException("stderr")
-
-    addPreTerminationCallback {
-        CompletableFuture.allOf(*listOfNotNull(inputProvider, outputConsumer, errorConsumer).toTypedArray()).join()
+        exitStateProcessedMutex.release()
     }
-
-    ioProcessingThreadPool.completableFuture {
-        kotlin.runCatching { onExit.join() }.onFailure { if (isDebugging) throw it }
-    }
-}
-
-/**
- * Attaches to the [Process.inputStream] and [Process.errorStream]
- * of the specified [Process] and passed all [IO] to the specified [processor]
- * **synchronously**.
- *
- * If no [processor] is specified a [Processors.loggingProcessor] prints
- * all [IO] to the console.
- */
-public fun <P : Exec> P.processSynchronously(
-    interactivity: Interactivity = NonInteractive(null),
-    processor: Processor<P> = terminationLoggingProcessor(),
-): P {
-
-    metaStream.subscribe { processor(this, it) }
-
-    val readers = listOf(
-        NonBlockingLineReader(outputStream) { line -> processor(this, IO.Output typed line) },
-        NonBlockingLineReader(errorStream) { line -> processor(this, IO.Error typed line) },
-    )
-
-    if (interactivity is NonInteractive && interactivity.execInputStream != null) {
-        interactivity.execInputStream.copyTo(inputStream)
-        inputStream.close()
-    }
-    while (readers.any { !it.done }) {
-        readers.filter { !it.done }.forEach { ioReader ->
-            ioReader.use { ioReader.read() }
-        }
-    }
-
-    onExit.join()
-
-    return this
+    preparationMutex.acquire()
 }
 
 private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =

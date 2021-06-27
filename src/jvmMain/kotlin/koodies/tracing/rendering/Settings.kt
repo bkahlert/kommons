@@ -12,4 +12,6 @@ public data class Settings(
 
     public val blockStyle: BlockStyle = BlockStyles.DEFAULT,
     public val oneLineStyle: Style = OneLineStyles.DEFAULT,
+
+    public val printer: Printer = { println(it) },
 )

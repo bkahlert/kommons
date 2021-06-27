@@ -1,8 +1,7 @@
 package koodies.debug
 
-import koodies.logging.InMemoryLogger
-import koodies.logging.expectThatLogged
 import koodies.test.SystemIORead
+import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.junit.platform.commons.support.AnnotationSupport
@@ -21,17 +20,17 @@ class DebugTest {
 
     @SystemIORead
     @Test
-    fun InMemoryLogger.`should not automatically log to console without @Debug`(output: CapturedOutput) {
-        logLine { "test" }
+    fun TestSpan.`should not automatically log to console without @Debug`(output: CapturedOutput) {
+        log("test")
 
-        expectThatLogged().contains("test")
+        expectThatRendered().contains("test")
         expectThat(output).isEmpty()
     }
 
     @Test
-    fun InMemoryLogger.`should not catch exceptions`() {
+    fun `should not catch exceptions`() {
         expectThrows<RuntimeException> {
-            logResult<Any>(Result.failure(RuntimeException("test")))
+            throw RuntimeException("test")
         }
     }
 }

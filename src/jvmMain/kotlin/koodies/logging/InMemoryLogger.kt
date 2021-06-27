@@ -63,7 +63,7 @@ public open class InMemoryLogger(
         }
 
         public val NO_RETURN_VALUE: ReturnValue = object : ReturnValue {
-            override val successful: Boolean? = null
+            override val successful: Boolean = false
         }
     }
 }

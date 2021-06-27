@@ -10,10 +10,10 @@ import koodies.io.path.extensionOrNull
 import koodies.io.path.pathString
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeBytes
-import koodies.logging.MutedRenderingLogger
-import koodies.logging.SimpleRenderingLogger
 import koodies.text.ANSI
 import koodies.text.ANSI.resetLines
+import koodies.tracing.rendering.Renderer.Companion.NOOP
+import koodies.tracing.rendering.RendererProvider
 import java.nio.file.Path
 import kotlin.io.path.isReadable
 import kotlin.io.path.isRegularFile
@@ -50,20 +50,20 @@ public fun InMemoryFile.copyToTemp(
 /**
  * Returns this image as a bitmap. The image is automatically rasterized if necessary.
  */
-public fun InMemoryImage.rasterize(logger: SimpleRenderingLogger = MutedRenderingLogger): ByteArray =
+public fun InMemoryImage.rasterize(renderer: RendererProvider = { NOOP }): ByteArray =
     if (isBitmap) data
     else runWithTempDir {
         val rasterized = "image.png"
-        docker(LibRSvg, "-z", 5, "--output", rasterized, logger = logger, inputStream = data.inputStream())
+        docker(LibRSvg, "-z", 5, "--output", rasterized, renderer = renderer, inputStream = data.inputStream())
         resolve(rasterized).readBytes()
     }
 
 /**
  * Renders this image to a sequence of [ANSI] escape codes.
  */
-public fun InMemoryImage.toAsciiArt(logger: SimpleRenderingLogger = MutedRenderingLogger): String = runWithTempDir {
-    val fileName = resolve(this@toAsciiArt.baseName).writeBytes(rasterize(logger)).fileName
-    docker(Chafa, logger = logger) { "/opt/bin/chafa -c full -w 9 $fileName" }
+public fun InMemoryImage.toAsciiArt(renderer: RendererProvider = { NOOP }): String = runWithTempDir {
+    val fileName = resolve(this@toAsciiArt.baseName).writeBytes(rasterize(renderer)).fileName
+    docker(Chafa, renderer = renderer) { "/opt/bin/chafa -c full -w 9 $fileName" }
         .io.output.ansiKept.resetLines()
 }
 

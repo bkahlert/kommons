@@ -1,7 +1,6 @@
 package koodies.io
 
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
-import koodies.logging.InMemoryLogger
 import koodies.text.randomString
 import koodies.time.seconds
 import org.jline.utils.InputStreamReader
@@ -50,7 +49,7 @@ class NonBlockingTest {
         }
 
         @Test
-        fun InMemoryLogger.`should read no non-BEM unicode extremely slow input streams`() {
+        fun `should read no non-BEM unicode extremely slow input streams`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
             val reader = NonBlocking.nonBlocking(randomString(), NonBlocking.nonBlocking(randomString(), BufferedInputStream(inputStream)), Charsets.UTF_8)
@@ -59,7 +58,7 @@ class NonBlockingTest {
         }
 
         @Test
-        fun InMemoryLogger.`should read no non-BEM unicode extremely slow input streams if buffered`() {
+        fun `should read no non-BEM unicode extremely slow input streams if buffered`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
             val reader =
@@ -70,7 +69,7 @@ class NonBlockingTest {
         }
 
         @Test
-        fun InMemoryLogger.`should be equally readable like any other byte input stream`() {
+        fun `should be equally readable like any other byte input stream`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
 

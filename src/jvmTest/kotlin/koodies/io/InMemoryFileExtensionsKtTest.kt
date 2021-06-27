@@ -4,12 +4,12 @@ import koodies.io.file.pathString
 import koodies.io.path.deleteOnExit
 import koodies.io.path.hasContent
 import koodies.junit.UniqueId
-import koodies.logging.InMemoryLogger
 import koodies.test.Slow
 import koodies.test.SvgFixture
 import koodies.test.expecting
 import koodies.test.withTempDir
 import koodies.text.containsAnsi
+import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.assertions.endsWith
@@ -71,8 +71,8 @@ class InMemoryFileExtensionsKtTest {
     }
 
     @Slow @Test
-    fun `should create ASCII art`(uniqueId: UniqueId, logger: InMemoryLogger) = withTempDir(uniqueId) {
-        val asciiArt = SvgFixture.toAsciiArt(logger)
+    fun TestSpan.`should create ASCII art`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        val asciiArt = SvgFixture.toAsciiArt()
         expecting { asciiArt } that {
             containsAnsi()
             length.isGreaterThan(1000)

@@ -9,14 +9,14 @@ import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.ProcessingMode.Interactivity.Interactive
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.exec.RendererProviders
 import koodies.exec.parse
+import koodies.exec.successful
 import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.moveTo
 import koodies.io.path.pathString
 import koodies.io.randomDirectory
-import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.SimpleRenderingLogger
 import koodies.map
 import koodies.or
 import koodies.regex.RegularExpressions
@@ -26,6 +26,7 @@ import koodies.text.Semantics
 import koodies.text.Semantics.formattedAs
 import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
+import koodies.tracing.rendering.RendererProvider
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.net.URI
@@ -61,7 +62,7 @@ public object Docker {
          * - `info["server.server-version"]`
          * - `info["server", "server-version"]`
          */
-        public operator fun get(vararg keys: String): String? = BACKGROUND.get(*keys)
+        public operator fun get(vararg keys: String): String? = RendererProviders.noDetails().get(*keys)
 
         /**
          * Returns the information identified by the given [keys].
@@ -75,11 +76,12 @@ public object Docker {
          * - `info["server.server-version"]`
          * - `info["server", "server-version"]`
          */
-        public operator fun SimpleRenderingLogger.get(vararg keys: String): String? =
+        public operator fun RendererProvider.get(vararg keys: String): String? =
             with(keys.flatMap { it.split(".") }.map { it.unify() }.toMutableList()) {
-                DockerInfoCommandLine {}.exec.logging(this@get) {
-                    noDetails("Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}")
-                }.parse.columns<String, Failed>(1) { (line) ->
+                DockerInfoCommandLine {}.exec.logging(
+                    name = "Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}",
+                    renderer = this@get,
+                ).parse.columns<String, Failed>(1) { (line) ->
                     if (isNotEmpty() && line.substringBefore(":").unify() == first()) {
                         removeAt(0)
                         if (isEmpty()) line.substringAfter(":").trim()
@@ -106,7 +108,7 @@ public object Docker {
     /**
      * Whether the Docker engine itself is running.
      */
-    public val engineRunning: Boolean get() = DockerInfoCommandLine {}.exec().successful == true
+    public val engineRunning: Boolean get() = DockerInfoCommandLine {}.exec.invoke().successful
 
     /**
      * Returns a [DockerContainer] representing a Docker container of the same
@@ -124,8 +126,8 @@ public object Docker {
         automated: Boolean? = null,
         official: Boolean? = null,
         limit: Int = 100,
-        logger: SimpleRenderingLogger = BACKGROUND,
-    ): List<DockerSeachResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, logger)
+        renderer: RendererProvider? = null,
+    ): List<DockerSeachResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, renderer)
 
     /**
      * Executes the given [command] and its [arguments] in
@@ -143,9 +145,9 @@ public object Docker {
         workingDirectory: Path,
         command: Any? = null,
         vararg arguments: Any,
-        logger: SimpleRenderingLogger? = BACKGROUND,
+        renderer: RendererProvider? = null,
         inputStream: InputStream? = null,
-    ): DockerExec = execute(image, workingDirectory, logger, inputStream) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+    ): DockerExec = execute(image, workingDirectory, renderer, inputStream) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
 
     /**
      * Builds a shell script using the given [scriptInit] and executes it in
@@ -161,10 +163,10 @@ public object Docker {
     public fun exec(
         image: DockerImage,
         workingDirectory: Path,
-        logger: SimpleRenderingLogger? = BACKGROUND,
+        renderer: RendererProvider? = null,
         inputStream: InputStream? = null,
         scriptInit: ScriptInitWithWorkingDirectory,
-    ): DockerExec = execute(image, workingDirectory, logger, inputStream) { workDir -> ShellScript { scriptInit(workDir) } }
+    ): DockerExec = execute(image, workingDirectory, renderer, inputStream) { workDir -> ShellScript { scriptInit(workDir) } }
 
     /**
      * Builds an [Executable] using the given [executableProvider] and executes it in
@@ -180,7 +182,7 @@ public object Docker {
     private fun execute(
         image: DockerImage,
         workingDirectory: Path,
-        logger: SimpleRenderingLogger? = BACKGROUND,
+        renderer: RendererProvider? = null,
         inputStream: InputStream? = null,
         executableProvider: (ContainerPath) -> Executable<Exec>,
     ): DockerExec {
@@ -190,7 +192,7 @@ public object Docker {
             workingDirectory { containerPath }
         }.run {
             val interactivity = if (inputStream != null) NonInteractive(inputStream) else Interactive(false)
-            if (logger != null) exec.mode { sync(interactivity) }.logging(logger)
+            if (renderer != null) exec.mode { sync(interactivity) }.logging(renderer = renderer)
             else exec.mode { sync(interactivity) }()
         }
     }
@@ -213,9 +215,13 @@ public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) 
  * of the created process.
  */
 public fun Path.docker(
-    image: String, command: Any? = null, vararg arguments: Any, logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null,
+    image: String,
+    command: Any? = null,
+    vararg arguments: Any,
+    renderer: RendererProvider? = null,
+    inputStream: InputStream? = null,
 ): DockerExec =
-    Docker.exec(DockerImage { image }, this, command, *arguments, logger = logger, inputStream = inputStream)
+    Docker.exec(DockerImage { image }, this, command, *arguments, renderer = renderer, inputStream = inputStream)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -232,10 +238,10 @@ public fun Path.docker(
     imageInit: DockerImageInit,
     command: Any? = null,
     vararg arguments: Any,
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    Docker.exec(DockerImage(imageInit), this, command, *arguments, logger = logger, inputStream = inputStream)
+    Docker.exec(DockerImage(imageInit), this, command, *arguments, renderer = renderer, inputStream = inputStream)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -252,10 +258,10 @@ public fun Path.docker(
     image: DockerImage,
     command: Any? = null,
     vararg arguments: Any,
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    Docker.exec(image, this, command, *arguments, logger = logger, inputStream = inputStream)
+    Docker.exec(image, this, command, *arguments, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -270,11 +276,11 @@ public fun Path.docker(
  */
 public fun Path.docker(
     image: String,
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    Docker.exec(DockerImage { image }, this, logger, inputStream, scriptInit)
+    Docker.exec(DockerImage { image }, this, renderer, inputStream, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -289,11 +295,11 @@ public fun Path.docker(
  */
 public fun Path.docker(
     imageInit: DockerImageInit,
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    Docker.exec(DockerImage(imageInit), this, logger, inputStream, scriptInit)
+    Docker.exec(DockerImage(imageInit), this, renderer, inputStream, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -308,11 +314,11 @@ public fun Path.docker(
  */
 public fun Path.docker(
     image: DockerImage,
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    Docker.exec(image, this, logger, inputStream, scriptInit)
+    Docker.exec(image, this, renderer, inputStream, scriptInit)
 
 
 /*
@@ -330,8 +336,13 @@ public fun Path.docker(
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null): DockerExec =
-    docker(DockerImage { "ubuntu" }, command, *arguments, logger = logger, inputStream = inputStream)
+public fun Path.ubuntu(
+    command: Any? = null,
+    vararg arguments: Any,
+    renderer: RendererProvider? = null,
+    inputStream: InputStream? = null,
+): DockerExec =
+    docker(DockerImage { "ubuntu" }, command, *arguments, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -344,8 +355,12 @@ public fun Path.ubuntu(command: Any? = null, vararg arguments: Any, logger: Simp
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.ubuntu(logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    docker(DockerImage { "ubuntu" }, logger, inputStream, scriptInit)
+public fun Path.ubuntu(
+    renderer: RendererProvider? = null,
+    inputStream: InputStream? = null,
+    scriptInit: ScriptInitWithWorkingDirectory,
+): DockerExec =
+    docker(DockerImage { "ubuntu" }, renderer, inputStream, scriptInit)
 
 
 /*
@@ -366,10 +381,10 @@ public fun Path.ubuntu(logger: SimpleRenderingLogger? = BACKGROUND, inputStream:
 public fun Path.busybox(
     command: Any? = null,
     vararg arguments: Any,
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    docker(DockerImage { "busybox" }, command, *arguments, logger = logger, inputStream = inputStream)
+    docker(DockerImage { "busybox" }, command, *arguments, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -382,8 +397,12 @@ public fun Path.busybox(
  * If [inputStream] is set, the contents will be piped to the standard input
  * of the created process.
  */
-public fun Path.busybox(logger: SimpleRenderingLogger? = BACKGROUND, inputStream: InputStream? = null, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    docker(DockerImage { "busybox" }, logger, inputStream, scriptInit)
+public fun Path.busybox(
+    renderer: RendererProvider? = null,
+    inputStream: InputStream? = null,
+    scriptInit: ScriptInitWithWorkingDirectory,
+): DockerExec =
+    docker(DockerImage { "busybox" }, renderer, inputStream, scriptInit)
 
 
 /*
@@ -400,8 +419,11 @@ private val curlJqImage = DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
-public fun Path.curlJq(logger: SimpleRenderingLogger? = BACKGROUND, scriptInit: ScriptInitWithWorkingDirectory): DockerExec =
-    docker(curlJqImage, logger, null, scriptInit)
+public fun Path.curlJq(
+    renderer: RendererProvider? = null,
+    scriptInit: ScriptInitWithWorkingDirectory,
+): DockerExec =
+    docker(curlJqImage, renderer, null, scriptInit)
 
 /**
  * Runs a [curl](https://curl.se/docs/manpage.html) with the given [arguments] in
@@ -411,20 +433,27 @@ public fun Path.curlJq(logger: SimpleRenderingLogger? = BACKGROUND, scriptInit: 
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  */
-public fun Path.curl(vararg arguments: Any, logger: SimpleRenderingLogger? = BACKGROUND): DockerExec =
-    docker(curlJqImage, "curl", *arguments, logger = logger)
+public fun Path.curl(
+    vararg arguments: Any,
+    renderer: RendererProvider? = null,
+): DockerExec =
+    docker(curlJqImage, "curl", *arguments, renderer = renderer)
 
 /**
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
-public fun Path.download(uri: String, fileName: String? = null, logger: SimpleRenderingLogger? = BACKGROUND): Path =
+public fun Path.download(
+    uri: String,
+    fileName: String? = null,
+    renderer: RendererProvider? = null,
+): Path =
     if (fileName != null) {
-        resolve(fileName).also { curl("--location", uri, "-o", fileName, logger = logger) }
+        resolve(fileName).also { curl("--location", uri, "-o", fileName, renderer = renderer) }
     } else {
         val downloadDir = randomDirectory()
         downloadDir.run {
-            curl("--location", "--remote-name", "--remote-header-name", "--compressed", uri, logger = logger)
+            curl("--location", "--remote-name", "--remote-header-name", "--compressed", uri, renderer = renderer)
             listDirectoryEntriesRecursively().singleOrNull()?.let { file ->
                 file.moveTo(parent.resolve(file.cleanFileName()))
             } ?: throw FileNotFoundException("Failed to download $uri")
@@ -435,8 +464,12 @@ public fun Path.download(uri: String, fileName: String? = null, logger: SimpleRe
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
-public fun Path.download(uri: URI, fileName: String? = null, logger: SimpleRenderingLogger? = BACKGROUND): Path =
-    download(uri.toString(), fileName, logger)
+public fun Path.download(
+    uri: URI,
+    fileName: String? = null,
+    renderer: RendererProvider? = null,
+): Path =
+    download(uri.toString(), fileName, renderer)
 
 private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }
 
@@ -453,7 +486,7 @@ private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathSt
 @Suppress("SpellCheckingInspection")
 public fun Path.dockerPi(
     name: String = "dockerpi".withRandomSuffix(),
-    logger: SimpleRenderingLogger? = BACKGROUND,
+    renderer: RendererProvider? = null,
     processor: DockerExec.(IO) -> Unit,
 ): DockerExec =
     DockerRunCommandLine {
@@ -462,4 +495,4 @@ public fun Path.dockerPi(
             name { name }
             mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
         }
-    }.exec.mode { async(Interactive { nonBlocking }) }.processing(logger, processor = processor)
+    }.exec.mode { async(Interactive { nonBlocking }) }.processing(renderer = renderer, processor = processor)

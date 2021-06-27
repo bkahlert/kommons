@@ -34,7 +34,7 @@ open class SystemCapture {
         lock.withLock { capturedStrings.add(IO.Error typed string) }
     }
 
-    public fun useCapturedStrings(transform: (IO) -> Unit) {
+    fun useCapturedStrings(transform: (IO) -> Unit) {
         lock.withLock {
             capturedStrings.forEach { transform(it) }
         }

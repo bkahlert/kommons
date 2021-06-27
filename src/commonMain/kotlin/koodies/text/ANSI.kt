@@ -132,7 +132,7 @@ public object ANSI {
             public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter = FilteringFormatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
-             * A formatter that leaves the [text] unchanged.
+             * A formatter that applies [Any.toString] to its text.
              */
             public val ToString: FilteringFormatter = FilteringFormatter { text -> text.toString() }
         }

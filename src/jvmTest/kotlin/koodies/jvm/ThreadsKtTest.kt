@@ -1,6 +1,5 @@
 package koodies.jvm
 
-import koodies.logging.InMemoryLogger
 import koodies.test.Slow
 import koodies.time.seconds
 import koodies.time.sleep
@@ -14,6 +13,7 @@ import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import java.util.concurrent.CompletableFuture
@@ -28,17 +28,24 @@ class ThreadsKtTest {
     inner class BusyThreadTest {
 
         @Slow @Test
-        fun `should not complete until asked`(tracer: InMemoryLogger) {
-            val thread = BusyThread(tracer)
+        fun `should not complete until asked`() {
+            val thread = BusyThread()
 
             val start = System.currentTimeMillis()
             while (thread.isAlive) {
                 if (System.currentTimeMillis() - start > 2000) {
                     thread.complete()
+                    break
                 }
             }
+            while (thread.isAlive) {
+                // wait for thread to finish
+            }
 
-            expectThat(System.currentTimeMillis() - start).isGreaterThan(2000)
+            expectThat(thread.isAlive).isFalse()
+            expectThat(System.currentTimeMillis() - start)
+                .isGreaterThan(2000)
+                .isLessThan(3000)
         }
     }
 

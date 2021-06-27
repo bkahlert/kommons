@@ -6,7 +6,6 @@ import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.repeat
 import koodies.tracing.TestSpan
-import koodies.tracing.log
 import org.junit.jupiter.api.Test
 import strikt.assertions.containsExactly
 

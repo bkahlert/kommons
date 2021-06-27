@@ -164,7 +164,7 @@ public interface PseudoBuilder<T> : Builder<() -> T, T> {
  *
  * What sounds like a downside is quite handy to model **micro domain specific
  * languages** of which the scope reaches from
- * here 👉 `{ "mini".DSL to result }` 👈 to here.
+ * here 👉 `{ "mini".DSL to result }` 👈 to here.
  *
  * The build can only be finalized if the transformations lead to a return
  * value of type [R] (respectively [S] if post-processing is applied).

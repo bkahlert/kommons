@@ -5,22 +5,22 @@ import koodies.exec.IO.Error
 import koodies.exec.IO.Input
 import koodies.exec.IO.Meta
 import koodies.exec.IO.Output
-import koodies.logging.ReturnValue
 import koodies.text.ANSI.Style
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.mapLines
-import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.time.Now
-import java.nio.file.Path
+import koodies.tracing.CurrentSpan
+import koodies.tracing.Event
 
 /**
  * Instances are ANSI formatted output with a certain type.
  */
 public sealed class IO(
+    private val type: String,
     /**
      * Contains the originally encountered [IO].
      */
@@ -29,12 +29,17 @@ public sealed class IO(
      * Formats a strings to like an output of this type.
      */
     private val formatAnsi: (AnsiString) -> String,
-) : AnsiString(*text.tokens) {
+) : AnsiString(*text.tokens), Event {
 
     /**
      * Contains this [text] with the format of this type applied.
      */
+    @Deprecated("just use text")
     public val formatted: String by lazy { formatAnsi(text) }
+
+    override val name: CharSequence = "koodies.exec.io"
+    override val attributes: Map<CharSequence, Any>
+        get() = mapOf("type" to type, CurrentSpan.Text to text.ansiRemoved, CurrentSpan.Rendered to text)
 
     override fun toString(): String = formatted
 
@@ -59,36 +64,20 @@ public sealed class IO(
     /**
      * An [IO] that represents information about a [Process].
      */
-    public sealed class Meta(text: String) : IO(text.asAnsiString(), { text.formattedAs.meta }) {
-
-        /**
-         * Information that a [Process] is starting.
-         */
-        public class Starting(commandLine: CommandLine) : Meta("Executing ${commandLine.summary}")
-
-        /**
-         * Information that a [Path] is a resource used to start a [Process].
-         */
-        public class File(path: Path) : Meta("${Symbols.Document} ${path.toUri()}")
+    public sealed class Meta(type: String, text: String) : IO(type, text.asAnsiString(), { text.formattedAs.meta }) {
 
         /**
          * Not further specified information about a [Process].
          */
-        public class Text(text: String) : Meta(text)
+        public class Text(text: String) : Meta("meta.text", text)
 
         /**
          * Information about a created [Process] dump.
          */
-        public class Dump(dump: String) : Meta(dump.also { require(it.contains("dump")) { "Please use ${Text::class.simpleName} for free-form text." } })
-
-        /**
-         * Information about the termination of a [Process].
-         */
-        public class Terminated(process: Process) : Meta("Process ${process.pid} terminated successfully at $Now."), ReturnValue by process
+        public class Dump(dump: String) :
+            Meta("meta.dump", dump.also { require(it.contains("dump")) { "Please use ${Text::class.simpleName} for free-form text." } })
 
         public companion object {
-            public infix fun typed(file: Path): File = File(file)
-
             public infix fun typed(text: CharSequence): Text =
                 filter(text).toString().takeIf { it.isNotBlank() }?.let { Text(it) } ?: error("Non-blank string required.")
         }
@@ -97,7 +86,7 @@ public sealed class IO(
     /**
      * An [IO] (of another process) serving as an input.
      */
-    public class Input(text: AnsiString) : IO(text, { text.mapLines { it.ansi.brightBlue.dim.italic.done } }) {
+    public class Input(text: AnsiString) : IO("input", text, { text.mapLines { it.ansi.brightBlue.dim.italic.done } }) {
         public companion object {
             private val EMPTY: Input = Input(AnsiString.EMPTY)
 
@@ -118,7 +107,7 @@ public sealed class IO(
     /**
      * An [IO] that is neither [Meta], [Input] nor [Error].
      */
-    public class Output(text: AnsiString) : IO(text, { text.mapLines { it.ansi.yellow } }) {
+    public class Output(text: AnsiString) : IO("output", text, { text.mapLines { it.ansi.yellow } }) {
         public companion object {
             private val EMPTY: Output = Output(AnsiString.EMPTY)
 
@@ -139,7 +128,7 @@ public sealed class IO(
     /**
      * An [IO] that represents an error.
      */
-    public class Error(text: AnsiString) : IO(text, { text.mapLines { it.ansi.red.bold } }) {
+    public class Error(text: AnsiString) : IO("error", text, { text.mapLines { it.ansi.red.bold } }) {
 
         /**
          * Creates a new error IO from the given [exception].
@@ -157,9 +146,9 @@ public sealed class IO(
     }
 
     public companion object {
+
         /**
-         * Marker that when appears at the beginning of a text
-         * will be filtered out.
+         * Marker that instructs consumers to ignore the remaining line.
          */
         public val ERASE_MARKER: String = Style.hidden.invoke("﹗").toString()
 

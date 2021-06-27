@@ -133,7 +133,7 @@ public abstract class Recorder<T> {
 }
 
 /**
- * Pipeline style component that allows to applied a series of transformations using [map]
+ * Pipeline style component that allows to apply a series of transformations using [map]
  * to a message [R] that is created by the given [merge] applied to a source [T] and a payload [V].
  *
  * A source for this pipeline is created using a delegated property.

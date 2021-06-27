@@ -23,7 +23,6 @@ import koodies.test.testEach
 import koodies.test.toStringContainsAll
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
-import koodies.text.Semantics.Symbols
 import koodies.text.ansiRemoved
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
@@ -45,6 +44,7 @@ import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
@@ -77,15 +77,15 @@ class JavaExecTest {
 
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = testEach<Exec.() -> Exec>(
-            { processSilently().apply { 1.seconds.sleep() } },
+            { processSilently().apply { waitFor() } },
             { processSynchronously {} },
-            { processAsynchronously().apply { 1.seconds.sleep() } },
+            { processAsynchronously().apply { waitFor() } },
         ) { operation ->
             withTempDir(uniqueId) {
                 val exec = createCompletingExec().operation()
                 expecting { exec.state } that { isA<Exited>() }
                 expecting { exec } that { completesWithIO() }
-                expecting { poll { exec.successful == true }.every(100.milli.seconds).forAtMost(8.seconds) } that { isTrue() }
+                expecting { poll { exec.successful }.every(100.milli.seconds).forAtMost(8.seconds) } that { isTrue() }
             }
         }
 
@@ -113,17 +113,6 @@ class JavaExecTest {
                 runningPid.isGreaterThan(0)
             }
             exec.kill()
-        }
-
-        @Test
-        fun `should meta log documents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val exec = createCompletingExec()
-            expectThat(exec).log.logs {
-                any {
-                    it.contains(Symbols.Document)
-                    it.contains("file:")
-                }
-            }
         }
 
         @Test
@@ -198,7 +187,7 @@ class JavaExecTest {
             })
 
             kotlin.runCatching {
-                exec.process({ async }) { io ->
+                exec.process(LoggingOptions(null, RendererProviders.NOOP), { async }) { io ->
                     if (io !is Meta && io !is Input) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
@@ -252,7 +241,7 @@ class JavaExecTest {
                     status.matchesCurlyPattern("Process ${exec.pid} terminated {}")
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
-                    io.isNotEmpty()
+                    io.isEmpty() // because exec was not processed
                 }
             }
         }
@@ -336,16 +325,7 @@ class JavaExecTest {
             @Test
             fun `should succeed on 0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = createCompletingExec(0)
-                expectThat(exec.waitFor()).isA<Succeeded>().io.any {
-                    contains("terminated successfully")
-                }
-            }
-
-            @Test
-            fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val exec = createCompletingExec(0)
-                expectThat(exec).succeeds()
-                    .io.get { takeLast(2) }.any { contains("terminated successfully") }
+                expectThat(exec.waitFor()).isA<Succeeded>()
             }
 
             @Test
@@ -379,11 +359,11 @@ class JavaExecTest {
                     start.timePassed.isLessThan(2.seconds)
                     end.timePassed.isLessThan(2.seconds)
                     runtime.isLessThan(2.seconds)
-                    toString().matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}.")
-                    status.matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}.")
+                    toString().matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}")
+                    status.matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}")
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
-                    io.isNotEmpty()
+                    io.isEmpty() // because exec was not processed
                 }
             }
         }
@@ -449,7 +429,7 @@ class JavaExecTest {
                     start.timePassed.isLessThan(2.seconds)
                     end.timePassed.isLessThan(2.seconds)
                     runtime.isLessThan(2.seconds)
-                    status.lines().first().matchesCurlyPattern("Process ${exec.pid} terminated with exit code ${exec.exitCode}.")
+                    status.lines().first().matchesCurlyPattern("Process ${exec.pid} terminated with exit code ${exec.exitCode}")
                     containsDump()
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(42)
@@ -599,17 +579,16 @@ val Builder<out List<IO>>.ansiKept: DescribeableBuilder<String>
     get() = get("ANSI escape codes kept") { IOSequence(this).ansiKept }
 
 @JvmName("failureContainsDump")
-fun <T : Failed> Builder<T>.containsDump(vararg containedStrings: String = emptyArray()) =
-    with({ dump }) { isNotNull() and { containsDump(*containedStrings) } }
+fun <T : Failed> Builder<T>.containsDump() =
+    with({ dump }) { isNotNull() and { containsDump() } }
 
 @JvmName("fatalContainsDump")
-fun Builder<Excepted>.containsDump(vararg containedStrings: String = emptyArray()) =
-    with({ dump }) { containsDump(*containedStrings) }
+fun Builder<Excepted>.containsDump() =
+    with({ dump }) { containsDump() }
 
-fun Builder<String>.containsDump(vararg containedStrings: String = arrayOf(".sh")) {
+fun Builder<String>.containsDump() {
     compose("contains dump") {
         contains("dump has been written")
-        containedStrings.forEach { contains(it) }
         contains(".log")
         contains(".ansi-removed.log")
     }.then { if (allPassed) pass() else fail() }

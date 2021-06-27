@@ -5,8 +5,6 @@ import koodies.debug.asEmoji
 import koodies.exception.toCompactString
 import koodies.exec.Exec.Companion.createDump
 import koodies.exec.Exec.Companion.fallbackExitStateHandler
-import koodies.exec.IO.Meta.File
-import koodies.exec.IO.Meta.Starting
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.exec.Process.State
@@ -128,7 +126,9 @@ public class JavaExec(
                     Excepted(start, Now.instant, pid, exitValue, io, exception, createDump(message), message)
                 }
             }
+
             _state = exitState
+
             postTerminationCallbacks.mapNotNull { callback ->
                 runCatching { this.callback(exitState) }.exceptionOrNull()
             }.firstOrNull()?.printStackTrace()
@@ -139,7 +139,7 @@ public class JavaExec(
     override val onExit: CompletableFuture<out ExitState> get() = (_state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String {
-        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Computation}"
+        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji ?: Computation}"
         return "${this::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")") +
             ", commandLine=${commandLine.shellCommand.toCompactString().truncate(50, " … ")}" +
             ", execTerminationCallback=${(execTerminationCallback != null).asEmoji}" +
@@ -148,9 +148,6 @@ public class JavaExec(
 
     init {
         try {
-            metaStream.emit(Starting(commandLine))
-            commandLine.includedFiles.forEach { metaStream.emit(File(it)) }
-
             if (destroyOnShutdown) {
                 val shutdownHook = thread(start = false, name = "shutdown hook for $pid", contextClassLoader = null) { process.destroy() }
                 addShutDownHook(shutdownHook)

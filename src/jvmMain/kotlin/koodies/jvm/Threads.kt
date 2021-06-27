@@ -1,9 +1,10 @@
 package koodies.jvm
 
-import koodies.logging.SimpleRenderingLogger
+import io.opentelemetry.api.trace.Span
 import koodies.runWrapping
 import koodies.time.seconds
 import koodies.time.sleep
+import koodies.tracing.spanning
 import koodies.unit.milli
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
@@ -51,29 +52,34 @@ public fun daemon(
 /**
  * [Thread] that drains your battery and can only be stopped by calling [stop].
  */
-public class BusyThread private constructor(private var stopped: AtomicBoolean, private val logger: SimpleRenderingLogger? = null) : Thread({
-    while (!stopped.get()) {
-        logger?.logLine { "THREAD stopped? $stopped" }
-        try {
-            logger?.logLine { "busy" }
-            50.milli.seconds.sleep()
-        } catch (e: InterruptedException) {
-            if (!stopped.get()) currentThread().interrupt()
-            else logger?.logLine { "interruption ignored" }
+public class BusyThread private constructor(
+    private var stopped: AtomicBoolean,
+    private val span: Span,
+    private val sleepInterval: Duration = 50.milli.seconds,
+) : Thread({
+    span.makeCurrent().use {
+        spanning("busy waiting") {
+            while (!stopped.get().also { event("stop-request-checked", if (it) "stop requested" else null, "result" to it) }) {
+                try {
+                    sleepInterval.sleep()
+                    event("busy-waited", "duration" to sleepInterval)
+                } catch (e: InterruptedException) {
+                    if (!stopped.get()) currentThread().interrupt().also { event("interrupted", "interrupted", "ignored" to false) }
+                    else event("interrupted", "interruption ignored", "ignored" to true)
+                }
+            }
         }
     }
 }) {
-    public constructor(logger: SimpleRenderingLogger? = null) : this(AtomicBoolean(false), logger)
+    public constructor() : this(AtomicBoolean(false), Span.current())
 
     init {
         start()
     }
 
     public fun complete() {
-        logger?.logLine { "stopping" }
         stopped.set(true)
         interrupt()
-        logger?.logLine { "stopped" }
     }
 }
 

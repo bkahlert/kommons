@@ -10,10 +10,19 @@ import koodies.junit.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
+import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
+import koodies.tracing.TestSpan
+import koodies.tracing.TraceId
+import koodies.tracing.eventText
+import koodies.tracing.events
+import koodies.tracing.expectTraced
+import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.get
+import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThan
@@ -25,33 +34,47 @@ class ProcessorsKtTest {
     @Nested
     inner class SynchronousProcessing {
 
+        @Test
+        fun TestSpan.`should trace`() {
+            CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }
+            expectThatRendered().matchesCurlyPattern("""
+                    ╭──╴cat
+                    │
+                    │   Hello Cat!            
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
+            TraceId.current.expectTraced().hasSize(1) and {
+                with(get(0)) {
+                    spanName.isEqualTo("cat")
+                    events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
+                }
+            }
+        }
+
         @Nested
         inner class NonInteractively {
 
             @Test
             fun `should process with no input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("echo", "Hello World!").toExec().process(ProcessingMode(Sync, NonInteractive(null))) { io ->
+                CommandLine("echo", "Hello World!").toExec().process(LoggingOptions(), ProcessingMode(Sync, NonInteractive(null))) { io ->
                     log.add(io)
                 }
                 expectThat(log)
-                    .with({ size }) { isEqualTo(3) }
-                    .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
-                    .with({ get(2) }) { isA<IO.Meta.Terminated>() }
+                    .with({ size }) { isEqualTo(1) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
             }
 
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
+                CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
                     log.add(io)
                 }
                 expectThat(log)
-                    .with({ size }) { isEqualTo(3) }
-                    .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
-                    .with({ get(2) }) { isA<IO.Meta.Terminated>() }
+                    .with({ size }) { isEqualTo(1) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
             }
         }
 
@@ -64,15 +87,13 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
+                    .process(LoggingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
                     }
                 expectThat(log)
-                    .with({ size }) { isEqualTo(4) }
-                    .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                    .with({ get(2) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-                    .with({ get(3) }) { isA<IO.Meta.Terminated>() }
+                    .with({ size }) { isEqualTo(2) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
+                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
             }
 
             @Test
@@ -80,22 +101,38 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
+                    .process(LoggingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
                     }
 
                 expectThat(log)
-                    .with({ size }) { isEqualTo(4) }
-                    .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                    .with({ get(2) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-                    .with({ get(3) }) { isA<IO.Meta.Terminated>() }
+                    .with({ size }) { isEqualTo(2) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
+                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
             }
         }
     }
 
     @Nested
     inner class AsynchronousProcessing {
+
+        @Test
+        fun TestSpan.`should trace`() {
+            CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }.waitFor()
+            expectThatRendered().matchesCurlyPattern("""
+                    ╭──╴cat
+                    │
+                    │   Hello Cat!            
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
+            TraceId.current.expectTraced().hasSize(1) and {
+                with(get(0)) {
+                    spanName.isEqualTo("cat")
+                    events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
+                }
+            }
+        }
 
         @Nested
         inner class NonInteractively {
@@ -107,26 +144,22 @@ class ProcessorsKtTest {
                 fun `should process with no input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("echo", "Hello World!").toExec()
-                        .process(ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
+                        .process(LoggingOptions(), ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
-                        .with({ size }) { isEqualTo(3) }
-                        .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
-                        .with({ get(2) }) { isA<IO.Meta.Terminated>() }
+                        .with({ size }) { isEqualTo(1) }
+                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
                 }
 
                 @Test
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("cat").toExec()
-                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
+                        .process(LoggingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
-                        .with({ size }) { isEqualTo(3) }
-                        .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
-                        .with({ get(2) }) { isA<IO.Meta.Terminated>() }
+                        .with({ size }) { isEqualTo(1) }
+                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
                 }
             }
 
@@ -136,7 +169,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec().process(ProcessingMode(Async, NonInteractive(null))) { }
+                        CommandLine("sleep", "10").toExec().process(LoggingOptions(), ProcessingMode(Async, NonInteractive(null))) { }
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
                 }
@@ -144,7 +177,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        CommandLine("cat").toExec().process(ProcessingMode(Async,
+                        CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Async,
                             NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
@@ -164,15 +197,13 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
+                        .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
                         }.waitFor()
                     expectThat(log)
-                        .with({ size }) { isEqualTo(4) }
-                        .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                        .with({ get(2) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-                        .with({ get(3) }) { isA<IO.Meta.Terminated>() }
+                        .with({ size }) { isEqualTo(2) }
+                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
+                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
                 }
 
                 @Test
@@ -180,15 +211,13 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
+                        .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
                         }.waitFor()
                     expectThat(log)
-                        .with({ size }) { isEqualTo(4) }
-                        .with({ get(0) }) { isA<IO.Meta.Starting>() }
-                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                        .with({ get(2) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-                        .with({ get(3) }) { isA<IO.Meta.Terminated>() }
+                        .with({ size }) { isEqualTo(2) }
+                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
+                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
                 }
             }
 
@@ -200,7 +229,7 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { }
+                            .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { }
                     }
                     expectThat(timePassed).isLessThan(0.25.seconds)
                 }
@@ -210,7 +239,7 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(ProcessingMode(Async, Interactive(nonBlocking = false))) {}
+                            .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) {}
                     }
                     expectThat(timePassed).isLessThan(0.25.seconds)
                 }

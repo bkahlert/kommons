@@ -15,11 +15,11 @@ import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerSearchCommandLine.Companion.CommandContext
 import koodies.docker.DockerSearchCommandLine.Options.Companion.OptionsContext
+import koodies.exec.RendererProviders
 import koodies.exec.parse
-import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.SimpleRenderingLogger
 import koodies.or
 import koodies.text.Semantics.formattedAs
+import koodies.tracing.rendering.RendererProvider
 
 /**
  * Search one or more stopped containers.
@@ -125,7 +125,7 @@ public open class DockerSearchCommandLine(
             automated: Boolean? = null,
             official: Boolean? = null,
             limit: Int = 100,
-            logger: SimpleRenderingLogger = BACKGROUND,
+            provider: RendererProvider? = null,
         ): List<DockerSeachResult> {
             val commandLine = DockerSearchCommandLine {
                 options {
@@ -137,9 +137,10 @@ public open class DockerSearchCommandLine(
                 this.term by term
             }
 
-            return commandLine.exec.logging(logger) {
-                errorsOnly("Searching up to ${limit.formattedAs.input} images with filters ${commandLine.options.filters.formattedAs.input}")
-            }.parse.columns<DockerSeachResult, Failed>(5) { (name, description, starCount, isOfficial, isAutomated) ->
+            return commandLine.exec.logging(
+                name = "Searching up to ${limit.formattedAs.input} images with filters ${commandLine.options.filters.formattedAs.input}",
+                renderer = provider ?: RendererProviders.errorsOnly()
+            ).parse.columns<DockerSeachResult, Failed>(5) { (name, description, starCount, isOfficial, isAutomated) ->
                 DockerSeachResult(DockerImage { name }, description, starCount.toIntOrNull() ?: 0, isOfficial.isNotBlank(), isAutomated.isNotBlank())
             } or { emptyList() }
         }

@@ -18,7 +18,6 @@ class OutputCaptureExtension :
     BeforeEachCallback, AfterEachCallback,
     InvocationInterceptor {
 
-
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): CapturedOutput =
         context.outputCapture
 

@@ -6,7 +6,8 @@ import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Process.ExitState.ExitStateHandler
 
 /**
- * A docker command as it can be run in a shell.
+ * Specialized [CommandLine] to run [Docker] commands
+ * like `docker info`.
  */
 public open class DockerCommandLine(
     /**

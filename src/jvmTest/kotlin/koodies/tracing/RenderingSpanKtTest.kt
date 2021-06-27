@@ -4,6 +4,7 @@ import koodies.debug.CapturedOutput
 import koodies.junit.TestName
 import koodies.test.output.OutputCaptureExtension
 import koodies.text.matchesCurlyPattern
+import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -14,6 +15,7 @@ import strikt.assertions.isEmpty
 
 @Isolated
 @ExtendWith(OutputCaptureExtension::class)
+@NoSpan
 class RenderingSpanKtTest {
 
     @Nested
@@ -71,20 +73,20 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should have valid span`() {
-                    val spanId = tracing { spanning("child") { SpanId.current } }
+                    val spanId = tracing { spanning("child") { registerAsTestSpan(); SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
                 fun `should trace`() {
-                    val traceId = tracing { spanning("child") { TraceId.current } }
+                    val traceId = tracing { spanning("child") { registerAsTestSpan(); TraceId.current } }
                     expectThat(traceId).isValid()
                     traceId.expectTraced().spanNames.containsExactly("child")
                 }
 
                 @Test
                 fun `should render`(output: CapturedOutput) {
-                    tracing { spanning("child") { log("event α") } }
+                    tracing { spanning("child") { registerAsTestSpan(); log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
                         ╭──╴child
                         │
@@ -185,19 +187,19 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should have valid span`(testName: TestName) {
-                    val spanId = spanning(testName) { SpanId.current }
+                    val spanId = spanning(testName) { registerAsTestSpan(); SpanId.current }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
                 fun `should trace`(testName: TestName) {
-                    val traceId = spanning(testName) { TraceId.current }
+                    val traceId = spanning(testName) { registerAsTestSpan(); TraceId.current }
                     traceId.expectTraced().spanNames.containsExactly(testName.value)
                 }
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanning(testName) { log("event α") }
+                    spanning(testName) { registerAsTestSpan(); log("event α") }
                     expectThat(output).matchesCurlyPattern("""
                         ╭──╴$testName
                         │
@@ -213,19 +215,19 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should have valid span`(testName: TestName) {
-                    val spanId = spanning(testName) { tracing { SpanId.current } }
+                    val spanId = spanning(testName) { registerAsTestSpan(); tracing { SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
                 fun `should trace`(testName: TestName) {
-                    val traceId = spanning(testName) { tracing { TraceId.current } }
+                    val traceId = spanning(testName) { registerAsTestSpan(); tracing { TraceId.current } }
                     traceId.expectTraced().spanNames.containsExactly(testName.value)
                 }
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanning(testName) { tracing { log("event α") } }
+                    spanning(testName) { registerAsTestSpan(); tracing { log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
                         ╭──╴$testName
                         │
@@ -241,20 +243,20 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should have valid span`(testName: TestName) {
-                    val spanId = spanning(testName) { spanning("child") { SpanId.current } }
+                    val spanId = spanning(testName) { registerAsTestSpan(); spanning("child") { SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
                 fun `should trace`(testName: TestName) {
-                    val traceId = spanning(testName) { spanning("child") { TraceId.current } }
+                    val traceId = spanning(testName) { registerAsTestSpan(); spanning("child") { TraceId.current } }
                     expectThat(traceId).isValid()
                     traceId.expectTraced().spanNames.containsExactly("child", testName.value)
                 }
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanning(testName) { spanning("child") { log("event α") } }
+                    spanning(testName) { registerAsTestSpan(); spanning("child") { log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
                         ╭──╴$testName
                         │
@@ -365,7 +367,7 @@ class RenderingSpanKtTest {
     }
 
     private fun <R> withRootSpan(testName: TestName, block: () -> R): R {
-        val parentSpan = Tracer.spanBuilder(testName.value).startSpan()
+        val parentSpan = Tracer.spanBuilder(testName.value).startSpan().registerAsTestSpan()
         val scope = parentSpan.makeCurrent()
         val result = runCatching(block)
         scope.close()

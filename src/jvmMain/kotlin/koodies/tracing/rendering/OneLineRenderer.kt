@@ -19,14 +19,12 @@ import koodies.tracing.spanning
  */
 public class OneLineRenderer(
     private val settings: Settings,
-    private val printer: Printer,
 ) : Renderer {
 
     private val messages = mutableListOf<CharSequence>()
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        settings.contentFormatter.invoke(name)
-            ?.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
+        name.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
 
@@ -50,14 +48,11 @@ public class OneLineRenderer(
 
         messages.takeUnless { it.isEmpty() }
             ?.joinToString("") { LineSeparators.unify(it, "⏎") }
-            ?.let(printer)
+            ?.let(settings.printer)
     }
 
-    override fun customizedChild(customize: Settings.() -> Settings): Renderer =
-        injectedChild { settings, printer -> OneLineRenderer(settings.customize(), printer) }
-
-    override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer =
-        provider(settings, ::printChild)
+    override fun nestedRenderer(renderer: RendererProvider): Renderer =
+        renderer(settings.copy(printer = ::printChild)) { OneLineRenderer(it) }
 
     override fun printChild(text: CharSequence) {
         settings.oneLineStyle.parent(text, settings.decorationFormatter)
@@ -66,13 +61,6 @@ public class OneLineRenderer(
 
     override fun toString(): String = asString {
         ::settings to settings
-        ::printer to printer
-    }
-
-    public companion object {
-        private fun CharSequence.replaceLineBreaks() {
-            LineSeparators.unify(this, "⏎")
-        }
     }
 }
 
@@ -82,4 +70,4 @@ public fun <R> spanningLine(
     customize: Settings.() -> Settings = { this },
     tracer: Tracer = koodies.tracing.Tracer,
     block: CurrentSpan.() -> R,
-): R = spanning(name, { settings, printer -> OneLineRenderer(customize(settings), printer) }, tracer, block)
+): R = spanning(name, renderer = { OneLineRenderer(customize()) }, tracer, block)

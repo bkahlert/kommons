@@ -14,6 +14,8 @@ import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import koodies.collections.synchronizedMapOf
+import koodies.text.Semantics.formattedAs
+import koodies.tracing.TestSpanParameterResolver.Companion.testTrace
 import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestPlan
 import strikt.api.Assertion.Builder
@@ -38,6 +40,7 @@ class TestTelemetry : TestExecutionListener {
             batchExporter = BatchSpanProcessor.builder(jaegerExporter).build()
 
             val tracerProvider = SdkTracerProvider.builder()
+                .let { if (TEST_SPAN_CHECK_ENABLED) it.addSpanProcessor(TestSpanCheckSpanProcessor) else it }
                 .addSpanProcessor(InMemoryStoringSpanProcessor)
                 .addSpanProcessor(batchExporter)
                 .setResource(mapOf("service.name" to "koodies-test").toResource())
@@ -64,11 +67,28 @@ class TestTelemetry : TestExecutionListener {
 
         const val ENABLED: Boolean = true
 
+        const val TEST_SPAN_CHECK_ENABLED: Boolean = true
+        private val testSpanCheckExceptions = setOf(
+            "docker info",
+        )
+
+        private object TestSpanCheckSpanProcessor : SpanProcessor {
+            override fun isStartRequired(): Boolean = false
+            override fun onStart(parentContext: Context, span: ReadWriteSpan): Unit = Unit
+            override fun isEndRequired(): Boolean = true
+            override fun onEnd(span: ReadableSpan) {
+                if (testSpanCheckExceptions.contains(span.name)) return
+                val spanData = span.toSpanData()
+                val traceId = TraceId(spanData.traceId)
+                require(traceId.testTrace) { "Span ${spanData.name.formattedAs.input} (trace ID: ${traceId.formattedAs.input}) is no test span." }
+            }
+        }
+
         private val traces = synchronizedMapOf<TraceId, MutableList<SpanData>>()
 
         private object InMemoryStoringSpanProcessor : SpanProcessor {
             override fun isStartRequired(): Boolean = false
-            override fun onStart(parentContext: Context?, span: ReadWriteSpan?): Unit = Unit
+            override fun onStart(parentContext: Context, span: ReadWriteSpan): Unit = Unit
             override fun isEndRequired(): Boolean = true
             override fun onEnd(span: ReadableSpan) {
                 val spanData = span.toSpanData()

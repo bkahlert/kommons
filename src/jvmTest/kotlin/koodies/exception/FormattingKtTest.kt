@@ -1,19 +1,21 @@
 package koodies.exception
 
+import koodies.exec.IOSequence
+import koodies.exec.Process.State.Exited.Succeeded
 import koodies.junit.UniqueId
-import koodies.shell.ShellScript
 import koodies.test.withTempDir
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
+import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.matches
-import strikt.assertions.startsWith
 import java.nio.file.Path
+import java.time.Instant
 
 class FormattingKtTest {
 
@@ -34,7 +36,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(runtimeException.toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
+                matchesCurlyPattern("RuntimeException: Something happened at.(FormattingKtTest.kt:{})")
                 isSingleLine()
             }
         }
@@ -42,7 +44,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(emptyException.toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
+                matchesCurlyPattern("RuntimeException at.(FormattingKtTest.kt:{})")
                 isSingleLine()
             }
         }
@@ -54,7 +56,7 @@ class FormattingKtTest {
         @Test
         fun `should format compact`() {
             expectThat(Result.failure<String>(runtimeException).toCompactString()) {
-                startsWith("RuntimeException: Something happened at.(FormattingKtTest.kt:22)")
+                matchesCurlyPattern("RuntimeException: Something happened at.(FormattingKtTest.kt:{})")
                 isSingleLine()
             }
         }
@@ -62,7 +64,7 @@ class FormattingKtTest {
         @Test
         fun `should format empty message`() {
             expectThat(Result.failure<String>(emptyException).toCompactString()) {
-                startsWith("RuntimeException at.(FormattingKtTest.kt:20)")
+                matchesCurlyPattern("RuntimeException at.(FormattingKtTest.kt:{})")
                 isSingleLine()
             }
         }
@@ -91,9 +93,9 @@ class FormattingKtTest {
             }
 
             @Test
-            fun `should format processes as their status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(ShellScript { "exit 42" }.toExec(false, emptyMap(), this, null)).toCompactString()) {
-                    ansiRemoved.matches("Process.*\\d+.*\\.".toRegex())
+            fun `should format process status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                expectThat(Result.success(Succeeded(Instant.MIN, Instant.MAX, 12345L, IOSequence.EMPTY)).toCompactString()) {
+                    ansiRemoved.matches("Process.*\\d+.*Z".toRegex())
                     isSingleLine()
                 }
             }

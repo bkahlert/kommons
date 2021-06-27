@@ -32,7 +32,7 @@ public open class DockerExec(
     override val state: State
         get() {
             return (exec.state as? ExitState) ?: when (container.containerState) {
-                is NotExistent, is Created, is Restarting, is Running, is Removing, is Paused -> State.Running(start, pid, format())
+                is NotExistent, is Created, is Restarting, is Running, is Removing, is Paused -> State.Running(start, pid, container.containerState.format())
                 is Exited, is Dead, is Error -> run {
                     val message = "Backed Docker exec no more running but no exit state is known."
                     val dump = createDump(message)

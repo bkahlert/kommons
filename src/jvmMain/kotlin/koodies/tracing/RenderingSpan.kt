@@ -10,9 +10,9 @@ import io.opentelemetry.api.trace.StatusCode.OK
 import io.opentelemetry.context.Context
 import koodies.text.ANSI.ansiRemoved
 import koodies.tracing.rendering.BlockRenderer
-import koodies.tracing.rendering.CompactRenderer
-import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.Renderer
+import koodies.tracing.rendering.Renderer.Companion.NOOP
+import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.rendering.Settings
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -69,15 +69,19 @@ public data class RenderingSpan(
     private val renderer: Renderer,
 ) : CurrentSpan, Span {
 
-    override fun event(name: CharSequence, attributes: Map<CharSequence, Any>): CurrentSpan {
-        attributes.toAttributes().also {
-            span.addEvent(name.ansiRemoved, it)
-            renderer.event(name, it)
-        }
+    override fun event(event: Event): CurrentSpan {
+        span.addEvent(event.name.ansiRemoved, event.attributes.toAttributes())
+        renderer.event(event.name, event.attributes.toRenderedAttributes())
         return this
     }
 
-    override fun <T : Any?> setAttribute(key: AttributeKey<T>, value: T): Span = span.setAttribute(key, value)
+    override fun event(name: CharSequence, attributes: Map<CharSequence, Any>): CurrentSpan {
+        span.addEvent(name.ansiRemoved, attributes.toAttributes())
+        renderer.event(name, attributes.toRenderedAttributes())
+        return this
+    }
+
+    override fun <T : Any> setAttribute(key: AttributeKey<T>, value: T): Span = span.setAttribute(key, value)
 
     override fun addEvent(name: String, attributes: Attributes): Span {
         span.addEvent(name.ansiRemoved, attributes)
@@ -127,7 +131,9 @@ public data class RenderingSpan(
 
     public fun <R> end(result: Result<R>) {
         result.fold({
-            end()
+            span.setStatus(OK)
+            span.end()
+            renderer.end(result)
         }, {
             it.message
                 ?.also { message -> span.setStatus(ERROR, message.ansiRemoved) }
@@ -159,17 +165,31 @@ public fun <R> tracing(
     block: CurrentSpan.() -> R,
 ): R {
     val span = Span.current()
-    val renderer = span.linkedRenderer ?: object : Renderer {
-        override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit = Unit
-        override fun event(name: CharSequence, attributes: Attributes): Unit = Unit
-        override fun exception(exception: Throwable, attributes: Attributes): Unit = Unit
-        override fun <R> end(result: Result<R>): Unit = Unit
-        override fun customizedChild(customize: Settings.() -> Settings): Renderer = BlockRenderer(Settings().customize()) { printChild(it) }
-        override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer = provider(Settings()) { printChild(it) }
-        override fun printChild(text: CharSequence) = println(text)
-    }
+    val renderer = span.linkedRenderer ?: RootRenderer()
     val scope = span.makeCurrent()
     val result = with(RenderingSpan(span, renderer)) {
+        runCatching(block).onFailure {
+            if (recordException) recordException(it)
+        }
+    }
+    scope.close()
+    return result.getOrThrow()
+}
+
+/**
+ * Runs the given [block] with the [CurrentSpan]
+ * as its receiver.
+ */
+@TracingDsl
+public fun <R> tracing(
+    recordException: Boolean = true,
+    renderer: RendererProvider,
+    block: CurrentSpan.() -> R,
+): R {
+    val span = Span.current()
+    val actual = renderer(Settings()) { span.linkedRenderer ?: NOOP }
+    val scope = span.makeCurrent()
+    val result = with(RenderingSpan(span, actual)) {
         runCatching(block).onFailure {
             if (recordException) recordException(it)
         }
@@ -183,7 +203,7 @@ public fun <R> tracing(
  * and runs [block] with this newly creates span as its [CurrentSpan] in the receiver.
  *
  * All recorded events and exceptions are also printed to the console.
- * The exact behaviour can be customized using the optional [customize].
+ * The exact behaviour can be customized using the optional [renderer].
  *
  * The returned result of the given block is used to end the span with
  * either an [StatusCode.OK] or [StatusCode.ERROR] status.
@@ -191,15 +211,15 @@ public fun <R> tracing(
 @TracingDsl
 public fun <R> spanning(
     name: CharSequence,
-    customize: Settings.() -> Settings = { this },
+    renderer: RendererProvider = { it(this) },
     tracer: TracerAPI = Tracer,
     block: CurrentSpan.() -> R,
 ): R = tracing(recordException = false) {
-    val (span, renderer) = Span.current().newChildSpan(name, tracer) {
-        it?.customizedChild { customize() } ?: CompactRenderer(Settings()) { println(it) }
+    val (span, actual) = Span.current().newChildSpan(name, tracer) {
+        (it ?: RootRenderer()).nestedRenderer(renderer)
     }
     val scope = span.makeCurrent()
-    val result = with(RenderingSpan(span, renderer)) {
+    val result = with(RenderingSpan(span, actual)) {
         runCatching(block)
             .also { scope.close() }
             .also { end(it) }
@@ -207,30 +227,11 @@ public fun <R> spanning(
     result.getOrThrow()
 }
 
-/**
- * Creates a new nested span inside of the currently active span,
- * and runs [block] with this newly creates span as its [CurrentSpan] in the receiver.
- *
- * All recorded events and exceptions are also rendered using the specified [renderer].
- *
- * The returned result of the given block is used to end the span with
- * either an [StatusCode.OK] or [StatusCode.ERROR] status.
- */
-@TracingDsl
-public fun <R> spanning(
-    name: CharSequence,
-    renderer: (Settings, Printer) -> Renderer,
-    tracer: TracerAPI = Tracer,
-    block: CurrentSpan.() -> R,
-): R = tracing(recordException = false) {
-    val (span, renderer_) = Span.current().newChildSpan(name, tracer) {
-        it?.injectedChild(renderer) ?: CompactRenderer(Settings()) { println(it) }
-    }
-    val scope = span.makeCurrent()
-    val result = with(RenderingSpan(span, renderer_)) {
-        runCatching(block)
-            .also { scope.close() }
-            .also { end(it) }
-    }
-    result.getOrThrow()
+public class RootRenderer : Renderer {
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit = Unit
+    override fun event(name: CharSequence, attributes: Attributes): Unit = Unit
+    override fun exception(exception: Throwable, attributes: Attributes): Unit = Unit
+    override fun <R> end(result: Result<R>): Unit = Unit
+    override fun nestedRenderer(renderer: RendererProvider): Renderer = renderer(Settings(printer = ::printChild)) { BlockRenderer(it) }
+    override fun printChild(text: CharSequence): Unit = println(text)
 }

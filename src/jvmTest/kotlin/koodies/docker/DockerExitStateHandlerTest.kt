@@ -87,8 +87,8 @@ class DockerExitStateHandlerTest {
 
         expecting("matches ${clazz.simpleName}") { badRequestState::class } that { isEqualTo(clazz) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
-        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
-        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
+        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.ansiRemoved} $status") }
+        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.ansiRemoved} ${status.formattedAs.error}") }
     }
 
     @TestFactory
@@ -102,7 +102,7 @@ class DockerExitStateHandlerTest {
         expecting("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class } that { isEqualTo(CannotRemoveRunningContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo(status) }
         expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.rightSpaced.ansiRemoved}$status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}$status") }
+        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.ansiRemoved} $status") }
     }
 
     @TestFactory
@@ -115,8 +115,8 @@ class DockerExitStateHandlerTest {
 
         expecting("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class } that { isEqualTo(CannotKillContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
-        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("$status${Negative.spaced.ansiRemoved}AFFECTED") }
-        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.rightSpaced.ansiRemoved}${status.formattedAs.error}") }
+        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.ansiRemoved} $status") }
+        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.ansiRemoved} ${status.formattedAs.error}") }
     }
 
     @Test
@@ -148,7 +148,6 @@ fun Builder<ExitState>.isSuccessful(): Builder<ExitState> =
     assert("exit state represents success") { actual ->
         when (actual.successful) {
             true -> pass(actual.successful)
-            null -> fail("process did not terminate,yet")
             false -> fail("process failed: $actual")
         }
     }
@@ -158,7 +157,6 @@ fun Builder<ExitState>.isFailed(): Builder<ExitState> =
     assert("exit state represents failed") { actual ->
         when (actual.successful) {
             true -> fail("process did not fail: $actual")
-            null -> fail("process did not terminate,yet")
             false -> pass(actual.successful)
         }
     }

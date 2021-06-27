@@ -9,7 +9,6 @@ import koodies.io.path.pathString
 import koodies.io.path.writeBytes
 import koodies.io.randomFile
 import koodies.junit.UniqueId
-import koodies.logging.InMemoryLogger
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
@@ -23,6 +22,7 @@ import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toByteArray
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -240,17 +240,16 @@ class ShellScriptTest {
             }
 
             @Smoke @Test
-            fun InMemoryLogger.`should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = ShellScript {
                     changeDirectoryOrExit(this@withTempDir)
                     shellScript()
-                }.exec.logging(this@`should preserve functionality`)
+                }.exec.logging()
 
                 expect {
                     that(exec.exitCodeOrNull).isEqualTo(0)
                     that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinToString(LF))
                         .matchesCurlyPattern("""
-                        Executing {}
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝
                         finished to run embedded script
@@ -355,16 +354,16 @@ class ShellScriptTest {
             }
 
             @Test
-            fun InMemoryLogger.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun TestSpan.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val script = ShellScript().toFile(resolve("script.sh"))
-                ShellScript { !script.pathString }.exec.logging(this@`should not remove itself by default`)
+                ShellScript { !script.pathString }.exec.logging()
                 expectThat(resolve("script.sh")).exists()
             }
 
             @Test
-            fun InMemoryLogger.`should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun TestSpan.`should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val script = ShellScript { deleteSelf() }.toFile(resolve("script.sh"))
-                ShellScript { !script.pathString }.exec.logging(this@`should remove itself`)
+                ShellScript { !script.pathString }.exec.logging()
                 expectThat(resolve("script.sh")).not { exists() }
             }
         }

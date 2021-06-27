@@ -1,9 +1,11 @@
 package koodies.exec.mock
 
+import koodies.exec.LoggingOptions
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.exec.Processors
 import koodies.exec.enter
 import koodies.exec.exitCode
 import koodies.exec.fails
@@ -23,13 +25,10 @@ import koodies.exec.process
 import koodies.exec.starts
 import koodies.exec.status
 import koodies.exec.succeeds
-import koodies.exec.terminationLoggingProcessor
 import koodies.io.ByteArrayOutputStream
 import koodies.jvm.daemon
-import koodies.logging.InMemoryLogger
 import koodies.nio.NonBlockingReader
 import koodies.test.Slow
-import koodies.test.assertTimeoutPreemptively
 import koodies.test.expectThrows
 import koodies.test.expecting
 import koodies.test.isEqualToByteWise
@@ -39,10 +38,12 @@ import koodies.text.LineSeparators.LF
 import koodies.time.poll
 import koodies.time.seconds
 import koodies.time.sleep
+import koodies.tracing.spanning
 import koodies.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
@@ -56,6 +57,7 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isTrue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -118,32 +120,28 @@ class JavaExecMockTest {
     @Nested
     inner class WithSlowInputStream {
 
-        @Test
-        fun InMemoryLogger.`should provide input correctly`() {
+        @Test @Timeout(10, unit = SECONDS)
+        fun `should provide input correctly`() {
             val slowInputStream = slowInputStream(1.seconds, "Hello$LF", "World!$LF")
 
-            assertTimeoutPreemptively(10.seconds) {
-                val read = String(slowInputStream.readBytes())
+            val read = String(slowInputStream.readBytes())
 
-                expectThat(read).isEqualTo("Hello\nWorld!$LF")
-            }
+            expectThat(read).isEqualTo("Hello\nWorld!$LF")
         }
 
-        @Test
-        fun InMemoryLogger.`should provide input slowly`() {
+        @Test @Timeout(6, unit = SECONDS)
+        fun `should provide input slowly`() {
             val delay = 1.seconds
             val slowInputStream = slowInputStream(delay, "Hello$LF", "World!$LF")
 
-            assertTimeoutPreemptively(delay * 5) {
-                val duration = measureTime {
-                    String(slowInputStream.readBytes())
-                }
-                expectThat(duration).assertThat("is slow") { it > delay }
+            val duration = measureTime {
+                String(slowInputStream.readBytes())
             }
+            expectThat(duration).assertThat("is slow") { it > delay }
         }
 
         @TestFactory
-        fun InMemoryLogger.`should provide 'block on prompt' behavior`() = listOf(
+        fun `should provide 'block on prompt' behavior`() = listOf(
             "with echoed input" to true,
             "without echoed input" to false,
         ).testEach("{}") { (_, echoOption) ->
@@ -181,14 +179,14 @@ class JavaExecMockTest {
 
 
         @Test
-        fun InMemoryLogger.`should produce same byte sequence as ByteArrayInputStream`() {
+        fun `should produce same byte sequence as ByteArrayInputStream`() {
             val input = "A𝌪𝌫𝌬𝌭𝌮Z"
             val inputStream = slowInputStream(2.seconds, input)
             expectThat(input.byteInputStream().readAllBytes()).isEqualTo(inputStream.readAllBytes())
         }
 
         @TestFactory
-        fun InMemoryLogger.`should never apply delay at at end stream`() = "𝌪".let { input ->
+        fun `should never apply delay at at end stream`() = "𝌪".let { input ->
             listOf(
                 slowInputStream(5.seconds, input, echoInput = true),
                 slowInputStream(5.seconds, Duration.ZERO to input, echoInput = true),
@@ -213,19 +211,19 @@ class JavaExecMockTest {
     inner class ReadingExitValue {
 
         @Test
-        fun InMemoryLogger.`should return 0 by default`() {
+        fun `should return 0 by default`() {
             expectThat(processMock().exitValue()).isEqualTo(0)
         }
 
         @Test
-        fun InMemoryLogger.`should throw exception`() {
+        fun `should throw exception`() {
             expectThrows<IllegalStateException> {
                 processMock { throw IllegalStateException() }.exitValue()
             }
         }
 
         @Test
-        fun InMemoryLogger.`should delay exit`() {
+        fun `should delay exit`() {
             expecting { measureTime { processMock(exitDelay = 50.milli.seconds).waitFor() } } that {
                 isGreaterThan(40.milli.seconds)
                 isLessThan(80.milli.seconds)
@@ -233,12 +231,12 @@ class JavaExecMockTest {
         }
 
         @Test
-        fun InMemoryLogger.`should return true if process exits in time`() {
+        fun `should return true if process exits in time`() {
             expecting { processMock(exitDelay = 50.milli.seconds).waitFor(100, TimeUnit.MILLISECONDS) } that { isTrue() }
         }
 
         @Test
-        fun InMemoryLogger.`should return false if process not exits in time`() {
+        fun `should return false if process not exits in time`() {
             expecting { processMock(exitDelay = 50.milli.seconds).waitFor(25, TimeUnit.MILLISECONDS) } that { isFalse() }
         }
 
@@ -249,12 +247,12 @@ class JavaExecMockTest {
             inner class WithDefaultInputStream {
 
                 @Test
-                fun InMemoryLogger.`should not be alive if exit is not delayed`() {
+                fun `should not be alive if exit is not delayed`() {
                     expectThat(processMock().isAlive).isFalse()
                 }
 
                 @Test
-                fun InMemoryLogger.`should be alive if exit is delayed`() {
+                fun `should be alive if exit is delayed`() {
                     expectThat(processMock(exitDelay = 50.milli.seconds).isAlive).isTrue()
                 }
             }
@@ -262,13 +260,13 @@ class JavaExecMockTest {
             @Nested
             inner class WithSlowInputStream {
                 @Test
-                fun InMemoryLogger.`should be finished if all read`() {
+                fun `should be finished if all read`() {
                     val p = withSlowInput(echoInput = true)
                     expectThat(p.isAlive).isFalse()
                 }
 
                 @Test
-                fun InMemoryLogger.`should be alive if not all read`() {
+                fun `should be alive if not all read`() {
                     val p = withSlowInput(
                         "unread",
                         echoInput = true,
@@ -281,8 +279,9 @@ class JavaExecMockTest {
 
     @Nested
     inner class OutputStreamWiring {
+
         @Test
-        fun InMemoryLogger.`should allow SlowInputStream to read process's input stream`() {
+        fun `should allow SlowInputStream to read process's input stream`() {
             val p = withIndividuallySlowInput(prompt(), echoInput = true)
             with(p.outputStream.writer()) {
                 expectThat(p.received).isEmpty()
@@ -292,8 +291,8 @@ class JavaExecMockTest {
                 flush() // !
 
                 expectThat(p.received).isEqualTo("user input")
-                logging("???") {
-                    (p.inputStream as SlowInputStream).processInput(this)
+                spanning("???") {
+                    (p.inputStream as SlowInputStream).processInput()
                 }
                 expectThat(p.inputStream.available()).isEqualTo("user input".length)
             }
@@ -302,7 +301,7 @@ class JavaExecMockTest {
 
     @Slow
     @Test
-    fun InMemoryLogger.`should terminate if all output is manually read`() {
+    fun `should terminate if all output is manually read`() {
         val p = withIndividuallySlowInput(
             0.5.seconds to "Welcome!$LF",
             0.5.seconds to "Password? ",
@@ -313,7 +312,7 @@ class JavaExecMockTest {
             echoInput = true,
         )
 
-        val reader = NonBlockingReader(p.inputStream, logger = this)
+        val reader = NonBlockingReader(p.inputStream)
 
         daemon {
             Thread.sleep(5000)
@@ -330,7 +329,7 @@ class JavaExecMockTest {
 
     @Slow
     @Test
-    fun InMemoryLogger.`should terminate if all output is consumed`() {
+    fun `should terminate if all output is consumed`() {
         val p = withIndividuallySlowInput(
             0.5.seconds to "Welcome!$LF",
             0.5.seconds to "Password? ",
@@ -341,7 +340,7 @@ class JavaExecMockTest {
             echoInput = true,
         )
 
-        val reader = NonBlockingReader(p.inputStream, logger = this)
+        val reader = NonBlockingReader(p.inputStream)
 
         daemon {
             Thread.sleep(5000)
@@ -359,7 +358,7 @@ class JavaExecMockTest {
     }
 
     @Test
-    fun InMemoryLogger.`should provide access to unfiltered output stream`() {
+    fun `should provide access to unfiltered output stream`() {
         val p = withIndividuallySlowInput(
             baseDelayPerInput = 1.seconds,
             echoInput = true,
@@ -374,7 +373,7 @@ class JavaExecMockTest {
     }
 
     @Test
-    fun InMemoryLogger.`should read zero bytes without exception and delay onexit`() {
+    fun `should read zero bytes without exception and delay onexit`() {
         val process = withIndividuallySlowInput(
             Duration.ZERO to "[  OK  ] Started Update UTMP about System Runlevel Changes.$LF",
             prompt(),
@@ -393,7 +392,7 @@ class JavaExecMockTest {
             process.enter("shutdown")
         }
 
-        val status = process.process({ async(NonInteractive(null)) }, process.terminationLoggingProcessor(this)).waitFor()
+        val status = process.process(LoggingOptions(), modeInit = { async(NonInteractive(null)) }, Processors.noopProcessor()).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

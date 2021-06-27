@@ -89,7 +89,7 @@ inline fun <reified T : Annotation> Method?.isA(): Boolean =
 @Suppress("unused")
 inline fun <reified A : Annotation> ExtensionContext.isAnnotated(
     crossinline annotationFilter: (A) -> Boolean = { true },
-): Boolean = element { isA(annotationFilter) }
+): Boolean = element { isA(annotationFilter) } || ancestors.any { it.isA(annotationFilter) }
 
 /**
  * Checks if current context is annotated with [A].

@@ -1,7 +1,6 @@
 package koodies.exec
 
 import koodies.exec.IO.Meta
-import koodies.io.Locations
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -18,7 +17,7 @@ class MetaStreamTest {
         }
     }
 
-    private val message = Meta.File(Locations.Temp)
+    private val message = Meta.Text("message")
 
     @Test
     fun `should subscribe`() {

@@ -1,13 +1,13 @@
 package koodies.docker
 
-import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.expectLogged
+import koodies.exec.RendererProviders
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.Symbols
+import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -120,19 +120,19 @@ class DockerImageTest {
         inner class ListImages {
 
             @ImageTest @IdeaWorkaroundTest
-            fun TestImage.`should list images and log`() = whilePulled { testImage ->
-                expectThat(DockerImage.list(logger = BACKGROUND)).contains(testImage)
-                BACKGROUND.expectLogged.contains("Listing images")
+            fun TestImage.`should list images and log`(testSpan: TestSpan) = whilePulled { testImage ->
+                expectThat(DockerImage.list(provider = RendererProviders.noDetails())).contains(testImage)
+                testSpan.expectThatRendered().contains("Listing images ✔︎")
             }
 
             @ImageTest @IdeaWorkaroundTest
-            fun TestImage.`should list existing image and log`() = whilePulled { testImage ->
-                expectThat(testImage.list(logger = BACKGROUND)).contains(testImage)
-                BACKGROUND.expectLogged.contains("Listing $testImage images")
+            fun TestImage.`should list existing image and log`(testSpan: TestSpan) = whilePulled { testImage ->
+                expectThat(testImage.list(provider = RendererProviders.noDetails())).contains(testImage)
+                testSpan.expectThatRendered().contains("Listing $testImage images ✔︎")
 
                 testImage.remove()
-                expectThat(testImage.list(logger = BACKGROUND)).isEmpty()
-                BACKGROUND.expectLogged.contains("Listing $testImage images")
+                expectThat(testImage.list(provider = RendererProviders.noDetails())).isEmpty()
+                testSpan.expectThatRendered().contains("Listing $testImage images ✔︎")
             }
         }
 
@@ -145,40 +145,40 @@ class DockerImageTest {
         }
 
         @ImageTest @IdeaWorkaroundTest
-        fun TestImage.`should check if is pulled and log`() = whilePulled { testImage ->
+        fun TestImage.`should check if is pulled and log`(testSpan: TestSpan) = whilePulled { testImage ->
             expectThat(testImage).isPulled()
-            BACKGROUND.expectLogged.contains("Checking if $testImage is pulled")
+            testSpan.expectThatRendered().contains("Checking if $testImage is pulled ✔︎")
 
             testImage.remove()
             expectThat(testImage).not { isPulled() }
-            BACKGROUND.expectLogged.contains("Checking if $testImage is pulled")
+            testSpan.expectThatRendered().contains("Checking if $testImage is pulled ✔︎")
         }
 
         @ImageTest @IdeaWorkaroundTest
-        fun TestImage.`should pull image and log`() = whileRemoved { testImage ->
-            expectThat(testImage.pull(logger = BACKGROUND)).isSuccessful()
-            BACKGROUND.expectLogged.contains("Pulling $testImage")
+        fun TestImage.`should pull image and log`(testSpan: TestSpan) = whileRemoved { testImage ->
+            expectThat(testImage.pull(provider = RendererProviders.noDetails())).isSuccessful()
+            testSpan.expectThatRendered().contains("Pulling $testImage ✔︎")
             expectThat(testImage.isPulled).isTrue()
 
-            expectThat(testImage.pull(logger = BACKGROUND)).isSuccessful()
-            BACKGROUND.expectLogged.contains("Pulling $testImage")
+            expectThat(testImage.pull(provider = RendererProviders.noDetails())).isSuccessful()
+            testSpan.expectThatRendered().contains("Pulling $testImage ✔︎")
         }
 
         @ImageTest @IdeaWorkaroundTest
-        fun TestImage.`should remove image and log`() = whilePulled { testImage ->
-            expectThat(testImage.remove(logger = BACKGROUND)).isSuccessful()
-            BACKGROUND.expectLogged.contains("Removing $testImage")
+        fun TestImage.`should remove image and log`(testSpan: TestSpan) = whilePulled { testImage ->
+            expectThat(testImage.remove()).isSuccessful()
+            testSpan.expectThatRendered().contains("Removing $testImage ✔︎")
             expectThat(testImage.isPulled).isFalse()
 
-            expectThat(testImage.remove(logger = BACKGROUND)).isFailed()
-            BACKGROUND.expectLogged.contains("Removing $testImage ${Symbols.Negative.ansiRemoved} no such image")
+            expectThat(testImage.remove()).isFailed()
+            testSpan.expectThatRendered().contains("Removing $testImage ${Symbols.Negative.ansiRemoved} no such image")
         }
     }
 }
 
 fun Assertion.Builder<DockerImage>.isPulled() =
     assert("is pulled") {
-        when (with(it) { BACKGROUND.isPulled }) {
+        when (with(it) { RendererProviders.noDetails().isPulled }) {
             true -> pass()
             else -> fail("$it is not pulled")
         }

@@ -1,7 +1,6 @@
 package koodies.exec
 
 import koodies.exec.IO.Meta
-import koodies.exec.IO.Meta.Starting
 import koodies.io.path.pathString
 import koodies.io.path.text
 import koodies.io.path.writeText
@@ -78,7 +77,7 @@ class IOLogTest {
             val dumps: Map<String, Path> = ioLog.dump(this, 123)
             expectThat(dumps.values) {
                 hasSize(2)
-                all { text.ansiRemoved.startsWith("Executing command arg") }
+                all { text.ansiRemoved.startsWith("processing") }
             }
         }
 
@@ -97,7 +96,6 @@ class IOLogTest {
                 .single().text
                 .containsAnsi()
                 .toStringIsEqualTo("""
-                    Executing command arg
                     processing
                     awaiting input: 
                     cancel
@@ -113,7 +111,6 @@ class IOLogTest {
                 .single().text
                 .not { containsAnsi() }
                 .toStringIsEqualTo("""
-                    Executing command arg
                     processing
                     awaiting input: 
                     cancel
@@ -125,7 +122,6 @@ class IOLogTest {
 }
 
 fun createIOLog(): IOLog = IOLog().apply {
-    this + Starting(CommandLine("command", "arg"))
     output + "processing$LF".toByteArray()
     output + "awaiting input: $LF".toByteArray()
     input + "cancel$LF".toByteArray()

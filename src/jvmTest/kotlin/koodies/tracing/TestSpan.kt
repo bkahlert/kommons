@@ -8,24 +8,29 @@ import koodies.junit.isVerbose
 import koodies.jvm.currentThread
 import koodies.jvm.orNull
 import koodies.test.get
+import koodies.test.isAnnotated
 import koodies.test.put
 import koodies.test.storeForNamespaceAndTest
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics.formattedAs
 import koodies.text.padStartFixedLength
 import koodies.time.Now
 import koodies.time.minutes
 import koodies.time.seconds
-import koodies.tracing.rendering.BlockRenderer
+import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.InMemoryPrinter
 import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.Renderer
+import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.TeePrinter
+import koodies.tracing.rendering.ThreadSafePrinter
 import koodies.unit.milli
 import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.ParameterContext
@@ -37,26 +42,36 @@ import org.opentest4j.TestAbortedException
 import org.opentest4j.TestSkippedException
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.concurrent.withLock
 import kotlin.time.Duration
 
 class TestSpan(
     span: Span,
     renderer: Renderer,
-    private val clientPrinter: Printer,
+    private val rendered: (ignoreAnsi: Boolean) -> String,
 ) : CurrentSpan by RenderingSpan(span, renderer) {
 
     /**
      * Returns a [Builder] to run assertions on what was rendered.
      */
-    fun expectThatRendered() =
-        expectThat(clientPrinter.toString())
+    fun expectThatRendered(ignoreAnsi: Boolean = true) =
+        expectThat(rendered(ignoreAnsi))
 
     /**
      * Runs the specified [assertions] on what was rendered.
      */
-    fun expectThatRendered(assertions: Builder<String>.() -> Unit) =
-        expectThat(clientPrinter.toString(), assertions)
+    fun expectThatRendered(ignoreAnsi: Boolean = true, assertions: Builder<String>.() -> Unit) =
+        expectThat(rendered(ignoreAnsi), assertions)
 }
+
+/**
+ * Suppresses the provision of a [TestSpan].
+ */
+@Target(FUNCTION, CLASS)
+annotation class NoSpan
 
 
 /**
@@ -64,28 +79,51 @@ class TestSpan(
  *
  * @see TestTelemetry
  */
-class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), AfterEachCallback {
+class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), BeforeEachCallback, AfterEachCallback {
     private val store: ExtensionContext.() -> Store by storeForNamespaceAndTest()
 
     private data class CleanUp(val job: () -> Unit)
 
-    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): TestSpan {
+    override fun beforeEach(extensionContext: ExtensionContext) {
+        if (extensionContext.isAnnotated<NoSpan>()) return
         val name = extensionContext.testName
-        val printToConsole = extensionContext.isVerbose || parameterContext.isVerbose
+        val printToConsole = extensionContext.isVerbose
         val clientPrinter = InMemoryPrinter()
         val (span, renderer) = (null as? Span?).newChildSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
-        val scope = span.makeCurrent()
+        val scope = span.registerAsTestSpan().makeCurrent()
         extensionContext.store().put(CleanUp {
             scope.close()
             span.end()
             renderer.end(extensionContext.executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit))
         })
+        extensionContext.store().put(TestSpan(span, renderer) { ignoreAnsi: Boolean ->
+            if (ignoreAnsi) clientPrinter.toString().ansiRemoved
+            else clientPrinter.toString()
+        })
+    }
 
-        return TestSpan(span, renderer, clientPrinter)
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): TestSpan {
+        return extensionContext.store().get<TestSpan>()
+            ?: if (extensionContext.isAnnotated<NoSpan>()) error("Unable to resolve $TestSpanString due to existing $NoSpanString") else error("Failed to load $TestSpanString")
     }
 
     override fun afterEach(extensionContext: ExtensionContext) {
         extensionContext.store().get<CleanUp>()?.run { job() }
+    }
+
+    companion object {
+        private val tracesLock = ReentrantLock()
+        private val traces = mutableSetOf<TraceId>()
+
+        /** Register this span as a test span that was created on purpose. */
+        fun Span.registerAsTestSpan(): Span = apply { tracesLock.withLock { traces.add(traceId) } }
+
+        /** Register this span as a test span that was created on purpose. */
+        fun CurrentSpan.registerAsTestSpan(): CurrentSpan = apply { tracesLock.withLock { traces.add(TraceId.current) } }
+        val TraceId.testTrace get() = tracesLock.withLock { traces.contains(this) }
+
+        private val NoSpanString = NoSpan::class.simpleName.formattedAs.input
+        private val TestSpanString = TestSpan::class.simpleName.formattedAs.input
     }
 }
 
@@ -100,8 +138,8 @@ class TestRenderer(
     printToConsole: Boolean,
 ) : Renderer {
 
-    private val testOnlyPrinter: Printer = if (printToConsole) TestPrinter() else run { {} }
-    private val printer: Printer = TeePrinter(testOnlyPrinter, printer)
+    private val testOnlyPrinter: Printer = if (printToConsole) ThreadSafePrinter(TestPrinter()) else run { {} }
+    private val printer: Printer = ThreadSafePrinter(TeePrinter(testOnlyPrinter, printer))
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         testOnlyPrinter(TestPrinter.TestIO.Start(name, traceId, spanId))
@@ -123,13 +161,8 @@ class TestRenderer(
         }
     }
 
-    override fun customizedChild(customize: Settings.() -> Settings): Renderer {
-        return BlockRenderer(Settings().customize(), ::printChild)
-    }
-
-    override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer {
-        return provider(Settings(), ::printChild)
-    }
+    override fun nestedRenderer(renderer: RendererProvider): Renderer =
+        renderer(Settings(printer = ::printChild)) { CompactRenderer(it) }
 
     override fun printChild(text: CharSequence) {
         printer(text)

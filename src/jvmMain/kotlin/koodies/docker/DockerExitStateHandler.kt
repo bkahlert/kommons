@@ -122,8 +122,8 @@ public object DockerExitStateHandler : ExitStateHandler {
 
             override val symbol: String = Symbols.Negative
             override val textRepresentation: String? get() = this::class.lowerSentenceCaseName.formattedAs.error
-            override fun format(): String = textRepresentation + symbol.spaced + status
-            override fun toString(): String = symbol.rightSpaced + textRepresentation
+            override fun format(): String = symbol.rightSpaced + textRepresentation
+            override fun toString(): String = format()
 
             public class NoSuchContainer(
                 start: Instant,
@@ -181,8 +181,6 @@ public object DockerExitStateHandler : ExitStateHandler {
                 status: String,
             ) : BadRequest(start, end, pid, exitCode, io, 409, status = status) {
                 override val textRepresentation: String get() = status.formattedAs.error
-                override fun format(): String = symbol.rightSpaced + textRepresentation
-                override fun toString(): String = format()
             }
 
             public class CannotKillContainer(

@@ -12,7 +12,7 @@ public value class SpanId(private val value: CharSequence) : CharSequence {
     /**
      * Whether this ID is valid.
      */
-    internal val valid: Boolean get() = value.any { it != '0' }
+    public val valid: Boolean get() = io.opentelemetry.api.trace.SpanId.isValid(value)
 
     override val length: Int get() = value.length
     override fun get(index: Int): Char = value[index]
@@ -21,6 +21,7 @@ public value class SpanId(private val value: CharSequence) : CharSequence {
     override fun toString(): String = value.ansiRemoved
 
     public companion object {
+
         /**
          * ID of the currently active [Span].
          */

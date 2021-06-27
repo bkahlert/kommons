@@ -2,9 +2,9 @@ package koodies.text
 
 import koodies.text.Semantics.Symbols
 
-public inline val CharSequence?.spaced: String get() = (this ?: Symbols.Null).wrap(Unicode.NO_BREAK_SPACE)
-public inline val CharSequence?.leftSpaced: String get() = (this ?: Symbols.Null).wrap(Unicode.NO_BREAK_SPACE.toString(), "")
-public inline val CharSequence?.rightSpaced: String get() = (this ?: Symbols.Null).wrap("", Unicode.NO_BREAK_SPACE.toString())
+public inline val CharSequence?.spaced: String get() = (this ?: Symbols.Null).wrap(" ")
+public inline val CharSequence?.leftSpaced: String get() = (this ?: Symbols.Null).wrap(" ", "")
+public inline val CharSequence?.rightSpaced: String get() = (this ?: Symbols.Null).wrap("", " ")
 public inline val CharSequence?.quoted: String get() = (this ?: Symbols.Null).wrap("\"")
 public inline val CharSequence?.singleQuoted: String get() = (this ?: Symbols.Null).wrap("'")
 public inline val CharSequence.unquoted: String get() = "${unwrap("\"", "\'")}"

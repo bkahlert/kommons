@@ -1,6 +1,7 @@
 package koodies.io
 
 import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.RendererProviders
 import koodies.exec.parse
 import koodies.io.path.Defaults
 import koodies.io.path.age
@@ -9,7 +10,6 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.isEmpty
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.requireTempSubPath
-import koodies.logging.LoggingContext.Companion.BACKGROUND
 import koodies.or
 import koodies.shell.ShellScript
 import koodies.text.Semantics.formattedAs
@@ -170,9 +170,11 @@ public fun <T> runWithTempDir(base: String = "", extension: String = "", block: 
  * Resolves [glob] using the system's `ls` command line tool.
  */
 public fun Path.ls(glob: String = ""): List<Path> =
-    ShellScript { !"ls $glob" }.exec.logging(BACKGROUND, this) {
-        errorsOnly("${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}")
-    }.parse.columns<Path, Failed>(1) {
+    ShellScript { !"ls $glob" }.exec.logging(
+        this,
+        name = "${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}",
+        renderer = RendererProviders.errorsOnly(),
+    ).parse.columns<Path, Failed>(1) {
         resolve(it[0])
     } or { emptyList() }
 

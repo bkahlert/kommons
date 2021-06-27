@@ -26,9 +26,6 @@ import koodies.io.path.asPath
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
 import koodies.io.tempDir
-import koodies.logging.InMemoryLogger
-import koodies.logging.SimpleRenderingLogger
-import koodies.logging.capturing
 import koodies.runtime.onExit
 import koodies.shell.ShellScript
 import koodies.test.BuilderFixture
@@ -43,6 +40,10 @@ import koodies.test.toStringContains
 import koodies.test.toStringIsEqualTo
 import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
+import koodies.tracing.TestSpan
+import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.TeePrinter
+import koodies.tracing.rendering.capturing
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -174,53 +175,53 @@ class DockerRunCommandLineTest {
     inner class DockerizedExecutor {
 
         @Smoke @TestFactory
-        fun `should exec dockerized`(logger: InMemoryLogger) = testEach(
+        fun `should exec dockerized`() = testEach(
             CommandLine("printenv", "HOME"),
             ShellScript {
                 shebang
                 !"printenv | grep HOME | perl -pe 's/.*?HOME=//'"
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.logging(logger) } that {
+            expecting { executable.dockerized(Ubuntu).exec.logging() } that {
                 io.output.ansiRemoved.isEqualTo("/root")
             }
         }
 
         @TestFactory
-        fun `should have success state on exit code 0`(logger: InMemoryLogger) = testEach(
+        fun `should have success state on exit code 0`() = testEach(
             CommandLine("ls", "/root"),
             ShellScript {
                 shebang
                 !CommandLine("ls", "/root")
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.logging(logger) } that {
+            expecting { executable.dockerized(Ubuntu).exec.logging() } that {
                 state.isA<Succeeded>().exitCode.isEqualTo(0)
             }
         }
 
         @TestFactory
-        fun `should have failed state on exit code other than 0`(logger: InMemoryLogger) = testEach(
+        fun `should have failed state on exit code other than 0`() = testEach(
             CommandLine("ls", "invalid"),
             ShellScript {
                 shebang
                 !CommandLine("ls", "invalid")
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.logging(logger) } that {
+            expecting { executable.dockerized(Ubuntu).exec.logging() } that {
                 state.isA<Exited.Failed>().exitCode.isEqualTo(2)
             }
         }
 
         @TestFactory
-        fun `should apply env`(logger: InMemoryLogger) = testEach(
+        fun `should apply env`() = testEach(
             CommandLine("printenv", "TEST_PROP"),
             ShellScript {
                 shebang
                 !CommandLine("printenv", "TEST_PROP")
             },
         ) { executable ->
-            expecting { executable.dockerized(Ubuntu).exec.env("TEST_PROP", "TEST_VALUE").logging(logger) } that {
+            expecting { executable.dockerized(Ubuntu).exec.env("TEST_PROP", "TEST_VALUE").logging() } that {
                 io.output.ansiRemoved.isEqualTo("TEST_VALUE")
             }
         }
@@ -239,7 +240,7 @@ class DockerRunCommandLineTest {
             private val commandLine = CommandLine("cat", htmlFile.pathString)
 
             @DockerRequiring @TestFactory
-            fun `should apply working directory`(logger: InMemoryLogger) = testEach(
+            fun `should apply working directory`() = testEach(
                 commandLine,
                 ShellScript {
                     shebang
@@ -251,7 +252,7 @@ class DockerRunCommandLineTest {
                         mounts {
                             tempDir mountAt "/host"
                         }
-                    }.exec.logging(logger, workDir)
+                    }.exec.logging(workDir)
                 } that {
                     commandLine.toStringContains("'/host/work/files/sample.html'")
                     io.output.ansiRemoved.isEqualTo(HtmlFixture.text)
@@ -329,17 +330,17 @@ class DockerRunCommandLineTest {
         inner class DockerizingCommandLine {
 
             @Test
-            fun InMemoryLogger.`should use entrypoint if set`() {
+            fun `should use entrypoint if set`() {
                 val commandLine = CommandLine("printenv", "HOME")
-                expecting { commandLine.dockerized(Ubuntu) { entrypoint { "echo" } }.exec.logging(this) } that {
+                expecting { commandLine.dockerized(Ubuntu) { entrypoint { "echo" } }.exec.logging() } that {
                     io.contains(Output typed "HOME")
                 }
             }
 
             @Test
-            fun InMemoryLogger.`should use command if not set`() {
+            fun `should use command if not set`() {
                 val commandLine = CommandLine("printenv", "HOME")
-                expecting { commandLine.dockerized(Ubuntu).exec.logging(this) } that {
+                expecting { commandLine.dockerized(Ubuntu).exec.logging() } that {
                     io.contains(Output typed "/root")
                 }
             }
@@ -349,15 +350,15 @@ class DockerRunCommandLineTest {
         inner class DockerizingShellScript {
 
             @TestFactory
-            fun `should always use ⧸bin⧸sh`(logger: InMemoryLogger) = tests {
+            fun `should always use ⧸bin⧸sh`() = tests {
                 val script = object : ShellScript(null, "printenv HOME") {
                     override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?, transform: (String) -> String): CommandLine {
                         val originalCommandLine = super.toCommandLine(environment, workingDirectory, transform)
                         return CommandLine("/any/interpreter", originalCommandLine.arguments.last())
                     }
                 }
-                expecting { script.dockerized(Ubuntu) { entrypoint { "bullshit" } }.exec.logging(logger) } that { io.contains(Output typed "/root") }
-                expecting { script.dockerized(Ubuntu).exec.logging(logger) } that { io.contains(Output typed "/root") }
+                expecting { script.dockerized(Ubuntu) { entrypoint { "bullshit" } }.exec.logging() } that { io.contains(Output typed "/root") }
+                expecting { script.dockerized(Ubuntu).exec.logging() } that { io.contains(Output typed "/root") }
             }
         }
     }
@@ -376,20 +377,24 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun InMemoryLogger.`should exec logging using specified image`() = testEach<Executable<Exec>.(SimpleRenderingLogger) -> DockerExec>(
-        { dockerized(Ubuntu).exec.logging(it) },
-        { dockerized { "ubuntu" }.exec.logging(it) },
-        { with(Ubuntu) { dockerized.exec.logging(it) } },
+    fun TestSpan.`should exec logging using specified image`() = testEach<Executable<Exec>.(RendererProvider) -> DockerExec>(
+        { dockerized(Ubuntu).exec.logging(renderer = it) },
+        { dockerized { "ubuntu" }.exec.logging(renderer = it) },
+        { with(Ubuntu) { dockerized.exec.logging(renderer = it) } },
     ) { execVariant ->
         expecting {
-            capturing { CommandLine("printenv", "HOME").execVariant(it) }
+            capturing { capturingPrinter ->
+                CommandLine("printenv", "HOME").execVariant {
+                    it(copy(printer = TeePrinter(printer, capturingPrinter)))
+                }
+            }
         } that {
             matchesCurlyPattern("""
-                ▶ docker run ubuntu printenv HOME
-                · Executing {}
-                · /root
-                · Process {} terminated {}
-                ✔︎
+                ╭──╴docker run ubuntu printenv HOME
+                │
+                │   /root
+                │
+                ╰──╴✔︎
             """.trimIndent())
         }
     }

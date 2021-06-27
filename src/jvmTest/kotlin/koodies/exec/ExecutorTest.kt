@@ -9,23 +9,19 @@ import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.io.Koodies
 import koodies.io.Locations
 import koodies.io.path.pathString
-import koodies.logging.FixedWidthRenderingLogger.Border.NONE
-import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.logging.InMemoryLogger
-import koodies.logging.LoggingContext.Companion.BACKGROUND
-import koodies.logging.SimpleRenderingLogger.Companion.withUnclosedWarningDisabled
-import koodies.logging.capturing
-import koodies.logging.expectLogged
 import koodies.shell.ShellScript
 import koodies.test.DynamicTestsWithSubjectBuilder
 import koodies.test.Smoke
-import koodies.test.output.TestLogger
 import koodies.test.test
 import koodies.test.tests
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.mapLines
+import koodies.text.matchesCurlyPattern
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.tracing.TestSpan
+import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.capturing
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -33,7 +29,6 @@ import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
@@ -98,7 +93,7 @@ class ExecutorTest {
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
-                expectThatProcess { logsFailedIO() }
+                expectThatProcess { containsDump() }
                 expectThatProcess { runsSynchronously() }
                 expectThatProcessAppliesTerminationCallback(null) { executable.exec(execTerminationCallback = it) }
             }
@@ -124,34 +119,31 @@ class ExecutorTest {
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
-                expectThatProcess { logsFailedIO() }
+                expectThatProcess { containsDump() }
                 expectThatProcess { runsSynchronously() }
                 expectThatProcessAppliesTerminationCallback(null) { executable.exec.logging(execTerminationCallback = it) }
             }
 
             @TestFactory
-            fun `should log to background by default`() = tests {
-                executable.exec.testProp.logging() asserting { BACKGROUND.expectLogged.logsSuccessfulIO() }
-                executable.exec.logging() asserting { BACKGROUND.expectLogged.logsFailedIO() }
-            }
-
-            @TestFactory
-            fun `should log to specified logger if specified`() = tests {
-                fun logger() = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                logger().also { executable.exec.testProp.logging(it) } asserting { logsSuccessfulIO() }
-                logger().also { executable.exec.logging(it) } asserting { logsFailedIO() }
+            fun TestSpan.`should log to specified printer if specified`() = tests {
+                capturing { capture ->
+                    executable.exec.testProp.logging { it(copy(blockStyle = BlockStyles.None, printer = capture)) }
+                } asserting { logsSuccessfulIO() }
+                capturing { capture ->
+                    executable.exec.logging { it(copy(blockStyle = BlockStyles.None, printer = capture)) }
+                } asserting { containsDump() }
             }
 
             @Test
-            fun TestLogger.`should log to receiver logger if available`() {
-                with(executable) { logging.testProp() }
-                expectLogged.logsSuccessfulIO()
+            fun TestSpan.`should log dump on failure`() {
+                executable.exec.logging()
+                expectThatRendered().containsDump()
             }
 
             @Test
-            fun TestLogger.`should apply custom logging options`() {
-                val logged = capturing { executable.exec.testProp.logging(it) { block { name { "custom name" }; border = SOLID } } }
-                expectThat(logged).contains("╭──╴custom name")
+            fun TestSpan.`should apply custom logging options`() {
+                executable.exec.testProp.logging { it(copy(contentFormatter = { "!$it!" })) }
+                expectThatRendered().contains("!TEST_VALUE!")
             }
         }
 
@@ -175,42 +167,40 @@ class ExecutorTest {
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
-                expectThatProcess { logsFailedIO() }
+                expectThatProcess { containsDump() }
                 expectThatProcess { runsSynchronously() }
                 expectThatProcessAppliesTerminationCallback(null) { executable.exec.processing(execTerminationCallback = it) {} }
             }
 
             @Test
-            fun TestLogger.`should only log success`() {
-                executable.exec.testProp.processing(logger = this) {}
-                expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
+            fun TestSpan.`should render`() {
+                executable.exec.testProp.processing {}
+                expectThatRendered().matchesCurlyPattern("""
+                    ╭──╴printenv TEST_PROP
+                    │
+                    │   TEST_VALUE
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
             }
 
             @Test
-            fun TestLogger.`should log dump on failure`() {
-                executable.exec.processing(logger = this) {}
-                expectLogged.containsDump(*emptyArray())
+            fun `should process dump on failure`() {
+                var dumpProcessed = false
+                executable.exec.processing { if (it is IO.Meta.Dump) dumpProcessed = true }
+                expectThat(dumpProcessed).isTrue()
             }
 
             @Test
-            fun TestLogger.`should log to receiver logger if available`() {
-                with(executable) { logging.testProp.processing {} }
-                expectLogged.isEqualTo("printenv TEST_PROP ✔︎")
-            }
-
-            @Test
-            fun TestLogger.`should dump to receiver logger if available`() {
-                with(executable) { logging.processing {} }
-                expectLogged.containsDump(*emptyArray())
-            }
-
-            @Test
-            fun TestLogger.`should apply custom logging options`() {
-                val logged = capturing {
-                    executable.exec.testProp.processing(logger = it,
-                        loggingOptionsInit = { block { name { "custom name" }; border = SOLID } }) {}
-                }
-                expectThat(logged).contains("╭──╴custom name")
+            fun TestSpan.`should apply custom logging options`() {
+                executable.exec.testProp.processing(renderer = { it(copy(contentFormatter = { "!$it!" })) }) {}
+                expectThatRendered().matchesCurlyPattern("""
+                    ╭──╴printenv TEST_PROP
+                    │
+                    │   !TEST_VALUE!
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
             }
 
             @Test
@@ -245,7 +235,7 @@ class ExecutorTest {
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
-                expectThatProcess { joined.logsFailedIO() }
+                expectThatProcess { joined.containsDump() }
 //                expectThatProcess { runsAsynchronously() } // often too fast
                 expectThatProcessAppliesTerminationCallback(null) { executable.exec.async(execTerminationCallback = it).apply { waitFor() } }
             }
@@ -273,7 +263,7 @@ class ExecutorTest {
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
-                expectThatProcess { joined.logsFailedIO() }
+                expectThatProcess { joined.containsDump() }
 //                expectThatProcess { runsAsynchronously() } // often too fast
                 expectThatProcessAppliesTerminationCallback(null) {
                     executable.exec.async.logging(execTerminationCallback = it).apply { waitFor() }
@@ -281,28 +271,25 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `should log to background by default`() = tests {
-                executable.exec.async.testProp.logging().apply { waitFor() } asserting { BACKGROUND.expectLogged.logsSuccessfulIO() }
-                executable.exec.async.logging().apply { waitFor() } asserting { BACKGROUND.expectLogged.logsFailedIO() }
-            }
-
-            @TestFactory
-            fun `should log to specified logger if specified`() = tests {
-                fun logger() = InMemoryLogger(border = NONE).withUnclosedWarningDisabled
-                logger().also { executable.exec.testProp.async.logging(it).apply { waitFor() } } asserting { logsSuccessfulIO() }
-                logger().also { executable.exec.async.logging(it).apply { waitFor() } } asserting { logsFailedIO() }
+            fun TestSpan.`should log to specified printer if specified`() = tests {
+                capturing { capture ->
+                    executable.exec.testProp.async.logging { it(copy(blockStyle = BlockStyles.None, printer = capture)) }.apply { waitFor() }
+                } asserting { logsSuccessfulIO() }
+                capturing { capture ->
+                    executable.exec.async.logging { it(copy(blockStyle = BlockStyles.None, printer = capture)) }.apply { waitFor() }
+                } asserting { containsDump() }
             }
 
             @Test
-            fun TestLogger.`should log to receiver logger if available`() {
-                with(executable) { logging.testProp.async().apply { waitFor() } }
-                expectLogged.logsSuccessfulIO()
+            fun TestSpan.`should log dump on failure`() {
+                executable.exec.async.logging().apply { waitFor() }
+                expectThatRendered().containsDump()
             }
 
             @Test
-            fun TestLogger.`should apply custom logging options`() {
-                val logged = capturing { executable.exec.async.testProp.logging(it) { block { name { "custom name" }; border = SOLID } }.apply { waitFor() } }
-                expectThat(logged).contains("╭──╴custom name")
+            fun TestSpan.`should apply custom logging options`() {
+                executable.exec.async.testProp.logging { it(copy(contentFormatter = { "!$it!" })) }.apply { waitFor() }
+                expectThatRendered().contains("!TEST_VALUE!")
             }
         }
 
@@ -328,21 +315,30 @@ class ExecutorTest {
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
-                expectThatProcess { joined.logsFailedIO() }
+                expectThatProcess { joined.containsDump() }
 //                expectThatProcess { runsAsynchronously() } // too fast
                 expectThatProcessAppliesTerminationCallback(null) {
                     executable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
                 }
             }
 
-            @TestFactory
-            fun TestLogger.`should log nothing`() = tests {
-                executable.exec.async.testProp.processing(logger = this@`should log nothing`) {}.apply { waitFor() } asserting {
-                    expectLogged.isEmpty()
-                }
-                executable.exec.async.processing(logger = this@`should log nothing`) {}.apply { waitFor() } asserting {
-                    expectLogged.isEmpty()
-                }
+            @Test
+            fun TestSpan.`should render`() {
+                executable.exec.async.testProp.processing {}.apply { waitFor() }
+                expectThatRendered().matchesCurlyPattern("""
+                    ╭──╴printenv TEST_PROP
+                    │
+                    │   TEST_VALUE
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
+            }
+
+            @Test
+            fun `should process dump on failure`() {
+                var dumpProcessed = false
+                executable.exec.async.processing { if (it is IO.Meta.Dump) dumpProcessed = true }.apply { waitFor() }
+                expectThat(dumpProcessed).isTrue()
             }
 
             @Test
@@ -402,10 +398,6 @@ inline fun <reified T : Exec> Builder<T>.starts(): Builder<T> =
 inline val <reified T : Exec> Builder<T>.exited: Builder<ExitState> get() = get("exited") { onExit.get() }.isA()
 inline fun <reified T : Exec> Builder<T>.logsIO(curlyPattern: String): Builder<String> = exited.io().toStringMatchesCurlyPattern(curlyPattern)
 
-@JvmName("logsIOInMemoryLogger")
-inline fun <reified T : InMemoryLogger> Builder<T>.logsIO(ignorePrefix: String, curlyPattern: String, dropFirst: Int = 2, dropLast: Int = 1): Builder<String> =
-    get { toString(null, false, dropFirst).lines().dropLast(dropLast).joinToString(LF) }.logsIO(ignorePrefix, curlyPattern)
-
 @JvmName("logsIOString")
 fun Builder<String>.logsIO(ignorePrefix: String, curlyPattern: String): Builder<String> =
     get { mapLines { it.removePrefix(ignorePrefix) } }.toStringMatchesCurlyPattern(curlyPattern)
@@ -414,18 +406,12 @@ fun Builder<String>.logsIO(ignorePrefix: String, curlyPattern: String): Builder<
 inline fun <reified T : Exec> Builder<T>.succeeds(): Builder<Succeeded> = exited.isA()
 inline fun <reified T : Exec> Builder<T>.logsSuccessfulIO(): Builder<String> = logsIO(successfulIO)
 
-@JvmName("logsSuccessfulIOInMemoryLogger")
-inline fun <reified T : InMemoryLogger> Builder<T>.logsSuccessfulIO(ignorePrefix: String = "· ", dropFirst: Int = 2): Builder<String> =
-    logsIO(ignorePrefix, successfulIO, dropFirst)
-
 @JvmName("logsSuccessfulIOString")
 private fun Builder<String>.logsSuccessfulIO(ignorePrefix: String = "· "): Builder<String> =
     logsIO(ignorePrefix, "{{}}$LF$successfulIO$LF{{}}")
 
 val successfulIO = """
-    Executing printenv TEST_PROP
     TEST_VALUE
-    Process {} terminated successfully at {}
 """.trimIndent()
 
 inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failed> =
@@ -437,21 +423,7 @@ inline fun <reified T : Exec> Builder<T>.fails(): Builder<Failed> =
         }
     }
 
-inline fun <reified T : Exec> Builder<T>.logsFailedIO(): Builder<String> = logsIO(failedIO) and { containsDump(containedStrings = emptyArray()) }
-
-@JvmName("logsFailedIOInMemoryLogger")
-inline fun <reified T : InMemoryLogger> Builder<T>.logsFailedIO(ignorePrefix: String = "· ", dropFirst: Int = 2): Builder<String> =
-    logsIO(ignorePrefix, failedIO, dropFirst) and { containsDump(containedStrings = emptyArray()) }
-
-@JvmName("logsFailedIOString")
-private fun Builder<String>.logsFailedIO(ignorePrefix: String = "· "): Builder<String> =
-    logsIO(ignorePrefix, "{{}}$LF$failedIO$LF{{}}") and { containsDump(containedStrings = emptyArray()) }
-
-val failedIO = """
-    Executing printenv TEST_PROP
-    Process {} terminated with exit code 1
-    {{}}
-""".trimIndent()
+inline fun <reified T : Exec> Builder<T>.containsDump() = exited.io().containsDump()
 
 inline val Builder<out Process>.state get() = get("exit state") { state }
 inline fun <reified T : Exec> Builder<T>.runsSynchronously(): Builder<ExitState> = state.isA()

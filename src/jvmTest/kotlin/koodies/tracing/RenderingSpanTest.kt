@@ -13,8 +13,10 @@ import koodies.junit.TestName
 import koodies.test.testEach
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
-import koodies.tracing.rendering.Printer
+import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import koodies.tracing.rendering.Renderer
+import koodies.tracing.rendering.Renderer.Companion.NOOP
+import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.rendering.Settings
 import koodies.unit.nano
 import org.junit.jupiter.api.Test
@@ -34,10 +36,17 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.time.Duration
 
+@NoSpan
 class RenderingSpanTest {
 
     @TestFactory
     fun event(testName: TestName) = testEach<RenderingSpan.(String) -> Unit>(
+        {
+            event(object : Event {
+                override val name: CharSequence = it
+                override val attributes: Map<CharSequence, Any> = emptyMap()
+            })
+        },
         { event(it, emptyMap()) },
         { addEvent(it) },
         { addEvent(it, 0L, SECONDS) },
@@ -117,7 +126,7 @@ class RenderingSpanTest {
 
     @Test
     fun `should override toString`() {
-        expectThat(RenderingSpan(Span.getInvalid(), Renderer.noop())).toStringMatchesCurlyPattern("RenderingSpan(span={}, renderer={})")
+        expectThat(RenderingSpan(Span.getInvalid(), NOOP)).toStringMatchesCurlyPattern("RenderingSpan(span={}, renderer={})")
     }
 
     private fun withRenderingSpan(testName: TestName, block: RenderingSpan.() -> Unit): Pair<TraceId, List<String>> {
@@ -130,7 +139,7 @@ class RenderingSpanTest {
     }
 
     private fun <R> withRootSpan(testName: TestName, block: () -> R): R {
-        val parentSpan = Tracer.spanBuilder(testName.value).startSpan()
+        val parentSpan = Tracer.spanBuilder(testName.value).startSpan().registerAsTestSpan()
         val scope = parentSpan.makeCurrent()
         val result = runCatching(block)
         scope.close()
@@ -157,13 +166,8 @@ class RenderingSpanTest {
             captured.add(contentFormatter("END: ${result.getOrNull()}").toString())
         }
 
-        override fun customizedChild(customize: Settings.() -> Settings): Renderer {
-            return CapturingRenderer(Settings(contentFormatter = contentFormatter).run(customize), captured)
-        }
-
-        override fun injectedChild(provider: (Settings, Printer) -> Renderer): Renderer {
-            return provider(Settings(contentFormatter = contentFormatter), ::printChild)
-        }
+        override fun nestedRenderer(renderer: RendererProvider): Renderer =
+            renderer(Settings(contentFormatter = contentFormatter, printer = ::printChild)) { CapturingRenderer(it, captured) }
 
         override fun printChild(text: CharSequence) {
             captured.add(text.toString())
@@ -238,22 +242,36 @@ val Builder<EventData>.eventName: Builder<String>
 val Builder<EventData>.attributes: Builder<Attributes>
     get() = get("attributes") { attributes }
 
+val Builder<EventData>.eventDescription: Builder<String>
+    get() = get("description attribute") { attributes.get(AttributeKey.stringKey("description")) }
+
+val Builder<EventData>.eventText: Builder<String>
+    get() = get("text attribute") { attributes.get(AttributeKey.stringKey("text")) }
+
+fun Builder<EventData>.hasAttribute(key: String, value: String): Builder<EventData> =
+    assert("has attribute $key=$value") {
+        when (it.attributes.get(AttributeKey.stringKey(key))) {
+            value -> pass()
+            else -> fail()
+        }
+    }
+
 val Builder<SpanData>.status: Builder<StatusData>
     get() = get("status") { status }
 
-val Builder<StatusData>.code: Builder<StatusCode>
-    get() = get("code") { statusCode }
+val Builder<SpanData>.statusCode: Builder<StatusCode>
+    get() = get("code") { status.statusCode }
 
-val Builder<StatusData>.description: Builder<String>
-    get() = get("description") { description }
+val Builder<SpanData>.statusDescription: Builder<String>
+    get() = get("description") { status.description }
 
 fun Builder<SpanData>.isOkay() =
-    status.code.isEqualTo(OK)
+    statusCode.isEqualTo(OK)
 
 fun Builder<SpanData>.isError(expectedDescription: String) =
-    with(status) {
-        code.isEqualTo(ERROR)
-        description.isEqualTo(expectedDescription)
+    with(this) {
+        statusCode.isEqualTo(ERROR)
+        statusDescription.isEqualTo(expectedDescription)
     }
 
 operator fun Builder<Attributes>.get(key: String): Builder<String> =

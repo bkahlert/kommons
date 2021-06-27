@@ -4,21 +4,12 @@ import koodies.exec.IO.Error
 import koodies.exec.IO.Input
 import koodies.exec.IO.Meta
 import koodies.exec.IO.Meta.Dump
-import koodies.exec.IO.Meta.Starting
-import koodies.exec.IO.Meta.Terminated
 import koodies.exec.IO.Meta.Text
 import koodies.exec.IO.Output
-import koodies.exec.mock.ExecMock
-import koodies.exec.mock.JavaProcessMock
-import koodies.io.Locations
-import koodies.io.path.asPath
-import koodies.logging.MutedRenderingLogger
 import koodies.test.toStringIsEqualTo
 import koodies.text.LineSeparators.LF
-import koodies.text.Semantics.Symbols
 import koodies.text.Unicode.characterTabulation
 import koodies.text.containsAnsi
-import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -32,40 +23,6 @@ class IOTest {
 
     @Nested
     inner class Meta {
-
-        @Nested
-        inner class Starting {
-
-            private val commandLine = CommandLine("command", "arg")
-            private val meta = Starting(commandLine)
-
-            @Test
-            fun `should have original text`() {
-                expectThat(meta.text).toStringIsEqualTo("Executing command arg")
-            }
-
-            @Test
-            fun `should have formatted text`() {
-                expectThat(meta).containsAnsi().toStringIsEqualTo("Executing command arg")
-            }
-        }
-
-        @Nested
-        inner class File {
-
-            private val file = "file".asPath()
-            private val meta = Meta typed file
-
-            @Test
-            fun `should have original text`() {
-                expectThat(meta.text).toStringIsEqualTo("${Symbols.Document} ${file.toUri()}")
-            }
-
-            @Test
-            fun `should have formatted text`() {
-                expectThat(meta).containsAnsi().toStringIsEqualTo("${Symbols.Document} ${file.toUri()}")
-            }
-        }
 
         @Nested
         inner class Text {
@@ -108,23 +65,6 @@ class IOTest {
             @Test
             fun `should throw on non-dump`() {
                 expectCatching { Dump("whatever") }.isFailure()
-            }
-        }
-
-        @Nested
-        inner class Terminated {
-
-            private val process = JavaExec(JavaProcessMock(MutedRenderingLogger), Locations.Temp, CommandLine("echo", JavaProcessMock::class.simpleName!!))
-            private val meta = Terminated(process)
-
-            @Test
-            fun `should have original text`() {
-                expectThat(meta.text).matchesCurlyPattern("Process ${process.pid} terminated successfully at {}.")
-            }
-
-            @Test
-            fun `should have formatted text`() {
-                expectThat(meta).containsAnsi().matchesCurlyPattern("Process ${process.pid} terminated successfully at {}.")
             }
         }
     }
@@ -190,27 +130,27 @@ class IOTest {
 
         @Test
         fun `should filter meta`() {
-            expectThat(IO_LIST.meta.toList()).containsExactly(IO_LIST.toList().subList(0, 5))
+            expectThat(IO_LIST.meta.toList()).containsExactly(IO_LIST.toList().subList(0, 2))
         }
 
         @Test
         fun `should filter in`() {
-            expectThat(IO_LIST.input.toList()).containsExactly(IO_LIST.toList().subList(5, 6))
+            expectThat(IO_LIST.input.toList()).containsExactly(IO_LIST.toList().subList(2, 3))
         }
 
         @Test
         fun `should filter out`() {
-            expectThat(IO_LIST.output.toList()).containsExactly(IO_LIST.toList().subList(6, 7))
+            expectThat(IO_LIST.output.toList()).containsExactly(IO_LIST.toList().subList(3, 4))
         }
 
         @Test
         fun `should filter err`() {
-            expectThat(IO_LIST.error.toList()).containsExactly(IO_LIST.toList().subList(7, 8))
+            expectThat(IO_LIST.error.toList()).containsExactly(IO_LIST.toList().subList(4, 5))
         }
 
         @Test
         fun `should filter out and err`() {
-            expectThat(IO_LIST.outputAndError.toList()).containsExactly(IO_LIST.toList().subList(6, 8))
+            expectThat(IO_LIST.outputAndError.toList()).containsExactly(IO_LIST.toList().subList(3, 5))
         }
 
         @Test
@@ -225,7 +165,7 @@ class IOTest {
 
         @Test
         fun `should merge multiple types`() {
-            expectThat(IO_LIST.drop(2).take(2).merge<IO>(removeAnsi = true)).isEqualTo("text${LF}dump")
+            expectThat(IO_LIST.take(2).merge<IO>(removeAnsi = true)).isEqualTo("text${LF}dump")
         }
 
         @Test
@@ -236,11 +176,8 @@ class IOTest {
 
     companion object {
         val IO_LIST: IOSequence<IO> = IOSequence(
-            Starting(CommandLine("command", "arg")),
-            Meta typed "file".asPath(),
             Text("text"),
             Dump("dump"),
-            Terminated(ExecMock(JavaProcessMock(MutedRenderingLogger))),
             Input typed "in",
             Output typed "out",
             Error(RuntimeException("err")),

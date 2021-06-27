@@ -3,12 +3,10 @@ package koodies.exec
 import koodies.Either
 import koodies.Either.Left
 import koodies.Either.Right
-import koodies.collections.synchronizedListOf
 import koodies.docker.Docker
 import koodies.exception.dump
 import koodies.exec.IO.Meta
 import koodies.exec.IO.Meta.Dump
-import koodies.exec.IO.Meta.Terminated
 import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
@@ -18,10 +16,12 @@ import koodies.exec.Process.State.Exited.Succeeded
 import koodies.io.Locations
 import koodies.logging.SimpleRenderingLogger
 import koodies.shell.ShellScript
-import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.DEFAULT
 import koodies.text.Semantics.formattedAs
 import koodies.time.Now
 import java.nio.file.Path
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * # Exec: Feature-Rich [Process] Execution
@@ -91,6 +91,10 @@ import java.nio.file.Path
  * [koodies.exec.Process] interface for
  * 1) easier mocking and
  * 2) and a simplified API
+ *
+ * ### Tracing
+ * If [OpenTelemetry](https://opentelemetry.io/) is detected or explicitly set using [koodies.tracing.OpenTelemetry.register]
+ * each execution of a process creates a new span with IO recorded as events. No further configuration is necessary.
  *
  * ### I/O Handling
  * The input and output of a wrapped process is typed with sub-classes of the sealed [IO] class:
@@ -169,7 +173,6 @@ public interface Exec : Process {
          */
         public fun fallbackExitStateHandler(): ExitStateHandler = ExitStateHandler { pid, exitCode, io ->
             if (exitCode == 0) {
-                metaStream.emit(Terminated(this))
                 Succeeded(start, Now.instant, pid, io)
             } else {
                 val relevantFiles = commandLine.includedFiles
@@ -185,7 +188,7 @@ public interface Exec : Process {
          * The given error messages are concatenated with a line break.
          */
         public fun Exec.createDump(vararg errorMessage: String): String {
-            metaStream.emit(Meta typed errorMessage.joinToString(LF))
+            metaStream.emit(Meta typed errorMessage.joinToString(DEFAULT))
             return (workingDirectory ?: Locations.Temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
         }
     }
@@ -228,14 +231,15 @@ public typealias ExecTerminationCallback = (Throwable?) -> Unit
  * consists of [Meta] about an [Exec].
  */
 public class MetaStream(vararg listeners: (Meta) -> Unit) {
-    private val history: MutableList<Meta> = synchronizedListOf()
-    private val listeners: MutableList<(Meta) -> Unit> = synchronizedListOf(*listeners)
+    private val lock = ReentrantLock()
+    private val history: MutableList<Meta> = mutableListOf()
+    private val listeners: MutableList<(Meta) -> Unit> = mutableListOf(*listeners)
 
     /**
      * Subscribes the given [listener] to this meta stream, that is,
      * already emitted and future messages are sent to the [listener].
      */
-    public fun subscribe(listener: (Meta) -> Unit) {
+    public fun subscribe(listener: (Meta) -> Unit): Unit = lock.withLock {
         history.forEach { listener(it) }
         listeners.add(listener)
     }
@@ -243,7 +247,7 @@ public class MetaStream(vararg listeners: (Meta) -> Unit) {
     /**
      * Exits the given [message] to all subscribed [listeners].
      */
-    public fun emit(message: Meta) {
+    public fun emit(message: Meta): Unit = lock.withLock {
         history.add(message)
         listeners.forEach { it(message) }
     }

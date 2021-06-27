@@ -8,22 +8,12 @@ public object OneLineStyles {
 
     public object Brackets : Style {
 
-        private val prefix = "❰❰"
+        private val prefix = "❱❱"
         private val infix = "❱"
         private val suffix = "❱❱"
 
-        private val nestedReplacements = listOf(
-            "«" to "‹",
-            "❰❰" to "",
-            "❰" to "‹",
-
-            "»" to "›",
-            "❱❱" to "",
-            "❱" to "»",
-        )
-
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
-            append(decorationFormatter(prefix), " ", element.ansi.bold)
+            append(element.ansi.bold)
         }
 
         override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
@@ -31,14 +21,20 @@ public object OneLineStyles {
         }
 
         override fun parent(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
-            append(" ", decorationFormatter(infix), " ", nestedReplacements.fold(element.ansi.italic.done) { acc, (old, new) -> acc.replace(old, new) })
+            append(
+                " ",
+                decorationFormatter(prefix),
+                " ",
+                element,
+                " ",
+                decorationFormatter(suffix),
+            )
         }
 
         override fun end(element: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue?, decorationFormatter: Formatter): CharSequence? =
             buildString {
                 val formatted = resultValueFormatter(element)?.format()?.ansi?.bold
-                if (element.successful == false) append(" ", formatted, " ", decorationFormatter(suffix))
-                else append(" ", decorationFormatter(infix), " ", formatted, " ", decorationFormatter(suffix))
+                append(" ", formatted)
             }
     }
 

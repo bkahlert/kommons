@@ -4,6 +4,7 @@ import koodies.debug.asEmoji
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.JavaExec
+import koodies.exec.successfulOrNull
 import koodies.io.Koodies
 import koodies.text.Semantics.Symbols
 
@@ -16,7 +17,8 @@ public open class ExecMock(
 ) : Exec by JavaExec(process, Koodies.ExecTemp, CommandLine("echo", ExecMock::class.simpleName!!)) {
 
     override fun toString(): String {
-        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successful?.asEmoji ?: Symbols.Computation})"
+        val delegateString =
+            "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji ?: Symbols.Computation})"
         val string = "${ExecMock::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")")
         return string.takeUnless { name != null } ?: string.substringBeforeLast(")") + ", name=$name)"
     }

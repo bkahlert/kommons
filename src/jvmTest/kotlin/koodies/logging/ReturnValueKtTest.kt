@@ -1,5 +1,8 @@
 package koodies.logging
 
+import koodies.exec.IOSequence
+import koodies.exec.Process.State.Exited.Failed
+import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.mock.ExecMock
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import java.time.Instant
 
 class ReturnValueKtTest {
     private val failedReturnValue: ReturnValue = object : ReturnValue {
@@ -25,6 +29,8 @@ class ReturnValueKtTest {
 
     private val exception = RuntimeException("exception")
 
+    private val succeededState = Succeeded(Instant.MIN, Instant.MAX, 12345L, IOSequence.EMPTY)
+    private val failedState = Failed(Instant.MIN, Instant.MAX, 12345L, 42)
 
     private val successfulExpectations = listOf(
         null to Symbols.Null,
@@ -37,7 +43,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        ExecMock.FAILED_EXEC to "ϟ Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42"
+        failedState to "ϟ Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42"
     )
 
     private val expectations = successfulExpectations + failedExpectations
@@ -47,7 +53,7 @@ class ReturnValueKtTest {
         null to Symbols.Null,
         Unit to "✔︎",
         "string" to "✔︎",
-        ExecMock.SUCCEEDED_EXEC to "✔︎",
+        succeededState to "✔︎",
         failedReturnValue to "ϟ return value",
         RuntimeException("exception") to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "ϟ return value",
@@ -61,7 +67,7 @@ class ReturnValueKtTest {
         null to "␀",
         Unit to "✔︎",
         "string" to "✔︎",
-        ExecMock.SUCCEEDED_EXEC to "✔︎",
+        succeededState to "✔︎",
     ) { (subject, expected) ->
 
         expecting(subject.toSimpleString()) {
@@ -100,7 +106,7 @@ class ReturnValueKtTest {
         RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
         kotlin.runCatching { failedReturnValue } to "return value",
         kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        ExecMock.FAILED_EXEC to "Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42"
+        failedState to "Process 12345 terminated with exit code 42"
     ) { (subject, expected) ->
 
         expecting(subject.toSimpleString()) {
@@ -191,7 +197,7 @@ class ReturnValueKtTest {
                           ϟ RuntimeException: exception at.({})
                           ϟ return value
                           ϟ RuntimeException: exception at.({})
-                          ϟ Process 12345 terminated with exit code 42.{{}}A dump has{{}}terminated with exit code 42
+                          ϟ Process 12345 terminated with exit code 42
                   """.trimIndent())
             }
         }

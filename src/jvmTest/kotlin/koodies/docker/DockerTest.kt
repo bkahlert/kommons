@@ -15,7 +15,6 @@ import koodies.io.path.asPath
 import koodies.io.path.getSize
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.junit.UniqueId
-import koodies.logging.InMemoryLogger
 import koodies.test.HtmlFixture
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.Smoke
@@ -25,6 +24,7 @@ import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.containsAnsi
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.tracing.TestSpan
 import koodies.unit.bytes
 import koodies.unit.hasSize
 import org.junit.jupiter.api.Nested
@@ -140,11 +140,11 @@ class DockerTest {
         }
 
         @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-        fun `should run using well-known images`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Exec>(
-            { fileName -> ubuntu("cat", fileName, logger = logger) },
-            { fileName -> ubuntu(logger = logger) { "cat $fileName" } },
-            { fileName -> busybox("cat", fileName, logger = logger) },
-            { fileName -> busybox(logger = logger) { "cat $fileName" } },
+        fun `should run using well-known images`(uniqueId: UniqueId) = testEach<Path.(String) -> Exec>(
+            { fileName -> ubuntu("cat", fileName) },
+            { fileName -> ubuntu() { "cat $fileName" } },
+            { fileName -> busybox("cat", fileName) },
+            { fileName -> busybox() { "cat $fileName" } },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
                 expecting { exec(name) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
@@ -152,10 +152,10 @@ class DockerTest {
         }
 
         @DockerRequiring([Ubuntu::class]) @TestFactory
-        fun `should run command line`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String, String) -> Exec>(
-            { command, args -> docker("ubuntu", command, args, logger = logger) },
-            { command, args -> docker({ "ubuntu" }, command, args, logger = logger) },
-            { command, args -> docker(Ubuntu, command, args, logger = logger) },
+        fun `should run command line`(uniqueId: UniqueId) = testEach<Path.(String, String) -> Exec>(
+            { command, args -> docker("ubuntu", command, args) },
+            { command, args -> docker({ "ubuntu" }, command, args) },
+            { command, args -> docker(Ubuntu, command, args) },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
                 HtmlFixture.copyTo(resolve(name))
@@ -164,10 +164,10 @@ class DockerTest {
         }
 
         @DockerRequiring([Ubuntu::class]) @TestFactory
-        fun `should run shell script`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
-            { scriptInit -> docker("busybox", logger = logger) { wd -> scriptInit(wd) } },
-            { scriptInit -> docker({ "busybox" }, logger = logger) { wd -> scriptInit(wd) } },
-            { scriptInit -> docker(BusyBox, logger = logger) { wd -> scriptInit(wd) } },
+        fun `should run shell script`(uniqueId: UniqueId) = testEach<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
+            { scriptInit -> docker("busybox") { wd -> scriptInit(wd) } },
+            { scriptInit -> docker({ "busybox" }) { wd -> scriptInit(wd) } },
+            { scriptInit -> docker(BusyBox) { wd -> scriptInit(wd) } },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
                 HtmlFixture.copyTo(resolve(name))
@@ -176,13 +176,13 @@ class DockerTest {
         }
 
         @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-        fun `should pass input stream`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(InputStream) -> Exec>(
-            { fileName -> ubuntu("cat", logger = logger, inputStream = fileName) },
-            { fileName -> ubuntu(logger = logger, inputStream = fileName) { "cat" } },
-            { fileName -> busybox("cat", logger = logger, inputStream = fileName) },
-            { fileName -> busybox(logger = logger, inputStream = fileName) { "cat" } },
-            { fileName -> docker(BusyBox, "cat", logger = logger, inputStream = fileName) },
-            { fileName -> docker(BusyBox, logger = logger, inputStream = fileName) { "cat" } },
+        fun `should pass input stream`(uniqueId: UniqueId) = testEach<Path.(InputStream) -> Exec>(
+            { fileName -> ubuntu("cat", inputStream = fileName) },
+            { fileName -> ubuntu(inputStream = fileName) { "cat" } },
+            { fileName -> busybox("cat", inputStream = fileName) },
+            { fileName -> busybox(inputStream = fileName) { "cat" } },
+            { fileName -> docker(BusyBox, "cat", inputStream = fileName) },
+            { fileName -> docker(BusyBox, inputStream = fileName) { "cat" } },
         ) { exec ->
             withTempDir(uniqueId) {
                 expecting { exec(HtmlFixture.data.inputStream()) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
@@ -195,39 +195,39 @@ class DockerTest {
             private val uri = "https://github.com/NicolasCARPi/example-files/raw/master/example.png"
 
             @DockerRequiring @TestFactory
-            fun `should download`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Path>(
-                { download(it, logger = logger) },
-                { download(URI.create(it), logger = logger) },
+            fun `should download`(uniqueId: UniqueId) = testEach<Path.(String) -> Path>(
+                { download(it) },
+                { download(URI.create(it)) },
             ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { hasSize(40959.bytes) } } }
 
             @DockerRequiring @TestFactory
-            fun `should download use given name`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String, String) -> Path>(
-                { uri, name -> download(uri, name, logger = logger) },
-                { uri, name -> download(URI.create(uri), name, logger = logger) },
+            fun `should download use given name`(uniqueId: UniqueId) = testEach<Path.(String, String) -> Path>(
+                { uri, name -> download(uri, name) },
+                { uri, name -> download(URI.create(uri), name) },
             ) { download -> withTempDir(uniqueId) { expecting { download(uri, "custom.png") } that { fileName.isEqualTo("custom.png".asPath()) } } }
 
             @DockerRequiring @TestFactory
-            fun `should download use remote name`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Path>(
-                { download(it, logger = logger) },
-                { download(URI.create(it), logger = logger) },
+            fun `should download use remote name`(uniqueId: UniqueId) = testEach<Path.(String) -> Path>(
+                { download(it) },
+                { download(URI.create(it)) },
             ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { fileName.isEqualTo("example.png".asPath()) } } }
 
             @DockerRequiring @TestFactory
-            fun `should download clean remote name`(uniqueId: UniqueId, logger: InMemoryLogger) = testEach<Path.(String) -> Path>(
-                { download(it, logger = logger) },
-                { download(URI.create(it), logger = logger) },
+            fun `should download clean remote name`(uniqueId: UniqueId) = testEach<Path.(String) -> Path>(
+                { download(it) },
+                { download(URI.create(it)) },
             ) { download -> withTempDir(uniqueId) { expecting { download("$uri?a=b#c") } that { fileName.isEqualTo("example.png".asPath()) } } }
         }
 
         @Suppress("SpellCheckingInspection")
         @DockerRequiring @Test
-        fun InMemoryLogger.`should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun TestSpan.`should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val uri = "https://www.riscosopen.org/zipfiles/platform/raspberry-pi/BCM2835Dev.5.29.zip?1604815147"
             val unarchive: Path = download(uri).unarchive()
             val listDirectoryEntriesRecursively: List<Path> = unarchive.listDirectoryEntriesRecursively()
             val maxOf = listDirectoryEntriesRecursively.maxByOrNull { it.getSize() } ?: fail { "No image found." }
             maxOf.dockerPi { io ->
-                logLine { io }
+                event(event = io)
             }.waitFor() asserting {
                 io.output.ansiRemoved.contains("Rebooting in 1 seconds")
             }
@@ -235,13 +235,13 @@ class DockerTest {
 
         @Suppress("SpellCheckingInspection")
         @DockerRequiring([LibRSvg::class, Chafa::class]) @Smoke @Test
-        fun `should run multiple containers`(uniqueId: UniqueId, logger: InMemoryLogger) = withTempDir(uniqueId) {
+        fun `should run multiple containers`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             SvgFixture.copyTo(resolve("koodies.svg"))
 
             docker(LibRSvg, "-z", 10, "--output", "koodies.png", "koodies.svg")
             resolve("koodies.png") asserting { exists() }
 
-            docker(Chafa, logger) {
+            docker(Chafa) {
                 """
                /opt/bin/chafa koodies.png 
                 """

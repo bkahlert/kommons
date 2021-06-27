@@ -7,10 +7,10 @@ import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.exec.IO
 import koodies.logging.FixedWidthRenderingLogger.Border
 import koodies.logging.FixedWidthRenderingLogger.Border.NONE
-import koodies.logging.LoggingOptions.BlockLoggingOptions.Companion.BlockLoggingOptionsContext
-import koodies.logging.LoggingOptions.CompactLoggingOptions.Companion.CompactLoggingOptionsContext
-import koodies.logging.LoggingOptions.Companion.LoggingOptionsContext
-import koodies.logging.LoggingOptions.SmartLoggingOptions.Companion.SmartLoggingOptionsContext
+import koodies.logging.LoggingOptionsOld.BlockLoggingOptionsOld.Companion.BlockLoggingOptionsContext
+import koodies.logging.LoggingOptionsOld.CompactLoggingOptionsOld.Companion.CompactLoggingOptionsContext
+import koodies.logging.LoggingOptionsOld.Companion.LoggingOptionsContext
+import koodies.logging.LoggingOptionsOld.SmartLoggingOptionsOld.Companion.SmartLoggingOptionsContext
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
@@ -20,7 +20,7 @@ import koodies.text.truncate
 /**
  * Options that define how a [SimpleRenderingLogger] renders log messages.
  */
-public sealed class LoggingOptions {
+public sealed class LoggingOptionsOld {
 
     public abstract fun newLogger(parent: SimpleRenderingLogger?, fallbackName: String): SimpleRenderingLogger
     public fun logTextCallOrNull(logger: SimpleRenderingLogger?): ((String) -> Unit)? = logger?.run { { logText { it } } }
@@ -28,13 +28,13 @@ public sealed class LoggingOptions {
     /**
      * Renders log messages line-by-line.
      */
-    public class BlockLoggingOptions(
+    public class BlockLoggingOptionsOld(
         public val name: CharSequence? = null,
         public val contentFormatter: FilteringFormatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
         public val returnValueFormatter: ((ReturnValue) -> ReturnValue)? = DEFAULT_RESULT_FORMATTER,
         public val border: Border = Border.DOTTED,
-    ) : LoggingOptions() {
+    ) : LoggingOptionsOld() {
         override fun newLogger(parent: SimpleRenderingLogger?, fallbackName: String): SimpleRenderingLogger =
             BlockRenderingLogger(
                 name ?: fallbackName,
@@ -49,7 +49,7 @@ public sealed class LoggingOptions {
                 statusInformationColumns = (parent as? FixedWidthRenderingLogger)?.statusInformationColumns,
             )
 
-        public companion object : BuilderTemplate<BlockLoggingOptionsContext, BlockLoggingOptions>() {
+        public companion object : BuilderTemplate<BlockLoggingOptionsContext, BlockLoggingOptionsOld>() {
 
             public class BlockLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val name: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
@@ -59,8 +59,8 @@ public sealed class LoggingOptions {
                 public var border: Border by setter(Border.DOTTED)
             }
 
-            override fun BuildContext.build(): BlockLoggingOptions = ::BlockLoggingOptionsContext {
-                BlockLoggingOptions(::name.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval(), ::border.eval())
+            override fun BuildContext.build(): BlockLoggingOptionsOld = ::BlockLoggingOptionsContext {
+                BlockLoggingOptionsOld(::name.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval(), ::border.eval())
             }
         }
     }
@@ -68,12 +68,12 @@ public sealed class LoggingOptions {
     /**
      * Renders log messages in a single line.
      */
-    public class CompactLoggingOptions(
+    public class CompactLoggingOptionsOld(
         public val name: CharSequence? = null,
         public val contentFormatter: FilteringFormatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
         public val returnValueFormatter: ((ReturnValue) -> ReturnValue)? = DEFAULT_RESULT_FORMATTER,
-    ) : LoggingOptions() {
+    ) : LoggingOptionsOld() {
         override fun newLogger(parent: SimpleRenderingLogger?, fallbackName: String): SimpleRenderingLogger =
             CompactRenderingLogger(
                 name ?: fallbackName,
@@ -84,7 +84,7 @@ public sealed class LoggingOptions {
                 logTextCallOrNull(parent),
             )
 
-        public companion object : BuilderTemplate<CompactLoggingOptionsContext, CompactLoggingOptions>() {
+        public companion object : BuilderTemplate<CompactLoggingOptionsContext, CompactLoggingOptionsOld>() {
 
             public class CompactLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val name: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
@@ -93,8 +93,8 @@ public sealed class LoggingOptions {
                 public val returnValueFormatter: SkippableCapturingBuilderInterface<() -> ((ReturnValue) -> ReturnValue)?, ((ReturnValue) -> ReturnValue)?> by builder<((ReturnValue) -> ReturnValue)?>() default DEFAULT_RESULT_FORMATTER
             }
 
-            override fun BuildContext.build(): CompactLoggingOptions = ::CompactLoggingOptionsContext {
-                CompactLoggingOptions(::name.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval())
+            override fun BuildContext.build(): CompactLoggingOptionsOld = ::CompactLoggingOptionsContext {
+                CompactLoggingOptionsOld(::name.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval())
             }
         }
     }
@@ -104,13 +104,13 @@ public sealed class LoggingOptions {
      *
      * Renders like [Block] unless nothing but a result is logged. In the latter case renders like [Compact].
      */
-    public class SmartLoggingOptions(
+    public class SmartLoggingOptionsOld(
         public val name: CharSequence? = null,
         public val contentFormatter: FilteringFormatter? = DEFAULT_CONTENT_FORMATTER,
         public val decorationFormatter: Formatter? = DEFAULT_DECORATION_FORMATTER,
         public val returnValueFormatter: ((ReturnValue) -> ReturnValue)? = DEFAULT_RESULT_FORMATTER,
         public val border: Border = Border.DOTTED,
-    ) : LoggingOptions() {
+    ) : LoggingOptionsOld() {
         override fun newLogger(parent: SimpleRenderingLogger?, fallbackName: String): SimpleRenderingLogger =
             SmartRenderingLogger(
                 name ?: fallbackName,
@@ -126,7 +126,7 @@ public sealed class LoggingOptions {
                 prefix = (parent as? FixedWidthRenderingLogger)?.prefix ?: "",
             )
 
-        public companion object : BuilderTemplate<SmartLoggingOptionsContext, SmartLoggingOptions>() {
+        public companion object : BuilderTemplate<SmartLoggingOptionsContext, SmartLoggingOptionsOld>() {
 
             public class SmartLoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
                 public val name: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
@@ -136,22 +136,22 @@ public sealed class LoggingOptions {
                 public var border: Border by setter(Border.DOTTED)
             }
 
-            override fun BuildContext.build(): SmartLoggingOptions = ::SmartLoggingOptionsContext {
-                SmartLoggingOptions(::name.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval(), ::border.eval())
+            override fun BuildContext.build(): SmartLoggingOptionsOld = ::SmartLoggingOptionsContext {
+                SmartLoggingOptionsOld(::name.eval(), ::contentFormatter.eval(), ::decorationFormatter.eval(), ::returnValueFormatter.eval(), ::border.eval())
             }
         }
     }
 
-    public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptions>() {
+    public companion object : BuilderTemplate<LoggingOptionsContext, LoggingOptionsOld>() {
 
         public val DEFAULT_CONTENT_FORMATTER: FilteringFormatter = FilteringFormatter.ToString
         public val DEFAULT_DECORATION_FORMATTER: Formatter = Colors.brightBlue
         public val DEFAULT_RESULT_FORMATTER: (ReturnValue) -> ReturnValue = { it }
 
         public class LoggingOptionsContext(override val captures: CapturesMap) : CapturingContext() {
-            public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptions?> by BlockLoggingOptions
-            public val compact: SkippableCapturingBuilderInterface<CompactLoggingOptionsContext.() -> Unit, CompactLoggingOptions?> by CompactLoggingOptions
-            public val smart: SkippableCapturingBuilderInterface<SmartLoggingOptionsContext.() -> Unit, SmartLoggingOptions?> by SmartLoggingOptions
+            public val block: SkippableCapturingBuilderInterface<BlockLoggingOptionsContext.() -> Unit, BlockLoggingOptionsOld?> by BlockLoggingOptionsOld
+            public val compact: SkippableCapturingBuilderInterface<CompactLoggingOptionsContext.() -> Unit, CompactLoggingOptionsOld?> by CompactLoggingOptionsOld
+            public val smart: SkippableCapturingBuilderInterface<SmartLoggingOptionsContext.() -> Unit, SmartLoggingOptionsOld?> by SmartLoggingOptionsOld
 
             /**
              * Formats the output in a compact fashion with each message generically shortened using the following rules:
@@ -213,11 +213,11 @@ public sealed class LoggingOptions {
             }
         }
 
-        override fun BuildContext.build(): LoggingOptions = ::LoggingOptionsContext {
-            ::block.evalOrNull<BlockLoggingOptions>()
-                ?: ::compact.evalOrNull<CompactLoggingOptions>()
-                ?: ::smart.evalOrNull<SmartLoggingOptions>()
-                ?: SmartLoggingOptions()
+        override fun BuildContext.build(): LoggingOptionsOld = ::LoggingOptionsContext {
+            ::block.evalOrNull<BlockLoggingOptionsOld>()
+                ?: ::compact.evalOrNull<CompactLoggingOptionsOld>()
+                ?: ::smart.evalOrNull<SmartLoggingOptionsOld>()
+                ?: SmartLoggingOptionsOld()
         }
     }
 }

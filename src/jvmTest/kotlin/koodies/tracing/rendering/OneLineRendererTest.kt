@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import koodies.logging.ReturnValue
 import koodies.test.tests
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ansiRemoved
@@ -20,53 +19,52 @@ class OneLineRendererTest {
     private val plain11 = "123 abc"
     private val ansi11 = "123".ansi.yellow.done + " " + "abc".ansi.green
 
-    private val options: Settings = Settings()
+    private val settings: Settings = Settings()
 
     @Test
     fun TestSpan.`should render`() {
         val rendered = capturing {
-            OneLineRenderer(options.copy(
+            OneLineRenderer(settings.copy(
                 contentFormatter = { it.toString().ansi.underline },
                 decorationFormatter = { it.toString().ansi.brightMagenta },
-            ), it).run {
+                printer = it,
+            )).run {
                 start("One Two Three")
 
                 log(ansi11)
-                customizedChild().apply {
+                nestedRenderer().apply {
                     start("child")
                     exception(RuntimeException("Now Panic!"))
                     log(plain11)
-                    end(Result.success(object : ReturnValue {
-                        override val successful: Boolean? = null
-                    }))
+                    end(Result.failure<Unit>(RuntimeException("message")))
                 }
 
                 end(Result.success(true))
             }
         }
         expectThat(rendered)
-            .matchesCurlyPattern("❰❰ One Two Three ❱ 123 abc ❱  child » RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) » 123 abc » ⏳️  ❱ ✔︎ ❱❱")
+            .matchesCurlyPattern("One Two Three ❱ 123 abc ❱❱ child ❱ RuntimeException: Now Panic! at.({}.kt:{}) ❱ 123 abc ϟ RuntimeException: message at.({}.kt:{}) ❱❱ ✔︎")
     }
 
     @TestFactory
     fun TestSpan.`should only render on end`() = tests {
-        expecting { capturing { OneLineRenderer(options, it).start("name") } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer(options, it).log("event") } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer(options, it).exception(RuntimeException("exception")) } } that { isEmpty() }
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).start("name") } } that { isEmpty() }
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).log("event") } } that { isEmpty() }
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).exception(RuntimeException("exception")) } } that { isEmpty() }
         expecting {
             capturing {
-                OneLineRenderer(options, it).apply {
+                OneLineRenderer(settings.copy(printer = it)).apply {
                     start("name")
                     end(Result.success(true))
                 }
             }
-        } that { ansiRemoved.isEqualTo("❰❰ name ❱ ✔︎ ❱❱") }
+        } that { ansiRemoved.isEqualTo("name ✔︎") }
     }
 
     @Test
     fun TestSpan.`should ignore non-primary attributes`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 log("event", "key" to "value")
                 exception(RuntimeException("exception"), "key" to "value")
@@ -82,65 +80,65 @@ class OneLineRendererTest {
     @Test
     fun TestSpan.`should render event`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 log("event", "key" to "value")
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.contains("❱ event ❱")
+        expectThat(rendered).ansiRemoved.contains("❱ event")
     }
 
     @Test
     fun TestSpan.`should render exception`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 exception(RuntimeException("exception"), "key" to "value")
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("❰❰ name ❱ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ❱ ✔︎ ❱❱")
+        expectThat(rendered).matchesCurlyPattern("name ❱ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ✔︎")
     }
 
     @Test
     fun TestSpan.`should render success`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.endsWith("❱ ✔︎ ❱❱")
+        expectThat(rendered).ansiRemoved.endsWith("name ✔︎")
     }
 
     @Test
     fun TestSpan.`should render failure`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 end(Result.failure<Unit>(RuntimeException("test")))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("❰❰ name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{}) ❱❱")
+        expectThat(rendered).matchesCurlyPattern("name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{})")
     }
 
     @Test
     fun TestSpan.`should not render event without primary attribute`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).apply {
+            OneLineRenderer(settings.copy(printer = it)).apply {
                 start("name")
                 event("unknown", emptyMap())
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("❰❰ name ❱ ✔︎ ❱❱")
+        expectThat(rendered).matchesCurlyPattern("name ✔︎")
     }
 
     @Test
     fun TestSpan.`should render as single line`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 log("event\n2nd line")
                 exception(RuntimeException("exception\n2nd line"))
@@ -156,10 +154,10 @@ class OneLineRendererTest {
     @Test
     fun TestSpan.`should be nestable`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).run {
+            OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 log("event")
-                customizedChild().apply {
+                nestedRenderer().apply {
                     start("child")
                     log("child event")
                     end(Result.success(true))
@@ -167,16 +165,16 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("❰❰ name ❱ event ❱  child » child event » ✔︎  ❱ ✔︎ ❱❱")
+        expectThat(rendered).matchesCurlyPattern("name ❱ event ❱❱ child ❱ child event ✔︎ ❱❱ ✔︎")
     }
 
     @Test
     fun TestSpan.`should be customizable`() {
         val rendered = capturing {
-            OneLineRenderer(options, it).apply {
+            OneLineRenderer(settings.copy(printer = it)).apply {
                 start("name")
                 log("foo")
-                customizedChild { copy(contentFormatter = { "!$it!" }) }.apply {
+                nestedRenderer { it(copy(contentFormatter = { "!$it!" })) }.apply {
                     start("child")
                     log("bar")
                     end(Result.success(true))
@@ -191,10 +189,10 @@ class OneLineRendererTest {
     @Test
     fun TestSpan.`should inherit customizations`() {
         val rendered = capturing {
-            OneLineRenderer(options.copy(contentFormatter = { "!$it!" }), it).apply {
+            OneLineRenderer(settings.copy(contentFormatter = { "!$it!" }, printer = it)).apply {
                 start("name")
                 log("foo")
-                customizedChild().apply {
+                nestedRenderer().apply {
                     start("child")
                     log("bar")
                     end(Result.success(true))
