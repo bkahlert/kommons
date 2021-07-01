@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import koodies.logging.ReturnValue
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern

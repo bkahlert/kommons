@@ -1,11 +1,11 @@
 package koodies.exec.mock
 
-import koodies.exec.LoggingOptions
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.Processors
+import koodies.exec.TracingOptions
 import koodies.exec.enter
 import koodies.exec.exitCode
 import koodies.exec.fails
@@ -38,7 +38,6 @@ import koodies.text.LineSeparators.LF
 import koodies.time.poll
 import koodies.time.seconds
 import koodies.time.sleep
-import koodies.tracing.spanning
 import koodies.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -291,9 +290,7 @@ class JavaExecMockTest {
                 flush() // !
 
                 expectThat(p.received).isEqualTo("user input")
-                spanning("???") {
-                    (p.inputStream as SlowInputStream).processInput()
-                }
+                (p.inputStream as SlowInputStream).processInput()
                 expectThat(p.inputStream.available()).isEqualTo("user input".length)
             }
         }
@@ -392,7 +389,7 @@ class JavaExecMockTest {
             process.enter("shutdown")
         }
 
-        val status = process.process(LoggingOptions(), modeInit = { async(NonInteractive(null)) }, Processors.noopProcessor()).waitFor()
+        val status = process.process(TracingOptions(), modeInit = { async(NonInteractive(null)) }, Processors.noopProcessor()).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

@@ -10,6 +10,7 @@ import io.opentelemetry.api.trace.StatusCode.OK
 import io.opentelemetry.context.Context
 import koodies.text.ANSI.ansiRemoved
 import koodies.tracing.rendering.BlockRenderer
+import koodies.tracing.rendering.BlockStyles
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.Renderer.Companion.NOOP
 import koodies.tracing.rendering.RendererProvider
@@ -49,12 +50,14 @@ internal fun Span?.newChildSpan(
     this?.also { spanBuilder.setParent(Context.current().with(it)) }
     val span = spanBuilder.startSpan()
 
-    check(span.spanId.valid) { "Span has not valid span ID: $span" }
-
-    val renderer = linkedRenderersLock.withLock {
-        this?.linkedRenderer.let(rendererProvider)
-            .also { span.linkRenderer(it) }
-            .also { it.start(span.traceId, span.spanId, name) }
+    val renderer = if (span.spanId.valid) {
+        linkedRenderersLock.withLock {
+            this?.linkedRenderer.let(rendererProvider)
+                .also { span.linkRenderer(it) }
+                .also { it.start(span.traceId, span.spanId, name) }
+        }
+    } else {
+        run { BlockRenderer(Settings(blockStyle = BlockStyles.None)) }
     }
 
     return span to renderer
@@ -64,7 +67,7 @@ internal fun Span?.newChildSpan(
  * A span that renders all invocations using [renderer]
  * after having delegated them to [span].
  */
-public data class RenderingSpan(
+internal data class RenderingSpan(
     private val span: Span,
     private val renderer: Renderer,
 ) : CurrentSpan, Span {
@@ -129,7 +132,7 @@ public data class RenderingSpan(
 
     override fun isRecording(): Boolean = span.isRecording
 
-    public fun <R> end(result: Result<R>) {
+    fun <R> end(result: Result<R>) {
         result.fold({
             span.setStatus(OK)
             span.end()
@@ -147,12 +150,12 @@ public data class RenderingSpan(
 
 /** Ends this span with the given [value]. */
 @Suppress("NOTHING_TO_INLINE")
-public inline fun <reified R> RenderingSpan.end(value: R): Unit =
+internal inline fun <reified R> RenderingSpan.end(value: R): Unit =
     end(Result.success(value))
 
 /** Ends this span with the given [exception]. */
 @Suppress("NOTHING_TO_INLINE")
-public inline fun RenderingSpan.end(exception: Throwable?): Unit =
+internal inline fun RenderingSpan.end(exception: Throwable?): Unit =
     exception?.let { end(Result.failure<Unit>(it)) } ?: end(Result.success(Unit))
 
 /**

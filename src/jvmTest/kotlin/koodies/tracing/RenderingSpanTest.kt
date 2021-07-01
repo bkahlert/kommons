@@ -36,7 +36,7 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.time.Duration
 
-@NoSpan
+@NoTestSpan
 class RenderingSpanTest {
 
     @TestFactory
@@ -175,7 +175,7 @@ class RenderingSpanTest {
     }
 }
 
-fun Builder<out RenderingSpan>.isLinked() =
+internal fun Builder<out RenderingSpan>.isLinked() =
     assert("is linked") {
         when (it.rendererLinked) {
             true -> pass()
@@ -183,7 +183,7 @@ fun Builder<out RenderingSpan>.isLinked() =
         }
     }
 
-fun Builder<out RenderingSpan>.isNotLinked() =
+internal fun Builder<out RenderingSpan>.isNotLinked() =
     assert("is not linked") {
         when (it.rendererLinked) {
             false -> pass()

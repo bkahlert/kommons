@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import koodies.logging.ReturnValue
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 

@@ -6,7 +6,6 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.State.Excepted
 import koodies.exec.Process.State.Exited
 import koodies.exec.Process.State.Running
-import koodies.logging.ReturnValue
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.removeTrailingLineSeparator
@@ -14,6 +13,7 @@ import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.withSuffix
 import koodies.time.seconds
+import koodies.tracing.rendering.ReturnValue
 import koodies.unit.milli
 import java.io.BufferedWriter
 import java.io.InputStream

@@ -1,4 +1,4 @@
-package koodies.logging
+package koodies.tracing.rendering
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

@@ -2,7 +2,6 @@ package koodies.tracing.rendering
 
 import io.opentelemetry.api.common.Attributes
 import koodies.asString
-import koodies.logging.ReturnValue
 import koodies.regex.RegularExpressions
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.AnsiString.Companion.asAnsiString

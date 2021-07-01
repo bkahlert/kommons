@@ -1,22 +1,21 @@
-package koodies.logging
+package koodies.tracing.rendering
 
 import koodies.exec.IOSequence
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.mock.ExecMock
-import koodies.logging.FixedWidthRenderingLogger.Border
-import koodies.logging.FixedWidthRenderingLogger.Border.DOTTED
-import koodies.logging.FixedWidthRenderingLogger.Border.NONE
-import koodies.logging.FixedWidthRenderingLogger.Border.SOLID
-import koodies.test.output.InMemoryLoggerFactory
 import koodies.test.testEach
 import koodies.text.Semantics.Symbols
+import koodies.text.ansiRemoved
 import koodies.text.matchesCurlyPattern
 import koodies.toSimpleString
+import koodies.tracing.TestSpan
+import koodies.tracing.spanning
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
+import strikt.assertions.endsWith
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import java.time.Instant
@@ -62,80 +61,56 @@ class ReturnValueKtTest {
         expecting(subject.toSimpleString()) { ReturnValue.format(subject) } that { matchesCurlyPattern(expected) }
     }
 
-    @TestFactory
-    fun `should render success ReturnValue`(loggerFactory: InMemoryLoggerFactory) = testEach(
-        null to "␀",
-        Unit to "✔︎",
-        "string" to "✔︎",
-        succeededState to "✔︎",
-    ) { (subject, expected) ->
+    @Nested
+    inner class SuccessReturnValue {
 
-        expecting(subject.toSimpleString()) {
-            loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }
-        } that {
-            matchesCurlyPattern("""
-                ╭──╴{}
-                │
-                │
-                ╰──╴$expected
-                """.trimIndent())
+        @Test
+        fun TestSpan.`should format null as nul`() {
+            expectThat(format(null)).ansiRemoved.endsWith(" ␀")
         }
 
-        expecting(subject.toSimpleString()) {
-            loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }
-        } that {
-            matchesCurlyPattern("""
-                ▶ {}
-                $expected
-                """.trimIndent())
+        @Test
+        fun TestSpan.`should format Unit as success`() {
+            expectThat(format(Unit)).ansiRemoved.endsWith("✔︎")
         }
 
-        expecting(subject.toSimpleString()) {
-            loggerFactory.render(NONE, "$subject ➜ $expected") { subject }
-        } that {
-            matchesCurlyPattern("""
-                {}
-                $expected
-                """.trimIndent())
+        @Test
+        fun TestSpan.`should format string as success`() {
+            expectThat(format("string")).ansiRemoved.endsWith("✔︎")
+        }
+
+        @Test
+        fun TestSpan.`should format succeededState as success`() {
+            expectThat(format(succeededState)).ansiRemoved.endsWith("✔︎")
         }
     }
 
-    @TestFactory
-    fun `should render failed ReturnValue`(loggerFactory: InMemoryLoggerFactory) = testEach(
-        failedReturnValue to "return value",
-        RuntimeException("exception") to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        kotlin.runCatching { failedReturnValue } to "return value",
-        kotlin.runCatching { throw exception } to "RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})",
-        failedState to "Process 12345 terminated with exit code 42"
-    ) { (subject, expected) ->
+    @Nested
+    inner class FailedReturnValue {
 
-        expecting(subject.toSimpleString()) {
-            loggerFactory.render(SOLID, "$subject ➜ $expected") { subject }
-        } that {
-            matchesCurlyPattern("""
-                ╭──╴{}
-                │
-                ϟ
-                ╰──╴$expected
-                """.trimIndent())
+        @Test
+        fun TestSpan.`should format failed return value as failed`() {
+            expectThat(format(failedReturnValue)).ansiRemoved.endsWith("ϟ return value")
         }
 
-        expecting(subject.toSimpleString()) {
-            loggerFactory.render(DOTTED, "$subject ➜ $expected") { subject }
-        } that {
-            matchesCurlyPattern("""
-                ▶ {}
-                ϟ $expected
-                """.trimIndent())
+        @Test
+        fun TestSpan.`should format exception as failed`() {
+            expectThat(format(RuntimeException("exception"))).matchesCurlyPattern("{} ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})")
         }
 
-        expecting(subject.toSimpleString()) {
-            loggerFactory.render(NONE, "$subject ➜ $expected") { subject }
-        } that {
-            matchesCurlyPattern("""
-                {}
-                ϟ $expected
-                """.trimIndent())
+        @Test
+        fun TestSpan.`should format result with failed return value as failed`() {
+            expectThat(format(kotlin.runCatching { failedReturnValue })).ansiRemoved.endsWith("ϟ return value")
+        }
+
+        @Test
+        fun TestSpan.`should format failed result as failed`() {
+            expectThat(format(runCatching { throw exception })).matchesCurlyPattern("{} ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})")
+        }
+
+        @Test
+        fun TestSpan.`should format failed state as failed`() {
+            expectThat(format(failedState)).ansiRemoved.endsWith("ϟ Process 12345 terminated with exit code 42")
         }
     }
 
@@ -204,8 +179,10 @@ class ReturnValueKtTest {
     }
 }
 
-private fun InMemoryLoggerFactory.render(border: Border, nameSuffix: String, block: SimpleRenderingLogger.() -> Any?): String {
-    val logger = createLogger(nameSuffix, border)
-    logger.runLogging(block)
-    return logger.toString()
-}
+private fun TestSpan.format(returnValue: Any?): String =
+    capturing { printer ->
+        val x = spanning(returnValue.toString(), { it(copy(printer = printer)) }) {
+            @Suppress("UNUSED_EXPRESSION")
+            returnValue
+        }
+    }

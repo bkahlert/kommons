@@ -15,7 +15,7 @@ import strikt.assertions.isEmpty
 
 @Isolated
 @ExtendWith(OutputCaptureExtension::class)
-@NoSpan
+@NoTestSpan
 class RenderingSpanKtTest {
 
     @Nested
@@ -72,23 +72,23 @@ class RenderingSpanKtTest {
             inner class NestedSpanning {
 
                 @Test
-                fun `should have valid span`() {
-                    val spanId = tracing { spanning("child") { registerAsTestSpan(); SpanId.current } }
+                fun `should have valid span`(testName: TestName) {
+                    val spanId = tracing { spanning(testName) { registerAsTestSpan(); SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`() {
-                    val traceId = tracing { spanning("child") { registerAsTestSpan(); TraceId.current } }
+                fun `should trace`(testName: TestName) {
+                    val traceId = tracing { spanning(testName) { registerAsTestSpan(); TraceId.current } }
                     expectThat(traceId).isValid()
-                    traceId.expectTraced().spanNames.containsExactly("child")
+                    traceId.expectTraced().spanNames.containsExactly("RenderingSpanKtTest ➜ Tracing ➜ WithNoCurrentSpan ➜ NestedSpanning ➜ should trace")
                 }
 
                 @Test
-                fun `should render`(output: CapturedOutput) {
-                    tracing { spanning("child") { registerAsTestSpan(); log("event α") } }
+                fun `should render`(testName: TestName, output: CapturedOutput) {
+                    tracing { spanning(testName) { registerAsTestSpan(); log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
-                        ╭──╴child
+                        ╭──╴RenderingSpanKtTest ➜ Tracing ➜ WithNoCurrentSpan ➜ NestedSpanning ➜ should render
                         │
                         │   event α                                                                         
                         │

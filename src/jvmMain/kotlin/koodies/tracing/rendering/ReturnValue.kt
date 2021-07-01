@@ -1,4 +1,4 @@
-package koodies.logging
+package koodies.tracing.rendering
 
 import koodies.exception.toCompactString
 import koodies.text.LineSeparators.LF

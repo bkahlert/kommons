@@ -17,7 +17,6 @@ import koodies.exec.Process.ExitState
 import koodies.exec.RendererProviders
 import koodies.exec.parse
 import koodies.io.path.pathString
-import koodies.logging.ReturnValue
 import koodies.lowerSentenceCaseName
 import koodies.map
 import koodies.or
@@ -34,6 +33,7 @@ import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import koodies.time.seconds
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.ReturnValue
 import java.nio.file.Path
 import kotlin.time.Duration
 

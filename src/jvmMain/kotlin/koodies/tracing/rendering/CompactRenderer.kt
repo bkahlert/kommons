@@ -1,7 +1,6 @@
 package koodies.tracing.rendering
 
 import io.opentelemetry.api.common.Attributes
-import koodies.logging.ReturnValue
 import koodies.text.LineSeparators.isMultiline
 
 /**

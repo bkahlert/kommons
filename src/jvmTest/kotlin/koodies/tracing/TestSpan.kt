@@ -71,7 +71,7 @@ class TestSpan(
  * Suppresses the provision of a [TestSpan].
  */
 @Target(FUNCTION, CLASS)
-annotation class NoSpan
+annotation class NoTestSpan
 
 
 /**
@@ -85,7 +85,7 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), Before
     private data class CleanUp(val job: () -> Unit)
 
     override fun beforeEach(extensionContext: ExtensionContext) {
-        if (extensionContext.isAnnotated<NoSpan>()) return
+        if (extensionContext.isAnnotated<NoTestSpan>()) return
         val name = extensionContext.testName
         val printToConsole = extensionContext.isVerbose
         val clientPrinter = InMemoryPrinter()
@@ -104,7 +104,7 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), Before
 
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): TestSpan {
         return extensionContext.store().get<TestSpan>()
-            ?: if (extensionContext.isAnnotated<NoSpan>()) error("Unable to resolve $TestSpanString due to existing $NoSpanString") else error("Failed to load $TestSpanString")
+            ?: if (extensionContext.isAnnotated<NoTestSpan>()) error("Unable to resolve $TestSpanString due to existing $NoSpanString") else error("Failed to load $TestSpanString")
     }
 
     override fun afterEach(extensionContext: ExtensionContext) {
@@ -122,7 +122,7 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), Before
         fun CurrentSpan.registerAsTestSpan(): CurrentSpan = apply { tracesLock.withLock { traces.add(TraceId.current) } }
         val TraceId.testTrace get() = tracesLock.withLock { traces.contains(this) }
 
-        private val NoSpanString = NoSpan::class.simpleName.formattedAs.input
+        private val NoSpanString = NoTestSpan::class.simpleName.formattedAs.input
         private val TestSpanString = TestSpan::class.simpleName.formattedAs.input
     }
 }

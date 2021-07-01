@@ -11,7 +11,6 @@ import koodies.io.path.readLine
 import koodies.junit.UniqueId
 import koodies.junit.UniqueId.Companion.id
 import koodies.jvm.currentStackTrace
-import koodies.logging.SLF4J
 import koodies.regex.groupValue
 import koodies.runtime.CallStackElement
 import koodies.runtime.getCaller
@@ -37,6 +36,7 @@ import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import koodies.toBaseName
 import koodies.toSimpleString
+import koodies.tracing.rendering.SLF4J
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode

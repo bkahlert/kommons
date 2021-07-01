@@ -1,5 +1,6 @@
 package koodies.exec
 
+import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.context.Context
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
@@ -50,7 +51,7 @@ public object Processors {
  * so they get logged.
  */
 public inline fun <reified E : Exec> E.processSilently(): E =
-    process(LoggingOptions(null, RendererProviders.NOOP), { async }, noopProcessor())
+    process(TracingOptions(null, RendererProviders.NOOP), { async }, noopProcessor())
 
 private val asynchronouslyProcessed: MutableSet<Exec> = synchronizedSetOf()
 
@@ -66,7 +67,7 @@ public var Exec.async: Boolean
 /**
  * Options for the way the processing of an [Exec] is logged.
  */
-public data class LoggingOptions(
+public data class TracingOptions(
 
     /**
      * Name of what is being executed.
@@ -77,9 +78,14 @@ public data class LoggingOptions(
      * Renderer to use for logging.
      */
     public val renderer: RendererProvider = { it(this) },
+
+    /**
+     * Tracer to be used.
+     */
+    public val tracer: Tracer = koodies.tracing.Tracer,
 ) {
     public fun spanning(exec: Exec, block: CurrentSpan.() -> ExitState) {
-        koodies.tracing.spanning(name ?: exec.commandLine.summary, renderer = renderer, block = block)
+        koodies.tracing.spanning(name ?: exec.commandLine.summary, renderer, tracer, block)
     }
 }
 
@@ -107,7 +113,6 @@ public data class ProcessingMode(
     }
 
     public companion object : StatelessBuilder.Returning<ProcessingModeContext, ProcessingMode>(ProcessingModeContext) {
-        @ExecutionDsl
         public object ProcessingModeContext {
             public val sync: ProcessingMode = ProcessingMode(Sync, NonInteractive(null))
             public fun sync(interactivity: Interactivity): ProcessingMode = ProcessingMode(Sync, interactivity)
@@ -125,10 +130,10 @@ public data class ProcessingMode(
  * printed to the console.
  */
 public fun <E : Exec> E.process(
-    loggingOptions: LoggingOptions,
+    tracingOptions: TracingOptions,
     modeInit: ProcessingModeContext.() -> ProcessingMode,
     processor: Processor<E>,
-): E = process(loggingOptions, ProcessingMode(modeInit), processor)
+): E = process(tracingOptions, ProcessingMode(modeInit), processor)
 
 /**
  * Attaches to the [Exec.outputStream] and [Exec.errorStream]
@@ -138,12 +143,12 @@ public fun <E : Exec> E.process(
  * printed to the console.
  */
 public fun <E : Exec> E.process(
-    loggingOptions: LoggingOptions = LoggingOptions(),
+    tracingOptions: TracingOptions = TracingOptions(),
     mode: ProcessingMode = ProcessingMode { sync },
     processor: Processor<E>,
 ): E = when (mode.synchronicity) {
-    Sync -> processSynchronously(loggingOptions, mode.interactivity, processor)
-    Async -> processAsynchronously(loggingOptions, mode.interactivity, processor)
+    Sync -> processSynchronously(tracingOptions, mode.interactivity, processor)
+    Async -> processAsynchronously(tracingOptions, mode.interactivity, processor)
 }
 
 /**
@@ -155,11 +160,11 @@ public fun <E : Exec> E.process(
  * all [IO] to the console.
  */
 public fun <P : Exec> P.processSynchronously(
-    loggingOptions: LoggingOptions = LoggingOptions(),
+    tracingOptions: TracingOptions = TracingOptions(),
     interactivity: Interactivity = NonInteractive(null),
     processor: Processor<P> = noopProcessor(),
 ): P = apply {
-    loggingOptions.spanning(this) {
+    tracingOptions.spanning(this) {
         metaStream.subscribe { processor(this@apply, it) }
 
         val readers = listOf(
@@ -199,7 +204,7 @@ public fun <P : Exec> P.processSynchronously(
  * TODO try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <E : Exec> E.processAsynchronously(
-    loggingOptions: LoggingOptions = LoggingOptions(),
+    tracingOptions: TracingOptions = TracingOptions(),
     interactivity: Interactivity = NonInteractive(null),
     processor: Processor<E> = noopProcessor(),
 ): E = apply {
@@ -208,7 +213,7 @@ public fun <E : Exec> E.processAsynchronously(
     val exitStateProcessedMutex = Semaphore(0)
     val threadPool = Context.taskWrapping(Executors.newCachedThreadPool())
     threadPool.completableFuture {
-        loggingOptions.spanning(this) {
+        tracingOptions.spanning(this) {
             async = true
             metaStream.subscribe { processor(this@apply, it) }
 

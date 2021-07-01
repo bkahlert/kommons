@@ -1,6 +1,6 @@
 package koodies.test.output
 
-import koodies.logging.SLF4J.format
+import koodies.tracing.rendering.SLF4J.format
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

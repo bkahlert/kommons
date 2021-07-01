@@ -11,7 +11,6 @@ import koodies.exec.CommandLine
 import koodies.exec.RendererProviders
 import koodies.junit.UniqueId
 import koodies.junit.UniqueId.Companion.id
-import koodies.logging.ReturnValues
 import koodies.test.Slow
 import koodies.test.get
 import koodies.test.put
@@ -21,6 +20,7 @@ import koodies.text.randomString
 import koodies.time.poll
 import koodies.time.seconds
 import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.ReturnValues
 import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

@@ -12,7 +12,7 @@ public annotation class TracingDsl
 @TracingDsl
 public interface CurrentSpan {
 
-    /** Records an event using the given [name] and optional [attributes]. */
+    /** Records the given [event]. */
     public fun event(event: Event): CurrentSpan
 
     /** Records an event using the given [name] and optional [attributes]. */
@@ -21,7 +21,7 @@ public interface CurrentSpan {
     /**
      * Records an event using the given [name], [description] and optional [attributes].
      *
-     * Attributes with a `null` value are removed; and together with the [name] and [description] rendered using the provided [transform].
+     * Attributes with a `null` value are removed; and together with the [name] and [description] rendered.
      */
     public fun event(
         name: CharSequence,
@@ -32,7 +32,7 @@ public interface CurrentSpan {
     /**
      * Records an event using the given [name] and optional [attributes].
      *
-     * Attributes with a `null` value are removed; and together with the [name] rendered using the provided [transform].
+     * Attributes with a `null` value are removed; and together with the [name] rendered.
      */
     public fun event(
         name: CharSequence,
@@ -42,9 +42,10 @@ public interface CurrentSpan {
     /**
      * Records an event using the given [description] and optional [attributes].
      *
-     * Attributes with a `null` value are removed; and together with the [description] rendered using the provided [transform].
+     * Attributes with a `null` value are removed; and together with the [description] rendered.
      *
-     * ***Note:** This is a convenience method to facilitate migrating from an existing logger. The effectively required event name is derived from the description.
+     * ***Note:** This is a convenience method to facilitate migrating from an existing logger.
+     * The effectively required event name is derived from the description.
      * This can lead to a high cardinality (esp. if the description contains variables).
      * If too many different event names are created the value of the recorded data for later analysis is considerably reduced.
      * Consider using [event] instead.*

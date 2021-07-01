@@ -4,7 +4,6 @@ import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Tracer
 import koodies.asString
 import koodies.exception.toCompactString
-import koodies.logging.ReturnValue
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
 import koodies.tracing.CurrentSpan

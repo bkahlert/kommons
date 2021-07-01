@@ -1,4 +1,4 @@
-package koodies.logging
+package koodies.tracing.rendering
 
 import java.text.MessageFormat
 import java.util.regex.Pattern

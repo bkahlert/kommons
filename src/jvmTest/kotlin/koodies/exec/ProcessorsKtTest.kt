@@ -36,7 +36,7 @@ class ProcessorsKtTest {
 
         @Test
         fun TestSpan.`should trace`() {
-            CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }
+            CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }
             expectThatRendered().matchesCurlyPattern("""
                     ╭──╴cat
                     │
@@ -58,7 +58,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with no input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("echo", "Hello World!").toExec().process(LoggingOptions(), ProcessingMode(Sync, NonInteractive(null))) { io ->
+                CommandLine("echo", "Hello World!").toExec().process(TracingOptions(), ProcessingMode(Sync, NonInteractive(null))) { io ->
                     log.add(io)
                 }
                 expectThat(log)
@@ -69,7 +69,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
+                CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
                     log.add(io)
                 }
                 expectThat(log)
@@ -87,7 +87,7 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(LoggingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
+                    .process(TracingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
                     }
                 expectThat(log)
@@ -101,7 +101,7 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(LoggingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
+                    .process(TracingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
                     }
 
@@ -118,7 +118,7 @@ class ProcessorsKtTest {
 
         @Test
         fun TestSpan.`should trace`() {
-            CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }.waitFor()
+            CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }.waitFor()
             expectThatRendered().matchesCurlyPattern("""
                     ╭──╴cat
                     │
@@ -144,7 +144,7 @@ class ProcessorsKtTest {
                 fun `should process with no input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("echo", "Hello World!").toExec()
-                        .process(LoggingOptions(), ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
+                        .process(TracingOptions(), ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(1) }
@@ -155,7 +155,7 @@ class ProcessorsKtTest {
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("cat").toExec()
-                        .process(LoggingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
+                        .process(TracingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(1) }
@@ -169,7 +169,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec().process(LoggingOptions(), ProcessingMode(Async, NonInteractive(null))) { }
+                        CommandLine("sleep", "10").toExec().process(TracingOptions(), ProcessingMode(Async, NonInteractive(null))) { }
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
                 }
@@ -177,7 +177,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        CommandLine("cat").toExec().process(LoggingOptions(), ProcessingMode(Async,
+                        CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Async,
                             NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
@@ -197,7 +197,7 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
+                        .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
                         }.waitFor()
                     expectThat(log)
@@ -211,7 +211,7 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
+                        .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
                         }.waitFor()
                     expectThat(log)
@@ -229,7 +229,7 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { }
+                            .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { }
                     }
                     expectThat(timePassed).isLessThan(0.25.seconds)
                 }
@@ -239,7 +239,7 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(LoggingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) {}
+                            .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) {}
                     }
                     expectThat(timePassed).isLessThan(0.25.seconds)
                 }

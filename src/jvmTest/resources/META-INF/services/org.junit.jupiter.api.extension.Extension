@@ -4,4 +4,3 @@ koodies.junit.UniqueIdResolver
 koodies.test.IllegalUsageCheck
 koodies.debug.DebugCondition
 koodies.debug.DebugParameterResolver
-koodies.test.output.InMemoryLoggerResolver

@@ -2,6 +2,7 @@ package koodies.tracing
 
 import koodies.docker.DockerImage
 import koodies.docker.DockerRunCommandLine
+import koodies.exec.RendererProviders
 import koodies.net.headers
 import koodies.text.Semantics.formattedAs
 import java.net.URI
@@ -35,7 +36,7 @@ object Jaeger : DockerImage("jaegertracing", listOf("all-in-one")) {
                     +"9411:9411"
                 }
             }
-        }.exec.logging()
+        }.exec.tracer(Tracer.NOOP).logging(renderer = RendererProviders.errorsOnly())
 
         return protobufEndpoint.toString()
     }

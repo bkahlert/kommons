@@ -187,7 +187,7 @@ class JavaExecTest {
             })
 
             kotlin.runCatching {
-                exec.process(LoggingOptions(null, RendererProviders.NOOP), { async }) { io ->
+                exec.process(TracingOptions(null, RendererProviders.NOOP), { async }) { io ->
                     if (io !is Meta && io !is Input) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }

@@ -14,11 +14,11 @@ import koodies.exec.Process.State
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.io.Locations
-import koodies.logging.SimpleRenderingLogger
 import koodies.shell.ShellScript
 import koodies.text.LineSeparators.DEFAULT
 import koodies.text.Semantics.formattedAs
 import koodies.time.Now
+import koodies.tracing.OpenTelemetry
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -33,12 +33,13 @@ import kotlin.concurrent.withLock
  *
  * [Apache Commons Exec](https://commons.apache.org/proper/commons-exec/) was somewhat a breakthrough as it took away one of the biggest
  * challenges programmers face with processes—reading their standard output and error. Furthermore Apache Commons Exec supports parameter
- * substitution and helps coping with concurrency (e.g. [DefaultExecutor](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/DefaultExecutor.html),
+ * substitution and helps coping with concurrency (e.g.
+ * [DefaultExecutor](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/DefaultExecutor.html),
  * [ExecuteWatchdog](https://commons.apache.org/proper/commons-exec/apidocs/org/apache/commons/exec/ExecuteWatchdog.html)).
  * Yet, a couple of everyday tasks are still not easily achievable.
  *
  * [ZT Process Executor](https://github.com/zeroturnaround/zt-exec) is a process executor that makes a lot of things better. It has meta logging, which greatly
- * helps at debugging and provides "one-liners" (that are rather "one-line-ishs" because of line length and exception handling boilerplate):
+ * helps at debugging and provides "one-liners" (that are rather "one-line-likes" because of line length and exception handling boilerplate):
  * ```java
  *      String output;
  *      boolean success = false;
@@ -133,7 +134,7 @@ import kotlin.concurrent.withLock
  *      Boom!
  * ```
  *
- * Additionally, in the rare case of an actual exception, it is contained in [ExitState.Fatal]
+ * Additionally, in the rare case of an actual exception, it is contained in [State.Excepted]
  * and also included in the just described dump.
  *
  * That design already covers a lot of use cases. Even if other exit codes don't represent
@@ -158,7 +159,7 @@ import kotlin.concurrent.withLock
  * with no known limitations (provided, a shell is installed at all):
  * - [synchronously][ProcessingMode.Synchronicity.Sync]
  * - [asynchronously][ProcessingMode.Synchronicity.Async]
- * - [logging][SimpleRenderingLogger]
+ * - [logging][OpenTelemetry]
  * - [interactively][ProcessingMode.Interactivity]
  * - [dockerized][Docker]
  */
@@ -276,7 +277,7 @@ public value class ColumnParser(
      * each line split into [num] tab-separated columns to
      * the given [lineParser].
      *
-     * Otherwise the [Failure] [Exec.exitState] is returned.
+     * Otherwise the [State.Exited.Failed] [Exec.exitCode] is returned.
      */
     public inline fun <T : Any, reified E : ExitState> columns(num: Int, crossinline lineParser: (List<String>) -> T?): Either<List<T>, E> =
         when (val exitState = exec.waitFor()) {
