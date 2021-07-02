@@ -12,11 +12,15 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
+import koodies.tracing.KoodiesAttributes
+import koodies.tracing.RenderingAttributes
 import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
 import koodies.tracing.eventText
 import koodies.tracing.events
 import koodies.tracing.expectTraced
+import koodies.tracing.rendering.Renderable
+import koodies.tracing.spanAttributes
 import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -36,9 +40,17 @@ class ProcessorsKtTest {
 
         @Test
         fun TestSpan.`should trace`() {
-            CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }
+            CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream())),
+                TracingOptions(
+                    attributes = mapOf(
+                        KoodiesAttributes.EXEC_NAME.key to "exec-name",
+                        KoodiesAttributes.EXEC_EXECUTABLE.key to CommandLine("cat"),
+                        RenderingAttributes.name(Renderable.of("span-name")),
+                    ),
+                    renderer = { it(this) }
+                )) { }
             expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴cat
+                    ╭──╴span-name
                     │
                     │   Hello Cat!            
                     │
@@ -46,7 +58,9 @@ class ProcessorsKtTest {
                 """.trimIndent())
             TraceId.current.expectTraced().hasSize(1) and {
                 with(get(0)) {
-                    spanName.isEqualTo("cat")
+                    spanName.isEqualTo("koodies.exec")
+                    spanAttributes.get { execName }.isEqualTo("exec-name")
+                    spanAttributes.get { execExecutable }.isEqualTo("'cat'")
                     events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
                 }
             }
@@ -58,7 +72,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with no input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("echo", "Hello World!").toExec().process(TracingOptions(), ProcessingMode(Sync, NonInteractive(null))) { io ->
+                CommandLine("echo", "Hello World!").toExec().process(ProcessingMode(Sync, NonInteractive(null))) { io ->
                     log.add(io)
                 }
                 expectThat(log)
@@ -69,7 +83,7 @@ class ProcessorsKtTest {
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
+                CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
                     log.add(io)
                 }
                 expectThat(log)
@@ -87,7 +101,7 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(TracingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
+                    .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
                         log.add(io)
                     }
                 expectThat(log)
@@ -101,7 +115,7 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(TracingOptions(), ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
+                    .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
                         log.add(io)
                     }
 
@@ -118,9 +132,17 @@ class ProcessorsKtTest {
 
         @Test
         fun TestSpan.`should trace`() {
-            CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream()))) { }.waitFor()
+            CommandLine("cat").toExec().process(ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream())),
+                TracingOptions(
+                    attributes = mapOf(
+                        KoodiesAttributes.EXEC_NAME.key to "exec-name",
+                        KoodiesAttributes.EXEC_EXECUTABLE.key to CommandLine("cat"),
+                        RenderingAttributes.name(Renderable.of("span-name")),
+                    ),
+                    renderer = { it(this) }
+                )) { }.waitFor()
             expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴cat
+                    ╭──╴span-name
                     │
                     │   Hello Cat!            
                     │
@@ -128,7 +150,9 @@ class ProcessorsKtTest {
                 """.trimIndent())
             TraceId.current.expectTraced().hasSize(1) and {
                 with(get(0)) {
-                    spanName.isEqualTo("cat")
+                    spanName.isEqualTo("koodies.exec")
+                    spanAttributes.get { execName }.isEqualTo("exec-name")
+                    spanAttributes.get { execExecutable }.isEqualTo("'cat'")
                     events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
                 }
             }
@@ -144,7 +168,7 @@ class ProcessorsKtTest {
                 fun `should process with no input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("echo", "Hello World!").toExec()
-                        .process(TracingOptions(), ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
+                        .process(ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(1) }
@@ -155,7 +179,7 @@ class ProcessorsKtTest {
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("cat").toExec()
-                        .process(TracingOptions(), ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
+                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
                         .waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(1) }
@@ -169,7 +193,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec().process(TracingOptions(), ProcessingMode(Async, NonInteractive(null))) { }
+                        CommandLine("sleep", "10").toExec().process(ProcessingMode(Async, NonInteractive(null))) { }
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
                 }
@@ -177,7 +201,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        CommandLine("cat").toExec().process(TracingOptions(), ProcessingMode(Async,
+                        CommandLine("cat").toExec().process(ProcessingMode(Async,
                             NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
@@ -197,7 +221,7 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
+                        .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
                             log.add(io)
                         }.waitFor()
                     expectThat(log)
@@ -211,7 +235,7 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
+                        .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
                             log.add(io)
                         }.waitFor()
                     expectThat(log)
@@ -229,9 +253,9 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = true))) { }
+                            .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { }
                     }
-                    expectThat(timePassed).isLessThan(0.25.seconds)
+                    expectThat(timePassed).isLessThan(.5.seconds)
                 }
 
                 @Test
@@ -239,9 +263,9 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(TracingOptions(), ProcessingMode(Async, Interactive(nonBlocking = false))) {}
+                            .process(ProcessingMode(Async, Interactive(nonBlocking = false))) {}
                     }
-                    expectThat(timePassed).isLessThan(0.25.seconds)
+                    expectThat(timePassed).isLessThan(.5.seconds)
                 }
             }
         }

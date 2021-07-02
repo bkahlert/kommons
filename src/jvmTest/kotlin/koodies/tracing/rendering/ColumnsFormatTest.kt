@@ -3,7 +3,7 @@ package koodies.tracing.rendering
 import io.opentelemetry.api.common.AttributeKey.stringKey
 import io.opentelemetry.api.common.Attributes
 import koodies.test.expectThrows
-import koodies.tracing.CurrentSpan
+import koodies.tracing.KoodiesAttributes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -26,7 +26,7 @@ class ColumnsFormatTest {
 
         @Test
         fun `should have one description labeled columns by default`() {
-            expectThat(ColumnsLayout()).isEqualTo(ColumnsLayout("description" to 80, gap = 5, maxColumns = 80))
+            expectThat(ColumnsLayout()).isEqualTo(ColumnsLayout("koodies.description" to 80, gap = 5, maxColumns = 80))
         }
 
         @Test
@@ -61,8 +61,8 @@ class ColumnsFormatTest {
 
         @Test
         fun `should extract matching description`() {
-            expectThat(ColumnsLayout(CurrentSpan.Description to 60).extract(
-                Attributes.of(stringKey(CurrentSpan.Description), "custom description", stringKey("col-1"), "column 1"))).containsExactly(
+            expectThat(ColumnsLayout(KoodiesAttributes.DESCRIPTION.key to 60).extract(
+                Attributes.of(KoodiesAttributes.DESCRIPTION, "custom description", stringKey("col-1"), "column 1"))).containsExactly(
                 "custom description" to 60
             )
         }
@@ -70,14 +70,14 @@ class ColumnsFormatTest {
         @Test
         fun `should extract matching attribute`() {
             expectThat(ColumnsLayout("col-1" to 60)
-                .extract(Attributes.of(stringKey(CurrentSpan.Description), "custom description", stringKey("col-1"), "column 1")))
+                .extract(Attributes.of(KoodiesAttributes.DESCRIPTION, "custom description", stringKey("col-1"), "column 1")))
                 .containsExactly("column 1" to 60)
         }
 
         @Test
         fun `should extract match null of not present`() {
             expectThat(ColumnsLayout("col-1" to 60)
-                .extract(Attributes.of(stringKey(CurrentSpan.Description), "custom description", stringKey("col-2"), "column 2")))
+                .extract(Attributes.of(KoodiesAttributes.DESCRIPTION, "custom description", stringKey("col-2"), "column 2")))
                 .containsExactly(null to 60)
         }
     }
@@ -127,8 +127,8 @@ class ColumnsFormatTest {
 
         @Test
         fun `should extract matching columns`() {
-            expectThat(ColumnsLayout("col-1" to 45, CurrentSpan.Description to 10).extract(
-                Attributes.of(stringKey(CurrentSpan.Description), "custom description", stringKey("col-1"), "column 1"))).containsExactly(
+            expectThat(ColumnsLayout("col-1" to 45, KoodiesAttributes.DESCRIPTION.key to 10).extract(
+                Attributes.of(KoodiesAttributes.DESCRIPTION, "custom description", stringKey("col-1"), "column 1"))).containsExactly(
                 "column 1" to 45,
                 "custom description" to 10,
             )
@@ -136,7 +136,7 @@ class ColumnsFormatTest {
 
         @Test
         fun `should extract match null of not present`() {
-            expectThat(ColumnsLayout("col-1" to 45, "col2" to 10).extract(Attributes.of(stringKey(CurrentSpan.Description),
+            expectThat(ColumnsLayout("col-1" to 45, "col2" to 10).extract(Attributes.of(KoodiesAttributes.DESCRIPTION,
                 "custom description"))).containsExactly(
                 null to 45,
                 null to 10,

@@ -6,10 +6,11 @@ import koodies.text.Semantics.FieldDelimiters
 import koodies.text.Semantics.Symbolizable
 import koodies.text.Semantics.Symbols
 import koodies.text.takeUnlessBlank
+import koodies.tracing.CurrentSpan
 
 /**
  * Implementors of this interface gain control on
- * how it is displayed by [SimpleRenderingLogger].
+ * how it is displayed as the result of a [CurrentSpan].
  */
 public interface ReturnValue : Symbolizable {
 

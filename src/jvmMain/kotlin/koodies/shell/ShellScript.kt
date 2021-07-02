@@ -4,22 +4,24 @@ import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.Executable
+import koodies.exec.toLink
 import koodies.io.path.executable
 import koodies.io.path.pathString
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
 import koodies.shell.ShellScript.ScriptContext
-import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.Banner.banner
+import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.columns
 import koodies.text.quoted
-import koodies.text.truncate
 import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
 import koodies.toBaseName
+import koodies.tracing.rendering.Renderable
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
 import java.nio.file.Path
@@ -79,7 +81,7 @@ public open class ShellScript(
         val script: String = toString()
         val transformedScript: String = transform(script)
         return with(Commandline().shell) {
-            CommandLine(shellCommand, *shellArgsList.toTypedArray(), transformedScript)
+            CommandLine(shellCommand, *shellArgsList.toTypedArray(), transformedScript, name = name)
         }
     }
 
@@ -91,14 +93,16 @@ public open class ShellScript(
     ): Exec = toCommandLine(environment, workingDirectory)
         .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 
-    public override val summary: String
-        get() = (name?.let { "${it.ansi.italic.quoted}: " } ?: "").let {
-            "#!($it${
-                toString().replace("\\$LF", "").removeTrailingLineSeparator.lines().joinToString(";") {
-                    CommandLine.parseOrNull(it)?.commandLineParts?.joinToString(" ") ?: it
-                }.truncate(150, " … ")
-            })"
+    override val summary: Renderable = Renderable { columns, rows ->
+        if (name != null) {
+            "$name${LineSeparators.DEFAULT}${toLink()}"
+        } else {
+            val preview = toString()
+            val lines = preview.lines()
+            if ((rows == null || lines.size <= rows) && (columns == null || lines.all { it.columns <= columns })) preview
+            else toLink().toString()
         }
+    }
 
     /**
      * Returns a shell script line as it can be used in a shell,

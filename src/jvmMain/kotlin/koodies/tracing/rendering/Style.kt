@@ -21,7 +21,7 @@ public interface Style {
      * "decoration" added.
      */
     public fun start(
-        element: CharSequence,
+        element: Renderable,
         decorationFormatter: Formatter = ToString,
     ): CharSequence?
 

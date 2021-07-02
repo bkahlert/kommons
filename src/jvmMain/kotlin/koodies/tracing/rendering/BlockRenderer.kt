@@ -22,8 +22,10 @@ public class BlockRenderer(
     private val settings: Settings,
 ) : Renderer {
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        settings.blockStyle.start(name, settings.decorationFormatter)?.let(settings.printer)
+    private val style = settings.blockStyle(settings.layout)
+
+    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
+        style.start(name, settings.decorationFormatter)?.let(settings.printer)
     }
 
     override fun event(name: CharSequence, attributes: Attributes) {
@@ -34,7 +36,7 @@ public class BlockRenderer(
             .takeIf { it.any { (text, _) -> text != null } }
             ?.let { formatColumns(*it.toTypedArray(), paddingColumns = settings.layout.gap, wrapLines = ::wrapNonUriLines) }
             ?.lineSequence()
-            ?.mapNotNull { settings.blockStyle.content(it, settings.decorationFormatter) }
+            ?.mapNotNull { style.content(it, settings.decorationFormatter) }
             ?.forEach(settings.printer)
     }
 
@@ -43,7 +45,7 @@ public class BlockRenderer(
         if (attributes.isEmpty) {
             (if (formatted.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(formatted, settings.layout.totalWidth) else formatted)
                 .lineSequence()
-                .mapNotNull { settings.blockStyle.content(it, settings.decorationFormatter) }
+                .mapNotNull { style.content(it, settings.decorationFormatter) }
                 .map { it.ansi.red }
                 .forEach(settings.printer)
         } else {
@@ -53,18 +55,18 @@ public class BlockRenderer(
 
     override fun <R> end(result: Result<R>) {
         val returnValue = ReturnValue.of(result)
-        val formatted = settings.blockStyle.end(returnValue, settings.returnValueFormatter, settings.decorationFormatter)
+        val formatted = style.end(returnValue, settings.returnValueFormatter, settings.decorationFormatter)
         formatted?.takeUnlessEmpty()
             ?.let { if (it.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(it, settings.layout.totalWidth) else formatted }
             ?.let(settings.printer)
     }
 
     override fun nestedRenderer(renderer: RendererProvider): Renderer =
-        renderer(settings.copy(layout = settings.layout.shrinkBy(settings.blockStyle.indent), printer = ::printChild)) { BlockRenderer(it) }
+        renderer(settings.copy(layout = settings.layout.shrinkBy(style.indent), printer = ::printChild)) { BlockRenderer(it) }
 
     override fun printChild(text: CharSequence) {
         text.lineSequence()
-            .mapNotNull { settings.blockStyle.parent(it, settings.decorationFormatter) }
+            .mapNotNull { style.parent(it, settings.decorationFormatter) }
             .forEach(settings.printer)
     }
 

@@ -2,6 +2,9 @@ package koodies.exec
 
 import io.opentelemetry.api.trace.Tracer
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
+import koodies.shell.ShellScript
+import koodies.tracing.KoodiesAttributes
+import koodies.tracing.RenderingAttributes
 import koodies.tracing.rendering.RendererProvider
 import java.nio.file.Path
 
@@ -30,7 +33,7 @@ public data class Executor<E : Exec>(
      */
     private val environment: Map<String, String> = emptyMap(),
 
-    private val tracingOptions: TracingOptions = TracingOptions(executable.summary, RendererProviders.NOOP),
+    private val tracingOptions: TracingOptions = TracingOptions(),
 
     /**
      * Mode that defines if the execution will be synchronous
@@ -62,14 +65,21 @@ public data class Executor<E : Exec>(
         execTerminationCallback: ExecTerminationCallback? = null,
     ): E = executable
         .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
-        .process(tracingOptions, processingMode, processor ?: Processors.noopProcessor())
+        .process(processingMode, tracingOptions.copy(attributes = tracingOptions.attributes.run {
+            listOfNotNull(
+                KoodiesAttributes.execName((executable as? CommandLine)?.name ?: (executable as? ShellScript)?.name),
+                KoodiesAttributes.execExecutable(executable),
+                RenderingAttributes.name(executable.summary),
+                *toList().toTypedArray(),
+            ).toMap()
+        }), processor ?: Processors.noopProcessor())
 
     public fun logging(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-        name: String? = tracingOptions.name,
+        nameOverride: String? = tracingOptions.nameOverride,
         renderer: RendererProvider = { it(this) },
-    ): E = copy(tracingOptions = tracingOptions.copy(name = name, renderer = renderer)).invoke(workingDirectory, execTerminationCallback)
+    ): E = copy(tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = renderer)).invoke(workingDirectory, execTerminationCallback)
 
     /**
      * Executes the [executable] by processing all [IO] using the given [processor].
@@ -80,11 +90,11 @@ public data class Executor<E : Exec>(
     public fun processing(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-        name: String? = tracingOptions.name,
+        nameOverride: String? = tracingOptions.nameOverride,
         renderer: RendererProvider? = { it(this) },
         processor: Processor<E>,
     ): E = copy(
-        tracingOptions = tracingOptions.copy(name = name, renderer = renderer ?: tracingOptions.renderer),
+        tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = renderer ?: tracingOptions.renderer),
         processor = processor,
     ).invoke(workingDirectory, execTerminationCallback)
 

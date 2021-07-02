@@ -68,17 +68,14 @@ class TestTelemetry : TestExecutionListener {
         const val ENABLED: Boolean = true
 
         const val TEST_SPAN_CHECK_ENABLED: Boolean = true
-        private val testSpanCheckExceptions = setOf(
-            "docker info",
-        )
 
         private object TestSpanCheckSpanProcessor : SpanProcessor {
             override fun isStartRequired(): Boolean = false
             override fun onStart(parentContext: Context, span: ReadWriteSpan): Unit = Unit
             override fun isEndRequired(): Boolean = true
             override fun onEnd(span: ReadableSpan) {
-                if (testSpanCheckExceptions.contains(span.name)) return
                 val spanData = span.toSpanData()
+                if (spanData.name == KoodiesSpans.EXEC && span.toSpanData().attributes.koodies.execExecutable == "'docker' \\\n'info'") return
                 val traceId = TraceId(spanData.traceId)
                 require(traceId.testTrace) { "Span ${spanData.name.formattedAs.input} (trace ID: ${traceId.formattedAs.input}) is no test span." }
             }

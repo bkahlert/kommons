@@ -32,7 +32,6 @@ import koodies.text.ANSI.resetLines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.tracing.TestSpan
-import koodies.tracing.rendering.BlockStyles
 import koodies.tracing.rendering.BlockStyles.Dotted
 import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.BlockStyles.Solid
@@ -69,7 +68,7 @@ class ExecutionIntegrationTest {
     @Test
     fun TestSpan.`should process shell script`() {
 
-        val shellScript = ShellScript {
+        val shellScript = ShellScript("Say Hello") {
             echo("Hello, World!")
             echo("Hello, Back!")
         }
@@ -78,13 +77,15 @@ class ExecutionIntegrationTest {
         var counter = 0
         shellScript.exec.processing { io -> if (io is IO.Output) counter++ } check {
 
-            counter { isEqualTo(2) }
+            counter { isEqualTo(3) }
 
             expectThatRendered().matchesCurlyPattern("""
-                ╭──╴#!(echo Hello, World!;echo Hello, Back!)
+                ╭──╴Say Hello
+                │   file://{}.sh
                 │
-                │   Hello, World!                                                              
-                │   Hello, Back!                                                               
+                │   {}
+                │   Hello, World!                                                                   
+                │   Hello, Back!                                                                    
                 │
                 ╰──╴✔︎
             """.trimIndent())
@@ -98,17 +99,16 @@ class ExecutionIntegrationTest {
             echo("Countdown!")
             (10 downTo 0).forEach { echo(it) }
             echo("Take Off")
-        }.exec.logging(name = "countdown",
+        }.exec.logging(nameOverride = "countdown",
             renderer = RendererProviders.block {
                 copy(
                     contentFormatter = { "${"->".ansi.red} $it" },
                     decorationFormatter = Colors.brightRed,
-                    blockStyle = BlockStyles.Solid,
+                    blockStyle = ::Solid,
                 )
             }) check {
 
             expectThatRendered().matchesCurlyPattern("""
-                {{}}
                 ╭──╴countdown
                 │
                 │   -> Countdown!
@@ -139,7 +139,7 @@ class ExecutionIntegrationTest {
             (10 downTo 7).forEach { echo(it) }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
-        }.exec.logging(renderer = RendererProviders.noDetails { copy(blockStyle = None) }) check {
+        }.exec.logging(renderer = RendererProviders.noDetails { copy(blockStyle = ::None) }) check {
 
             state { isA<Failed>() }
 
@@ -153,8 +153,8 @@ class ExecutionIntegrationTest {
                 Boom!
                 Process $pid terminated with exit code $exitCode
                 ➜ A dump has been written to:
-                  - {}koodies.dump.{}.log (unchanged)
-                  - {}koodies.dump.{}.ansi-removed.log (ANSI escape/control sequences removed)
+                  - {}koodies.dump-{}.log (unchanged)
+                  - {}koodies.dump-{}.ansi-removed.log (ANSI escape/control sequences removed)
                 ➜ The last 7 lines are:
                   Countdown!
                   10
@@ -226,52 +226,47 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun TestSpan.`should execute using existing logger`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun TestSpan.`should execute using existing renderer`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         val executable: Executable<Exec> = CommandLine("echo", "test")
 
         with(executable) {
             spanning("existing logging context") {
                 exec.logging(
-                    name = "command line logging context",
-                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Solid) }
+                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = ::Solid) }
                 )
             }
         }
 
-        spanning("existing logging context", { it(copy(blockStyle = Solid, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
+        spanning("existing logging context", { it(copy(blockStyle = ::Solid, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
             log("abc")
             executable.exec.logging(
-                name = "command line logging context",
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid) }
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = ::Solid) }
             )
         }
-        spanning("existing logging context", { it(copy(blockStyle = Solid, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
+        spanning("existing logging context", { it(copy(blockStyle = ::Solid, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
             log("abc")
             executable.exec.logging(
-                name = "command line logging context",
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted) }
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = ::Dotted) }
             )
         }
-        spanning("existing logging context", { it(copy(blockStyle = Dotted, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
+        spanning("existing logging context", { it(copy(blockStyle = ::Dotted, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
             log("abc")
             executable.exec.logging(
-                name = "command line logging context",
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid) }
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = ::Solid) }
             )
         }
-        spanning("existing logging context", { it(copy(blockStyle = Dotted, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
+        spanning("existing logging context", { it(copy(blockStyle = ::Dotted, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
             log("abc")
             executable.exec.logging(
-                name = "command line logging context",
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted) }
+                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = ::Dotted) }
             )
         }
 
         expectThatRendered().matchesCurlyPattern("""
             ╭──╴existing logging context
             │
-            │   ╭──╴command line logging context
+            │   ╭──╴echo test
             │   │
             │   │   test                                                                            
             │   │
@@ -281,7 +276,7 @@ class ExecutionIntegrationTest {
             ╭──╴existing logging context
             │
             │   abc                                                                             
-            │   ╭──╴command line logging context
+            │   ╭──╴echo test
             │   │
             │   │   test                                                                            
             │   │
@@ -291,14 +286,14 @@ class ExecutionIntegrationTest {
             ╭──╴existing logging context
             │
             │   abc                                                                             
-            │   ▶ command line logging context
+            │   ▶ echo test
             │   · test                                                                            
             │   ✔︎
             │
             ╰──╴✔︎
             ▶ existing logging context
             · abc                                                                             
-            · ╭──╴command line logging context
+            · ╭──╴echo test
             · │
             · │   test                                                                            
             · │
@@ -306,7 +301,7 @@ class ExecutionIntegrationTest {
             ✔︎
             ▶ existing logging context
             · abc                                                                             
-            · ▶ command line logging context
+            · ▶ echo test
             · · test                                                                            
             · ✔︎
             ✔︎

@@ -43,7 +43,7 @@ import koodies.text.LineSeparators.wrapLines
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.Assertion
+import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.containsExactly
@@ -457,18 +457,18 @@ class LineSeparatorsTest {
     }
 }
 
-fun <T : CharSequence> Assertion.Builder<T>.isMultiLine() =
+fun <T : CharSequence> Builder<T>.isMultiLine() =
     assert("is multi line") {
         if (it.isMultiline) pass()
         else fail()
     }
 
-fun <T : CharSequence> Assertion.Builder<T>.isSingleLine() =
+fun <T : CharSequence> Builder<T>.isSingleLine() =
     assert("is single line") {
         if (!it.isMultiline) pass()
         else fail("has ${it.lines().size} lines")
     }
 
-fun <T : CharSequence> Assertion.Builder<T>.lines(
+fun <T : CharSequence> Builder<T>.lines(
     keepDelimiters: Boolean = false,
-): Assertion.Builder<List<String>> = get("lines %s") { lines(keepDelimiters) }
+): Builder<List<String>> = get("lines %s") { lines(keepDelimiters) }

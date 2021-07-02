@@ -138,7 +138,7 @@ public open class DockerSearchCommandLine(
             }
 
             return commandLine.exec.logging(
-                name = "Searching up to ${limit.formattedAs.input} images with filters ${commandLine.options.filters.formattedAs.input}",
+                nameOverride = "Searching up to ${limit.formattedAs.input} images with filters ${commandLine.options.filters.formattedAs.input}",
                 renderer = provider ?: RendererProviders.errorsOnly()
             ).parse.columns<DockerSeachResult, Failed>(5) { (name, description, starCount, isOfficial, isAutomated) ->
                 DockerSeachResult(DockerImage { name }, description, starCount.toIntOrNull() ?: 0, isOfficial.isNotBlank(), isAutomated.isNotBlank())

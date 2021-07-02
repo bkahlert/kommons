@@ -26,11 +26,11 @@ import koodies.io.path.asPath
 import koodies.io.path.pathString
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.Companion.isScript
-import koodies.text.Semantics.formattedAs
 import koodies.text.splitAndMap
 import koodies.text.takeUnlessBlank
 import koodies.text.withRandomSuffix
 import koodies.toBaseName
+import koodies.tracing.rendering.Renderable
 import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
 
@@ -62,7 +62,7 @@ public class DockerRunCommandLine(
     private val fallbackName = executable.summary.toBaseName().withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
 
-    override val summary: String = "docker run ${image.toString(includeSpecifier = false).formattedAs.input} ${executable.summary}"
+    override val summary: Renderable = toCommandLine(emptyMap(), null) { it }.summary
 
     override fun toCommandLine(
         environment: Map<String, String>,
@@ -528,7 +528,7 @@ public class DockerRunCommandLine(
         public val DEFAULT_SHELL_COMMAND: String = DEFAULT_SHELL.shellCommand
         public val DEFAULT_SHELL_ARGUMENTS: List<String> = DEFAULT_SHELL.shellArgsList
 
-        private fun CommandLine.warnOnConnectivityProblem() = CommandLine(command, arguments) { pid, exitCode, io ->
+        private fun CommandLine.warnOnConnectivityProblem() = CommandLine(command, arguments, null) { pid, exitCode, io ->
             kotlin.runCatching {
                 with(DockerExitStateHandler) { handle(pid, exitCode, io).takeIf { exitState -> exitState is ConnectivityProblem } }
             }.getOrNull() ?: run {

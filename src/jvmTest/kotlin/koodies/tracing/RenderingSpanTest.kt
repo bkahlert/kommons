@@ -14,6 +14,7 @@ import koodies.test.testEach
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
+import koodies.tracing.rendering.Renderable
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.Renderer.Companion.NOOP
 import koodies.tracing.rendering.RendererProvider
@@ -150,7 +151,7 @@ class RenderingSpanTest {
     private class CapturingRenderer(settings: Settings, private val captured: MutableList<String>) : Renderer {
         private val contentFormatter = settings.contentFormatter
 
-        override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+        override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
             captured.add(contentFormatter("START").toString())
         }
 
@@ -230,6 +231,17 @@ fun Builder<SpanData>.isValid() =
 val Builder<SpanData>.spanName: Builder<String>
     get() = get("name") { name }
 
+val Builder<SpanData>.spanAttributes: Builder<KoodiesAttributes>
+    get() = get("attributes") { attributes.koodies }
+
+fun Builder<SpanData>.hasSpanAttribute(key: String, value: String): Builder<SpanData> =
+    assert("has attribute $key=$value") {
+        when (it.attributes.get(AttributeKey.stringKey(key))) {
+            value -> pass()
+            else -> fail()
+        }
+    }
+
 val Builder<SpanData>.duration: Builder<Duration>
     get() = get("duration") { (endEpochNanos - startEpochNanos).nano.seconds }
 
@@ -243,10 +255,10 @@ val Builder<EventData>.attributes: Builder<Attributes>
     get() = get("attributes") { attributes }
 
 val Builder<EventData>.eventDescription: Builder<String>
-    get() = get("description attribute") { attributes.get(AttributeKey.stringKey("description")) }
+    get() = get("description attribute") { attributes.get(KoodiesAttributes.DESCRIPTION) }
 
 val Builder<EventData>.eventText: Builder<String>
-    get() = get("text attribute") { attributes.get(AttributeKey.stringKey("text")) }
+    get() = get("text attribute") { attributes.get(KoodiesAttributes.IO_TEXT) }
 
 fun Builder<EventData>.hasAttribute(key: String, value: String): Builder<EventData> =
     assert("has attribute $key=$value") {

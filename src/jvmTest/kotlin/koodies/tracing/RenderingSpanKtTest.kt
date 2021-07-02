@@ -1,17 +1,23 @@
 package koodies.tracing
 
+import io.opentelemetry.api.common.AttributeKey
 import koodies.debug.CapturedOutput
 import koodies.junit.TestName
 import koodies.test.output.OutputCaptureExtension
 import koodies.text.matchesCurlyPattern
+import koodies.text.truncateByColumns
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
+import koodies.tracing.rendering.Renderable
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.first
 import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 
 @Isolated
 @ExtendWith(OutputCaptureExtension::class)
@@ -88,7 +94,7 @@ class RenderingSpanKtTest {
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     tracing { spanning(testName) { registerAsTestSpan(); log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
-                        ╭──╴RenderingSpanKtTest ➜ Tracing ➜ WithNoCurrentSpan ➜ NestedSpanning ➜ should render
+                        ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   event α                                                                         
                         │
@@ -201,7 +207,7 @@ class RenderingSpanKtTest {
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     spanning(testName) { registerAsTestSpan(); log("event α") }
                     expectThat(output).matchesCurlyPattern("""
-                        ╭──╴$testName
+                        ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   event α                                                                         
                         │
@@ -229,7 +235,7 @@ class RenderingSpanKtTest {
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     spanning(testName) { registerAsTestSpan(); tracing { log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
-                        ╭──╴$testName
+                        ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   event α                                                                         
                         │
@@ -258,7 +264,7 @@ class RenderingSpanKtTest {
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     spanning(testName) { registerAsTestSpan(); spanning("child") { log("event α") } }
                     expectThat(output).matchesCurlyPattern("""
-                        ╭──╴$testName
+                        ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   ╭──╴child
                         │   │
@@ -362,6 +368,58 @@ class RenderingSpanKtTest {
                         ╰──╴✔︎
                     """.trimIndent())
                 }
+            }
+        }
+
+        @Nested
+        inner class UsingRenderable {
+
+            private val renderableName = Renderable { columns, rows -> "$columns x $rows" }
+
+            @Test
+            fun `should use render with null args as recorded name`(testName: TestName) {
+                val traceId = withRootSpan(testName) { spanning(renderableName) { TraceId.current } }
+                traceId.expectTraced().spanNames.first()
+                    .isEqualTo("null x null")
+            }
+
+            @Test
+            fun `should use render as rendered name`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning(renderableName) { } }
+                expectThat(output).matchesCurlyPattern("""
+                    ╭──╴76 x 4
+                    │
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
+            }
+        }
+
+        @Nested
+        inner class SpanName {
+
+            @Test
+            fun `should use name`(testName: TestName) {
+                val traceId = withRootSpan(testName) { spanning("name") { TraceId.current } }
+                traceId.expectTraced().spanNames.first()
+                    .isEqualTo("name")
+            }
+
+            @Test
+            fun `should use renderable name for rendering if exists`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning("name", "name.renderable" to "renderable name") { } }
+                expectThat(output).matchesCurlyPattern("""
+                    ╭──╴renderable name
+                    │
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
+            }
+
+            @Test
+            fun `should filter renderable name from attributes`(testName: TestName) {
+                val traceId = withRootSpan(testName) { spanning("name", "name.renderable" to "renderable name") { TraceId.current } }
+                traceId.expectTraced().first().spanAttributes.get { get(AttributeKey.stringKey(RenderingAttributes.Keys.NAME)) }.isNull()
             }
         }
     }

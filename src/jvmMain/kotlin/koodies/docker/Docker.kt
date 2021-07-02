@@ -79,7 +79,7 @@ public object Docker {
         public operator fun RendererProvider.get(vararg keys: String): String? =
             with(keys.flatMap { it.split(".") }.map { it.unify() }.toMutableList()) {
                 DockerInfoCommandLine {}.exec.logging(
-                    name = "Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}",
+                    nameOverride = "Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}",
                     renderer = this@get,
                 ).parse.columns<String, Failed>(1) { (line) ->
                     if (isNotEmpty() && line.substringBefore(":").unify() == first()) {

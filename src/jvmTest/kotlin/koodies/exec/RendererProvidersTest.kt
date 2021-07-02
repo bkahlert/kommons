@@ -8,7 +8,7 @@ import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
 import koodies.tracing.TestSpan
-import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.BlockStyles.Solid
 import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.TeePrinter
 import koodies.tracing.rendering.capturing
@@ -32,7 +32,7 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
-                ╭──╴name
+                ╭──╴{}
                 │
                 │   Countdown!
                 │   10
@@ -50,11 +50,11 @@ class RendererProvidersTest {
                 │
                 ╰──╴✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.block {
+            logging(nameOverride = "name", renderer = RendererProviders.block {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = BlockStyles.Solid,
+                    blockStyle = ::Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -62,17 +62,17 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
-                ╭──╴name
+                ╭──╴{}
                 │
                 │   Take Off
                 │
                 ╰──╴✔︎
             """.trimIndent(), justStart()) {
-            logging(name = "name", renderer = RendererProviders.block {
+            logging(nameOverride = "name", renderer = RendererProviders.block {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = BlockStyles.Solid,
+                    blockStyle = ::Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -86,9 +86,9 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should compact log`() = testLogOfSyncAndAsyncExec("""
-                name ❱ Countdown! ❱ 10 ❱ 9 ❱ 8 ❱ 7 ❱ 6 ❱ 5 ❱ 4 ❱ 3 ❱ 2 ❱ 1 ❱ 0 ❱ Take Off ✔︎
+                {} ❱ Countdown! ❱ 10 ❱ 9 ❱ 8 ❱ 7 ❱ 6 ❱ 5 ❱ 4 ❱ 3 ❱ 2 ❱ 1 ❱ 0 ❱ Take Off ✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.oneLine {
+            logging(nameOverride = "name", renderer = RendererProviders.oneLine {
                 copy(
                     contentFormatter = formatter,
                     printer = TeePrinter(printer, it),
@@ -98,9 +98,9 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
-                name ❱ Take Off ✔︎
+                {} ❱ Take Off ✔︎
             """.trimIndent(), justStart()) {
-            logging(name = "name", renderer = RendererProviders.oneLine {
+            logging(nameOverride = "name", renderer = RendererProviders.oneLine {
                 copy(
                     contentFormatter = formatter,
                     printer = TeePrinter(printer, it),
@@ -115,7 +115,7 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
-                ╭──╴name
+                ╭──╴{}
                 │
                 │   Countdown!
                 │   10
@@ -133,11 +133,11 @@ class RendererProvidersTest {
                 │
                 ╰──╴✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.compact {
+            logging(nameOverride = "name", renderer = RendererProviders.compact {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = BlockStyles.Solid,
+                    blockStyle = ::Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -145,17 +145,17 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
-                ╭──╴name
+                ╭──╴{}
                 │
                 │   Take Off
                 │
                 ╰──╴✔︎
             """.trimIndent(), justStart()) {
-            logging(name = "name", renderer = RendererProviders.compact {
+            logging(nameOverride = "name", renderer = RendererProviders.compact {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = BlockStyles.Solid,
+                    blockStyle = ::Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -167,18 +167,18 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
-                name ❱ Countdown! ❱ 10 ❱ 9 ❱ 8 ❱ 7 ❱ 6 ❱ 5 ❱ 4 ❱ 3 ❱ 2 ❱ 1 ❱ 0 ❱ Take Off ✔︎
+                {} ❱ Countdown! ❱ 10 ❱ 9 ❱ 8 ❱ 7 ❱ 6 ❱ 5 ❱ 4 ❱ 3 ❱ 2 ❱ 1 ❱ 0 ❱ Take Off ✔︎
                 """.trimIndent(), countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.summary {
+            logging(nameOverride = "name", renderer = RendererProviders.summary {
                 copy(printer = TeePrinter(printer, it))
             })
         }
 
         @TestFactory
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
-                name ❱ Take Off ✔︎
+                {} ❱ Take Off ✔︎
             """.trimIndent(), justStart()) {
-            logging(name = "name", renderer = RendererProviders.summary {
+            logging(nameOverride = "name", renderer = RendererProviders.summary {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -189,18 +189,18 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
-                name ✔︎
+                {} ✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.noDetails {
+            logging(nameOverride = "name", renderer = RendererProviders.noDetails {
                 copy(printer = TeePrinter(printer, it))
             })
         }
 
         @TestFactory
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
-                name ✔︎
+                {} ✔︎
             """.trimIndent(), justStart()) {
-            logging(name = "name", renderer = RendererProviders.noDetails {
+            logging(nameOverride = "name", renderer = RendererProviders.noDetails {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -211,7 +211,7 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should be empty if no error occurs`() = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.errorsOnly {
+            logging(nameOverride = "name", renderer = RendererProviders.errorsOnly {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -225,14 +225,14 @@ class RendererProvidersTest {
                 ➜ The last 10 lines are:
                 {{}}
             """.trimIndent(), countDownAndBoom()) {
-            logging(name = "name", renderer = RendererProviders.errorsOnly {
+            logging(nameOverride = "name", renderer = RendererProviders.errorsOnly {
                 copy(printer = TeePrinter(printer, it))
             })
         }
 
         @TestFactory
         fun TestSpan.`should hide regular result`() = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
-            logging(name = "name", renderer = RendererProviders.errorsOnly {
+            logging(nameOverride = "name", renderer = RendererProviders.errorsOnly {
                 copy(printer = TeePrinter(printer, it))
             })
         }

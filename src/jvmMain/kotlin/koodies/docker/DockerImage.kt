@@ -102,7 +102,7 @@ public open class DockerImage(
             options { all by !ignoreIntermediateImages }
             image by this@DockerImage
         }.exec.logging(
-            name = "Listing ${this@DockerImage.formattedAs.input} images",
+            nameOverride = "Listing ${this@DockerImage.formattedAs.input} images",
             renderer = provider ?: RendererProviders.summary(),
         ).parseImages()
 
@@ -118,7 +118,7 @@ public open class DockerImage(
         get() = DockerImageListCommandLine {
             image by this@DockerImage
         }.exec.logging(
-            name = "Checking if ${this@DockerImage.formattedAs.input} is pulled",
+            nameOverride = "Checking if ${this@DockerImage.formattedAs.input} is pulled",
             renderer = this,
         ).parseImages().isNotEmpty()
 
@@ -135,7 +135,7 @@ public open class DockerImage(
             options { this.allTags by allTags }
             image by this@DockerImage
         }.exec.logging(
-            name = "Pulling ${this@DockerImage.formattedAs.input}",
+            nameOverride = "Pulling ${this@DockerImage.formattedAs.input}",
             renderer = provider,
         ).waitFor()
 
@@ -152,7 +152,7 @@ public open class DockerImage(
             options { this.force by force }
             image by this@DockerImage
         }.exec.logging(
-            name = "Removing ${this@DockerImage.formattedAs.input}",
+            nameOverride = "Removing ${this@DockerImage.formattedAs.input}",
             renderer = provider,
         ).waitFor()
 
@@ -305,7 +305,7 @@ public open class DockerImage(
             DockerImageListCommandLine {
                 options { all by !ignoreIntermediateImages }
             }.exec.logging(
-                name = "Listing images",
+                nameOverride = "Listing images",
                 renderer = provider,
             ).parseImages()
     }

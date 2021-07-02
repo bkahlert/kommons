@@ -1,13 +1,17 @@
 package koodies.net
-import koodies.math.toUByteArray
-import koodies.math.bigIntegerOf
-import koodies.math.trim
+
 import koodies.math.BigInteger
 import koodies.math.BigIntegerConstants
+import koodies.math.bigIntegerOf
+import koodies.math.padStart
 import koodies.math.shl
 import koodies.math.toString
+import koodies.math.toUByteArray
+import koodies.math.trim
 import koodies.net.Notation.Verbosity
-import koodies.math.padStart
+import koodies.net.Notation.Verbosity.Compressed
+import koodies.net.Notation.Verbosity.Conventional
+import koodies.net.Notation.Verbosity.Full
 import koodies.ranges.size
 import koodies.regex.countMatches
 import koodies.unit.bytes
@@ -157,7 +161,7 @@ public object IPv6Notation : Notation {
  * @see compressedRepresentation
  * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
  */
-public val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Full)
+public val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(value, Full)
 
 /**
  * This representation consists of eight hextets each consisting of
@@ -169,7 +173,7 @@ public val IPv6Address.fullRepresentation: String get() = IPv6Notation.format(va
  * @see compressedRepresentation
  * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
  */
-public val IPv6Address.conventionalRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Conventional)
+public val IPv6Address.conventionalRepresentation: String get() = IPv6Notation.format(value, Conventional)
 
 /**
  * This representation consists of up to eight hextets each consisting of
@@ -184,4 +188,4 @@ public val IPv6Address.conventionalRepresentation: String get() = IPv6Notation.f
  * @see conventionalRepresentation
  * @see <a href="https://tools.ietf.org/html/rfc5952">A Recommendation for IPv6 Address Text Representation</a>
  */
-public val IPv6Address.compressedRepresentation: String get() = IPv6Notation.format(value, Notation.Verbosity.Compressed)
+public val IPv6Address.compressedRepresentation: String get() = IPv6Notation.format(value, Compressed)

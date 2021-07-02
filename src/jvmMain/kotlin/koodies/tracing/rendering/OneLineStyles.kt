@@ -11,8 +11,8 @@ public object OneLineStyles {
         private val infix = "❱"
         private val suffix = "❱❱"
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
-            append(element.ansi.bold)
+        override fun start(element: Renderable, decorationFormatter: Formatter): CharSequence? = buildString {
+            append(element.render(null, 1).ansi.bold)
         }
 
         override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {

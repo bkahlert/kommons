@@ -1,5 +1,6 @@
 package koodies.exec
 
+import koodies.tracing.rendering.Renderable
 import java.nio.file.Path
 
 /**
@@ -12,7 +13,7 @@ public interface Executable<out E : Exec> {
     /**
      * Brief description of that this executable is doing.
      */
-    public val summary: String
+    public val summary: Renderable
 
     /**
      * Creates a [CommandLine] to run this executable.

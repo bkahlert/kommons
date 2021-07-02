@@ -13,8 +13,10 @@ import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.mapLines
 import koodies.text.Semantics.formattedAs
-import koodies.tracing.CurrentSpan
 import koodies.tracing.Event
+import koodies.tracing.KoodiesAttributes
+import koodies.tracing.KoodiesSpans
+import koodies.tracing.RenderingAttributes
 
 /**
  * Instances are ANSI formatted output with a certain type.
@@ -37,9 +39,13 @@ public sealed class IO(
     @Deprecated("just use text")
     public val formatted: String by lazy { formatAnsi(text) }
 
-    override val name: CharSequence = "koodies.exec.io"
+    override val name: CharSequence = KoodiesSpans.IO
     override val attributes: Map<CharSequence, Any>
-        get() = mapOf("type" to type, CurrentSpan.Text to text.ansiRemoved, CurrentSpan.Rendered to text)
+        get() = mapOf(
+            KoodiesAttributes.IO_TYPE.key to type,
+            KoodiesAttributes.IO_TEXT.key to text.ansiRemoved,
+            RenderingAttributes.description(text),
+        )
 
     override fun toString(): String = formatted
 

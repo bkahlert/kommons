@@ -22,7 +22,7 @@ public class OneLineRenderer(
 
     private val messages = mutableListOf<CharSequence>()
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
         name.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
@@ -61,7 +61,21 @@ public class OneLineRenderer(
     override fun toString(): String = asString {
         ::settings to settings
     }
+
+    public companion object {
+        private const val MAX_COLUMNS = 40
+    }
 }
+
+@TracingDsl
+public fun <R> spanningLine(
+    name: CharSequence,
+    vararg attributes: Pair<String, Any>,
+    customize: Settings.() -> Settings = { this },
+    tracer: Tracer = koodies.tracing.Tracer,
+    block: CurrentSpan.() -> R,
+): R = spanning(name, *attributes, renderer = { OneLineRenderer(customize()) }, tracer = tracer, block = block)
+
 
 @TracingDsl
 public fun <R> spanningLine(
@@ -69,4 +83,4 @@ public fun <R> spanningLine(
     customize: Settings.() -> Settings = { this },
     tracer: Tracer = koodies.tracing.Tracer,
     block: CurrentSpan.() -> R,
-): R = spanning(name, renderer = { OneLineRenderer(customize()) }, tracer, block)
+): R = spanningLine(name, attributes = emptyArray(), customize = customize, tracer = tracer, block = block)

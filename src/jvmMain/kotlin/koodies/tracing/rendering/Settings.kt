@@ -9,7 +9,7 @@ public data class Settings(
     public val returnValueFormatter: (ReturnValue) -> ReturnValue? = run { { it } },
     public val layout: ColumnsLayout = ColumnsLayout(),
 
-    public val blockStyle: BlockStyle = BlockStyles.DEFAULT,
+    public val blockStyle: (ColumnsLayout) -> BlockStyle = BlockStyles.DEFAULT,
     public val oneLineStyle: Style = OneLineStyles.DEFAULT,
 
     public val printer: Printer = { println(it) },

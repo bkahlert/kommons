@@ -561,7 +561,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should not truncate if not necessary`() {
-            expectThat("1234567890".truncateByColumns()).isEqualTo("1234567890")
+            expectThat("1234567890".truncateByColumns()).toStringIsEqualTo("1234567890")
         }
 
         @Test
@@ -597,7 +597,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should not truncate if not necessary`() {
-            expectThat("1234567890".truncateStartByColumns()).isEqualTo("1234567890")
+            expectThat("1234567890".truncateStartByColumns()).toStringIsEqualTo("1234567890")
         }
 
         @Test
@@ -633,7 +633,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should not truncate if not necessary`() {
-            expectThat("1234567890".truncateEndByColumns()).isEqualTo("1234567890")
+            expectThat("1234567890".truncateEndByColumns()).toStringIsEqualTo("1234567890")
         }
 
         @Test

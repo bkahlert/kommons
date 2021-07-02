@@ -29,7 +29,7 @@ public open class DeferringRenderer(
         return true
     }
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit =
+    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable): Unit =
         defer { start(traceId, spanId, name) }
 
     override fun event(name: CharSequence, attributes: Attributes) {

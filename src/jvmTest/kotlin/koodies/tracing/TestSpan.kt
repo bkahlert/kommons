@@ -1,12 +1,12 @@
 package koodies.tracing
 
-import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Span
 import koodies.junit.TestName.Companion.testName
 import koodies.junit.isVerbose
 import koodies.jvm.currentThread
 import koodies.jvm.orNull
+import koodies.math.floorDiv
 import koodies.test.get
 import koodies.test.isAnnotated
 import koodies.test.put
@@ -23,6 +23,7 @@ import koodies.time.seconds
 import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.InMemoryPrinter
 import koodies.tracing.rendering.Printer
+import koodies.tracing.rendering.Renderable
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.rendering.Settings
@@ -141,12 +142,12 @@ class TestRenderer(
     private val testOnlyPrinter: Printer = if (printToConsole) ThreadSafePrinter(TestPrinter()) else run { {} }
     private val printer: Printer = ThreadSafePrinter(TeePrinter(testOnlyPrinter, printer))
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        testOnlyPrinter(TestPrinter.TestIO.Start(name, traceId, spanId))
+    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
+        testOnlyPrinter(TestPrinter.TestIO.Start(traceId, spanId, name))
     }
 
     override fun event(name: CharSequence, attributes: Attributes) {
-        attributes.get(AttributeKey.stringKey(CurrentSpan.Description))?.let(printer)
+        attributes.koodies.description?.let(printer)
             ?: printer("$name: $attributes")
     }
 
@@ -234,7 +235,7 @@ class TestPrinter : Printer {
     }
 
     sealed class TestIO(private val string: String) : CharSequence by string {
-        class Start(name: CharSequence, val traceId: TraceId, val spanId: SpanId) : TestIO(name.toString())
+        class Start(val traceId: TraceId, val spanId: SpanId, name: Renderable) : TestIO(name.render(COLUMNS, null))
         object Pass : TestIO("Pass".formattedAs.success)
         class Fail(val exception: Throwable) : TestIO(
             when (exception) {
@@ -251,17 +252,19 @@ class TestPrinter : Printer {
     }
 
     private companion object {
+        private const val COLUMNS = 80
+
         private val formatter = Formatter { it.toString().ansi.color(Colors.gray(.45)) }
         val CharSequence.meta: CharSequence get() = formatter.invoke(this)
         val headerLine = StringBuilder().apply {
-            append("─".repeat(41))
+            append("─".repeat((COLUMNS floorDiv 2) + 1))
             append("┬".repeat(1))
-            append("─".repeat(81))
+            append("─".repeat(COLUMNS + 1))
         }.meta
         val footerLine = StringBuilder().apply {
-            append("─".repeat(41))
+            append("─".repeat((COLUMNS floorDiv 2) + 1))
             append("┴".repeat(1))
-            append("─".repeat(81))
+            append("─".repeat(COLUMNS + 1))
         }.meta
         val resultPrefix = StringBuilder().apply {
             append(" ".repeat(31))

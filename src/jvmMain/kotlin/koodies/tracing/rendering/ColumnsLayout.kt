@@ -3,7 +3,7 @@ package koodies.tracing.rendering
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.common.Attributes
 import koodies.text.Semantics.formattedAs
-import koodies.tracing.CurrentSpan
+import koodies.tracing.KoodiesAttributes
 import kotlin.math.floor
 
 /**
@@ -14,7 +14,7 @@ public data class ColumnsLayout(
     /**
      * The columns to be used.
      */
-    public val columns: List<Column> = listOf(Column(CurrentSpan.Description, 80)),
+    public val columns: List<Column> = listOf(Column(KoodiesAttributes.DESCRIPTION.key, 80)),
 
     /**
      * The gap between two neighbouring columns.
@@ -33,7 +33,7 @@ public data class ColumnsLayout(
         /**
          * The columns to be used.
          */
-        vararg columns: Pair<CharSequence, Int> = arrayOf(CurrentSpan.Description to 80),
+        vararg columns: Pair<CharSequence, Int> = arrayOf(KoodiesAttributes.DESCRIPTION.key to 80),
 
         /**
          * The gap between two neighbouring columns.

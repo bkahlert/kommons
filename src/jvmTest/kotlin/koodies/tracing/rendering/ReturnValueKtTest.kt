@@ -181,7 +181,8 @@ class ReturnValueKtTest {
 
 private fun TestSpan.format(returnValue: Any?): String =
     capturing { printer ->
-        val x = spanning(returnValue.toString(), { it(copy(printer = printer)) }) {
+        @Suppress("UNUSED_VARIABLE")
+        val result = spanning(returnValue.toString(), { it(copy(printer = printer)) }) {
             @Suppress("UNUSED_EXPRESSION")
             returnValue
         }

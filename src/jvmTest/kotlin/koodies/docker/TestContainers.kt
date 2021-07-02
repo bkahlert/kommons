@@ -19,7 +19,7 @@ import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
 import koodies.time.seconds
-import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.BlockStyles.Dotted
 import koodies.tracing.rendering.ReturnValues
 import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
@@ -193,7 +193,7 @@ class TestContainers(
      */
     fun release() {
         val copy = provisioned.toList().also { provisioned.clear() }
-        spanning("Releasing ${copy.size} container(s)", renderer = { it(copy(blockStyle = BlockStyles.Dotted)) }) {
+        spanning("Releasing ${copy.size} container(s)", renderer = { it(copy(blockStyle = ::Dotted)) }) {
             ReturnValues(copy.map { kotlin.runCatching { it.remove(force = true) }.fold({ it }, { it }) })
         }
     }
@@ -206,7 +206,7 @@ class TestContainers(
             name by container.name
             this.autoCleanup by false
             detached { on }
-        }.exec.logging(name = "running ${commandLine.summary}", renderer = RendererProviders.noDetails())
+        }.exec.logging(nameOverride = "running ${commandLine.summary}", renderer = RendererProviders.noDetails())
         return container
     }
 

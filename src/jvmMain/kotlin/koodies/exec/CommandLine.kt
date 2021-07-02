@@ -10,12 +10,13 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.asPath
 import koodies.io.path.executable
-import koodies.shell.ShellScript
+import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.removeTrailingLineSeparator
-import koodies.text.truncate
+import koodies.text.columns
 import koodies.text.unquoted
+import koodies.tracing.rendering.Renderable
 import org.codehaus.plexus.util.cli.shell.FormattingShell
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -37,14 +38,31 @@ public open class CommandLine(
     public val arguments: List<String>,
 
     /**
+     * Optional name of this script.
+     */
+    public val name: String?,
+
+    /**
      * If set, each run [Exec] delegates its [ExitState] creation to it.
      */
     protected open val exitStateHandler: ExitStateHandler? = null,
 ) : Executable<Exec>, List<String> by listOf(command, *arguments.toTypedArray()) {
 
-    public constructor(command: CharSequence, vararg arguments: CharSequence) : this(command.toString(), arguments.map { it.toString() }.toList())
-    public constructor(command: CharSequence, arguments: Iterable<CharSequence>) : this(command.toString(), arguments.map { it.toString() }.toList())
-    public constructor(commandLine: CommandLine) : this(commandLine.command, commandLine.arguments)
+    public constructor(
+        command: CharSequence,
+        vararg arguments: CharSequence,
+        name: String? = null,
+    ) : this(command.toString(), arguments.map { it.toString() }.toList(), name)
+
+    public constructor(
+        command: CharSequence,
+        arguments: Iterable<CharSequence>,
+        name: String? = null,
+    ) : this(command.toString(), arguments.map { it.toString() }.toList(), name)
+
+    public constructor(
+        commandLine: CommandLine,
+    ) : this(commandLine.command, commandLine.arguments, commandLine.name, commandLine.exitStateHandler)
 
     /**
      * The array consisting of the command and its arguments that make up this command,
@@ -72,15 +90,17 @@ public open class CommandLine(
     /**
      * A human-readable representation of this command line.
      */
-    public override val summary: String = multiLineShellCommand.run {
-        if (length <= 60) {
-            commandLineParts.joinToString(" ").truncate(60, " … ")
-                .removeTrailingLineSeparator
+    override val summary: Renderable = Renderable { columns, rows ->
+        if (name != null) {
+            "$name${LineSeparators.DEFAULT}${toLink()}"
         } else {
-            ShellScript {
-                shebang
-                !this@CommandLine.shellCommand
-            }.toLink().toString()
+            val shellPreview = commandLineParts.joinToString(" ").removeTrailingLineSeparator
+            val shellPreviewLines = shellPreview.lines()
+            if ((rows == null || shellPreviewLines.size <= rows) && (columns == null || shellPreviewLines.all { it.columns <= columns })) {
+                shellPreview
+            } else {
+                toLink().toString()
+            }
         }
     }
 

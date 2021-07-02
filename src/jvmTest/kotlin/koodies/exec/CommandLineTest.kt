@@ -1,6 +1,8 @@
 package koodies.exec
 
 import koodies.io.Locations
+import koodies.io.path.asPath
+import koodies.io.path.hasContent
 import koodies.shell.ShellScript
 import koodies.test.string
 import koodies.test.testEach
@@ -19,6 +21,7 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.java.exists
 
 class CommandLineTest {
 
@@ -300,6 +303,21 @@ class CommandLineTest {
                 "!mkdir", "-p", "/shared",
             ).summary).matchesCurlyPattern("!ls -lisa !mkdir -p /shared")
         }
+
+        @Test
+        fun `should provide url if summary is too long`() {
+            expectThat(CommandLine(
+                "!ls", "-lisa",
+                "!mkdir", "-p", "/shared",
+            ).summary.render(10, 1))
+                .get { asPath() }
+                .exists()
+                .hasContent("""
+                    #!/bin/sh
+                    '!ls' '-lisa' '!mkdir' '-p' '/shared'
+                    
+                """.trimIndent())
+        }
     }
 }
 
@@ -308,7 +326,8 @@ val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBu
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
     get() = get("evaluated %s") {
-        toExec(false, emptyMap(), Locations.Temp, null).process(TracingOptions(null, RendererProviders.NOOP), { sync }, Processors.noopProcessor())
+        toExec(false, emptyMap(), Locations.Temp, null)
+            .process(ProcessingMode { sync }, TracingOptions(), Processors.noopProcessor())
     }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =

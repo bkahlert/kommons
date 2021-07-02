@@ -115,7 +115,7 @@ public class DockerContainer(public val name: String) {
             options { this.attach by attach; this.interactive by interactive }
             containers by listOf(this@DockerContainer.name)
         }.exec.logging(
-            name = "Starting ${this@DockerContainer.name.formattedAs.input}",
+            nameOverride = "Starting ${this@DockerContainer.name.formattedAs.input}",
             renderer = renderer,
         ).waitFor()
 
@@ -135,7 +135,7 @@ public class DockerContainer(public val name: String) {
                 mode { this.async }
             }
         }.logging(
-            name = "Stopping ${this@DockerContainer.name.formattedAs.input}",
+            nameOverride = "Stopping ${this@DockerContainer.name.formattedAs.input}",
             renderer = renderer,
         ).waitFor()
 
@@ -155,7 +155,7 @@ public class DockerContainer(public val name: String) {
                 mode { this.async }
             }
         }.logging(
-            name = "Killing ${this@DockerContainer.name.formattedAs.input}",
+            nameOverride = "Killing ${this@DockerContainer.name.formattedAs.input}",
             renderer = renderer,
         ).waitFor()
 
@@ -178,7 +178,7 @@ public class DockerContainer(public val name: String) {
         }
         val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
         return dockerRemoveCommandLine.exec.logging(
-            name = "Removing$forcefully $name",
+            nameOverride = "Removing$forcefully $name",
             renderer = renderer,
         ).waitFor()
     }
@@ -207,7 +207,7 @@ public class DockerContainer(public val name: String) {
             DockerPsCommandLine {
                 options { all by true; container.run { exactName(name) } }
             }.exec.logging(
-                name = "Checking status of ${container.name.formattedAs.input}",
+                nameOverride = "Checking status of ${container.name.formattedAs.input}",
                 renderer = renderer,
             ).parse.columns<State, Failed>(3) { (_, state, status) ->
                 when (state.capitalize()) {
@@ -229,7 +229,7 @@ public class DockerContainer(public val name: String) {
             DockerPsCommandLine {
                 options { all by true }
             }.exec.logging(
-                name = "Listing ${"all".formattedAs.input} containers",
+                nameOverride = "Listing ${"all".formattedAs.input} containers",
                 renderer = renderer,
             ).parse.columns<DockerContainer, Failed>(3) { (name, _, _) ->
                 DockerContainer(name)
@@ -252,7 +252,7 @@ public class DockerContainer(public val name: String) {
                 options { this.attach by attach; this.interactive by interactive }
                 this.containers by names
             }.exec.logging(
-                name = "Starting ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
+                nameOverride = "Starting ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
                 renderer = renderer,
             ).waitFor()
         }
@@ -271,7 +271,7 @@ public class DockerContainer(public val name: String) {
                 options { this.timeout by timeout }
                 this.containers by names
             }.exec.logging(
-                name = "Stopping ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
+                nameOverride = "Stopping ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
                 renderer = renderer,
             ).waitFor()
         }
@@ -290,7 +290,7 @@ public class DockerContainer(public val name: String) {
                 options { this.signal by signal }
                 this.containers by names
             }.exec.apply { if (async) mode { this.async } }.logging(
-                name = "Killing ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
+                nameOverride = "Killing ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
                 renderer = renderer,
             ).waitFor()
         }
@@ -316,7 +316,7 @@ public class DockerContainer(public val name: String) {
             }
             val forcefully = if (dockerRemoveCommandLine.options.force) " forcefully".formattedAs.warning else ""
             return dockerRemoveCommandLine.exec.logging(
-                name = "Removing$forcefully ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
+                nameOverride = "Removing$forcefully ${names.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",
                 renderer = renderer,
             ).waitFor()
         }

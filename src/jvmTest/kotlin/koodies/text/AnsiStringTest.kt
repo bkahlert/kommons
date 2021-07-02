@@ -464,13 +464,13 @@ class AnsiStringTest {
             ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
-                DynamicTest.dynamicTest("$input > $expected") {
+                dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
                         input.second, ignoreCase = false, ignoreAnsi = false
                     )
                     expectThat(actual).isEqualTo(expected)
                 },
-                DynamicTest.dynamicTest("should be default") {
+                dynamicTest("should be default") {
                     val actual = input.first.contains(
                         input.second
                     )
@@ -487,7 +487,7 @@ class AnsiStringTest {
             ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
-                DynamicTest.dynamicTest("$input > $expected") {
+                dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
                         input.second, ignoreCase = false, ignoreAnsi = true
                     )
@@ -504,7 +504,7 @@ class AnsiStringTest {
             ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
-                DynamicTest.dynamicTest("$input > $expected") {
+                dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
                         input.second, ignoreCase = true, ignoreAnsi = false
                     )
@@ -521,7 +521,7 @@ class AnsiStringTest {
             ("[$e[0;32m  OK  $e[0m]" to "[  ok") to true,
         ).flatMap { (input, expected) ->
             listOf(
-                DynamicTest.dynamicTest("$input > $expected") {
+                dynamicTest("$input > $expected") {
                     val actual = input.first.contains(
                         input.second, ignoreCase = true, ignoreAnsi = true
                     )

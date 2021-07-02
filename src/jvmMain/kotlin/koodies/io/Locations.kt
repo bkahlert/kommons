@@ -172,7 +172,7 @@ public fun <T> runWithTempDir(base: String = "", extension: String = "", block: 
 public fun Path.ls(glob: String = ""): List<Path> =
     ShellScript { !"ls $glob" }.exec.logging(
         this,
-        name = "${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}",
+        nameOverride = "${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}",
         renderer = RendererProviders.errorsOnly(),
     ).parse.columns<Path, Failed>(1) {
         resolve(it[0])

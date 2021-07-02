@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
-import org.junit.jupiter.api.assertTimeoutPreemptively
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -31,7 +30,6 @@ import java.io.InputStream
 import java.io.Reader
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.time.Duration
-import kotlin.time.toJavaDuration
 
 @Disabled
 abstract class SharedReaderTest(val readerFactory: (InputStream, Duration) -> Reader) {
@@ -127,10 +125,8 @@ abstract class SharedReaderTest(val readerFactory: (InputStream, Duration) -> Re
             val reader = readerFactory(TeeInputStream(expected.byteInputStream(), read), 1.seconds)
 
             kotlin.runCatching {
-                assertTimeoutPreemptively(8.seconds.toJavaDuration()) {
-                    val readLines = reader.readLines()
-                    expectThat(readLines.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
-                }
+                val readLines = reader.readLines()
+                expectThat(readLines.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
             }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
         }
     }

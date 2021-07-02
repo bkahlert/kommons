@@ -187,7 +187,7 @@ class JavaExecTest {
             })
 
             kotlin.runCatching {
-                exec.process(TracingOptions(null, RendererProviders.NOOP), { async }) { io ->
+                exec.process(ProcessingMode { async }) { io ->
                     if (io !is Meta && io !is Input) {
                         kotlin.runCatching { enter("just read $io") }
                             .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
@@ -523,7 +523,7 @@ private fun Path.process(
     exitStateHandler: ExitStateHandler? = null,
     execTerminationCallback: ExecTerminationCallback? = null,
 ): Exec = shellScript.toCommandLine(environment, this)
-    .let { CommandLine(it.command, it.arguments, exitStateHandler) }
+    .let { CommandLine(it.command, it.arguments, name = shellScript.name, exitStateHandler = exitStateHandler) }
     .toExec(redirectErrorStream, environment, this, execTerminationCallback)
 
 fun Path.createLoopingExec(): Exec = process(shellScript = createLoopingScript())

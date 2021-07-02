@@ -10,7 +10,7 @@ public val Short.isEven: Boolean get():Boolean = this % 2 == 0
 public val Int.isEven: Boolean get():Boolean = this % 2 == 0
 
 /** `true` if even. */
-public val koodies.math.BigInteger.isEven: Boolean get():Boolean = takeLowestOneBit() != 0
+public val BigInteger.isEven: Boolean get():Boolean = takeLowestOneBit() != 0
 
 
 /** `true` if odd. */
@@ -23,4 +23,4 @@ public val Short.isOdd: Boolean get():Boolean = this % 2 != 0
 public val Int.isOdd: Boolean get():Boolean = this % 2 != 0
 
 /** `true` if odd. */
-public val koodies.math.BigInteger.isOdd: Boolean get():Boolean = takeLowestOneBit() == 0
+public val BigInteger.isOdd: Boolean get():Boolean = takeLowestOneBit() == 0

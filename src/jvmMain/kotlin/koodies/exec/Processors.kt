@@ -18,6 +18,8 @@ import koodies.jvm.completableFuture
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
 import koodies.tracing.CurrentSpan
+import koodies.tracing.KoodiesSpans
+import koodies.tracing.RenderingAttributes
 import koodies.tracing.rendering.RendererProvider
 import java.io.IOException
 import java.io.InputStream
@@ -51,7 +53,7 @@ public object Processors {
  * so they get logged.
  */
 public inline fun <reified E : Exec> E.processSilently(): E =
-    process(TracingOptions(null, RendererProviders.NOOP), { async }, noopProcessor())
+    process(ProcessingMode { async }, TracingOptions(), noopProcessor())
 
 private val asynchronouslyProcessed: MutableSet<Exec> = synchronizedSetOf()
 
@@ -72,20 +74,33 @@ public data class TracingOptions(
     /**
      * Name of what is being executed.
      */
-    public val name: String? = null,
+    public val attributes: Map<String, Any> = emptyMap(),
 
     /**
      * Renderer to use for logging.
      */
-    public val renderer: RendererProvider = { it(this) },
+    public val renderer: RendererProvider = RendererProviders.NOOP,
 
     /**
      * Tracer to be used.
      */
     public val tracer: Tracer = koodies.tracing.Tracer,
 ) {
-    public fun spanning(exec: Exec, block: CurrentSpan.() -> ExitState) {
-        koodies.tracing.spanning(name ?: exec.commandLine.summary, renderer, tracer, block)
+    public val nameOverride: String? get() = attributes[RenderingAttributes.Keys.NAME]?.toString()
+    public fun withNameOverride(name: String?): TracingOptions = when {
+        attributes[RenderingAttributes.Keys.NAME] == name -> this
+        name != null -> copy(attributes = attributes.toMutableMap().also { it[RenderingAttributes.Keys.NAME] = name })
+        else -> copy(attributes = attributes.toMutableMap().also { it.remove(RenderingAttributes.Keys.NAME) })
+    }
+
+    public fun spanning(block: CurrentSpan.() -> ExitState) {
+        koodies.tracing.spanning(
+            name = KoodiesSpans.EXEC,
+            attributes = attributes.toList().toTypedArray(),
+            renderer = renderer,
+            tracer = tracer,
+            block = block,
+        )
     }
 }
 
@@ -130,25 +145,12 @@ public data class ProcessingMode(
  * printed to the console.
  */
 public fun <E : Exec> E.process(
-    tracingOptions: TracingOptions,
-    modeInit: ProcessingModeContext.() -> ProcessingMode,
-    processor: Processor<E>,
-): E = process(tracingOptions, ProcessingMode(modeInit), processor)
-
-/**
- * Attaches to the [Exec.outputStream] and [Exec.errorStream]
- * of the specified [Exec] and passed all [IO] to the specified [processor].
- *
- * If no [processor] is specified, the output and the error stream will be
- * printed to the console.
- */
-public fun <E : Exec> E.process(
-    tracingOptions: TracingOptions = TracingOptions(),
     mode: ProcessingMode = ProcessingMode { sync },
+    tracingOptions: TracingOptions = TracingOptions(renderer = { it(this) }),
     processor: Processor<E>,
 ): E = when (mode.synchronicity) {
-    Sync -> processSynchronously(tracingOptions, mode.interactivity, processor)
-    Async -> processAsynchronously(tracingOptions, mode.interactivity, processor)
+    Sync -> processSynchronously(mode.interactivity, tracingOptions, processor)
+    Async -> processAsynchronously(mode.interactivity, tracingOptions, processor)
 }
 
 /**
@@ -159,12 +161,12 @@ public fun <E : Exec> E.process(
  * If no [processor] is specified a [Processors.eventRecordingProcessor] prints
  * all [IO] to the console.
  */
-public fun <P : Exec> P.processSynchronously(
-    tracingOptions: TracingOptions = TracingOptions(),
+public fun <E : Exec> E.processSynchronously(
     interactivity: Interactivity = NonInteractive(null),
-    processor: Processor<P> = noopProcessor(),
-): P = apply {
-    tracingOptions.spanning(this) {
+    tracingOptions: TracingOptions = TracingOptions(renderer = { it(this) }),
+    processor: Processor<E> = noopProcessor(),
+): E = apply {
+    tracingOptions.spanning {
         metaStream.subscribe { processor(this@apply, it) }
 
         val readers = listOf(
@@ -204,8 +206,8 @@ public fun <P : Exec> P.processSynchronously(
  * TODO try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <E : Exec> E.processAsynchronously(
-    tracingOptions: TracingOptions = TracingOptions(),
     interactivity: Interactivity = NonInteractive(null),
+    tracingOptions: TracingOptions = TracingOptions(renderer = { it(this) }),
     processor: Processor<E> = noopProcessor(),
 ): E = apply {
     val preparationMutex = Semaphore(0) // block until preparation has completed; Exec.onExit must not be called until callbacks are registered
@@ -213,7 +215,7 @@ public fun <E : Exec> E.processAsynchronously(
     val exitStateProcessedMutex = Semaphore(0)
     val threadPool = Context.taskWrapping(Executors.newCachedThreadPool())
     threadPool.completableFuture {
-        tracingOptions.spanning(this) {
+        tracingOptions.spanning {
             async = true
             metaStream.subscribe { processor(this@apply, it) }
 

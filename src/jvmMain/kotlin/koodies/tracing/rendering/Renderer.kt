@@ -1,8 +1,9 @@
 package koodies.tracing.rendering
 
 import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.Span
 import koodies.toBaseName
-import koodies.tracing.CurrentSpan
+import koodies.tracing.KoodiesAttributes
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
 import koodies.tracing.toRenderedAttributes
@@ -15,7 +16,7 @@ public interface Renderer {
     /**
      * Renders the start of a span.
      */
-    public fun start(traceId: TraceId, spanId: SpanId, name: CharSequence)
+    public fun start(traceId: TraceId, spanId: SpanId, name: Renderable)
 
     /**
      * Renders an event using the given [name] and optional [attributes].
@@ -32,7 +33,7 @@ public interface Renderer {
         name: CharSequence,
         description: CharSequence,
         vararg attributes: Pair<CharSequence, Any?>,
-    ): Unit = event(name, arrayOf(CurrentSpan.Description to description, *attributes).toRenderedAttributes())
+    ): Unit = event(name, arrayOf(KoodiesAttributes.DESCRIPTION.key to description, *attributes).toRenderedAttributes())
 
     /**
      * Renders an event using the given [description] and optional [attributes].
@@ -84,7 +85,7 @@ public interface Renderer {
     public companion object {
 
         public object NOOP : Renderer {
-            override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit = Unit
+            override fun start(traceId: TraceId, spanId: SpanId, name: Renderable): Unit = Unit
             override fun event(name: CharSequence, attributes: Attributes): Unit = Unit
             override fun exception(exception: Throwable, attributes: Attributes): Unit = Unit
             override fun <R> end(result: Result<R>): Unit = Unit

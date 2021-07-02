@@ -9,6 +9,7 @@ import koodies.text.Semantics.formattedAs
 import koodies.tracing.CurrentSpan
 import koodies.tracing.SpanId
 import koodies.tracing.TracingDsl
+import koodies.tracing.rendering.BlockStyles.Solid
 import koodies.tracing.tracing
 
 public class SharedPrinter(private val print: (CharSequence) -> Unit) : Printer {
@@ -28,7 +29,7 @@ public class SharedPrinter(private val print: (CharSequence) -> Unit) : Printer 
             val customize: Settings.() -> Settings = {
                 copy(
                     decorationFormatter = Formatter.fromScratch { formattedAs.warning },
-                    blockStyle = BlockStyles.Solid,
+                    blockStyle = ::Solid,
                 )
             }
             tracing(renderer = { it(customize().copy(printer = { print(it) })) }, block = block)

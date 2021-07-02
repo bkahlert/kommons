@@ -14,10 +14,14 @@ import koodies.text.matchesCurlyPattern
 import koodies.text.toUpperCase
 import koodies.time.seconds
 import koodies.tracing.CurrentSpan
+import koodies.tracing.KoodiesAttributes
 import koodies.tracing.NOOP
 import koodies.tracing.SpanId
 import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
+import koodies.tracing.rendering.BlockStyles.Dotted
+import koodies.tracing.rendering.BlockStyles.None
+import koodies.tracing.rendering.BlockStyles.Solid
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -36,11 +40,11 @@ class BlockRendererTest {
     private val ansi80 =
         "${"Lorem ipsum ${"dolor".ansi.cyan} sit".ansi.italic.underline} amet, ${"consetetur sadipscing".ansi.brightBlue} elitr, sed diam nonumy eirmod."
 
-    private val settings = Settings(blockStyle = BlockStyles.None)
+    private val settings = Settings(blockStyle = ::None)
 
     @Smoke @TestFactory
     fun TestSpan.`should render using styles`() = testEach(
-        BlockStyles.Solid to """
+        ::Solid to """
             ╭──╴One Two Three
             │
             │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
@@ -66,7 +70,7 @@ class BlockRendererTest {
             │
             ╰──╴✔︎
         """.trimIndent(),
-        BlockStyles.Dotted to """
+        ::Dotted to """
             ▶ One Two Three
             · LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
             · ADIPSCING ELITR, SED DIAM NONUMY EIRMOD.     T AMET, CONSETETUR S
@@ -86,7 +90,7 @@ class BlockRendererTest {
             · ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
         """.trimIndent(),
-        BlockStyles.None to """
+        ::None to """
             One Two Three
             LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
             ADIPSCING ELITR, SED DIAM NONUMY EIRMOD.     T AMET, CONSETETUR S
@@ -110,7 +114,7 @@ class BlockRendererTest {
         val rendered = capturing { printer ->
             BlockRenderer(Settings(
                 blockStyle = style,
-                layout = ColumnsLayout(CurrentSpan.Description to 40, "status" to 20),
+                layout = ColumnsLayout(KoodiesAttributes.DESCRIPTION.key to 40, "status" to 20),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.toString().ansi.brightRed },
                 returnValueFormatter = { it },
@@ -224,7 +228,7 @@ class BlockRendererTest {
     @Nested
     inner class MultipleColumns {
 
-        private val twoColsLayout = ColumnsLayout("status" to 10, CurrentSpan.Description to 25, maxColumns = 40)
+        private val twoColsLayout = ColumnsLayout("status" to 10, KoodiesAttributes.DESCRIPTION.key to 25, maxColumns = 40)
 
         @Test
         fun TestSpan.`should render one plain event`() {
@@ -291,7 +295,7 @@ class BlockRendererTest {
 
         @Test
         fun TestSpan.`should handle more than two columns`() {
-            val format = ColumnsLayout("status" to 10, "duration" to 10, CurrentSpan.Description to 40, maxColumns = 60)
+            val format = ColumnsLayout("status" to 10, "duration" to 10, KoodiesAttributes.DESCRIPTION.key to 40, maxColumns = 60)
             val rendered =
                 capturing { BlockRenderer(settings.copy(layout = format, printer = it)).log(plain80, "status" to "foo-bar", "duration" to 2.seconds) }
             expectThat(rendered).isEqualTo("""
@@ -416,4 +420,4 @@ fun CurrentSpan.capturing(block: (Printer) -> Unit): String {
     return printer.toString()
 }
 
-fun Renderer.start(name: CharSequence) = start(TraceId.NOOP, SpanId.NOOP, name)
+fun Renderer.start(name: CharSequence) = start(TraceId.NOOP, SpanId.NOOP, Renderable.of(name))

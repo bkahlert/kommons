@@ -184,7 +184,7 @@ class ANSITest {
 
         @Test
         fun `should format bold`() {
-            expectThat("bold".ansi.bold).toStringIsEqualTo(Style.bold("bold").toString(), false)
+            expectThat("bold".ansi.bold).toStringIsEqualTo(bold("bold").toString(), false)
         }
 
         @Test

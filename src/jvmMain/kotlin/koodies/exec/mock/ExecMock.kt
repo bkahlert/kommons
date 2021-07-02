@@ -14,7 +14,7 @@ import koodies.text.Semantics.Symbols
 public open class ExecMock(
     private val process: JavaProcessMock,
     private val name: String? = null,
-) : Exec by JavaExec(process, Koodies.ExecTemp, CommandLine("echo", ExecMock::class.simpleName!!)) {
+) : Exec by JavaExec(process, Koodies.ExecTemp, CommandLine("echo", ExecMock::class.simpleName!!, name = name)) {
 
     override fun toString(): String {
         val delegateString =

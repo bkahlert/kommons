@@ -35,7 +35,7 @@ import kotlin.text.contains as containsNonAnsiAware
  */
 public object ANSI {
 
-    private val level by lazy { if (isDebugging) NONE else ansiSupport }
+    private val level by lazy { if (isDebugging && false) NONE else ansiSupport }
 
     /**
      * Contains `this` character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
@@ -307,7 +307,7 @@ public object ANSI {
          */
         private fun color(color: Color): AnsiColorCode = when (level) {
             NONE -> DisabledAnsiColorCode
-            AnsiSupport.ANSI4 -> Ansi16ColorCode(color.toAnsi16().code)
+            ANSI4 -> Ansi16ColorCode(color.toAnsi16().code)
             AnsiSupport.ANSI8 ->
                 if (color is Ansi16) Ansi16ColorCode(color.code)
                 else Ansi256ColorCode(color.toAnsi256().code)

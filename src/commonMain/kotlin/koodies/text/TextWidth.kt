@@ -294,13 +294,12 @@ private fun targetColumns(maxColumns: Int = 15, marker: String = "…"): Int {
     return maxColumns - markerColumns
 }
 
-
 /**
- * Returns `this` string truncated from the center to [maxColumns] including the [marker].
+ * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
  */
-public fun String.truncateByColumns(maxColumns: Int = 15, marker: String = "…"): String {
+public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence = with(asAnsiString()) {
     requirePositiveColumns(maxColumns)
-    return if (length > 2 * maxColumns || columns > maxColumns) {
+    if (length > 2 * maxColumns || columns > maxColumns) {
         val targetColumns = targetColumns(maxColumns, marker)
         val left = truncateEndByColumns(targetColumns ceilDiv 2, "")
         val right = truncateStartByColumns(targetColumns floorDiv 2, "")
@@ -311,17 +310,11 @@ public fun String.truncateByColumns(maxColumns: Int = 15, marker: String = "…"
 }
 
 /**
- * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
+ * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence =
-    if (length > 2 * maxColumns || columns > maxColumns) toString().truncateByColumns(maxColumns, marker) else this
-
-/**
- * Returns `this` string truncated from the start to [maxColumns] including the [marker].
- */
-public fun String.truncateStartByColumns(maxColumns: Int = 15, marker: String = "…"): String {
+public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence = with(asAnsiString()) {
     requirePositiveColumns(maxColumns)
-    return when {
+    when {
         length > 3 * maxColumns -> { // save CPU by trashing obviously too much text
             takeLast(3 * maxColumns).truncateStartByColumns(maxColumns, marker)
         }
@@ -340,17 +333,11 @@ public fun String.truncateStartByColumns(maxColumns: Int = 15, marker: String = 
 }
 
 /**
- * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
+ * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence =
-    if (length > 2 * maxColumns || columns > maxColumns) toString().truncateStartByColumns(maxColumns, marker) else this
-
-/**
- * Returns `this` string truncated from the end to [maxColumns] including the [marker].
- */
-public fun String.truncateEndByColumns(maxColumns: Int = 15, marker: String = "…"): String {
+public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence = with(asAnsiString()) {
     requirePositiveColumns(maxColumns)
-    return when {
+    when {
         length > 3 * maxColumns -> { // save CPU by trashing obviously too much text
             take(3 * maxColumns).truncateEndByColumns(maxColumns, marker)
         }
@@ -367,9 +354,3 @@ public fun String.truncateEndByColumns(maxColumns: Int = 15, marker: String = "�
         }
     }
 }
-
-/**
- * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
- */
-public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence =
-    if (length > 2 * maxColumns || columns > maxColumns) toString().truncateEndByColumns(maxColumns, marker) else this

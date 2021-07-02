@@ -3,6 +3,7 @@ package koodies.exec.mock
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
+import koodies.exec.ProcessingMode
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.Processors
 import koodies.exec.TracingOptions
@@ -389,7 +390,8 @@ class JavaExecMockTest {
             process.enter("shutdown")
         }
 
-        val status = process.process(TracingOptions(), modeInit = { async(NonInteractive(null)) }, Processors.noopProcessor()).waitFor()
+        val status =
+            process.process(ProcessingMode { async(NonInteractive(null)) }, TracingOptions(renderer = { it(this) }), Processors.noopProcessor()).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

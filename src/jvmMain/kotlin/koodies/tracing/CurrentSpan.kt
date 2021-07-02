@@ -27,7 +27,7 @@ public interface CurrentSpan {
         name: CharSequence,
         description: CharSequence?,
         vararg attributes: Pair<CharSequence, Any?>,
-    ): CurrentSpan = event(name, Description to description, *attributes)
+    ): CurrentSpan = event(name, KoodiesAttributes.DESCRIPTION.key to description, *attributes)
 
     /**
      * Records an event using the given [name] and optional [attributes].
@@ -63,12 +63,6 @@ public interface CurrentSpan {
         exception: Throwable,
         vararg attributes: Pair<CharSequence, Any?>,
     ): CurrentSpan = exception(exception, attributes.mapNotNull { (key, value) -> value?.let { key to it } }.toMap())
-
-    public companion object {
-        public const val Description: String = "description"
-        public const val Text: String = "text"
-        public const val Rendered: String = "rendered"
-    }
 }
 
 public interface Event {
@@ -84,7 +78,8 @@ public inline fun Array<out Pair<CharSequence, Any?>>.toRenderedAttributes(): At
 public inline fun Iterable<Pair<CharSequence, Any?>>.toRenderedAttributes(): Attributes =
     Attributes.builder().apply {
         forEach { (key, value) ->
-            if (key == CurrentSpan.Rendered) put(CurrentSpan.Description, value.toString())
+            // TODO generalize for all rendering attributes
+            if (key == RenderingAttributes.Keys.DESCRIPTION) koodies.description(value.toString())
             else put(key.ansiRemoved, value.toString())
         }
     }.build()
@@ -97,6 +92,7 @@ public inline fun Map<out CharSequence, Any>.toRenderedAttributes(): Attributes 
 public inline fun Map<out CharSequence, Any>.toAttributes(): Attributes =
     Attributes.builder().apply {
         entries.forEach { (key, value) ->
-            if (key != CurrentSpan.Rendered) put(key.ansiRemoved, value.toString().ansiRemoved)
+            // TODO generalize for all rendering attributes
+            if (key != RenderingAttributes.Keys.DESCRIPTION) put(key.ansiRemoved, value.toString().ansiRemoved)
         }
     }.build()

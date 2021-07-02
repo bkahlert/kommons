@@ -6,12 +6,14 @@ import koodies.exec.exitCodeOrNull
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
 import koodies.io.path.pathString
+import koodies.io.path.text
 import koodies.io.path.writeBytes
 import koodies.io.randomFile
 import koodies.junit.UniqueId
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
+import koodies.test.hasElements
 import koodies.test.string
 import koodies.test.testEach
 import koodies.test.tests
@@ -22,7 +24,6 @@ import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toByteArray
 import koodies.text.toStringMatchesCurlyPattern
-import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -41,7 +42,7 @@ import koodies.text.Unicode.escape as e
 
 class ShellScriptTest {
 
-    private fun shellScript() = ShellScript("Test") {
+    private fun shellScript(name: String? = "Test") = ShellScript(name) {
         shebang
         changeDirectoryOrExit(Path.of("/some/where"))
         echo("Hello World!")
@@ -143,6 +144,41 @@ class ShellScriptTest {
                 exit 0
     
             """.trimIndent())
+        }
+    }
+
+    @Nested
+    inner class Summary {
+
+        @Test
+        fun `should provide summary`() {
+            expectThat(shellScript(null).summary).matchesCurlyPattern("""
+                #!/bin/sh
+                {{}}
+                'echo' 'Hello World!'
+                'echo' 'Bye!'
+                'exit' '42'
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should provide url if summary is too long`() {
+            expectThat(shellScript("test name").summary.render(10, 1))
+                .lines()
+                .hasElements(
+                    { isEqualTo("test name") },
+                    {
+                        asPath()
+                            .exists()
+                            .text.matchesCurlyPattern("""
+                                #!/bin/sh
+                                {{}}
+                                'echo' 'Hello World!'
+                                'echo' 'Bye!'
+                                'exit' '42'
+                            """.trimIndent())
+                    },
+                )
         }
     }
 
@@ -354,14 +390,14 @@ class ShellScriptTest {
             }
 
             @Test
-            fun TestSpan.`should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val script = ShellScript().toFile(resolve("script.sh"))
                 ShellScript { !script.pathString }.exec.logging()
                 expectThat(resolve("script.sh")).exists()
             }
 
             @Test
-            fun TestSpan.`should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val script = ShellScript { deleteSelf() }.toFile(resolve("script.sh"))
                 ShellScript { !script.pathString }.exec.logging()
                 expectThat(resolve("script.sh")).not { exists() }

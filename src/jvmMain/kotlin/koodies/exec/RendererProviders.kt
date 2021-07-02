@@ -87,7 +87,7 @@ public object RendererProviders {
             returnValueFormatter = {
                 it.takeUnless { it.successful }
             },
-            blockStyle = None,
+            blockStyle = ::None,
         ))
     }
 }
