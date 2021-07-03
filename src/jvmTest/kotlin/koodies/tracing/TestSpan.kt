@@ -1,6 +1,5 @@
 package koodies.tracing
 
-import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Span
 import koodies.junit.TestName.Companion.testName
 import koodies.junit.isVerbose
@@ -24,8 +23,10 @@ import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.InMemoryPrinter
 import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.Renderable
+import koodies.tracing.rendering.RenderableAttributes
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.TeePrinter
 import koodies.tracing.rendering.ThreadSafePrinter
@@ -50,10 +51,9 @@ import kotlin.concurrent.withLock
 import kotlin.time.Duration
 
 class TestSpan(
-    span: Span,
-    renderer: Renderer,
+    span: CurrentSpan,
     private val rendered: (ignoreAnsi: Boolean) -> String,
-) : CurrentSpan by RenderingSpan(span, renderer) {
+) : CurrentSpan by span {
 
     /**
      * Returns a [Builder] to run assertions on what was rendered.
@@ -74,7 +74,6 @@ class TestSpan(
 @Target(FUNCTION, CLASS)
 annotation class NoTestSpan
 
-
 /**
  * Resolves a new [TestSpan] with rendering capabilities.
  *
@@ -90,14 +89,13 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), Before
         val name = extensionContext.testName
         val printToConsole = extensionContext.isVerbose
         val clientPrinter = InMemoryPrinter()
-        val (span, renderer) = (null as? Span?).newChildSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
-        val scope = span.registerAsTestSpan().makeCurrent()
+        val span = Span.getInvalid().renderingChildSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
+        val scope = (span as Span).registerAsTestSpan().makeCurrent()
         extensionContext.store().put(CleanUp {
             scope.close()
-            span.end()
-            renderer.end(extensionContext.executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit))
+            span.end(extensionContext.executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit))
         })
-        extensionContext.store().put(TestSpan(span, renderer) { ignoreAnsi: Boolean ->
+        extensionContext.store().put(TestSpan(span) { ignoreAnsi: Boolean ->
             if (ignoreAnsi) clientPrinter.toString().ansiRemoved
             else clientPrinter.toString()
         })
@@ -142,16 +140,16 @@ class TestRenderer(
     private val testOnlyPrinter: Printer = if (printToConsole) ThreadSafePrinter(TestPrinter()) else run { {} }
     private val printer: Printer = ThreadSafePrinter(TeePrinter(testOnlyPrinter, printer))
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         testOnlyPrinter(TestPrinter.TestIO.Start(traceId, spanId, name))
     }
 
-    override fun event(name: CharSequence, attributes: Attributes) {
-        attributes.koodies.description?.let(printer)
+    override fun event(name: CharSequence, attributes: RenderableAttributes) {
+        attributes[RenderingAttributes.DESCRIPTION]?.render(null, null)?.let(printer)
             ?: printer("$name: $attributes")
     }
 
-    override fun exception(exception: Throwable, attributes: Attributes) {
+    override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         printer("$exception: $attributes")
     }
 
@@ -162,7 +160,7 @@ class TestRenderer(
         }
     }
 
-    override fun nestedRenderer(renderer: RendererProvider): Renderer =
+    override fun childRenderer(renderer: RendererProvider): Renderer =
         renderer(Settings(printer = ::printChild)) { CompactRenderer(it) }
 
     override fun printChild(text: CharSequence) {
@@ -235,7 +233,7 @@ class TestPrinter : Printer {
     }
 
     sealed class TestIO(private val string: String) : CharSequence by string {
-        class Start(val traceId: TraceId, val spanId: SpanId, name: Renderable) : TestIO(name.render(COLUMNS, null))
+        class Start(val traceId: TraceId, val spanId: SpanId, name: CharSequence) : TestIO(Renderable.of(name).render(COLUMNS, null))
         object Pass : TestIO("Pass".formattedAs.success)
         class Fail(val exception: Throwable) : TestIO(
             when (exception) {

@@ -9,15 +9,18 @@ import io.opentelemetry.api.trace.StatusCode.OK
 import io.opentelemetry.sdk.trace.data.EventData
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.data.StatusData
+import koodies.exec.IOAttributes
 import koodies.junit.TestName
 import koodies.test.testEach
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
+import koodies.tracing.Key.KeyValue
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
-import koodies.tracing.rendering.Renderable
+import koodies.tracing.rendering.RenderableAttributes
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.Renderer.Companion.NOOP
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.Settings
 import koodies.unit.nano
 import org.junit.jupiter.api.Test
@@ -45,10 +48,10 @@ class RenderingSpanTest {
         {
             event(object : Event {
                 override val name: CharSequence = it
-                override val attributes: Map<CharSequence, Any> = emptyMap()
+                override val attributes: List<KeyValue<*, *>> = emptyList()
             })
         },
-        { event(it, emptyMap()) },
+        { event(it) },
         { addEvent(it) },
         { addEvent(it, 0L, SECONDS) },
         { addEvent(it, Instant.ofEpochSecond(0L)) },
@@ -71,13 +74,13 @@ class RenderingSpanTest {
         }
 
         expecting("should render") { rendered } that {
-            containsExactly("EVENT: event name; {}")
+            containsExactly("EVENT: event name; 0")
         }
     }
 
     @TestFactory
     fun exception(testName: TestName) = testEach<RenderingSpan.(Throwable) -> Unit>(
-        { exception(it, emptyMap()) },
+        { exception(it) },
         { recordException(it) },
         { recordException(it, Attributes.empty()) },
     ) { op ->
@@ -96,7 +99,7 @@ class RenderingSpanTest {
         }
 
         expecting("should render") { rendered } that {
-            containsExactly("EXCEPTION: exception message; {}")
+            containsExactly("EXCEPTION: exception message; 0")
         }
     }
 
@@ -151,23 +154,23 @@ class RenderingSpanTest {
     private class CapturingRenderer(settings: Settings, private val captured: MutableList<String>) : Renderer {
         private val contentFormatter = settings.contentFormatter
 
-        override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
+        override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
             captured.add(contentFormatter("START").toString())
         }
 
-        override fun event(name: CharSequence, attributes: Attributes) {
-            captured.add(contentFormatter("EVENT: $name; $attributes").toString())
+        override fun event(name: CharSequence, attributes: RenderableAttributes) {
+            captured.add(contentFormatter("EVENT: $name; ${attributes.size}").toString())
         }
 
-        override fun exception(exception: Throwable, attributes: Attributes) {
-            captured.add(contentFormatter("EXCEPTION: ${exception.message}; $attributes").toString())
+        override fun exception(exception: Throwable, attributes: RenderableAttributes) {
+            captured.add(contentFormatter("EXCEPTION: ${exception.message}; ${attributes.size}").toString())
         }
 
         override fun <R> end(result: Result<R>) {
             captured.add(contentFormatter("END: ${result.getOrNull()}").toString())
         }
 
-        override fun nestedRenderer(renderer: RendererProvider): Renderer =
+        override fun childRenderer(renderer: RendererProvider): Renderer =
             renderer(Settings(contentFormatter = contentFormatter, printer = ::printChild)) { CapturingRenderer(it, captured) }
 
         override fun printChild(text: CharSequence) {
@@ -231,12 +234,9 @@ fun Builder<SpanData>.isValid() =
 val Builder<SpanData>.spanName: Builder<String>
     get() = get("name") { name }
 
-val Builder<SpanData>.spanAttributes: Builder<KoodiesAttributes>
-    get() = get("attributes") { attributes.koodies }
-
-fun Builder<SpanData>.hasSpanAttribute(key: String, value: String): Builder<SpanData> =
+fun <T> Builder<SpanData>.hasSpanAttribute(key: AttributeKey<T>, value: T?): Builder<SpanData> =
     assert("has attribute $key=$value") {
-        when (it.attributes.get(AttributeKey.stringKey(key))) {
+        when (it.attributes.get(key)) {
             value -> pass()
             else -> fail()
         }
@@ -255,10 +255,10 @@ val Builder<EventData>.attributes: Builder<Attributes>
     get() = get("attributes") { attributes }
 
 val Builder<EventData>.eventDescription: Builder<String>
-    get() = get("description attribute") { attributes.get(KoodiesAttributes.DESCRIPTION) }
+    get() = get("description attribute") { attributes.get(RenderingAttributes.DESCRIPTION) }
 
 val Builder<EventData>.eventText: Builder<String>
-    get() = get("text attribute") { attributes.get(KoodiesAttributes.IO_TEXT) }
+    get() = get("text attribute") { attributes.get(IOAttributes.TEXT) }
 
 fun Builder<EventData>.hasAttribute(key: String, value: String): Builder<EventData> =
     assert("has attribute $key=$value") {

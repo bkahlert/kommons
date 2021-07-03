@@ -5,7 +5,6 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.writeLines
 
-
 public object Defaults {
     /**
      * Default [StandardOpenOption] arguments for append operations such as [Path.writeLines].

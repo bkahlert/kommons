@@ -1,7 +1,7 @@
 package koodies.tracing.rendering
 
 import koodies.text.ANSI.Formatter
-import koodies.text.ANSI.Formatter.Companion.ToString
+import koodies.text.ANSI.Formatter.Companion.ToCharSequence
 import koodies.text.LineSeparators
 import koodies.text.takeUnlessEmpty
 
@@ -21,8 +21,8 @@ public interface Style {
      * "decoration" added.
      */
     public fun start(
-        element: Renderable,
-        decorationFormatter: Formatter = ToString,
+        element: CharSequence,
+        decorationFormatter: Formatter = ToCharSequence,
     ): CharSequence?
 
     /**
@@ -33,7 +33,7 @@ public interface Style {
      */
     public fun content(
         element: CharSequence,
-        decorationFormatter: Formatter = ToString,
+        decorationFormatter: Formatter = ToCharSequence,
     ): CharSequence?
 
     /**
@@ -45,7 +45,7 @@ public interface Style {
      */
     public fun parent(
         element: CharSequence,
-        decorationFormatter: Formatter = ToString,
+        decorationFormatter: Formatter = ToCharSequence,
     ): CharSequence? = content(element, decorationFormatter)
 
     /**
@@ -57,7 +57,7 @@ public interface Style {
     public fun end(
         element: ReturnValue,
         resultValueFormatter: (ReturnValue) -> ReturnValue?,
-        decorationFormatter: Formatter = ToString,
+        decorationFormatter: Formatter = ToCharSequence,
     ): CharSequence?
 
     public fun buildString(block: StringBuilder.() -> Unit): CharSequence? =

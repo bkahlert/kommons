@@ -1,5 +1,6 @@
 package koodies.docker
 
+import koodies.Koodies
 import koodies.builder.Init
 import koodies.builder.StatelessBuilder
 import koodies.collections.head
@@ -15,7 +16,6 @@ import koodies.exec.Process.ExitState
 import koodies.exec.RendererProviders
 import koodies.exec.output
 import koodies.exec.parse
-import koodies.io.Koodies
 import koodies.or
 import koodies.requireSaneInput
 import koodies.text.LineSeparators.lines
@@ -89,7 +89,6 @@ public open class DockerImage(
      * If neither [digest] nor [tag] are specified, this string is empty.
      */
     public val specifier: String get() = digest?.let { "@$it" } ?: tag?.let { ":$it" } ?: ""
-
 
     /**
      * Lists locally available instances of this image.

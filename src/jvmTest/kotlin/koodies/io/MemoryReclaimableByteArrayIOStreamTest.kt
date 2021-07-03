@@ -8,6 +8,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 
 class MemoryReclaimableByteArrayIOStreamTest {
+
     @Test
     fun `should support accessing bytes by index`() {
         val outputStream = MemoryReclaimableByteArrayOutputStream().apply { write(2); write(1); write(0) }

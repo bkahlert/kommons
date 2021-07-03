@@ -40,7 +40,7 @@ public open class CommandLine(
     /**
      * Optional name of this script.
      */
-    public val name: String?,
+    override val name: CharSequence?,
 
     /**
      * If set, each run [Exec] delegates its [ExitState] creation to it.
@@ -51,14 +51,14 @@ public open class CommandLine(
     public constructor(
         command: CharSequence,
         vararg arguments: CharSequence,
-        name: String? = null,
-    ) : this(command.toString(), arguments.map { it.toString() }.toList(), name)
+        name: CharSequence? = null,
+    ) : this(command.toString(), arguments.map { it.toString() }.toList(), name, exitStateHandler = null)
 
     public constructor(
         command: CharSequence,
         arguments: Iterable<CharSequence>,
-        name: String? = null,
-    ) : this(command.toString(), arguments.map { it.toString() }.toList(), name)
+        name: CharSequence? = null,
+    ) : this(command.toString(), arguments.map { it.toString() }.toList(), name, exitStateHandler = null)
 
     public constructor(
         commandLine: CommandLine,

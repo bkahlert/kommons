@@ -5,7 +5,7 @@ import strikt.api.Assertion.Builder
 /**
  * Maps an assertion on a sequence to an assertion on its size.
  *
- * @see Sequence.size
+ * @see Sequence.count
  */
 val <T : Sequence<*>> Builder<T>.size: Builder<Int>
     get() = get { count() }

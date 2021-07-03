@@ -11,7 +11,7 @@ import kotlin.concurrent.withLock
 class TestPlanAnalysis(private val testPlan: TestPlan) {
     val rootIds: List<String> by lazy { testPlan.roots.map { root -> root.uniqueId } }
     val allTestIdentifiers: List<TestIdentifier> by lazy { testPlan.roots.flatMap { testPlan.getDescendants(it) } }
-    val parentMappings: Map<String, String> by lazy { allTestIdentifiers.mapNotNull { it.relation }.toMap() }
+    val parentMappings: Map<String, String> by lazy { allTestIdentifiers.associate { it.relation } }
     val leaves: List<String> by lazy { parentMappings.values - parentMappings.keys }
 
     val allTests: List<TestIdentifier> by lazy { allTestIdentifiers.filter { it.isTest || it.isLeaf(testPlan) } }
@@ -40,4 +40,4 @@ val TestPlan.allContainerJavaClasses: List<Class<*>> get() = cachedAnalysis.allC
 
 fun TestIdentifier.isTopLevelContainer(testPlan: TestPlan): Boolean = parentId.map { testPlan.rootIds.contains(it) }.orElse(true)
 fun TestIdentifier.isLeaf(testPlan: TestPlan) = testPlan.leaves.contains(uniqueId)
-val TestIdentifier.relation get() = parentId.map { it to uniqueId }.orElse(null)
+val TestIdentifier.relation: Pair<String, String> get() = parentId.map { it to uniqueId }.orElse(null)

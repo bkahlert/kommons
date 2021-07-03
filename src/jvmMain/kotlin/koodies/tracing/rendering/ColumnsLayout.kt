@@ -1,9 +1,7 @@
 package koodies.tracing.rendering
 
-import io.opentelemetry.api.common.AttributeKey
-import io.opentelemetry.api.common.Attributes
 import koodies.text.Semantics.formattedAs
-import koodies.tracing.KoodiesAttributes
+import koodies.tracing.Key
 import kotlin.math.floor
 
 /**
@@ -14,7 +12,7 @@ public data class ColumnsLayout(
     /**
      * The columns to be used.
      */
-    public val columns: List<Column> = listOf(Column(KoodiesAttributes.DESCRIPTION.key, 80)),
+    public val columns: List<Column> = listOf(Column(RenderingAttributes.DESCRIPTION, 80)),
 
     /**
      * The gap between two neighbouring columns.
@@ -33,7 +31,7 @@ public data class ColumnsLayout(
         /**
          * The columns to be used.
          */
-        vararg columns: Pair<CharSequence, Int> = arrayOf(KoodiesAttributes.DESCRIPTION.key to 80),
+        vararg columns: Column = arrayOf(RenderingAttributes.DESCRIPTION columns 80),
 
         /**
          * The gap between two neighbouring columns.
@@ -44,8 +42,8 @@ public data class ColumnsLayout(
          * Sum of all columns and gaps. If specified explicitly, the provided columns are scaled accordingly
          * to meet this value.
          */
-        maxColumns: Int = columns.map { Column(it) }.sum(gap),
-    ) : this(columns.map { Column(it) }, gap, maxColumns)
+        maxColumns: Int = columns.toList().sum(gap),
+    ) : this(columns.toList(), gap, maxColumns)
 
     init {
         require(columns.isNotEmpty()) { "At least one column must be specified." }
@@ -54,18 +52,18 @@ public data class ColumnsLayout(
     /**
      * The column with the highest importance.
      */
-    public val primaryAttributeKey: AttributeKey<String> get() = AttributeKey.stringKey(columns.maxByOrNull { it.width }?.name ?: columns.first().name)
+    public val primaryKey: Key<*, *> get() = columns.maxByOrNull { it.width }?.key ?: columns.first().key
 
     /**
      * Contains the [columns] scaled proportionally.
      */
-    public val scaled: Map<String, Int> = run {
+    public val scaled: Map<Key<*, *>, Int> = run {
         if (columns.isEmpty()) emptyMap()
         else {
             val gaps = (columns.size - 1).coerceAtLeast(0) * gap
             val requestedColumns = columns.sumOf { it.width }
             val factor = (totalWidth - gaps).toDouble() / requestedColumns
-            val distributed = columns.map { it.name to floor(it.width * factor).toInt() }.toMutableList()
+            val distributed = columns.map { it.key to floor(it.width * factor).toInt() }.toMutableList()
             val actualColumns = distributed.sumOf { (_, c) -> c } + gaps
             distributed[0] = distributed[0].let { (name, c) -> name to c + totalWidth - actualColumns }
             distributed.toMap()
@@ -76,15 +74,8 @@ public data class ColumnsLayout(
      * Extracts the column attribute keys contained in [columns] from the given [attributes]
      * mapped to their scaled column size. Attribute keys not present in the given [attributes] are mapped to `null`.
      */
-    public fun extract(attributes: Attributes): List<Pair<Any?, Int>> {
-        val map: Map<String, Any> = attributes.asMap().mapKeys { (key, _) -> key.key }
-        return scaled.map { (attributeKey, width) ->
-            when {
-                map.containsKey(attributeKey) -> map[attributeKey]
-                else -> null
-            } to width
-        }
-    }
+    public fun extract(attributes: RenderableAttributes): List<Pair<Renderable?, Int>> =
+        scaled.map { (attributeKey, width) -> attributes[attributeKey] to width }
 
     /**
      * Returns a copy of this configuration [columns] narrower.
@@ -102,14 +93,31 @@ public data class ColumnsLayout(
         return ColumnsLayout(mapIndexed, gap, totalWidth - columns)
     }
 
-    /** A column specified by its [name] and its [width]. */
-    public data class Column(public val name: String, public val width: Int) {
-        public constructor(spec: Pair<CharSequence, Int>) : this(spec.first.toString(), spec.second)
+    /** A column specified by its [key] and its [width]. */
+    public data class Column(public val key: Key<*, *>, public val width: Int) {
+        public constructor(spec: Pair<Key<*, *>, Int>) : this(spec.first, spec.second)
     }
 
-    private companion object {
+    public companion object {
 
         private fun List<Column>.sum(gap: Int): Int =
             sumOf { it.width } + (size - 1).coerceAtLeast(0) * gap
+
+        public infix fun Key<*, *>.columns(width: Int): Column = Column(this, width)
+
+        /**
+         * Default columns layout consisting of a single column that renders [RenderingAttributes.DESCRIPTION]`/80`.
+         */
+        public val DEFAULT: ColumnsLayout = ColumnsLayout()
+
+        /**
+         * Two columns layout consisting of:
+         * - one column that renders [RenderingAttributes.DESCRIPTION]`/120`
+         * - one column that renders [RenderingAttributes.STATUS]`/40`.
+         */
+        public val DESCRIPTION_AND_STATUS: ColumnsLayout = ColumnsLayout(
+            RenderingAttributes.DESCRIPTION columns 120,
+            RenderingAttributes.STATUS columns 40,
+        )
     }
 }

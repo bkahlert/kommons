@@ -1,6 +1,6 @@
 package koodies.jvm
 
-import koodies.io.Koodies.InternalTemp
+import koodies.Koodies.InternalTemp
 import koodies.io.path.appendLine
 import koodies.io.path.delete
 import koodies.runtime.onExit
@@ -70,10 +70,6 @@ public val StackTraceElement.clazz: Class<*> get() = Class.forName(className)
 
 /**
  * The method containing the execution point represented by this stack trace element.
- *
- * If the execution point is contained in an instance or class initializer,
- * this method will be the appropriate *special method name*, `<init>` or
- * `<clinit>`, as per Section 3.9 of *The Java Virtual Machine Specification*.
  */
 public val StackTraceElement.method: Method get() = clazz.declaredMethods.single { it.name == methodName }
 
@@ -89,12 +85,9 @@ private val onExitHandlers: MutableList<() -> Unit> = object : MutableList<() ->
 
     val lock = ReentrantLock()
 
-    val log: Path by lazy {
-        InternalTemp.resolve(".onexit.log").apply { delete() }
-    }
-
     init {
         onExit {
+            val log: Path = InternalTemp.resolve(".onexit.log").apply { delete() }
             val copy = lock.withLock { reversed() }
             copy.forEach { onExitHandler ->
                 onExitHandler.runCatching {

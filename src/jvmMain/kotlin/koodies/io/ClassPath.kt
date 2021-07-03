@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.Koodies
 import koodies.io.file.quoted
 import koodies.io.path.asPath
 import koodies.io.path.copyTo
@@ -14,11 +15,7 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readBytes
 
 /**
- * Default implementation of a class path based [InMemoryFile].
- *
- * If the resource addressed by the specified [pathString] is a
- * readable file then [data] contains its contents.
- * Otherwise accessing that field will throw an exception.
+ * Class path based resource located at the [pathString].
  *
  * @see ClassPathDirectory
  * @see ClassPathFile

@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import io.opentelemetry.api.common.Attributes
 import koodies.asString
 import koodies.regex.RegularExpressions
 import koodies.text.ANSI.Text.Companion.ansi
@@ -24,11 +23,13 @@ public class BlockRenderer(
 
     private val style = settings.blockStyle(settings.layout)
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
-        style.start(name, settings.decorationFormatter)?.let(settings.printer)
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+        settings.nameFormatter(name)
+            ?.let { style.start(it, settings.decorationFormatter) }
+            ?.let(settings.printer)
     }
 
-    override fun event(name: CharSequence, attributes: Attributes) {
+    override fun event(name: CharSequence, attributes: RenderableAttributes) {
         val extractedColumns = settings.layout.extract(attributes)
         if (extractedColumns.none { it.first != null }) return
         extractedColumns
@@ -40,16 +41,17 @@ public class BlockRenderer(
             ?.forEach(settings.printer)
     }
 
-    override fun exception(exception: Throwable, attributes: Attributes) {
+    override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         val formatted = exception.stackTraceToString()
-        if (attributes.isEmpty) {
+        if (attributes.isEmpty()) {
             (if (formatted.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(formatted, settings.layout.totalWidth) else formatted)
                 .lineSequence()
                 .mapNotNull { style.content(it, settings.decorationFormatter) }
                 .map { it.ansi.red }
                 .forEach(settings.printer)
         } else {
-            event(exception::class.toSimpleClassName(), Attributes.builder().putAll(attributes).put(settings.layout.primaryAttributeKey, formatted).build())
+            event(exception::class.toSimpleClassName(),
+                RenderableAttributes.of(*attributes.toList().toTypedArray(), settings.layout.primaryKey to formatted))
         }
     }
 
@@ -61,7 +63,7 @@ public class BlockRenderer(
             ?.let(settings.printer)
     }
 
-    override fun nestedRenderer(renderer: RendererProvider): Renderer =
+    override fun childRenderer(renderer: RendererProvider): Renderer =
         renderer(settings.copy(layout = settings.layout.shrinkBy(style.indent), printer = ::printChild)) { BlockRenderer(it) }
 
     override fun printChild(text: CharSequence) {

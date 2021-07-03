@@ -54,7 +54,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = ::Solid,
+                    blockStyle = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -72,7 +72,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = ::Solid,
+                    blockStyle = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -137,7 +137,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = ::Solid,
+                    blockStyle = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -155,7 +155,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = ::Solid,
+                    blockStyle = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })

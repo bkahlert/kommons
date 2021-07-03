@@ -1,7 +1,7 @@
 package koodies.tracing
 
-import io.opentelemetry.api.common.Attributes
-import koodies.text.ANSI.ansiRemoved
+import koodies.tracing.Key.KeyValue
+import koodies.tracing.rendering.RenderingAttributes
 
 @DslMarker
 public annotation class TracingDsl
@@ -16,7 +16,10 @@ public interface CurrentSpan {
     public fun event(event: Event): CurrentSpan
 
     /** Records an event using the given [name] and optional [attributes]. */
-    public fun event(name: CharSequence, attributes: Map<CharSequence, Any> = emptyMap()): CurrentSpan
+    public fun event(
+        name: CharSequence,
+        vararg attributes: KeyValue<*, *>,
+    ): CurrentSpan = event(Event.of(name, *attributes))
 
     /**
      * Records an event using the given [name], [description] and optional [attributes].
@@ -26,18 +29,10 @@ public interface CurrentSpan {
     public fun event(
         name: CharSequence,
         description: CharSequence?,
-        vararg attributes: Pair<CharSequence, Any?>,
-    ): CurrentSpan = event(name, KoodiesAttributes.DESCRIPTION.key to description, *attributes)
-
-    /**
-     * Records an event using the given [name] and optional [attributes].
-     *
-     * Attributes with a `null` value are removed; and together with the [name] rendered.
-     */
-    public fun event(
-        name: CharSequence,
-        vararg attributes: Pair<CharSequence, Any?>,
-    ): CurrentSpan = event(name, attributes.mapNotNull { (key, value) -> value?.let { key to it } }.toMap())
+        vararg attributes: KeyValue<*, *>,
+    ): CurrentSpan = description
+        ?.let { event(Event.of(name, RenderingAttributes.DESCRIPTION to it, *attributes)) }
+        ?: event(Event.of(name, *attributes))
 
     /**
      * Records an event using the given [description] and optional [attributes].
@@ -52,47 +47,32 @@ public interface CurrentSpan {
      */
     public fun log(
         description: CharSequence,
-        vararg attributes: Pair<CharSequence, Any?>,
+        vararg attributes: KeyValue<*, *>,
     ): CurrentSpan = event("log", description, *attributes)
 
     /** Records the given [exception] using the given optional [attributes]. */
-    public fun exception(exception: Throwable, attributes: Map<CharSequence, Any> = emptyMap()): CurrentSpan
-
-    /** Records the given [exception] using the given optional [attributes]. */
-    public fun exception(
-        exception: Throwable,
-        vararg attributes: Pair<CharSequence, Any?>,
-    ): CurrentSpan = exception(exception, attributes.mapNotNull { (key, value) -> value?.let { key to it } }.toMap())
+    public fun exception(exception: Throwable, vararg attributes: KeyValue<*, *>): CurrentSpan
 }
 
 public interface Event {
+
+    /**
+     * Name of this event.
+     */
     public val name: CharSequence
-    public val attributes: Map<CharSequence, Any>
+
+    /**
+     * Attributes describing this event.
+     */
+    public val attributes: List<KeyValue<*, *>>
+
+    private data class SimpleEvent(
+        override val name: CharSequence,
+        override val attributes: List<KeyValue<*, *>>,
+    ) : Event
+
+    public companion object {
+        public fun of(name: CharSequence, vararg attributes: KeyValue<*, *>): Event =
+            SimpleEvent(name, attributes.toList())
+    }
 }
-
-@Suppress("NOTHING_TO_INLINE")
-public inline fun Array<out Pair<CharSequence, Any?>>.toRenderedAttributes(): Attributes =
-    asIterable().toRenderedAttributes()
-
-@Suppress("NOTHING_TO_INLINE")
-public inline fun Iterable<Pair<CharSequence, Any?>>.toRenderedAttributes(): Attributes =
-    Attributes.builder().apply {
-        forEach { (key, value) ->
-            // TODO generalize for all rendering attributes
-            if (key == RenderingAttributes.Keys.DESCRIPTION) koodies.description(value.toString())
-            else put(key.ansiRemoved, value.toString())
-        }
-    }.build()
-
-@Suppress("NOTHING_TO_INLINE")
-public inline fun Map<out CharSequence, Any>.toRenderedAttributes(): Attributes =
-    asIterable().map { (key, value) -> key to value }.toRenderedAttributes()
-
-@Suppress("NOTHING_TO_INLINE")
-public inline fun Map<out CharSequence, Any>.toAttributes(): Attributes =
-    Attributes.builder().apply {
-        entries.forEach { (key, value) ->
-            // TODO generalize for all rendering attributes
-            if (key != RenderingAttributes.Keys.DESCRIPTION) put(key.ansiRemoved, value.toString().ansiRemoved)
-        }
-    }.build()

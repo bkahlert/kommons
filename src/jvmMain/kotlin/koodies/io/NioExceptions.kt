@@ -8,7 +8,6 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
 
-
 /**
  * Constructs an instance of [NotDirectoryException]
  * with this path.

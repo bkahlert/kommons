@@ -19,7 +19,8 @@ class DecodeToValidStringKtTest {
 
     @Nested
     inner class ValidString {
-        val validString = "aβç".also { check(it.toByteArray().size == 5) }
+
+        private val validString = "aβç".also { check(it.toByteArray().size == 5) }
 
         @Test
         fun `should decode`() {
@@ -35,7 +36,8 @@ class DecodeToValidStringKtTest {
 
     @Nested
     inner class InvalidString {
-        val invalidString = "aβ𝌔".toByteArray().dropLast(1).toByteArray()
+
+        private val invalidString = "aβ𝌔".toByteArray().dropLast(1).toByteArray()
 
         @Test
         fun `should convert array with invalid string`() {
@@ -43,6 +45,7 @@ class DecodeToValidStringKtTest {
             expectThat(invalidString.decodeToValidString()).isEqualTo("aβ")
         }
 
+        @Suppress("NonAsciiCharacters")
         @Test
         fun `should not 'loose' more than 3 bytes (𝕓 has 4 bytes)`() {
             expectThat("ab𝕓".toByteArray().dropLast(1).size - "aβ".toByteArray().size).isLessThanOrEqualTo(3)

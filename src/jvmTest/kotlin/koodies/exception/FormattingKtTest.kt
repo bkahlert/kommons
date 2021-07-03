@@ -117,7 +117,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format replace line breaks like a list`() {
-                expectThat(LineSeparators.map { "line$it" }.joinToString("").toCompactString())
+                expectThat(LineSeparators.joinToString("") { "line$it" }.toCompactString())
                     .isEqualTo("line⏎line⏎line⏎line⏎line⏎line")
             }
         }

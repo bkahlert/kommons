@@ -9,7 +9,7 @@ import java.io.OutputStream
  * Output stream that delegates all calls to the specified [proxy].
  */
 @Suppress("MemberVisibilityCanBePrivate")
-public open class ProxyOutputStream(proxy: OutputStream) : FilterOutputStream(proxy) {
+public open class ProxyOutputStream(private val proxy: OutputStream) : FilterOutputStream(proxy) {
     /**
      * Writes the specified [byte] to the proxied [out] and
      * passes an eventually thrown [IOException] to [handleIOException].

@@ -9,7 +9,6 @@
     "DANGEROUS_CHARACTERS"
 )
 
-
 package koodies.kaomoji.categories
 
 import koodies.kaomoji.Category

@@ -1,6 +1,6 @@
 package koodies.exec
 
-import koodies.io.Koodies
+import koodies.Koodies
 import koodies.io.randomPath
 import koodies.shell.ShellScript
 import koodies.toBaseName

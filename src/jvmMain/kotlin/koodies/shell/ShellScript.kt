@@ -39,7 +39,7 @@ public open class ShellScript(
     /**
      * Optional name of this script.
      */
-    public val name: String?,
+    override val name: CharSequence?,
 
     /**
      * The content of this script.
@@ -82,7 +82,7 @@ public open class ShellScript(
         val script: String = toString()
         val transformedScript: String = transform(script)
         return with(Commandline().shell) {
-            CommandLine(shellCommand, *shellArgsList.toTypedArray(), transformedScript, name = name)
+            CommandLine(shellCommand, listOf(*shellArgsList.toTypedArray(), transformedScript), name = name)
         }
     }
 
@@ -129,7 +129,7 @@ public open class ShellScript(
      * If a [name] is provided or already set, it will be
      * printed as the first command.
      */
-    public fun toString(name: String?): String {
+    public fun toString(name: CharSequence?): String {
         var echoNameCommandAdded = false
         val echoNameCommand = bannerEchoingCommand(name)
         val script = lines.joinToString("") { line ->
@@ -340,7 +340,7 @@ public open class ShellScript(
         /**
          * Builds a new [ShellScript] using the given [name] and [init].
          */
-        public operator fun invoke(name: String?, init: ScriptInit): ShellScript {
+        public operator fun invoke(name: CharSequence?, init: ScriptInit): ShellScript {
             val lines = mutableListOf<String>()
             val trailingContent = ScriptContext(lines).init()
             return ShellScript(name, (lines + trailingContent.toString()).joinLinesToString())
@@ -356,7 +356,7 @@ public open class ShellScript(
          *
          * If [name] is `null` an empty string is returned.
          */
-        public fun bannerEchoingCommand(name: String?): String = name?.takeIf { it.isNotBlank() }?.let { "echo '${banner(name)}'$LF" } ?: ""
+        public fun bannerEchoingCommand(name: CharSequence?): String = name?.takeIf { it.isNotBlank() }?.let { "echo '${banner(name)}'$LF" } ?: ""
 
         /**
          * Whether this byte array starts with `0x23 0x21` (`!#`).

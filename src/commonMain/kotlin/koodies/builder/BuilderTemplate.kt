@@ -106,7 +106,7 @@ import kotlin.reflect.KProperty
  * }
  * ```
  *
- * @sample CarDSL
+ * @sample koodies.builder.CarDSL
  */
 public abstract class BuilderTemplate<C, T> : Builder<Init<C>, T> {
 

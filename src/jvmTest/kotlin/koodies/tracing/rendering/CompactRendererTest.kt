@@ -25,11 +25,11 @@ class CompactRendererTest {
                 start("One Two Three")
 
                 log(ansi11)
-                nestedRenderer().apply {
+                childRenderer().apply {
                     start("one-liner")
                     end(Result.failure<Unit>(RuntimeException("message")))
                 }
-                nestedRenderer().apply {
+                childRenderer().apply {
                     start("block")
                     log(plain11)
                     end(Result.failure<Unit>(RuntimeException("message")))
@@ -71,7 +71,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("parent")
-                nestedRenderer().run {
+                childRenderer().run {
                     start("child")
                     end(Result.success(true))
                 }
@@ -88,7 +88,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("parent")
-                nestedRenderer().run {
+                childRenderer().run {
                     start("child")
                     log("delay")
                     end(Result.success(true))
@@ -115,7 +115,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("parent")
-                nestedRenderer().run {
+                childRenderer().run {
                     start("child")
                     end(Result.success(object : ReturnValue {
                         override val successful: Boolean = false
@@ -143,7 +143,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("parent")
-                nestedRenderer().run {
+                childRenderer().run {
                     start("child")
                     log("delay")
                     end(Result.success(object : ReturnValue {
@@ -173,7 +173,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("name")
-                log("event", "key" to "value")
+                log("event")
                 end(Result.success(true))
             }
         }
@@ -191,7 +191,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("name")
-                exception(RuntimeException("exception"), "key" to "value")
+                exception(RuntimeException("exception"))
                 end(Result.success(true))
             }
         }
@@ -209,7 +209,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("parent")
-                nestedRenderer { OneLineRenderer(this) }.run {
+                childRenderer { OneLineRenderer(this) }.run {
                     start("child")
                     end(Result.success(true))
                 }

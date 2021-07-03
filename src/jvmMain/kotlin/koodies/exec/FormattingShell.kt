@@ -23,7 +23,7 @@ internal class FormattingShell(private val separator: String) : Shell() {
         val sb: StringBuilder = StringBuilder()
 
         if (executable != null) {
-            val preamble: String? = getExecutionPreamble();
+            val preamble: String? = getExecutionPreamble()
             if (preamble != null) {
                 sb.append(preamble);
             }

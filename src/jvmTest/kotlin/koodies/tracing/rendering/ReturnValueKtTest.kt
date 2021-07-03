@@ -95,7 +95,8 @@ class ReturnValueKtTest {
 
         @Test
         fun TestSpan.`should format exception as failed`() {
-            expectThat(format(RuntimeException("exception"))).matchesCurlyPattern("{} ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})")
+            expectThat(format(RuntimeException("exception")))
+                .matchesCurlyPattern("{} ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})")
         }
 
         @Test
@@ -105,7 +106,8 @@ class ReturnValueKtTest {
 
         @Test
         fun TestSpan.`should format failed result as failed`() {
-            expectThat(format(runCatching { throw exception })).matchesCurlyPattern("{} ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})")
+            expectThat(format(runCatching { throw exception }))
+                .matchesCurlyPattern("{} ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:{})")
         }
 
         @Test
@@ -182,7 +184,7 @@ class ReturnValueKtTest {
 private fun TestSpan.format(returnValue: Any?): String =
     capturing { printer ->
         @Suppress("UNUSED_VARIABLE")
-        val result = spanning(returnValue.toString(), { it(copy(printer = printer)) }) {
+        val result = spanning(returnValue.toString(), printer = printer) {
             @Suppress("UNUSED_EXPRESSION")
             returnValue
         }

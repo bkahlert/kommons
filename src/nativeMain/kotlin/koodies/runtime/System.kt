@@ -1,3 +1,5 @@
+@file:Suppress("RedundantVisibilityModifier")
+
 package koodies.runtime
 
 import koodies.text.Semantics.Symbols
@@ -40,9 +42,9 @@ public actual inline fun getCaller(skip: UInt): CallStackElement =
 
 /**
  * Returns a [CharSequence] that represents the current caller
- * which is found passing each [StackTraceElement] to the specified [locator].
+ * which is found passing each [CallStackElement] to the specified [locator].
  *
- * The actual [StackTraceElement] used is the predecessor of the first
+ * The actual [CallStackElement] used is the predecessor of the first
  * one [locator] returned `true`.
  */
 @Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace

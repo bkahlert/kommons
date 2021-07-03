@@ -9,12 +9,13 @@ class SplittingKtTest {
 
     @Nested
     inner class SplitAndMap {
-
+        @Suppress("SpellCheckingInspection")
         @Test
         fun `should map substrings if delimiter exists`() {
             expectThat("abc,def".splitAndMap(",") { this + this }).isEqualTo("abcabc,defdef")
         }
 
+        @Suppress("SpellCheckingInspection")
         @Test
         fun `should map string if delimiter not exists`() {
             expectThat("abc".splitAndMap(",") { this + this }).isEqualTo("abcabc")

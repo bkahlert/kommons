@@ -13,7 +13,7 @@ public open class Category : AbstractList<Kaomoji>() {
     /**
      * Creates a new Kaomoji property based on the property's name.
      *
-     * If the kaomoji contains illegal characters [kaomoji] can be used to specify the correct one
+     * If the kaomoji contains illegal characters [manualKaomojiString] can be used to specify the correct one
      * while using a similar kaomoji with only legal characters as the property name itself.
      */
     public fun auto(manualKaomojiString: String? = null): PropertyDelegateProvider<Category, KaomojiDelegate> = PropertyDelegateProvider { category, property ->

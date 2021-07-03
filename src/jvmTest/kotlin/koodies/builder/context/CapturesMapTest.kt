@@ -49,16 +49,16 @@ class CapturesMapTest {
 
             group("get") {
                 expecting { get<String>(::delegatedFunction) } that { evaluatesTo(null) }
-                expecting { get<String>(::delegatedFunction) { it as String } } that { evaluatesTo(null) }
+                expecting { get(::delegatedFunction) { it as String } } that { evaluatesTo(null) }
                 expecting { get<String>("delegatedFunction") } that { evaluatesTo(null) }
-                expecting { get<String>("delegatedFunction") { it as String } } that { evaluatesTo(null) }
+                expecting { get("delegatedFunction") { it as String } } that { evaluatesTo(null) }
             }
 
             group("wrong type") {
                 expecting { get<Double>(::delegatedFunction) } that { evaluatesTo(null) }
-                expecting { get<Double>(::delegatedFunction) { it as Double } } that { evaluatesTo(null) }
+                expecting { get(::delegatedFunction) { it as Double } } that { evaluatesTo(null) }
                 expecting { get<Double>("delegatedFunction") } that { evaluatesTo(null) }
-                expecting { get<Double>("delegatedFunction") { it as Double } } that { evaluatesTo(null) }
+                expecting { get("delegatedFunction") { it as Double } } that { evaluatesTo(null) }
             }
 
             group("getOrDefault") {
@@ -113,9 +113,9 @@ class CapturesMapTest {
 
             group("get") {
                 expecting { get<String>(::delegatedFunction) } that { evaluatesTo("3") }
-                expecting { get<String>(::delegatedFunction) { it as String } } that { evaluatesTo("3") }
+                expecting { get(::delegatedFunction) { it as String } } that { evaluatesTo("3") }
                 expecting { get<String>("delegatedFunction") } that { evaluatesTo("3") }
-                expecting { get<String>("delegatedFunction") { it as String } } that { evaluatesTo("3") }
+                expecting { get("delegatedFunction") { it as String } } that { evaluatesTo("3") }
             }
 
             group("wrong type") {

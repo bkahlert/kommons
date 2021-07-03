@@ -25,12 +25,12 @@ class CasesKtTest {
             group("split") {
                 expecting("should split kebab-case") { kebabCase.splitKebabCase() } that { containsExactly(parts) }
                 expecting("should split camelCase") { camelCase.splitCamelCase() } that { containsExactly(parts) }
-                expecting("should split PascalCase") { camelCase.capitalize().toString().splitPascalCase() } that { containsExactly(parts) }
+                expecting("should split PascalCase") { camelCase.capitalize().splitPascalCase() } that { containsExactly(parts) }
             }
             group("join") {
                 expecting("should join to kebab-case") { parts.joinToKebabCase() } that { isEqualTo(kebabCase) }
                 expecting("should join to camelCase") { parts.joinToCamelCase() } that { isEqualTo(camelCase) }
-                expecting("should join to PascalCase") { parts.joinToPascalCase() } that { isEqualTo(camelCase.capitalize().toString()) }
+                expecting("should join to PascalCase") { parts.joinToPascalCase() } that { isEqualTo(camelCase.capitalize()) }
             }
         }
 

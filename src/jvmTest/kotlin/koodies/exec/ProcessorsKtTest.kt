@@ -1,26 +1,25 @@
 package koodies.exec
 
+import koodies.Koodies
 import koodies.collections.synchronizedListOf
 import koodies.exec.ProcessingMode.Interactivity.Interactive
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
-import koodies.io.Koodies
 import koodies.junit.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
-import koodies.tracing.KoodiesAttributes
-import koodies.tracing.RenderingAttributes
 import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
 import koodies.tracing.eventText
 import koodies.tracing.events
 import koodies.tracing.expectTraced
+import koodies.tracing.hasSpanAttribute
 import koodies.tracing.rendering.Renderable
-import koodies.tracing.spanAttributes
+import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -42,10 +41,10 @@ class ProcessorsKtTest {
         fun TestSpan.`should trace`() {
             CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream())),
                 TracingOptions(
-                    attributes = mapOf(
-                        KoodiesAttributes.EXEC_NAME.key to "exec-name",
-                        KoodiesAttributes.EXEC_EXECUTABLE.key to CommandLine("cat"),
-                        RenderingAttributes.name(Renderable.of("span-name")),
+                    attributes = listOf(
+                        ExecAttributes.NAME to "exec-name",
+                        ExecAttributes.EXECUTABLE to CommandLine("cat"),
+                        RenderingAttributes.NAME renderingOnly Renderable.of("span-name"),
                     ),
                     renderer = { it(this) }
                 )) { }
@@ -59,8 +58,8 @@ class ProcessorsKtTest {
             TraceId.current.expectTraced().hasSize(1) and {
                 with(get(0)) {
                     spanName.isEqualTo("koodies.exec")
-                    spanAttributes.get { execName }.isEqualTo("exec-name")
-                    spanAttributes.get { execExecutable }.isEqualTo("'cat'")
+                    hasSpanAttribute(ExecAttributes.NAME, "exec-name")
+                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "'cat'")
                     events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
                 }
             }
@@ -134,10 +133,10 @@ class ProcessorsKtTest {
         fun TestSpan.`should trace`() {
             CommandLine("cat").toExec().process(ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream())),
                 TracingOptions(
-                    attributes = mapOf(
-                        KoodiesAttributes.EXEC_NAME.key to "exec-name",
-                        KoodiesAttributes.EXEC_EXECUTABLE.key to CommandLine("cat"),
-                        RenderingAttributes.name(Renderable.of("span-name")),
+                    attributes = listOf(
+                        ExecAttributes.NAME to "exec-name",
+                        ExecAttributes.EXECUTABLE to CommandLine("cat"),
+                        RenderingAttributes.NAME renderingOnly Renderable.of("span-name"),
                     ),
                     renderer = { it(this) }
                 )) { }.waitFor()
@@ -151,8 +150,8 @@ class ProcessorsKtTest {
             TraceId.current.expectTraced().hasSize(1) and {
                 with(get(0)) {
                     spanName.isEqualTo("koodies.exec")
-                    spanAttributes.get { execName }.isEqualTo("exec-name")
-                    spanAttributes.get { execExecutable }.isEqualTo("'cat'")
+                    hasSpanAttribute(ExecAttributes.NAME, "exec-name")
+                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "'cat'")
                     events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
                 }
             }

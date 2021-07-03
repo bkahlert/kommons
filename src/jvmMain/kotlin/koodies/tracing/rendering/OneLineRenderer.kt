@@ -1,12 +1,12 @@
 package koodies.tracing.rendering
 
-import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Tracer
 import koodies.asString
 import koodies.exception.toCompactString
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
 import koodies.tracing.CurrentSpan
+import koodies.tracing.Key.KeyValue
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
 import koodies.tracing.TracingDsl
@@ -22,19 +22,20 @@ public class OneLineRenderer(
 
     private val messages = mutableListOf<CharSequence>()
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable) {
-        name.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+        settings.nameFormatter(name)
+            ?.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
 
-    override fun event(name: CharSequence, attributes: Attributes) {
-        attributes[settings.layout.primaryAttributeKey]
+    override fun event(name: CharSequence, attributes: RenderableAttributes) {
+        attributes[settings.layout.primaryKey]
             ?.let { settings.contentFormatter.invoke(it) }
             ?.let { settings.oneLineStyle.content(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
 
-    override fun exception(exception: Throwable, attributes: Attributes) {
+    override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         settings.contentFormatter.invoke(exception.toCompactString())
             ?.let { settings.oneLineStyle.content(it, settings.decorationFormatter)?.ansi?.red }
             ?.also { messages.add(it) }
@@ -50,7 +51,7 @@ public class OneLineRenderer(
             ?.let(settings.printer)
     }
 
-    override fun nestedRenderer(renderer: RendererProvider): Renderer =
+    override fun childRenderer(renderer: RendererProvider): Renderer =
         renderer(settings.copy(printer = ::printChild)) { OneLineRenderer(it) }
 
     override fun printChild(text: CharSequence) {
@@ -61,16 +62,12 @@ public class OneLineRenderer(
     override fun toString(): String = asString {
         ::settings to settings
     }
-
-    public companion object {
-        private const val MAX_COLUMNS = 40
-    }
 }
 
 @TracingDsl
 public fun <R> spanningLine(
     name: CharSequence,
-    vararg attributes: Pair<String, Any>,
+    vararg attributes: KeyValue<*, *>,
     customize: Settings.() -> Settings = { this },
     tracer: Tracer = koodies.tracing.Tracer,
     block: CurrentSpan.() -> R,

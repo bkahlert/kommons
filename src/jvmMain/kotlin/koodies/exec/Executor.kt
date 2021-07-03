@@ -2,10 +2,15 @@ package koodies.exec
 
 import io.opentelemetry.api.trace.Tracer
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
-import koodies.shell.ShellScript
-import koodies.tracing.KoodiesAttributes
-import koodies.tracing.RenderingAttributes
+import koodies.text.ANSI.FilteringFormatter
+import koodies.text.ANSI.Formatter
+import koodies.tracing.rendering.BlockStyle
+import koodies.tracing.rendering.ColumnsLayout
+import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.RenderingAttributes
+import koodies.tracing.rendering.ReturnValue
+import koodies.tracing.rendering.Style
 import java.nio.file.Path
 
 /**
@@ -63,23 +68,47 @@ public data class Executor<E : Exec>(
     public operator fun invoke(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-    ): E = executable
-        .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
-        .process(processingMode, tracingOptions.copy(attributes = tracingOptions.attributes.run {
+    ): E {
+        val tracingOptions1 = tracingOptions.copy(attributes = tracingOptions.attributes.run {
             listOfNotNull(
-                KoodiesAttributes.execName((executable as? CommandLine)?.name ?: (executable as? ShellScript)?.name),
-                KoodiesAttributes.execExecutable(executable),
-                RenderingAttributes.name(executable.summary),
+                executable.name?.let { ExecAttributes.NAME to it },
+                ExecAttributes.EXECUTABLE to executable,
+                RenderingAttributes.NAME renderingOnly executable.summary,
                 *toList().toTypedArray(),
-            ).toMap()
-        }), processor ?: Processors.noopProcessor())
+            )
+        })
+        return executable
+            .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
+            .process(processingMode, tracingOptions1, processor ?: Processors.noopProcessor())
+    }
 
     public fun logging(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         nameOverride: String? = tracingOptions.nameOverride,
+
+        nameFormatter: FilteringFormatter? = null,
+        contentFormatter: FilteringFormatter? = null,
+        decorationFormatter: Formatter? = null,
+        returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
+        layout: ColumnsLayout? = null,
+        blockStyle: ((ColumnsLayout) -> BlockStyle)? = null,
+        oneLineStyle: Style? = null,
+        printer: Printer? = null,
+
         renderer: RendererProvider = { it(this) },
-    ): E = copy(tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = renderer)).invoke(workingDirectory, execTerminationCallback)
+    ): E = copy(tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = { default ->
+        renderer(copy(
+            nameFormatter = nameFormatter ?: this.nameFormatter,
+            contentFormatter = contentFormatter ?: this.contentFormatter,
+            decorationFormatter = decorationFormatter ?: this.decorationFormatter,
+            returnValueTransform = returnValueTransform ?: this.returnValueTransform,
+            layout = layout ?: this.layout,
+            blockStyle = blockStyle ?: this.blockStyle,
+            oneLineStyle = oneLineStyle ?: this.oneLineStyle,
+            printer = printer ?: this.printer,
+        ), default)
+    })).invoke(workingDirectory, execTerminationCallback)
 
     /**
      * Executes the [executable] by processing all [IO] using the given [processor].
@@ -91,10 +120,29 @@ public data class Executor<E : Exec>(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
         nameOverride: String? = tracingOptions.nameOverride,
+
+        contentFormatter: FilteringFormatter? = null,
+        decorationFormatter: Formatter? = null,
+        returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
+        layout: ColumnsLayout? = null,
+        blockStyle: ((ColumnsLayout) -> BlockStyle)? = null,
+        oneLineStyle: Style? = null,
+        printer: Printer? = null,
+
         renderer: RendererProvider? = { it(this) },
         processor: Processor<E>,
     ): E = copy(
-        tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = renderer ?: tracingOptions.renderer),
+        tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = { default ->
+            (renderer ?: tracingOptions.renderer)(copy(
+                contentFormatter = contentFormatter ?: this.contentFormatter,
+                decorationFormatter = decorationFormatter ?: this.decorationFormatter,
+                returnValueTransform = returnValueTransform ?: this.returnValueTransform,
+                layout = layout ?: this.layout,
+                blockStyle = blockStyle ?: this.blockStyle,
+                oneLineStyle = oneLineStyle ?: this.oneLineStyle,
+                printer = printer ?: this.printer,
+            ), default)
+        }),
         processor = processor,
     ).invoke(workingDirectory, execTerminationCallback)
 

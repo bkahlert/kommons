@@ -6,7 +6,6 @@ import java.nio.file.Path
 import java.util.Locale
 import kotlin.io.path.extension
 
-
 public class Extensions(private val path: Path) : List<String> by path.fileNameParts.drop(1) {
 
     public fun add(extensions: String, vararg more: String): Path {

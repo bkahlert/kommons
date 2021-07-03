@@ -1,11 +1,11 @@
 package koodies.exec.mock
 
+import koodies.Koodies
 import koodies.debug.asEmoji
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.JavaExec
 import koodies.exec.successfulOrNull
-import koodies.io.Koodies
 import koodies.text.Semantics.Symbols
 
 /**

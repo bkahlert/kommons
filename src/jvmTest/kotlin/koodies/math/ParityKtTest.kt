@@ -7,7 +7,7 @@ import strikt.assertions.isEqualTo
 class ParityKtTest {
 
     @TestFactory
-    fun IsOdd() = tests {
+    fun isOdd() = tests {
         expecting("-1 byte") { ((-1).toByte().isOdd) } that { isEqualTo(true) }
         expecting(" 0 byte") { (0.toByte().isOdd) } that { isEqualTo(false) }
         expecting(" 5 byte") { (5.toByte().isOdd) } that { isEqualTo(true) }
@@ -23,7 +23,7 @@ class ParityKtTest {
     }
 
     @TestFactory
-    fun IsEvening() = tests {
+    fun isEvening() = tests {
         expecting("-1 byte") { ((-1).toByte().isEven) } that { isEqualTo(false) }
         expecting(" 0 byte") { (0.toByte().isEven) } that { isEqualTo(true) }
         expecting(" 5 byte") { (5.toByte().isEven) } that { isEqualTo(false) }

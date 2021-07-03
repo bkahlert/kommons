@@ -185,7 +185,7 @@ public class CapturesMap {
             NoSuchElementException("No deferred invocations found for ${property.toString().substringBefore(":")}")
 
         /**
-         * Default exception for problems evaluating a deferred invocation for the given [property].
+         * Default exception for problems evaluating a deferred invocation for the given [propertyName].
          */
         public fun defaultException(propertyName: String): NoSuchElementException =
             NoSuchElementException("No deferred invocations found for property $propertyName.")

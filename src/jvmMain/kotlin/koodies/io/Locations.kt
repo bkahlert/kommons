@@ -15,6 +15,7 @@ import koodies.shell.ShellScript
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
 import java.nio.file.FileSystems
+import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
@@ -192,19 +193,19 @@ public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainmen
 
     if (exists()) {
         listDirectoryEntriesRecursively()
-            .filter { it.exists() }
+            .filter { it.exists() && !it.isDirectory() }
             .sortedBy { it.age }
             .filter { it.age >= keepAge }
             .drop(keepCount)
-            .forEach { it.delete() }
+            .forEach { it.delete(NOFOLLOW_LINKS) }
 
         listDirectoryEntriesRecursively()
             .filter { it.isDirectory() }
             .filter { it.isEmpty() }
-            .forEach { it.delete() }
+            .forEach { it.delete(NOFOLLOW_LINKS) }
 
         if (listDirectoryEntriesRecursively().isEmpty()) {
-            delete()
+            delete(NOFOLLOW_LINKS)
         }
     }
 

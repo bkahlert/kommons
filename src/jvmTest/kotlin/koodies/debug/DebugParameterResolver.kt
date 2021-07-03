@@ -19,6 +19,6 @@ class DebugParameterResolver : ParameterResolver {
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean =
         parameterContext.parameter.type.isAssignableFrom(Boolean::class.java)
 
-    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any? =
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any =
         extensionContext.isVerbose || parameterContext.isVerbose
 }

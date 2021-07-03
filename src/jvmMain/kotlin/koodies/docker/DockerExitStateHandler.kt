@@ -17,7 +17,6 @@ import koodies.exec.error
 import koodies.exec.output
 import koodies.exec.outputAndError
 import koodies.lowerSentenceCaseName
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.Semantics
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs

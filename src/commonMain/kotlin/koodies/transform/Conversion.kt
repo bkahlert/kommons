@@ -13,7 +13,6 @@ import koodies.math.toString
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-
 public open class Conversion<T>(private val acc: () -> T) {
     public fun <R> map(transform: (T) -> R): Conversion<R> = Conversion { transform(acc()) }
     public val ok: T get() = acc()

@@ -40,7 +40,7 @@ class NonBlockingCharReaderTest {
         10 times { expectThat(reader.read(CharArray(1), 0)).isEqualTo(-1) }
     }
 
-    @Test
+    @Slow @Test
     fun `should read content`() {
         val line = "line #壹\nline #❷"
         val reader = NonBlockingCharReader(line.byteInputStream(), 100.milli.seconds)
@@ -65,7 +65,7 @@ class NonBlockingCharReaderTest {
             if (it is AssertionFailedError) throw it
             fail(listOf("An exception has occurred while reading the input stream.",
                 "Please make sure you don't use a greedy implementation like",
-                InputStreamReader::class.qualifiedName?.let { it.ansi.magenta.toString() } + ".",
+                InputStreamReader::class.qualifiedName?.ansi?.magenta?.toString() + ".",
                 "\nTheir reading strategy blocks the execution leaving you with nothing but timeouts and exceptions.",
                 color.invoke(org.jline.utils.InputStreamReader::class.qualifiedName.toString()).toString() + "",
                 " is known to be a working non-greedy implementation.")

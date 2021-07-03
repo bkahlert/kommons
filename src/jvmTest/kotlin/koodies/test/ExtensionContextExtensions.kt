@@ -16,7 +16,7 @@ import kotlin.reflect.KClass
 /**
  * Checks if the test class, method, test template, etc. of the current scope fulfills the requirements implemented by the provided [tester].
  */
-fun ExtensionContext.element(tester: AnnotatedElement.() -> Boolean) = element.map(tester).orElse(false)
+fun ExtensionContext.element(tester: AnnotatedElement.() -> Boolean): Boolean = element.map(tester).orElse(false)
 
 /**
  * Gets the result of the test or container associated with this [ExtensionContext], that is,

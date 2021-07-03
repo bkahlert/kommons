@@ -21,7 +21,6 @@ import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 import kotlin.time.Duration
 
-
 fun Builder<File>.exists() =
     assert("exists") {
         when (it.exists()) {
@@ -29,7 +28,6 @@ fun Builder<File>.exists() =
             else -> fail()
         }
     }
-
 
 fun <T : CharSequence> Builder<T>.containsOnlyCharacters(chars: CharArray) =
     assert("contains only the characters " + chars.toString().truncate(20)) {
@@ -89,7 +87,9 @@ fun <T : Path> Builder<T>.containsAllFiles(other: Path) =
         other.listDirectoryEntriesRecursively().filter { it.isRegularFile() }.forEach { otherPath ->
             val relativePath = other.relativize(otherPath)
             val actualPath = actual.resolveBetweenFileSystems(relativePath)
-            if (actualPath.readText() != otherPath.readText()) fail("$actualPath and $otherPath have different content:\nactual: ${actual.readText()}\nexpected:${otherPath.readText()}")
+            if (actualPath.readText() != otherPath.readText()) {
+                fail("$actualPath and $otherPath have different content:\nactual: ${actual.readText()}\nexpected:${otherPath.readText()}")
+            }
         }
         pass()
     }

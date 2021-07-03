@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.Koodies
 import koodies.io.file.pathString
 import koodies.io.path.deleteOnExit
 import koodies.io.path.hasContent

@@ -1,6 +1,6 @@
 package koodies.exception
 
-import koodies.io.Koodies
+import koodies.Koodies
 import koodies.io.Locations
 import koodies.io.path.isSubPathOf
 import koodies.io.path.withExtension
@@ -41,7 +41,7 @@ public fun Path.dump(
         "➜ A dump has been written to:$LF" +
         dumps.entries.joinToString("") { "  - ${it.value.toUri()} (${it.key})$LF" } +
         "➜ The last $recentLineCount lines are:$LF" +
-        dumpedLines.takeLast(recentLineCount).map { "  $it$LF" }.joinToString("")
+        dumpedLines.takeLast(recentLineCount).joinToString("") { "  $it$LF" }
 }.recover { ex: Throwable ->
     (errorMessage?.withSuffix(LF)?.capitalize() ?: "") +
         "In the attempt to persist the corresponding dump the following error occurred:$LF" +

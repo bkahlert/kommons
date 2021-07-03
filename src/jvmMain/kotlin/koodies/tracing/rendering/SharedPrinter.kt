@@ -29,7 +29,7 @@ public class SharedPrinter(private val print: (CharSequence) -> Unit) : Printer 
             val customize: Settings.() -> Settings = {
                 copy(
                     decorationFormatter = Formatter.fromScratch { formattedAs.warning },
-                    blockStyle = ::Solid,
+                    blockStyle = Solid,
                 )
             }
             tracing(renderer = { it(customize().copy(printer = { print(it) })) }, block = block)

@@ -8,7 +8,6 @@ package koodies.text
 public fun <T : CharSequence> CharSequence.containsAny(others: Iterable<T>, ignoreCase: Boolean = false): Boolean =
     others.any { contains(it, ignoreCase = ignoreCase) }
 
-
 /**
  * Returns `true` if this character sequence contains any of the specified [others] as a substring.
  *

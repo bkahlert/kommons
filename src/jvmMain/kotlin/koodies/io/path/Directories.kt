@@ -4,7 +4,6 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 
-
 /**
  * Alias for [isSubPathOf].
  */

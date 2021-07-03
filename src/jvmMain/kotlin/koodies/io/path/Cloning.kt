@@ -1,6 +1,6 @@
 package koodies.io.path
 
-import koodies.io.Koodies
+import koodies.Koodies
 import koodies.io.fileAlreadyExists
 import koodies.io.tempFile
 import java.nio.file.Path

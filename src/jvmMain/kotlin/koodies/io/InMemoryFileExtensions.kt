@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.Koodies
 import koodies.docker.DockerImage
 import koodies.docker.docker
 import koodies.exec.output

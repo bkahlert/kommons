@@ -133,9 +133,9 @@ public object ANSI {
             public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter = FilteringFormatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
-             * A formatter that applies [Any.toString] to its text.
+             * A formatter that applies [Any.toString] to its text if it's not already [CharSequence].
              */
-            public val ToString: FilteringFormatter = FilteringFormatter { text -> text.toString() }
+            public val ToCharSequence: FilteringFormatter = FilteringFormatter { text -> (text as? CharSequence) ?: text.toString() }
         }
     }
 
@@ -153,9 +153,9 @@ public object ANSI {
             public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
-             * A formatter that leaves the [text] unchanged.
+             * A formatter that applies [Any.toString] to its text if it's not already [CharSequence].
              */
-            public val ToString: Formatter = Formatter { text -> text.toString() }
+            public val ToCharSequence: Formatter = Formatter { text -> (text as? CharSequence) ?: text.toString() }
         }
     }
 
@@ -340,7 +340,7 @@ public object ANSI {
 
     public open class Preview(
         protected val text: CharSequence,
-        protected open val formatter: FilteringFormatter = FilteringFormatter.ToString,
+        protected open val formatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
         public val done: String = formatter(text).toString(),
     ) : CharSequence by done {
         @Deprecated("use done", ReplaceWith("this.done"))
@@ -390,7 +390,7 @@ public object ANSI {
         public val strikethrough: T get() = style(Style.strikethrough)
     }
 
-    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter = FilteringFormatter.ToString) :
+    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence) :
         Preview(text, formatter),
         Colorable<ColoredText>,
         Styleable<Text> {
@@ -481,7 +481,7 @@ public object Banner {
     private val delimiters = Regex("\\s+")
     private val capitalLetter = Regex("[A-Z]")
 
-    public fun banner(text: String): String {
+    public fun banner(text: CharSequence): String {
         return text.split(delimiters).mapIndexed { index, word ->
             if (index == 0) {
                 val (first: String, second: String) = word.splitCamelCase()

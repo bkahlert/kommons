@@ -104,12 +104,12 @@ class ExecutionIntegrationTest {
                 copy(
                     contentFormatter = { "${"->".ansi.red} $it" },
                     decorationFormatter = Colors.brightRed,
-                    blockStyle = ::Solid,
+                    blockStyle = Solid,
                 )
             }) check {
 
             expectThatRendered().matchesCurlyPattern("""
-                ╭──╴countdown
+                ╭──╴file://{}.sh
                 │
                 │   -> Countdown!
                 │   -> 10
@@ -139,7 +139,7 @@ class ExecutionIntegrationTest {
             (10 downTo 7).forEach { echo(it) }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
-        }.exec.logging(renderer = RendererProviders.noDetails { copy(blockStyle = ::None) }) check {
+        }.exec.logging(renderer = RendererProviders.noDetails { copy(blockStyle = None) }) check {
 
             state { isA<Failed>() }
 
@@ -233,34 +233,26 @@ class ExecutionIntegrationTest {
         with(executable) {
             spanning("existing logging context") {
                 exec.logging(
-                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = ::Solid) }
+                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Solid) }
                 )
             }
         }
 
-        spanning("existing logging context", { it(copy(blockStyle = ::Solid, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, blockStyle = Solid) {
             log("abc")
-            executable.exec.logging(
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = ::Solid) }
-            )
+            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid)
         }
-        spanning("existing logging context", { it(copy(blockStyle = ::Solid, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Solid) {
             log("abc")
-            executable.exec.logging(
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = ::Dotted) }
-            )
+            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted)
         }
-        spanning("existing logging context", { it(copy(blockStyle = ::Dotted, decorationFormatter = { Colors.brightMagenta.invoke(it) })) }) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, blockStyle = Dotted) {
             log("abc")
-            executable.exec.logging(
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = ::Solid) }
-            )
+            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid)
         }
-        spanning("existing logging context", { it(copy(blockStyle = ::Dotted, decorationFormatter = { Colors.brightBlue.invoke(it) })) }) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Dotted) {
             log("abc")
-            executable.exec.logging(
-                renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = ::Dotted) }
-            )
+            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted)
         }
 
         expectThatRendered().matchesCurlyPattern("""

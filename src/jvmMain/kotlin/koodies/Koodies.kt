@@ -1,5 +1,7 @@
-package koodies.io
+package koodies
 
+import koodies.io.Locations
+import koodies.io.selfCleaning
 import koodies.time.days
 import koodies.time.hours
 import koodies.time.minutes
@@ -13,7 +15,7 @@ internal object Koodies : Locations {
     /**
      * Directory in which Koodies-specific data can be stored.
      */
-    internal val InternalTemp: Path by Locations.Temp.selfCleaning("com.bkahlert.koodies", 30.days, 1000)
+    internal val InternalTemp: Path by Temp.selfCleaning("com.bkahlert.koodies", 30.days, 1000)
 
     /**
      * Directory in which Exec-specific data can be stored.

@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.Koodies
 import koodies.io.file.pathString
 import koodies.test.toStringContains
 import org.junit.jupiter.api.Test

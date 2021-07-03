@@ -193,7 +193,7 @@ class TestContainers(
      */
     fun release() {
         val copy = provisioned.toList().also { provisioned.clear() }
-        spanning("Releasing ${copy.size} container(s)", renderer = { it(copy(blockStyle = ::Dotted)) }) {
+        spanning("Releasing ${copy.size} container(s)", renderer = { it(copy(blockStyle = Dotted)) }) {
             ReturnValues(copy.map { kotlin.runCatching { it.remove(force = true) }.fold({ it }, { it }) })
         }
     }

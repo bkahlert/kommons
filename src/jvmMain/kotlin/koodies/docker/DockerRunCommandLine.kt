@@ -59,6 +59,8 @@ public class DockerRunCommandLine(
     private val executable: Executable<Exec>,
 ) : Executable<DockerExec> {
 
+    override val name: CharSequence? = executable.name?.let { "🐳 $it" }
+
     private val fallbackName = executable.summary.toBaseName().withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
 
@@ -266,7 +268,7 @@ public class DockerRunCommandLine(
             kotlin.runCatching { mounts.mapToContainerPath(hostPath) }.getOrNull()
 
         /**
-         * Tries to find all paths found inside [arguments] and remaps all those
+         * Tries to find all paths found inside [arg] and remaps all those
          * that are still accessible through the specified [mounts].
          *
          * Relative paths are resolved using the [hostWorkingDirectory] and if specified

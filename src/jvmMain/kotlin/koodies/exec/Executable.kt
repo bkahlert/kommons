@@ -11,6 +11,11 @@ import java.nio.file.Path
 public interface Executable<out E : Exec> {
 
     /**
+     * Optional name of this executable.
+     */
+    public val name: CharSequence?
+
+    /**
      * Brief description of that this executable is doing.
      */
     public val summary: Renderable

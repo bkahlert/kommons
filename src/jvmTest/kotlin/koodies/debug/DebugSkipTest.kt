@@ -1,6 +1,5 @@
 package koodies.debug
 
-
 import koodies.debug.AdHocOutputCapture.Companion.captureOutput
 import koodies.test.junit.JUnit.runTests
 import org.junit.jupiter.api.AfterAll

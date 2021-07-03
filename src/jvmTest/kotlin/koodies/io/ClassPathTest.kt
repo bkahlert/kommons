@@ -1,5 +1,6 @@
 package koodies.io
 
+import koodies.Koodies
 import koodies.io.path.deleteOnExit
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.text

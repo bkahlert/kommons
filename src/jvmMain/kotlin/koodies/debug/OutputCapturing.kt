@@ -1,6 +1,5 @@
 package koodies.debug
 
-
 import koodies.collections.withNegativeIndices
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream

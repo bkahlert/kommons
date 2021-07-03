@@ -7,7 +7,7 @@ import strikt.assertions.isEqualTo
 class BigIntegerKtTest {
 
     @TestFactory
-    fun LowestBit() = tests {
+    fun lowestBit() = tests {
         expecting("${BigInteger.ZERO}") { BigInteger.ZERO.takeLowestOneBit() } that { isEqualTo(-1) }
         expecting("${BigInteger.ONE}") { BigInteger.ONE.takeLowestOneBit() } that { isEqualTo(0) }
         expecting("${BigInteger.TWO}") { BigInteger.TWO.takeLowestOneBit() } that { isEqualTo(1) }
@@ -15,7 +15,7 @@ class BigIntegerKtTest {
     }
 
     @TestFactory
-    fun HighestBit() = tests {
+    fun highestBit() = tests {
         expecting("${BigInteger.ZERO}}") { BigInteger.ZERO.takeHighestOneBit() } that { isEqualTo(0) }
         expecting("${BigInteger.ONE}}") { BigInteger.ONE.takeHighestOneBit() } that { isEqualTo(1) }
         expecting("${BigInteger.TWO}}") { BigInteger.TWO.takeHighestOneBit() } that { isEqualTo(2) }

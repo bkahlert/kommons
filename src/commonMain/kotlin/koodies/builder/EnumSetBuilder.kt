@@ -9,7 +9,7 @@ import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
- * Builder of an [EnumSet] of any enum type [E].
+ * Builder of an [Enum] [Set] of any enum type [E].
  *
  * @see EnumSetBuilderSamples.directUse
  * @see EnumSetBuilderSamples.indirectUse

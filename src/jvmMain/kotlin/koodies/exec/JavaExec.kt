@@ -55,7 +55,7 @@ public class JavaExec(
     /**
      * Called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
      */
-    protected val execTerminationCallback: ExecTerminationCallback? = {},
+    private val execTerminationCallback: ExecTerminationCallback? = {},
 
     /**
      * Whether to kill this [Exec] if it's still running during VM shutdown.
@@ -81,16 +81,12 @@ public class JavaExec(
             return _state
         }
 
-    private val capturingInputStream: OutputStream by lazy { TeeOutputStream(process.outputStream, ReOutputStream { ioLog.input + it }) }
-    private val capturingOutputStream: InputStream by lazy { TeeInputStream(process.inputStream, ReOutputStream { ioLog.output + it }) }
-    private val capturingErrorStream: InputStream by lazy { TeeInputStream(process.errorStream, ReOutputStream { ioLog.error + it }) }
-
     override val metaStream: MetaStream = MetaStream({ ioLog + it })
-    override val inputStream: OutputStream get() = capturingInputStream
-    override val outputStream: InputStream get() = capturingOutputStream
-    override val errorStream: InputStream get() = capturingErrorStream
+    override val inputStream: OutputStream = TeeOutputStream(process.outputStream, ReOutputStream { ioLog.input + it })
+    override val outputStream: InputStream = TeeInputStream(process.inputStream, ReOutputStream { ioLog.output + it })
+    override val errorStream: InputStream = TeeInputStream(process.errorStream, ReOutputStream { ioLog.error + it })
 
-    private val ioLog by lazy { IOLog() }
+    private val ioLog = IOLog()
     override val io: IOSequence<IO> get() = IOSequence(ioLog)
 
     private val preTerminationCallbacks = synchronizedSetOf<Exec.() -> Unit>()
@@ -101,7 +97,7 @@ public class JavaExec(
     public override fun addPostTerminationCallback(callback: Exec.(ExitState) -> Unit): Exec =
         apply { postTerminationCallbacks.add(callback) }
 
-    private val cachedOnExit: CompletableFuture<out ExitState> by lazy<CompletableFuture<out ExitState>> {
+    private val cachedOnExit: CompletableFuture<out ExitState> by lazy {
         CompletableFuture.supplyAsync {
             preTerminationCallbacks.mapNotNull { callback ->
                 runCatching { this.callback() }.exceptionOrNull()

@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import io.opentelemetry.api.common.Attributes
 import koodies.asString
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
@@ -29,14 +28,14 @@ public open class DeferringRenderer(
         return true
     }
 
-    override fun start(traceId: TraceId, spanId: SpanId, name: Renderable): Unit =
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit =
         defer { start(traceId, spanId, name) }
 
-    override fun event(name: CharSequence, attributes: Attributes) {
+    override fun event(name: CharSequence, attributes: RenderableAttributes) {
         defer { event(name, attributes) }
     }
 
-    override fun exception(exception: Throwable, attributes: Attributes) {
+    override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         defer { exception(exception, attributes) }
     }
 
@@ -44,7 +43,7 @@ public open class DeferringRenderer(
         defer { end(result) }
     }
 
-    override fun nestedRenderer(renderer: RendererProvider): Renderer =
+    override fun childRenderer(renderer: RendererProvider): Renderer =
         renderer(settings.copy(printer = ::printChild)) { DeferringRenderer(it) }
 
     override fun printChild(text: CharSequence) {

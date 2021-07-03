@@ -2,11 +2,11 @@ package koodies.test
 
 import filepeek.LambdaBody
 import koodies.Exceptions.ISE
+import koodies.KoodiesTest
 import koodies.collections.asStream
 import koodies.debug.trace
 import koodies.exception.toCompactString
 import koodies.io.path.asPath
-import koodies.io.path.deleteOnExit
 import koodies.io.path.readLine
 import koodies.junit.UniqueId
 import koodies.junit.UniqueId.Companion.id
@@ -51,9 +51,11 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
 import org.junit.jupiter.api.extension.ExtensionContext.Store
 import strikt.api.Assertion.Builder
+import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.message
@@ -62,7 +64,6 @@ import java.net.URI
 import java.nio.file.Path
 import java.util.stream.Stream
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KCallable
@@ -84,8 +85,6 @@ typealias IdeaWorkaroundTest = Test
  * [IDEA-265284: Add support for JUnit5 composed(meta) annotations annotated with `@ParametrizedTest`](https://youtrack.jetbrains.com/issue/IDEA-265284)
  */
 typealias IdeaWorkaroundTestFactory = TestFactory
-
-private val root by lazy { createTempDirectory("koodies").deleteOnExit(true) }
 
 typealias Assertion<T> = Builder<T>.() -> Unit
 
@@ -153,13 +152,13 @@ object Tester {
         }.toString()
 
     /**
-     * Returns the display name for an [subject] expecting test.
+     * Returns the display name for a transforming test.
      */
     fun <T, R> CallStackElement.expectingDisplayName(transform: (T) -> R): String =
         this.displayName("❔", transform)
 
     /**
-     * Returns the display name for an [subject] catching test.
+     * Returns the display name for a catching test.
      */
     fun <T, R> CallStackElement.catchingDisplayName(transform: (T) -> R): String =
         this.displayName("❓", transform)
@@ -174,7 +173,7 @@ object Tester {
         }.toString()
 
     /**
-     * Returns the display name for a test involving [transform] applied to [subject].
+     * Returns the display name for a test applying [transform].
      */
     private fun <T, R> CallStackElement.displayName(symbol: String, transform: (T) -> R): String =
         StringBuilder(symbol).apply {
@@ -318,7 +317,7 @@ class IllegalUsageException(function: String, caller: URI) : IllegalArgumentExce
  */
 /**
  * Provides an accessor for the [ExtensionContext.Store] that uses
- * the class of [T] as the key for the [Namespace] needed to access and scope the store.
+ * the owning class as the key for the [Namespace] needed to access and scope the store.
  *
  * **Usage**
  * ```kotlin
@@ -343,7 +342,7 @@ fun storeForNamespace(): ReadOnlyProperty<Any, ExtensionContext.() -> Store> =
 
 /**
  * Provides an accessor for the [ExtensionContext.Store] that uses
- * the class of [T] and the current test as the keys for the [Namespace] needed to access and scope the store.
+ * the owning class and the current test as the keys for the [Namespace] needed to access and scope the store.
  *
  * An exception is thrown if no test is current.
  *
@@ -406,6 +405,29 @@ inline val <reified T : Any> Builder<T>.actual: T
         get { actual = this }
         return actual ?: error("Failed to extract actual from $this")
     }
+
+/**
+ * Validates the given [assertions] against the elements of the asserted collection
+ * of elements.
+ *
+ * The number of [assertions] determines the number of checked elements, that is,
+ * if the asserted collection contains 5 elements and 2 assertions are provided,
+ * only the first 2 elements are asserted.
+ *
+ * The test fails if more [assertions] are given than there are
+ * assertable elements.
+ */
+fun <T> Builder<out Iterable<T>>.hasElements(vararg assertions: Builder<T>.() -> Unit): Builder<out Iterable<T>> =
+    compose("fulfills ${assertions.size}") {
+        val elements = it.toList()
+        expectThat(elements).size.isGreaterThanOrEqualTo(assertions.size)
+        elements.zip(assertions).forEach { (element, assertion) ->
+            expectThat(element, assertion)
+        }
+    } then {
+        if (allPassed) pass() else fail()
+    }
+
 
 /**
  * JUnit extension that checks if [expecting] or [expectCatching]
@@ -597,15 +619,6 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
     @DynamicTestsDsl
     fun group(name: String, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit) {
         callback(dynamicContainer(name, callerSource, build(subject, init).asStream()))
-    }
-
-    /**
-     * Builds a [DynamicTest] using an automatically derived name and the specified [executable].
-     */
-    @DynamicTestsDsl
-    @Deprecated("use expecting")
-    fun test(description: String? = null, executable: (T) -> Unit) {
-        callback(dynamicTest(description?.takeUnlessBlank() ?: "test".property(executable), callerSource) { executable(subject) })
     }
 
     /**
@@ -862,11 +875,11 @@ class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>) {
 }
 
 @DynamicTestsDsl
-class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>) {
+class DynamicTestBuilder<T>(val subject: T, private val buildErrors: MutableList<String>) {
 
     /**
      * Incomplete builder of an [Strikt](https://strikt.io) assertion
-     * that makes a call to [onCompletion] as soon as building the expectation
+     * that makes a call to [that] as soon as building the expectation
      * is completed.
      *
      * If no callback took place until a certain moment in time
@@ -941,9 +954,9 @@ class DynamicTestBuilder<T>(val subject: T, val buildErrors: MutableList<String>
  * @throws IllegalStateException if called from outside of a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir: Path = root.resolve(uniqueId.value.toBaseName().withRandomSuffix()).createDirectories()
+    val tempDir: Path = KoodiesTest.TestRoot.resolve(uniqueId.value.toBaseName().withRandomSuffix()).createDirectories()
     tempDir.block()
-    check(root.exists()) {
+    check(KoodiesTest.TestRoot.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".ansi.red.toString())
         exitProcess(-1)
     }

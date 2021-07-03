@@ -56,7 +56,7 @@ public class MountOptions(private val mountOptions: List<MountOption>) : Abstrac
             val mounts: MutableList<MountOption> = mutableListOf()
             val buildErrors: MutableList<String> = mutableListOf()
             object : MountOptionContext<Unit>(buildErrors) {
-                override fun mount(source: HostPath, target: ContainerPath, type: String): Unit {
+                override fun mount(source: HostPath, target: ContainerPath, type: String) {
                     mounts.add(MountOption(source, target, type))
                 }
             }.init()

@@ -21,8 +21,8 @@ import kotlin.math.ceil
  * Encapsulates the knowledge on how to format Internet Protocol addresses.
  *
  * All permutations of the offered dimensions are possible, that is, not only
- * - `192.168.16.1` (see [IPv4Notation.conventionalRepresentation]) or
- * - `::ffff:c0a8:1001` (see [IPv6Notation.compressedRepresentation]) but also
+ * - `192.168.16.1` (see [conventionalRepresentation]) or
+ * - `::ffff:c0a8:1001` (see [compressedRepresentation]) but also
  * - `⌁⌁60⌁ag401` (IPv4 address `192.168.16.1` mapped to made up addresses
  * of 24 bytes in 8 groups of quadlets formatted to the base of 32 and
  * the longest consecutive groups of zeros replaced by `⌁⌁`, see [format]).
@@ -98,11 +98,11 @@ public interface Notation {
             .map { it.toString(base) } // base
 
         return when (verbosity) {
-            Verbosity.Full -> {
+            Full -> {
                 val length = groupSize.bytes.maxLengthOfRepresentationToBaseOf(base)
                 conventional.map { byte -> byte.padStart(length, '0') }.joinToString(groupSeparator.toString())
             }
-            Verbosity.Compressed -> {
+            Compressed -> {
                 val string = conventional.joinToString(groupSeparator.toString())
                 Regex.fromLiteral("$groupSeparator$groupSeparator").countMatches(string).takeIf { it == 0 }?.let {
                     val pattern = Regex("(?:^|$groupSeparator)(0+(?:${groupSeparator}0+)+)")
@@ -119,7 +119,7 @@ public interface Notation {
                         }
                 } ?: string
             }
-            Verbosity.Conventional -> {
+            Conventional -> {
                 conventional.joinToString(groupSeparator.toString())
             }
         }
@@ -131,7 +131,7 @@ public object IPv4Notation : Notation {
     override val groupSize: Int = 1
     override val groupSeparator: Char = '.'
     override val base: Int = 10
-    override val defaultVerbosity: Verbosity = Notation.Verbosity.Conventional
+    override val defaultVerbosity: Verbosity = Conventional
 }
 
 /**
@@ -148,7 +148,7 @@ public object IPv6Notation : Notation {
     override val groupSize: Int = 2
     override val groupSeparator: Char = ':'
     override val base: Int = 16
-    override val defaultVerbosity: Verbosity = Verbosity.Compressed
+    override val defaultVerbosity: Verbosity = Compressed
 }
 
 /**

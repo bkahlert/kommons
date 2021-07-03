@@ -72,11 +72,7 @@ public fun Path.bufferedAppendingWriter(charset: Charset = Charsets.UTF_8, buffe
 /**
  * Writes an [array] of bytes to this file.
  *
- * By default, the file will be overwritten if it already exists, but you can control this behavior
- * with [options].
- *
  * @param array byte array to write into this file.
- * @param options options to determine how the file is opened.
  */
 public fun Path.writeBytes(array: ByteArray): Path =
     apply { kotlinWriteBytes(array) }

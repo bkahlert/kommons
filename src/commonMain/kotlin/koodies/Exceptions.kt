@@ -17,6 +17,7 @@ public object Exceptions {
      * Throws a [IllegalStateException] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun ISE(vararg messageLines: String): IllegalStateException =
         messageLines.letMessage { IllegalStateException(it) } ?: IllegalStateException()
 
@@ -24,6 +25,7 @@ public object Exceptions {
      * Throws a [IllegalStateException] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun ISE(messageLines: Collection<String>): IllegalStateException =
         messageLines.letMessage { IllegalStateException(it) } ?: IllegalStateException()
 
@@ -31,6 +33,7 @@ public object Exceptions {
      * Throws a [IllegalStateException] with the [cause] as its [Throwable.cause]
      * and the given [messageLines] concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun ISE(cause: Throwable, vararg messageLines: String): IllegalStateException =
         messageLines.letMessage { IllegalStateException(it, cause) } ?: IllegalStateException(cause)
 
@@ -38,6 +41,7 @@ public object Exceptions {
      * Throws a [IllegalArgumentException] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun IAE(vararg messageLines: String): IllegalArgumentException =
         messageLines.letMessage { IllegalArgumentException(it) } ?: IllegalArgumentException()
 
@@ -45,6 +49,7 @@ public object Exceptions {
      * Throws a [IllegalArgumentException] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun IAE(messageLines: Collection<String>): IllegalArgumentException =
         messageLines.letMessage { IllegalArgumentException(it) } ?: IllegalArgumentException()
 
@@ -52,6 +57,7 @@ public object Exceptions {
      * Throws a [IllegalArgumentException] with the [cause] as its [Throwable.cause]
      * and the given [messageLines] concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun IAE(cause: Throwable, vararg messageLines: String): IllegalArgumentException =
         messageLines.letMessage { IllegalArgumentException(it, cause) } ?: IllegalArgumentException(cause)
 
@@ -59,6 +65,7 @@ public object Exceptions {
      * Throws a [AssertionError] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun AE(vararg messageLines: String): AssertionError =
         messageLines.letMessage { AssertionError(it) } ?: AssertionError()
 
@@ -66,6 +73,7 @@ public object Exceptions {
      * Throws a [AssertionError] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName")
     public fun AE(messageLines: Collection<String>): AssertionError =
         messageLines.letMessage { AssertionError(it) } ?: AssertionError()
 
@@ -73,6 +81,7 @@ public object Exceptions {
      * Throws a [NoSuchElementException] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName", "SpellCheckingInspection")
     public fun NSEE(vararg messageLines: String): NoSuchElementException =
         messageLines.letMessage { NoSuchElementException(it) } ?: NoSuchElementException()
 
@@ -80,6 +89,7 @@ public object Exceptions {
      * Throws a [NoSuchElementException] with the given [messageLines]
      * concatenated as its [Throwable.message].
      */
+    @Suppress("FunctionName", "SpellCheckingInspection")
     public fun NSEE(messageLines: Collection<String>): NoSuchElementException =
         messageLines.letMessage { NoSuchElementException(it) } ?: NoSuchElementException()
 }

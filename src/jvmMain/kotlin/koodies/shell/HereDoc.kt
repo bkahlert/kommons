@@ -11,7 +11,7 @@ import koodies.text.randomString
 import koodies.text.singleQuoted
 
 /**
- * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands], a customizable [delimiter] and [lineSeparator].
+ * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands] and a customizable [delimiter].
  */
 public class HereDoc(
 
@@ -36,7 +36,7 @@ public class HereDoc(
     public val substituteParameters: Boolean = true,
 ) : CharSequence {
     /**
-     * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands], a customizable [delimiter] and [lineSeparator].
+     * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands] and a customizable [delimiter].
      */
     public constructor(commands: Iterable<CharSequence>, delimiter: String = randomDelimiter(), substituteParameters: Boolean = true) :
         this(*commands.map { it.toString() }.toTypedArray<String>(), delimiter = delimiter, substituteParameters = substituteParameters)

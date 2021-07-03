@@ -18,9 +18,10 @@ import koodies.jvm.completableFuture
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
 import koodies.tracing.CurrentSpan
-import koodies.tracing.KoodiesSpans
-import koodies.tracing.RenderingAttributes
+import koodies.tracing.Event
+import koodies.tracing.Key.KeyValue
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.RenderingAttributes
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
@@ -74,7 +75,7 @@ public data class TracingOptions(
     /**
      * Name of what is being executed.
      */
-    public val attributes: Map<String, Any> = emptyMap(),
+    public val attributes: List<KeyValue<*, *>> = emptyList(),
 
     /**
      * Renderer to use for logging.
@@ -86,16 +87,16 @@ public data class TracingOptions(
      */
     public val tracer: Tracer = koodies.tracing.Tracer,
 ) {
-    public val nameOverride: String? get() = attributes[RenderingAttributes.Keys.NAME]?.toString()
+    public val nameOverride: String? get() = attributes.firstOrNull { it == RenderingAttributes.NAME.renderingKey }?.renderingValue?.toString()
     public fun withNameOverride(name: String?): TracingOptions = when {
-        attributes[RenderingAttributes.Keys.NAME] == name -> this
-        name != null -> copy(attributes = attributes.toMutableMap().also { it[RenderingAttributes.Keys.NAME] = name })
-        else -> copy(attributes = attributes.toMutableMap().also { it.remove(RenderingAttributes.Keys.NAME) })
+        attributes.firstOrNull { it == RenderingAttributes.NAME.renderingKey }?.renderingValue == name -> this
+        name != null -> copy(attributes = attributes.filter { it != RenderingAttributes.NAME.renderingKey }.plus(RenderingAttributes.NAME renderingOnly name))
+        else -> copy(attributes = attributes.filter { it != RenderingAttributes.NAME.renderingKey })
     }
 
     public fun spanning(block: CurrentSpan.() -> ExitState) {
         koodies.tracing.spanning(
-            name = KoodiesSpans.EXEC,
+            name = ExecAttributes.SPAN_NAME,
             attributes = attributes.toList().toTypedArray(),
             renderer = renderer,
             tracer = tracer,
@@ -172,12 +173,12 @@ public fun <E : Exec> E.processSynchronously(
         val readers = listOf(
             NonBlockingLineReader(outputStream) { line ->
                 val output = IO.Output typed line
-                event(event = output)
+                event(output as Event)
                 processor(this@apply, output)
             },
             NonBlockingLineReader(errorStream) { line ->
                 val error = IO.Error typed line
-                event(event = error)
+                event(error as Event)
                 processor(this@apply, error)
             },
         )

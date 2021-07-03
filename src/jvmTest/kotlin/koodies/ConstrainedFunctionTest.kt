@@ -5,6 +5,7 @@ import strikt.api.expect
 import strikt.assertions.isEqualTo
 
 class ConstrainedFunctionTest {
+
     private var callCounter: Int = 0
     private val fn by callable(atMost = 2) { ++callCounter }
 

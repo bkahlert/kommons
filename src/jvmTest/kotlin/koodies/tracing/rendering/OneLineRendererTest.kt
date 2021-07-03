@@ -1,11 +1,13 @@
 package koodies.tracing.rendering
 
+import koodies.exec.ExecAttributes
 import koodies.test.tests
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
 import koodies.text.matchesCurlyPattern
 import koodies.tracing.TestSpan
+import koodies.tracing.rendering.RenderableAttributes.Companion.EMPTY
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -32,7 +34,7 @@ class OneLineRendererTest {
                 start("One Two Three")
 
                 log(ansi11)
-                nestedRenderer().apply {
+                childRenderer().apply {
                     start("child")
                     exception(RuntimeException("Now Panic!"))
                     log(plain11)
@@ -50,7 +52,7 @@ class OneLineRendererTest {
     fun TestSpan.`should only render on end`() = tests {
         expecting { capturing { OneLineRenderer(settings.copy(printer = it)).start("name") } } that { isEmpty() }
         expecting { capturing { OneLineRenderer(settings.copy(printer = it)).log("event") } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).exception(RuntimeException("exception")) } } that { isEmpty() }
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).exception(RuntimeException("exception"), EMPTY) } } that { isEmpty() }
         expecting {
             capturing {
                 OneLineRenderer(settings.copy(printer = it)).apply {
@@ -66,8 +68,8 @@ class OneLineRendererTest {
         val rendered = capturing {
             OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
-                log("event", "key" to "value")
-                exception(RuntimeException("exception"), "key" to "value")
+                log("event", ExecAttributes.NAME to "value")
+                exception(RuntimeException("exception"), ExecAttributes.NAME to "value")
                 end(Result.success(true))
             }
         }
@@ -82,7 +84,7 @@ class OneLineRendererTest {
         val rendered = capturing {
             OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
-                log("event", "key" to "value")
+                log("event")
                 end(Result.success(true))
             }
         }
@@ -94,7 +96,7 @@ class OneLineRendererTest {
         val rendered = capturing {
             OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
-                exception(RuntimeException("exception"), "key" to "value")
+                exception(RuntimeException("exception"))
                 end(Result.success(true))
             }
         }
@@ -128,7 +130,7 @@ class OneLineRendererTest {
         val rendered = capturing {
             OneLineRenderer(settings.copy(printer = it)).apply {
                 start("name")
-                event("unknown", emptyMap())
+                event("unknown")
                 end(Result.success(true))
             }
         }
@@ -157,7 +159,7 @@ class OneLineRendererTest {
             OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
                 log("event")
-                nestedRenderer().apply {
+                childRenderer().apply {
                     start("child")
                     log("child event")
                     end(Result.success(true))
@@ -174,7 +176,7 @@ class OneLineRendererTest {
             OneLineRenderer(settings.copy(printer = it)).apply {
                 start("name")
                 log("foo")
-                nestedRenderer { it(copy(contentFormatter = { "!$it!" })) }.apply {
+                childRenderer { it(copy(contentFormatter = { "!$it!" })) }.apply {
                     start("child")
                     log("bar")
                     end(Result.success(true))
@@ -192,7 +194,7 @@ class OneLineRendererTest {
             OneLineRenderer(settings.copy(contentFormatter = { "!$it!" }, printer = it)).apply {
                 start("name")
                 log("foo")
-                nestedRenderer().apply {
+                childRenderer().apply {
                     start("child")
                     log("bar")
                     end(Result.success(true))

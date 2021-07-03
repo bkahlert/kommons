@@ -209,6 +209,7 @@ class TruncationKtTest {
     @Nested
     inner class PadStartFixedLengthKtTest {
 
+        @Suppress("NonAsciiCharacters")
         @TestFactory
         fun `should truncate to 10 chars using ··· and _`() = testEach(
             "SomeClassName and a couple of words" to "Some···rds",
@@ -221,6 +222,7 @@ class TruncationKtTest {
     @Nested
     inner class PadEndFixedLengthKtTest {
 
+        @Suppress("NonAsciiCharacters")
         @TestFactory
         fun `should truncate to 10 chars using ··· and _`() = testEach(
             "SomeClassName and a couple of words" to "Some···rds",

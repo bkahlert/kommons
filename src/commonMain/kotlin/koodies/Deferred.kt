@@ -3,8 +3,6 @@ package koodies
 /**
  * A captured [Function] which is kept to be evaluated at a later
  * moment in time by calling [evaluate].
- *
- * @see Capture
  */
 public class Deferred<R>(function: () -> R) {
     private val result: R by lazy(function)

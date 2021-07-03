@@ -1,6 +1,7 @@
 package koodies.nio
 
 import koodies.jvm.thread
+import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
 import koodies.time.sleep
 import org.junit.jupiter.api.Test
@@ -59,5 +60,13 @@ class DynamicInputStreamTest {
         inputStream.yield("Hello World!".toByteArray())
 
         expectThat(inputStream.available()).isEqualTo(12)
+    }
+
+    @Test
+    fun `should implement toString`() {
+        val inputStream = DynamicInputStream()
+        inputStream.yield("Hello World!".toByteArray())
+
+        expectThat(inputStream).toStringMatchesCurlyPattern("DynamicInputStream(open=✅; buffer=12/1024 (0% used): Hello World!)")
     }
 }

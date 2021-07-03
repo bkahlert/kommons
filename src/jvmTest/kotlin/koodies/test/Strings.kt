@@ -10,10 +10,7 @@ import koodies.unit.BinaryPrefix
 import koodies.unit.Size
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
-import strikt.api.expectThat
 import strikt.assertions.hasSize
-import strikt.assertions.isGreaterThanOrEqualTo
-import strikt.assertions.size
 
 fun <T> Builder<T>.toStringIsEqualTo(expected: String, removeAnsi: Boolean = true): Builder<T> =
     if (removeAnsi) with({ toString().ansiRemoved }) { toStringIsEqualTo(expected.ansiRemoved, false) }
@@ -105,25 +102,3 @@ fun Builder<String>.prefixes(value: String) =
 fun <T> Builder<List<T>>.single(assertion: Builder<T>.() -> Unit) {
     hasSize(1).and { get { this[0] }.run(assertion) }
 }
-
-/**
- * Validates the given [assertions] against the elements of the asserted collection
- * of strings.
- *
- * The number of [assertions] determines the number of checked elements, that is,
- * if the asserted collection contains 5 elements and 2 assertions are provided,
- * only the first 2 strings are asserted.
- *
- * The test fails if more [assertions] are given than there are
- * assertable elements.
- */
-fun Builder<out Iterable<String>>.hasElements(vararg assertions: Builder<String>.() -> Unit): Builder<out Iterable<String>> =
-    compose("fulfills ${assertions.size}") {
-        val elements = it.toList()
-        expectThat(elements).size.isGreaterThanOrEqualTo(assertions.size)
-        elements.zip(assertions).forEach { (element, assertion) ->
-            expectThat(element, assertion)
-        }
-    } then {
-        if (allPassed) pass() else fail()
-    }

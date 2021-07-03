@@ -2,7 +2,6 @@ package koodies.net
 
 import koodies.math.BigInteger
 
-
 public class IPv6Range(start: BigInteger, endInclusive: BigInteger) : IPRange<IPv6Address> {
     override val start: IPv6Address = IPv6Address(start)
     override val endInclusive: IPv6Address = IPv6Address(endInclusive)

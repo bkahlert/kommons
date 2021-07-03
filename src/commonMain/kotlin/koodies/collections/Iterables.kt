@@ -1,6 +1,5 @@
 package koodies.collections
 
-
 /**
  * Returns the maximum of the elements contained in this iterable.
  *

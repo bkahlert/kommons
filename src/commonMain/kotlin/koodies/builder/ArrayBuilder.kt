@@ -16,7 +16,7 @@ import kotlin.experimental.ExperimentalTypeInference
  * If you must you can call [Companion.createInstance] for a non-reifying
  * instantiation.
  */
-public open class ArrayBuilder<E> private constructor(public val transform: List<E>.() -> Array<E>) :
+public open class ArrayBuilder<E> private constructor(private val transform: List<E>.() -> Array<E>) :
     Builder<Init<ListBuildingContext<E>>, Array<E>> {
 
     /**

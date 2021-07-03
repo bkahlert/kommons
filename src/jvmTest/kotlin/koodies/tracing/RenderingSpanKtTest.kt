@@ -1,23 +1,32 @@
 package koodies.tracing
 
-import io.opentelemetry.api.common.AttributeKey
 import koodies.debug.CapturedOutput
 import koodies.junit.TestName
 import koodies.test.output.OutputCaptureExtension
+import koodies.text.ANSI.Formatter
+import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import koodies.text.truncateByColumns
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
+import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.ColumnsLayout
+import koodies.tracing.rendering.ColumnsLayout.Companion.columns
+import koodies.tracing.rendering.OneLineStyles
 import koodies.tracing.rendering.Renderable
+import koodies.tracing.rendering.RenderingAttributes
+import koodies.tracing.rendering.ReturnValue
+import koodies.tracing.rendering.Style
+import koodies.tracing.rendering.spanningLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNull
 
 @Isolated
 @ExtendWith(OutputCaptureExtension::class)
@@ -407,7 +416,7 @@ class RenderingSpanKtTest {
 
             @Test
             fun `should use renderable name for rendering if exists`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { spanning("name", "name.renderable" to "renderable name") { } }
+                withRootSpan(testName) { spanning("name", RenderingAttributes.NAME renderingOnly "renderable name") { } }
                 expectThat(output).matchesCurlyPattern("""
                     ╭──╴renderable name
                     │
@@ -418,8 +427,91 @@ class RenderingSpanKtTest {
 
             @Test
             fun `should filter renderable name from attributes`(testName: TestName) {
-                val traceId = withRootSpan(testName) { spanning("name", "name.renderable" to "renderable name") { TraceId.current } }
-                traceId.expectTraced().first().spanAttributes.get { get(AttributeKey.stringKey(RenderingAttributes.Keys.NAME)) }.isNull()
+                val traceId = withRootSpan(testName) { spanning("name", RenderingAttributes.NAME renderingOnly "renderable name") { TraceId.current } }
+                traceId.expectTraced().first().hasSpanAttribute(RenderingAttributes.NAME.renderingKey, null)
+            }
+        }
+
+        @Nested
+        inner class CustomSettings {
+
+            @Test
+            fun `should update name formatter`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning("name", nameFormatter = { "!$it!" }) { log("message") } }
+                expectThat(output).contains("╭──╴!name!")
+            }
+
+            @Test
+            fun `should update content formatter`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning("name", contentFormatter = { "!$it!" }) { log("message") } }
+                expectThat(output).contains("!message!")
+            }
+
+            @Test
+            fun `should update decoration formatter`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning("name", decorationFormatter = { "!$it!" }) { log("message") } }
+                expectThat(output).contains("!│!")
+            }
+
+            @Test
+            fun `should update return value transform`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) {
+                    spanning("name", returnValueTransform = {
+                        object : ReturnValue by it {
+                            override fun format(): String = "✌️"
+                        }
+                    }) { log("message") }
+                }
+                expectThat(output).contains("╰──╴✌️")
+            }
+
+            @Test
+            fun `should update layout`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) {
+                    spanning("name", layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.STATUS columns 5)) {
+                        @Suppress("SpellCheckingInspection")
+                        log("messagegoes      here", RenderingAttributes.STATUS to "worksgreat-----")
+                    }
+                }
+                expectThat(output).matchesCurlyPattern("""
+                    ╭──╴name
+                    │
+                    │   message     works
+                    │   goes        great
+                    │      here     -----
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
+            }
+
+            @Test
+            fun `should update block style`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning("name", blockStyle = BlockStyles.Dotted) { log("message") } }
+                expectThat(output).contains("· message")
+            }
+
+            @Test
+            fun `should update one line style`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) {
+                    spanning("name", oneLineStyle = object : Style by OneLineStyles.DEFAULT {
+                        override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence = "!$element!"
+                    }) { spanningLine("one-line") { log("message") } }
+                }
+                expectThat(output).contains("one-line!message!")
+            }
+
+            @Test
+            fun `should update printer`(testName: TestName, output: CapturedOutput) {
+                val rendered = mutableListOf<CharSequence>()
+                withRootSpan(testName) { spanning("name", printer = { rendered.add(it) }) { log("message") } }
+                expectThat(output).isEmpty()
+                expectThat(rendered.joinLinesToString()).matchesCurlyPattern("""
+                    ╭──╴name
+                    │
+                    │   message
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
             }
         }
     }

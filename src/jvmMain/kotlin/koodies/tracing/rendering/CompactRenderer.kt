@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import io.opentelemetry.api.common.Attributes
 import koodies.text.LineSeparators.isMultiline
 
 /**
@@ -24,12 +23,12 @@ public class CompactRenderer(
         if (render(OneLineRenderer(settings))) isOneLine = true
     }
 
-    override fun event(name: CharSequence, attributes: Attributes) {
+    override fun event(name: CharSequence, attributes: RenderableAttributes) {
         blockRenderer()
         super.event(name, attributes)
     }
 
-    override fun exception(exception: Throwable, attributes: Attributes) {
+    override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         blockRenderer()
         super.exception(exception, attributes)
     }
@@ -40,7 +39,7 @@ public class CompactRenderer(
         super.end(result)
     }
 
-    override fun nestedRenderer(renderer: RendererProvider): Renderer {
+    override fun childRenderer(renderer: RendererProvider): Renderer {
         lateinit var child: Renderer
         child = renderer(settings.copy(printer = {
             if ((child as? CompactRenderer)?.isOneLine != true) blockRenderer()

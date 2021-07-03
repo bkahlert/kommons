@@ -3,7 +3,6 @@ package koodies.regex
 import koodies.text.Semantics.formattedAs
 import koodies.text.toCodePointList
 
-
 public object RegularExpressions {
     public val atLeastOneWhitespaceRegex: Regex = Regex("\\s+")
     public val urlRegex: Regex = Regex("(?<schema>https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")

@@ -91,16 +91,19 @@ class StringsKtTest {
     @Nested
     inner class WithPrefixKtTest {
 
+        @Suppress("SpellCheckingInspection")
         @Test
         fun `should prepend prefix if missing`() {
             expectThat("foo".withPrefix("bar")).isEqualTo("barfoo")
         }
 
+        @Suppress("SpellCheckingInspection")
         @Test
         fun `should fully prepend prefix if partially present`() {
             expectThat("rfoo".withPrefix("bar")).isEqualTo("barrfoo")
         }
 
+        @Suppress("SpellCheckingInspection")
         @Test
         fun `should not prepend prefix if present`() {
             expectThat("barfoo".withPrefix("bar")).isEqualTo("barfoo")
@@ -115,6 +118,7 @@ class StringsKtTest {
             expectThat("foo".withSuffix("bar")).isEqualTo("foobar")
         }
 
+        @Suppress("SpellCheckingInspection")
         @Test
         fun `should fully append suffix if partially missing`() {
             expectThat("foob".withSuffix("bar")).isEqualTo("foobbar")
@@ -126,6 +130,7 @@ class StringsKtTest {
         }
     }
 
+    @Suppress("SpellCheckingInspection")
     @TestFactory
     fun `should pad start`() = tests {
         expecting { "red".padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
@@ -134,6 +139,7 @@ class StringsKtTest {
         expecting { "red".ansi.red.padStart(15, 'X', ansi = false) } that { toStringIsEqualTo("XXred") }
     }
 
+    @Suppress("SpellCheckingInspection")
     @TestFactory
     fun `should pad end`() = tests {
         expecting { "red".padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }

@@ -1,12 +1,12 @@
 package koodies.exec
 
+import koodies.Koodies
 import koodies.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
-import koodies.io.Koodies
 import koodies.io.Locations
 import koodies.io.path.pathString
 import koodies.shell.ShellScript
@@ -127,10 +127,10 @@ class ExecutorTest {
             @TestFactory
             fun TestSpan.`should log to specified printer if specified`() = tests {
                 capturing { capture ->
-                    executable.exec.testProp.logging { it(copy(blockStyle = ::None, printer = capture)) }
+                    executable.exec.testProp.logging { it(copy(blockStyle = None, printer = capture)) }
                 } asserting { logsSuccessfulIO() }
                 capturing { capture ->
-                    executable.exec.logging { it(copy(blockStyle = ::None, printer = capture)) }
+                    executable.exec.logging { it(copy(blockStyle = None, printer = capture)) }
                 } asserting { containsDump() }
             }
 
@@ -273,10 +273,10 @@ class ExecutorTest {
             @TestFactory
             fun TestSpan.`should log to specified printer if specified`() = tests {
                 capturing { capture ->
-                    executable.exec.testProp.async.logging { it(copy(blockStyle = ::None, printer = capture)) }.apply { waitFor() }
+                    executable.exec.testProp.async.logging { it(copy(blockStyle = None, printer = capture)) }.apply { waitFor() }
                 } asserting { logsSuccessfulIO() }
                 capturing { capture ->
-                    executable.exec.async.logging { it(copy(blockStyle = ::None, printer = capture)) }.apply { waitFor() }
+                    executable.exec.async.logging { it(copy(blockStyle = None, printer = capture)) }.apply { waitFor() }
                 } asserting { containsDump() }
             }
 

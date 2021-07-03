@@ -21,7 +21,7 @@ class CapturingContextTest {
         val initializedWithNonNullable: (String) -> Unit by function<String>() default "initial"
         val initializedWithNullable: (String?) -> Unit by function<String?>() default "nullable"
         val initializedWithNull: (String?) -> Unit by function<String?>() default null
-        val uninitialized: (String?) -> Unit by function<String?>()
+        val uninitialized: (String?) -> Unit by function()
     }
 
     @Test

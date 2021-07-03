@@ -44,7 +44,6 @@ import koodies.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
@@ -58,7 +57,6 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isTrue
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -121,7 +119,7 @@ class JavaExecMockTest {
     @Nested
     inner class WithSlowInputStream {
 
-        @Test @Timeout(10, unit = SECONDS)
+        @Test
         fun `should provide input correctly`() {
             val slowInputStream = slowInputStream(1.seconds, "Hello$LF", "World!$LF")
 
@@ -130,7 +128,7 @@ class JavaExecMockTest {
             expectThat(read).isEqualTo("Hello\nWorld!$LF")
         }
 
-        @Test @Timeout(6, unit = SECONDS)
+        @Test
         fun `should provide input slowly`() {
             val delay = 1.seconds
             val slowInputStream = slowInputStream(delay, "Hello$LF", "World!$LF")

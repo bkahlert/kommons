@@ -16,8 +16,8 @@ public object BlockStyles {
 
         override val indent: Int = content("") { it.toString() }?.length ?: 0
 
-        override fun start(element: Renderable, decorationFormatter: Formatter): CharSequence? = buildString {
-            val startElements = element.render(layout.totalWidth - indent, 4).asAnsiString().lines()
+        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
+            val startElements = Renderable.of(element).render(layout.totalWidth - indent, 4).asAnsiString().lines()
             appendLine(decorationFormatter(TOP), decorationFormatter(startElements.first()).ansi.bold)
             startElements.drop(1).forEach { startElement ->
                 appendLine(decorationFormatter(MIDDLE), "   ", decorationFormatter(startElement).ansi.bold)
@@ -44,12 +44,14 @@ public object BlockStyles {
             }
         }
 
-        private companion object {
+        public companion object : (ColumnsLayout) -> Solid {
             // @formatter:off
             private const val TOP =    "╭──╴"
             private const val MIDDLE = "│"
             private const val BOTTOM = "╰──╴"
             // @formatter:on
+
+            override fun invoke(layout: ColumnsLayout): Solid = Solid(layout)
         }
     }
 
@@ -57,8 +59,8 @@ public object BlockStyles {
 
         override val indent: Int = content("") { it.toString() }?.length ?: 0
 
-        override fun start(element: Renderable, decorationFormatter: Formatter): CharSequence? = buildString {
-            val startElements = element.render(layout.totalWidth - indent, 4).asAnsiString().lines()
+        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
+            val startElements = Renderable.of(element).render(layout.totalWidth - indent, 4).asAnsiString().lines()
             append(decorationFormatter(playSymbol), " ", decorationFormatter(startElements.first()).ansi.bold)
             startElements.drop(1).forEach { startElement ->
                 appendLine()
@@ -77,25 +79,31 @@ public object BlockStyles {
                 else append(formatted?.ansi?.bold)
             }
 
-        private companion object {
+        public companion object : (ColumnsLayout) -> Dotted {
             private const val playSymbol = "▶"
             private const val whitePlaySymbol = "▷"
             private const val dot = "·"
+
+            override fun invoke(layout: ColumnsLayout): Dotted = Dotted(layout)
         }
     }
 
     public class None(private val layout: ColumnsLayout) : BlockStyle {
         private val prefix = "    "
         override val indent: Int = prefix.length
-        override fun start(element: Renderable, decorationFormatter: Formatter): CharSequence? =
-            decorationFormatter(element.render(layout.totalWidth - indent, 4)).takeUnlessBlank()
+        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? =
+            decorationFormatter(Renderable.of(element).render(layout.totalWidth - indent, 4)).takeUnlessBlank()
 
         override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = element.takeUnlessBlank()
         override fun parent(element: CharSequence, decorationFormatter: Formatter): CharSequence? = content(element, decorationFormatter)?.prefixWith(prefix)
 
         override fun end(element: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue?, decorationFormatter: Formatter): CharSequence? =
             resultValueFormatter(element)?.format()
+
+        public companion object : (ColumnsLayout) -> None {
+            override fun invoke(layout: ColumnsLayout): None = None(layout)
+        }
     }
 
-    public val DEFAULT: (ColumnsLayout) -> BlockStyle = ::Solid
+    public val DEFAULT: (ColumnsLayout) -> BlockStyle = Solid
 }

@@ -18,9 +18,7 @@ public class DynamicInputStream private constructor(private val channel: Dynamic
 
     override fun available(): Int = channel.available
 
-    private val toStringStart by lazy { DynamicReadableByteChannel::class.simpleName?.length ?: 0 }
-    private val toStringPrefix by lazy { DynamicInputStream::class.simpleName ?: "" }
-    override fun toString(): String = toStringPrefix + channel.toString().substring(toStringStart)
+    override fun toString(): String = "DynamicInputStream${channel.toString().substring("DynamicReadableByteChannel".length)}"
 
     public fun yield(bytes: ByteArray): Unit = channel.yield(bytes)
 }

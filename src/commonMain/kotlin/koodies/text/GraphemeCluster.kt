@@ -24,11 +24,6 @@ public value class GraphemeCluster private constructor(public val codePoints: Li
 
         internal val lineSeparatorCodePoints = LineSeparators.filter { it.length == 1 }.mapNotNull { it.asCodePoint() }
 
-        /**
-         * Returns a description of the grapheme and the given [offset].
-         * The [Pair.first] component describes the width of the found grapheme.
-         * The [Pair.second] component is the number of code points this grapheme consists of.
-         */
         @Suppress("NOTHING_TO_INLINE")
         internal inline fun PeekingIterator<CodePoint>.readGraphemeCluster(): GraphemeCluster {
             val firstCodePoint: CodePoint = next()

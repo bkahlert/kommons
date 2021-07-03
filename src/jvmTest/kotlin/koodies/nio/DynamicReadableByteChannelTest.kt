@@ -33,6 +33,7 @@ class DynamicReadableByteChannelTest {
         }
     }
 
+    @Suppress("SpellCheckingInspection")
     @Test
     fun `should fill buffer if enough data`() {
         val channel = DynamicReadableByteChannel()

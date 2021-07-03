@@ -1,6 +1,7 @@
 package koodies.io
 
 import koodies.asString
+import koodies.io.SelfCleaningDirectory.CleanUpMode
 import koodies.io.path.Defaults
 import koodies.io.path.requireTempSubPath
 import koodies.jvm.onExit
@@ -43,17 +44,12 @@ public data class SelfCleaningDirectory(
      * Whether to check if [path] is located inside of [Locations.Temp].
      */
     public val enforceTempContainment: Boolean = true,
+
+    /**
+     * When cleanup should be done.
+     */
+    public val cleanUpMode: CleanUpMode = CleanUpMode.OnShutdown,
 ) {
-    init {
-        path.requireTempSubPath()
-        if (path.exists()) {
-            require(path.isDirectory()) { "$path already exists but is no directory." }
-        } else {
-            path.createDirectory()
-        }
-        path.setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
-        onExit { cleanUp() }
-    }
 
     @Suppress("NOTHING_TO_INLINE")
     public inline operator fun getValue(thisRef: Any?, property: KProperty<*>): Path = path
@@ -68,6 +64,37 @@ public data class SelfCleaningDirectory(
         ::path to path
         ::keepAge to keepAge
         ::keepCount to keepCount
+    }
+
+    /** When cleanup should be done. */
+    public enum class CleanUpMode(
+        /** Whether cleanup should be done on startup. */
+        public val onStart: Boolean,
+        /** Whether cleanup should be done on shutdown. */
+        public val onShutdown: Boolean,
+    ) {
+        /** Cleanup is done on startup. */
+        OnStart(onStart = true, onShutdown = false),
+
+        /** Cleanup is done on shutdown. */
+        OnShutdown(onStart = false, onShutdown = true),
+
+        /** Cleanup is done on startup and shutdown. */
+        OnStartAndShutdown(onStart = true, onShutdown = true),
+    }
+
+    init {
+        path.requireTempSubPath()
+        if (cleanUpMode.onStart) cleanUp()
+
+        if (path.exists()) {
+            require(path.isDirectory()) { "$path already exists but is no directory." }
+        } else {
+            path.createDirectory()
+        }
+        path.setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
+
+        if (cleanUpMode.onShutdown) onExit { cleanUp() }
     }
 }
 
@@ -86,5 +113,6 @@ public inline fun Path.selfCleaning(
     keepAge: Duration = 1.hours,
     keepCount: Int = 100,
     enforceTempContainment: Boolean = true,
+    cleanUpMode: CleanUpMode = CleanUpMode.OnShutdown,
 ): SelfCleaningDirectory =
-    SelfCleaningDirectory(resolve(directoryName), keepAge, keepCount, enforceTempContainment)
+    SelfCleaningDirectory(resolve(directoryName), keepAge, keepCount, enforceTempContainment, cleanUpMode)

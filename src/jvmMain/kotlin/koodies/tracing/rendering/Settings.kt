@@ -2,6 +2,7 @@ package koodies.tracing.rendering
 
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.Companion.ansi
 
 /**
  * Common settings used by implementations of [Renderer].
@@ -9,14 +10,19 @@ import koodies.text.ANSI.Formatter
 public data class Settings(
 
     /**
+     * Formatter to be applied to the name.
+     */
+    public val nameFormatter: FilteringFormatter = FilteringFormatter { it.toString().ansi.bold },
+
+    /**
      * Formatter to be applied to content.
      */
-    public val contentFormatter: FilteringFormatter = FilteringFormatter.ToString,
+    public val contentFormatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
 
     /**
      * Formatter to be applied to decoration such as borders.
      */
-    public val decorationFormatter: Formatter = Formatter.ToString,
+    public val decorationFormatter: Formatter = Formatter.ToCharSequence,
 
     /**
      * Transformation to be applied to a [ReturnValue] before rendered.

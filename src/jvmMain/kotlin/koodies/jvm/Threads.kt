@@ -4,6 +4,7 @@ import io.opentelemetry.api.trace.Span
 import koodies.runWrapping
 import koodies.time.seconds
 import koodies.time.sleep
+import koodies.tracing.Key
 import koodies.tracing.spanning
 import koodies.unit.milli
 import java.util.concurrent.CompletableFuture
@@ -59,13 +60,13 @@ public class BusyThread private constructor(
 ) : Thread({
     span.makeCurrent().use {
         spanning("busy waiting") {
-            while (!stopped.get().also { event("stop-request-checked", if (it) "stop requested" else null, "result" to it) }) {
+            while (!stopped.get().also { event("stop-request-checked", if (it) "stop requested" else null, RESULT_KEY to it) }) {
                 try {
                     sleepInterval.sleep()
-                    event("busy-waited", "duration" to sleepInterval)
+                    event("busy-waited", DURATION_KEY to sleepInterval)
                 } catch (e: InterruptedException) {
-                    if (!stopped.get()) currentThread().interrupt().also { event("interrupted", "interrupted", "ignored" to false) }
-                    else event("interrupted", "interruption ignored", "ignored" to true)
+                    if (!stopped.get()) currentThread().interrupt().also { event("interrupted", "interrupted", IGNORED_KEY to false) }
+                    else event("interrupted", "interruption ignored", IGNORED_KEY to true)
                 }
             }
         }
@@ -80,6 +81,12 @@ public class BusyThread private constructor(
     public fun complete() {
         stopped.set(true)
         interrupt()
+    }
+
+    public companion object {
+        private val RESULT_KEY = Key.booleanKey("result")
+        private val DURATION_KEY = Key.stringKey<Duration>("duration") { it.toString() }
+        private val IGNORED_KEY = Key.booleanKey("ignored")
     }
 }
 

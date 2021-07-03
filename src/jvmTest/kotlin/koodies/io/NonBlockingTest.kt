@@ -1,6 +1,7 @@
 package koodies.io
 
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
+import koodies.test.Slow
 import koodies.text.randomString
 import koodies.time.seconds
 import org.jline.utils.InputStreamReader
@@ -48,7 +49,7 @@ class NonBlockingTest {
             expectThat(linesExpected).isEqualTo(linesActual)
         }
 
-        @Test
+        @Slow @Test
         fun `should read no non-BEM unicode extremely slow input streams`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)

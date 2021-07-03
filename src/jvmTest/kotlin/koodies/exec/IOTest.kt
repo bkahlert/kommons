@@ -12,10 +12,12 @@ import koodies.text.LineSeparators.LF
 import koodies.text.Unicode.TAB
 import koodies.text.containsAnsi
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.tracing.rendering.RenderingAttributes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -143,6 +145,32 @@ class IOTest {
         @Test
         fun `should merge single type`() {
             expectThat(IO_LIST.output.ansiRemoved).isEqualTo("out")
+        }
+    }
+
+    @Nested
+    inner class AsEvent {
+
+        private val io = Output typed "test"
+
+        @Test
+        fun `have name`() {
+            expectThat(io.name).isEqualTo("koodies.exec.io")
+        }
+
+        @Test
+        fun `should have type`() {
+            expectThat(io.attributes).contains(IOAttributes.TYPE to "output")
+        }
+
+        @Test
+        fun `should have text`() {
+            expectThat(io.attributes).contains(IOAttributes.TEXT to "test")
+        }
+
+        @Test
+        fun `should have rendering only description`() {
+            expectThat(io.attributes).contains(RenderingAttributes.DESCRIPTION renderingOnly io.text)
         }
     }
 

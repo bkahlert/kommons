@@ -11,9 +11,7 @@ import koodies.text.AnsiString
 import koodies.text.LineSeparators.lines
 import koodies.text.joinLinesToString
 import koodies.tracing.Event
-import koodies.tracing.KoodiesAttributes
-import koodies.tracing.KoodiesSpans
-import koodies.tracing.RenderingAttributes
+import koodies.tracing.rendering.RenderingAttributes
 
 /**
  * Instances are ANSI formatted output with a certain type.
@@ -24,15 +22,12 @@ public sealed class IO(
      * Contains the originally encountered [IO].
      */
     public val text: AnsiString,
-) : AnsiString(text.tokens), Event {
-
-    override val name: CharSequence = KoodiesSpans.IO
-    override val attributes: Map<CharSequence, Any>
-        get() = mapOf(
-            KoodiesAttributes.IO_TYPE.key to type,
-            KoodiesAttributes.IO_TEXT.key to text.ansiRemoved,
-            RenderingAttributes.description(text),
-        )
+) : AnsiString(text.tokens), Event by Event.of(
+    IOAttributes.SPAN_NAME,
+    IOAttributes.TYPE to type,
+    IOAttributes.TEXT to text.ansiRemoved,
+    RenderingAttributes.DESCRIPTION renderingOnly text,
+) {
 
     override fun toString(): String = text.toString()
 
@@ -71,6 +66,10 @@ public sealed class IO(
             Meta("meta.dump", dump.also { require(it.contains("dump")) { "Please use ${Text::class.simpleName} for free-form text." } })
 
         public companion object {
+
+            /**
+             * Factory to classify the given [text] as [Text].
+             */
             public infix fun typed(text: CharSequence): Text =
                 filter(text).toString().takeIf { it.isNotBlank() }?.let { Text(it) } ?: error("Non-blank string required.")
         }
@@ -84,17 +83,10 @@ public sealed class IO(
             private val EMPTY: Input = Input(AnsiString.EMPTY)
 
             /**
-             * Factory to classify different types of [IO].
+             * Factory to classify the given [text] as [Input].
              */
             public infix fun typed(text: CharSequence): Input = if (text.isEmpty()) EMPTY else Input(filter(text).asAnsiString())
         }
-
-        private val lines: List<Input> by lazy { text.lines().map { Input typed it }.toList() }
-
-        /**
-         * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
-         */
-        public fun lines(): List<Input> = lines
     }
 
     /**
@@ -105,17 +97,10 @@ public sealed class IO(
             private val EMPTY: Output = Output(AnsiString.EMPTY)
 
             /**
-             * Factory to classify different types of [IO].
+             * Factory to classify the given [text] as [Output].
              */
             public infix fun typed(text: CharSequence): Output = if (text.isEmpty()) EMPTY else Output(filter(text).asAnsiString())
         }
-
-        private val lines by lazy { text.lines().map { Output typed it }.toList() }
-
-        /**
-         * Splits this [IO] into separate lines while keeping the ANSI formatting intact.
-         */
-        public fun lines(): List<IO> = lines
     }
 
     /**
@@ -132,7 +117,7 @@ public sealed class IO(
             private val EMPTY: Error = Error(AnsiString.EMPTY)
 
             /**
-             * Factory to classify different types of [IO].
+             * Factory to classify the given [text] as an [Error].
              */
             public infix fun typed(text: CharSequence): Error = if (text.isEmpty()) EMPTY else Error(filter(text).asAnsiString())
         }

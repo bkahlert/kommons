@@ -1,5 +1,6 @@
 package koodies.tracing.rendering
 
+import io.opentelemetry.api.trace.Span
 import koodies.exception.toCompactString
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.FieldDelimiters
@@ -40,8 +41,6 @@ public interface ReturnValue : Symbolizable {
          * If [ReturnValue] is implemented its implementation is used. Otherwise
          * [ExceptionReturnValue] is used for instances of [Throwable] and [AnyReturnValue]
          * for any other value.
-         *
-         * This extension function is only valid in the context of an existing [SimpleRenderingLogger].
          */
         public fun of(value: Any?): ReturnValue =
             when (value) {
@@ -66,8 +65,8 @@ public interface ReturnValue : Symbolizable {
  * Mutable list of return values that is considered [successful] if does not contain any
  * failed [ReturnValue].
  */
-public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableListOf<E>(*elements), ReturnValue {
-    private val unsuccessful: List<ReturnValue> get() = map { ReturnValue.of(it) }.filter { it.successful == false }
+public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableListOf(*elements), ReturnValue {
+    private val unsuccessful: List<ReturnValue> get() = map { ReturnValue.of(it) }.filter { !it.successful }
     override val successful: Boolean
         get() = fold(true) { acc: Boolean, el: E ->
             if (ReturnValue.of(el).successful) acc else false
@@ -117,7 +116,7 @@ public value class AnyReturnValue(private val value: Any?) : ReturnValue {
     override val textRepresentation: String?
         get() = when {
             value is ReturnValue -> value.textRepresentation
-            successful == false -> value?.toCompactString()
+            !successful -> value?.toCompactString()
             else -> super.textRepresentation
         }
 }
