@@ -143,3 +143,7 @@ public object Whitespaces : Collection<String> {
     public val String.withoutTrailingWhitespaces: String
         get() = (this as CharSequence).trailingWhitespaces.takeUnlessEmpty()?.let { removeSuffix(it) } ?: this
 }
+
+@Suppress("SpellCheckingInspection")
+public val @receiver:Suppress("unused") Unicode.whitespaces: List<Char>
+    get() = Whitespaces.asChars

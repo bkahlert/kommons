@@ -77,12 +77,12 @@ class CodePointKtTest {
     fun columns() = testEach(
         CodePoint("\u0006") to 0,
         CodePoint("\u2406") to 2,
-        CodePoint("${Unicode.zeroWidthJoiner}") to 0,
+        CodePoint("${Unicode.ZERO_WIDTH_JOINER}") to 0,
         CodePoint(" ") to 1,
         CodePoint("a") to 1,
         CodePoint("😀") to 2,
         CodePoint("🤓") to 2,
-        CodePoint(Unicode.lineFeed.toString()) to 0,
+        CodePoint(Unicode.LINE_FEED.toString()) to 0,
         CodePoint("►") to 1,
         CodePoint("㍙") to 2,
     ) { (codePoint, expectedColumns) ->
@@ -139,8 +139,8 @@ class CodePointKtTest {
 
     @TestFactory
     fun `should format as hex string`() = testEach(
-        Unicode.lineFeed to "0A",
-        Unicode.zeroWidthSpace to "200B",
+        Unicode.LINE_FEED to "0A",
+        Unicode.ZERO_WIDTH_SPACE to "200B",
         "👽" to "01F47D",
     ) { (codePoint, hex) ->
         expecting { CodePoint(codePoint.toString()).hexCode } that { isEqualTo(hex) }
@@ -290,7 +290,7 @@ class CodePointKtTest {
 
         @Test
         fun `should contain all unicode points`() {
-            expectThat("Az09Αω𝌀𝍖षि\n\t\r".asCodePointSequence()).get { map { it.string }.joinToString("") }.isEqualTo("Az09Αω𝌀𝍖षि\n\t\r")
+            expectThat("Az09Αω𝌀𝍖षि\n\t\r".asCodePointSequence()).get { map { it.string }.joinLinesToString("") }.isEqualTo("Az09Αω𝌀𝍖षि\n\t\r")
         }
     }
 

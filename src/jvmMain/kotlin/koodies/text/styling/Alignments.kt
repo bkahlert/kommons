@@ -3,8 +3,8 @@ package koodies.text.styling
 import koodies.math.ceilDiv
 import koodies.math.floorDiv
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.LineSeparators.LF
-import koodies.text.Unicode.NBSP
+import koodies.text.Unicode
+import koodies.text.joinLinesToString
 import koodies.text.maxLength
 import koodies.text.repeat
 
@@ -23,7 +23,7 @@ import koodies.text.repeat
  * bar baz
  * ```
  */
-public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLength: Int = 0): List<String> {
+public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = Unicode.NBSP, minLength: Int = 0): List<String> {
     val trimmed = map { it.trim() }
     val maxLength = trimmed.maxLength()
     val finalLength = maxLength.coerceAtLeast(minLength)
@@ -49,5 +49,5 @@ public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = NBSP, minLen
  * bar baz
  * ```
  */
-public fun <T : CharSequence> T.center(whitespace: Char = NBSP, minLength: Int = 0): String =
-    lines().center(whitespace, minLength).joinToString(LF)
+public fun <T : CharSequence> T.center(whitespace: Char = Unicode.NBSP, minLength: Int = 0): String =
+    lines().center(whitespace, minLength).joinLinesToString()

@@ -81,7 +81,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should calc zero columns for no-space characters`() = testEach(Unicode.zeroWidthSpace, Unicode.zeroWidthJoiner) {
+        fun `should calc zero columns for no-space characters`() = testEach(Unicode.ZERO_WIDTH_SPACE, Unicode.ZERO_WIDTH_JOINER) {
             expecting { it.columns } that { isEqualTo(0) }
         }
 

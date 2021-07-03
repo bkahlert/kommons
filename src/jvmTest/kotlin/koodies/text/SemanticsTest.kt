@@ -4,7 +4,7 @@ import koodies.test.test
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
-import koodies.text.Unicode.Emojis.variationSelector15
+import koodies.text.Unicode.Emojis.VARIATION_SELECTOR_15
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
@@ -16,7 +16,7 @@ class SemanticsTest {
 
         @TestFactory
         fun `should provide symbols`() = test(Semantics) {
-            expecting { Symbols.OK } that { isEqualTo("✔$variationSelector15".ansi.green.done) }
+            expecting { Symbols.OK } that { isEqualTo("✔$VARIATION_SELECTOR_15".ansi.green.done) }
             expecting { Symbols.Negative } that { isEqualTo("━".ansi.red.done) }
             expecting { Symbols.Error } that { isEqualTo("ϟ".ansi.bold.red.done) }
             expecting { Symbols.PointNext } that { isEqualTo("➜".ansi.italic.gray.done) }

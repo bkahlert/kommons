@@ -57,7 +57,7 @@ public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxColumn
             val paddedLeft = leftLine.padEndByColumns(columnWidth + paddingColumns, padChar = paddingCharacter)
             "$paddedLeft$rightLine"
         }
-        .joinToString(LF)
+        .joinLinesToString(LF)
         .asAnsiString()
 
 /**

@@ -117,7 +117,7 @@ class BlockRendererTest {
                 layout = ColumnsLayout(KoodiesAttributes.DESCRIPTION.key to 40, "status" to 20),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.toString().ansi.brightRed },
-                returnValueFormatter = { it },
+                returnValueTransform = { it },
                 printer = printer,
             )).apply {
 

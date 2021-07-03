@@ -22,4 +22,4 @@ public val CodePoint.chars: CharArray get() = Character.toChars(codePoint)
 public val CodePoint.charCount: Int get() = Character.charCount(codePoint)
 
 public operator fun String.minus(amount: Int): String =
-    asCodePointSequence().map { it - amount }.joinToString("")
+    asCodePointSequence().map { it - amount }.joinLinesToString("")

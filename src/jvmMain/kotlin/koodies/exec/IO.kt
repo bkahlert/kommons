@@ -6,13 +6,10 @@ import koodies.exec.IO.Input
 import koodies.exec.IO.Meta
 import koodies.exec.IO.Output
 import koodies.text.ANSI.Style
-import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString
-import koodies.text.LineSeparators
 import koodies.text.LineSeparators.lines
-import koodies.text.LineSeparators.mapLines
-import koodies.text.Semantics.formattedAs
+import koodies.text.joinLinesToString
 import koodies.tracing.Event
 import koodies.tracing.KoodiesAttributes
 import koodies.tracing.KoodiesSpans
@@ -27,17 +24,7 @@ public sealed class IO(
      * Contains the originally encountered [IO].
      */
     public val text: AnsiString,
-    /**
-     * Formats a strings to like an output of this type.
-     */
-    private val formatAnsi: (AnsiString) -> String,
-) : AnsiString(*text.tokens), Event {
-
-    /**
-     * Contains this [text] with the format of this type applied.
-     */
-    @Deprecated("just use text")
-    public val formatted: String by lazy { formatAnsi(text) }
+) : AnsiString(text.tokens), Event {
 
     override val name: CharSequence = KoodiesSpans.IO
     override val attributes: Map<CharSequence, Any>
@@ -47,7 +34,7 @@ public sealed class IO(
             RenderingAttributes.description(text),
         )
 
-    override fun toString(): String = formatted
+    override fun toString(): String = text.toString()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -70,7 +57,7 @@ public sealed class IO(
     /**
      * An [IO] that represents information about a [Process].
      */
-    public sealed class Meta(type: String, text: String) : IO(type, text.asAnsiString(), { text.formattedAs.meta }) {
+    public sealed class Meta(type: String, text: String) : IO(type, text.asAnsiString()) {
 
         /**
          * Not further specified information about a [Process].
@@ -92,7 +79,7 @@ public sealed class IO(
     /**
      * An [IO] (of another process) serving as an input.
      */
-    public class Input(text: AnsiString) : IO("input", text, { text.mapLines { it.ansi.brightBlue.dim.italic.done } }) {
+    public class Input(text: AnsiString) : IO("input", text) {
         public companion object {
             private val EMPTY: Input = Input(AnsiString.EMPTY)
 
@@ -113,7 +100,7 @@ public sealed class IO(
     /**
      * An [IO] that is neither [Meta], [Input] nor [Error].
      */
-    public class Output(text: AnsiString) : IO("output", text, { text.mapLines { it.ansi.yellow } }) {
+    public class Output(text: AnsiString) : IO("output", text) {
         public companion object {
             private val EMPTY: Output = Output(AnsiString.EMPTY)
 
@@ -134,7 +121,7 @@ public sealed class IO(
     /**
      * An [IO] that represents an error.
      */
-    public class Error(text: AnsiString) : IO("error", text, { text.mapLines { it.ansi.red.bold } }) {
+    public class Error(text: AnsiString) : IO("error", text) {
 
         /**
          * Creates a new error IO from the given [exception].
@@ -161,12 +148,10 @@ public sealed class IO(
         /**
          * Filters text that starts with [ERASE_MARKER].
          */
-        private fun filter(text: CharSequence): CharSequence {
-            fun filterText(text: CharSequence) = text.lines().mapNotNull { line ->
+        private fun filter(text: CharSequence): CharSequence =
+            text.lines().mapNotNull { line ->
                 line.takeUnless<CharSequence> { it.startsWith(ERASE_MARKER) }
-            }.joinToString(LineSeparators.LF)
-            return filterText(text)
-        }
+            }.joinLinesToString()
     }
 }
 
@@ -259,7 +244,7 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
  * Set [removeAnsi] to `false` to keep escapes codes.
  */
 public inline fun <reified T : IO> Sequence<IO>.merge(removeAnsi: Boolean = true): String =
-    filterIsInstance<T>().joinToString(LineSeparators.LF) { if (removeAnsi) it.unformatted else it.formatted }
+    filterIsInstance<T>().joinLinesToString { if (removeAnsi) it.ansiRemoved else it.toString() }
 
 /**
  * Contains a filtered copy only consisting of [Meta].

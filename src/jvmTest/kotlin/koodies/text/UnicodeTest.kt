@@ -6,8 +6,8 @@ import koodies.math.RoundingMode.HALF_UP
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.Unicode.Emojis.Emoji
-import koodies.text.Unicode.characterTabulation
-import koodies.text.Unicode.nextLine
+import koodies.text.Unicode.NEXT_LINE
+import koodies.text.Unicode.TAB
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
@@ -22,7 +22,7 @@ class UnicodeTest {
 
         @TestFactory
         fun `should return code point`() = testEach(
-            133 to nextLine.toString(),
+            133 to NEXT_LINE.toString(),
             119594 to Unicode.DivinationSymbols.Tetragrams.Purity.toString(),
             containerNamePattern = "\"{}\" ？⃔ \"{}\"") { (codePoint, expected) ->
             expecting { Unicode[codePoint] } that { toStringIsEqualTo(expected) }
@@ -32,22 +32,22 @@ class UnicodeTest {
     @TestFactory
     fun `should have valid unicode blocks`() = testEach(
         Unicode.BoxDrawings to ("╿" to """
-            ─${characterTabulation}BOX DRAWINGS LIGHT HORIZONTAL
-            ━${characterTabulation}BOX DRAWINGS HEAVY HORIZONTAL
-            │${characterTabulation}BOX DRAWINGS LIGHT VERTICAL
-            ┃${characterTabulation}BOX DRAWINGS HEAVY VERTICAL
+            ─${TAB}BOX DRAWINGS LIGHT HORIZONTAL
+            ━${TAB}BOX DRAWINGS HEAVY HORIZONTAL
+            │${TAB}BOX DRAWINGS LIGHT VERTICAL
+            ┃${TAB}BOX DRAWINGS HEAVY VERTICAL
         """.trimIndent()),
         Unicode.CombiningDiacriticalMarks to ("ͯ" to """
-             ̀${characterTabulation}COMBINING GRAVE ACCENT
-             ́${characterTabulation}COMBINING ACUTE ACCENT
-             ̂${characterTabulation}COMBINING CIRCUMFLEX ACCENT
-             ̃${characterTabulation}COMBINING TILDE
+             ̀${TAB}COMBINING GRAVE ACCENT
+             ́${TAB}COMBINING ACUTE ACCENT
+             ̂${TAB}COMBINING CIRCUMFLEX ACCENT
+             ̃${TAB}COMBINING TILDE
         """.trimIndent()),
         Unicode.DivinationSymbols.Tetragrams to ("𝍖" to """
-            𝌆${characterTabulation}TETRAGRAM FOR CENTRE
-            𝌇${characterTabulation}TETRAGRAM FOR FULL CIRCLE
-            𝌈${characterTabulation}TETRAGRAM FOR MIRED
-            𝌉${characterTabulation}TETRAGRAM FOR BARRIER
+            𝌆${TAB}TETRAGRAM FOR CENTRE
+            𝌇${TAB}TETRAGRAM FOR FULL CIRCLE
+            𝌈${TAB}TETRAGRAM FOR MIRED
+            𝌉${TAB}TETRAGRAM FOR BARRIER
         """.trimIndent()),
     ) { (unicodeBlockMeta, expectations) ->
         expecting("should be valid") { unicodeBlockMeta.isValid } that { isTrue() }

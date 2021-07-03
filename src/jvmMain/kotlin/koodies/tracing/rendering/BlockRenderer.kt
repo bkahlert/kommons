@@ -55,7 +55,7 @@ public class BlockRenderer(
 
     override fun <R> end(result: Result<R>) {
         val returnValue = ReturnValue.of(result)
-        val formatted = style.end(returnValue, settings.returnValueFormatter, settings.decorationFormatter)
+        val formatted = style.end(returnValue, settings.returnValueTransform, settings.decorationFormatter)
         formatted?.takeUnlessEmpty()
             ?.let { if (it.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(it, settings.layout.totalWidth) else formatted }
             ?.let(settings.printer)

@@ -4,7 +4,7 @@ import koodies.math.isEven
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.mapLines
-import koodies.text.Unicode.NBSP
+import koodies.text.Unicode
 import koodies.text.maxLength
 import koodies.text.repeat
 import koodies.text.styling.Boxes.FAIL
@@ -73,7 +73,7 @@ public enum class Boxes(private var render: (String) -> String) {
      */
     SPHERICAL({ text ->
         val fillCount = if (text.maxLength().isEven) 14 else 15
-        val paddedText = text.center(NBSP, fillCount)
+        val paddedText = text.center(Unicode.NBSP, fillCount)
         val fill = ' '.repeat((paddedText.maxLength() - fillCount).coerceAtLeast(0))
 
         StringBuilder().apply {

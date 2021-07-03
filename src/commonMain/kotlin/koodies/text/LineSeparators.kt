@@ -19,7 +19,7 @@ public object LineSeparators : Collection<String> {
      *
      * Representations: `\r\n`,  `␍␊`, `⏎`
      */
-    public const val CRLF: String = Unicode.carriageReturn.toString() + Unicode.lineFeed.toString()
+    public const val CRLF: String = Unicode.CARRIAGE_RETURN.toString() + Unicode.LINE_FEED.toString()
 
     /**
      * Line break as used on Unix systems and modern Mac systems.
@@ -27,35 +27,35 @@ public object LineSeparators : Collection<String> {
      * Representations: `\n`, `␊`, `⏎`
      *
      */
-    public const val LF: String = Unicode.lineFeed.toString()
+    public const val LF: String = Unicode.LINE_FEED.toString()
 
     /**
      * Line break as used on old Mac systems.
      *
      * Representations: `\r`, `␍`, `⏎`
      */
-    public const val CR: String = Unicode.carriageReturn.toString()
+    public const val CR: String = Unicode.CARRIAGE_RETURN.toString()
 
     /**
      * Next line separator
      *
      * Representations: `␤`, `⏎`
      */
-    public const val NEL: String = Unicode.nextLine.toString()
+    public const val NEL: String = Unicode.NEXT_LINE.toString()
 
     /**
      * Paragraph separator
      *
      * Representations: `ₛᷮ`, `⏎`
      */
-    public const val PS: String = Unicode.paragraphSeparator.toString()
+    public const val PS: String = Unicode.PARAGRAPH_SEPARATOR.toString()
 
     /**
      * Line separator
      *
      * Representations: `ₛᷞ`, `⏎`
      */
-    public const val LS: String = Unicode.lineSeparator.toString()
+    public const val LS: String = Unicode.LINE_SEPARATOR.toString()
 
     /**
      * Same line separator as used by Kotlin.
@@ -253,8 +253,421 @@ public object LineSeparators : Collection<String> {
      * The last line is filled with whitespaces if necessary.
      */
     public fun CharSequence?.wrapLines(columns: Int): CharSequence =
-        this?.linesOfColumnsSequence(columns)?.joinToString(LF) {
+        this?.linesOfColumnsSequence(columns)?.joinLinesToString(LF) {
             val missingColumns = columns - it.columns
             it.toString() + " ".repeat(missingColumns)
         } ?: ""
 }
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T, A : Appendable> Iterable<T>.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((T) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T> Iterable<T>.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((T) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * The operation is _terminal_.
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T, A : Appendable> Sequence<T>.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((T) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * The operation is _terminal_.
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T> Sequence<T>.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((T) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T, A : Appendable> Array<out T>.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((T) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> ByteArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Byte) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> ShortArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Short) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> IntArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Int) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> LongArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Long) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> FloatArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Float) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> DoubleArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Double) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> BooleanArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Boolean) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Appends the string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinTo
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <A : Appendable> CharArray.joinLinesTo(
+    buffer: A,
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Char) -> CharSequence)? = null,
+): A = joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun <T> Array<out T>.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((T) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun ByteArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Byte) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun ShortArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Short) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun IntArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Int) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun LongArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Long) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun FloatArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Float) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun DoubleArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Double) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun BooleanArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Boolean) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)
+
+/**
+ * Creates a string from all the elements separated using [LineSeparators.DEFAULT] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the collection could be huge, you can specify a non-negative value of [limit], in which case only the first [limit]
+ * elements will be appended, followed by the [truncated] string (which defaults to [Unicode.ELLIPSIS]).
+ *
+ * @see joinToString
+ */
+@Suppress("NOTHING_TO_INLINE")
+public inline fun CharArray.joinLinesToString(
+    separator: CharSequence = LineSeparators.DEFAULT,
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = Unicode.ELLIPSIS.toString(),
+    noinline transform: ((Char) -> CharSequence)? = null,
+): String = joinToString(separator, prefix, postfix, limit, truncated, transform)

@@ -90,7 +90,7 @@ public fun CharSequence.convertKebabCaseToCamelCase(): String {
             hyphenMatch.range.first) + hyphenMatch.namedGroups["leftChar"]?.value + hyphenMatch.namedGroups["rightChar"]?.value?.toUpperCase()
     }
     return Regex("(?<leftChar>[a-z0-9]?)-(?<rightChar>[a-z0-9])").findAll(this).let { matches ->
-        matches.zipWithNext { previousMatch, currentMatch -> hyphenMerger.invoke(previousMatch.range.last + 1, currentMatch) }.joinToString(
+        matches.zipWithNext { previousMatch, currentMatch -> hyphenMerger.invoke(previousMatch.range.last + 1, currentMatch) }.joinLinesToString(
             prefix = matches.firstOrNull()?.let { hyphenMerger.invoke(0, matches.first()) } ?: this,
             postfix = matches.lastOrNull()?.let { subSequence(it.range.last + 1, length) } ?: "",
             separator = "", transform = { it })

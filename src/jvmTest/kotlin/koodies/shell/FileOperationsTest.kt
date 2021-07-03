@@ -9,7 +9,6 @@ import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.Names
 import koodies.toBaseName
-import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -30,22 +29,22 @@ class FileOperationsTest {
             }
 
         @TestFactory
-        fun TestSpan.`should remove intermediary line`(uniqueId: UniqueId) = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
+        fun `should remove intermediary line`(uniqueId: UniqueId): List<Any> = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
             withTempDir(uniqueId) {
                 val fixture = file(lineSeparator)
                 ShellScript { file(fixture) { removeLine("line 2") } }.exec.logging()
                 if (lineSeparator !in listOf(LineSeparators.LS, LineSeparators.PS, LineSeparators.NEL)) { // TODO can't get these line breaks to be removed
-                    expecting { fixture } that { hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line") }
+                    expecting { fixture } that { this.hasContent("line 1${lineSeparator}line 2.1${lineSeparator}last line") }
                 }
             }
         }
 
         @TestFactory
-        fun TestSpan.`should remove last line`(uniqueId: UniqueId) = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
+        fun `should remove last line`(uniqueId: UniqueId): List<Any> = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
             withTempDir(uniqueId) {
                 val fixture = file(lineSeparator)
                 ShellScript { file(fixture) { removeLine("last line") } }.exec.logging()
-                expecting { fixture } that { hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator") }
+                expecting { fixture } that { this.hasContent("line 1${lineSeparator}line 2${lineSeparator}line 2.1$lineSeparator") }
             }
         }
     }

@@ -24,7 +24,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotBlank
 import strikt.assertions.isSameInstanceAs
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.ESCAPE as e
 
 class AnsiStringTest {
 
@@ -73,21 +73,22 @@ class AnsiStringTest {
         fun `should tokenize string`() {
             val tokens = string.tokenize()
             expectThat(tokens.tokens.toList()).containsExactly(
-                "$e[3;36m" to 0,
-                "$e[4m" to 0,
-                "Important:" to 10,
-                "$e[24m" to 0,
-                " This line has " to 15,
-                "$e[9m" to 0,
-                "no" to 2,
-                "$e[29m" to 0,
-                " ANSI escapes.\nThis one's " to 26,
-                "$e[1m" to 0,
-                "bold!" to 5,
-                "$e[22m" to 0,
-                "${CRLF}Last one is clean." to 20,
-                "$e[23;39m" to 0)
-            expectThat(tokens.tokens.sumOf { it.second }).isEqualTo(78)
+                Token.escapeSequence("$e[3;36m"),
+                Token.escapeSequence("$e[4m"),
+                Token.text("Important:"),
+                Token.escapeSequence("$e[24m"),
+                Token.text(" This line has "),
+                Token.escapeSequence("$e[9m"),
+                Token.text("no"),
+                Token.escapeSequence("$e[29m"),
+                Token.text(" ANSI escapes.\nThis one's "),
+                Token.escapeSequence("$e[1m"),
+                Token.text("bold!"),
+                Token.escapeSequence("$e[22m"),
+                Token.text("${CRLF}Last one is clean."),
+                Token.escapeSequence("$e[23;39m"),
+            )
+            expectThat(tokens.tokens.sumOf { it.logicalLength }).isEqualTo(78)
             expectThat(string.length).isEqualTo(120)
         }
 
@@ -106,7 +107,7 @@ class AnsiStringTest {
 
         @Test
         internal fun `should get char at specified position`() {
-            val tokens = AnsiString(*string.tokenize().tokens)
+            val tokens = AnsiString(string.tokenize().tokens)
             expectThat(tokens[26]).isEqualTo('o')
         }
 
@@ -261,7 +262,7 @@ class AnsiStringTest {
             "Text".tokenize() to "Text",
             "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___".tokenize() to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___"
         ) { (ansiString, expected) ->
-            expecting { ansiString.unformatted } that { isEqualTo(expected) }
+            expecting { ansiString.ansiRemoved } that { isEqualTo(expected) }
         }
     }
 
@@ -318,7 +319,7 @@ class AnsiStringTest {
     inner class MapLines {
         @Test
         fun `should split non-ANSI string`() {
-            expectThat(ansiString.unformatted.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
+            expectThat(ansiString.ansiRemoved.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
                 Important: This line has no ANSI control sequences.
                 This one's bold!
                 Last one is clean.
@@ -362,7 +363,7 @@ class AnsiStringTest {
 
         @Test
         fun `should split non-ANSI string`() {
-            expectThat(ansiString.unformatted.lineSequence().toList()).containsExactly(expectedLines)
+            expectThat(ansiString.ansiRemoved.lineSequence().toList()).containsExactly(expectedLines)
         }
 
         @Test
@@ -386,12 +387,12 @@ class AnsiStringTest {
     inner class Lines {
         @Test
         fun `should split non-ANSI string`() {
-            expectThat(ansiString.unformatted.lines()).containsExactly(expectedLines)
+            expectThat(ansiString.ansiRemoved.lines()).containsExactly(expectedLines)
         }
 
         @Test
         fun `should join split ANSI string`() {
-            expectThat(expectedAnsiFormattedLines.joinToString(LF) { it }).isEqualTo("""
+            expectThat(expectedAnsiFormattedLines.joinLinesToString { it }).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m
                 $e[3;36mLast one is clean.$e[23;39m
@@ -535,8 +536,8 @@ class AnsiStringTest {
 
 fun <T : AnsiString> Assertion.Builder<out T>.toStringIsEqualTo(other: Any?): Assertion.Builder<out T> =
     assert("have same toString value") { value ->
-        val actualString = value.unformatted
-        val expectedString = other.let { if (it is AnsiString) it.unformatted else it.toString().ansiRemoved }
+        val actualString = value.ansiRemoved
+        val expectedString = other.let { if (it is AnsiString) it.ansiRemoved else it.toString().ansiRemoved }
         when (actualString == expectedString) {
             true -> pass()
             else -> fail("was $actualString instead of $expectedString.")

@@ -4,7 +4,7 @@ import koodies.collections.head
 import koodies.collections.tail
 import koodies.io.path.asPath
 import koodies.io.path.pathString
-import koodies.text.LineSeparators.LF
+import koodies.text.joinLinesToString
 import koodies.text.joinToCamelCase
 import koodies.text.withSuffix
 import java.nio.file.Path
@@ -70,8 +70,8 @@ class FilePeek2(
                         .findBlock()
                         .takeUnless { it.isEmpty() } ?: remainingLines
                 }.dropWhile { !it.contains('{') }
-                val fullText = lines.joinToString(LF)
-                val relevantFullText = relevantLines.joinToString(LF)
+                val fullText = lines.joinLinesToString()
+                val relevantFullText = relevantLines.joinLinesToString()
                 relevantLines to fullText.substringBefore(relevantFullText).lines().size
             }
         }

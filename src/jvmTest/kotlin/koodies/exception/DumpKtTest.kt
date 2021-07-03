@@ -11,6 +11,7 @@ import koodies.test.TextFixture
 import koodies.test.withTempDir
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
+import koodies.text.joinLinesToString
 import koodies.text.randomString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -50,7 +51,7 @@ class DumpKtTest {
 
         @Test
         fun `should contain url pointing to dumps`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
+            val data = (0 until 15).map { randomString(20) }.joinLinesToString()
             expectThat(dump("", data = data)).get {
                 RegularExpressions.urlRegex.findAllValues(this)
                     .map { url -> URL(url) }
@@ -63,14 +64,14 @@ class DumpKtTest {
 
         @Test
         fun `should contains last lines of dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
+            val data = (0 until 15).map { randomString(20) }.joinLinesToString()
             expectThat(dump("", data = data)).get { lines().takeLast(11).map { it.trim() } }
                 .containsExactly(data.lines().takeLast(10) + "")
         }
 
         @Test
         fun `should log all lines if problem saving the log`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
+            val data = (0 until 15).map { randomString(20) }.joinLinesToString()
             val path = randomPath(extension = ".log").writeText("already exists")
             path.toFile().setReadOnly()
             expectThat(dump("error message", path = path, data = data)) {
@@ -89,7 +90,7 @@ class DumpKtTest {
 
         @Test
         fun `should dump data`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LF)
+            val data = (0 until 15).map { randomString(20) }.joinLinesToString()
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { data })
             expectThat(dumps.values.map { it.readText() }).hasSize(2).all {
                 isEqualTo(data)

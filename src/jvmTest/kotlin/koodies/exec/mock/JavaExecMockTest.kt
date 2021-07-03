@@ -36,6 +36,7 @@ import koodies.test.isEqualToByteWise
 import koodies.test.test
 import koodies.test.testEach
 import koodies.text.LineSeparators.LF
+import koodies.text.joinLinesToString
 import koodies.time.poll
 import koodies.time.seconds
 import koodies.time.sleep
@@ -345,7 +346,7 @@ class JavaExecMockTest {
             p.outputStream.enter("password1234")
         }
 
-        expectThat(reader.readLines().joinToString(LF)).isEqualToByteWise("""
+        expectThat(reader.readLines().joinLinesToString()).isEqualToByteWise("""
             Welcome!
             Password? password1234
             

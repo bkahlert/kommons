@@ -287,7 +287,7 @@ public value class ColumnParser(
             is Succeeded -> {
                 Left(exitState.io.asSequence()
                     .filterIsInstance<Output>()
-                    .map { it.unformatted }
+                    .map { it.ansiRemoved }
                     .map { it.split("\t") }
                     .filter { it.size == num }
                     .map { it.map { field -> if (field == "<none>") "" else field } }

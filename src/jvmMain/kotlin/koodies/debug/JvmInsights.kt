@@ -12,6 +12,7 @@ import koodies.math.toScientificString
 import koodies.regex.groupValue
 import koodies.text.LineSeparators.LF
 import koodies.text.Semantics.formattedAs
+import koodies.text.joinLinesToString
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -27,7 +28,7 @@ public val StackTraceElement.highlightedMethod: String
     get() = toString().replace(Regex("(?<prefix>.*\\.)(?<method>.*?)(?<suffix>\\(.*)")) {
         val prefix = it.groupValue("prefix")
         val suffix = it.groupValue("suffix")
-        val methodName = it.groupValue("method")?.let { it.formattedAs.debug }
+        val methodName = it.groupValue("method")?.formattedAs?.debug
         prefix + methodName + suffix
     }
 
@@ -113,7 +114,7 @@ public val <T : MatchResult?> T.trace: T
     get() = this?.apply {
         val matchedGroups = groups.filterNotNull()
         println("Regular Expression Matched ${matchedGroups.size.toString().formattedAs.debug} group(s)")
-        println(matchedGroups.joinToString(LF) { "${it.range}: ".padStart(8) + it.value.formattedAs.debug })
+        println(matchedGroups.joinLinesToString { "${it.range}: ".padStart(8) + it.value.formattedAs.debug })
     } ?: apply { println("Regular Expression Did Not Match".formattedAs.warning) }
 
 

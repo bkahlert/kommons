@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.ESCAPE as e
 
 class BannerTest {
 

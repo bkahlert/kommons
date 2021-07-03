@@ -548,7 +548,7 @@ public fun CharSequence.mapCharacters(transform: (String) -> CharSequence): Stri
             offset += length
             transform(CodePoint(codePoint).string)
         }
-    }.joinToString("")
+    }.joinLinesToString("")
 }
 
 /**
@@ -562,7 +562,7 @@ public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence
             offset += length
             CodePoint(codePoint).string.ansi.transform()
         }
-    }.joinToString("")
+    }.joinLinesToString("")
 }
 
 /**
@@ -578,5 +578,5 @@ public fun CharSequence.toLiteralRegex(): Regex {
             offset += length
             CodePoint(codePoint).toLiteralRegex()
         }
-    }.joinToString("").toRegex()
+    }.joinLinesToString("").toRegex()
 }

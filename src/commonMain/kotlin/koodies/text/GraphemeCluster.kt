@@ -48,7 +48,7 @@ public value class GraphemeCluster private constructor(public val codePoints: Li
                 if (isEmoji) {
                     if (codePoint.isWhitespace) isEmoji = false
                 } else {
-                    if (codePoint == Unicode.zeroWidthJoiner.codePoint) isEmoji = true
+                    if (codePoint == Unicode.ZERO_WIDTH_JOINER.codePoint) isEmoji = true
                 }
 
                 if (isEmoji || TextWidth.calculateWidth(graphemeCluster) <= maxWidth) {

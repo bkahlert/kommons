@@ -20,6 +20,7 @@ import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
+import koodies.text.joinLinesToString
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toByteArray
@@ -38,7 +39,7 @@ import strikt.java.isExecutable
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.ESCAPE as e
 
 class ShellScriptTest {
 
@@ -284,7 +285,7 @@ class ShellScriptTest {
 
                 expect {
                     that(exec.exitCodeOrNull).isEqualTo(0)
-                    that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinToString(LF))
+                    that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                         .matchesCurlyPattern("""
                         about to run embedded script
                         ░░░░░░░ EMBEDDED SCRIPT 📝

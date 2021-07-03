@@ -20,4 +20,4 @@ public fun ByteArray.decodeToValidString(charset: Charset = Charsets.UTF_8): Str
 }
 
 public val CharSequence.endsWithReplacementCharacter: Boolean
-    get() = this.endsWith(Unicode.replacementCharacter)
+    get() = this.endsWith(Unicode.REPLACEMENT_CHARACTER)

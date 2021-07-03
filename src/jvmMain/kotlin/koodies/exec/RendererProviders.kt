@@ -84,7 +84,7 @@ public object RendererProviders {
                 else null
             },
             decorationFormatter = { "" },
-            returnValueFormatter = {
+            returnValueTransform = {
                 it.takeUnless { it.successful }
             },
             blockStyle = ::None,

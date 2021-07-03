@@ -6,7 +6,7 @@ import koodies.builder.context.ListBuildingContext
 import koodies.regex.get
 import koodies.shell.HereDoc.Companion.HereDocContext
 import koodies.text.CharRanges
-import koodies.text.LineSeparators
+import koodies.text.joinLinesToString
 import koodies.text.randomString
 import koodies.text.singleQuoted
 
@@ -45,7 +45,7 @@ public class HereDoc(
         "<<${delimiter.takeIf { substituteParameters } ?: delimiter.singleQuoted}",
         *commands,
         delimiter,
-    ).joinToString(LineSeparators.DEFAULT)
+    ).joinLinesToString()
 
     override val length: Int = rendered.length
     override fun get(index: Int): Char = rendered[index]

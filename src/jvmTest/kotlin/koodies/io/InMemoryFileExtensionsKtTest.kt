@@ -9,7 +9,6 @@ import koodies.test.SvgFixture
 import koodies.test.expecting
 import koodies.test.withTempDir
 import koodies.text.containsAnsi
-import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.assertions.endsWith
@@ -71,7 +70,7 @@ class InMemoryFileExtensionsKtTest {
     }
 
     @Slow @Test
-    fun TestSpan.`should create ASCII art`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should create ASCII art`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val asciiArt = SvgFixture.toAsciiArt()
         expecting { asciiArt } that {
             containsAnsi()

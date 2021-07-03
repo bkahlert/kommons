@@ -9,7 +9,7 @@ import koodies.text.mapCodePoints
 import koodies.text.unicodeName
 
 /**
- * Replaces control (e.g. [Unicode.escape], surrogate (e.g. `\ubd00`) and whitespace (e.g. [Unicode.lineFeed]) characters
+ * Replaces control (e.g. [Unicode.ESCAPE], surrogate (e.g. `\ubd00`) and whitespace (e.g. [Unicode.LINE_FEED]) characters
  * with a visual representation or, if unavailable, with their written Unicode name.
  */
 public fun String.replaceNonPrintableCharacters(): String {

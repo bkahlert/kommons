@@ -42,7 +42,7 @@ public class OneLineRenderer(
 
     override fun <R> end(result: Result<R>) {
         ReturnValue.of(result)
-            .let { settings.oneLineStyle.end(it, settings.returnValueFormatter, settings.decorationFormatter) }
+            .let { settings.oneLineStyle.end(it, settings.returnValueTransform, settings.decorationFormatter) }
             ?.also { messages.add(it) }
 
         messages.takeUnless { it.isEmpty() }

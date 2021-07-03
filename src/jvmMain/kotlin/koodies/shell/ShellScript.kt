@@ -17,6 +17,7 @@ import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.columns
+import koodies.text.joinLinesToString
 import koodies.text.quoted
 import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
@@ -342,7 +343,7 @@ public open class ShellScript(
         public operator fun invoke(name: String?, init: ScriptInit): ShellScript {
             val lines = mutableListOf<String>()
             val trailingContent = ScriptContext(lines).init()
-            return ShellScript(name, (lines + trailingContent.toString()).joinToString(LF))
+            return ShellScript(name, (lines + trailingContent.toString()).joinLinesToString())
         }
 
         /**

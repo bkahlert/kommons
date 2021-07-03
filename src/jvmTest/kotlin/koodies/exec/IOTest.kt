@@ -7,8 +7,9 @@ import koodies.exec.IO.Meta.Dump
 import koodies.exec.IO.Meta.Text
 import koodies.exec.IO.Output
 import koodies.test.toStringIsEqualTo
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
-import koodies.text.Unicode.characterTabulation
+import koodies.text.Unicode.TAB
 import koodies.text.containsAnsi
 import koodies.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
@@ -31,13 +32,8 @@ class IOTest {
             private val meta = Text(text)
 
             @Test
-            fun `should have original text`() {
+            fun `should have text`() {
                 expectThat(meta.text).toStringIsEqualTo(text)
-            }
-
-            @Test
-            fun `should have formatted text`() {
-                expectThat(meta).containsAnsi().toStringIsEqualTo(text)
             }
 
             @Test
@@ -53,13 +49,8 @@ class IOTest {
             private val meta = Dump(dump)
 
             @Test
-            fun `should have original text`() {
+            fun `should have text`() {
                 expectThat(meta.text).toStringIsEqualTo(dump)
-            }
-
-            @Test
-            fun `should have formatted text`() {
-                expectThat(meta).containsAnsi().toStringIsEqualTo(dump)
             }
 
             @Test
@@ -75,13 +66,8 @@ class IOTest {
         private val `in` = Input typed "in"
 
         @Test
-        fun `should have original text`() {
+        fun `should have text`() {
             expectThat(`in`.text).toStringIsEqualTo("in")
-        }
-
-        @Test
-        fun `should have formatted text`() {
-            expectThat(`in`).containsAnsi().toStringIsEqualTo("in")
         }
     }
 
@@ -91,13 +77,8 @@ class IOTest {
         private val out = Output typed "out"
 
         @Test
-        fun `should have original text`() {
+        fun `should have text`() {
             expectThat(out.text).toStringIsEqualTo("out")
-        }
-
-        @Test
-        fun `should have formatted text`() {
-            expectThat(out).containsAnsi().toStringIsEqualTo("out")
         }
     }
 
@@ -107,19 +88,10 @@ class IOTest {
         private val err = Error(RuntimeException("err"))
 
         @Test
-        fun `should have plain stacktrace`() {
+        fun `should have stacktrace`() {
             expectThat(err.text).toStringMatchesCurlyPattern("""
                 {}.RuntimeException: err
-                ${characterTabulation}at koodies.{}
-                {{}}
-            """.trimIndent())
-        }
-
-        @Test
-        fun `should have formatted stacktrace`() {
-            expectThat(err).containsAnsi().toStringMatchesCurlyPattern("""
-                {}.RuntimeException: err
-                ${characterTabulation}at koodies.{}
+                ${TAB}at koodies.{}
                 {{}}
             """.trimIndent())
         }
@@ -178,8 +150,8 @@ class IOTest {
         val IO_LIST: IOSequence<IO> = IOSequence(
             Text("text"),
             Dump("dump"),
-            Input typed "in",
-            Output typed "out",
+            Input typed "in".ansi.blue,
+            Output typed "out".ansi.yellow,
             Error(RuntimeException("err")),
         )
     }

@@ -21,13 +21,14 @@ import koodies.text.AnsiCodeHelper.unclosedCodes
 import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.mapLines
 import koodies.text.Semantics.formattedAs
+import kotlin.jvm.JvmInline
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.random.Random.Default.nextDouble
-import koodies.text.Unicode.controlSequenceIntroducer as c
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.CONTROL_SEQUENCE_INTRODUCER as c
+import koodies.text.Unicode.ESCAPE as e
 import kotlin.text.contains as containsNonAnsiAware
 
 /**
@@ -990,7 +991,20 @@ private object AnsiStringCache {
     }
 }
 
-public typealias Token = Pair<CharSequence, Int>
+@JvmInline
+public value class Token private constructor(private val token: Pair<CharSequence, Int>) {
+    public val content: CharSequence get() = token.first
+    public val logicalLength: Int get() = token.second
+    public val isEscapeSequence: Boolean get() = logicalLength == 0
+
+    public operator fun component1(): CharSequence = content
+    public operator fun component2(): Int = logicalLength
+
+    public companion object {
+        public fun escapeSequence(text: CharSequence): Token = Token(text to 0)
+        public fun text(text: CharSequence): Token = Token(text to text.length)
+    }
+}
 
 private object TokenizationCache {
     private val cache = mutableMapOf<Int, AnsiString>()
@@ -1009,7 +1023,7 @@ private object TokenizationCache {
  * - [subSequence] returns the same character sequence as an unformatted [String] would do—but with the formatting ANSI escape sequences intact.
  * the sub sequence. Also escape sequences are ignored from [length].
  */
-public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
+public open class AnsiString(internal val tokens: Array<out Token> = emptyArray()) : CharSequence {
 
     public companion object {
         public val EMPTY: AnsiString = AnsiString()
@@ -1030,7 +1044,7 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
                         codes.addAll(currentCodes)
                         consumed += it.length
                     }
-                    if (escapeSequence.isNotEmpty()) tokens.add(escapeSequence to 0)
+                    if (escapeSequence.isNotEmpty()) tokens.add(Token.escapeSequence(escapeSequence))
                 } else {
                     val first: Int? = range?.first
                     val ansiAhead = if (first != null) {
@@ -1039,7 +1053,7 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
                     val ansiCodeXFreeString = subSequence(consumed, if (ansiAhead) first!! else length).also {
                         consumed += it.length
                     }
-                    tokens.add(ansiCodeXFreeString to ansiCodeXFreeString.length)
+                    tokens.add(Token.text(ansiCodeXFreeString))
                 }
             }
             AnsiString(*tokens.toTypedArray())
@@ -1048,27 +1062,27 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
         private val subSequenceCache = mutableMapOf<Pair<Int, Pair<Int, Int>>, String>()
     }
 
-    public val containsAnsi: Boolean = tokens.any { it.second == 0 }
+    public val containsAnsi: Boolean = tokens.any { it.isEscapeSequence }
 
-    public val ansiLength: Int get():Int = tokens.sumOf { it.second }
+    public val ansiLength: Int get():Int = tokens.sumOf { it.logicalLength }
 
     /**
      * Contains this [string] with all ANSI escape sequences removed.
      */
     @Suppress("SpellCheckingInspection")
-    public val unformatted: String by lazy { tokens.filter { it.second != 0 }.joinToString("") { it.first } }
+    public val ansiRemoved: String by lazy { tokens.filter { !it.isEscapeSequence }.joinToString("") { it.content } }
 
     /**
      * Returns the logical length of this string. That is, the same length as the unformatted [String] would return.
      */
-    override val length: Int by lazy { unformatted.length }
+    override val length: Int by lazy { ansiRemoved.length }
 
     /**
-     * Returns the unformatted char at the specified [index].
+     * Returns the plain char at the specified [index].
      *
      * Due to the limitation of a [Char] to two byte no formatted [Char] can be returned.
      */
-    override fun get(index: Int): Char = unformatted[index]
+    override fun get(index: Int): Char = ansiRemoved[index]
 
     /**
      * Returns the same character sequence as an unformatted [String.subSequence] would do.
@@ -1097,18 +1111,18 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
         val codes = mutableListOf<Int>()
         val sb = StringBuilder()
 
-        tokens.forEach { (token, tokenLength) ->
+        tokens.forEach { (content, logicalLength) ->
             val needed = endIndex - read
-            if (needed > 0 && tokenLength == 0) {
-                sb.append(token)
-                codes.addAll(token.parseAnsiCodesAsSequence())
+            if (needed > 0 && logicalLength == 0) {
+                sb.append(content)
+                codes.addAll(content.parseAnsiCodesAsSequence())
             } else {
-                if (needed <= tokenLength) {
-                    sb.append(token.subSequence(0, needed))
+                if (needed <= logicalLength) {
+                    sb.append(content.subSequence(0, needed))
                     return@ansiSubSequence "$sb" + closingControlSequence(codes) to unclosedCodes(codes)
                 }
-                sb.append(token)
-                read += tokenLength
+                sb.append(content)
+                read += logicalLength
             }
         }
         error("must not happen")
@@ -1118,17 +1132,17 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
      * Whether this [text] (ignoring eventually existing ANSI escape sequences)
      * is blank (≝ is empty or consists of nothing but whitespaces).
      */
-    public fun isBlank(): Boolean = unformatted.isBlank()
+    public fun isBlank(): Boolean = ansiRemoved.isBlank()
 
     /**
      * Whether this [text] (ignoring eventually existing ANSI escape sequences)
      * is not blank (≝ is not empty and consists of at least one non-whitespace).
      */
-    public fun isNotBlank(): Boolean = unformatted.isNotBlank()
+    public fun isNotBlank(): Boolean = ansiRemoved.isNotBlank()
 
     public fun toString(removeAnsi: Boolean = false): String =
-        if (!removeAnsi) tokens.joinToString("") { it.first }
-        else tokens.filter { it.second != 0 }.joinToString("") { it.first }
+        if (!removeAnsi) tokens.joinToString("") { it.content }
+        else tokens.filter { !it.isEscapeSequence }.joinToString("") { it.content }
 
     override fun toString(): String = toString(false)
 
@@ -1198,7 +1212,7 @@ public open class AnsiString(internal vararg val tokens: Token) : CharSequence {
 
     public operator fun plus(other: CharSequence): AnsiString {
         val otherTokens = if (other is AnsiString) other.tokens else other.toString().tokenize().tokens
-        return AnsiString(*tokens, *otherTokens)
+        return AnsiString(arrayOf(*tokens, *otherTokens))
     }
 
     override fun equals(other: Any?): Boolean {

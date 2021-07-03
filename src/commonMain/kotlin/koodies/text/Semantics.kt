@@ -17,12 +17,12 @@ public object Semantics {
     }
 
     public object Symbols {
-        public val OK: String = Unicode.Emojis.heavyCheckMark.textVariant.formattedAs.success
+        public val OK: String = Unicode.Emojis.HEAVY_CHECK_MARK.textVariant.formattedAs.success
         public val Negative: String = Unicode.BoxDrawings.HeavyHorizontal.formattedAs.error
-        public val Computation: String = Unicode.Emojis.hourglassWithFlowingSand.emojiVariant.formattedAs.progress
-        public val Error: String = Unicode.greekSmallLetterKoppa.toString().ansi.bold.formattedAs.error
-        public val PointNext: String = Unicode.Emojis.heavyRoundTippedRightwardsArrow.formattedAs.meta
-        public val Document: String = Unicode.Emojis.pageFacingUp.toString()
+        public val Computation: String = Unicode.Emojis.HOURGLASS_WITH_FLOWING_SAND.emojiVariant.formattedAs.progress
+        public val Error: String = Unicode.GREEK_SMALL_LETTER_KOPPA.toString().ansi.bold.formattedAs.error
+        public val PointNext: String = Unicode.Emojis.HEAVY_ROUND_TIPPED_RIGHTWARDS_ARROW.formattedAs.meta
+        public val Document: String = Unicode.Emojis.PAGE_FACING_UP.toString()
         public val Null: String = "␀".formattedAs.warning
         public val Unknown: String = "❓"
     }
@@ -96,9 +96,9 @@ public object Semantics {
 
         /**
          * Delimiter to delimit fields.
-         * @see Unicode.tripleVerticalBarDelimiter
+         * @see Unicode.TRIPLE_VERTICAL_BAR_DELIMITER
          */
-        public val FIELD: String = Unicode.tripleVerticalBarDelimiter.formattedAs.meta
+        public val FIELD: String = Unicode.TRIPLE_VERTICAL_BAR_DELIMITER.formattedAs.meta
     }
 
     public object BlockDelimiters {

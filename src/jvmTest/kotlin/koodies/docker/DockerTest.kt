@@ -142,9 +142,9 @@ class DockerTest {
         @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
         fun `should run using well-known images`(uniqueId: UniqueId) = testEach<Path.(String) -> Exec>(
             { fileName -> ubuntu("cat", fileName) },
-            { fileName -> ubuntu() { "cat $fileName" } },
+            { fileName -> ubuntu { "cat $fileName" } },
             { fileName -> busybox("cat", fileName) },
-            { fileName -> busybox() { "cat $fileName" } },
+            { fileName -> busybox { "cat $fileName" } },
         ) { exec ->
             withHtmlFile(uniqueId) { name ->
                 expecting { exec(name) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }

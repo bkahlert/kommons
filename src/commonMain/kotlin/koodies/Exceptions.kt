@@ -1,12 +1,12 @@
 package koodies
 
-import koodies.text.LineSeparators.LF
+import koodies.text.joinLinesToString
 
 private fun <T : Throwable> Array<out String>.letMessage(init: (String) -> T): T? =
-    if (isNotEmpty()) init(joinToString(LF)) else null
+    if (isNotEmpty()) init(joinLinesToString()) else null
 
 private fun <T : Throwable> Collection<String>.letMessage(init: (String) -> T): T? =
-    if (isNotEmpty()) init(joinToString(LF)) else null
+    if (isNotEmpty()) init(joinLinesToString()) else null
 
 /**
  * Collection of [Throwable] factories.

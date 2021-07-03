@@ -1,6 +1,6 @@
 package koodies.tracing.rendering
 
-import koodies.text.LineSeparators
+import koodies.text.joinLinesToString
 import koodies.text.truncateByColumns
 
 /**
@@ -39,7 +39,7 @@ public interface Renderable : CharSequence {
                     lineSequence()
                         .let { if (rows != null) it.take(rows) else it }
                         .let { if (columns != null) it.map { line -> line.truncateByColumns(columns) } else it }
-                        .joinToString(LineSeparators.DEFAULT)
+                        .joinLinesToString()
                 }
                 else -> NULL
             }

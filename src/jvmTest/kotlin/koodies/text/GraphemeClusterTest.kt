@@ -15,7 +15,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.last
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.ESCAPE as e
 
 class GraphemeClusterTest {
 
@@ -39,14 +39,14 @@ class GraphemeClusterTest {
                 hasSize(1)
                 first().get { codePoints } and {
                     hasSize(1)
-                    first().isEqualTo(Unicode.escape.codePoint)
+                    first().isEqualTo(Unicode.ESCAPE.codePoint)
                 }
             }
             expecting { "${e}M".fn() } that {
                 hasSize(2)
                 first().get { codePoints } and {
                     hasSize(1)
-                    first().isEqualTo(Unicode.escape.codePoint)
+                    first().isEqualTo(Unicode.ESCAPE.codePoint)
                 }
                 last().get { codePoints } and {
                     hasSize(1)

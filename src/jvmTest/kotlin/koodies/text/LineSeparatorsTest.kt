@@ -53,7 +53,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNullOrEmpty
 import strikt.assertions.isTrue
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.ESCAPE as e
 
 class LineSeparatorsTest {
 

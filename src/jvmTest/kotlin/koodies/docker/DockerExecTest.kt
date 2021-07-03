@@ -54,7 +54,7 @@ class DockerExecTest {
         dockerExec.waitForOutputOrFail(
             "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
             "Did not log \"test\" output within 8 seconds.") {
-            any { it is Output && it.unformatted == "test" }
+            any { it is Output && it.ansiRemoved == "test" }
         }
     }
 
@@ -67,7 +67,7 @@ class DockerExecTest {
             dockerExec.waitForOutputOrFail(
                 "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
                 "Did not log \"test\" output within 8 seconds.") {
-                any { it is Output && it.unformatted == "test" }
+                any { it is Output && it.ansiRemoved == "test" }
             }
         }
 
@@ -105,7 +105,7 @@ class DockerExecTest {
                 if (it !is IO.Meta) {
                     if (times < 3) {
                         times++
-                        enter("test ${it.unformatted.last().toString().toInt() * 2}")
+                        enter("test ${it.ansiRemoved.last().toString().toInt() * 2}")
                     } else {
                         inputStream.close()
                     }

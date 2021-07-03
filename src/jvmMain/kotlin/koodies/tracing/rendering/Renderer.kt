@@ -97,5 +97,3 @@ public interface Renderer {
         }
     }
 }
-
-public typealias RendererProvider = Settings.((default: Settings) -> Renderer) -> Renderer

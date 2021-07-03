@@ -12,6 +12,7 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.fuzzyLevenshteinDistance
+import koodies.text.joinLinesToString
 import koodies.time.seconds
 import koodies.times
 import koodies.unit.bytes
@@ -126,7 +127,7 @@ abstract class SharedReaderTest(val readerFactory: (InputStream, Duration) -> Re
 
             kotlin.runCatching {
                 val readLines = reader.readLines()
-                expectThat(readLines.joinToString(LF)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+                expectThat(readLines.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
             }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
         }
     }

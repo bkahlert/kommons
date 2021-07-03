@@ -8,6 +8,7 @@ import koodies.junit.UniqueId
 import koodies.jvm.daemon
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
 import koodies.text.ansiRemoved
 import koodies.text.containsAnsi
@@ -123,7 +124,7 @@ class IOLogTest {
 
 fun createIOLog(): IOLog = IOLog().apply {
     output + "processing$LF".toByteArray()
-    output + "awaiting input: $LF".toByteArray()
+    output + "${"awaiting input:".ansi.blue} $LF".toByteArray()
     input + "cancel$LF".toByteArray()
     error + "invalid input$LF".toByteArray()
     error + "an abnormal error has occurred (errno 99)$LF".toByteArray()

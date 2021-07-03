@@ -18,7 +18,7 @@ import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import koodies.text.Unicode.escape as e
+import koodies.text.Unicode.ESCAPE as e
 
 class ANSITest {
 
@@ -170,12 +170,12 @@ class ANSITest {
 
         @Test
         fun `should colorize random`() {
-            expectThat("random".ansi.random).toStringIsEqualTo("random").get { filter { it == Unicode.escape }.count() }.isEqualTo(2)
+            expectThat("random".ansi.random).toStringIsEqualTo("random").get { filter { it == Unicode.ESCAPE }.count() }.isEqualTo(2)
         }
 
         @Test
         fun `should colorize each character`() {
-            expectThat("colorized".colorize()).toStringIsEqualTo("colorized").get { filter { it == Unicode.escape }.count() }.isEqualTo(18)
+            expectThat("colorized".colorize()).toStringIsEqualTo("colorized").get { filter { it == Unicode.ESCAPE }.count() }.isEqualTo(18)
         }
     }
 
