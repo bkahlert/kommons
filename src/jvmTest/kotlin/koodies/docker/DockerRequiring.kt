@@ -9,6 +9,9 @@ import koodies.test.Slow
 import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import koodies.text.quoted
+import koodies.tracing.rendering.BackgroundPrinter
+import koodies.tracing.rendering.BlockStyles.None
+import koodies.tracing.rendering.spanningLine
 import koodies.tracing.spanning
 import koodies.tracing.tracing
 import org.junit.jupiter.api.Timeout
@@ -61,35 +64,36 @@ enum class CleanUpMode {
 class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParameterResolver<DockerContainer>() {
 
     override fun beforeEach(context: ExtensionContext) = with(context) {
-        pullRequiredImages()
+        spanning("Checking for required images and running containers", blockStyle = None, printer = BackgroundPrinter) {
+            pullRequiredImages()
 
-        with(context.uniqueContainer()) {
-            if (containerState is Running) {
-                tracing {
+            with(context.uniqueContainer()) {
+                if (containerState is Running) {
                     log("Container $name is (still) running and will be removed forcibly.")
+                    remove(force = true)
                 }
-                remove(force = true)
             }
         }
     }
 
     override fun afterEach(context: ExtensionContext) = with(context) {
-
-        with(uniqueContainer()) {
-            when (withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
-                ThanksForCleaningUp -> {
-                    if (containerState is Running) remove(force = true)
-                }
-                FailAndKill -> {
-                    check(containerState !is Running) {
-                        remove(true)
-                        "Container $name was still running and had to be removed forcibly."
+        spanning("Cleaning up", blockStyle = None, printer = BackgroundPrinter) {
+            with(uniqueContainer()) {
+                when (withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
+                    ThanksForCleaningUp -> {
+                        if (containerState is Running) remove(force = true)
                     }
-                }
-                else -> {
-                    if (containerState is Running) {
-                        tracing {
-                            log("Container $name is still running… just saying".formattedAs.debug)
+                    FailAndKill -> {
+                        check(containerState !is Running) {
+                            remove(true)
+                            "Container $name was still running and had to be removed forcibly."
+                        }
+                    }
+                    else -> {
+                        if (containerState is Running) {
+                            tracing {
+                                log("Container $name is still running… just saying".formattedAs.debug)
+                            }
                         }
                     }
                 }
@@ -103,7 +107,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
     private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId)
 
     private fun ExtensionContext.pullRequiredImages() =
-        spanning("Pulling required images") {
+        spanningLine("Pulling required images") {
             val missing = requiredDockerImages() subtract DockerImage.list()
             missing.forEach { it.pull() }
         }

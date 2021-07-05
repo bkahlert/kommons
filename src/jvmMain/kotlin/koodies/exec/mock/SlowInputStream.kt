@@ -9,6 +9,7 @@ import koodies.time.seconds
 import koodies.time.sleep
 import koodies.tracing.CurrentSpan
 import koodies.tracing.rendering.spanningLine
+import koodies.tracing.spanId
 import koodies.tracing.spanning
 import koodies.unit.bytes
 import koodies.unit.milli
@@ -58,132 +59,126 @@ public class SlowInputStream(
     private val blockedByPrompt get() = unread.isNotEmpty() && unread.first().first == Duration.INFINITE
 
     private val inputs = mutableListOf<String>()
-    public fun processInput(): Boolean = parentSpan.makeCurrent().use {
-        spanningLine("✏️ processing input") {
-            byteArrayOutputStream?.apply {
-                toString(Charsets.UTF_8).takeUnlessEmpty()?.let { newInput ->
-                    inputs.add(newInput)
-                    log("new input added; buffer is $inputs")
-                    reset()
-                }
+    public fun processInput(): Boolean = parentSpan.spanningWithDisabledPrinterOnIllegalSpan("✏️ processing input") {
+        byteArrayOutputStream?.apply {
+            toString(Charsets.UTF_8).takeUnlessEmpty()?.let { newInput ->
+                inputs.add(newInput)
+                log("new input added; buffer is $inputs")
+                reset()
             }
-            if (inputs.isNotEmpty()) {
-                if (blockedByPrompt) {
-                    val input = inputs.first()
-                    log(input.debug)
-                    if (echoInput) unread[0] = Duration.ZERO to input.map { it.code.toByte() }.toMutableList()
-                    else unread.removeFirst()
-                    log("unblocked prompt")
-                }
-            } else {
-                if (blockedByPrompt) {
-                    log("blocked by prompt")
-                } else {
-                    log("no input and no prompt")
-                }
-            }
-            blockedByPrompt
         }
+        if (inputs.isNotEmpty()) {
+            if (blockedByPrompt) {
+                val input = inputs.first()
+                log(input.debug)
+                if (echoInput) unread[0] = Duration.ZERO to input.map { it.code.toByte() }.toMutableList()
+                else unread.removeFirst()
+                log("unblocked prompt")
+            }
+        } else {
+            if (blockedByPrompt) {
+                log("blocked by prompt")
+            } else {
+                log("no input and no prompt")
+            }
+        }
+        blockedByPrompt
     }
 
     private fun handleAndReturnBlockingState(): Boolean = processInput()
 
-    override fun available(): Int = parentSpan.makeCurrent().use {
-        spanningLine("available") {
-            if (closed) {
-                throw IOException("Closed.")
-            }
-
-            if (handleAndReturnBlockingState()) {
-                log("prompt is blocking")
-                fiftyMillis.sleep()
-                return@spanningLine 0
-            }
-            val yetBlocked = blockUntil - System.currentTimeMillis()
-            if (yetBlocked > 0) {
-                val delay = yetBlocked.milli.seconds
-                log("$delay to wait for next chunk")
-                ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
-                return@spanningLine 0
-            }
-            if (terminated) {
-                log("Backing buffer is depleted ➜ EOF reached.")
-                return@spanningLine 0
-            }
-
-            val currentDelayedWord = unread.first()
-            if (currentDelayedWord.first > Duration.ZERO) {
-                val delay = currentDelayedWord.first
-                blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
-                unread[0] = Duration.ZERO to currentDelayedWord.second
-                log("$delay to wait for next chunk (just started)")
-                ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
-                return@spanningLine 0
-            }
-
-            currentDelayedWord.second.size
+    override fun available(): Int = parentSpan.spanningWithDisabledPrinterOnIllegalSpan("available") {
+        if (closed) {
+            throw IOException("Closed.")
         }
+
+        if (handleAndReturnBlockingState()) {
+            log("prompt is blocking")
+            fiftyMillis.sleep()
+            return@spanningWithDisabledPrinterOnIllegalSpan 0
+        }
+        val yetBlocked = blockUntil - System.currentTimeMillis()
+        if (yetBlocked > 0) {
+            val delay = yetBlocked.milli.seconds
+            log("$delay to wait for next chunk")
+            ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
+            return@spanningWithDisabledPrinterOnIllegalSpan 0
+        }
+        if (terminated) {
+            log("Backing buffer is depleted ➜ EOF reached.")
+            return@spanningWithDisabledPrinterOnIllegalSpan 0
+        }
+
+        val currentDelayedWord = unread.first()
+        if (currentDelayedWord.first > Duration.ZERO) {
+            val delay = currentDelayedWord.first
+            blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
+            unread[0] = Duration.ZERO to currentDelayedWord.second
+            log("$delay to wait for next chunk (just started)")
+            ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
+            return@spanningWithDisabledPrinterOnIllegalSpan 0
+        }
+
+        currentDelayedWord.second.size
     }
 
-    override fun read(): Int = parentSpan.makeCurrent().use {
-        spanningLine("read") {
-            if (closed) {
-                throw IOException("Closed.")
-            }
-
-            while (handleAndReturnBlockingState()) {
-                log("prompt is blocking")
-                fiftyMillis.sleep()
-            }
-
-            log("${unreadCount.bytes.formattedAs.debug} unread")
-
-            if (terminated) {
-                log("Backing buffer is depleted ➜ EOF reached.")
-                return@spanningLine -1
-            }
-
-            val yetBlocked = blockUntil - System.currentTimeMillis()
-            if (yetBlocked > 0) {
-                log("blocking for the remaining ${yetBlocked.milli.seconds}…")
-                yetBlocked.milli.seconds.sleep()
-            }
-
-            val currentWord: MutableList<Byte> = unread.let {
-                val currentLine: Pair<Duration, MutableList<Byte>> = it.first()
-                val delay = currentLine.first
-                if (delay > Duration.ZERO) {
-                    log("output delayed by $delay…")
-                    delay.sleep()
-                    unread[0] = Duration.ZERO to currentLine.second
-                }
-                currentLine.second
-            }
-            log("available:${currentWord.debug.formattedAs.debug}")
-            val currentByte = currentWord.removeFirst()
-            log("current:${currentByte.debug.formattedAs.debug}")
-
-            if (currentWord.isEmpty()) {
-                unread.removeFirst()
-                val delay = baseDelayPerInput
-                blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
-                log("— empty; waiting time for next chunk is $baseDelayPerInput")
-                ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
-            }
-            currentByte.toInt()
+    override fun read(): Int = parentSpan.spanningWithDisabledPrinterOnIllegalSpan("read") {
+        if (closed) {
+            throw IOException("Closed.")
         }
+
+        while (handleAndReturnBlockingState()) {
+            log("prompt is blocking")
+            fiftyMillis.sleep()
+        }
+
+        log("${unreadCount.bytes.formattedAs.debug} unread")
+
+        if (terminated) {
+            log("Backing buffer is depleted ➜ EOF reached.")
+            return@spanningWithDisabledPrinterOnIllegalSpan -1
+        }
+
+        val yetBlocked = blockUntil - System.currentTimeMillis()
+        if (yetBlocked > 0) {
+            log("blocking for the remaining ${yetBlocked.milli.seconds}…")
+            yetBlocked.milli.seconds.sleep()
+        }
+
+        val currentWord: MutableList<Byte> = unread.let {
+            val currentLine: Pair<Duration, MutableList<Byte>> = it.first()
+            val delay = currentLine.first
+            if (delay > Duration.ZERO) {
+                log("output delayed by $delay…")
+                delay.sleep()
+                unread[0] = Duration.ZERO to currentLine.second
+            }
+            currentLine.second
+        }
+        log("available:${currentWord.debug.formattedAs.debug}")
+        val currentByte = currentWord.removeFirst()
+        log("current:${currentByte.debug.formattedAs.debug}")
+
+        if (currentWord.isEmpty()) {
+            unread.removeFirst()
+            val delay = baseDelayPerInput
+            blockUntil = System.currentTimeMillis() + delay.inWholeMilliseconds
+            log("empty".formattedAs.warning + " waiting time for next chunk is $baseDelayPerInput")
+            ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
+        }
+        currentByte.toInt()
     }
 
     /**
      * Tries to behave exactly like [BufferedInputStream.read].
      */
     private fun read1(b: ByteArray, off: Int, len: Int): Int {
-        val avail = available()
-        val cnt = if (avail < len) avail else len
-        (0 until cnt).map { i ->
+        val available = available()
+        val count = if (available < len) available else len
+        (0 until count).map { i ->
             b[off + i] = read().toByte()
         }
-        return cnt
+        return count
     }
 
     override fun read(b: ByteArray, off: Int, len: Int): Int {
@@ -221,3 +216,10 @@ public class SlowInputStream(
 
     override fun toString(): String = "${unreadCount.bytes} left"
 }
+
+private fun <R> Span?.spanningWithDisabledPrinterOnIllegalSpan(name: String, block: CurrentSpan.() -> R): R =
+    this?.takeIf { it.spanId.valid }?.makeCurrent()?.use {
+        spanningLine(name, block = block)
+    } ?: Span.getInvalid().makeCurrent().use {
+        spanningLine(name, printer = {}, block = block)
+    }

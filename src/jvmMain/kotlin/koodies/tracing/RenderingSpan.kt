@@ -18,11 +18,9 @@ import koodies.tracing.rendering.BlockStyle
 import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.Printer
-import koodies.tracing.rendering.Renderable
 import koodies.tracing.rendering.RenderableAttributes
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.RendererProvider
-import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.Style
@@ -80,10 +78,7 @@ internal fun Span.renderingChildSpan(
         linkedRenderersLock.withLock {
             linkedRenderer.let(rendererProvider)
                 .also { span.linkRenderer(it) }
-                .also {
-                    val renderableName = Renderable.of(attributes.firstOrNull { (key) -> key == RenderingAttributes.NAME.renderingKey }?.renderingValue ?: name)
-                    it.start(span.traceId, span.spanId, renderableName)
-                }
+                .also { it.start(span.traceId, span.spanId, name) }
         }
     } else {
         run { BlockRenderer(Settings(blockStyle = None)) }

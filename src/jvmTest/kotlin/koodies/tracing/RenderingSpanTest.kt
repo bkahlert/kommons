@@ -14,7 +14,6 @@ import koodies.junit.TestName
 import koodies.test.testEach
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
-import koodies.tracing.Key.KeyValue
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import koodies.tracing.rendering.RenderableAttributes
 import koodies.tracing.rendering.Renderer
@@ -45,12 +44,7 @@ class RenderingSpanTest {
 
     @TestFactory
     fun event(testName: TestName) = testEach<RenderingSpan.(String) -> Unit>(
-        {
-            event(object : Event {
-                override val name: CharSequence = it
-                override val attributes: List<KeyValue<*, *>> = emptyList()
-            })
-        },
+        { event(Event.of(it)) },
         { event(it) },
         { addEvent(it) },
         { addEvent(it, 0L, SECONDS) },

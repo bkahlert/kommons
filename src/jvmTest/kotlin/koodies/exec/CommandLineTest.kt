@@ -1,8 +1,6 @@
 package koodies.exec
 
 import koodies.io.Locations
-import koodies.io.path.asPath
-import koodies.io.path.hasContent
 import koodies.shell.ShellScript
 import koodies.test.string
 import koodies.test.testEach
@@ -21,7 +19,6 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
-import strikt.java.exists
 
 class CommandLineTest {
 
@@ -294,29 +291,14 @@ class CommandLineTest {
     }
 
     @Nested
-    inner class Rendering {
+    inner class Content {
 
         @Test
-        fun `should provide summary`() {
+        fun `should provide content`() {
             expectThat(CommandLine(
                 "!ls", "-lisa",
                 "!mkdir", "-p", "/shared",
-            ).summary).matchesCurlyPattern("!ls -lisa !mkdir -p /shared")
-        }
-
-        @Test
-        fun `should provide url if summary is too long`() {
-            expectThat(CommandLine(
-                "!ls", "-lisa",
-                "!mkdir", "-p", "/shared",
-            ).summary.render(10, 1))
-                .get { asPath() }
-                .exists()
-                .hasContent("""
-                    #!/bin/sh
-                    '!ls' '-lisa' '!mkdir' '-p' '/shared'
-                    
-                """.trimIndent())
+            ).content).matchesCurlyPattern("!ls -lisa !mkdir -p /shared")
         }
     }
 }

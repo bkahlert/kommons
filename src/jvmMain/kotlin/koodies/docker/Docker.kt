@@ -2,14 +2,14 @@ package koodies.docker
 
 import koodies.docker.Docker.info.get
 import koodies.docker.DockerExitStateHandler.Failed
-import koodies.docker.DockerSearchCommandLine.DockerSeachResult
+import koodies.docker.DockerSearchCommandLine.DockerSearchResult
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.ProcessingMode.Interactivity.Interactive
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
-import koodies.exec.RendererProviders
+import koodies.exec.RendererProviders.noDetails
 import koodies.exec.parse
 import koodies.exec.successful
 import koodies.io.path.deleteRecursively
@@ -22,8 +22,6 @@ import koodies.or
 import koodies.regex.RegularExpressions
 import koodies.shell.ShellScript
 import koodies.shell.ShellScript.ScriptContext
-import koodies.text.Semantics
-import koodies.text.Semantics.formattedAs
 import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
 import koodies.tracing.rendering.RendererProvider
@@ -62,34 +60,19 @@ public object Docker {
          * - `info["server.server-version"]`
          * - `info["server", "server-version"]`
          */
-        public operator fun get(vararg keys: String): String? = RendererProviders.noDetails().get(*keys)
-
-        /**
-         * Returns the information identified by the given [keys].
-         *
-         * The [keys] can either be an array of keys,
-         * or a single string consisting of `.` separated keys.
-         *
-         * Each key is expected to be in `kebab-case`.
-         *
-         * Examples:
-         * - `info["server.server-version"]`
-         * - `info["server", "server-version"]`
-         */
-        public operator fun RendererProvider.get(vararg keys: String): String? =
+        public operator fun get(vararg keys: String): String? =
             with(keys.flatMap { it.split(".") }.map { it.unify() }.toMutableList()) {
-                DockerInfoCommandLine {}.exec.logging(
-                    nameOverride = "Querying info ${joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input }}",
-                    renderer = this@get,
-                ).parse.columns<String, Failed>(1) { (line) ->
-                    if (isNotEmpty() && line.substringBefore(":").unify() == first()) {
-                        removeAt(0)
-                        if (isEmpty()) line.substringAfter(":").trim()
-                        else null
-                    } else {
-                        null
-                    }
-                }.map { singleOrNull() } or { null }
+                DockerInfoCommandLine(query = this)
+                    .exec.logging(renderer = noDetails())
+                    .parse.columns<String, Failed>(1) { (line) ->
+                        if (isNotEmpty() && line.substringBefore(":").unify() == first()) {
+                            removeAt(0)
+                            if (isEmpty()) line.substringAfter(":").trim()
+                            else null
+                        } else {
+                            null
+                        }
+                    }.map { singleOrNull() } or { null }
             }
 
         private fun String.unify() = lowercase(Locale.getDefault()).split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()
@@ -108,7 +91,7 @@ public object Docker {
     /**
      * Whether the Docker engine itself is running.
      */
-    public val engineRunning: Boolean get() = DockerInfoCommandLine {}.exec.invoke().successful
+    public val engineRunning: Boolean get() = DockerInfoCommandLine().exec.invoke().successful
 
     /**
      * Returns a [DockerContainer] representing a Docker container of the same
@@ -127,7 +110,7 @@ public object Docker {
         official: Boolean? = null,
         limit: Int = 100,
         renderer: RendererProvider? = null,
-    ): List<DockerSeachResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, renderer)
+    ): List<DockerSearchResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, renderer)
 
     /**
      * Executes the given [command] and its [arguments] in

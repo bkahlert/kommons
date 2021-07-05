@@ -1,5 +1,6 @@
 package koodies.tracing.rendering
 
+import koodies.regex.RegularExpressions.uriRegex
 import koodies.text.joinLinesToString
 import koodies.text.truncateByColumns
 
@@ -38,7 +39,7 @@ public interface Renderable : CharSequence {
                 is Any -> of(value.toString()) { columns, rows ->
                     lineSequence()
                         .let { if (rows != null) it.take(rows) else it }
-                        .let { if (columns != null) it.map { line -> line.truncateByColumns(columns) } else it }
+                        .let { if (columns != null) it.map { line -> if (uriRegex.containsMatchIn(line)) line else line.truncateByColumns(columns) } else it }
                         .joinLinesToString()
                 }
                 else -> NULL

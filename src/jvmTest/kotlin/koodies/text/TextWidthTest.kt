@@ -551,12 +551,12 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate from center`() {
-            expectThat("12345678901234567890".truncateByColumns()).isEqualTo("1234567…4567890")
+            expectThat("12345678901234567890".truncateByColumns()).isEqualTo("123456 … 567890")
         }
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncateByColumns()).isEqualTo("⮕⮕⮕…⬅⬅⬅")
+            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncateByColumns()).isEqualTo("⮕⮕⮕ … ⬅⬅⬅")
         }
 
         @Test
@@ -571,7 +571,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate long text`() {
-            expectThat(longText.truncateByColumns()).isEqualTo("1234567…4567890")
+            expectThat(longText.truncateByColumns()).isEqualTo("123456 … 567890")
         }
 
         @Test
@@ -587,12 +587,12 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate from start`() {
-            expectThat("12345678901234567890".truncateStartByColumns()).isEqualTo("…78901234567890")
+            expectThat("12345678901234567890".truncateStartByColumns()).isEqualTo(" … 901234567890")
         }
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStartByColumns()).isEqualTo("…⬅⬅⬅⬅⬅⬅⬅")
+            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStartByColumns()).isEqualTo(" … ⬅⬅⬅⬅⬅⬅")
         }
 
         @Test
@@ -607,7 +607,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate long text`() {
-            expectThat(longText.truncateStartByColumns()).isEqualTo("…78901234567890")
+            expectThat(longText.truncateStartByColumns()).isEqualTo(" … 901234567890")
         }
 
         @Test
@@ -623,12 +623,12 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate from end`() {
-            expectThat("12345678901234567890".truncateEndByColumns()).isEqualTo("12345678901234…")
+            expectThat("12345678901234567890".truncateEndByColumns()).isEqualTo("123456789012 … ")
         }
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEndByColumns()).isEqualTo("⮕⮕⮕⮕⮕⮕⮕…")
+            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEndByColumns()).isEqualTo("⮕⮕⮕⮕⮕⮕ … ")
         }
 
         @Test
@@ -643,7 +643,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate long text`() {
-            expectThat(longText.truncateEndByColumns()).isEqualTo("12345678901234…")
+            expectThat(longText.truncateEndByColumns()).isEqualTo("123456789012 … ")
         }
 
         @Test

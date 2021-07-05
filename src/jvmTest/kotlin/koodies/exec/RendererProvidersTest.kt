@@ -50,7 +50,7 @@ class RendererProvidersTest {
                 │
                 ╰──╴✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.block {
+            logging(renderer = RendererProviders.block {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
@@ -68,7 +68,7 @@ class RendererProvidersTest {
                 │
                 ╰──╴✔︎
             """.trimIndent(), justStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.block {
+            logging(renderer = RendererProviders.block {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
@@ -88,7 +88,7 @@ class RendererProvidersTest {
         fun TestSpan.`should compact log`() = testLogOfSyncAndAsyncExec("""
                 {} ❱ Countdown! ❱ 10 ❱ 9 ❱ 8 ❱ 7 ❱ 6 ❱ 5 ❱ 4 ❱ 3 ❱ 2 ❱ 1 ❱ 0 ❱ Take Off ✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.oneLine {
+            logging(renderer = RendererProviders.oneLine {
                 copy(
                     contentFormatter = formatter,
                     printer = TeePrinter(printer, it),
@@ -100,7 +100,7 @@ class RendererProvidersTest {
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 {} ❱ Take Off ✔︎
             """.trimIndent(), justStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.oneLine {
+            logging(renderer = RendererProviders.oneLine {
                 copy(
                     contentFormatter = formatter,
                     printer = TeePrinter(printer, it),
@@ -133,7 +133,7 @@ class RendererProvidersTest {
                 │
                 ╰──╴✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.compact {
+            logging(renderer = RendererProviders.compact {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
@@ -151,7 +151,7 @@ class RendererProvidersTest {
                 │
                 ╰──╴✔︎
             """.trimIndent(), justStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.compact {
+            logging(renderer = RendererProviders.compact {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
@@ -169,7 +169,7 @@ class RendererProvidersTest {
         fun TestSpan.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
                 {} ❱ Countdown! ❱ 10 ❱ 9 ❱ 8 ❱ 7 ❱ 6 ❱ 5 ❱ 4 ❱ 3 ❱ 2 ❱ 1 ❱ 0 ❱ Take Off ✔︎
                 """.trimIndent(), countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.summary {
+            logging(renderer = RendererProviders.summary {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -178,7 +178,7 @@ class RendererProvidersTest {
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 {} ❱ Take Off ✔︎
             """.trimIndent(), justStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.summary {
+            logging(renderer = RendererProviders.summary {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -191,7 +191,7 @@ class RendererProvidersTest {
         fun TestSpan.`should format multiple messages`() = testLogOfSyncAndAsyncExec("""
                 {} ✔︎
             """.trimIndent(), countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.noDetails {
+            logging(renderer = RendererProviders.noDetails {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -200,7 +200,7 @@ class RendererProvidersTest {
         fun TestSpan.`should format immediate result`() = testLogOfSyncAndAsyncExec("""
                 {} ✔︎
             """.trimIndent(), justStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.noDetails {
+            logging(renderer = RendererProviders.noDetails {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -211,7 +211,7 @@ class RendererProvidersTest {
 
         @TestFactory
         fun TestSpan.`should be empty if no error occurs`() = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.errorsOnly {
+            logging(renderer = RendererProviders.errorsOnly {
                 copy(printer = TeePrinter(printer, it))
             })
         }
@@ -225,14 +225,14 @@ class RendererProvidersTest {
                 ➜ The last 10 lines are:
                 {{}}
             """.trimIndent(), countDownAndBoom()) {
-            logging(nameOverride = "name", renderer = RendererProviders.errorsOnly {
+            logging(renderer = RendererProviders.errorsOnly {
                 copy(printer = TeePrinter(printer, it))
             })
         }
 
         @TestFactory
         fun TestSpan.`should hide regular result`() = testLogOfSyncAndAsyncExec("", countDownAndStart()) {
-            logging(nameOverride = "name", renderer = RendererProviders.errorsOnly {
+            logging(renderer = RendererProviders.errorsOnly {
                 copy(printer = TeePrinter(printer, it))
             })
         }

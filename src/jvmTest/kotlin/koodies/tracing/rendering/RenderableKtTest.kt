@@ -38,8 +38,8 @@ class RenderableKtTest {
                 1234567890123456789012345
                 123456789012345678901234567890
             """.trimIndent()).render(20, 10)).isEqualTo("""
-                1234567890…234567890
-                1234567890…789012345
+                123456789 … 34567890
+                123456789 … 89012345
                 12345678901234567890
                 123456789012345
                 1234567890
@@ -53,12 +53,17 @@ class RenderableKtTest {
 
         @Test
         fun `should crop by columns`() {
-            expectThat(Renderable.of("⮕⮕⮕").render(5, 1)).isEqualTo("⮕…⮕")
+            expectThat(Renderable.of("⮕⮕⮕⮕").render(7, 1)).isEqualTo("⮕ … ⮕")
         }
 
         @Test
         fun `should support ANSI`() {
-            expectThat(Renderable.of("blue".ansi.blue).render(3, 1)).isEqualTo("${"b".ansi.blue}…${"e".ansi.blue}")
+            expectThat(Renderable.of("blue-blue".ansi.blue).render(7, 1)).isEqualTo("${"bl".ansi.blue} … ${"ue".ansi.blue}")
+        }
+
+        @Test
+        fun `should not truncate URIs`() {
+            expectThat(Renderable.of("https://domain.tld").render(1, 1)).isEqualTo("https://domain.tld")
         }
     }
 

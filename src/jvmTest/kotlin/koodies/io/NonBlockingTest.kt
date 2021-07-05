@@ -2,6 +2,7 @@ package koodies.io
 
 import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.test.Slow
+import koodies.test.Smoke
 import koodies.text.randomString
 import koodies.time.seconds
 import org.jline.utils.InputStreamReader
@@ -69,7 +70,7 @@ class NonBlockingTest {
             expectThat(readLines).isEqualTo(listOf("A\uD834\uDF2A", "\uD834\uDF2B", "\uD834\uDF2C\uD834\uDF2D\uD834\uDF2E", "Z"))
         }
 
-        @Test
+        @Smoke @Test
         fun `should be equally readable like any other byte input stream`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)

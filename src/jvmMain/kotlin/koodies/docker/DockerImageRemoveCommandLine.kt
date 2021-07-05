@@ -1,67 +1,30 @@
 package koodies.docker
 
-import koodies.builder.BooleanBuilder.BooleanValue
-import koodies.builder.BooleanBuilder.YesNo
-import koodies.builder.BooleanBuilder.YesNo.Context
-import koodies.builder.BuilderTemplate
 import koodies.builder.buildArray
-import koodies.builder.buildList
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerImageRemoveCommandLine.Options.Companion.OptionsContext
+import koodies.text.Semantics.FieldDelimiters
+import koodies.text.Semantics.formattedAs
+import koodies.text.spaced
 
 /**
- * [DockerImageCommandLine] that removes the specified [images] using the specified [options].
+ * [DockerImageCommandLine] that removes the specified [images].
  */
 public open class DockerImageRemoveCommandLine(
     /**
-     * Options that specify how this command line is run.
+     * Images to be removed.
      */
-    public val options: Options,
-    public val images: List<DockerImage>,
+    public vararg val images: DockerImage,
+    /**
+     * Force removal of the image
+     */
+    public val force: Boolean = false,
 ) : DockerImageCommandLine(
     dockerImageCommand = "rm",
     dockerImageArguments = buildArray {
-        addAll(options)
+        if (force) add("--force")
         images.forEach { add(it.toString()) }
     },
-) {
-    public open class Options(
-        /**
-         * Force removal of the image
-         */
-        public val force: Boolean = false,
-    ) : List<String> by (buildList {
-        if (force) add("--force")
-    }) {
-        public companion object : BuilderTemplate<OptionsContext, Options>() {
-
-            public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                /**
-                 * Force removal of the image
-                 */
-                public val force: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
-            }
-
-            override fun BuildContext.build(): Options = Companion::OptionsContext {
-                Options(::force.eval())
-            }
-        }
-    }
-
-    public companion object : BuilderTemplate<Companion.CommandContext, DockerImageRemoveCommandLine>() {
-        /**
-         * Context for building a [DockerImagePullCommandLine].
-         */
-
-        public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
-            public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
-            public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
-        }
-
-        override fun BuildContext.build(): DockerImageRemoveCommandLine = Companion::CommandContext {
-            DockerImageRemoveCommandLine(::options.evalOrDefault { Options() }, ::image.evalAll())
-        }
-    }
-}
+    name = kotlin.run {
+        val forcefully = if (force) " forcefully".formattedAs.warning else ""
+        "Removing$forcefully ${images.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}"
+    },
+)

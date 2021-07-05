@@ -8,7 +8,7 @@ import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.TestImages.HelloWorld
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
-import koodies.exec.RendererProviders
+import koodies.exec.RendererProviders.noDetails
 import koodies.junit.UniqueId
 import koodies.junit.UniqueId.Companion.id
 import koodies.test.Slow
@@ -19,7 +19,8 @@ import koodies.test.withAnnotation
 import koodies.text.randomString
 import koodies.time.poll
 import koodies.time.seconds
-import koodies.tracing.rendering.BlockStyles.Dotted
+import koodies.tracing.rendering.BackgroundPrinter
+import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ReturnValues
 import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
@@ -192,9 +193,9 @@ class TestContainers(
      * Kills and removes all provisioned test containers.
      */
     fun release() {
-        val copy = provisioned.toList().also { provisioned.clear() }
-        spanning("Releasing ${copy.size} container(s)", renderer = { it(copy(blockStyle = Dotted)) }) {
-            ReturnValues(copy.map { kotlin.runCatching { it.remove(force = true) }.fold({ it }, { it }) })
+        val toBeReleased = provisioned.toList().also { provisioned.clear() }
+        spanning("Releasing ${toBeReleased.size} container(s)", blockStyle = None, printer = BackgroundPrinter) {
+            ReturnValues(toBeReleased.map { container -> kotlin.runCatching { container.remove(force = true) }.fold({ it }, { it }) })
         }
     }
 
@@ -204,9 +205,9 @@ class TestContainers(
         val container = DockerContainer.from(name = "$uniqueId", randomSuffix = true).also { provisioned.add(it) }
         commandLine.dockerized(this@TestContainers.image) {
             name by container.name
-            this.autoCleanup by false
+            autoCleanup { off }
             detached { on }
-        }.exec.logging(nameOverride = "running ${commandLine.summary}", renderer = RendererProviders.noDetails())
+        }.exec.logging(renderer = noDetails())
         return container
     }
 
@@ -219,12 +220,15 @@ class TestContainers(
     private fun newRunningContainer(
         duration: Duration,
     ): DockerContainer =
-        startContainerWithCommandLine(CommandLine("sleep", duration.toIntegerSeconds().toString()))
+        startContainerWithCommandLine(CommandLine("sleep", duration.toIntegerSeconds().toString(), name = "${duration.toIntegerSeconds()} sleep"))
 
     /**
      * Returns a container that does not exist on this system.
      */
-    internal fun newNotExistentContainer() = DockerContainer.from(randomString())
+    internal fun newNotExistentContainer() =
+        spanning("Providing non-existent container", blockStyle = None, printer = BackgroundPrinter) {
+            DockerContainer.from(randomString())
+        }
 
     /**
      * Returns a new container that already terminated with exit code `0`.
@@ -232,18 +236,20 @@ class TestContainers(
      * The next time this container is started it will run for the specified [duration] (default: 30 seconds).
      */
     internal fun newExitedTestContainer(duration: Duration = 30.seconds): DockerContainer =
-        startContainerWithCommandLine(CommandLine("sh", "-c", """
+        spanning("Providing exited container", blockStyle = None, printer = BackgroundPrinter) {
+            startContainerWithCommandLine(CommandLine("sh", "-c", """
                 if [ -f "booted-before" ]; then
                   sleep ${duration.toIntegerSeconds()}
                 else
                   touch "booted-before"
                 fi
                 exit 0
-            """.trimIndent())).also { container ->
-            poll {
-                container.containerState is Exited
-            }.every(0.5.seconds).forAtMost(5.seconds) { timeout ->
-                fail { "Could not provide exited test container $container within $timeout." }
+            """.trimIndent(), name = "$duration sleep")).also { container ->
+                poll {
+                    container.containerState is Exited
+                }.every(0.5.seconds).forAtMost(5.seconds) { timeout ->
+                    fail { "Could not provide exited test container $container within $timeout." }
+                }
             }
         }
 
@@ -251,11 +257,13 @@ class TestContainers(
      * Returns a container that is running for the specified [duration] (default: 30 seconds).
      */
     internal fun newRunningTestContainer(duration: Duration = 30.seconds): DockerContainer =
-        newRunningContainer(duration).also { container ->
-            poll {
-                container.containerState is Running
-            }.every(0.5.seconds).forAtMost(5.seconds) { duration ->
-                fail { "Could not provide stopped test container $container within $duration." }
+        spanning("Providing running container", blockStyle = None, printer = BackgroundPrinter) {
+            newRunningContainer(duration).also { container ->
+                poll {
+                    container.containerState is Running
+                }.every(0.5.seconds).forAtMost(5.seconds) { duration ->
+                    fail { "Could not provide stopped test container $container within $duration." }
+                }
             }
         }
 

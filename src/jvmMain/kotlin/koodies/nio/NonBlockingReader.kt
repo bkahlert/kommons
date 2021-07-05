@@ -15,6 +15,7 @@ import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.Semantics.formattedAs
+import koodies.text.Unicode
 import koodies.text.quoted
 import koodies.time.Now
 import koodies.time.seconds
@@ -168,7 +169,7 @@ public class NonBlockingReader(
         "lastReadLine" to lastReadLine.debug,
         "lastReadLineDueTimeout?" to lastReadLineDueTimeout.debug,
         "timeout" to timeout,
-        "reader" to "…",
+        "reader" to Unicode.ELLIPSIS,
     ).joinToString(prefix = "NonBlockingReader(",
         separator = "; ",
         postfix = ")") { "${it.first}: ${it.second}" }

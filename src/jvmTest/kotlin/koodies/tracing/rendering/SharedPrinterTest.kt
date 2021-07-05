@@ -2,18 +2,12 @@ package koodies.tracing.rendering
 
 import io.opentelemetry.context.Context
 import koodies.collections.synchronizedListOf
-import koodies.debug.CapturedOutput
 import koodies.jvm.completableFuture
 import koodies.jvm.currentThread
-import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.Colors
-import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.toStringMatchesCurlyPattern
 import koodies.tracing.TestSpan
-import koodies.tracing.rendering.SharedPrinter.Companion.BACKGROUND
 import koodies.tracing.spanning
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -107,19 +101,5 @@ class SharedPrinterTest {
             "│   │   exclusive child 19",
             "│   │   exclusive child 20",
         )
-    }
-
-    @Nested
-    inner class Global {
-
-        @SystemIOExclusive
-        @Test
-        fun `should prefix log messages with IO erase marker`(output: CapturedOutput) {
-            BACKGROUND("This does not appear in the captured output.")
-            BACKGROUND("But it shows on the actual console.".ansi.italic)
-            println("This message is captured.")
-
-            expectThat(output).toStringMatchesCurlyPattern("This message is captured.")
-        }
     }
 }

@@ -3,6 +3,8 @@ package koodies.tracing.rendering
 import io.opentelemetry.api.trace.Tracer
 import koodies.asString
 import koodies.exception.toCompactString
+import koodies.text.ANSI.FilteringFormatter
+import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators
 import koodies.tracing.CurrentSpan
@@ -64,20 +66,41 @@ public class OneLineRenderer(
     }
 }
 
+/**
+ * Creates a new nested span inside of the currently active span,
+ * and runs [block] with this newly creates span as its [CurrentSpan] in the receiver.
+ *
+ * This method behaves like [spanning] with one difference:
+ * Logging is rendered by a [OneLineRenderer].
+ */
 @TracingDsl
 public fun <R> spanningLine(
     name: CharSequence,
     vararg attributes: KeyValue<*, *>,
-    customize: Settings.() -> Settings = { this },
     tracer: Tracer = koodies.tracing.Tracer,
-    block: CurrentSpan.() -> R,
-): R = spanning(name, *attributes, renderer = { OneLineRenderer(customize()) }, tracer = tracer, block = block)
 
+    nameFormatter: FilteringFormatter? = null,
+    contentFormatter: FilteringFormatter? = null,
+    decorationFormatter: Formatter? = null,
+    returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
+    layout: ColumnsLayout? = null,
+    blockStyle: ((ColumnsLayout) -> BlockStyle)? = null,
+    oneLineStyle: Style? = null,
+    printer: Printer? = null,
 
-@TracingDsl
-public fun <R> spanningLine(
-    name: CharSequence,
-    customize: Settings.() -> Settings = { this },
-    tracer: Tracer = koodies.tracing.Tracer,
     block: CurrentSpan.() -> R,
-): R = spanningLine(name, attributes = emptyArray(), customize = customize, tracer = tracer, block = block)
+): R = spanning(
+    name = name,
+    attributes = attributes,
+    renderer = { OneLineRenderer(this) },
+    tracer = tracer,
+    nameFormatter = nameFormatter,
+    contentFormatter = contentFormatter,
+    decorationFormatter = decorationFormatter,
+    returnValueTransform = returnValueTransform,
+    layout = layout,
+    blockStyle = blockStyle,
+    oneLineStyle = oneLineStyle,
+    printer = printer,
+    block = block
+)

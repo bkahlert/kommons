@@ -17,12 +17,12 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate from center`() {
-            expectThat("12345678901234567890".truncate()).isEqualTo("1234567…4567890")
+            expectThat("12345678901234567890".truncate()).isEqualTo("123456 … 567890")
         }
 
         @Test
         fun `should truncate using code points`() {
-            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncate(6)).isEqualTo("👨🏾👨…👨🏾")
+            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncate(6)).isEqualTo("👨🏾 … 🏾")
         }
 
         @Test
@@ -37,7 +37,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate long text`() {
-            expectThat(longText.truncate()).isEqualTo("1234567…4567890")
+            expectThat(longText.truncate()).isEqualTo("123456 … 567890")
         }
 
         @Test
@@ -53,12 +53,12 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate from start`() {
-            expectThat("12345678901234567890".truncateStart()).isEqualTo("…78901234567890")
+            expectThat("12345678901234567890".truncateStart()).isEqualTo(" … 901234567890")
         }
 
         @Test
         fun `should truncate using code points`() {
-            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncateStart(4)).isEqualTo("…🏾👨🏾")
+            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncateStart(4)).isEqualTo(" … 🏾")
         }
 
         @Test
@@ -73,7 +73,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate long text`() {
-            expectThat(longText.truncateStart()).isEqualTo("…78901234567890")
+            expectThat(longText.truncateStart()).isEqualTo(" … 901234567890")
         }
 
         @Test
@@ -89,12 +89,12 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate from end`() {
-            expectThat("12345678901234567890".truncateEnd()).isEqualTo("12345678901234…")
+            expectThat("12345678901234567890".truncateEnd()).isEqualTo("123456789012 … ")
         }
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncateEnd(4)).isEqualTo("👨🏾👨…")
+            expectThat("👨🏾👨🏾👨🏾👨🏾👨🏾".truncateEnd(4)).isEqualTo("👨 … ")
         }
 
         @Test
@@ -109,7 +109,7 @@ class TruncationKtTest {
 
         @Test
         fun `should truncate long text`() {
-            expectThat(longText.truncateEnd()).isEqualTo("12345678901234…")
+            expectThat(longText.truncateEnd()).isEqualTo("123456789012 … ")
         }
 
         @Test

@@ -1,65 +1,28 @@
 package koodies.docker
 
-import koodies.builder.BuilderTemplate
 import koodies.builder.buildArray
-import koodies.builder.buildList
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerInfoCommandLine.Options.Companion.OptionsContext
+import koodies.text.Semantics
+import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerCommandLine] that displays system wide information regarding the Docker installation.
  */
 public open class DockerInfoCommandLine(
     /**
-     * Options that specify how this command line is run.
+     * Format the output using the given Go template.
      */
-    public val options: Options,
+    public val format: String? = null,
+    /**
+     * Optional information what is being queried. Only used for logging.
+     */
+    query: List<String> = emptyList(),
 ) : DockerCommandLine(
     dockerCommand = "info",
     arguments = buildArray {
-        addAll(options)
-    },
-) {
-    public open class Options(
-        /**
-         * Format the output using the given Go template.
-         */
-        public val format: String? = null,
-    ) : List<String> by (buildList {
         format?.also {
             add("--format")
             add(it)
         }
-    }) {
-        public companion object : BuilderTemplate<OptionsContext, Options>() {
-
-            public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
-
-                /**
-                 * Format the output using the given Go template.
-                 */
-                public val format: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
-            }
-
-            override fun BuildContext.build(): Options = Companion::OptionsContext {
-                Options(::format.evalOrNull())
-            }
-        }
-    }
-
-    public companion object : BuilderTemplate<Companion.CommandContext, DockerInfoCommandLine>() {
-        /**
-         * Context for building a [DockerInfoCommandLine].
-         */
-
-        public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
-            public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
-        }
-
-        override fun BuildContext.build(): DockerInfoCommandLine = Companion::CommandContext {
-            DockerInfoCommandLine(::options.evalOrDefault { Options() })
-        }
-    }
-}
+    },
+    name = "Querying info" + if (query.isNotEmpty()) " " + query.joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input } else ""
+)

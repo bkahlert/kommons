@@ -285,7 +285,7 @@ private fun requirePositiveColumns(maxColumns: Int) {
     }
 }
 
-private fun targetColumns(maxColumns: Int = 15, marker: String = "…"): Int {
+private fun targetColumns(maxColumns: Int, marker: String): Int {
     requirePositiveColumns(maxColumns)
     val markerColumns = marker.columns
     require(maxColumns >= markerColumns) {
@@ -297,7 +297,7 @@ private fun targetColumns(maxColumns: Int = 15, marker: String = "…"): Int {
 /**
  * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence = with(asAnsiString()) {
+public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(asAnsiString()) {
     requirePositiveColumns(maxColumns)
     if (length > 2 * maxColumns || columns > maxColumns) {
         val targetColumns = targetColumns(maxColumns, marker)
@@ -312,7 +312,7 @@ public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String =
 /**
  * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence = with(asAnsiString()) {
+public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(asAnsiString()) {
     requirePositiveColumns(maxColumns)
     when {
         length > 3 * maxColumns -> { // save CPU by trashing obviously too much text
@@ -335,7 +335,7 @@ public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: Str
 /**
  * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = "…"): CharSequence = with(asAnsiString()) {
+public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(asAnsiString()) {
     requirePositiveColumns(maxColumns)
     when {
         length > 3 * maxColumns -> { // save CPU by trashing obviously too much text

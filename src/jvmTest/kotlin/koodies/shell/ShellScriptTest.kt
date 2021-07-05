@@ -6,14 +6,12 @@ import koodies.exec.exitCodeOrNull
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
 import koodies.io.path.pathString
-import koodies.io.path.text
 import koodies.io.path.writeBytes
 import koodies.io.randomFile
 import koodies.junit.UniqueId
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.test.Smoke
-import koodies.test.hasElements
 import koodies.test.string
 import koodies.test.testEach
 import koodies.test.tests
@@ -25,6 +23,7 @@ import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toByteArray
 import koodies.text.toStringMatchesCurlyPattern
+import koodies.time.seconds
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -56,7 +55,6 @@ class ShellScriptTest {
         //language=Shell Script
         expectThat(shellScript()).toStringIsEqualTo("""
             #!/bin/sh
-            echo '$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m'
             cd "/some/where" || exit 1
             'echo' 'Hello World!'
             'echo' 'Bye!'
@@ -93,7 +91,6 @@ class ShellScriptTest {
         //language=Shell Script
         expectThat(file).hasContent("""
             #!/bin/sh
-            echo '$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m $e[96mTEST$e[39m'
             cd "/some/where" || exit 1
             'echo' 'Hello World!'
             'echo' 'Bye!'
@@ -118,30 +115,41 @@ class ShellScriptTest {
 
     @Nested
     inner class Name {
+
         private val testBanner = "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m" +
             "$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░" +
             "$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m " +
             "$e[96mTEST$e[39m"
 
-        @Test
-        fun `should echo name`() {
-            val sh = ShellScript("test", "exit 0")
+        private val differentBanner = "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m" +
+            "$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░" +
+            "$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m " +
+            "$e[96mDIFFERENT$e[39m"
 
-            //language=Shell Script
-            expectThat(sh).toStringIsEqualTo("""
+        @Test
+        fun `should not echo name`() {
+            val sh = ShellScript("test", "exit 0")
+            expectThat(sh.toString()).isEqualTo("""
+                exit 0
+    
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should echo name if specified`() {
+            val sh = ShellScript("test", "exit 0")
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
                 echo '$testBanner'
                 exit 0
     
-            """.trimIndent(), removeAnsi = false)
+            """.trimIndent())
         }
 
         @Test
         fun `should use different name if specified`() {
-            val sh = ShellScript { "exit 0" }
-
-            //language=Shell Script
-            expectThat(sh.toString("test")).isEqualTo("""
-                echo '$testBanner'
+            val sh = ShellScript("test", "exit 0")
+            expectThat(sh.toString(true, "different")).isEqualTo("""
+                echo '$differentBanner'
                 exit 0
     
             """.trimIndent())
@@ -149,37 +157,17 @@ class ShellScriptTest {
     }
 
     @Nested
-    inner class Summary {
+    inner class Content {
 
         @Test
-        fun `should provide summary`() {
-            expectThat(shellScript(null).summary).matchesCurlyPattern("""
+        fun `should provide content`() {
+            expectThat(shellScript(null).content).matchesCurlyPattern("""
                 #!/bin/sh
                 {{}}
                 'echo' 'Hello World!'
                 'echo' 'Bye!'
                 'exit' '42'
             """.trimIndent())
-        }
-
-        @Test
-        fun `should provide url if summary is too long`() {
-            expectThat(shellScript("test name").summary.render(10, 1))
-                .lines()
-                .hasElements(
-                    { isEqualTo("test name") },
-                    {
-                        asPath()
-                            .exists()
-                            .text.matchesCurlyPattern("""
-                                #!/bin/sh
-                                {{}}
-                                'echo' 'Hello World!'
-                                'echo' 'Bye!'
-                                'exit' '42'
-                            """.trimIndent())
-                    },
-                )
         }
     }
 
@@ -242,7 +230,7 @@ class ShellScriptTest {
             private fun ScriptContext.shellScript(): String {
                 shebang
                 !"echo 'about to run embedded script'"
-                embed(getEmbeddedShellScript())
+                embed(getEmbeddedShellScript(), true)
                 !"echo 'finished to run embedded script'"
                 !"echo $(pwd)"
                 return ""
@@ -333,10 +321,7 @@ class ShellScriptTest {
             fun `should build valid docker stop`() {
                 expectThat(ShellScript {
                     shebang
-                    !DockerStopCommandLine {
-                        containers { +"busybox" + "guestfish" }
-                        options { time by 42 }
-                    }
+                    !DockerStopCommandLine("busybox", "guestfish", time = 42.seconds)
                 }).toStringIsEqualTo("""
                     #!/bin/sh
                     'docker' 'stop' '--time' '42' 'busybox' 'guestfish'

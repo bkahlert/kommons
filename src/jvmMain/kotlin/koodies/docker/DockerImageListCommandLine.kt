@@ -1,70 +1,32 @@
 package koodies.docker
 
-import koodies.builder.BooleanBuilder.BooleanValue
-import koodies.builder.BooleanBuilder.YesNo
-import koodies.builder.BooleanBuilder.YesNo.Context
-import koodies.builder.BuilderTemplate
 import koodies.builder.buildArray
-import koodies.builder.buildList
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.docker.DockerImageListCommandLine.Options.Companion.OptionsContext
+import koodies.text.Semantics.formattedAs
 
 /**
  * [DockerImageCommandLine] that lists locally available instances of [DockerImage].
  */
 public open class DockerImageListCommandLine(
     /**
-     * Options that specify how this command line is run.
+     * Optional image to restrict the listing to.
      */
-    public val options: Options,
-    public val image: DockerImage?,
+    public val image: DockerImage? = null,
+    /**
+     * Show all images (default hides intermediate images)
+     */
+    public val all: Boolean = false,
 ) : DockerImageCommandLine(
     dockerImageCommand = "ls",
     dockerImageArguments = buildArray {
-        addAll(options)
+        if (all) add("--all")
         add("--no-trunc")
         add("--format")
         add("{{.Repository}}\t{{.Tag}}\t{{.Digest}}")
         image?.also { add(it.toString()) }
     },
-) {
-    public open class Options(
-        /**
-         * Show all images (default hides intermediate images)
-         */
-        public val all: Boolean = false,
-    ) : List<String> by (buildList {
-        if (all) add("--all")
-    }) {
-        public companion object : BuilderTemplate<OptionsContext, Options>() {
-
-            public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
-                /**
-                 * Show all images (default hides intermediate images)
-                 */
-                public val all: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean> by YesNo default false
-            }
-
-            override fun BuildContext.build(): Options = Companion::OptionsContext {
-                Options(::all.eval())
-            }
-        }
-    }
-
-    public companion object : BuilderTemplate<Companion.CommandContext, DockerImageListCommandLine>() {
-        /**
-         * Context for building a [DockerImageListCommandLine].
-         */
-
-        public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
-            public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
-            public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
-        }
-
-        override fun BuildContext.build(): DockerImageListCommandLine = Companion::CommandContext {
-            DockerImageListCommandLine(::options.evalOrDefault { Options() }, ::image.evalOrNull())
-        }
-    }
-}
+    name = kotlin.run {
+        val allString = if (all) " all".formattedAs.warning else ""
+        val imageString = if (image != null) " ${image.formattedAs.input}" else ""
+        "Listing$allString$imageString images"
+    },
+)

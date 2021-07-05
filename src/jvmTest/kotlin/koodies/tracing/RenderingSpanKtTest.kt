@@ -3,6 +3,7 @@ package koodies.tracing
 import koodies.debug.CapturedOutput
 import koodies.junit.TestName
 import koodies.test.output.OutputCaptureExtension
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.isEmpty
@@ -387,14 +387,14 @@ class RenderingSpanKtTest {
 
             @Test
             fun `should use render with null args as recorded name`(testName: TestName) {
-                val traceId = withRootSpan(testName) { spanning(renderableName) { TraceId.current } }
+                val traceId = withRootSpan(testName) { spanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { TraceId.current } }
                 traceId.expectTraced().spanNames.first()
                     .isEqualTo("null x null")
             }
 
             @Test
             fun `should use render as rendered name`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { spanning(renderableName) { } }
+                withRootSpan(testName) { spanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { } }
                 expectThat(output).matchesCurlyPattern("""
                     ╭──╴76 x 4
                     │
@@ -405,52 +405,42 @@ class RenderingSpanKtTest {
         }
 
         @Nested
-        inner class SpanName {
+        inner class CustomSettings {
 
             @Test
-            fun `should use name`(testName: TestName) {
-                val traceId = withRootSpan(testName) { spanning("name") { TraceId.current } }
-                traceId.expectTraced().spanNames.first()
-                    .isEqualTo("name")
-            }
-
-            @Test
-            fun `should use renderable name for rendering if exists`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { spanning("name", RenderingAttributes.NAME renderingOnly "renderable name") { } }
+            fun `should update name formatter`(testName: TestName, output: CapturedOutput) {
+                withRootSpan(testName) { spanning("name", nameFormatter = { "!$it!" }) { log("message") } }
                 expectThat(output).matchesCurlyPattern("""
-                    ╭──╴renderable name
+                    ╭──╴!name!
                     │
+                    │   message                                                                         
                     │
                     ╰──╴✔︎
                 """.trimIndent())
             }
 
             @Test
-            fun `should filter renderable name from attributes`(testName: TestName) {
-                val traceId = withRootSpan(testName) { spanning("name", RenderingAttributes.NAME renderingOnly "renderable name") { TraceId.current } }
-                traceId.expectTraced().first().hasSpanAttribute(RenderingAttributes.NAME.renderingKey, null)
-            }
-        }
-
-        @Nested
-        inner class CustomSettings {
-
-            @Test
-            fun `should update name formatter`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { spanning("name", nameFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).contains("╭──╴!name!")
-            }
-
-            @Test
             fun `should update content formatter`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", contentFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).contains("!message!")
+                expectThat(output).matchesCurlyPattern("""
+                    ╭──╴name
+                    │
+                    │   !message!                                                                       
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
             }
 
             @Test
             fun `should update decoration formatter`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", decorationFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).contains("!│!")
+                expectThat(output).matchesCurlyPattern("""
+                    !╭──╴!name
+                    !│!
+                    !│!   message                                                                         
+                    !│!
+                    !╰──╴!✔︎
+                """.trimIndent())
             }
 
             @Test
@@ -462,7 +452,13 @@ class RenderingSpanKtTest {
                         }
                     }) { log("message") }
                 }
-                expectThat(output).contains("╰──╴✌️")
+                expectThat(output).matchesCurlyPattern("""
+                    ╭──╴name
+                    │
+                    │   message                                                                         
+                    │
+                    ╰──╴✌️
+                """.trimIndent())
             }
 
             @Test
@@ -487,7 +483,11 @@ class RenderingSpanKtTest {
             @Test
             fun `should update block style`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", blockStyle = BlockStyles.Dotted) { log("message") } }
-                expectThat(output).contains("· message")
+                expectThat(output).matchesCurlyPattern("""
+                    ▶ name
+                    · message                                                                         
+                    ✔︎
+                """.trimIndent())
             }
 
             @Test
@@ -497,7 +497,13 @@ class RenderingSpanKtTest {
                         override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence = "!$element!"
                     }) { spanningLine("one-line") { log("message") } }
                 }
-                expectThat(output).contains("one-line!message!")
+                expectThat(output).matchesCurlyPattern("""
+                    ╭──╴name
+                    │
+                    │   one-line!message! ✔︎
+                    │
+                    ╰──╴✔︎
+                """.trimIndent())
             }
 
             @Test

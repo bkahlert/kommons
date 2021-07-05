@@ -75,7 +75,7 @@ public tailrec fun Path.randomPath(base: String = randomString(4), extension: St
     val minLength = 6
     val length = base.length + extension.length
     val randomSuffix = randomString((minLength - length).coerceAtLeast(3))
-    val randomPath = resolve("$base-$randomSuffix$extension")
+    val randomPath = resolve("$base--$randomSuffix$extension")
     return randomPath.takeUnless { it.exists() } ?: randomPath(base, extension)
 }
 
@@ -171,13 +171,11 @@ public fun <T> runWithTempDir(base: String = "", extension: String = "", block: 
  * Resolves [glob] using the system's `ls` command line tool.
  */
 public fun Path.ls(glob: String = ""): List<Path> =
-    ShellScript { !"ls $glob" }.exec.logging(
-        this,
-        nameOverride = "${this@ls.formattedAs.input} $ ls ${glob.formattedAs.input}",
-        renderer = RendererProviders.errorsOnly(),
-    ).parse.columns<Path, Failed>(1) {
-        resolve(it[0])
-    } or { emptyList() }
+    ShellScript("${this.formattedAs.input} $ ls ${glob.formattedAs.input}") { !"ls $glob" }
+        .exec.logging(this, renderer = RendererProviders.errorsOnly())
+        .parse.columns<Path, Failed>(1) {
+            resolve(it[0])
+        } or { emptyList() }
 
 /**
  * Cleans up this directory by

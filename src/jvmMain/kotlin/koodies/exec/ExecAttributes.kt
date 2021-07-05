@@ -20,6 +20,6 @@ public class ExecAttributes(attributes: Attributes) : Attributes by attributes {
         public val Attributes.exec: ExecAttributes get(): ExecAttributes = ExecAttributes(this)
 
         public val NAME: Key<String, CharSequence> = Key.stringKey("koodies.exec.name") { it.toString() }
-        public val EXECUTABLE: Key<String, Executable<*>> = Key.stringKey("koodies.exec.executable") { it.summary.render(null, null) }
+        public val EXECUTABLE: Key<String, Executable<*>> = Key.stringKey("koodies.exec.executable") { it.content.toString() }
     }
 }

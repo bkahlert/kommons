@@ -4,25 +4,21 @@ import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.Executable
-import koodies.exec.toLink
 import koodies.io.path.executable
 import koodies.io.path.pathString
 import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
 import koodies.shell.ShellScript.ScriptContext
 import koodies.text.Banner.banner
-import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.LineSeparators.removeTrailingLineSeparator
-import koodies.text.columns
 import koodies.text.joinLinesToString
 import koodies.text.quoted
 import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
 import koodies.toBaseName
-import koodies.tracing.rendering.Renderable
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
 import java.nio.file.Path
@@ -60,12 +56,12 @@ public open class ShellScript(
     /**
      * The content of this script.
      */
-    public val content: String = content?.toString()?.trimIndent() ?: ""
+    public override val content: String = content?.toString()?.trimIndent() ?: ""
 
     /**
      * The [content] lines of this script.
      */
-    private val lines = this.content.lines()
+    private val lines get() = content.lines()
 
     /**
      * Returns an iterator over the lines this script is made of.
@@ -94,17 +90,6 @@ public open class ShellScript(
     ): Exec = toCommandLine(environment, workingDirectory)
         .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
 
-    override val summary: Renderable = Renderable { columns, rows ->
-        if (name != null) {
-            "$name${LineSeparators.DEFAULT}${toLink()}"
-        } else {
-            val preview = toString()
-            val lines = preview.lines()
-            if ((rows == null || lines.size <= rows) && (columns == null || lines.all { it.columns <= columns })) preview
-            else toLink().toString()
-        }
-    }
-
     /**
      * Returns a shell script line as it can be used in a shell,
      * e.g.
@@ -116,7 +101,7 @@ public open class ShellScript(
      * If a [name] is set, it will be
      * printed as the first command.
      */
-    public override fun toString(): String = toString(name)
+    public override fun toString(): String = toString(false, name)
 
     /**
      * Returns this shell script as it can be used in a shell,
@@ -126,30 +111,33 @@ public open class ShellScript(
      * echo "Hello World!"
      * ```
      *
-     * If a [name] is provided or already set, it will be
+     * If [echoName] is used, the given [name] is will be
      * printed as the first command.
      */
-    public fun toString(name: CharSequence?): String {
-        var echoNameCommandAdded = false
-        val echoNameCommand = bannerEchoingCommand(name)
-        val script = lines.joinToString("") { line ->
-            if (!echoNameCommandAdded && line.isShebang()) {
-                echoNameCommandAdded = true
-                line + LF + echoNameCommand
-            } else {
-                line + LF
+    public fun toString(echoName: Boolean, name: CharSequence? = this.name): String =
+        if (echoName) {
+            var echoNameCommandAdded = false
+            val echoNameCommand = bannerEchoingCommand(name)
+            val script = lines.joinToString("") { line ->
+                if (!echoNameCommandAdded && line.isShebang()) {
+                    echoNameCommandAdded = true
+                    line + LF + echoNameCommand
+                } else {
+                    line + LF
+                }
             }
+            if (echoNameCommandAdded) script else echoNameCommand + script
+        } else {
+            content + LF
         }
-        return if (echoNameCommandAdded) script else echoNameCommand + script
-    }
 
     /**
      * Saves this shell script at the specified [path] and sets its [executable] flag.
      * @see toString
      */
-    public fun toFile(path: Path): Path = path.apply {
+    public fun toFile(path: Path, echoName: Boolean = false, name: CharSequence? = this.name): Path = path.apply {
         if (notExists()) withDirectoriesCreated().createFile()
-        writeText(this@ShellScript.toString())
+        writeText(this@ShellScript.toString(echoName, name))
         executable = true
     }
 
@@ -160,14 +148,14 @@ public open class ShellScript(
         other as ShellScript
 
         if (name != other.name) return false
-        if (content != other.content) return false
+        if (this.content != other.content) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = name?.hashCode() ?: 0
-        result = 31 * result + content.hashCode()
+        result = 31 * result + this.content.hashCode()
         return result
     }
 
@@ -281,11 +269,11 @@ public open class ShellScript(
          * is unpacked to a temporary script file, executed and
          * when it has completed, removed.
          */
-        public fun embed(shellScript: ShellScript): String = lines {
+        public fun embed(shellScript: ShellScript, echoName: Boolean = false): String = lines {
             val baseName = shellScript.name.toBaseName()
             val fileName = "$baseName.sh"
             val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
-            val finalScript = shellScript.toString().removeTrailingLineSeparator
+            val finalScript = shellScript.toString(echoName = echoName).removeTrailingLineSeparator
             lines.add(finalScript.wrapMultiline(
                 """
                 (

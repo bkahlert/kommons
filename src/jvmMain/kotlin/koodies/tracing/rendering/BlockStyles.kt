@@ -18,9 +18,9 @@ public object BlockStyles {
 
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
             val startElements = Renderable.of(element).render(layout.totalWidth - indent, 4).asAnsiString().lines()
-            appendLine(decorationFormatter(TOP), decorationFormatter(startElements.first()).ansi.bold)
+            appendLine(decorationFormatter(TOP), startElements.first())
             startElements.drop(1).forEach { startElement ->
-                appendLine(decorationFormatter(MIDDLE), "   ", decorationFormatter(startElement).ansi.bold)
+                appendLine(decorationFormatter(MIDDLE), "   ", startElement)
             }
             append(decorationFormatter(MIDDLE))
         }
@@ -61,10 +61,10 @@ public object BlockStyles {
 
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
             val startElements = Renderable.of(element).render(layout.totalWidth - indent, 4).asAnsiString().lines()
-            append(decorationFormatter(playSymbol), " ", decorationFormatter(startElements.first()).ansi.bold)
+            append(decorationFormatter(playSymbol), " ", startElements.first())
             startElements.drop(1).forEach { startElement ->
                 appendLine()
-                append(decorationFormatter(whitePlaySymbol), " ", decorationFormatter(startElement).ansi.bold)
+                append(decorationFormatter(whitePlaySymbol), " ", startElement)
             }
         }
 
@@ -92,7 +92,7 @@ public object BlockStyles {
         private val prefix = "    "
         override val indent: Int = prefix.length
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? =
-            decorationFormatter(Renderable.of(element).render(layout.totalWidth - indent, 4)).takeUnlessBlank()
+            Renderable.of(element).render(layout.totalWidth - indent, 4).takeUnlessBlank()
 
         override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = element.takeUnlessBlank()
         override fun parent(element: CharSequence, decorationFormatter: Formatter): CharSequence? = content(element, decorationFormatter)?.prefixWith(prefix)

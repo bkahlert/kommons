@@ -4,12 +4,15 @@ import io.opentelemetry.api.trace.Tracer
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
+import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.lines
+import koodies.text.columns
 import koodies.tracing.rendering.BlockStyle
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.RendererProvider
-import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.ReturnValue
+import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.Style
 import java.nio.file.Path
 
@@ -38,7 +41,10 @@ public data class Executor<E : Exec>(
      */
     private val environment: Map<String, String> = emptyMap(),
 
-    private val tracingOptions: TracingOptions = TracingOptions(),
+    private val tracingOptions: TracingOptions = TracingOptions(attributes = setOfNotNull(
+        executable.name?.let { ExecAttributes.NAME to it },
+        ExecAttributes.EXECUTABLE to executable,
+    )),
 
     /**
      * Mode that defines if the execution will be synchronous
@@ -56,6 +62,9 @@ public data class Executor<E : Exec>(
     private val processor: Processor<E>? = null,
 ) {
 
+    /**
+     * Adds a new environment variable with the given [key] and [value].
+     */
     public fun env(key: String, value: String): Executor<E> =
         copy(environment = environment.plus(key to value))
 
@@ -69,23 +78,45 @@ public data class Executor<E : Exec>(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
     ): E {
-        val tracingOptions1 = tracingOptions.copy(attributes = tracingOptions.attributes.run {
-            listOfNotNull(
-                executable.name?.let { ExecAttributes.NAME to it },
-                ExecAttributes.EXECUTABLE to executable,
-                RenderingAttributes.NAME renderingOnly executable.summary,
-                *toList().toTypedArray(),
-            )
+        val renderedSpanNameOverridingOptions = tracingOptions.copy(renderer = { default ->
+            tracingOptions.renderer(copy(
+                nameFormatter = {
+                    val replacedSpanName = StringBuilder().apply {
+                        executable.name?.also { append("$it$LF") }
+                        val contentLines = executable.content.lines()
+                        if ((contentLines.size <= 3) && (contentLines.all { it.columns <= 60 })) {
+                            append(executable.content)
+                        } else {
+                            append(executable.toLink())
+                        }
+                    }
+                    nameFormatter(replacedSpanName)
+                }
+            ), default)
         })
         return executable
             .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
-            .process(processingMode, tracingOptions1, processor ?: Processors.noopProcessor())
+            .process(processingMode, renderedSpanNameOverridingOptions, processor ?: Processors.noopProcessor())
     }
 
+    /**
+     * Executes the [executable] by logging all [IO] using the given [renderer].
+     *
+     * @param workingDirectory the working directory to be used during execution
+     * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
+     * @param nameFormatter convenience way to set [Settings.nameFormatter]
+     * @param contentFormatter convenience way to set [Settings.contentFormatter]
+     * @param decorationFormatter convenience way to set [Settings.decorationFormatter]
+     * @param returnValueTransform convenience way to set [Settings.returnValueTransform]
+     * @param layout convenience way to set [Settings.layout]
+     * @param blockStyle convenience way to set [Settings.blockStyle]
+     * @param oneLineStyle convenience way to set [Settings.oneLineStyle]
+     * @param printer convenience way to set [Settings.printer]
+     * @param renderer used to render the execution (default: properly nested child renderer)
+     */
     public fun logging(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-        nameOverride: String? = tracingOptions.nameOverride,
 
         nameFormatter: FilteringFormatter? = null,
         contentFormatter: FilteringFormatter? = null,
@@ -97,7 +128,7 @@ public data class Executor<E : Exec>(
         printer: Printer? = null,
 
         renderer: RendererProvider = { it(this) },
-    ): E = copy(tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = { default ->
+    ): E = copy(tracingOptions = tracingOptions.copy(renderer = { default ->
         renderer(copy(
             nameFormatter = nameFormatter ?: this.nameFormatter,
             contentFormatter = contentFormatter ?: this.contentFormatter,
@@ -115,12 +146,22 @@ public data class Executor<E : Exec>(
      *
      * @param workingDirectory the working directory to be used during execution
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
+     * @param nameFormatter convenience way to set [Settings.nameFormatter]
+     * @param contentFormatter convenience way to set [Settings.contentFormatter]
+     * @param decorationFormatter convenience way to set [Settings.decorationFormatter]
+     * @param returnValueTransform convenience way to set [Settings.returnValueTransform]
+     * @param layout convenience way to set [Settings.layout]
+     * @param blockStyle convenience way to set [Settings.blockStyle]
+     * @param oneLineStyle convenience way to set [Settings.oneLineStyle]
+     * @param printer convenience way to set [Settings.printer]
+     * @param renderer used to render the execution (default: properly nested child renderer)
+     * @param processor used to process the [IO] of the execution
      */
     public fun processing(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-        nameOverride: String? = tracingOptions.nameOverride,
 
+        nameFormatter: FilteringFormatter? = null,
         contentFormatter: FilteringFormatter? = null,
         decorationFormatter: Formatter? = null,
         returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
@@ -132,8 +173,9 @@ public data class Executor<E : Exec>(
         renderer: RendererProvider? = { it(this) },
         processor: Processor<E>,
     ): E = copy(
-        tracingOptions = tracingOptions.withNameOverride(nameOverride).copy(renderer = { default ->
+        tracingOptions = tracingOptions.copy(renderer = { default ->
             (renderer ?: tracingOptions.renderer)(copy(
+                nameFormatter = nameFormatter ?: this.nameFormatter,
                 contentFormatter = contentFormatter ?: this.contentFormatter,
                 decorationFormatter = decorationFormatter ?: this.decorationFormatter,
                 returnValueTransform = returnValueTransform ?: this.returnValueTransform,

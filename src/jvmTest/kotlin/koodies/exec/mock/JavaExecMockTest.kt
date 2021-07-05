@@ -201,7 +201,7 @@ class JavaExecMockTest {
                     inputStream.available()
                     inputStream.read()
                 }
-                expecting { duration } that { isLessThanOrEqualTo(3.seconds) }
+                expecting { duration } that { isLessThanOrEqualTo(4.seconds) }
             }
         }
     }

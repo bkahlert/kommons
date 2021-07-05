@@ -73,19 +73,18 @@ class ExecutionIntegrationTest {
             echo("Hello, Back!")
         }
 
-        // can also be executed with builder
         var counter = 0
         shellScript.exec.processing { io -> if (io is IO.Output) counter++ } check {
 
-            counter { isEqualTo(3) }
+            counter { isEqualTo(2) }
 
             expectThatRendered().matchesCurlyPattern("""
                 ╭──╴Say Hello
-                │   file://{}.sh
+                │   'echo' 'Hello, World!'
+                │   'echo' 'Hello, Back!'
                 │
-                │   {}
-                │   Hello, World!                                                                   
-                │   Hello, Back!                                                                    
+                │   Hello, World!
+                │   Hello, Back!
                 │
                 ╰──╴✔︎
             """.trimIndent())
@@ -99,15 +98,11 @@ class ExecutionIntegrationTest {
             echo("Countdown!")
             (10 downTo 0).forEach { echo(it) }
             echo("Take Off")
-        }.exec.logging(nameOverride = "countdown",
-            renderer = RendererProviders.block {
-                copy(
-                    contentFormatter = { "${"->".ansi.red} $it" },
-                    decorationFormatter = Colors.brightRed,
-                    blockStyle = Solid,
-                )
-            }) check {
-
+        }.exec.logging(
+            contentFormatter = { "${"->".ansi.red} $it" },
+            decorationFormatter = Colors.brightRed,
+            blockStyle = Solid,
+        ) check {
             expectThatRendered().matchesCurlyPattern("""
                 ╭──╴file://{}.sh
                 │

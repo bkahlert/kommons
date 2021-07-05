@@ -10,13 +10,10 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.asPath
 import koodies.io.path.executable
-import koodies.text.LineSeparators
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.removeTrailingLineSeparator
-import koodies.text.columns
 import koodies.text.unquoted
-import koodies.tracing.rendering.Renderable
 import org.codehaus.plexus.util.cli.shell.FormattingShell
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -89,26 +86,16 @@ public open class CommandLine(
 
     /**
      * A human-readable representation of this command line.
+     *
+     * ***Warning:** The content is not guaranteed to work due to simplified quoting. Use [shellCommand] for an always working command.*
      */
-    override val summary: Renderable = Renderable { columns, rows ->
-        if (name != null) {
-            "$name${LineSeparators.DEFAULT}${toLink()}"
-        } else {
-            val shellPreview = commandLineParts.joinToString(" ").removeTrailingLineSeparator
-            val shellPreviewLines = shellPreview.lines()
-            if ((rows == null || shellPreviewLines.size <= rows) && (columns == null || shellPreviewLines.all { it.columns <= columns })) {
-                shellPreview
-            } else {
-                toLink().toString()
-            }
-        }
-    }
+    override val content: CharSequence get() = commandLineParts.joinToString(" ").removeTrailingLineSeparator
 
     override fun toCommandLine(
         environment: Map<String, String>,
         workingDirectory: Path?,
         transform: (String) -> String,
-    ): CommandLine = CommandLine(transform(command), arguments.map(transform))
+    ): CommandLine = CommandLine(transform(command), arguments.map(transform), name, exitStateHandler)
 
     public override fun toExec(
         redirectErrorStream: Boolean,

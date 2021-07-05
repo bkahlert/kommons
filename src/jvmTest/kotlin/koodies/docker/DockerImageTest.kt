@@ -1,6 +1,5 @@
 package koodies.docker
 
-import koodies.exec.RendererProviders
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.testEach
 import koodies.test.tests
@@ -121,17 +120,17 @@ class DockerImageTest {
 
             @ImageTest @IdeaWorkaroundTest
             fun TestImage.`should list images and log`(testSpan: TestSpan) = whilePulled { testImage ->
-                expectThat(DockerImage.list(provider = RendererProviders.noDetails())).contains(testImage)
+                expectThat(DockerImage.list()).contains(testImage)
                 testSpan.expectThatRendered().contains("Listing images ✔︎")
             }
 
             @ImageTest @IdeaWorkaroundTest
             fun TestImage.`should list existing image and log`(testSpan: TestSpan) = whilePulled { testImage ->
-                expectThat(testImage.list(provider = RendererProviders.noDetails())).contains(testImage)
+                expectThat(testImage.list()).contains(testImage)
                 testSpan.expectThatRendered().contains("Listing $testImage images ✔︎")
 
                 testImage.remove()
-                expectThat(testImage.list(provider = RendererProviders.noDetails())).isEmpty()
+                expectThat(testImage.list()).isEmpty()
                 testSpan.expectThatRendered().contains("Listing $testImage images ✔︎")
             }
         }
@@ -147,21 +146,21 @@ class DockerImageTest {
         @ImageTest @IdeaWorkaroundTest
         fun TestImage.`should check if is pulled and log`(testSpan: TestSpan) = whilePulled { testImage ->
             expectThat(testImage).isPulled()
-            testSpan.expectThatRendered().contains("Checking if $testImage is pulled ✔︎")
+            testSpan.expectThatRendered().contains("Listing $testImage images ✔︎")
 
             testImage.remove()
             expectThat(testImage).not { isPulled() }
-            testSpan.expectThatRendered().contains("Checking if $testImage is pulled ✔︎")
+            testSpan.expectThatRendered().contains("Listing $testImage images ✔︎")
         }
 
         @ImageTest @IdeaWorkaroundTest
         fun TestImage.`should pull image and log`(testSpan: TestSpan) = whileRemoved { testImage ->
-            expectThat(testImage.pull(provider = RendererProviders.noDetails())).isSuccessful()
-            testSpan.expectThatRendered().contains("Pulling $testImage ✔︎")
+            expectThat(testImage.pull()).isSuccessful()
+            testSpan.expectThatRendered().contains("Pulling $testImage image ✔︎")
             expectThat(testImage.isPulled).isTrue()
 
-            expectThat(testImage.pull(provider = RendererProviders.noDetails())).isSuccessful()
-            testSpan.expectThatRendered().contains("Pulling $testImage ✔︎")
+            expectThat(testImage.pull()).isSuccessful()
+            testSpan.expectThatRendered().contains("Pulling $testImage image ✔︎")
         }
 
         @ImageTest @IdeaWorkaroundTest
@@ -178,7 +177,7 @@ class DockerImageTest {
 
 fun Assertion.Builder<DockerImage>.isPulled() =
     assert("is pulled") {
-        when (with(it) { RendererProviders.noDetails().isPulled }) {
+        when (it.isPulled) {
             true -> pass()
             else -> fail("$it is not pulled")
         }

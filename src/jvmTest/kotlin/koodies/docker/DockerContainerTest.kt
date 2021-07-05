@@ -4,7 +4,6 @@ import koodies.docker.DockerContainer.State
 import koodies.docker.DockerContainer.State.Existent.Exited
 import koodies.docker.DockerContainer.State.Existent.Running
 import koodies.docker.DockerContainer.State.NotExistent
-import koodies.exec.RendererProviders
 import koodies.test.IdeaWorkaroundTest
 import koodies.test.IdeaWorkaroundTestFactory
 import koodies.test.testEach
@@ -189,14 +188,14 @@ class DockerContainerTest {
             fun TestSpan.`should get status of non-existent`(testContainers: TestContainers) {
                 val container = testContainers.newNotExistentContainer()
                 expectThat(container).hasState<NotExistent>()
-                expectThatRendered().contains("Checking status of ${container.name}")
+                expectThatRendered().contains("Listing all containers matching {name=^${container.name}\$} ✔︎")
             }
 
             @ContainersTest @IdeaWorkaroundTest
             fun TestSpan.`should get status`(testContainers: TestContainers) {
                 val container = testContainers.newRunningTestContainer()
                 expectThat(container).hasState<Running> { get { status }.isNotEmpty() }
-                expectThatRendered().contains("Checking status of ${container.name}")
+                expectThatRendered().contains("Listing all containers matching {name=^${container.name}\$} ✔︎")
             }
         }
 
@@ -207,7 +206,7 @@ class DockerContainerTest {
             fun TestSpan.`should list containers and log`(testContainers: TestContainers) {
                 val containers = (1..3).map { testContainers.newRunningTestContainer() }
                 expectThat(DockerContainer.list()).contains(containers)
-                expectThatRendered().contains("Listing all containers")
+                expectThatRendered().contains("Listing all containers ✔︎")
             }
         }
 
@@ -444,14 +443,14 @@ class DockerContainerTest {
 
 inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<DockerContainer> =
     compose("status") {
-        get { RendererProviders.noDetails().containerState }.isA<T>()
+        get { containerState }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
 
 inline fun <reified T : State> Builder<DockerContainer>.hasState(
     crossinline statusAssertion: Builder<T>.() -> Unit,
 ): Builder<DockerContainer> =
     compose("status") {
-        get { RendererProviders.noDetails().containerState }.isA<T>().statusAssertion()
+        get { containerState }.isA<T>().statusAssertion()
     }.then { if (allPassed) pass() else fail() }
 
 val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }

@@ -31,7 +31,7 @@ class OneLineRendererKtTest {
 
         @Test
         fun TestSpan.`should be customizable`() {
-            spanningLine("parent", { copy(contentFormatter = { "!$it!" }) }) { spanning("child") { log("event") } }
+            spanningLine("parent", contentFormatter = { "!$it!" }) { spanning("child") { log("event") } }
             expectThatRendered().matchesCurlyPattern("parent ❱❱ child ❱ !event! ✔︎ ❱❱ ✔︎")
         }
 

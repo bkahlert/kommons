@@ -18,8 +18,6 @@ import koodies.tracing.eventText
 import koodies.tracing.events
 import koodies.tracing.expectTraced
 import koodies.tracing.hasSpanAttribute
-import koodies.tracing.rendering.Renderable
-import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -41,15 +39,14 @@ class ProcessorsKtTest {
         fun TestSpan.`should trace`() {
             CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream())),
                 TracingOptions(
-                    attributes = listOf(
+                    attributes = setOf(
                         ExecAttributes.NAME to "exec-name",
                         ExecAttributes.EXECUTABLE to CommandLine("cat"),
-                        RenderingAttributes.NAME renderingOnly Renderable.of("span-name"),
                     ),
                     renderer = { it(this) }
                 )) { }
             expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴span-name
+                    ╭──╴koodies.exec
                     │
                     │   Hello Cat!            
                     │
@@ -59,7 +56,7 @@ class ProcessorsKtTest {
                 with(get(0)) {
                     spanName.isEqualTo("koodies.exec")
                     hasSpanAttribute(ExecAttributes.NAME, "exec-name")
-                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "'cat'")
+                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
                     events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
                 }
             }
@@ -133,15 +130,14 @@ class ProcessorsKtTest {
         fun TestSpan.`should trace`() {
             CommandLine("cat").toExec().process(ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream())),
                 TracingOptions(
-                    attributes = listOf(
+                    attributes = setOf(
                         ExecAttributes.NAME to "exec-name",
                         ExecAttributes.EXECUTABLE to CommandLine("cat"),
-                        RenderingAttributes.NAME renderingOnly Renderable.of("span-name"),
                     ),
                     renderer = { it(this) }
                 )) { }.waitFor()
             expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴span-name
+                    ╭──╴koodies.exec
                     │
                     │   Hello Cat!            
                     │
@@ -151,7 +147,7 @@ class ProcessorsKtTest {
                 with(get(0)) {
                     spanName.isEqualTo("koodies.exec")
                     hasSpanAttribute(ExecAttributes.NAME, "exec-name")
-                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "'cat'")
+                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
                     events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
                 }
             }

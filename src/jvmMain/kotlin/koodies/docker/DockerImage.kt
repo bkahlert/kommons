@@ -13,7 +13,7 @@ import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState
-import koodies.exec.RendererProviders
+import koodies.exec.RendererProviders.noDetails
 import koodies.exec.output
 import koodies.exec.parse
 import koodies.or
@@ -21,7 +21,6 @@ import koodies.requireSaneInput
 import koodies.text.LineSeparators.lines
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
-import koodies.tracing.rendering.RendererProvider
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -95,31 +94,19 @@ public open class DockerImage(
      */
     public fun list(
         ignoreIntermediateImages: Boolean = true,
-        provider: RendererProvider? = null,
     ): List<DockerImage> =
-        DockerImageListCommandLine {
-            options { all by !ignoreIntermediateImages }
-            image by this@DockerImage
-        }.exec.logging(
-            nameOverride = "Listing ${this@DockerImage.formattedAs.input} images",
-            renderer = provider ?: RendererProviders.summary(),
-        ).parseImages()
+        DockerImageListCommandLine(this, !ignoreIntermediateImages)
+            .exec.logging(renderer = noDetails())
+            .parseImages()
 
     /**
      * Checks if this image is pulled.
      */
-    public val isPulled: Boolean get() = RendererProviders.noDetails().isPulled
-
-    /**
-     * Current pulled state of this image—queried using `this` [RendererProvider].
-     */
-    public val RendererProvider.isPulled: Boolean
-        get() = DockerImageListCommandLine {
-            image by this@DockerImage
-        }.exec.logging(
-            nameOverride = "Checking if ${this@DockerImage.formattedAs.input} is pulled",
-            renderer = this,
-        ).parseImages().isNotEmpty()
+    public val isPulled: Boolean
+        get() = DockerImageListCommandLine(this)
+            .exec.logging(renderer = noDetails())
+            .parseImages()
+            .isNotEmpty()
 
     /**
      * Pulls this image from [Docker Hub](https://hub.docker.com/).
@@ -128,15 +115,9 @@ public open class DockerImage(
      */
     public fun pull(
         allTags: Boolean = false,
-        provider: RendererProvider = RendererProviders.noDetails(),
     ): ExitState =
-        DockerImagePullCommandLine {
-            options { this.allTags by allTags }
-            image by this@DockerImage
-        }.exec.logging(
-            nameOverride = "Pulling ${this@DockerImage.formattedAs.input}",
-            renderer = provider,
-        ).waitFor()
+        DockerImagePullCommandLine(this, allTags)
+            .exec.logging(renderer = noDetails()).waitFor()
 
     /**
      * Removes this image from the locally stored images.
@@ -145,15 +126,9 @@ public open class DockerImage(
      */
     public fun remove(
         force: Boolean = false,
-        provider: RendererProvider = RendererProviders.noDetails(),
     ): ExitState =
-        DockerImageRemoveCommandLine {
-            options { this.force by force }
-            image by this@DockerImage
-        }.exec.logging(
-            nameOverride = "Removing ${this@DockerImage.formattedAs.input}",
-            renderer = provider,
-        ).waitFor()
+        DockerImageRemoveCommandLine(this, force = force)
+            .exec.logging(renderer = noDetails()).waitFor()
 
     /**
      * Contains a list of tags available on [Docker Hub](https://registry.hub.docker.com).
@@ -172,7 +147,7 @@ public open class DockerImage(
     /**
      * Returns a [DockerRunCommandLine] that runs `this` [Executable]
      * using `this` [DockerImage]
-     * and default options [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executable.summary].
+     * and default options [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executable.content].
      */
     public val Executable<Exec>.dockerized: DockerRunCommandLine
         get() = dockerized(this@DockerImage)
@@ -299,14 +274,10 @@ public open class DockerImage(
          */
         public fun list(
             ignoreIntermediateImages: Boolean = true,
-            provider: RendererProvider = RendererProviders.noDetails(),
         ): List<DockerImage> =
-            DockerImageListCommandLine {
-                options { all by !ignoreIntermediateImages }
-            }.exec.logging(
-                nameOverride = "Listing images",
-                renderer = provider,
-            ).parseImages()
+            DockerImageListCommandLine(all = !ignoreIntermediateImages)
+                .exec.logging(renderer = noDetails())
+                .parseImages()
     }
 }
 

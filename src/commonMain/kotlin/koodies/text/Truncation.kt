@@ -10,7 +10,7 @@ import koodies.text.Whitespaces.trailingWhitespaces
  * Creates a truncated string from selected elements separated using [separator] and using the given [prefix] and [postfix] if supplied.
  *
  * If the collection could be huge, you can specify a non-negative value of [startLimit], in which case at most the first [startLimit]
- * elements and the [endLimit] last elements will be appended, leaving out the elements in between using the [truncated] string (which defaults to "…").
+ * elements and the [endLimit] last elements will be appended, leaving out the elements in between using the [truncated] string (which defaults to " … ").
  */
 public fun <T> Collection<T>.joinToTruncatedString(
     separator: CharSequence = ", ",
@@ -18,7 +18,7 @@ public fun <T> Collection<T>.joinToTruncatedString(
     postfix: CharSequence = "",
     startLimit: Int = 2,
     endLimit: Int = 1,
-    truncated: CharSequence = "…",
+    truncated: CharSequence = Unicode.ELLIPSIS.spaced,
     transform: ((T) -> CharSequence)? = null,
     transformEnd: ((T) -> CharSequence)? = null,
 ): String {
@@ -45,7 +45,7 @@ private fun requirePositiveCodePoints(maxCodePoints: Int) {
     }
 }
 
-private fun targetCodePoints(maxCodePoints: Int = 15, marker: String = "…"): Int {
+private fun targetCodePoints(maxCodePoints: Int, marker: String): Int {
     requirePositiveCodePoints(maxCodePoints)
     val markerCodePointCount = marker.codePointCount
     require(maxCodePoints >= markerCodePointCount) {
@@ -57,7 +57,7 @@ private fun targetCodePoints(maxCodePoints: Int = 15, marker: String = "…"): I
 /**
  * Returns `this` string truncated from the center to [maxCodePoints] including the [marker].
  */
-public fun String.truncate(maxCodePoints: Int = 15, marker: String = "…"): String {
+public fun String.truncate(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): String {
     requirePositiveCodePoints(maxCodePoints)
     return if (length > 2 * maxCodePoints || codePointCount > maxCodePoints) {
         val targetCodePoints = targetCodePoints(maxCodePoints, marker)
@@ -72,13 +72,13 @@ public fun String.truncate(maxCodePoints: Int = 15, marker: String = "…"): Str
 /**
  * Returns `this` character sequence truncated from the center to [maxCodePoints] including the [marker].
  */
-public fun CharSequence.truncate(maxCodePoints: Int = 15, marker: String = "…"): CharSequence =
+public fun CharSequence.truncate(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence =
     if (codePointCount > maxCodePoints) toString().truncate(maxCodePoints, marker) else this
 
 /**
  * Returns `this` string truncated from the start to [maxCodePoints] including the [marker].
  */
-public fun String.truncateStart(maxCodePoints: Int = 15, marker: String = "…"): String {
+public fun String.truncateStart(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): String {
     requirePositiveCodePoints(maxCodePoints)
     if (codePointCount <= maxCodePoints) return this
 
@@ -90,13 +90,13 @@ public fun String.truncateStart(maxCodePoints: Int = 15, marker: String = "…")
 /**
  * Returns `this` character sequence truncated from the start to [maxCodePoints] including the [marker].
  */
-public fun CharSequence.truncateStart(maxCodePoints: Int = 15, marker: String = "…"): CharSequence =
+public fun CharSequence.truncateStart(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence =
     if (codePointCount > maxCodePoints) toString().truncateStart(maxCodePoints, marker) else this
 
 /**
  * Returns `this` string truncated from the end to [maxCodePoints] including the [marker].
  */
-public fun String.truncateEnd(maxCodePoints: Int = 15, marker: String = "…"): String {
+public fun String.truncateEnd(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): String {
     requirePositiveCodePoints(maxCodePoints)
     if (codePointCount <= maxCodePoints) return this
 
@@ -108,7 +108,7 @@ public fun String.truncateEnd(maxCodePoints: Int = 15, marker: String = "…"): 
 /**
  * Returns `this` character sequence truncated from the end to [maxCodePoints] including the [marker].
  */
-public fun CharSequence.truncateEnd(maxCodePoints: Int = 15, marker: String = "…"): CharSequence =
+public fun CharSequence.truncateEnd(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence =
     if (length > 2 * (maxCodePoints + 1) || length > maxCodePoints) toString().truncateEnd(maxCodePoints, marker) else this
 
 
@@ -150,7 +150,7 @@ public fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhite
  */
 public fun CharSequence.padStartFixedLength(
     length: Int = 15,
-    marker: String = "…",
+    marker: String = Unicode.ELLIPSIS.spaced,
     padChar: Char = ' ',
 ): String = toString().truncate(length, marker).padStart(length, padChar)
 
@@ -159,6 +159,6 @@ public fun CharSequence.padStartFixedLength(
  */
 public fun CharSequence.padEndFixedLength(
     length: Int = 15,
-    marker: String = "…",
+    marker: String = Unicode.ELLIPSIS.spaced,
     padChar: Char = ' ',
 ): String = toString().truncate(length, marker).padEnd(length, padChar)

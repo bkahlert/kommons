@@ -5,10 +5,10 @@ import koodies.exec.IO.Error
 import koodies.exec.IO.Input
 import koodies.exec.IO.Meta
 import koodies.exec.IO.Output
-import koodies.text.ANSI.Style
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString
 import koodies.text.LineSeparators.lines
+import koodies.text.Semantics.formattedAs
 import koodies.text.joinLinesToString
 import koodies.tracing.Event
 import koodies.tracing.rendering.RenderingAttributes
@@ -128,7 +128,7 @@ public sealed class IO(
         /**
          * Marker that instructs consumers to ignore the remaining line.
          */
-        public val ERASE_MARKER: String = Style.hidden.invoke("﹗").toString()
+        public val ERASE_MARKER: String = "|∣·".formattedAs.meta
 
         /**
          * Filters text that starts with [ERASE_MARKER].

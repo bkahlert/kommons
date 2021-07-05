@@ -16,9 +16,10 @@ import java.io.InputStream
  */
 public open class NonBlockingLineReader(
     inputStream: InputStream,
-    private val lineBuffer: ByteArrayOutputStream = ByteArrayOutputStream(),
+    private val lineBuffer: ByteArrayOutputStream,
     private val lineProcessor: (String) -> Unit,
 ) : NonBlockingPipe(inputStream, lineBuffer) {
+    public constructor(inputStream: InputStream, lineProcessor: (String) -> Unit) : this(inputStream, ByteArrayOutputStream(), lineProcessor)
 
     override fun readChannelRead() {
         val fullyRead: StringBuilder = StringBuilder()

@@ -19,6 +19,7 @@ import koodies.text.padStartFixedLength
 import koodies.time.Now
 import koodies.time.minutes
 import koodies.time.seconds
+import koodies.tracing.rendering.BackgroundPrinter
 import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.InMemoryPrinter
 import koodies.tracing.rendering.Printer
@@ -137,10 +138,13 @@ class TestRenderer(
     printToConsole: Boolean,
 ) : Renderer {
 
+    private lateinit var backgroundPrinterBackup: Printer
     private val testOnlyPrinter: Printer = if (printToConsole) ThreadSafePrinter(TestPrinter()) else run { {} }
     private val printer: Printer = ThreadSafePrinter(TeePrinter(testOnlyPrinter, printer))
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+        backgroundPrinterBackup = BackgroundPrinter.printer
+        BackgroundPrinter.printer = printer
         testOnlyPrinter(TestPrinter.TestIO.Start(traceId, spanId, name))
     }
 
@@ -158,6 +162,7 @@ class TestRenderer(
             null -> testOnlyPrinter(TestPrinter.TestIO.Pass)
             else -> testOnlyPrinter(TestPrinter.TestIO.Fail(exception))
         }
+        BackgroundPrinter.printer = backgroundPrinterBackup
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer =

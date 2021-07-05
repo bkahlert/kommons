@@ -29,7 +29,7 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.time.Duration
 
-class LocationsTest {
+class LocationsKtTest {
 
     @TestFactory
     fun paths() = testEach(

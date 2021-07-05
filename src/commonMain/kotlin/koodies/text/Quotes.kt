@@ -2,6 +2,8 @@ package koodies.text
 
 import koodies.text.Semantics.Symbols
 
+public inline val Char?.spaced: String get() = this?.toString().spaced
+
 public inline val CharSequence?.spaced: String get() = (this ?: Symbols.Null).wrap(" ")
 public inline val CharSequence?.leftSpaced: String get() = (this ?: Symbols.Null).wrap(" ", "")
 public inline val CharSequence?.rightSpaced: String get() = (this ?: Symbols.Null).wrap("", " ")

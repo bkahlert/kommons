@@ -64,15 +64,15 @@ public interface Event {
     /**
      * Attributes describing this event.
      */
-    public val attributes: List<KeyValue<*, *>>
+    public val attributes: Set<KeyValue<*, *>>
 
     private data class SimpleEvent(
         override val name: CharSequence,
-        override val attributes: List<KeyValue<*, *>>,
+        override val attributes: Set<KeyValue<*, *>>,
     ) : Event
 
     public companion object {
         public fun of(name: CharSequence, vararg attributes: KeyValue<*, *>): Event =
-            SimpleEvent(name, attributes.toList())
+            SimpleEvent(name, attributes.toSet())
     }
 }

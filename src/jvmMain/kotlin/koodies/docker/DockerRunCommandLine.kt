@@ -30,7 +30,6 @@ import koodies.text.splitAndMap
 import koodies.text.takeUnlessBlank
 import koodies.text.withRandomSuffix
 import koodies.toBaseName
-import koodies.tracing.rendering.Renderable
 import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
 
@@ -54,17 +53,19 @@ public class DockerRunCommandLine(
      * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
      * >Docker run: Options</a>
      */
-    options: Options = Options(),
+    options: Options,
 
     private val executable: Executable<Exec>,
 ) : Executable<DockerExec> {
 
-    override val name: CharSequence? = executable.name?.let { "🐳 $it" }
+    public constructor(image: DockerImage, executable: Executable<*>) : this(image, Options(), executable)
 
-    private val fallbackName = executable.summary.toBaseName().withRandomSuffix()
+    override val name: CharSequence? = executable.name?.let { "$it 🐳 $image" }
+
+    private val fallbackName = executable.content.toBaseName().withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
 
-    override val summary: Renderable = toCommandLine(emptyMap(), null) { it }.summary
+    override val content: CharSequence = toCommandLine().content
 
     override fun toCommandLine(
         environment: Map<String, String>,
@@ -98,7 +99,7 @@ public class DockerRunCommandLine(
                 if (command != null && options.entryPoint == null) add(command)
                 addAll(runCommandLine.arguments)
             }
-        }.map(transform))
+        }.map(transform), name = name)
 
     override fun toExec(
         redirectErrorStream: Boolean,
@@ -543,7 +544,7 @@ public class DockerRunCommandLine(
 /**
  * Returns a [DockerRunCommandLine] that runs `this` [Executable]
  * using the [DockerImage] built by [image]
- * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.summary]).
+ * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.content]).
  */
 public fun Executable<Exec>.dockerized(options: Options = Options(), image: DockerImageInit): DockerRunCommandLine =
     DockerRunCommandLine(DockerImage(image), options, this)
@@ -559,7 +560,7 @@ public fun Executable<Exec>.dockerized(image: DockerImageInit, options: Init<Opt
 /**
  * Returns a [DockerRunCommandLine] that runs `this` [Executable]
  * using the specified [image]
- * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.summary]).
+ * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.content]).
  */
 public fun Executable<Exec>.dockerized(image: DockerImage, options: Options = Options()): DockerRunCommandLine =
     DockerRunCommandLine(image, options, this)

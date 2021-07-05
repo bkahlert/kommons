@@ -25,7 +25,6 @@ import koodies.io.copyToDirectory
 import koodies.io.path.asPath
 import koodies.io.path.deleteRecursively
 import koodies.io.path.pathString
-import koodies.io.path.text
 import koodies.io.tempDir
 import koodies.runtime.onExit
 import koodies.shell.ShellScript
@@ -57,7 +56,6 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
-import strikt.java.exists
 import java.nio.file.Path
 import kotlin.time.measureTime
 
@@ -173,24 +171,13 @@ class DockerRunCommandLineTest {
     }
 
     @Nested
-    inner class Summary {
+    inner class Content {
 
         private val commandLine = DockerRunCommandLine(DockerImage { "repo" / "name" tag "tag" }, Options(), CommandLine("printenv", "TEST_PROP"))
 
         @Test
-        fun `should provide summary`() {
-            expectThat(commandLine.summary).matchesCurlyPattern("docker run {} repo/name:tag printenv TEST_PROP")
-        }
-
-        @Test
-        fun `should provide url if summary is too long`() {
-            expectThat(commandLine.summary.render(10, 1))
-                .get { asPath() }
-                .exists()
-                .text.matchesCurlyPattern("""
-                    #!/bin/sh
-                    'docker' 'run' {} 'repo/name:tag' 'printenv' 'TEST_PROP'
-                """.trimIndent())
+        fun `should provide content`() {
+            expectThat(commandLine.content).matchesCurlyPattern("docker run {} repo/name:tag printenv TEST_PROP")
         }
     }
 

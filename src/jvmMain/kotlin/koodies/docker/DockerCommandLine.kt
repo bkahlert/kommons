@@ -1,8 +1,6 @@
 package koodies.docker
 
-import koodies.builder.BuilderTemplate
 import koodies.exec.CommandLine
-import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Process.ExitState.ExitStateHandler
 
 /**
@@ -18,9 +16,13 @@ public open class DockerCommandLine(
      * The arguments to be passed to [dockerCommand].
      */
     arguments: List<String>,
-) : CommandLine("docker", listOf(dockerCommand, *arguments.toTypedArray())) {
+    /**
+     * The name of this command line.
+     */
+    name: CharSequence?,
+) : CommandLine("docker", listOf(dockerCommand, *arguments.toTypedArray()), name = name) {
 
-    public constructor(dockerCommand: String, vararg arguments: String) : this(dockerCommand, arguments.toList())
+    public constructor(dockerCommand: String, vararg arguments: String, name: CharSequence?) : this(dockerCommand, arguments.toList(), name)
 
     override val exitStateHandler: ExitStateHandler? = DockerExitStateHandler
 
@@ -36,11 +38,4 @@ public open class DockerCommandLine(
     }
 
     override fun hashCode(): Int = commandLineParts.contentHashCode()
-
-    public companion object : BuilderTemplate<CommandLineContext, DockerCommandLine>() {
-
-        override fun BuildContext.build(): DockerCommandLine = ::CommandLineContext {
-            DockerCommandLine(::command.eval(), ::arguments.eval<List<String>>())
-        }
-    }
 }
