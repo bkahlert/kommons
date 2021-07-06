@@ -248,10 +248,10 @@ val Builder<EventData>.eventName: Builder<String>
 val Builder<EventData>.attributes: Builder<Attributes>
     get() = get("attributes") { attributes }
 
-val Builder<EventData>.eventDescription: Builder<String>
+val Builder<EventData>.eventDescription: Builder<String?>
     get() = get("description attribute") { attributes.get(RenderingAttributes.DESCRIPTION) }
 
-val Builder<EventData>.eventText: Builder<String>
+val Builder<EventData>.eventText: Builder<String?>
     get() = get("text attribute") { attributes.get(IOAttributes.TEXT) }
 
 fun Builder<EventData>.hasAttribute(key: String, value: String): Builder<EventData> =
@@ -280,5 +280,5 @@ fun Builder<SpanData>.isError(expectedDescription: String) =
         statusDescription.isEqualTo(expectedDescription)
     }
 
-operator fun Builder<Attributes>.get(key: String): Builder<String> =
-    get("key $key") { this.get(AttributeKey.stringKey(key)) }
+operator fun Builder<Attributes>.get(key: String): Builder<String?> =
+    get("key $key") { get(AttributeKey.stringKey(key)) }

@@ -71,7 +71,7 @@ public object Tracer : io.opentelemetry.api.trace.Tracer {
  */
 public class Key<T, R>(
     private val attributeKey: AttributeKey<T>,
-    private val attributeKeyFactory: (String) -> AttributeKey<T>,
+    private val createKey: (String) -> AttributeKey<T>,
     private val transform: (R) -> T,
 ) : AttributeKey<T> by attributeKey {
     override fun toString(): String = attributeKey.key
@@ -92,12 +92,12 @@ public class Key<T, R>(
     /** Contains the key to access the corresponding value. */
     public val valueKey: Key<T, R>
         get() = if (!this.isRenderingKey) this
-        else Key(attributeKeyFactory(attributeKey.key.removeSuffix(RENDERING_KEY_SUFFIX)), attributeKeyFactory, transform)
+        else Key(createKey(attributeKey.key.removeSuffix(RENDERING_KEY_SUFFIX)), createKey, transform)
 
     /** Contains the key to access the value used for rendering. */
     public val renderingKey: Key<T, R>
         get() = if (this.isRenderingKey) this
-        else Key(attributeKeyFactory(attributeKey.key.withSuffix(RENDERING_KEY_SUFFIX)), attributeKeyFactory, transform)
+        else Key(createKey(attributeKey.key.withSuffix(RENDERING_KEY_SUFFIX)), createKey, transform)
 
     /**
      * Provides a delegate to read the actual value from the owning [Attributes] instance.
@@ -137,63 +137,71 @@ public class Key<T, R>(
         private const val RENDERING_KEY_SUFFIX = ".render"
 
         /** Returns a new [Key] for [T] valued and [R] rendered attributes, whereas [transform] is used to derive [T] from [R]. */
-        private fun <T, R> ((String) -> AttributeKey<T>).asKey(key: String, transform: (R) -> T): Key<T, R> = Key(invoke(key), this, transform)
+        private fun <T, R> asKey(key: String, transform: (R) -> T, createKey: (String) -> AttributeKey<T>): Key<T, R> =
+            Key(createKey.invoke(key), createKey, transform)
 
         /** Returns a new [Key] for String valued attributes. */
-        public fun stringKey(key: String): Key<String, String> = stringKey(key) { it }
+        public fun stringKey(key: String): Key<String, String> =
+            stringKey(key) { it }
 
         /** Returns a new [Key] for String valued and [R] rendered attributes, whereas [transform] is used to derive the string from [R]. */
         public fun <R> stringKey(key: String, transform: (R) -> String): Key<String, R> =
-            { it: String -> AttributeKey.stringKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.stringKey(it) }
 
         /** Returns a new [Key] for Boolean valued attributes.  */
-        public fun booleanKey(key: String): Key<Boolean, Boolean> = booleanKey(key) { it }
+        public fun booleanKey(key: String): Key<Boolean, Boolean> =
+            booleanKey(key) { it }
 
         /** Returns a new [Key] for Boolean valued and [R] rendered attributes, whereas [transform] is used to derive the boolean from [R]. */
         public fun <R> booleanKey(key: String, transform: (R) -> Boolean): Key<Boolean, R> =
-            { it: String -> AttributeKey.booleanKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.booleanKey(it) }
 
         /** Returns a new [Key] for Long valued attributes.  */
         public fun longKey(key: String): Key<Long, Long> = longKey(key) { it }
 
         /** Returns a new [Key] for Long valued and [R] rendered attributes, whereas [transform] is used to derive the long from [R]. */
         public fun <R> longKey(key: String, transform: (R) -> Long): Key<Long, R> =
-            { it: String -> AttributeKey.longKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.longKey(it) }
 
         /** Returns a new [Key] for Double valued attributes.  */
-        public fun doubleKey(key: String): Key<Double, Double> = doubleKey(key) { it }
+        public fun doubleKey(key: String): Key<Double, Double> =
+            doubleKey(key) { it }
 
         /** Returns a new [Key] for Double valued and [R] rendered attributes, whereas [transform] is used to derive the double from [R]. */
         public fun <R> doubleKey(key: String, transform: (R) -> Double): Key<Double, R> =
-            { it: String -> AttributeKey.doubleKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.doubleKey(it) }
 
         /** Returns a new [Key] for List&lt;String&gt; valued attributes.  */
-        public fun stringArrayKey(key: String): Key<List<String>, List<String>> = stringArrayKey(key) { it }
+        public fun stringArrayKey(key: String): Key<List<String>, List<String>> =
+            stringArrayKey(key) { it }
 
         /** Returns a new [Key] for List&lt;String&gt; valued and [R] rendered attributes, whereas [transform] is used to derive the string list from [R]. */
         public fun <R> stringArrayKey(key: String, transform: (R) -> List<String>): Key<List<String>, R> =
-            { it: String -> AttributeKey.stringArrayKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.stringArrayKey(it) }
 
         /** Returns a new [Key] for List&lt;Boolean&gt; valued attributes.  */
-        public fun booleanArrayKey(key: String): Key<List<Boolean>, List<Boolean>> = booleanArrayKey(key) { it }
+        public fun booleanArrayKey(key: String): Key<List<Boolean>, List<Boolean>> =
+            booleanArrayKey(key) { it }
 
         /** Returns a new [Key] for List&lt;Boolean&gt; valued and [R] rendered attributes, whereas [transform] is used to derive the boolean list from [R]. */
         public fun <R> booleanArrayKey(key: String, transform: (R) -> List<Boolean>): Key<List<Boolean>, R> =
-            { it: String -> AttributeKey.booleanArrayKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.booleanArrayKey(it) }
 
         /** Returns a new [Key] for List&lt;Long&gt; valued attributes.  */
-        public fun longArrayKey(key: String): Key<List<Long>, List<Long>> = longArrayKey(key) { it }
+        public fun longArrayKey(key: String): Key<List<Long>, List<Long>> =
+            longArrayKey(key) { it }
 
         /** Returns a new [Key] for List&lt;Long&gt; valued and [R] rendered attributes, whereas [transform] is used to derive the long list from [R]. */
         public fun <R> longArrayKey(key: String, transform: (R) -> List<Long>): Key<List<Long>, R> =
-            { it: String -> AttributeKey.longArrayKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.longArrayKey(it) }
 
         /** Returns a new [Key] for List&lt;Double&gt; valued attributes.  */
-        public fun doubleArrayKey(key: String): Key<List<Double>, List<Double>> = doubleArrayKey(key) { it }
+        public fun doubleArrayKey(key: String): Key<List<Double>, List<Double>> =
+            doubleArrayKey(key) { it }
 
         /** Returns a new [Key] for List&lt;Double&gt; valued and [R] rendered attributes, whereas [transform] is used to derive the string double from [R]. */
         public fun <R> doubleArrayKey(key: String, transform: (R) -> List<Double>): Key<List<Double>, R> =
-            { it: String -> AttributeKey.doubleArrayKey(it) }.asKey(key, transform)
+            asKey(key, transform) { AttributeKey.doubleArrayKey(it) }
     }
 }
 
@@ -203,20 +211,13 @@ public fun Iterable<KeyValue<*, *>>.toAttributes(): Attributes =
         forEach {
             if (!it.key.isRenderingKey) {
                 when (it.key.type) {
-                    STRING -> (it.value as? String)?.let { value ->
-                        put(AttributeKey.stringKey(it.key.key), value.ansiRemoved)
-                    }
-                    BOOLEAN -> (it.value as? Boolean)?.let { value ->
-                        put(AttributeKey.booleanKey(it.key.key), value)
-                    }
-                    LONG -> (it.value as? Long)?.let { value ->
-                        put(AttributeKey.longKey(it.key.key), value)
-                    }
-                    DOUBLE -> (it.value as? Double)?.let { value ->
-                        put(AttributeKey.doubleKey(it.key.key), value)
-                    }
+                    STRING -> (it.value as? String)?.let { value -> put(AttributeKey.stringKey(it.key.key), value.ansiRemoved) }
+                    BOOLEAN -> (it.value as? Boolean)?.let { value -> put(AttributeKey.booleanKey(it.key.key), value) }
+                    LONG -> (it.value as? Long)?.let { value -> put(AttributeKey.longKey(it.key.key), value) }
+                    DOUBLE -> (it.value as? Double)?.let { value -> put(AttributeKey.doubleKey(it.key.key), value) }
+
                     STRING_ARRAY -> (it.value as? List<*>)?.let { value ->
-                        put(AttributeKey.stringArrayKey(it.key.key), value.filterIsInstance<String>().map { it.ansiRemoved })
+                        put(AttributeKey.stringArrayKey(it.key.key), value.filterIsInstance<String>().map { element -> element.ansiRemoved })
                     }
                     BOOLEAN_ARRAY -> (it.value as? List<*>)?.let { value ->
                         put(AttributeKey.booleanArrayKey(it.key.key), value.filterIsInstance<Boolean>())
@@ -227,6 +228,7 @@ public fun Iterable<KeyValue<*, *>>.toAttributes(): Attributes =
                     DOUBLE_ARRAY -> (it.value as? List<*>)?.let { value ->
                         put(AttributeKey.doubleArrayKey(it.key.key), value.filterIsInstance<Double>())
                     }
+
                     else -> error("${it.key} has no type")
                 }
             }

@@ -68,7 +68,7 @@ public open class SharedPrinter(private val print: (CharSequence) -> Unit) : Pri
         if (exclusive == null || nestedExclusive()) print(message)
     }
 
-    // FIXME very hacky as it relies on Span.toString() to contain the parent span ID; therefor only works for one nesting level at best
+    // FIXME very hacky as it relies on Span.toString() to contain the parent span ID; therefore only works for one nesting level at best
     private fun nestedExclusive() = Span.current().toString().contains(exclusive.toString())
 
     @TracingDsl

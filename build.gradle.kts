@@ -44,9 +44,9 @@ fun Any.isFinal(): Boolean =
 
 plugins {
     kotlin("multiplatform") version "1.5.20"
-    id("org.jetbrains.dokka") version "1.4.30"
-    id("com.github.ben-manes.versions") version "0.38.0"
-    id("se.patrikerdes.use-latest-versions") version "0.2.16"
+    id("org.jetbrains.dokka") version "1.4.32"
+    id("com.github.ben-manes.versions") version "0.39.0"
+    id("se.patrikerdes.use-latest-versions") version "0.2.17"
 
     id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
@@ -154,19 +154,19 @@ kotlin {
                 implementation("org.apache.commons:commons-compress:1.20")
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
-                implementation("org.jline:jline-reader:3.19.0")
+                implementation("org.jline:jline-reader:3.20.0")
 
-                implementation("io.opentelemetry:opentelemetry-api:1.2.0")
-                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.2.0")
-                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.2.0")
+                implementation("io.opentelemetry:opentelemetry-api:1.3.0")
+                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.3.0")
+                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.3.0")
             }
         }
 
         val jvmTest by getting {
             dependencies {
-                implementation("io.opentelemetry:opentelemetry-sdk:1.2.0")
-                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.2.0")
-                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.2.0")
+                implementation("io.opentelemetry:opentelemetry-sdk:1.3.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.3.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
                 implementation("io.grpc:grpc-okhttp:1.38.0")
 
                 implementation(kotlin("test-junit5"))
