@@ -2,7 +2,7 @@ package koodies.shell
 
 import koodies.shell.ShellScript.ScriptContext
 import koodies.text.LineSeparators
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.quoted
 
 public class FileOperations(private val script: ScriptContext, private val path: String) {
@@ -21,7 +21,7 @@ public class FileOperations(private val script: ScriptContext, private val path:
      */
     public fun appendLine(content: String): FileOperations {
         val delimiter = HereDoc.randomDelimiter()
-        script.line("cat <<$delimiter >>${path.quoted}\n${content.removeTrailingLineSeparator}\n$delimiter")
+        script.line("cat <<$delimiter >>${path.quoted}\n${content.trailingLineSeparatorRemoved}\n$delimiter")
         return this
     }
 }

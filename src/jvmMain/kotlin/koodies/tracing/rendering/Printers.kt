@@ -6,7 +6,7 @@ import koodies.exec.IO
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.mapLines
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.Semantics.formattedAs
 import koodies.tracing.CurrentSpan
 import koodies.tracing.SpanId
@@ -34,7 +34,7 @@ public class InMemoryPrinter(
         if (enabled) printed.appendLine(text.toString())
     }
 
-    override fun toString(): String = printed.toString().removeTrailingLineSeparator
+    override fun toString(): String = printed.toString().trailingLineSeparatorRemoved
 }
 
 /**

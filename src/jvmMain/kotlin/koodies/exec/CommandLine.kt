@@ -12,7 +12,7 @@ import koodies.io.path.asPath
 import koodies.io.path.executable
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.unquoted
 import org.codehaus.plexus.util.cli.shell.FormattingShell
 import java.nio.file.Path
@@ -89,7 +89,7 @@ public open class CommandLine(
      *
      * ***Warning:** The content is not guaranteed to work due to simplified quoting. Use [shellCommand] for an always working command.*
      */
-    override val content: CharSequence get() = commandLineParts.joinToString(" ").removeTrailingLineSeparator
+    override val content: CharSequence get() = commandLineParts.joinToString(" ").trailingLineSeparatorRemoved
 
     override fun toCommandLine(
         environment: Map<String, String>,
@@ -184,7 +184,7 @@ public open class CommandLine(
          * that would generate the same string again.
          */
         public fun parseOrNull(commandLine: CharSequence): CommandLine? {
-            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").removeTrailingLineSeparator)
+            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").trailingLineSeparatorRemoved)
             val rawCommandline = plexusCommandLine.rawCommandline
             return rawCommandline.takeIf { it.isNotEmpty() }
                 ?.let { CommandLine(it.first(), it.drop(1)) }

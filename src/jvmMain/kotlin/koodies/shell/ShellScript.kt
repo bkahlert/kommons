@@ -13,7 +13,7 @@ import koodies.text.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.joinLinesToString
 import koodies.text.quoted
 import koodies.text.withRandomSuffix
@@ -273,7 +273,7 @@ public open class ShellScript(
             val baseName = shellScript.name.toBaseName()
             val fileName = "$baseName.sh"
             val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
-            val finalScript = shellScript.toString(echoName = echoName).removeTrailingLineSeparator
+            val finalScript = shellScript.toString(echoName = echoName).trailingLineSeparatorRemoved
             lines.add(finalScript.wrapMultiline(
                 """
                 (

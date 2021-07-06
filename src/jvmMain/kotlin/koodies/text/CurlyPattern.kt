@@ -2,9 +2,9 @@
 
 package koodies.text
 
+import koodies.text.LineSeparators.leadingLineSeparatorRemoved
 import koodies.text.LineSeparators.mapLines
-import koodies.text.LineSeparators.removeLeadingLineSeparator
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 
 /**
  * Returns true if this character sequence matches the given SLF4J / Logback style [curlyPattern], like `I {} you have to {}`.
@@ -43,12 +43,12 @@ private fun String.supportMultiLinePlaceholderOnSeparateLines(): String {
     var pattern = this
     if (pattern.startsWith(matchReallyAll)) {
         pattern = pattern.removePrefix(matchReallyAll)
-            .removeLeadingLineSeparator
+            .leadingLineSeparatorRemoved
             .let { "$matchReallyAll$it" }
     }
     if (pattern.endsWith(matchReallyAll)) {
         pattern = pattern.removeSuffix(matchReallyAll)
-            .removeTrailingLineSeparator
+            .trailingLineSeparatorRemoved
             .let { "$it$matchReallyAll" }
     }
     return pattern

@@ -150,7 +150,7 @@ public object LineSeparators : Collection<String> {
     /**
      * If this character sequence starts with one of the [LineSeparators] this property contains this string without it.
      */
-    public val CharSequence.removeLeadingLineSeparator: String
+    public val CharSequence.leadingLineSeparatorRemoved: String
         get() = leadingLineSeparator?.let { removePrefix(it).toString() } ?: toString()
 
     /**
@@ -166,7 +166,7 @@ public object LineSeparators : Collection<String> {
     /**
      * If this character sequence ends with one of the [LineSeparators] this property contains this string without it.
      */
-    public val CharSequence.removeTrailingLineSeparator: String
+    public val CharSequence.trailingLineSeparatorRemoved: String
         get() = trailingLineSeparator?.let { removeSuffix(it).toString() } ?: toString()
 
     /**

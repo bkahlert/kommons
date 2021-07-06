@@ -25,6 +25,7 @@ import koodies.text.LineSeparators.hasLeadingLineSeparator
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.leadingLineSeparator
+import koodies.text.LineSeparators.leadingLineSeparatorRemoved
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.linesOfColumns
@@ -33,10 +34,9 @@ import koodies.text.LineSeparators.linesOfLength
 import koodies.text.LineSeparators.linesOfLengthSequence
 import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.removeLeadingLineSeparator
-import koodies.text.LineSeparators.removeTrailingLineSeparator
 import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.LineSeparators.trailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.LineSeparators.unify
 import koodies.text.LineSeparators.withTrailingLineSeparator
 import koodies.text.LineSeparators.wrapLines
@@ -158,8 +158,8 @@ class LineSeparatorsTest {
         expecting { "${lineSeparator}line".hasLeadingLineSeparator } that { isTrue() }
         expecting { "X${lineSeparator}line".hasLeadingLineSeparator } that { isFalse() }
 
-        expecting { "${lineSeparator}line".removeLeadingLineSeparator } that { isEqualTo("line") }
-        expecting { "X${lineSeparator}line".removeLeadingLineSeparator } that { isEqualTo("X${lineSeparator}line") }
+        expecting { "${lineSeparator}line".leadingLineSeparatorRemoved } that { isEqualTo("line") }
+        expecting { "X${lineSeparator}line".leadingLineSeparatorRemoved } that { isEqualTo("X${lineSeparator}line") }
 
 
         expecting { "line$lineSeparator".trailingLineSeparator } that { isEqualTo(lineSeparator) }
@@ -168,8 +168,8 @@ class LineSeparatorsTest {
         expecting { "line$lineSeparator".hasTrailingLineSeparator } that { isTrue() }
         expecting { "line${lineSeparator}X".hasTrailingLineSeparator } that { isFalse() }
 
-        expecting { "line$lineSeparator".removeTrailingLineSeparator } that { isEqualTo("line") }
-        expecting { "line${lineSeparator}X".removeTrailingLineSeparator } that { isEqualTo("line${lineSeparator}X") }
+        expecting { "line$lineSeparator".trailingLineSeparatorRemoved } that { isEqualTo("line") }
+        expecting { "line${lineSeparator}X".trailingLineSeparatorRemoved } that { isEqualTo("line${lineSeparator}X") }
 
         @Suppress("DEPRECATION")
         expecting { "line$lineSeparator".runIgnoringTrailingLineSeparator { "[$this]" } } that { isEqualTo("[line]$lineSeparator") }

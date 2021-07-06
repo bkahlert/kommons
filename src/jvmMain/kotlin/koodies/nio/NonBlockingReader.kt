@@ -13,7 +13,7 @@ import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode
 import koodies.text.quoted
@@ -96,7 +96,7 @@ public class NonBlockingReader(
                         lastReadLineDueTimeout = false
                         lastReadLine = "$unfinishedLine"
                         unfinishedLine.clear()
-                        lastReadLine!!.removeTrailingLineSeparator
+                        lastReadLine!!.trailingLineSeparatorRemoved
                     }
                 }
                 log("${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milli.seconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}".formattedAs.meta)
@@ -111,7 +111,7 @@ public class NonBlockingReader(
                         unfinishedLine.append(charArray)
                         log(IO.Meta typed "Line Completed: ${lastReadLine.quoted}")
                         if (!lineAlreadyRead) {
-                            return@spanning lastReadLine!!.removeTrailingLineSeparator
+                            return@spanning lastReadLine!!.trailingLineSeparatorRemoved
                         }
                     }
                     if (!lineAlreadyRead) {
@@ -125,7 +125,7 @@ public class NonBlockingReader(
                     // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                     lastReadLineDueTimeout = true
                     lastReadLine = "$unfinishedLine"
-                    return@spanning lastReadLine!!.removeTrailingLineSeparator
+                    return@spanning lastReadLine!!.trailingLineSeparatorRemoved
                 }
             }
             @Suppress("UNREACHABLE_CODE")

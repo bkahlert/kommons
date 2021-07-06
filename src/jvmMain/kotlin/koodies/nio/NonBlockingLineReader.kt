@@ -5,7 +5,7 @@ import koodies.io.ByteArrayOutputStream
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.lines
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.toByteArray
 import java.io.InputStream
 
@@ -30,7 +30,7 @@ public open class NonBlockingLineReader(
             .filter { line -> line.hasTrailingLineSeparator || done }
             .forEach { line ->
                 fullyRead.append(line)
-                lineProcessor(line.removeTrailingLineSeparator)
+                lineProcessor(line.trailingLineSeparatorRemoved)
             }
         lineBuffer.toByteArray().apply {
             lineBuffer.reset()

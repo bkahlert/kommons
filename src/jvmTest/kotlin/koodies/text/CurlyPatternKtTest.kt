@@ -10,7 +10,7 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.isMultiline
 import koodies.text.LineSeparators.mapLines
-import koodies.text.LineSeparators.removeTrailingLineSeparator
+import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.LineSeparators.unify
 import koodies.text.Semantics.Symbols
 import org.junit.jupiter.api.Test
@@ -246,7 +246,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
 ): Assertion.Builder<T> = assert(if (curlyPattern.isMultiline) "matches curly pattern\n$curlyPattern" else "matches curly pattern $curlyPattern") { actual ->
     val preprocessor = compositionOf(
         true to { s: String -> unify(s) },
-        removeTrailingBreak to { s: String -> s.removeTrailingLineSeparator },
+        removeTrailingBreak to { s: String -> s.trailingLineSeparatorRemoved },
         removeAnsi to { s: String -> s.ansiRemoved },
         unifyWhitespaces to { s: String -> Whitespaces.unify(s) },
         trimEnd to { s: String -> s.mapLines { it.trimEnd() } },
