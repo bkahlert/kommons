@@ -44,9 +44,9 @@ class ColumnsLayoutTest {
         }
 
         @Test
-        fun `should provide description + status layout`() {
-            expectThat(ColumnsLayout.DESCRIPTION_AND_STATUS)
-                .isEqualTo(ColumnsLayout(RenderingAttributes.DESCRIPTION columns 120, RenderingAttributes.STATUS columns 40))
+        fun `should provide description + extra layout`() {
+            expectThat(ColumnsLayout.DESCRIPTION_AND_EXTRA)
+                .isEqualTo(ColumnsLayout(RenderingAttributes.DESCRIPTION columns 120, RenderingAttributes.EXTRA columns 40))
         }
     }
 

@@ -103,6 +103,9 @@ public data class ColumnsLayout(
         private fun List<Column>.sum(gap: Int): Int =
             sumOf { it.width } + (size - 1).coerceAtLeast(0) * gap
 
+        /**
+         * Creates a [Column] with [width] describing the amount of columns taken up.
+         */
         public infix fun Key<*, *>.columns(width: Int): Column = Column(this, width)
 
         /**
@@ -113,11 +116,11 @@ public data class ColumnsLayout(
         /**
          * Two columns layout consisting of:
          * - one column that renders [RenderingAttributes.DESCRIPTION]`/120`
-         * - one column that renders [RenderingAttributes.STATUS]`/40`.
+         * - one column that renders [RenderingAttributes.EXTRA]`/40`.
          */
-        public val DESCRIPTION_AND_STATUS: ColumnsLayout = ColumnsLayout(
+        public val DESCRIPTION_AND_EXTRA: ColumnsLayout = ColumnsLayout(
             RenderingAttributes.DESCRIPTION columns 120,
-            RenderingAttributes.STATUS columns 40,
+            RenderingAttributes.EXTRA columns 40,
         )
     }
 }

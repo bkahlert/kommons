@@ -464,9 +464,9 @@ class RenderingSpanKtTest {
             @Test
             fun `should update layout`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) {
-                    spanning("name", layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.STATUS columns 5)) {
+                    spanning("name", layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.EXTRA columns 5)) {
                         @Suppress("SpellCheckingInspection")
-                        log("messagegoes      here", RenderingAttributes.STATUS to "worksgreat-----")
+                        log("messagegoes      here", RenderingAttributes.EXTRA to "worksgreat-----")
                     }
                 }
                 expectThat(output).matchesCurlyPattern("""

@@ -117,7 +117,7 @@ class BlockRendererTest {
         val rendered = capturing { printer ->
             BlockRenderer(Settings(
                 blockStyle = style,
-                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, RenderingAttributes.STATUS columns 20),
+                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, RenderingAttributes.EXTRA columns 20),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.toString().ansi.brightRed },
                 returnValueTransform = { it },
@@ -125,13 +125,13 @@ class BlockRendererTest {
             )).apply {
 
                 start("One Two Three")
-                log(ansi80, RenderingAttributes.STATUS to plain80)
+                log(ansi80, RenderingAttributes.EXTRA to plain80)
                 childRenderer().apply {
                     start("child-span")
-                    log(ansi80, RenderingAttributes.STATUS to plain80)
+                    log(ansi80, RenderingAttributes.EXTRA to plain80)
                     childRenderer().apply {
                         start("child-span")
-                        log(ansi80, RenderingAttributes.STATUS to plain80)
+                        log(ansi80, RenderingAttributes.EXTRA to plain80)
                         end(Result.failure<Unit>(RuntimeException("Now Panic!")))
                     }
                     end(Result.failure<Unit>(RuntimeException("message")))
@@ -231,11 +231,11 @@ class BlockRendererTest {
     @Nested
     inner class MultipleColumns {
 
-        private val twoColsLayout = ColumnsLayout(RenderingAttributes.STATUS columns 10, RenderingAttributes.DESCRIPTION columns 25, maxColumns = 40)
+        private val twoColsLayout = ColumnsLayout(RenderingAttributes.EXTRA columns 10, RenderingAttributes.DESCRIPTION columns 25, maxColumns = 40)
 
         @Test
         fun TestSpan.`should render one plain event`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(plain80, RenderingAttributes.STATUS to plain80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(plain80, RenderingAttributes.EXTRA to plain80) }
             expectThat(rendered).isEqualTo("""
                 Lorem ipsu     Lorem ipsum dolor sit ame
                 m dolor si     t, consetetur sadipscing 
@@ -250,7 +250,7 @@ class BlockRendererTest {
 
         @Smoke @Test
         fun TestSpan.`should render one ansi event`() {
-            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, RenderingAttributes.STATUS to ansi80) }
+            val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, RenderingAttributes.EXTRA to ansi80) }
             expectThat(rendered).isEqualTo("""
                 [4m[3mLorem ipsu[24;23m     [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m ame
                 [4;3mm [36mdolor[39m si[24;23m     t, [94mconsetetur sadipscing[39m 
@@ -288,7 +288,7 @@ class BlockRendererTest {
             val rendered =
                 capturing {
                     BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(plain80,
-                        RenderingAttributes.STATUS to "https://1234567890.1234567890.1234567890.1234567890")
+                        RenderingAttributes.EXTRA to "https://1234567890.1234567890.1234567890.1234567890")
                 }
             expectThat(rendered).isEqualTo("""
                 https://1234567890.1234567890.1234567890.1234567890Lorem ipsum dolor sit ame
@@ -302,10 +302,10 @@ class BlockRendererTest {
         fun TestSpan.`should handle more than two columns`() {
             val durationKey: Key<Long, Duration> = Key.longKey("duration") { it.inWholeMilliseconds }
             val format =
-                ColumnsLayout(RenderingAttributes.STATUS columns 10, durationKey columns 10, RenderingAttributes.DESCRIPTION columns 40, maxColumns = 60)
+                ColumnsLayout(RenderingAttributes.EXTRA columns 10, durationKey columns 10, RenderingAttributes.DESCRIPTION columns 40, maxColumns = 60)
             val rendered = capturing {
                 BlockRenderer(settings.copy(layout = format, printer = it))
-                    .log(plain80, RenderingAttributes.STATUS to "foo-bar", durationKey to 2.seconds)
+                    .log(plain80, RenderingAttributes.EXTRA to "foo-bar", durationKey to 2.seconds)
             }
             expectThat(rendered).isEqualTo("""
                 foo-bar       2.00s        Lorem ipsum dolor sit amet, conse
@@ -320,7 +320,7 @@ class BlockRendererTest {
             val rendered =
                 capturing {
                     BlockRenderer(settings.copy(layout = twoColsLayout, printer = it))
-                        .exception(RuntimeException("ex"), RenderableAttributes.of(RenderingAttributes.STATUS to plain80))
+                        .exception(RuntimeException("ex"), RenderableAttributes.of(RenderingAttributes.EXTRA to plain80))
                 }
             expectThat(rendered).matchesCurlyPattern("""
                 Lorem ipsu     java.lang.RuntimeException: ex
@@ -345,7 +345,7 @@ class BlockRendererTest {
         fun TestSpan.`should log second columns on same column even if using wide characters`() {
             val rendered = capturing {
                 BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).apply {
-                    log("🔴🟠🟡🟢🔵🟣", RenderingAttributes.STATUS to "🟥🟧🟨🟩🟦🟪")
+                    log("🔴🟠🟡🟢🔵🟣", RenderingAttributes.EXTRA to "🟥🟧🟨🟩🟦🟪")
                     log("1234567890".repeat(7))
                 }
             }
@@ -393,14 +393,14 @@ class BlockRendererTest {
             expectThrows<IllegalArgumentException> {
                 capturing {
                     BlockRenderer(settings.copy(
-                        layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 6, RenderingAttributes.STATUS columns 5),
+                        layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 6, RenderingAttributes.EXTRA columns 5),
                         printer = it,
                     )).apply {
-                        log("1234567890", RenderingAttributes.STATUS to "1234567890")
+                        log("1234567890", RenderingAttributes.EXTRA to "1234567890")
                         childRenderer().apply {
-                            log("1234567890", RenderingAttributes.STATUS to "1234567890")
+                            log("1234567890", RenderingAttributes.EXTRA to "1234567890")
                             childRenderer().apply {
-                                log("1234567890", RenderingAttributes.STATUS to "1234567890")
+                                log("1234567890", RenderingAttributes.EXTRA to "1234567890")
                             }
                         }
                     }

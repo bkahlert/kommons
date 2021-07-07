@@ -16,14 +16,14 @@ class RenderingAttributesTest {
 
     private val renderingAttributes = Attributes.of(
         RenderingAttributes.DESCRIPTION, "custom description",
-        RenderingAttributes.STATUS, "custom status",
+        RenderingAttributes.EXTRA, "custom extra",
         Key.stringKey("irrelevant-key"), "irrelevant value",
     ).rendering
 
     @TestFactory
     fun `should read attributes`() = test(renderingAttributes) {
         expecting { description } that { isEqualTo("custom description") }
-        expecting { status } that { isEqualTo("custom status") }
+        expecting { extra } that { isEqualTo("custom extra") }
     }
 
     @Nested
@@ -39,7 +39,7 @@ class RenderingAttributesTest {
         fun `should contain all attributes`() {
             expectThat(renderingAttributes.toString())
                 .contains("koodies.description = custom description")
-                .contains("koodies.status = custom status")
+                .contains("koodies.extra = custom extra")
                 .contains("irrelevant-key = irrelevant value")
         }
     }

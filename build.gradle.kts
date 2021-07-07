@@ -1,6 +1,10 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.dokka.Platform.common
+import org.jetbrains.dokka.Platform.js
+import org.jetbrains.dokka.Platform.jvm
+import org.jetbrains.dokka.Platform.native
 import kotlin.text.toBoolean as kotlinToBoolean
 
 
@@ -156,7 +160,7 @@ kotlin {
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
                 implementation("org.jline:jline-reader:3.20.0")
 
-                implementation("io.opentelemetry:opentelemetry-api:1.3.0")
+                api("io.opentelemetry:opentelemetry-api:1.3.0")
                 implementation("io.opentelemetry:opentelemetry-extension-annotations:1.3.0")
                 implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.3.0")
             }
@@ -224,13 +228,12 @@ tasks.dokkaHtml {
     outputDirectory.set(file(dokkaOutputDir))
     dokkaSourceSets {
         configureEach {
-            val platformName = when (platform.get()) {
-                org.jetbrains.dokka.Platform.jvm -> "jvm"
-                org.jetbrains.dokka.Platform.js -> "js"
-                org.jetbrains.dokka.Platform.native -> "native"
-                org.jetbrains.dokka.Platform.common -> "common"
-            }
-            displayName.set(platformName)
+            displayName.set(when (platform.get()) {
+                jvm -> "jvm"
+                js -> "js"
+                native -> "native"
+                common -> "common"
+            })
         }
     }
 }
