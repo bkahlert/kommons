@@ -1,7 +1,7 @@
 package koodies.io.path
 
 import koodies.math.isZero
-import koodies.unit.DecimalPrefix
+import koodies.unit.DecimalPrefixes
 import koodies.unit.Size
 import koodies.unit.bytes
 import koodies.unit.sumBy
@@ -48,4 +48,4 @@ public fun Path.getSize(vararg options: LinkOption): Size {
  *
  * Please note that the size is rounded in the decimal system (1 KB = 1.000 B).
  */
-public fun Path.getRoundedSize(vararg options: LinkOption): Size = getSize(*options).toString<DecimalPrefix>(decimals = 0).toSize()
+public fun Path.getRoundedSize(vararg options: LinkOption): Size = getSize(*options).toString(DecimalPrefixes, decimals = 0).toSize()

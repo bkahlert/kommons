@@ -6,7 +6,7 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.CodePoint
 import koodies.text.LineSeparators
 import koodies.text.quoted
-import koodies.unit.BinaryPrefix
+import koodies.unit.BinaryPrefixes
 import koodies.unit.Size
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
@@ -46,7 +46,7 @@ fun Builder<*>.asString(trim: Boolean = true): DescribeableBuilder<String> {
     return this.get("asString") {
         val string = when (this) {
             is CodePoint -> this.string
-            is Size -> this.toString<BinaryPrefix>()
+            is Size -> this.toString(BinaryPrefixes)
             else -> this.toString()
         }
         string.takeUnless { trim } ?: string.trim()

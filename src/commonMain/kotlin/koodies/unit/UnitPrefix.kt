@@ -8,21 +8,20 @@ import koodies.text.CharRanges
 import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.takeUnlessEmpty
-import koodies.unit.DecimalPrefix.kilo
-import koodies.unit.DecimalPrefix.milli
-import kotlin.reflect.KProperty
+import koodies.unit.DecimalPrefixes.kilo
+import koodies.unit.DecimalPrefixes.milli
 
 /**
  * > *A unit prefix is a specifier or mnemonic that is prepended to units of measurement to indicate multiples or fractions of the units.
  * Units of various sizes are commonly formed by the use of such prefixes.
  * The prefixes of the metric system, such as [kilo] and [milli], represent multiplication by powers of ten.*
  *
- * > *In information technology it is common to use [binary prefixes][BinaryPrefix], which are based on powers of two.
+ * > *In information technology it is common to use [binary prefixes][BinaryPrefixes], which are based on powers of two.
  * Historically, many prefixes have been used or proposed by various sources, but only a narrow set has been recognised by standards organisations.*
  *
  * @see <a href="https://en.wikipedia.org/wiki/Unit_prefix">Wikipedia: Unit prefix</a>
- * @see DecimalPrefix
- * @see BinaryPrefix
+ * @see DecimalPrefixes
+ * @see BinaryPrefixes
  */
 public interface UnitPrefix {
 
@@ -31,22 +30,33 @@ public interface UnitPrefix {
      */
     public val symbol: String
 
+    /**
+     * One resolution step, e.g. `1000` or `1024`.
+     */
     public val baseFactor: BigDecimal
+
+    /**
+     * Factor by which a number needs to be multiplied.
+     */
     public val factor: BigDecimal
 
-    public operator fun getValue(thisRef: Number, property: KProperty<*>): BigDecimal =
-        thisRef.toDouble().toBigDecimal().times(factor, 0)
+    /**
+     * Calculates the number based on the given [number] that represents this
+     * unit.
+     */
+    public fun of(number: Number): BigDecimal =
+        number.toDouble().toBigDecimal().times(factor, 0)
 
     public companion object {
 
         private fun Char.isDigit() = this in CharRanges.Numeric
 
-        private val knownPrefixes: List<UnitPrefix> by lazy { sequenceOf(*BinaryPrefix.values(), *DecimalPrefix.values()).toList() }
+        private val knownPrefixes: List<UnitPrefix> by lazy { sequenceOf(*BinaryPrefixes.toTypedArray(), *DecimalPrefixes.toTypedArray()).toList() }
 
         private fun parseUnitPrefixOrNull(text: CharSequence): UnitPrefix? =
             when (text.trim()) {
                 "" -> null
-                "K" -> BinaryPrefix.Kibi
+                "K" -> BinaryPrefixes.Kibi
                 else -> knownPrefixes.find { unit -> unit.symbol == text }
             }
 

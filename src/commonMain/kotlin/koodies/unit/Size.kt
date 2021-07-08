@@ -21,7 +21,6 @@ import koodies.math.toString
 import koodies.math.unaryMinus
 import koodies.text.Semantics.formattedAs
 import kotlin.jvm.JvmInline
-import kotlin.reflect.KClass
 
 /**
  * Amount of bytes representable in with the decimal [SI prefixes](https://en.wikipedia.org/wiki/Metric_prefix)
@@ -55,44 +54,44 @@ public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
 
     public companion object {
         public val ZERO: Size = Size(BigDecimalConstants.ZERO)
-        public val supportedPrefixes: Map<KClass<out UnitPrefix>, List<UnitPrefix?>> = mapOf(
-            BinaryPrefix::class to listOf(
-                BinaryPrefix.Yobi,
-                BinaryPrefix.Zebi,
-                BinaryPrefix.Exbi,
-                BinaryPrefix.Pebi,
-                BinaryPrefix.Tebi,
-                BinaryPrefix.Gibi,
-                BinaryPrefix.Mebi,
-                BinaryPrefix.Kibi,
+        public val supportedPrefixes: Map<List<UnitPrefix>, List<UnitPrefix?>> = mapOf(
+            BinaryPrefixes to listOf(
+                BinaryPrefixes.Yobi,
+                BinaryPrefixes.Zebi,
+                BinaryPrefixes.Exbi,
+                BinaryPrefixes.Pebi,
+                BinaryPrefixes.Tebi,
+                BinaryPrefixes.Gibi,
+                BinaryPrefixes.Mebi,
+                BinaryPrefixes.Kibi,
                 null,
-                BinaryPrefix.mibi,
-                BinaryPrefix.mubi,
-                BinaryPrefix.nabi,
-                BinaryPrefix.pibi,
-                BinaryPrefix.fembi,
-                BinaryPrefix.abi,
-                BinaryPrefix.zebi,
-                BinaryPrefix.yobi,
+                BinaryPrefixes.mibi,
+                BinaryPrefixes.mubi,
+                BinaryPrefixes.nabi,
+                BinaryPrefixes.pibi,
+                BinaryPrefixes.fembi,
+                BinaryPrefixes.abi,
+                BinaryPrefixes.zebi,
+                BinaryPrefixes.yobi,
             ),
-            DecimalPrefix::class to listOf(
-                DecimalPrefix.Yotta,
-                DecimalPrefix.Zetta,
-                DecimalPrefix.Exa,
-                DecimalPrefix.Peta,
-                DecimalPrefix.Tera,
-                DecimalPrefix.Giga,
-                DecimalPrefix.Mega,
-                DecimalPrefix.kilo,
+            DecimalPrefixes to listOf(
+                DecimalPrefixes.Yotta,
+                DecimalPrefixes.Zetta,
+                DecimalPrefixes.Exa,
+                DecimalPrefixes.Peta,
+                DecimalPrefixes.Tera,
+                DecimalPrefixes.Giga,
+                DecimalPrefixes.Mega,
+                DecimalPrefixes.kilo,
                 null,
-                DecimalPrefix.milli,
-                DecimalPrefix.micro,
-                DecimalPrefix.nano,
-                DecimalPrefix.pico,
-                DecimalPrefix.femto,
-                DecimalPrefix.atto,
-                DecimalPrefix.zepto,
-                DecimalPrefix.yocto,
+                DecimalPrefixes.milli,
+                DecimalPrefixes.micro,
+                DecimalPrefixes.nano,
+                DecimalPrefixes.pico,
+                DecimalPrefixes.femto,
+                DecimalPrefixes.atto,
+                DecimalPrefixes.zepto,
+                DecimalPrefixes.yocto,
             )
         )
         public const val SYMBOL: String = "B"
@@ -120,7 +119,7 @@ public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
      *
      * @return the value of size in the automatically determined [UnitPrefix], e.g. 42.2 MB.
      */
-    override fun toString(): String = toString<DecimalPrefix>()
+    override fun toString(): String = toString(DecimalPrefixes)
 
     /**
      * Returns a string representation of this size value expressed in the unit
@@ -134,11 +133,11 @@ public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
      *
      * @return the value of size in the automatically determined [UnitPrefix], e.g. 42.2 MB.
      */
-    public inline fun <reified T : UnitPrefix> toString(prefixType: KClass<T> = T::class, decimals: Int? = null): String {
+    public inline fun toString(unitPrefixes: List<UnitPrefix>, decimals: Int? = null): String {
         if (bytes == BigDecimalConstants.ZERO) return "0 $SYMBOL"
 
-        val prefixes: List<UnitPrefix?>? = supportedPrefixes[prefixType]
-        require(prefixes != null) { "$prefixType is not supported. Valid options are: " + supportedPrefixes.keys }
+        val prefixes: List<UnitPrefix?>? = supportedPrefixes[unitPrefixes]
+        require(prefixes != null) { "$unitPrefixes is not supported. Valid options are: " + supportedPrefixes.keys }
 
         val absoluteValue = bytes.absoluteValue
         val prefixesGreaterThanOrEqualRequestedPrefix = prefixes.dropLastWhile { absoluteValue >= it.factor }.size

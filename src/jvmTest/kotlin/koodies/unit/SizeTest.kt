@@ -63,8 +63,8 @@ class SizeTest {
             42.zebi.bytes to "42 ZiB",
             42.yobi.bytes to "42 YiB",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString<BinaryPrefix>() } that { isEqualTo(expected) }
-            expecting { (-size).toString<BinaryPrefix>() } that { isEqualTo("-$expected") }
+            expecting { size.toString(BinaryPrefixes) } that { isEqualTo(expected) }
+            expecting { (-size).toString(BinaryPrefixes) } that { isEqualTo("-$expected") }
         }
 
         @TestFactory
@@ -88,8 +88,8 @@ class SizeTest {
             .0000000000042.Gibi.bytes to "4.62 miB",
             .00000000000042.Gibi.bytes to "473 uiB",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString<BinaryPrefix>() } that { isEqualTo(expected) }
-            expecting { (-size).toString<BinaryPrefix>() } that { isEqualTo("-$expected") }
+            expecting { size.toString(BinaryPrefixes) } that { isEqualTo(expected) }
+            expecting { (-size).toString(BinaryPrefixes) } that { isEqualTo("-$expected") }
         }
 
         @TestFactory
@@ -98,7 +98,7 @@ class SizeTest {
             0.Kibi.bytes to "0 B",
             0.bytes to "0 B",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString<BinaryPrefix>() } that { isEqualTo(expected) }
+            expecting { size.toString(BinaryPrefixes) } that { isEqualTo(expected) }
         }
 
         @TestFactory
@@ -122,7 +122,7 @@ class SizeTest {
             42.zebi.bytes to "42 ZiB",
             42.yobi.bytes to "0.041 ZiB",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString(BinaryPrefix.zebi, 4) } that { isEqualTo(expected) }
+            expecting { size.toString(BinaryPrefixes.zebi, 4) } that { isEqualTo(expected) }
         }
     }
 
@@ -154,8 +154,8 @@ class SizeTest {
             42.zepto.bytes to "42 zB",
             42.yocto.bytes to "42 yB",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString<DecimalPrefix>() } that { isEqualTo(expected) }
-            expecting { (-size).toString<DecimalPrefix>() } that { isEqualTo("-$expected") }
+            expecting { size.toString(DecimalPrefixes) } that { isEqualTo(expected) }
+            expecting { (-size).toString(DecimalPrefixes) } that { isEqualTo("-$expected") }
         }
 
         @TestFactory
@@ -178,8 +178,8 @@ class SizeTest {
             .0000000000042.Giga.bytes to "4.2 mB",
             .00000000000042.Giga.bytes to "420 μB",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString<DecimalPrefix>() } that { isEqualTo(expected) }
-            expecting { (-size).toString<DecimalPrefix>() } that { isEqualTo("-$expected") }
+            expecting { size.toString(DecimalPrefixes) } that { isEqualTo(expected) }
+            expecting { (-size).toString(DecimalPrefixes) } that { isEqualTo("-$expected") }
         }
 
         @TestFactory
@@ -216,7 +216,7 @@ class SizeTest {
             42.zepto.bytes to "42 zB",
             42.yocto.bytes to "0.042 zB",
         ) { (size: Size, expected: String) ->
-            expecting { size.toString(DecimalPrefix.zepto, 4) } that { isEqualTo(expected) }
+            expecting { size.toString(DecimalPrefixes.zepto, 4) } that { isEqualTo(expected) }
         }
     }
 
@@ -228,12 +228,12 @@ class SizeTest {
 
         @Test
         fun `should format size human-readable (10^x)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(createFile().getSize().toString<DecimalPrefix>()).isEqualTo("25 KB")
+            expectThat(createFile().getSize().toString(DecimalPrefixes)).isEqualTo("25 KB")
         }
 
         @Test
         fun `should format size human-readable (2^y)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(createFile().getSize().toString<BinaryPrefix>()).isEqualTo("24.4 KiB")
+            expectThat(createFile().getSize().toString(BinaryPrefixes)).isEqualTo("24.4 KiB")
         }
     }
 
