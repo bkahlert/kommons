@@ -244,7 +244,7 @@ public fun <R> spanning(
     decorationFormatter: Formatter? = null,
     returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
     layout: ColumnsLayout? = null,
-    blockStyle: ((ColumnsLayout) -> BlockStyle)? = null,
+    blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,
     oneLineStyle: Style? = null,
     printer: Printer? = null,
 

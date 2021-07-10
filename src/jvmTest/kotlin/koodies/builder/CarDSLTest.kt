@@ -2,17 +2,14 @@ package koodies.builder
 
 import koodies.test.CapturedOutput
 import koodies.test.SystemIOExclusive
-import koodies.test.output.OutputCaptureExtension
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import strikt.api.expectThat
 import strikt.assertions.contains
 
-@ExtendWith(OutputCaptureExtension::class)
+@SystemIOExclusive
 class CarDSLTest {
 
     @Test
-    @SystemIOExclusive
     fun `should print cars`(output: CapturedOutput) {
         CarDSL().printSamples()
         val w1 = "⌀ 40.64cm"

@@ -35,9 +35,14 @@ public data class Settings(
     public val layout: ColumnsLayout = ColumnsLayout(),
 
     /**
+     * (Accumulated) indent by which the effective layouts usable width is reduced.
+     */
+    public val indent: Int = 0,
+
+    /**
      * Style to be applied by block-based / fixed-size renderers.
      */
-    public val blockStyle: (ColumnsLayout) -> BlockStyle = BlockStyles.DEFAULT,
+    public val blockStyle: (ColumnsLayout, Int) -> BlockStyle = BlockStyles.DEFAULT,
 
     /**
      * Style to be applied by one-line renderers.

@@ -21,7 +21,7 @@ public class BlockRenderer(
     private val settings: Settings,
 ) : Renderer {
 
-    private val style = settings.blockStyle(settings.layout)
+    private val style = settings.blockStyle(settings.layout, settings.indent)
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         settings.nameFormatter(name)
@@ -30,12 +30,12 @@ public class BlockRenderer(
     }
 
     override fun event(name: CharSequence, attributes: RenderableAttributes) {
-        val extractedColumns = settings.layout.extract(attributes)
+        val extractedColumns = style.layout.extract(attributes)
         if (extractedColumns.none { it.first != null }) return
         extractedColumns
             .map { (text, maxColumns) -> text?.let { settings.contentFormatter(it) }?.asAnsiString() to maxColumns }
             .takeIf { it.any { (text, _) -> text != null } }
-            ?.let { formatColumns(*it.toTypedArray(), paddingColumns = settings.layout.gap, wrapLines = ::wrapNonUriLines) }
+            ?.let { formatColumns(*it.toTypedArray(), paddingColumns = style.layout.gap, wrapLines = ::wrapNonUriLines) }
             ?.lineSequence()
             ?.mapNotNull { style.content(it, settings.decorationFormatter) }
             ?.forEach(settings.printer)
@@ -44,14 +44,14 @@ public class BlockRenderer(
     override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         val formatted = exception.stackTraceToString()
         if (attributes.isEmpty()) {
-            (if (formatted.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(formatted, settings.layout.totalWidth) else formatted)
+            (if (formatted.maxColumns() > style.layout.totalWidth) wrapNonUriLines(formatted, style.layout.totalWidth) else formatted)
                 .lineSequence()
                 .mapNotNull { style.content(it, settings.decorationFormatter) }
                 .map { it.ansi.red }
                 .forEach(settings.printer)
         } else {
             event(exception::class.toSimpleClassName(),
-                RenderableAttributes.of(*attributes.toList().toTypedArray(), settings.layout.primaryKey to formatted))
+                RenderableAttributes.of(*attributes.toList().toTypedArray(), style.layout.primaryKey to formatted))
         }
     }
 
@@ -59,12 +59,12 @@ public class BlockRenderer(
         val returnValue = ReturnValue.of(result)
         val formatted = style.end(returnValue, settings.returnValueTransform, settings.decorationFormatter)
         formatted?.takeUnlessEmpty()
-            ?.let { if (it.maxColumns() > settings.layout.totalWidth) wrapNonUriLines(it, settings.layout.totalWidth) else formatted }
+            ?.let { if (it.maxColumns() > style.layout.totalWidth) wrapNonUriLines(it, style.layout.totalWidth) else formatted }
             ?.let(settings.printer)
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer =
-        renderer(settings.copy(layout = settings.layout.shrinkBy(style.indent), printer = ::printChild)) { BlockRenderer(it) }
+        renderer(settings.copy(layout = settings.layout, indent = settings.indent + style.indent, printer = ::printChild)) { BlockRenderer(it) }
 
     override fun printChild(text: CharSequence) {
         text.lineSequence()

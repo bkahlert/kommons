@@ -2,7 +2,7 @@ package koodies.tracing
 
 import koodies.junit.TestName
 import koodies.test.CapturedOutput
-import koodies.test.output.OutputCaptureExtension
+import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.joinLinesToString
@@ -21,7 +21,6 @@ import koodies.tracing.rendering.Style
 import koodies.tracing.rendering.spanningLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -30,7 +29,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
 @Isolated
-@ExtendWith(OutputCaptureExtension::class)
+@SystemIOExclusive
 @NoTestSpan
 class RenderingSpanKtTest {
 

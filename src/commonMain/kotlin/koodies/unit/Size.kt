@@ -133,7 +133,7 @@ public value class Size(public val bytes: BigDecimal) : Comparable<Size> {
      *
      * @return the value of size in the automatically determined [UnitPrefix], e.g. 42.2 MB.
      */
-    public inline fun toString(unitPrefixes: List<UnitPrefix>, decimals: Int? = null): String {
+    public fun toString(unitPrefixes: List<UnitPrefix>, decimals: Int? = null): String {
         if (bytes == BigDecimalConstants.ZERO) return "0 $SYMBOL"
 
         val prefixes: List<UnitPrefix?>? = supportedPrefixes[unitPrefixes]

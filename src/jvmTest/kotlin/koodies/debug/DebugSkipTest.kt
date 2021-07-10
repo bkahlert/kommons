@@ -1,8 +1,8 @@
 package koodies.debug
 
 import koodies.test.CapturedOutput
+import koodies.test.SystemIOExclusive
 import koodies.test.junit.JUnit.runTests
-import koodies.test.output.OutputCaptureExtension
 import koodies.test.output.OutputCaptureExtension.Silent
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Isolated
 import org.junit.platform.engine.FilterResult
@@ -47,7 +46,7 @@ class DebugSkipTest {
 
     @Debug(includeInReport = false)
     @Test
-    @ExtendWith(OutputCaptureExtension::class) @Silent
+    @SystemIOExclusive @Silent
     fun `should skip non-annotated tests on present @Debug`(output: CapturedOutput) {
         val selectClass = selectClass(HiddenSkipTests()::class.java)
 

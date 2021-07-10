@@ -50,22 +50,22 @@ class BlockRendererTest {
         Solid to """
             ╭──╴One Two Three
             │
-            │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
-            │   ADIPSCING ELITR, SED DIAM NONUMY EIRMOD.     T AMET, CONSETETUR S
-            │                                                ADIPSCING ELITR, SED
-            │                                                 DIAM NONUMY EIRMOD.
+            │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSC     LOREM IPSUM DOLOR SIT AME
+            │   ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING 
+            │                                                      ELITR, SED DIAM NONUMY EI
+            │                                                      RMOD.                    
             │   ╭──╴child-span
             │   │
-            │   │   LOREM IPSUM DOLOR SIT AMET, CONSETET     LOREM IPSUM DOLOR SI
-            │   │   UR SADIPSCING ELITR, SED DIAM NONUMY     T AMET, CONSETETUR S
-            │   │    EIRMOD.                                 ADIPSCING ELITR, SED
-            │   │                                             DIAM NONUMY EIRMOD.
+            │   │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR SAD     LOREM IPSUM DOLOR SIT AME
+            │   │   IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING 
+            │   │                                                  ELITR, SED DIAM NONUMY EI
+            │   │                                                  RMOD.                    
             │   │   ╭──╴child-span
             │   │   │
-            │   │   │   LOREM IPSUM DOLOR SIT AMET, CONS     LOREM IPSUM DOLOR SI
-            │   │   │   ETETUR SADIPSCING ELITR, SED DIA     T AMET, CONSETETUR S
-            │   │   │   M NONUMY EIRMOD.                     ADIPSCING ELITR, SED
-            │   │   │                                         DIAM NONUMY EIRMOD.
+            │   │   │   LOREM IPSUM DOLOR SIT AMET, CONSETETU     LOREM IPSUM DOLOR SIT AMET
+            │   │   │   R SADIPSCING ELITR, SED DIAM NONUMY E     , CONSETETUR SADIPSCING EL
+            │   │   │   IRMOD.                                    ITR, SED DIAM NONUMY EIRMO
+            │   │   │                                             D.                        
             │   │   ϟ
             │   │   ╰──╴RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
             │   ϟ
@@ -73,42 +73,42 @@ class BlockRendererTest {
             │
             ╰──╴✔︎
         """.trimIndent(),
-        ::Dotted to """
+        Dotted to """
             ▶ One Two Three
-            · LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
-            · ADIPSCING ELITR, SED DIAM NONUMY EIRMOD.     T AMET, CONSETETUR S
-            ·                                              ADIPSCING ELITR, SED
-            ·                                               DIAM NONUMY EIRMOD.
+            · LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSCIN     LOREM IPSUM DOLOR SIT AME
+            · G ELITR, SED DIAM NONUMY EIRMOD.                     T, CONSETETUR SADIPSCING 
+            ·                                                      ELITR, SED DIAM NONUMY EI
+            ·                                                      RMOD.                    
             · ▶ child-span
-            · · LOREM IPSUM DOLOR SIT AMET, CONSETETUR     LOREM IPSUM DOLOR SI
-            · ·  SADIPSCING ELITR, SED DIAM NONUMY EIR     T AMET, CONSETETUR S
-            · · MOD.                                       ADIPSCING ELITR, SED
-            · ·                                             DIAM NONUMY EIRMOD.
+            · · LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSC     LOREM IPSUM DOLOR SIT AME
+            · · ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING 
+            · ·                                                    ELITR, SED DIAM NONUMY EI
+            · ·                                                    RMOD.                    
             · · ▶ child-span
-            · · · LOREM IPSUM DOLOR SIT AMET, CONSETET     LOREM IPSUM DOLOR SI
-            · · · UR SADIPSCING ELITR, SED DIAM NONUMY     T AMET, CONSETETUR S
-            · · ·  EIRMOD.                                 ADIPSCING ELITR, SED
-            · · ·                                           DIAM NONUMY EIRMOD.
+            · · · LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIP     LOREM IPSUM DOLOR SIT AME
+            · · · SCING ELITR, SED DIAM NONUMY EIRMOD.             T, CONSETETUR SADIPSCING 
+            · · ·                                                  ELITR, SED DIAM NONUMY EI
+            · · ·                                                  RMOD.                    
             · · ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
             · ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
         """.trimIndent(),
-        ::None to """
+        None to """
             One Two Three
-            LOREM IPSUM DOLOR SIT AMET, CONSETETUR S     LOREM IPSUM DOLOR SI
-            ADIPSCING ELITR, SED DIAM NONUMY EIRMOD.     T AMET, CONSETETUR S
-                                                         ADIPSCING ELITR, SED
-                                                          DIAM NONUMY EIRMOD.
+            LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSCING      LOREM IPSUM DOLOR SIT AME
+            ELITR, SED DIAM NONUMY EIRMOD.                         T, CONSETETUR SADIPSCING 
+                                                                   ELITR, SED DIAM NONUMY EI
+                                                                   RMOD.                    
                 child-span
-                LOREM IPSUM DOLOR SIT AMET, CONSETET     LOREM IPSUM DOLOR SI
-                UR SADIPSCING ELITR, SED DIAM NONUMY     T AMET, CONSETETUR S
-                 EIRMOD.                                 ADIPSCING ELITR, SED
-                                                          DIAM NONUMY EIRMOD.
+                LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSC     LOREM IPSUM DOLOR SIT AME
+                ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING 
+                                                                   ELITR, SED DIAM NONUMY EI
+                                                                   RMOD.                    
                     child-span
-                    LOREM IPSUM DOLOR SIT AMET, CONS     LOREM IPSUM DOLOR SI
-                    ETETUR SADIPSCING ELITR, SED DIA     T AMET, CONSETETUR S
-                    M NONUMY EIRMOD.                     ADIPSCING ELITR, SED
-                                                          DIAM NONUMY EIRMOD.
+                    LOREM IPSUM DOLOR SIT AMET, CONSETETUR SAD     LOREM IPSUM DOLOR SIT AME
+                    IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING 
+                                                                   ELITR, SED DIAM NONUMY EI
+                                                                   RMOD.                    
                     ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
                 ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
@@ -117,7 +117,7 @@ class BlockRendererTest {
         val rendered = capturing { printer ->
             BlockRenderer(Settings(
                 blockStyle = style,
-                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, RenderingAttributes.EXTRA columns 20),
+                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, RenderingAttributes.EXTRA columns 20, maxColumns = 80),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.toString().ansi.brightRed },
                 returnValueTransform = { it },
