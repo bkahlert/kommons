@@ -191,13 +191,6 @@ public object LineSeparators : Collection<String> {
     public val CharSequence.firstLineSeparatorLength: Int get() = firstLineSeparator?.length ?: 0
 
     /**
-     * Applies the specified [block] on this character sequence without an eventually existing [trailingLineSeparator].
-     */
-    @Deprecated("check if this string having a trailing line separator is correct and avoid the need to call this method")
-    public fun CharSequence.runIgnoringTrailingLineSeparator(block: CharSequence.() -> CharSequence): String =
-        trailingLineSeparator?.let { removeSuffix(it).run(block).toString() + it } ?: run(block).toString()
-
-    /**
      * Maps each line of this character sequence using the specified [transform].
      */
     public fun CharSequence?.mapLines(transform: (CharSequence) -> CharSequence): String {

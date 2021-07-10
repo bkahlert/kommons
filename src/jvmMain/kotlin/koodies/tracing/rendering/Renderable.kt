@@ -1,6 +1,7 @@
 package koodies.tracing.rendering
 
 import koodies.regex.RegularExpressions.uriRegex
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.joinLinesToString
 import koodies.text.truncateByColumns
 
@@ -36,11 +37,16 @@ public interface Renderable : CharSequence {
         public fun of(value: Any?): Renderable =
             when (value) {
                 is Renderable -> value
-                is Any -> of(value.toString()) { columns, rows ->
+                is Any -> of(value.toAnsiString()) { columns, rows ->
                     lineSequence()
                         .let { if (rows != null) it.take(rows) else it }
-                        .let { if (columns != null) it.map { line -> if (uriRegex.containsMatchIn(line)) line else line.truncateByColumns(columns) } else it }
-                        .joinLinesToString()
+                        .let {
+                            if (columns != null) it.map { line ->
+                                if (uriRegex.containsMatchIn(line)) line
+                                else line.truncateByColumns(columns)
+                            } else it
+                        }
+                        .joinLinesToString { it.toString() }
                 }
                 else -> NULL
             }

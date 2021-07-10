@@ -1,9 +1,9 @@
 package koodies.text
 
+import koodies.debug.debug
 import koodies.test.testEach
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.AnsiString.Companion.ansiString
 import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.CRLF
@@ -30,9 +30,10 @@ class AnsiStringTest {
 
     companion object {
         val italicCyan = ANSI.Colors.cyan + ANSI.Style.italic
-        val ansiString =
-            italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").tokenize()
-        val blankAnsiString = "$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m".tokenize()
+        val ansiString
+            get() =
+                italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").tokenize()
+        val blankAnsiString get() = "$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m".tokenize()
     }
 
     @Suppress("SpellCheckingInspection")
@@ -52,22 +53,23 @@ class AnsiStringTest {
         @Test
         fun `should match same`() {
             val text: CharSequence = "abc"
-            val ansiString = text.ansiString
-            expectThat(ansiString).isSameInstanceAs(text.ansiString)
+            val ansiString = text.asAnsiString()
+            expectThat(ansiString).isSameInstanceAs(text.asAnsiString())
         }
 
         @Test
         fun `should match equals`() {
             val text: CharSequence = "abc"
-            val ansiString = text.ansiString
-            expectThat(ansiString).isSameInstanceAs("abc".ansiString)
+            val ansiString = text.asAnsiString()
+            expectThat(ansiString).isSameInstanceAs("abc".asAnsiString())
         }
     }
 
     @Nested
     inner class Tokenization {
-        val string: String =
-            italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString()
+        val string: String
+            get() =
+                italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").toString()
 
         @Test
         fun `should tokenize string`() {
@@ -95,30 +97,31 @@ class AnsiStringTest {
         @Test
         fun `should create ansi string from first n tokens`() {
             val tokens = string.tokenize()
-            expectThat(tokens.subSequence(0, 26).toString()).isEqualTo(
+            val subSequence = tokens.subSequence(0, 26)
+            expectThat(subSequence.toString()).isEqualTo(
                 "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m")
         }
 
         @Test
-        internal fun `should create ansi string from subSequence`() {
+        fun `should create ansi string from subSequence`() {
             val tokens = string.tokenize()
             expectThat(tokens.subSequence(11, 25).toString()).isEqualTo("$e[3;36mThis line has $e[23;39m")
         }
 
         @Test
-        internal fun `should get char at specified position`() {
+        fun `should get char at specified position`() {
             val tokens = AnsiString(string.tokenize().tokens)
             expectThat(tokens[26]).isEqualTo('o')
         }
 
         @Test
-        internal fun `should render string`() {
+        fun `should render string`() {
             val tokens = string.tokenize()
             expectThat(tokens.toString()).isEqualTo(string)
         }
 
         @Test
-        internal fun `should render string without ansi`() {
+        fun `should render string without ansi`() {
             val tokens = string.tokenize()
             val subject: String = tokens.toString(removeAnsi = true)
             val expected: String =
@@ -126,6 +129,30 @@ class AnsiStringTest {
                     "This one's bold!$CRLF" +
                     "Last one is clean."
             expectThat(subject).isEqualTo(expected)
+        }
+
+        @Test
+        fun `should tokenize true color foreground`() {
+            val string = "$e[38;2;200;10;10m-dark red-$e[39m"
+            val ansiString = string.tokenize()
+            expectThat(ansiString.tokens.toList()).containsExactly(
+                Token.escapeSequence("$e[38;2;200;10;10m"),
+                Token.text("-dark red-"),
+                Token.escapeSequence("$e[39m"),
+            )
+            expectThat(ansiString.toString()).isEqualTo(string)
+        }
+
+        @Test
+        fun `should tokenize true color background`() {
+            val string = "$e[48;2;200;10;10m-dark red-$e[49m"
+            val ansiString = string.tokenize()
+            expectThat(ansiString.tokens.toList()).containsExactly(
+                Token.escapeSequence("$e[48;2;200;10;10m"),
+                Token.text("-dark red-"),
+                Token.escapeSequence("$e[49m"),
+            )
+            expectThat(ansiString.toString()).isEqualTo(string)
         }
     }
 
@@ -152,7 +179,7 @@ class AnsiStringTest {
 
     @Nested
     inner class Get {
-        val ansiString = "${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.".tokenize()
+        val ansiString get() = "${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.".tokenize()
 
         @TestFactory
         fun `should char at position`(): List<DynamicTest> {
@@ -172,7 +199,7 @@ class AnsiStringTest {
         }
 
         @Test
-        internal fun `should throw if beyond length`() {
+        fun `should throw if beyond length`() {
             expectCatching { ansiString[41] }
                 .isFailure().isA<IndexOutOfBoundsException>()
         }
@@ -180,7 +207,7 @@ class AnsiStringTest {
 
     @Nested
     inner class SubSequence {
-        val ansiString = "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m".tokenize()
+        val ansiString get() = "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m".tokenize()
 
         @TestFactory
         fun `should product right substring`() = testEach(
@@ -245,13 +272,29 @@ class AnsiStringTest {
         }
 
         @Test
-        internal fun `should throw if beyond length`() {
+        fun `should subsequence true color foreground`() {
+            val string = "$e[38;2;200;10;10m-ark red-$e[39m"
+            val ansiString = string.tokenize()
+            val subSequence = ansiString.subSequence(1, 8).also { it.debug }
+            expectThat(subSequence.toString()).isEqualTo("$e[38;2;200;10;10mark red$e[39m")
+        }
+
+        @Test
+        fun `should subsequence true color background`() {
+            val string = "$e[48;2;200;10;10m-ark red-$e[49m"
+            val ansiString = string.tokenize()
+            val subSequence = ansiString.subSequence(1, 8)
+            expectThat(subSequence.toString()).isEqualTo("$e[48;2;200;10;10mark red$e[49m")
+        }
+
+        @Test
+        fun `should throw if beyond length`() {
             expectCatching { ansiString.subSequence(0, ansiString.length + 1) }.isFailure().isA<IndexOutOfBoundsException>()
         }
     }
 
     @Nested
-    inner class Unformatted {
+    inner class AnsiRemoved {
 
         @Suppress("SpellCheckingInspection", "LongLine")
         @TestFactory

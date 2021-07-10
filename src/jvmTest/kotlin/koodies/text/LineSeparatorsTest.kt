@@ -34,7 +34,6 @@ import koodies.text.LineSeparators.linesOfLength
 import koodies.text.LineSeparators.linesOfLengthSequence
 import koodies.text.LineSeparators.mapLines
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.runIgnoringTrailingLineSeparator
 import koodies.text.LineSeparators.trailingLineSeparator
 import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.LineSeparators.unify
@@ -170,11 +169,6 @@ class LineSeparatorsTest {
 
         expecting { "line$lineSeparator".trailingLineSeparatorRemoved } that { isEqualTo("line") }
         expecting { "line${lineSeparator}X".trailingLineSeparatorRemoved } that { isEqualTo("line${lineSeparator}X") }
-
-        @Suppress("DEPRECATION")
-        expecting { "line$lineSeparator".runIgnoringTrailingLineSeparator { "[$this]" } } that { isEqualTo("[line]$lineSeparator") }
-        @Suppress("DEPRECATION")
-        expecting { "line${lineSeparator}X".runIgnoringTrailingLineSeparator { "[$this]" } } that { isEqualTo("[line${lineSeparator}X]") }
 
 
         group("firstLineSeparatorAndLength") {

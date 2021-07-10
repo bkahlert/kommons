@@ -25,7 +25,7 @@ class DebugTest {
         log("test")
 
         expectThatRendered().contains("test")
-        expectThat(output).isEmpty()
+        expectThat(output.all).isEmpty()
     }
 
     @Test

@@ -76,19 +76,19 @@ class BlockRendererTest {
         Dotted to """
             ▶ One Two Three
             · LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSCIN     LOREM IPSUM DOLOR SIT AME
-            · G ELITR, SED DIAM NONUMY EIRMOD.                     T, CONSETETUR SADIPSCING 
+            · G ELITR, SED DIAM NONUMY EIRMOD.                     T, CONSETETUR SADIPSCING
             ·                                                      ELITR, SED DIAM NONUMY EI
-            ·                                                      RMOD.                    
+            ·                                                      RMOD.
             · ▶ child-span
             · · LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSC     LOREM IPSUM DOLOR SIT AME
-            · · ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING 
+            · · ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING
             · ·                                                    ELITR, SED DIAM NONUMY EI
-            · ·                                                    RMOD.                    
+            · ·                                                    RMOD.
             · · ▶ child-span
             · · · LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIP     LOREM IPSUM DOLOR SIT AME
-            · · · SCING ELITR, SED DIAM NONUMY EIRMOD.             T, CONSETETUR SADIPSCING 
+            · · · SCING ELITR, SED DIAM NONUMY EIRMOD.             T, CONSETETUR SADIPSCING
             · · ·                                                  ELITR, SED DIAM NONUMY EI
-            · · ·                                                  RMOD.                    
+            · · ·                                                  RMOD.
             · · ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
             · ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
@@ -96,19 +96,19 @@ class BlockRendererTest {
         None to """
             One Two Three
             LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSCING      LOREM IPSUM DOLOR SIT AME
-            ELITR, SED DIAM NONUMY EIRMOD.                         T, CONSETETUR SADIPSCING 
+            ELITR, SED DIAM NONUMY EIRMOD.                         T, CONSETETUR SADIPSCING
                                                                    ELITR, SED DIAM NONUMY EI
-                                                                   RMOD.                    
+                                                                   RMOD.
                 child-span
                 LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSC     LOREM IPSUM DOLOR SIT AME
-                ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING 
+                ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING
                                                                    ELITR, SED DIAM NONUMY EI
-                                                                   RMOD.                    
+                                                                   RMOD.
                     child-span
                     LOREM IPSUM DOLOR SIT AMET, CONSETETUR SAD     LOREM IPSUM DOLOR SIT AME
-                    IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING 
+                    IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING
                                                                    ELITR, SED DIAM NONUMY EI
-                                                                   RMOD.                    
+                                                                   RMOD.
                     ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
                 ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
             ✔︎
@@ -140,7 +140,7 @@ class BlockRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern(expected)
+        expecting { rendered } that { matchesCurlyPattern(expected) }
     }
 
     @Nested

@@ -56,14 +56,14 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
                 "$quantity test containers run concurrently."
             )
                 .joinLinesToString()
-                .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { green })
+                .draw.border.rounded(padding = 2, margin = 0, formatter = fromScratch { green })
                 .also { println(it) }
         } else {
             listOf(
                 "Done. BUT $failedTestsCount tests failed!".ansi.bold,
             )
                 .joinLinesToString()
-                .draw.border.spikedOutward(padding = 2, margin = 1, fromScratch { red })
+                .draw.border.rounded(padding = 2, margin = 0, fromScratch { red })
                 .also { println(it) }
         }
     }

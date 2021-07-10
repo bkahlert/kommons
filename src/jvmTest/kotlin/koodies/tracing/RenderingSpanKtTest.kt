@@ -5,12 +5,14 @@ import koodies.test.CapturedOutput
 import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
+import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.text.truncateByColumns
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import koodies.tracing.rendering.BlockStyles
+import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.OneLineStyles
@@ -57,7 +59,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should not render`(output: CapturedOutput) {
                     tracing { log("event α") }
-                    expectThat(output).isEmpty()
+                    expectThat(output.all).isEmpty()
                 }
             }
 
@@ -79,7 +81,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should not render`(output: CapturedOutput) {
                     tracing { tracing { log("event α") } }
-                    expectThat(output).isEmpty()
+                    expectThat(output.all).isEmpty()
                 }
             }
 
@@ -102,7 +104,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     tracing { spanning(testName) { registerAsTestSpan(); log("event α") } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   event α                                                                         
@@ -134,7 +136,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should not render`(testName: TestName, output: CapturedOutput) {
                     withRootSpan(testName) { tracing { log("event α") } }
-                    expectThat(output).isEmpty()
+                    expectThat(output.all).isEmpty()
                 }
             }
 
@@ -156,7 +158,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should not render`(testName: TestName, output: CapturedOutput) {
                     withRootSpan(testName) { tracing { tracing { log("event α") } } }
-                    expectThat(output).isEmpty()
+                    expectThat(output.all).isEmpty()
                 }
             }
 
@@ -179,7 +181,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     withRootSpan(testName) { tracing { spanning("child") { log("event α") } } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴child
                         │
                         │   event α                                                                         
@@ -215,7 +217,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     spanning(testName) { registerAsTestSpan(); log("event α") }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   event α                                                                         
@@ -243,7 +245,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     spanning(testName) { registerAsTestSpan(); tracing { log("event α") } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   event α                                                                         
@@ -272,7 +274,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     spanning(testName) { registerAsTestSpan(); spanning("child") { log("event α") } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴${testName.truncateByColumns(76)}
                         │
                         │   ╭──╴child
@@ -308,7 +310,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     withRootSpan(testName) { spanning("parent") { log("event α") } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴parent
                         │
                         │   event α                                                                         
@@ -336,7 +338,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     withRootSpan(testName) { spanning("parent") { tracing { log("event α") } } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴parent
                         │
                         │   event α                                                                         
@@ -365,7 +367,7 @@ class RenderingSpanKtTest {
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
                     withRootSpan(testName) { spanning("parent") { spanning("child") { log("event α") } } }
-                    expectThat(output).matchesCurlyPattern("""
+                    expectThat(output).toStringMatchesCurlyPattern("""
                         ╭──╴parent
                         │
                         │   ╭──╴child
@@ -405,7 +407,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should update name formatter`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", nameFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).matchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern("""
                     ╭──╴!name!
                     │
                     │   message                                                                         
@@ -417,7 +419,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should update content formatter`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", contentFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).matchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern("""
                     ╭──╴name
                     │
                     │   !message!                                                                       
@@ -429,7 +431,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should update decoration formatter`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", decorationFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).matchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern("""
                     !╭──╴!name
                     !│!
                     !│!   message                                                                         
@@ -447,7 +449,7 @@ class RenderingSpanKtTest {
                         }
                     }) { log("message") }
                 }
-                expectThat(output).matchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern("""
                     ╭──╴name
                     │
                     │   message                                                                         
@@ -459,26 +461,26 @@ class RenderingSpanKtTest {
             @Test
             fun `should update layout`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) {
-                    spanning("name", layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.EXTRA columns 5)) {
+                    spanning("${"1234567".ansi.blue}     ${"12345".ansi.brightBlue}",
+                        blockStyle = None,
+                        layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.EXTRA columns 5)) {
                         @Suppress("SpellCheckingInspection")
                         log("messagegoes      here", RenderingAttributes.EXTRA to "worksgreat-----")
                     }
                 }
-                expectThat(output).matchesCurlyPattern("""
-                    ╭──╴name
-                    │
-                    │   message     works
-                    │   goes        great
-                    │      here     -----
-                    │
-                    ╰──╴✔︎
+                expectThat(output).toStringMatchesCurlyPattern("""
+                    1234567     12345
+                    message     works
+                    goes        great
+                       here     -----
+                    ✔︎
                 """.trimIndent())
             }
 
             @Test
             fun `should update block style`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning("name", blockStyle = BlockStyles.Dotted) { log("message") } }
-                expectThat(output).matchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern("""
                     ▶ name
                     · message                                                                         
                     ✔︎
@@ -492,7 +494,7 @@ class RenderingSpanKtTest {
                         override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence = "!$element!"
                     }) { spanningLine("one-line") { log("message") } }
                 }
-                expectThat(output).matchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern("""
                     ╭──╴name
                     │
                     │   one-line!message! ✔︎
@@ -505,7 +507,7 @@ class RenderingSpanKtTest {
             fun `should update printer`(testName: TestName, output: CapturedOutput) {
                 val rendered = mutableListOf<CharSequence>()
                 withRootSpan(testName) { spanning("name", printer = { rendered.add(it) }) { log("message") } }
-                expectThat(output).isEmpty()
+                expectThat(output.all).isEmpty()
                 expectThat(rendered.joinLinesToString()).matchesCurlyPattern("""
                     ╭──╴name
                     │

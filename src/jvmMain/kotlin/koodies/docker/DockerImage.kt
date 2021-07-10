@@ -30,12 +30,12 @@ import koodies.text.takeUnlessBlank
  * Examples:
  * - `DockerImage { "bkahlert" / "libguestfs" }`
  * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
- * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+ * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:e8fdf16c69a9155b0e30cdc9b2f872232507f5461be2e7dff307f4c1b50faa20" }`
  *
  * Parseable strings are allowed as well:
  * - `DockerImage { "bkahlert/libguestfs" }`
  * - `DockerImage { "bkahlert/libguestfs:latest" }`
- * - `DockerImage { "bkahlert/libguestfs@sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+ * - `DockerImage { "bkahlert/libguestfs@sha256:e8fdf16c69a9155b0e30cdc9b2f872232507f5461be2e7dff307f4c1b50faa20" }`
  */
 @Suppress("SpellCheckingInspection")
 public open class DockerImage(
@@ -234,12 +234,12 @@ public open class DockerImage(
      * Micro DSL to build a [DockerImage] in the style of:
      * - `DockerImage { "bkahlert" / "libguestfs" }`
      * - `DockerImage { "bkahlert" / "libguestfs" tag "latest" }`
-     * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     * - `DockerImage { "bkahlert" / "libguestfs" digest "sha256:e8fdf16c69a9155b0e30cdc9b2f872232507f5461be2e7dff307f4c1b50faa20" }`
      *
      * If only a string is provided it will be parsed accordingly:
      * - `DockerImage { "bkahlert/libguestfs" }`
      * - `DockerImage { "bkahlert/libguestfs:latest" }`
-     * - `DockerImage { "bkahlert/libguestfs@sha256:f466595294e58c1c18efeb2bb56edb5a28a942b5ba82d3c3af70b80a50b4828a" }`
+     * - `DockerImage { "bkahlert/libguestfs@sha256:e8fdf16c69a9155b0e30cdc9b2f872232507f5461be2e7dff307f4c1b50faa20" }`
      */
     @Suppress("SpellCheckingInspection")
     public companion object : StatelessBuilder.PostProcessing<ImageContext, CharSequence, DockerImage>(ImageContext, {

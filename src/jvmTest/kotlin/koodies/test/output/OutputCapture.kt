@@ -45,8 +45,5 @@ class OutputCapture(private val print: Boolean) : CapturedOutput {
         } else false
     }
 
-    override val length: Int get() = all.length
-    override fun get(index: Int): Char = all[index]
-    override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = all.subSequence(startIndex, endIndex)
     override fun toString(): String = all
 }

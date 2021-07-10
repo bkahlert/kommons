@@ -192,14 +192,12 @@ class DockerContainerTest {
             fun TestSpan.`should get status of non-existent`(testContainers: TestContainers) {
                 val container = testContainers.newNotExistentContainer()
                 expectThat(container).hasState<NotExistent>()
-                expectThatRendered().contains("Listing all containers matching {name=^${container.name}\$} ✔︎")
             }
 
             @ContainersTest @IdeaWorkaroundTest
             fun TestSpan.`should get status`(testContainers: TestContainers) {
                 val container = testContainers.newRunningTestContainer()
                 expectThat(container).hasState<Running> { get { status }.isNotEmpty() }
-                expectThatRendered().contains("Listing all containers matching {name=^${container.name}\$} ✔︎")
             }
         }
 

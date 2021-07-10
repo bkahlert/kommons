@@ -7,7 +7,7 @@ import koodies.text.LineSeparators.lines
  * Captured output providing access to the [out], [err]
  * and both through [all].
  */
-public interface CapturedOutput : CharSequence {
+public interface CapturedOutput {
     public val all: String
     public val out: String
     public val err: String

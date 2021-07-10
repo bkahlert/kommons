@@ -166,7 +166,7 @@ public class DockerContainer(public val name: String) {
 
         private fun queryState(container: DockerContainer): State =
             DockerPsCommandLine(true, container.name)
-                .exec.logging(renderer = noDetails())
+                .exec()
                 .parse.columns<State, Failed>(3) { (_, state, status) ->
                     when (state.capitalize()) {
                         Created::class.simpleName -> Created(status)

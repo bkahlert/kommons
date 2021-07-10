@@ -256,16 +256,9 @@ public interface Process {
 
     /**
      * Blocking method that waits until the program represented by this process
-     * terminates and returns its [exitValue].
+     * terminates and returns its [exitCode].
      */
     public fun waitFor(): ExitState = onExit.join()
-
-    /**
-     * Returns the exit code of the program represented by process process once
-     * it terminates. If the program has not terminated yet, it throws an
-     * [IllegalStateException].
-     */
-    @Deprecated("use exitCode", ReplaceWith("exitCode", "koodies.exec.exitCode")) public val exitValue: Int get() = exitCode
 
     /**
      * Gracefully attempts to stop the execution of the program represented by this process.

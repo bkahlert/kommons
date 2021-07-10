@@ -164,6 +164,44 @@ class ExecutionIntegrationTest {
     }
 
     @Test
+    fun TestSpan.`should handle errorxxxs`() {
+        spanning("dsdsds") {
+            ShellScript {
+                echo("Countdown!")
+                (10 downTo 7).forEach { echo(it) }
+                !"1>&2 echo 'Boom!'"
+                !"exit 1"
+            }.exec.logging(blockStyle = Dotted) check {
+
+                state { isA<Failed>() }
+
+                io.ansiRemoved {
+                    matchesCurlyPattern("""
+                Countdown!
+                10
+                9
+                8
+                7
+                Boom!
+                Process $pid terminated with exit code $exitCode
+                ➜ A dump has been written to:
+                  - {}koodies.dump-{}.log (unchanged)
+                  - {}koodies.dump-{}.ansi-removed.log (ANSI escape/control sequences removed)
+                ➜ The last 7 lines are:
+                  Countdown!
+                  10
+                  9
+                  8
+                  7
+                  Boom!
+                  Process $pid terminated with exit code $exitCode
+            """.trimIndent())
+                }
+            }
+        }
+    }
+
+    @Test
     fun `should be simple`() {
         tempDir().apply {
 

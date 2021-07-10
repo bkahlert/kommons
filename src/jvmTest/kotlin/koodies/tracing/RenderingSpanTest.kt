@@ -10,6 +10,7 @@ import io.opentelemetry.sdk.trace.data.EventData
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.data.StatusData
 import koodies.exec.IOAttributes
+import koodies.getOrException
 import koodies.junit.TestName
 import koodies.test.testEach
 import koodies.text.toStringMatchesCurlyPattern
@@ -118,7 +119,30 @@ class RenderingSpanTest {
         }
 
         expecting("should render") { rendered } that {
-            containsExactly("END: kotlin.Unit")
+            containsExactly("END: (kotlin.Unit, null)")
+        }
+    }
+
+    @TestFactory
+    fun fail(testName: TestName) = testEach<RenderingSpan.() -> Unit>(
+        { end(Result.failure<Unit>(RuntimeException("test"))) },
+        { end(RuntimeException("test")) },
+    ) { op ->
+        val (traceId, rendered) = withRenderingSpan(testName) { op() }
+
+        expecting("should record") { TestTelemetry[traceId] } that {
+            all { isValid() }
+            size.isEqualTo(1) and {
+                get(0) and {
+                    spanName.contains("RenderingSpanTest ➜ fail")
+                    isError("test")
+                    events.isEmpty()
+                }
+            }
+        }
+
+        expecting("should render") { rendered } that {
+            containsExactly("END: (null, java.lang.RuntimeException: test)")
         }
     }
 
@@ -161,7 +185,7 @@ class RenderingSpanTest {
         }
 
         override fun <R> end(result: Result<R>) {
-            captured.add(contentFormatter("END: ${result.getOrNull()}").toString())
+            captured.add(contentFormatter("END: ${result.getOrException()}").toString())
         }
 
         override fun childRenderer(renderer: RendererProvider): Renderer =

@@ -14,6 +14,7 @@ import koodies.text.ANSI.Colors
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
+import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.Semantics.formattedAs
 import koodies.text.padStartFixedLength
 import koodies.time.Now
@@ -223,7 +224,7 @@ class TestPrinter : Printer {
                 val thread = currentThread.name.padStartFixedLength(31)
                 val time = timePassed.format()
                 val prefix = "$thread  $time │ ".meta
-                text.lineSequence().forEach { println("$prefix$it") }
+                text.asAnsiString().lineSequence().forEach { println("$prefix$it") }
             }
         }
     }

@@ -16,7 +16,7 @@ import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiCode.Companion.REGEX
 import koodies.text.AnsiCodeHelper.closingControlSequence
 import koodies.text.AnsiCodeHelper.controlSequence
-import koodies.text.AnsiCodeHelper.parseAnsiCodesAsSequence
+import koodies.text.AnsiCodeHelper.parseAnsiCodes
 import koodies.text.AnsiCodeHelper.unclosedCodes
 import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.mapLines
@@ -343,8 +343,6 @@ public object ANSI {
         protected open val formatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
         public val done: String = formatter(text).toString(),
     ) : CharSequence by done {
-        @Deprecated("use done", ReplaceWith("this.done"))
-        public operator fun not(): String = done
         override fun toString(): String = done
     }
 
@@ -522,7 +520,7 @@ internal open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
         /**
          * [Regex] that matches an [AnsiCode].
          */
-        val REGEX: Regex = Regex("(?<CSI>${c}\\[|${e}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
+        val REGEX: Regex = Regex("(?<CSI>$c\\[|$e\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
     }
 }
 
@@ -1001,19 +999,23 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
     public companion object {
         public val EMPTY: AnsiString = AnsiString()
 
-        public val CharSequence.ansiString: AnsiString get() = AnsiStringCache.getOrPut(this)
         public fun <T : CharSequence> T?.asAnsiString(): AnsiString = this?.let { AnsiStringCache.getOrPut(it) } ?: EMPTY
+        public fun Any.toAnsiString(): AnsiString = when (this) {
+            is AnsiString -> this
+            is CharSequence -> asAnsiString()
+            else -> toString().asAnsiString()
+        }
 
         public fun CharSequence.tokenize(): AnsiString = TokenizationCache.getOrPut(this) {
             val tokens = mutableListOf<Token>()
-            val codes = mutableListOf<Int>()
+            val codes = mutableListOf<IntArray>()
             var consumed = 0
             while (consumed < length) {
                 val match = REGEX.find(this, consumed)
                 val range = match?.range
                 if (range?.first == consumed) {
                     val escapeSequence = this.subSequence(consumed, match.range.last + 1).also {
-                        val currentCodes = AnsiCodeHelper.parseAnsiCode(match).toList()
+                        val currentCodes = AnsiCodeHelper.parseAnsiCode(match)
                         codes.addAll(currentCodes)
                         consumed += it.length
                     }
@@ -1023,10 +1025,9 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
                     val ansiAhead = if (first != null) {
                         first < length
                     } else false
-                    val ansiCodeXFreeString = subSequence(consumed, if (ansiAhead) first!! else length).also {
+                    tokens.add(Token.text(subSequence(consumed, if (ansiAhead) first!! else length).also {
                         consumed += it.length
-                    }
-                    tokens.add(Token.text(ansiCodeXFreeString))
+                    }))
                 }
             }
             AnsiString(*tokens.toTypedArray())
@@ -1065,30 +1066,30 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      */
     override fun subSequence(startIndex: Int, endIndex: Int): AnsiString {
         return subSequenceCache.getOrPut(hashCode() to (startIndex to endIndex)) {
-            val full: String = ansiSubSequence(endIndex).first
+            val firstToEnd: String = ansiSubSequence(endIndex).first
             if (startIndex > 0) {
                 val (prefix, unclosedCodes) = ansiSubSequence(startIndex)
-                val controlSequence: String = controlSequence(unclosedCodes)
+                val controlSequence: String = controlSequence(unclosedCodes.flatMap { it.toList() })
                 val startIndex1 = prefix.length - closingControlSequence(unclosedCodes).length
-                controlSequence + full.subSequence(startIndex1, full.length)
+                controlSequence + firstToEnd.subSequence(startIndex1, firstToEnd.length)
             } else {
-                full
+                firstToEnd
             }
         }.asAnsiString()
     }
 
-    private fun ansiSubSequence(endIndex: Int): Pair<String, List<Int>> {
+    private fun ansiSubSequence(endIndex: Int): Pair<String, List<IntArray>> {
         if (endIndex == 0) return "" to emptyList()
         if (endIndex > ansiLength) throw IndexOutOfBoundsException("$endIndex must not be greater than $ansiLength")
         var read = 0
-        val codes = mutableListOf<Int>()
+        val codes = mutableListOf<IntArray>()
         val sb = StringBuilder()
 
         tokens.forEach { (content, logicalLength) ->
             val needed = endIndex - read
             if (needed > 0 && logicalLength == 0) {
                 sb.append(content)
-                codes.addAll(content.parseAnsiCodesAsSequence())
+                codes.addAll(content.parseAnsiCodes())
             } else {
                 if (needed <= logicalLength) {
                     sb.append(content.subSequence(0, needed))
@@ -1227,7 +1228,7 @@ private object AnsiCodeHelper {
      * Think of it as a bunch of HTML tags of which a few have not been closed,
      * whereas this function returns the string that renders the HTML valid again.
      */
-    fun closingControlSequence(codes: List<Int>): String = controlSequence(closingCodes(unclosedCodes(codes)))
+    fun closingControlSequence(codes: List<IntArray>): String = controlSequence(closingCodes(unclosedCodes(codes)))
 
     /**
      * Iterates through the codes and returns the ones that have no closing counterpart.
@@ -1235,15 +1236,16 @@ private object AnsiCodeHelper {
      * Think of it as a bunch of HTML tags of which a few have not been closed,
      * whereas this function returns those tags that render the HTML invalid.
      */
-    fun unclosedCodes(codes: List<Int>): List<Int> {
-        val unclosedCodes = mutableListOf<Int>()
-        codes.forEach { code: Int ->
-            val ansiCodes: List<AnsiCode> = codeToAnsiCodeMappings[code] ?: emptyList()
-            ansiCodes.forEach { ansiCode ->
-                if (code !in ansiCode.codes.map { it.second }) {
-                    unclosedCodes.addAll(ansiCode.codes.flatMap { it.first })
-                } else {
-                    unclosedCodes.removeAll { it in ansiCode.codes.flatMap { it.first } }
+    fun unclosedCodes(codes: List<IntArray>): List<IntArray> {
+        val unclosedCodes = mutableListOf<IntArray>()
+        codes.forEach { code: IntArray ->
+            closingToOpeningCodes[code.first()]?.let { openingCodes ->
+                unclosedCodes.removeAll { unclosedCode ->
+                    openingCodes.any { it == unclosedCode.first() }
+                }
+            } ?: openingToClosingCodes[code.first()]?.let { closingCodes ->
+                if (code.first() !in closingCodes) {
+                    unclosedCodes.add(code)
                 }
             }
         }
@@ -1253,8 +1255,8 @@ private object AnsiCodeHelper {
     /**
      * Returns the codes needed to close the given ones.
      */
-    fun closingCodes(codes: List<Int>): List<Int> =
-        codes.flatMap { openCode -> codeToAnsiCodeMappings[openCode]?.flatMap { ansiCode -> ansiCode.codes.map { it.second } } ?: emptyList() }
+    fun closingCodes(codes: List<IntArray>): List<Int> =
+        codes.flatMap { openCode: IntArray -> openingToClosingCodes[openCode.first()]?.toList() ?: emptyList() }
 
     /**
      * Returns the rendered control sequence for the given codes.
@@ -1266,41 +1268,99 @@ private object AnsiCodeHelper {
      * A map that maps the open and close codes of all supported instances of [AnsiCodeHelper]
      * to their respective [AnsiCodeHelper].
      */
-    val codeToAnsiCodeMappings: Map<Int, List<AnsiCode>> by lazy {
-        hashMapOf<Int, MutableList<AnsiCode>>().apply {
-            listOf(
-                Ansi16ColorCode(Ansi16.black.code),
-                Ansi16ColorCode(Ansi16.red.code),
-                Ansi16ColorCode(Ansi16.green.code),
-                Ansi16ColorCode(Ansi16.yellow.code),
-                Ansi16ColorCode(Ansi16.blue.code),
-                Ansi16ColorCode(Ansi16.purple.code),
-                Ansi16ColorCode(Ansi16.cyan.code),
-                Ansi16ColorCode(Ansi16.white.code),
-                Ansi16ColorCode(Ansi16.brightBlack.code),
-                Ansi16ColorCode(Ansi16.brightRed.code),
-                Ansi16ColorCode(Ansi16.brightGreen.code),
-                Ansi16ColorCode(Ansi16.brightYellow.code),
-                Ansi16ColorCode(Ansi16.brightBlue.code),
-                Ansi16ColorCode(Ansi16.brightPurple.code),
-                Ansi16ColorCode(Ansi16.brightCyan.code),
-                Ansi16ColorCode(Ansi16.brightWhite.code),
-                AnsiCode(0, 0),
-                AnsiCode(1, 22),
-                AnsiCode(2, 22),
-                AnsiCode(3, 23),
-                AnsiCode(4, 24),
-                AnsiCode(5, 25),
-                AnsiCode(6, 25),
-                AnsiCode(7, 27),
-                AnsiCode(8, 28),
-                AnsiCode(9, 29),
-            ).forEach { ansiCode ->
-                ansiCode.codes.flatMap { (first, second) -> first + second }.forEach { code ->
-                    getOrPut(code) { mutableListOf() }.add(ansiCode)
-                }
-            }
+    val openingToClosingCodes: Map<Int, IntArray> = mapOf(
+        0 to intArrayOf(0),
+        1 to intArrayOf(22), // sic!
+        2 to intArrayOf(22),
+        3 to intArrayOf(23),
+        4 to intArrayOf(24),
+        5 to intArrayOf(25),
+        6 to intArrayOf(25),
+        7 to intArrayOf(27),
+        8 to intArrayOf(28),
+        9 to intArrayOf(29),
+        10 to intArrayOf(10),
+        11 to intArrayOf(10),
+        12 to intArrayOf(10),
+        13 to intArrayOf(10),
+        14 to intArrayOf(10),
+        15 to intArrayOf(10),
+        16 to intArrayOf(10),
+        17 to intArrayOf(10),
+        18 to intArrayOf(10),
+        19 to intArrayOf(10),
+        20 to intArrayOf(0),
+        21 to intArrayOf(0),
+        22 to intArrayOf(22),
+        23 to intArrayOf(23),
+        24 to intArrayOf(24),
+        25 to intArrayOf(25),
+        26 to intArrayOf(26),
+        27 to intArrayOf(27),
+        28 to intArrayOf(28),
+        29 to intArrayOf(29),
+        30 to intArrayOf(39), // 4-bit foreground color: black
+        31 to intArrayOf(39), // 4-bit foreground color: red
+        32 to intArrayOf(39), // 4-bit foreground color: green
+        33 to intArrayOf(39), // 4-bit foreground color: yellow
+        34 to intArrayOf(39), // 4-bit foreground color: blue
+        35 to intArrayOf(39), // 4-bit foreground color: purple
+        36 to intArrayOf(39), // 4-bit foreground color: cyan
+        37 to intArrayOf(39), // 4-bit foreground color: white
+        38 to intArrayOf(39), // 8-bit / 24-bit foreground colors
+        39 to intArrayOf(39), // foreground color reset
+        40 to intArrayOf(49), // 4-bit background color: black
+        41 to intArrayOf(49), // 4-bit background color: red
+        42 to intArrayOf(49), // 4-bit background color: green
+        43 to intArrayOf(49), // 4-bit background color: yellow
+        44 to intArrayOf(49), // 4-bit background color: blue
+        45 to intArrayOf(49), // 4-bit background color: purple
+        46 to intArrayOf(49), // 4-bit background color: cyan
+        47 to intArrayOf(49), // 4-bit background color: white
+        48 to intArrayOf(49), // 8-bit / 24-bit background colors
+        49 to intArrayOf(49), // background color reset
+        50 to intArrayOf(50),
+        51 to intArrayOf(54),
+        52 to intArrayOf(54),
+        53 to intArrayOf(55),
+        54 to intArrayOf(54),
+        55 to intArrayOf(55),
+        55 to intArrayOf(55),
+        58 to intArrayOf(59),
+        59 to intArrayOf(59),
+        60 to intArrayOf(65),
+        61 to intArrayOf(65),
+        62 to intArrayOf(65),
+        63 to intArrayOf(65),
+        64 to intArrayOf(65),
+        65 to intArrayOf(65),
+        73 to intArrayOf(75),
+        74 to intArrayOf(75),
+        75 to intArrayOf(75),
+        75 to intArrayOf(75),
+        90 to intArrayOf(39), // 4-bit foreground color: bright black
+        91 to intArrayOf(39), // 4-bit foreground color: bright red
+        92 to intArrayOf(39), // 4-bit foreground color: bright green
+        93 to intArrayOf(39), // 4-bit foreground color: bright yellow
+        94 to intArrayOf(39), // 4-bit foreground color: bright blue
+        95 to intArrayOf(39), // 4-bit foreground color: bright purple
+        96 to intArrayOf(39), // 4-bit foreground color: bright cyan
+        97 to intArrayOf(39), // 4-bit foreground color: bright white
+        100 to intArrayOf(49), // 4-bit background color: bright black
+        101 to intArrayOf(49), // 4-bit background color: bright red
+        102 to intArrayOf(49), // 4-bit background color: bright green
+        103 to intArrayOf(49), // 4-bit background color: bright yellow
+        104 to intArrayOf(49), // 4-bit background color: bright blue
+        105 to intArrayOf(49), // 4-bit background color: bright purple
+        106 to intArrayOf(49), // 4-bit background color: bright cyan
+        107 to intArrayOf(49), // 4-bit background color: bright white
+    )
+
+    val closingToOpeningCodes: Map<Int, IntArray> = with(mutableMapOf<Int, MutableList<Int>>()) {
+        openingToClosingCodes.forEach { (openingCode, closingCodes) ->
+            closingCodes.forEach { closingCode -> getOrPut(closingCode) { mutableListOf() }.add(openingCode) }
         }
+        map { (closingCode, openingCodes) -> closingCode to openingCodes.toIntArray() }.toMap()
     }
 
     /**
@@ -1308,19 +1368,75 @@ private object AnsiCodeHelper {
      *
      * ***Note:** This method makes no difference between opening and closing codes.*
      */
-    fun CharSequence.parseAnsiCodesAsSequence(): Sequence<Int> = REGEX.findAll(this).flatMap { parseAnsiCode(it) }
+    fun CharSequence.parseAnsiCodes(): List<IntArray> =
+        REGEX.findAll(this).singleOrNull()?.let { parseAnsiCode(it) } ?: emptyList()
 
     /**
      * Given a [matchResult] resulting from [ansiCodeRegex] all found ANSI codes are returned.
      *
      * ***Note:** This method makes no difference between opening and closing codes.*
      */
-    fun parseAnsiCode(matchResult: MatchResult): List<Int> {
+    fun parseAnsiCode(matchResult: MatchResult): List<IntArray> {
         val intermediateBytes: String? = matchResult.namedGroups["intermediateBytes"]?.value
         val lastByte = matchResult.namedGroups["finalByte"]?.value
         return if (intermediateBytes.isNullOrBlank() && lastByte == "m") {
-            (matchResult.namedGroups["parameterBytes"] ?: return emptyList())
-                .value.split(";").mapNotNull { it.toIntOrNull() }.toList()
+            matchResult.namedGroups["parameterBytes"]
+                ?.value
+                ?.split(";")
+                ?.mapNotNull { it.toIntOrNull() }
+                ?.group() ?: emptyList()
         } else emptyList()
+    }
+
+    /**
+     * Creates groups from the given codes.
+     *
+     * Each codes forms one group with the exception of one-byte and three-byte colors,
+     * which form groups of two (38/48 + color) or four bytes (38/48 + r + g + b).
+     */
+    private fun List<Int>.group(): List<IntArray> {
+        val groups = mutableListOf<IntArray>()
+
+        var checkingColorType = false
+        var groupMissingCodes = 0
+        var group: MutableList<Int>? = null
+        forEach {
+            if (!checkingColorType) {
+                if (groupMissingCodes == 0) {
+                    if (it != 38 /* foreground color */ && it != 48 /* background color */ && it != 58 /* underline color */) {
+                        groups.add(intArrayOf(it))
+                    } else {
+                        checkingColorType = true
+                        group = mutableListOf(it)
+                    }
+                } else {
+                    with(checkNotNull(group)) {
+                        add(it)
+                        groupMissingCodes--
+                        if (groupMissingCodes == 0) {
+                            groups.add(toIntArray())
+                            group = null
+                        }
+                    }
+                }
+            } else {
+                with(checkNotNull(group)) {
+                    when (it) {
+                        5 -> {
+                            groupMissingCodes = 1 // 1x color byte}
+                            add(it)
+                            checkingColorType = false
+                        }
+                        2 -> {
+                            groupMissingCodes = 3 // 1x color byte
+                            add(it)
+                            checkingColorType = false
+                        }
+                        else -> error("unknown color type $it")
+                    }
+                }
+            }
+        }
+        return groups
     }
 }
