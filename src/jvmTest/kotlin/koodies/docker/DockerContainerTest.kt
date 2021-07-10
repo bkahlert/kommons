@@ -189,13 +189,13 @@ class DockerContainerTest {
         inner class GetStatus {
 
             @ContainersTest @IdeaWorkaroundTest
-            fun TestSpan.`should get status of non-existent`(testContainers: TestContainers) {
+            fun `should get status of non-existent`(testContainers: TestContainers) {
                 val container = testContainers.newNotExistentContainer()
                 expectThat(container).hasState<NotExistent>()
             }
 
             @ContainersTest @IdeaWorkaroundTest
-            fun TestSpan.`should get status`(testContainers: TestContainers) {
+            fun `should get status`(testContainers: TestContainers) {
                 val container = testContainers.newRunningTestContainer()
                 expectThat(container).hasState<Running> { get { status }.isNotEmpty() }
             }

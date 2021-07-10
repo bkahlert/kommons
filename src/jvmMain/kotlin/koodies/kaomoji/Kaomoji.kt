@@ -1,6 +1,7 @@
 package koodies.kaomoji
 
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.CodePoint
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
@@ -107,7 +108,7 @@ public data class Kaomoji(
      */
     public fun thinking(text: String? = null): String {
         val subject = text?.takeIfNotBlank()
-        val lines = subject.lines()
+        val lines = subject?.toAnsiString().lines()
         return when (lines.size) {
             0 -> {
                 """

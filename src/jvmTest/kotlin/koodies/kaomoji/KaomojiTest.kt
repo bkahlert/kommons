@@ -4,7 +4,6 @@ import koodies.test.expecting
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
@@ -98,12 +97,14 @@ class KaomojiTest {
 
         @Test
         fun `should render ANSI`() {
-            expecting { kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234").ansiRemoved } that {
+            expecting {
+                kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done)
+            } that {
                 isEqualTo("""
-                    $blank       ⎛ 123        ⎞
-                    $blank       ⎜            ⎟
-                    $blank       ⎜ 1234567890 ⎟
-                    $blank  ̣ ˱ ❨ ⎝ 1234       ⎠
+                                 ⎛ [4m[94m123[24;39m        ⎞
+                                 ⎜ [4m[24m           ⎟
+                                 ⎜ [4m1234567890[24m ⎟
+                            ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
                     ・㉨・
                 """.trimIndent())
             }
