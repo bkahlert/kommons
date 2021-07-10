@@ -27,6 +27,7 @@ import koodies.text.Semantics.Symbols
 import koodies.text.Semantics.formattedAs
 import koodies.text.capitalize
 import koodies.text.randomString
+import koodies.text.truncate
 import koodies.text.withRandomSuffix
 import koodies.text.wrap
 import koodies.time.seconds
@@ -295,7 +296,7 @@ public class DockerContainer(public val name: String) {
          * name and if not transforms it to a valid one.
          */
         private fun sanitize(name: String, suffix: String = ""): String {
-            val nameWithSuffix = name.take((LENGTH_RANGE.last - suffix.length).coerceAtLeast(0)) + suffix
+            val nameWithSuffix = name.truncate((LENGTH_RANGE.last - suffix.length).coerceAtLeast(0), "...") + suffix
             if (isValid(nameWithSuffix)) return nameWithSuffix
             var replaceWithXToGuaranteeAValidName = true
             return nameWithSuffix.map { c ->

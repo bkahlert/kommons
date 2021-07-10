@@ -1,5 +1,6 @@
 package koodies.debug
 
+import koodies.test.CapturedOutput
 import koodies.test.SystemIORead
 import koodies.tracing.TestSpan
 import org.junit.jupiter.api.Test

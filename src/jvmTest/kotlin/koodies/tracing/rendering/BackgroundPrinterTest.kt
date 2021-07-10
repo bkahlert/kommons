@@ -1,6 +1,6 @@
 package koodies.tracing.rendering
 
-import koodies.debug.CapturedOutput
+import koodies.test.CapturedOutput
 import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.toStringMatchesCurlyPattern

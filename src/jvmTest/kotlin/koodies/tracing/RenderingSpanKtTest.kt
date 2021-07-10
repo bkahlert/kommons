@@ -1,12 +1,13 @@
 package koodies.tracing
 
-import koodies.debug.CapturedOutput
 import koodies.junit.TestName
+import koodies.test.CapturedOutput
 import koodies.test.output.OutputCaptureExtension
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
+import koodies.text.toStringMatchesCurlyPattern
 import koodies.text.truncateByColumns
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import koodies.tracing.rendering.BlockStyles
@@ -395,12 +396,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should use render as rendered name`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { } }
-                expectThat(output).matchesCurlyPattern("""
-                    ╭──╴76 x 4
-                    │
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+                expectThat(output).toStringMatchesCurlyPattern("null x 1 ✔︎")
             }
         }
 

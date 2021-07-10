@@ -17,6 +17,7 @@ import koodies.tracing.rendering.BlockRenderer
 import koodies.tracing.rendering.BlockStyle
 import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ColumnsLayout
+import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.RenderableAttributes
 import koodies.tracing.rendering.Renderer
@@ -55,7 +56,7 @@ public object RootRenderer : Renderer {
     override fun event(name: CharSequence, attributes: RenderableAttributes): Unit = Unit
     override fun exception(exception: Throwable, attributes: RenderableAttributes): Unit = Unit
     override fun <R> end(result: Result<R>): Unit = Unit
-    override fun childRenderer(renderer: RendererProvider): Renderer = renderer(Settings(printer = ::printChild)) { BlockRenderer(it) }
+    override fun childRenderer(renderer: RendererProvider): Renderer = renderer(Settings(printer = ::printChild)) { CompactRenderer(it) }
     override fun printChild(text: CharSequence): Unit = println(text)
 }
 

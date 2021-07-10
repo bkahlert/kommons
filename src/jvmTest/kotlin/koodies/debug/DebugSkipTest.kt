@@ -1,7 +1,9 @@
 package koodies.debug
 
-import koodies.debug.AdHocOutputCapture.Companion.captureOutput
+import koodies.test.CapturedOutput
 import koodies.test.junit.JUnit.runTests
+import koodies.test.output.OutputCaptureExtension
+import koodies.test.output.OutputCaptureExtension.Silent
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.parallel.Isolated
 import org.junit.platform.engine.FilterResult
@@ -44,10 +47,11 @@ class DebugSkipTest {
 
     @Debug(includeInReport = false)
     @Test
-    fun `should skip non-annotated tests on present @Debug`() {
+    @ExtendWith(OutputCaptureExtension::class) @Silent
+    fun `should skip non-annotated tests on present @Debug`(output: CapturedOutput) {
         val selectClass = selectClass(HiddenSkipTests()::class.java)
 
-        val (listener, capturedOutput) = captureOutput(redirect = true) { runTests(selectClass) }.also { skipTestsRun = true }
+        val listener = runTests(selectClass).also { skipTestsRun = true }
 
         expectThat(listener)
             .get { summary }
@@ -57,7 +61,7 @@ class DebugSkipTest {
                 get { testsSucceededCount }.isEqualTo(1)
                 get { testsFailedCount }.isEqualTo(0)
             } then { if (allPassed) pass() else fail() }
-        expectThat("$capturedOutput")
+        expectThat("$output")
             .contains("Debug in use!")
             .contains("1 annotated test")
             .contains("Don't forget to remove")

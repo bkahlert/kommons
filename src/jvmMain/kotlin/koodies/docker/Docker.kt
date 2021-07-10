@@ -1,5 +1,6 @@
 package koodies.docker
 
+import koodies.Exceptions
 import koodies.docker.Docker.info.get
 import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerSearchCommandLine.DockerSearchResult
@@ -16,6 +17,7 @@ import koodies.io.path.deleteRecursively
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.io.path.moveTo
 import koodies.io.path.pathString
+import koodies.io.path.uriString
 import koodies.io.randomDirectory
 import koodies.map
 import koodies.or
@@ -24,7 +26,9 @@ import koodies.shell.ShellScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
+import koodies.tracing.Key
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.spanning
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.net.URI
@@ -430,18 +434,32 @@ public fun Path.download(
     uri: String,
     fileName: String? = null,
     renderer: RendererProvider? = null,
-): Path =
+): Path = spanning("Downloading $uri", Key.stringKey("uri") to uri) {
     if (fileName != null) {
-        resolve(fileName).also { curl("--location", uri, "-o", fileName, renderer = renderer) }
+        resolve(fileName).also {
+            log("Downloading to ${it.uriString}")
+            curl("--location", uri, "-o", fileName, renderer = renderer)
+        }
     } else {
         val downloadDir = randomDirectory()
         downloadDir.run {
+            log("Using temporary directory $uriString")
             curl("--location", "--remote-name", "--remote-header-name", "--compressed", uri, renderer = renderer)
-            listDirectoryEntriesRecursively().singleOrNull()?.let { file ->
-                file.moveTo(parent.resolve(file.cleanFileName()))
-            } ?: throw FileNotFoundException("Failed to download $uri")
-        }.also { downloadDir.deleteRecursively() }
+            val downloaded = listDirectoryEntriesRecursively().apply { log("Downloaded ${map { it.uriString }}") }
+            when (downloaded.size) {
+                0 -> throw FileNotFoundException("Failed to download $uri")
+                1 -> downloaded.first().let {
+                    val target = parent.resolve(it.cleanFileName()).apply { log("Moving download to $uriString") }
+                    it.moveTo(target)
+                }
+                else -> throw Exceptions.ISE("More than one file found:", *downloaded.map { it.uriString }.toTypedArray())
+            }
+        }.also {
+            log("Deleting ${downloadDir.uriString}")
+            downloadDir.deleteRecursively()
+        }
     }
+}
 
 /**
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using

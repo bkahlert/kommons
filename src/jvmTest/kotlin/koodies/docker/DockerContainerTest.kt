@@ -161,15 +161,19 @@ class DockerContainerTest {
         }
 
         @Test
-        fun `should fill to short name`() {
+        fun `should fill name if too short`() {
             expectThat(DockerContainer.from("")).name.length.isEqualTo(1)
             expectThat(DockerContainer { "".sanitized }).name.length.isEqualTo(1)
         }
 
         @Test
-        fun `should truncate to long name`() {
-            expectThat(DockerContainer.from("X".repeat(130))).name.toStringIsEqualTo("X".repeat(128))
-            expectThat(DockerContainer { "X".repeat(130).sanitized }).name.toStringIsEqualTo("X".repeat(128))
+        fun `should truncate center if too long`() {
+            val tooLong =
+                "x".repeat(64) + "X" + "x".repeat(64)
+
+            expectThat(DockerContainer.from(tooLong)).name.isEqualTo(
+                "x".repeat(63) + "..." + "x".repeat(62)
+            )
         }
     }
 

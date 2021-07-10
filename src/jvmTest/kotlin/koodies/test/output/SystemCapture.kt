@@ -1,13 +1,15 @@
 package koodies.test.output
 
 import koodies.exec.IO
+import java.io.OutputStream
+import java.io.PrintStream
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
  * A capture session that captures [System.out] and [System.err].
  */
-open class SystemCapture {
+open class SystemCapture(print: Boolean) {
     private val lock = ReentrantLock()
     private val out: PrintStreamCapture
     private val err: PrintStreamCapture
@@ -15,8 +17,8 @@ open class SystemCapture {
     private val capturedStrings: MutableList<IO> = arrayListOf()
 
     init {
-        out = PrintStreamCapture(System.out) { string: String -> captureOut(string) }
-        err = PrintStreamCapture(System.err) { string: String -> captureErr(string) }
+        out = PrintStreamCapture(if (print) System.out else PrintStream(OutputStream.nullOutputStream())) { string: String -> captureOut(string) }
+        err = PrintStreamCapture(if (print) System.err else PrintStream(OutputStream.nullOutputStream())) { string: String -> captureErr(string) }
         System.setOut(out)
         System.setErr(err)
     }

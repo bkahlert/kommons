@@ -26,7 +26,6 @@ import org.junit.platform.launcher.TestPlan
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
-import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
 
 /**
  * [OpenTelemetry] integration in JUnit that runs OpenTelemetry
@@ -51,14 +50,13 @@ class TestTelemetry : TestExecutionListener {
                 .setResource(Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), "koodies-test")))
                 .build()
 
-            val openTelemetry: OpenTelemetryAPI = OpenTelemetrySdk.builder()
+            OpenTelemetrySdk.builder()
                 .setTracerProvider(tracerProvider)
                 .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                 .buildAndRegisterGlobal()
-
-            OpenTelemetry.register(openTelemetry)
+                .let { OpenTelemetry.register(it) }
         } else {
-            OpenTelemetry.register(OpenTelemetryAPI.noop())
+            OpenTelemetry.register(io.opentelemetry.api.OpenTelemetry.noop())
         }
     }
 

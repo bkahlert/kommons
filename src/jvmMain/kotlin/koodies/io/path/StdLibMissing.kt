@@ -13,6 +13,7 @@ import java.io.BufferedWriter
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.FileSystem
@@ -179,6 +180,11 @@ public fun Path.asString(): String = pathString
  * String representation of this path that does **not** rely on [toString].
  */
 public val Path.pathString: String get() = "${resolve("")}"
+
+/**
+ * String representation of this path's [URI].
+ */
+public val Path.uriString: String get() = toUri().toString()
 
 
 private fun Path.getPathMatcher(glob: String): PathMatcher? {

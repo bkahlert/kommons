@@ -24,5 +24,5 @@ public open class DockerInfoCommandLine(
             add(it)
         }
     },
-    name = "Querying info" + if (query.isNotEmpty()) " " + query.joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input } else ""
+    name = "docker info" + if (query.isNotEmpty()) " " + query.joinToString(Semantics.FieldDelimiters.UNIT) { it.formattedAs.input } else ""
 )

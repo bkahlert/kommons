@@ -1,7 +1,8 @@
 package koodies.test.output
 
-import koodies.debug.CapturedOutput
 import koodies.runWrapping
+import koodies.test.CapturedOutput
+import koodies.test.isAnnotated
 import koodies.test.storeForNamespace
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -12,29 +13,28 @@ import org.junit.jupiter.api.extension.InvocationInterceptor
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 
-class OutputCaptureExtension :
-    TypeBasedParameterResolver<CapturedOutput>(),
+class OutputCaptureExtension : TypeBasedParameterResolver<CapturedOutput>(),
     BeforeAllCallback, AfterAllCallback,
     BeforeEachCallback, AfterEachCallback,
     InvocationInterceptor {
 
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): CapturedOutput =
-        context.outputCapture
+        context.getOutputCapture(!context.isAnnotated<Silent>())
 
     override fun beforeAll(context: ExtensionContext) {
-        context.pushCapture()
+        context.pushCapture(!context.isAnnotated<Silent>())
     }
 
     override fun afterAll(context: ExtensionContext) {
-        context.popCapture()
+        context.popCapture(!context.isAnnotated<Silent>())
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        context.pushCapture()
+        context.pushCapture(!context.isAnnotated<Silent>())
     }
 
     override fun afterEach(context: ExtensionContext) {
-        context.popCapture()
+        context.popCapture(!context.isAnnotated<Silent>())
     }
 
     override fun interceptDynamicTest(
@@ -42,20 +42,24 @@ class OutputCaptureExtension :
         context: ExtensionContext,
     ) {
         invocation.runWrapping(
-            before = { context.pushCapture() },
+            before = { context.pushCapture(!context.isAnnotated<Silent>()) },
             block = { proceed() },
-            after = { context.popCapture() },
+            after = { context.popCapture(!context.isAnnotated<Silent>()) },
         )
     }
 
+    annotation class Silent
+
     companion object {
-        fun ExtensionContext.isCapturingOutput(): Boolean = outputCapture.isCapturing
+        private val store by storeForNamespace()
+        private fun ExtensionContext.getOutputCapture(print: Boolean): OutputCapture =
+            store().getOrComputeIfAbsent(
+                OutputCapture::class.java,
+                { OutputCapture(print) },
+                OutputCapture::class.java)
 
-        private inline fun <reified T : Any> ExtensionContext.Store.getSingleton(): T =
-            getOrComputeIfAbsent(T::class.java)
-
-        private val ExtensionContext.outputCapture get() = storeForNamespace<OutputCaptureExtension>().getSingleton<OutputCapture>()
-        private fun ExtensionContext.pushCapture() = outputCapture.push()
-        private fun ExtensionContext.popCapture() = outputCapture.pop()
+        private fun ExtensionContext.pushCapture(print: Boolean): Unit = getOutputCapture(print).push()
+        private fun ExtensionContext.popCapture(print: Boolean): Unit = getOutputCapture(print).pop()
+        fun ExtensionContext.isCapturingOutput(): Boolean = getOutputCapture(false).isCapturing
     }
 }

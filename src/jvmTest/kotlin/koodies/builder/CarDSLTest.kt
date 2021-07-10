@@ -1,6 +1,6 @@
 package koodies.builder
 
-import koodies.debug.CapturedOutput
+import koodies.test.CapturedOutput
 import koodies.test.SystemIOExclusive
 import koodies.test.output.OutputCaptureExtension
 import org.junit.jupiter.api.Test
