@@ -22,6 +22,7 @@ import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.RenderableAttributes
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.Style
@@ -33,7 +34,13 @@ private val linkedRenderersLock = ReentrantLock()
 private val linkedRenderers = mutableMapOf<SpanId, Renderer>()
 
 private fun Span.linkRenderer(renderer: Renderer): Unit = linkedRenderersLock.withLock {
-    spanId.takeIf { it.valid }?.let { linkedRenderers[it] = renderer }
+    spanId.takeIf { it.valid }?.let {
+        linkedRenderers[it] = renderer
+        addEvent("renderer-linked", Attributes.of(
+            RenderingAttributes.RENDERER, (RenderingAttributes.RENDERER to renderer).value.ansiRemoved,
+            RenderingAttributes.RENDERERS, linkedRenderersLock.withLock { linkedRenderers.keys.map { renderer -> renderer.toString().ansiRemoved } },
+        ))
+    }
 }
 
 internal val Span.rendererLinked: Boolean
@@ -42,7 +49,10 @@ internal val Span.rendererLinked: Boolean
     }
 
 private fun Span.unlinkRenderer(): Unit = linkedRenderersLock.withLock {
-    spanId.takeIf { it.valid }?.let { linkedRenderers.remove(it) }
+    spanId.takeIf { it.valid }?.let {
+        linkedRenderers.remove(it)
+//        checkNotNull(linkedRenderers.remove(it)) { "Failed to unlink renderer for for span $it: no renderer linked" }
+    }
 }
 
 private val Span.linkedRenderer: Renderer
@@ -73,20 +83,27 @@ internal fun Span.renderingChildSpan(
         .spanBuilder(name.ansiRemoved)
         .setParent(Context.current().with(this))
         .setAllAttributes(attributes.toList().toAttributes())
+        .setAttribute(RenderingAttributes.RENDERERS, linkedRenderersLock.withLock { linkedRenderers.keys.map { it.toString() } })
         .startSpan()
 
-    val renderer = if (span.spanId.valid) {
-        linkedRenderersLock.withLock {
-            linkedRenderer.let(rendererProvider)
-                .also { span.linkRenderer(it) }
-                .also { it.start(span.traceId, span.spanId, name) }
-        }
-    } else {
-        run { BlockRenderer(Settings(blockStyle = None)) }
-    }
+    val renderer = if (span.spanId.valid) linkedRenderersLock.withLock {
+        linkedRenderer.let(rendererProvider)
+            .also { span.linkRenderer(it) }
+            .also { it.start(span.traceId, span.spanId, name) }
+    } else BlockRenderer(Settings(blockStyle = None))
 
     return RenderingSpan(span, renderer)
 }
+
+/**
+ * Creates a new rendering [CurrentSpan]
+ */
+internal fun renderingSpan(
+    name: CharSequence,
+    tracer: io.opentelemetry.api.trace.Tracer,
+    vararg attributes: KeyValue<*, *>,
+    rendererProvider: (Renderer) -> Renderer,
+): RenderingSpan = Span.getInvalid().renderingChildSpan(name, tracer, *attributes, rendererProvider = rendererProvider)
 
 /**
  * A span that renders all invocations using [renderer]
@@ -141,12 +158,14 @@ internal data class RenderingSpan(
         span.setStatus(OK)
         span.end()
         renderer.end(Result.success(Unit))
+        unlinkRenderer()
     }
 
     override fun end(timestamp: Long, unit: TimeUnit) {
         span.setStatus(OK)
         span.end(timestamp, unit)
         renderer.end(Result.success(Unit))
+        unlinkRenderer()
     }
 
     override fun getSpanContext(): SpanContext = span.spanContext

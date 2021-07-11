@@ -7,6 +7,7 @@ import koodies.jvm.currentThread
 import koodies.text.ANSI.Colors
 import koodies.text.ANSI.ansiRemoved
 import koodies.tracing.TestSpan
+import koodies.tracing.rendering.Renderer.Companion.log
 import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

@@ -78,7 +78,7 @@ class JavaExecTest {
         @TestFactory
         fun `should process`(uniqueId: UniqueId) = testEach<Exec.() -> Exec>(
             { processSilently().apply { waitFor() } },
-            { processSynchronously {} },
+            { processSynchronously() },
             { processAsynchronously().apply { waitFor() } },
         ) { operation ->
             withTempDir(uniqueId) {
@@ -187,10 +187,12 @@ class JavaExecTest {
             })
 
             kotlin.runCatching {
-                exec.process(ProcessingMode { async }) { io ->
-                    if (io !is Meta && io !is Input) {
-                        kotlin.runCatching { enter("just read $io") }
-                            .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
+                exec.process(ProcessingMode { async }) { exec, callback ->
+                    callback { io ->
+                        if (io !is Meta && io !is Input) {
+                            kotlin.runCatching { exec.enter("just read $io") }
+                                .recover { if (it.message?.contains("stream closed", ignoreCase = true) != true) throw it }
+                        }
                     }
                 }
 

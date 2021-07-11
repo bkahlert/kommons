@@ -12,7 +12,7 @@ import koodies.exec.IO.Output
 import koodies.exec.Process.State.Exited
 import koodies.exec.Process.State.Running
 import koodies.exec.Processor
-import koodies.exec.Processors.noopProcessor
+import koodies.exec.Processors.spanningProcessor
 import koodies.exec.alive
 import koodies.exec.enter
 import koodies.exec.exitCode
@@ -74,12 +74,14 @@ class DockerExecTest {
         @DockerRequiring([BusyBox::class]) @Test
         fun `should start docker and process input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             var entered = false
-            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
-                if (it !is IO.Meta) {
-                    if (!entered) {
-                        entered = true
-                        enter("test 2")
-                        inputStream.close()
+            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") { exec, callback ->
+                callback { io ->
+                    if (io !is IO.Meta) {
+                        if (!entered) {
+                            entered = true
+                            exec.enter("test 2")
+                            exec.inputStream.close()
+                        }
                     }
                 }
             }
@@ -101,13 +103,15 @@ class DockerExecTest {
         @DockerRequiring([BusyBox::class]) @Smoke @Test
         fun `should start docker and process output produced by own input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             var times = 0
-            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") {
-                if (it !is IO.Meta) {
-                    if (times < 3) {
-                        times++
-                        enter("test ${it.ansiRemoved.last().toString().toInt() * 2}")
-                    } else {
-                        inputStream.close()
+            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") { exec, callback ->
+                callback { io ->
+                    if (io !is IO.Meta) {
+                        if (times < 3) {
+                            times++
+                            exec.enter("test ${io.ansiRemoved.last().toString().toInt() * 2}")
+                        } else {
+                            exec.inputStream.close()
+                        }
                     }
                 }
             }
@@ -203,12 +207,14 @@ class DockerExecTest {
                 ${20.times { "echo \"looping\"" }.joinToString("; ")}
                 sleep 1
                 done
-            """.trimIndent()) {
-            if (it !is IO.Meta) {
-                output.add(it)
-                if (output.size > 100 && !killed) {
-                    killed = true
-                    kill()
+            """.trimIndent()) { exec, callback ->
+            callback { io ->
+                if (io !is IO.Meta) {
+                    output.add(io)
+                    if (output.size > 100 && !killed) {
+                        killed = true
+                        exec.kill()
+                    }
                 }
             }
         }
@@ -222,7 +228,7 @@ private fun Path.createExec(
     uniqueId: UniqueId,
     command: String,
     vararg args: String,
-    processor: Processor<DockerExec> = noopProcessor(),
+    processor: Processor<DockerExec> = spanningProcessor(),
 ): DockerExec =
     CommandLine(command, *args)
         .dockerized(Ubuntu) { name { "$uniqueId" } }

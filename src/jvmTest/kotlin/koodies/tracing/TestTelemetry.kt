@@ -16,8 +16,6 @@ import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import koodies.collections.synchronizedMapOf
-import koodies.exec.ExecAttributes
-import koodies.exec.ExecAttributes.Companion.exec
 import koodies.text.Semantics.formattedAs
 import koodies.tracing.TestSpanParameterResolver.Companion.testTrace
 import koodies.tracing.TestTelemetry.Companion.InMemoryStoringSpanProcessor
@@ -84,7 +82,7 @@ class TestTelemetry : TestExecutionListener {
             override fun onStart(parentContext: Context, span: ReadWriteSpan): Unit = Unit
             override fun isEndRequired(): Boolean = true
             override fun onEnd(span: ReadableSpan) {
-                if (span.name == ExecAttributes.SPAN_NAME && span.attributes.exec.executable?.run { contains("docker") && contains("info") } == true) return
+                if (span.name == "docker info") return
                 require(span.traceId.testTrace) { "Span ${span.name.formattedAs.input} (trace ID: ${span.traceId.formattedAs.input}) is no test span." }
             }
         }

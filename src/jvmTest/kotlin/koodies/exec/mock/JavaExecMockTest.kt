@@ -5,8 +5,6 @@ import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
-import koodies.exec.Processors
-import koodies.exec.TracingOptions
 import koodies.exec.enter
 import koodies.exec.exitCode
 import koodies.exec.fails
@@ -390,7 +388,7 @@ class JavaExecMockTest {
         }
 
         val status =
-            process.process(ProcessingMode { async(NonInteractive(null)) }, TracingOptions(renderer = { it(this) }), Processors.noopProcessor()).waitFor()
+            process.process(ProcessingMode { async(NonInteractive(null)) }).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

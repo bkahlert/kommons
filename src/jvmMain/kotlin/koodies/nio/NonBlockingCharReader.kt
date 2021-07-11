@@ -1,18 +1,11 @@
 package koodies.nio
 
 import io.opentelemetry.api.trace.Span
-import koodies.debug.debug
-import koodies.exec.IO
 import koodies.exec.mock.SlowInputStream
 import koodies.io.ByteArrayOutputStream
 import koodies.runWrapping
-import koodies.runtime.isDebugging
-import koodies.text.ANSI
 import koodies.text.withRandomSuffix
 import koodies.time.seconds
-import koodies.tracing.Tracer
-import koodies.tracing.rendering.Renderer
-import koodies.tracing.spanning
 import org.jline.utils.NonBlocking
 import java.io.IOException
 import java.io.InputStream
@@ -40,41 +33,41 @@ public class NonBlockingCharReader(
     public var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)
 
     public fun read(buffer: CharArray, off: Int): Int = if (reader == null) -1 else
-        spanning(
-            name = NonBlockingCharReader::class.simpleName + ".read()",
-            renderer = {
-                if (isDebugging) it(copy(decorationFormatter = { ANSI.Colors.brightCyan.invoke(it) }))
-                else Renderer.Companion.NOOP
-            },
-            tracer = if (isDebugging) Tracer else Tracer.NOOP,
-        ) {
-            runWrapping({
-                (inputStream as? SlowInputStream)?.run { parentSpan.also { parentSpan = Span.current() } }
-            }, {
-                (inputStream as? SlowInputStream)?.parentSpan = it ?: error("No parent span to restore")
-            }) {
-                when (val read = kotlin.runCatching { reader?.read(inlineTimeoutMillis) ?: throw IOException("No reader. Likely already closed.") }
-                    .recover {
-                        reader?.close()
-                        -1
-                    }.getOrThrow()) {
-                    -1 -> {
-                        log(IO.Meta typed "EOF")
-                        -1
-                    }
-                    -2 -> {
-                        log(IO.Meta typed "TIMEOUT")
-                        0
-                    }
-                    else -> {
-                        log(IO.Meta typed "SUCCESSFULLY READ ${read.debug}")
-                        buffer[off] = read.toChar()
-                        1
-                    }
-                }.also {
-                    (inputStream as? SlowInputStream)?.parentSpan = Span.getInvalid()
+//        spanning(
+//            name = NonBlockingCharReader::class.simpleName + ".read()",
+//            renderer = {
+//                if (isDebugging) it(copy(decorationFormatter = { ANSI.Colors.brightCyan.invoke(it) }))
+//                else Renderer.Companion.NOOP
+//            },
+//            tracer = if (isDebugging) Tracer else Tracer.NOOP,
+//        ) {
+        runWrapping({
+            (inputStream as? SlowInputStream)?.run { parentSpan.also { parentSpan = Span.current() } }
+        }, {
+            (inputStream as? SlowInputStream)?.parentSpan = it ?: error("No parent span to restore")
+        }) {
+            when (val read = kotlin.runCatching { reader?.read(inlineTimeoutMillis) ?: throw IOException("No reader. Likely already closed.") }
+                .recover {
+                    reader?.close()
+                    -1
+                }.getOrThrow()) {
+                -1 -> {
+//                        log(IO.Meta typed "EOF")
+                    -1
                 }
+                -2 -> {
+//                        log(IO.Meta typed "TIMEOUT")
+                    0
+                }
+                else -> {
+//                        log(IO.Meta typed "SUCCESSFULLY READ ${read.debug}")
+                    buffer[off] = read.toChar()
+                    1
+                }
+            }.also {
+                (inputStream as? SlowInputStream)?.parentSpan = Span.getInvalid()
             }
+//            }
         }
 
     override fun read(cbuf: CharArray, off: Int, len: Int): Int = read(cbuf, off)

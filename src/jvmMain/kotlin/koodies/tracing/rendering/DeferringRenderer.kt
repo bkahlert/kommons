@@ -44,7 +44,12 @@ public open class DeferringRenderer(
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer =
-        renderer(settings.copy(printer = ::printChild)) { DeferringRenderer(it) }
+        renderer(settings.copy(
+            indent = settings.indent + settings.blockStyle(settings.layout, settings.indent).indent,
+            printer = ::printChild,
+        )) {
+            DeferringRenderer(it)
+        }
 
     override fun printChild(text: CharSequence) {
         defer { printChild(text) }

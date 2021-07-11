@@ -58,7 +58,7 @@ public object Jaeger : DockerImage("jaegertracing", listOf("all-in-one")) {
                     +"9411:9411"
                 }
             }
-        }.exec.tracer(NOOP).logging(renderer = RendererProviders.errorsOnly())
+        }.exec.logging(renderer = RendererProviders.errorsOnly(), tracer = NOOP)
 
         return protobufEndpoint.toString()
     }

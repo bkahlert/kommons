@@ -58,7 +58,7 @@ public class DockerRunCommandLine(
     private val executable: Executable<Exec>,
 ) : Executable<DockerExec> {
 
-    public constructor(image: DockerImage, executable: Executable<*>) : this(image, Options(), executable)
+    public constructor(image: DockerImage, executable: Executable<Exec>) : this(image, Options(), executable)
 
     override val name: CharSequence? = executable.name?.let { "$it 🐳 $image" }
 

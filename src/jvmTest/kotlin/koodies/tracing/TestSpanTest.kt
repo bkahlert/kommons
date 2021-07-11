@@ -1,6 +1,7 @@
 package koodies.tracing
 
 import koodies.test.actual
+import koodies.test.hasElements
 import koodies.text.matchesCurlyPattern
 import org.junit.jupiter.api.Test
 import strikt.assertions.all
@@ -23,29 +24,29 @@ class TestSpanTest {
             get(1) and {
                 parentSpanId = actual.spanId
                 spanName.contains("should trace")
-                events and {
-                    size.isEqualTo(2)
-                    get(0) and {
+                events.hasElements(
+                    { eventName.contains("linked") },
+                    {
                         eventName.isEqualTo("log")
                         eventDescription.isEqualTo("event -1")
-                    }
-                    get(1) and {
+                    },
+                    {
                         eventName.isEqualTo("log")
                         eventDescription.isEqualTo("event n+1")
-                    }
-                }
+                    },
+                )
             }
             get(0) and {
                 isOkay()
                 get { parentSpanContext.spanId }.isEqualTo(parentSpanId)
                 spanName.isEqualTo("SPAN A")
-                events and {
-                    size.isEqualTo(1)
-                    get(0) and {
+                events.hasElements(
+                    { eventName.contains("linked") },
+                    {
                         eventName.isEqualTo("log")
                         eventDescription.isEqualTo("event α")
-                    }
-                }
+                    },
+                )
             }
         }
     }

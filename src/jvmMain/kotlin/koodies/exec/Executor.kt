@@ -5,7 +5,6 @@ import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.LF
-import koodies.text.LineSeparators.lines
 import koodies.text.columns
 import koodies.tracing.rendering.BlockStyle
 import koodies.tracing.rendering.ColumnsLayout
@@ -20,7 +19,7 @@ import java.nio.file.Path
  * An executor allows to execute an [executable]
  * in three ways:
  * 1. [invoke] just executes the [executable] with no special handling.
- * 2. [logging] executes the [executable] and logs the execution with the configured [tracingOptions].
+ * 2. [logging] executes the [executable] and prints the output.
  * 3. [processing] executes the [executable] by passing the [Exec]'s [IO] to the configured [processor].
  */
 public data class Executor<E : Exec>(
@@ -41,11 +40,6 @@ public data class Executor<E : Exec>(
      */
     private val environment: Map<String, String> = emptyMap(),
 
-    private val tracingOptions: TracingOptions = TracingOptions(attributes = setOfNotNull(
-        executable.name?.let { ExecAttributes.NAME to it },
-        ExecAttributes.EXECUTABLE to executable,
-    )),
-
     /**
      * Mode that defines if the execution will be synchronous
      * or asynchronous including mode-specific options, such as if the
@@ -59,7 +53,12 @@ public data class Executor<E : Exec>(
      * (default: no specific handling; the [IO] is only processed to be made available
      * by [Exec.io]).
      */
-    private val processor: Processor<E>? = null,
+    private val processor: Processor<E> = Processors.spanningProcessor(
+        *setOfNotNull(
+            executable.name?.let { ExecAttributes.NAME to it },
+            ExecAttributes.EXECUTABLE to executable,
+        ).toTypedArray(),
+    ),
 ) {
 
     /**
@@ -77,27 +76,9 @@ public data class Executor<E : Exec>(
     public operator fun invoke(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-    ): E {
-        val renderedSpanNameOverridingOptions = tracingOptions.copy(renderer = { default ->
-            tracingOptions.renderer(copy(
-                nameFormatter = {
-                    val replacedSpanName = StringBuilder().apply {
-                        executable.name?.also { append("$it$LF") }
-                        val contentLines = executable.content.lines()
-                        if ((contentLines.size <= 3) && (contentLines.all { it.columns <= 60 })) {
-                            append(executable.content)
-                        } else {
-                            append(executable.toLink())
-                        }
-                    }
-                    nameFormatter(replacedSpanName)
-                }
-            ), default)
-        })
-        return executable
-            .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
-            .process(processingMode, renderedSpanNameOverridingOptions, processor ?: Processors.noopProcessor())
-    }
+    ): E = executable
+        .toExec(redirectErrorStream, environment, workingDirectory, execTerminationCallback)
+        .process(processingMode, processor)
 
     /**
      * Executes the [executable] by logging all [IO] using the given [renderer].
@@ -126,20 +107,41 @@ public data class Executor<E : Exec>(
         blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,
         oneLineStyle: Style? = null,
         printer: Printer? = null,
+        tracer: Tracer? = null,
 
         renderer: RendererProvider = { it(this) },
-    ): E = copy(tracingOptions = tracingOptions.copy(renderer = { default ->
-        renderer(copy(
-            nameFormatter = nameFormatter ?: this.nameFormatter,
-            contentFormatter = contentFormatter ?: this.contentFormatter,
-            decorationFormatter = decorationFormatter ?: this.decorationFormatter,
-            returnValueTransform = returnValueTransform ?: this.returnValueTransform,
-            layout = layout ?: this.layout,
-            blockStyle = blockStyle ?: this.blockStyle,
-            oneLineStyle = oneLineStyle ?: this.oneLineStyle,
-            printer = printer ?: this.printer,
-        ), default)
-    })).invoke(workingDirectory, execTerminationCallback)
+    ): E = copy(
+        processor = Processors.spanningProcessor(
+            *setOfNotNull(
+                executable.name?.let { ExecAttributes.NAME to it },
+                ExecAttributes.EXECUTABLE to executable,
+            ).toTypedArray(),
+            renderer = { default ->
+                renderer(copy(
+                    nameFormatter = {
+                        val replacedSpanName = StringBuilder().apply {
+                            executable.name?.also { append("$it$LF") }
+                            val contentLines = executable.content.lines()
+                            if ((contentLines.size <= 3) && (contentLines.all { it.columns <= 60 })) {
+                                append(executable.content)
+                            } else {
+                                append(executable.toLink())
+                            }
+                        }
+                        (nameFormatter ?: this.nameFormatter)(replacedSpanName)
+                    },
+                    contentFormatter = contentFormatter ?: this.contentFormatter,
+                    decorationFormatter = decorationFormatter ?: this.decorationFormatter,
+                    returnValueTransform = returnValueTransform ?: this.returnValueTransform,
+                    layout = layout ?: this.layout,
+                    blockStyle = blockStyle ?: this.blockStyle,
+                    oneLineStyle = oneLineStyle ?: this.oneLineStyle,
+                    printer = printer ?: this.printer,
+                ), default)
+            },
+            tracer = tracer ?: koodies.tracing.Tracer,
+        ),
+    ).invoke(workingDirectory, execTerminationCallback)
 
     /**
      * Executes the [executable] by processing all [IO] using the given [processor].
@@ -160,41 +162,13 @@ public data class Executor<E : Exec>(
     public fun processing(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
-
-        nameFormatter: FilteringFormatter? = null,
-        contentFormatter: FilteringFormatter? = null,
-        decorationFormatter: Formatter? = null,
-        returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
-        layout: ColumnsLayout? = null,
-        blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,
-        oneLineStyle: Style? = null,
-        printer: Printer? = null,
-
-        renderer: RendererProvider? = { it(this) },
         processor: Processor<E>,
-    ): E = copy(
-        tracingOptions = tracingOptions.copy(renderer = { default ->
-            (renderer ?: tracingOptions.renderer)(copy(
-                nameFormatter = nameFormatter ?: this.nameFormatter,
-                contentFormatter = contentFormatter ?: this.contentFormatter,
-                decorationFormatter = decorationFormatter ?: this.decorationFormatter,
-                returnValueTransform = returnValueTransform ?: this.returnValueTransform,
-                layout = layout ?: this.layout,
-                blockStyle = blockStyle ?: this.blockStyle,
-                oneLineStyle = oneLineStyle ?: this.oneLineStyle,
-                printer = printer ?: this.printer,
-            ), default)
-        }),
-        processor = processor,
-    ).invoke(workingDirectory, execTerminationCallback)
+    ): E = copy(processor = processor).invoke(workingDirectory, execTerminationCallback)
 
     /**
      * Set the [mode] to [ProcessingMode.Synchronicity.Async].
      */
     public val async: Executor<E> get() = copy(processingMode = ProcessingMode { async })
-
-    internal fun tracer(tracer: Tracer): Executor<E> =
-        copy(tracingOptions = tracingOptions.copy(tracer = tracer))
 
     /**
      * Configures if the execution will be synchronous

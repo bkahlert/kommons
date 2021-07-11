@@ -10,6 +10,8 @@ import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.ProcessingMode.Interactivity.Interactive
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.exec.Processor
+import koodies.exec.Processors
 import koodies.exec.RendererProviders.noDetails
 import koodies.exec.parse
 import koodies.exec.successful
@@ -487,13 +489,11 @@ private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathSt
 @Suppress("SpellCheckingInspection")
 public fun Path.dockerPi(
     name: String = "dockerpi".withRandomSuffix(),
-    renderer: RendererProvider? = null,
-    processor: DockerExec.(IO) -> Unit,
-): DockerExec =
-    DockerRunCommandLine {
-        image { "lukechilds" / "dockerpi" tag "vm" }
-        options {
-            name { name }
-            mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
-        }
-    }.exec.mode { async(Interactive { nonBlocking }) }.processing(renderer = renderer, processor = processor)
+    processor: Processor<DockerExec> = Processors.spanningProcessor(),
+): DockerExec = DockerRunCommandLine {
+    image { "lukechilds" / "dockerpi" tag "vm" }
+    options {
+        name { name }
+        mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
+    }
+}.exec.mode { async(Interactive { nonBlocking }) }.processing(processor = processor) // TODO also set workingdir?

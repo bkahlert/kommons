@@ -64,7 +64,7 @@ public class BlockRenderer(
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer =
-        renderer(settings.copy(layout = settings.layout, indent = settings.indent + style.indent, printer = ::printChild)) { BlockRenderer(it) }
+        renderer(settings.copy(indent = settings.indent + style.indent, printer = ::printChild)) { BlockRenderer(it) }
 
     override fun printChild(text: CharSequence) {
         text.lineSequence()

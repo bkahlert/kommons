@@ -1,9 +1,12 @@
 package koodies.exec
 
+import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.context.Context
 import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
+import koodies.exec.IO.Error
+import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.exec.ProcessingMode.Interactivity
@@ -12,13 +15,15 @@ import koodies.exec.ProcessingMode.Interactivity.Interactive.Companion.Interacti
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
-import koodies.exec.Processors.noopProcessor
+import koodies.exec.Processors.spanningProcessor
 import koodies.jvm.completableFuture
 import koodies.nio.NonBlockingLineReader
 import koodies.nio.NonBlockingReader
 import koodies.tracing.CurrentSpan
+import koodies.tracing.Event
 import koodies.tracing.Key.KeyValue
 import koodies.tracing.rendering.RendererProvider
+import koodies.tracing.spanning
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
@@ -28,9 +33,11 @@ import java.util.concurrent.Semaphore
 import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
- * A function that processes the [IO] of an [Exec].
+ * A processor is a function that accepts an [Exec] and
+ * an [ExitState] returning function that does the actual work
+ * and expect a an [IO] processing callback.
  */
-public typealias Processor<E> = E.(IO) -> Unit
+public typealias Processor<E> = (E, ((IO) -> Unit) -> ExitState) -> ExitState
 
 /**
  * All about processing processes.
@@ -38,12 +45,23 @@ public typealias Processor<E> = E.(IO) -> Unit
 public object Processors {
 
     /**
-     * A [Processor] that does nothing with the [IO].
-     *
-     * This processor is suited if the [Exec]'s input and output streams
-     * should just be completely consumed—with the side effect of getting logged.
+     * Returns a [Processor] that creates a [Span] using the specified [attributes], [renderer] and [tracer]
+     * while calling the specified [process] everytime [IO] was read.
      */
-    public fun <E : Exec> noopProcessor(): Processor<E> = { }
+    public fun <E : Exec> spanningProcessor(
+        vararg attributes: KeyValue<*, *>,
+        renderer: RendererProvider = RendererProviders.NOOP,
+        tracer: Tracer = koodies.tracing.Tracer,
+        process: CurrentSpan.(E, IO) -> Unit = { _, io -> event(io as Event) },
+    ): Processor<E> = { exec: E, block: ((IO) -> Unit) -> ExitState ->
+        spanning(
+            attributes.firstOrNull { it.key == ExecAttributes.NAME }?.value?.toString() ?: ExecAttributes.SPAN_NAME,
+            *attributes,
+            renderer = renderer,
+            tracer = tracer,
+            block = { block { process(exec, it) } },
+        )
+    }
 }
 
 /**
@@ -51,38 +69,7 @@ public object Processors {
  * so they get logged.
  */
 public inline fun <reified E : Exec> E.processSilently(): E =
-    process(ProcessingMode { async }, TracingOptions(), noopProcessor())
-
-/**
- * Options for the way the processing of an [Exec] is logged.
- */
-public data class TracingOptions(
-
-    /**
-     * Name of what is being executed.
-     */
-    public val attributes: Set<KeyValue<*, *>> = emptySet(),
-
-    /**
-     * Renderer to use for logging.
-     */
-    public val renderer: RendererProvider = RendererProviders.NOOP,
-
-    /**
-     * Tracer to be used.
-     */
-    public val tracer: Tracer = koodies.tracing.Tracer,
-) {
-    public fun spanning(block: CurrentSpan.() -> ExitState) {
-        koodies.tracing.spanning(
-            name = ExecAttributes.SPAN_NAME,
-            attributes = attributes.toTypedArray(),
-            renderer = renderer,
-            tracer = tracer,
-            block = block,
-        )
-    }
-}
+    process(ProcessingMode { async }, processor = spanningProcessor())
 
 public data class ProcessingMode(
     val synchronicity: Synchronicity,
@@ -126,11 +113,10 @@ public data class ProcessingMode(
  */
 public fun <E : Exec> E.process(
     mode: ProcessingMode = ProcessingMode { sync },
-    tracingOptions: TracingOptions = TracingOptions(renderer = { it(this) }),
-    processor: Processor<E>,
+    processor: Processor<E> = spanningProcessor(),
 ): E = when (mode.synchronicity) {
-    Sync -> processSynchronously(mode.interactivity, tracingOptions, processor)
-    Async -> processAsynchronously(mode.interactivity, tracingOptions, processor)
+    Sync -> processSynchronously(mode.interactivity, processor)
+    Async -> processAsynchronously(mode.interactivity, processor)
 }
 
 /**
@@ -138,20 +124,22 @@ public fun <E : Exec> E.process(
  * of the specified [Process] and passed all [IO] to the specified [processor]
  * **synchronously**.
  *
- * If no [processor] is specified a [Processors.eventRecordingProcessor] prints
- * all [IO] to the console.
+ * If no [processor] is specified a [Processors.spanningProcessor] traces all [IO].
  */
 public fun <E : Exec> E.processSynchronously(
     interactivity: Interactivity = NonInteractive(null),
-    tracingOptions: TracingOptions = TracingOptions(renderer = { it(this) }),
-    processor: Processor<E> = noopProcessor(),
+    processor: Processor<E> = spanningProcessor(),
 ): E = apply {
-    tracingOptions.spanning {
-        metaStream.subscribe { processor(this@apply, it) }
+    processor(this) { process ->
+        metaStream.subscribe { process(it) }
 
         val readers = listOf(
-            NonBlockingLineReader(outputStream, outputLineProcessor(this, processor)),
-            NonBlockingLineReader(errorStream, errorLineProcessor(this, processor)),
+            NonBlockingLineReader(outputStream) { line ->
+                process(Output typed line)
+            },
+            NonBlockingLineReader(errorStream) { line ->
+                process(Error typed line)
+            },
         )
 
         if (interactivity is NonInteractive && interactivity.execInputStream != null) {
@@ -172,23 +160,21 @@ public fun <E : Exec> E.processSynchronously(
  * Attaches to the [Exec.outputStream] and [Exec.errorStream]
  * of the specified [Exec] and passed all [IO] to the specified [processor].
  *
- * If no [processor] is specified, the output and the error stream will be
- * printed to the console.
+ * If no [processor] is specified a [Processors.spanningProcessor] traces all [IO].
  *
  * TODO try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <E : Exec> E.processAsynchronously(
     interactivity: Interactivity = NonInteractive(null),
-    tracingOptions: TracingOptions = TracingOptions(renderer = { it(this) }),
-    processor: Processor<E> = noopProcessor(),
+    processor: Processor<E> = spanningProcessor(),
 ): E = apply {
     val preparationMutex = Semaphore(0) // block until preparation has completed; Exec.onExit must not be called until callbacks are registered
     val exitStateMutex = Semaphore(0)
     val exitStateProcessedMutex = Semaphore(0)
     val threadPool = Context.taskWrapping(Executors.newCachedThreadPool())
     threadPool.completableFuture {
-        tracingOptions.spanning {
-            metaStream.subscribe { processor(this@apply, it) }
+        processor(this) { process ->
+            metaStream.subscribe { process(it) }
 
             val (execInputStream: InputStream?, nonBlockingReader: Boolean) = when (interactivity) {
                 is Interactive -> null to interactivity.nonBlocking
@@ -212,11 +198,15 @@ public fun <E : Exec> E.processAsynchronously(
             }
 
             val outputConsumer = threadPool.completableFuture {
-                outputStream.readerForStream(nonBlockingReader).forEachLine(outputLineProcessor(this, processor))
+                outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
+                    process(Output typed line)
+                }
             }.thenPropagateException("stdout")
 
             val errorConsumer = threadPool.completableFuture {
-                errorStream.readerForStream(nonBlockingReader).forEachLine(errorLineProcessor(this, processor))
+                errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
+                    process(Error typed line)
+                }
             }.thenPropagateException("stderr")
 
             addPreTerminationCallback {
@@ -236,24 +226,6 @@ public fun <E : Exec> E.processAsynchronously(
         exitStateProcessedMutex.release()
     }
     preparationMutex.acquire()
-}
-
-private fun <E : Exec> E.outputLineProcessor(
-    span: CurrentSpan,
-    processor: Processor<E>,
-): (String) -> Unit = { line ->
-    val output = IO.Output typed line
-    span.event(event = output)
-    processor(this, output)
-}
-
-private fun <E : Exec> E.errorLineProcessor(
-    span: CurrentSpan,
-    processor: Processor<E>,
-): (String) -> Unit = { line ->
-    val error = IO.Error typed line
-    span.event(event = error)
-    processor(this, error)
 }
 
 private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =

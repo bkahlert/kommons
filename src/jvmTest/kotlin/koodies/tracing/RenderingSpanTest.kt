@@ -12,6 +12,7 @@ import io.opentelemetry.sdk.trace.data.StatusData
 import koodies.exec.IOAttributes
 import koodies.getOrException
 import koodies.junit.TestName
+import koodies.test.hasElements
 import koodies.test.testEach
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.time.seconds
@@ -30,12 +31,8 @@ import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
-import strikt.assertions.get
-import strikt.assertions.hasSize
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
-import strikt.assertions.size
 import java.time.Instant
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.time.Duration
@@ -58,14 +55,15 @@ class RenderingSpanTest {
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
-            size.isEqualTo(1) and {
-                get(0) and {
+            hasElements(
+                {
                     spanName.contains("RenderingSpanTest ➜ event")
-                    events.hasSize(1) and {
-                        get(0).eventName.isEqualTo("event name")
-                    }
+                    events.hasElements(
+                        { eventName.contains("linked") },
+                        { eventName.isEqualTo("event name") }
+                    )
                 }
-            }
+            )
         }
 
         expecting("should render") { rendered } that {
@@ -83,14 +81,13 @@ class RenderingSpanTest {
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
-            size.isEqualTo(1) and {
-                get(0) and {
-                    spanName.contains("RenderingSpanTest ➜ exception")
-                    events.hasSize(1) and {
-                        get(0).eventName.isEqualTo("exception")
-                    }
-                }
-            }
+            hasElements({
+                spanName.contains("RenderingSpanTest ➜ exception")
+                events.hasElements(
+                    { eventName.contains("linked") },
+                    { eventName.isEqualTo("exception") }
+                )
+            })
         }
 
         expecting("should render") { rendered } that {
@@ -105,17 +102,19 @@ class RenderingSpanTest {
         { end(0L, SECONDS) },
         { end(Instant.ofEpochSecond(0L)) },
     ) { op ->
-        val (traceId, rendered) = withRenderingSpan(testName) { op() }
+        val (traceId, rendered) = withRenderingSpan(testName, invokeEnd = false) { op() }
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
-            size.isEqualTo(1) and {
-                get(0) and {
+            hasElements(
+                {
                     spanName.contains("RenderingSpanTest ➜ end")
                     isOkay()
-                    events.isEmpty()
+                    events.hasElements(
+                        { eventName.contains("linked") }
+                    )
                 }
-            }
+            )
         }
 
         expecting("should render") { rendered } that {
@@ -128,17 +127,19 @@ class RenderingSpanTest {
         { end(Result.failure<Unit>(RuntimeException("test"))) },
         { end(RuntimeException("test")) },
     ) { op ->
-        val (traceId, rendered) = withRenderingSpan(testName) { op() }
+        val (traceId, rendered) = withRenderingSpan(testName, invokeEnd = false) { op() }
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
-            size.isEqualTo(1) and {
-                get(0) and {
+            hasElements(
+                {
                     spanName.contains("RenderingSpanTest ➜ fail")
                     isError("test")
-                    events.isEmpty()
+                    events.hasElements(
+                        { eventName.contains("linked") }
+                    )
                 }
-            }
+            )
         }
 
         expecting("should render") { rendered } that {
@@ -151,21 +152,21 @@ class RenderingSpanTest {
         expectThat(RenderingSpan(Span.getInvalid(), NOOP)).toStringMatchesCurlyPattern("RenderingSpan(span={}, renderer={})")
     }
 
-    private fun withRenderingSpan(testName: TestName, block: RenderingSpan.() -> Unit): Pair<TraceId, List<String>> {
+    private fun withRenderingSpan(testName: TestName, invokeEnd: Boolean = true, block: RenderingSpan.() -> Unit): Pair<TraceId, List<String>> {
         val captured = mutableListOf<String>()
-        val traceId = withRootSpan(testName) {
+        val traceId = withRootSpan(testName, invokeEnd) {
             RenderingSpan(Span.current(), CapturingRenderer(Settings(contentFormatter = { it.toString() }), captured)).block()
             TraceId.current
         }
         return traceId to captured
     }
 
-    private fun <R> withRootSpan(testName: TestName, block: () -> R): R {
-        val parentSpan = Tracer.spanBuilder(testName.value).startSpan().registerAsTestSpan()
+    private fun <R> withRootSpan(testName: TestName, invokeEnd: Boolean = true, block: () -> R): R {
+        val parentSpan = renderingSpan(testName, Tracer) { it }.also { (it as Span).registerAsTestSpan() }
         val scope = parentSpan.makeCurrent()
         val result = runCatching(block)
         scope.close()
-        parentSpan.end()
+        if (invokeEnd) parentSpan.end()
         return result.getOrThrow()
     }
 

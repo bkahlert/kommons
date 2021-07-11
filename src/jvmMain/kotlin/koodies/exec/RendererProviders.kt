@@ -3,7 +3,6 @@ package koodies.exec
 import koodies.exec.IO.Error
 import koodies.exec.IO.Meta
 import koodies.text.truncate
-import koodies.tracing.rendering.BackgroundPrinter
 import koodies.tracing.rendering.BlockRenderer
 import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.CompactRenderer
@@ -72,16 +71,6 @@ public object RendererProviders {
         customize: Settings.() -> Settings = { this },
     ): RendererProvider = {
         OneLineRenderer(customize().copy(contentFormatter = { null }))
-    }
-
-    /**
-     * Prints using the [BackgroundPrinter] and formats the output by hiding all details, that is, only the name and an eventual occurring exception is displayed.
-     *
-     * Example output: `Listing images ✔`
-     */
-    public fun noDetailsToBackground(): RendererProvider = noDetails {
-        copy(printer = BackgroundPrinter)
-        this
     }
 
     /**

@@ -91,7 +91,7 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), Before
         val name = extensionContext.testName
         val printToConsole = extensionContext.isVerbose
         val clientPrinter = InMemoryPrinter()
-        val span = Span.getInvalid().renderingChildSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
+        val span: RenderingSpan = renderingSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
         val scope = (span as Span).registerAsTestSpan().makeCurrent()
         extensionContext.store().put(CleanUp {
             scope.close()

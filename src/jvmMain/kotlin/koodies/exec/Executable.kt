@@ -7,7 +7,7 @@ import java.nio.file.Path
  * using [exec] or any of the various options
  * provided by [Exec].
  */
-public interface Executable<out E : Exec> {
+public interface Executable<E : Exec> {
 
     /**
      * Optional name of this executable.
@@ -54,5 +54,5 @@ public interface Executable<out E : Exec> {
      * 2. [Executor.logging] executes the [Executable] and logs the execution with the configured [Executor.loggingOptions].
      * 3. [Executor.processing] executes the [Executable] by passing the [Exec]'s [IO] to the configured [Executor.processor].
      */
-    public val exec: Executor<out E> get() = Executor(this)
+    public val exec: Executor<E> get() = Executor(this)
 }

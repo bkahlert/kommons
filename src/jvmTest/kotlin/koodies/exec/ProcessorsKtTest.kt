@@ -2,18 +2,19 @@ package koodies.exec
 
 import koodies.Koodies
 import koodies.collections.synchronizedListOf
+import koodies.exec.Process.ExitState
 import koodies.exec.ProcessingMode.Interactivity.Interactive
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
 import koodies.junit.UniqueId
+import koodies.test.hasElements
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
-import koodies.text.matchesCurlyPattern
 import koodies.time.seconds
-import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
+import koodies.tracing.eventName
 import koodies.tracing.eventText
 import koodies.tracing.events
 import koodies.tracing.expectTraced
@@ -22,8 +23,7 @@ import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.get
-import strikt.assertions.hasSize
+import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThan
@@ -35,30 +35,29 @@ class ProcessorsKtTest {
     @Nested
     inner class SynchronousProcessing {
 
-        @Test
-        fun TestSpan.`should trace`() {
-            CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream())),
-                TracingOptions(
-                    attributes = setOf(
+        @Nested
+        inner class SpanningProcessor {
+
+            @Test
+            fun `should trace`() {
+                CommandLine("tee", "/dev/fd/2").toExec()
+                    .process(ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream())), Processors.spanningProcessor(
                         ExecAttributes.NAME to "exec-name",
                         ExecAttributes.EXECUTABLE to CommandLine("cat"),
-                    ),
-                    renderer = { it(this) }
-                )) { }
-            expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴koodies.exec
-                    │
-                    │   Hello Cat!            
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            TraceId.current.expectTraced().hasSize(1) and {
-                with(get(0)) {
-                    spanName.isEqualTo("koodies.exec")
-                    hasSpanAttribute(ExecAttributes.NAME, "exec-name")
-                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
-                    events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
-                }
+                    ))
+
+                TraceId.current.expectTraced().hasElements(
+                    {
+                        spanName.isEqualTo("exec-name")
+                        hasSpanAttribute(ExecAttributes.NAME, "exec-name")
+                        hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
+                        events.hasElements(
+                            { eventName.contains("linked") },
+                            { eventText.isEqualTo("Hello Cat!") },
+                            { eventText.isEqualTo("Hello Cat!") },
+                        )
+                    }
+                )
             }
         }
 
@@ -68,9 +67,10 @@ class ProcessorsKtTest {
             @Test
             fun `should process with no input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("echo", "Hello World!").toExec().process(ProcessingMode(Sync, NonInteractive(null))) { io ->
-                    log.add(io)
-                }
+                CommandLine("echo", "Hello World!").toExec()
+                    .process(ProcessingMode(Sync, NonInteractive(null))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
+                    }
                 expectThat(log)
                     .with({ size }) { isEqualTo(1) }
                     .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
@@ -79,9 +79,10 @@ class ProcessorsKtTest {
             @Test
             fun `should process with input`() {
                 val log = mutableListOf<IO>()
-                CommandLine("cat").toExec().process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io ->
-                    log.add(io)
-                }
+                CommandLine("cat").toExec()
+                    .process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
+                    }
                 expectThat(log)
                     .with({ size }) { isEqualTo(1) }
                     .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
@@ -97,8 +98,8 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { io ->
-                        log.add(io)
+                    .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
                     }
                 expectThat(log)
                     .with({ size }) { isEqualTo(2) }
@@ -111,8 +112,8 @@ class ProcessorsKtTest {
                 val log = mutableListOf<IO>()
                 CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                     .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { io ->
-                        log.add(io)
+                    .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
                     }
 
                 expectThat(log)
@@ -126,30 +127,29 @@ class ProcessorsKtTest {
     @Nested
     inner class AsynchronousProcessing {
 
-        @Test
-        fun TestSpan.`should trace`() {
-            CommandLine("cat").toExec().process(ProcessingMode(Async, NonInteractive("Hello Cat!${LF}".byteInputStream())),
-                TracingOptions(
-                    attributes = setOf(
+        @Nested
+        inner class SpanningProcessor {
+
+            @Test
+            fun `should trace`() {
+                CommandLine("tee", "/dev/fd/2").toExec()
+                    .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".repeat(3).byteInputStream())), Processors.spanningProcessor(
                         ExecAttributes.NAME to "exec-name",
                         ExecAttributes.EXECUTABLE to CommandLine("cat"),
-                    ),
-                    renderer = { it(this) }
-                )) { }.waitFor()
-            expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴koodies.exec
-                    │
-                    │   Hello Cat!            
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
-            TraceId.current.expectTraced().hasSize(1) and {
-                with(get(0)) {
-                    spanName.isEqualTo("koodies.exec")
-                    hasSpanAttribute(ExecAttributes.NAME, "exec-name")
-                    hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
-                    events.hasSize(1) and { get(0).eventText.isEqualTo("Hello Cat!") }
-                }
+                    )).waitFor()
+
+                TraceId.current.expectTraced().hasElements(
+                    {
+                        spanName.isEqualTo("exec-name")
+                        hasSpanAttribute(ExecAttributes.NAME, "exec-name")
+                        hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
+                        events.hasElements(
+                            { eventName.contains("linked") },
+                            { eventText.isEqualTo("Hello Cat!") },
+                            { eventText.isEqualTo("Hello Cat!") },
+                        )
+                    }
+                )
             }
         }
 
@@ -163,8 +163,9 @@ class ProcessorsKtTest {
                 fun `should process with no input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("echo", "Hello World!").toExec()
-                        .process(ProcessingMode(Async, NonInteractive(null))) { io -> log.add(io) }
-                        .waitFor()
+                        .process(ProcessingMode(Async, NonInteractive(null))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                            callback { log.add(it) }
+                        }.waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(1) }
                         .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
@@ -174,8 +175,9 @@ class ProcessorsKtTest {
                 fun `should process with input`() {
                     val log = synchronizedListOf<IO>()
                     CommandLine("cat").toExec()
-                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { io -> log.add(io) }
-                        .waitFor()
+                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                            callback { log.add(it) }
+                        }.waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(1) }
                         .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
@@ -188,7 +190,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with no input`() {
                     val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec().process(ProcessingMode(Async, NonInteractive(null))) { }
+                        CommandLine("sleep", "10").toExec().process(ProcessingMode(Async, NonInteractive(null)))
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
                 }
@@ -196,8 +198,7 @@ class ProcessorsKtTest {
                 @Test
                 fun `should process with input`() {
                     val timePassed = measureTime {
-                        CommandLine("cat").toExec().process(ProcessingMode(Async,
-                            NonInteractive("Hello Cat!$LF".byteInputStream()))) { }
+                        CommandLine("cat").toExec().process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream())))
                     }
                     expectThat(timePassed).isLessThan(0.5.seconds)
                 }
@@ -216,8 +217,8 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { io ->
-                            log.add(io)
+                        .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                            callback { log.add(it) }
                         }.waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(2) }
@@ -230,8 +231,8 @@ class ProcessorsKtTest {
                     val log = synchronizedListOf<IO>()
                     CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                         .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { io ->
-                            log.add(io)
+                        .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                            callback { log.add(it) }
                         }.waitFor()
                     expectThat(log)
                         .with({ size }) { isEqualTo(2) }
@@ -248,7 +249,7 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { }
+                            .process(ProcessingMode(Async, Interactive(nonBlocking = true)))
                     }
                     expectThat(timePassed).isLessThan(.5.seconds)
                 }
@@ -258,11 +259,28 @@ class ProcessorsKtTest {
                     val timePassed = measureTime {
                         CommandLine("sleep", "10").toExec()
                             .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(ProcessingMode(Async, Interactive(nonBlocking = false))) {}
+                            .process(ProcessingMode(Async, Interactive(nonBlocking = false)))
                     }
                     expectThat(timePassed).isLessThan(.5.seconds)
                 }
             }
+        }
+    }
+
+    @Nested
+    inner class SpanningProcessor {
+
+        @Test
+        fun `should process exec and IO`() {
+            lateinit var capturedExec: Exec
+            lateinit var capturedIO: IO
+            val commandLine = CommandLine("echo", "Hello World!")
+            commandLine.toExec().process(processor = Processors.spanningProcessor { exec, io ->
+                capturedExec = exec
+                capturedIO = io
+            })
+            expectThat(capturedExec.commandLine).isEqualTo(commandLine)
+            expectThat(capturedIO).isEqualTo(IO.Output typed "Hello World!")
         }
     }
 }

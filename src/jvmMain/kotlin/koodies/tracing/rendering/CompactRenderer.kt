@@ -41,10 +41,13 @@ public class CompactRenderer(
 
     override fun childRenderer(renderer: RendererProvider): Renderer {
         lateinit var child: Renderer
-        child = renderer(settings.copy(printer = {
-            if ((child as? CompactRenderer)?.isOneLine != true) blockRenderer()
-            printChild(it)
-        })) { CompactRenderer(it) }
+        child = renderer(settings.copy(
+            indent = settings.indent + settings.blockStyle(settings.layout, settings.indent).indent,
+            printer = {
+                if ((child as? CompactRenderer)?.isOneLine != true) blockRenderer()
+                printChild(it)
+            },
+        )) { CompactRenderer(it) }
         return child
     }
 }

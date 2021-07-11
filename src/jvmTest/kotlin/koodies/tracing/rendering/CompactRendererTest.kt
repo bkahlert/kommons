@@ -4,6 +4,8 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
 import koodies.text.matchesCurlyPattern
 import koodies.tracing.TestSpan
+import koodies.tracing.rendering.RenderableAttributes.Companion.EMPTY
+import koodies.tracing.rendering.Renderer.Companion.log
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 
@@ -109,7 +111,6 @@ class CompactRendererTest {
         """.trimIndent())
     }
 
-
     @Test
     fun TestSpan.`should render block on immediate nested multi-line end`() {
         val rendered = capturing {
@@ -191,7 +192,7 @@ class CompactRendererTest {
         val rendered = capturing {
             CompactRenderer(settings.copy(printer = it)).run {
                 start("name")
-                exception(RuntimeException("exception"))
+                exception(RuntimeException("exception"), EMPTY)
                 end(Result.success(true))
             }
         }

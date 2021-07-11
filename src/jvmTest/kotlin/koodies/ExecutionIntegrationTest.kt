@@ -6,7 +6,6 @@ import koodies.docker.dockerized
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.Executable
-import koodies.exec.IO
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.RendererProviders
 import koodies.exec.error
@@ -42,6 +41,7 @@ import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.contains
+import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
@@ -66,33 +66,23 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun TestSpan.`should process shell script`() {
+    fun `should process shell script`() {
 
         val shellScript = ShellScript("Say Hello") {
             echo("Hello, World!")
             echo("Hello, Back!")
         }
 
-        var counter = 0
-        shellScript.exec.processing { io -> if (io is IO.Output) counter++ } check {
-
-            counter { isEqualTo(2) }
-
-            expectThatRendered().matchesCurlyPattern("""
-                ╭──╴Say Hello
-                │   'echo' 'Hello, World!'
-                │   'echo' 'Hello, Back!'
-                │
-                │   Hello, World!
-                │   Hello, Back!
-                │
-                ╰──╴✔︎
-            """.trimIndent())
+        val output = mutableListOf<String>()
+        shellScript.exec.processing { _, callback ->
+            callback { io -> output.add(io.toString()) }
+        } check {
+            output { containsExactly("Hello, World!", "Hello, Back!") }
         }
     }
 
     @Test
-    fun TestSpan.`should nicely log`() {
+    fun TestSpan.`should log`() {
 
         ShellScript {
             echo("Countdown!")
@@ -121,7 +111,6 @@ class ExecutionIntegrationTest {
                 │   -> Take Off
                 │
                 ╰──╴✔︎
-                {{}}
             """.trimIndent())
         }
     }

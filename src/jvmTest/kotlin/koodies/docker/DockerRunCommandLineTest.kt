@@ -361,6 +361,7 @@ class DockerRunCommandLineTest {
         inner class DockerizingShellScript {
 
             @TestFactory
+            @Suppress("NonAsciiCharacters")
             fun `should always use ⧸bin⧸sh`() = tests {
                 val script = object : ShellScript(null, "printenv HOME") {
                     override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?, transform: (String) -> String): CommandLine {
@@ -412,9 +413,9 @@ class DockerRunCommandLineTest {
 
     @DockerRequiring @TestFactory
     fun `should exec processing using specified image`() = testEach<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
-        { dockerized(Ubuntu).exec.processing { io -> it.add(io) } },
-        { dockerized { "ubuntu" }.exec.processing { io -> it.add(io) } },
-        { with(Ubuntu) { dockerized.exec.processing { io -> it.add(io) } } },
+        { dockerized(Ubuntu).exec.processing { _, process -> process { io -> it.add(io) } } },
+        { dockerized { "ubuntu" }.exec.processing { _, process -> process { io -> it.add(io) } } },
+        { with(Ubuntu) { dockerized.exec.processing { _, process -> process { io -> it.add(io) } } } },
     ) { execVariant ->
         expecting {
             mutableListOf<IO>().also {

@@ -8,27 +8,36 @@ import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.io.Locations
+import koodies.io.path.asPath
 import koodies.io.path.pathString
+import koodies.io.path.text
 import koodies.shell.ShellScript
 import koodies.test.DynamicTestsWithSubjectBuilder
 import koodies.test.Smoke
+import koodies.test.hasElements
 import koodies.test.test
 import koodies.test.tests
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.mapLines
+import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.randomString
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.tracing.TestSpan
+import koodies.tracing.TraceId
+import koodies.tracing.expectTraced
 import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.capturing
+import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.first
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
@@ -36,7 +45,7 @@ class ExecutorTest {
 
     private val executable = CommandLine("printenv", "TEST_PROP")
 
-    private inline val Executor<out Exec>.testProp: Executor<out Exec> get() = env("TEST_PROP", "TEST_VALUE")
+    private inline val Executor<Exec>.testProp: Executor<Exec> get() = env("TEST_PROP", "TEST_VALUE")
 
     @Smoke @Nested
     inner class Executables {
@@ -67,6 +76,22 @@ class ExecutorTest {
             val exec = CommandLine("pwd").exec(Koodies.ExecTemp)
             val tempPaths = setOf(Koodies.ExecTemp.pathString, Koodies.ExecTemp.toRealPath().pathString)
             expectThat(tempPaths).contains(exec.io.output.ansiRemoved)
+        }
+
+        @Test
+        fun `should use default span name`() {
+            CommandLine("echo", "Hello World!").exec()
+            TraceId.current.expectTraced().hasElements(
+                { spanName.isEqualTo("koodies.exec") }
+            )
+        }
+
+        @Test
+        fun `should use executable name if specified`() {
+            CommandLine("echo", "Hello World!", name = "hello-world").exec()
+            TraceId.current.expectTraced().hasElements(
+                { spanName.isEqualTo("hello-world") }
+            )
         }
     }
 
@@ -145,6 +170,46 @@ class ExecutorTest {
                 executable.exec.testProp.logging { it(copy(contentFormatter = { "!$it!" })) }
                 expectThatRendered().contains("!TEST_VALUE!")
             }
+
+            @Nested
+            inner class Header {
+
+                @Test
+                fun TestSpan.`should print executable content by default`() {
+                    CommandLine("echo", "short").exec.logging(blockStyle = None)
+                    expectThatRendered().matchesCurlyPattern("""
+                        echo short
+                        short
+                        ✔︎
+                    """.trimIndent())
+                }
+
+                @Test
+                fun TestSpan.`should print name if specified`() {
+                    CommandLine("echo", "short", name = "custom name").exec.logging(blockStyle = None)
+                    expectThatRendered().matchesCurlyPattern("""
+                        custom name
+                        echo short
+                        short
+                        ✔︎
+                    """.trimIndent())
+                }
+
+                @Test
+                fun TestSpan.`should print commandline containing URI if too long`() {
+                    CommandLine("echo", "a very long argument that leads to a very long command line").exec.logging(blockStyle = None)
+                    expectThatRendered {
+                        matchesCurlyPattern("""
+                            file://{}
+                            a very long argument that leads to a very long command line
+                            ✔︎
+                        """.trimIndent())
+                        lines().first().asPath().text.contains("""
+                            'echo' 'a very long argument that leads to a very long command line'
+                        """.trimIndent())
+                    }
+                }
+            }
         }
 
         @Nested
@@ -152,61 +217,51 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                executable.exec.testProp.processing { }
+                executable.exec.testProp.processing { _, process -> process {} }
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { succeeds() }
                 expectThatProcess { logsSuccessfulIO() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { executable.exec.testProp.processing(execTerminationCallback = it) {} }
+                expectThatProcessAppliesTerminationCallback(null) {
+                    executable.exec.testProp.processing(execTerminationCallback = it) { _, callback ->
+                        callback {}
+                    }
+                }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                executable.exec.processing { }
+                executable.exec.processing { _, process -> process {} }
             }) {
                 expectThatProcess { starts() }
                 expectThatProcess { fails() }
                 expectThatProcess { containsDump() }
                 expectThatProcess { runsSynchronously() }
-                expectThatProcessAppliesTerminationCallback(null) { executable.exec.processing(execTerminationCallback = it) {} }
+                expectThatProcessAppliesTerminationCallback(null) {
+                    executable.exec.processing(execTerminationCallback = it) { _, process ->
+                        process {}
+                    }
+                }
             }
 
             @Test
-            fun TestSpan.`should render`() {
-                executable.exec.testProp.processing {}
-                expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴printenv TEST_PROP
-                    │
-                    │   TEST_VALUE
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+            fun TestSpan.`should not render`() {
+                executable.exec.testProp.processing { _, process -> process {} }
+                expectThatRendered().isEmpty()
             }
 
             @Test
             fun `should process dump on failure`() {
                 var dumpProcessed = false
-                executable.exec.processing { if (it is IO.Meta.Dump) dumpProcessed = true }
+                executable.exec.processing { _, process -> process { io -> if (io is IO.Meta.Dump) dumpProcessed = true } }
                 expectThat(dumpProcessed).isTrue()
-            }
-
-            @Test
-            fun TestSpan.`should apply custom logging options`() {
-                executable.exec.testProp.processing(renderer = { it(copy(contentFormatter = { "!$it!" })) }) {}
-                expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴printenv TEST_PROP
-                    │
-                    │   !TEST_VALUE!
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
             }
 
             @Test
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
-                executable.exec.testProp.processing { io -> processed.add(io) }
+                executable.exec.testProp.processing { _, process -> process { io -> processed.add(io) } }
                 expectThat(processed).contains(IO.Output typed "TEST_VALUE")
             }
         }
@@ -291,6 +346,46 @@ class ExecutorTest {
                 executable.exec.async.testProp.logging { it(copy(contentFormatter = { "!$it!" })) }.apply { waitFor() }
                 expectThatRendered().contains("!TEST_VALUE!")
             }
+
+            @Nested
+            inner class Header {
+
+                @Test
+                fun TestSpan.`should print executable content by default`() {
+                    CommandLine("echo", "short").exec.async.logging(blockStyle = None).waitFor()
+                    expectThatRendered().matchesCurlyPattern("""
+                        echo short
+                        short
+                        ✔︎
+                    """.trimIndent())
+                }
+
+                @Test
+                fun TestSpan.`should print name if specified`() {
+                    CommandLine("echo", "short", name = "custom name").exec.async.logging(blockStyle = None).waitFor()
+                    expectThatRendered().matchesCurlyPattern("""
+                        custom name
+                        echo short
+                        short
+                        ✔︎
+                    """.trimIndent())
+                }
+
+                @Test
+                fun TestSpan.`should print commandline containing URI if too long`() {
+                    CommandLine("echo", "a very long argument that leads to a very long command line").exec.async.logging(blockStyle = None).waitFor()
+                    expectThatRendered {
+                        matchesCurlyPattern("""
+                            file://{}
+                            a very long argument that leads to a very long command line
+                            ✔︎
+                        """.trimIndent())
+                        lines().first().asPath().text.contains("""
+                            'echo' 'a very long argument that leads to a very long command line'
+                        """.trimIndent())
+                    }
+                }
+            }
         }
 
         @Nested
@@ -298,53 +393,47 @@ class ExecutorTest {
 
             @TestFactory
             fun `succeeding command line`() = test({
-                executable.exec.testProp.async.processing { }
+                executable.exec.testProp.async.processing { _, process -> process {} }
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.succeeds() }
                 expectThatProcess { joined.logsSuccessfulIO() }
 //                expectThatProcess { runsAsynchronously() } // often too fast
                 expectThatProcessAppliesTerminationCallback(null) {
-                    executable.exec.async.testProp.processing(execTerminationCallback = it) {}.apply { waitFor() }
+                    executable.exec.async.testProp.processing(execTerminationCallback = it) { _, process -> process {} }.apply { waitFor() }
                 }
             }
 
             @TestFactory
             fun `failing command line`() = test({
-                executable.exec.processing { }
+                executable.exec.processing { _, process -> process {} }
             }) {
                 expectThatProcess { joined.starts() }
                 expectThatProcess { joined.fails() }
                 expectThatProcess { joined.containsDump() }
 //                expectThatProcess { runsAsynchronously() } // too fast
                 expectThatProcessAppliesTerminationCallback(null) {
-                    executable.exec.async.processing(execTerminationCallback = it) {}.apply { waitFor() }
+                    executable.exec.async.processing(execTerminationCallback = it) { _, process -> process {} }.apply { waitFor() }
                 }
             }
 
             @Test
-            fun TestSpan.`should render`() {
-                executable.exec.async.testProp.processing {}.apply { waitFor() }
-                expectThatRendered().matchesCurlyPattern("""
-                    ╭──╴printenv TEST_PROP
-                    │
-                    │   TEST_VALUE
-                    │
-                    ╰──╴✔︎
-                """.trimIndent())
+            fun TestSpan.`should not render`() {
+                executable.exec.async.testProp.processing { _, process -> process {} }.apply { waitFor() }
+                expectThatRendered().isEmpty()
             }
 
             @Test
             fun `should process dump on failure`() {
                 var dumpProcessed = false
-                executable.exec.async.processing { if (it is IO.Meta.Dump) dumpProcessed = true }.apply { waitFor() }
+                executable.exec.async.processing { _, process -> process { io -> if (io is IO.Meta.Dump) dumpProcessed = true } }.apply { waitFor() }
                 expectThat(dumpProcessed).isTrue()
             }
 
             @Test
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
-                executable.exec.async.testProp.processing { io -> processed.add(io) }.apply { waitFor() }
+                executable.exec.async.testProp.processing { _, process -> process { io -> processed.add(io) } }.apply { waitFor() }
                 expectThat(processed).contains(IO.Output typed "TEST_VALUE")
             }
         }
@@ -352,8 +441,11 @@ class ExecutorTest {
         @Smoke @Test
         fun `should apply custom processing options`() {
             val processed = mutableListOf<IO>()
-            CommandLine("cat").exec.testProp.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { io -> processed.add(io) }
-                .apply { waitFor() }
+            CommandLine("cat").exec.testProp.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { _, process ->
+                process { io ->
+                    processed.add(io)
+                }
+            }.apply { waitFor() }
             expectThat(processed).contains(IO.Output typed "Hello Cat!")
         }
     }

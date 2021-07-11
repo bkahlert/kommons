@@ -24,6 +24,7 @@ import koodies.tracing.rendering.BlockStyles.Dotted
 import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.BlockStyles.Solid
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
+import koodies.tracing.rendering.Renderer.Companion.log
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

@@ -3,25 +3,18 @@ package koodies.nio
 import io.opentelemetry.api.trace.Span
 import koodies.debug.asEmoji
 import koodies.debug.debug
-import koodies.exec.IO
 import koodies.exec.mock.SlowInputStream
 import koodies.runWrapping
-import koodies.runtime.isDebugging
-import koodies.text.ANSI
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.trailingLineSeparatorRemoved
-import koodies.text.Semantics.formattedAs
 import koodies.text.Unicode
-import koodies.text.quoted
-import koodies.time.Now
 import koodies.time.seconds
-import koodies.tracing.Tracer
+import koodies.tracing.Key
 import koodies.tracing.rendering.Renderer.Companion.NOOP
-import koodies.tracing.rendering.spanningLine
 import koodies.tracing.spanning
 import koodies.unit.milli
 import java.io.BufferedReader
@@ -67,16 +60,8 @@ public class NonBlockingReader(
      * or EOF was encountered.
      */
     override fun readLine(): String? = if (reader == null) null else
-        spanning(
-            name = NonBlockingReader::class.simpleName + "." + ::readLine.name + "()",
-            renderer = {
-                if (isDebugging) it(copy(decorationFormatter = { ANSI.Colors.cyan.invoke(it) }))
-                else NOOP
-            },
-            tracer = if (isDebugging) Tracer else Tracer.NOOP,
-        ) {
+        spanning("reading line non-blocking", TIMEOUT_ATTRIBUTE to timeout, renderer = { NOOP }) {
             var latestReadMoment = calculateLatestReadMoment()
-            log("Starting to read line for at most $timeout".formattedAs.meta)
             while (true) {
 
                 val read: Int = runWrapping({
@@ -86,7 +71,7 @@ public class NonBlockingReader(
                 }) { reader?.read(charArray, 0)!! }
 
                 if (read == -1) {
-                    log("InputStream Depleted. Closing. Unfinished Line: ${unfinishedLine.quoted}".formattedAs.meta)
+                    event("EOF", LINE_ATTRIBUTE to unfinishedLine)
                     close()
                     return@spanning if (unfinishedLine.isEmpty()) {
                         lastReadLineDueTimeout = false
@@ -99,7 +84,10 @@ public class NonBlockingReader(
                         lastReadLine!!.trailingLineSeparatorRemoved
                     }
                 }
-                log("${Now.emoji} ${(latestReadMoment - currentTimeMillis()).milli.seconds}; 📋 ${unfinishedLine.debug}; 🆕 ${justRead.debug}".formattedAs.meta)
+                event("character-read",
+                    CHAR_ATTRIBUTE to justRead,
+                    LINE_ATTRIBUTE to unfinishedLine,
+                    TIMEOUT_ATTRIBUTE to (latestReadMoment - currentTimeMillis()).milli.seconds)
                 if (read == 1) {
 
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF
@@ -109,7 +97,7 @@ public class NonBlockingReader(
                         lastReadLine = "$unfinishedLine"
                         unfinishedLine.clear()
                         unfinishedLine.append(charArray)
-                        log(IO.Meta typed "Line Completed: ${lastReadLine.quoted}")
+                        event("line-read", LINE_ATTRIBUTE to lastReadLine!!)
                         if (!lineAlreadyRead) {
                             return@spanning lastReadLine!!.trailingLineSeparatorRemoved
                         }
@@ -121,7 +109,9 @@ public class NonBlockingReader(
                 }
 
                 if (currentTimeMillis() >= latestReadMoment && !(blockOnEmptyLine && unfinishedLine.isEmpty())) {
-                    log("${Now.emoji} Timed out. Returning ${unfinishedLine.quoted}".formattedAs.meta)
+                    event("timeout",
+                        LINE_ATTRIBUTE to unfinishedLine,
+                        TIMEOUT_ATTRIBUTE to (latestReadMoment - currentTimeMillis()).milli.seconds)
                     // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                     lastReadLineDueTimeout = true
                     lastReadLine = "$unfinishedLine"
@@ -133,24 +123,6 @@ public class NonBlockingReader(
         }
 
     private fun calculateLatestReadMoment() = currentTimeMillis() + timeout.inWholeMilliseconds
-
-    /**
-     * Reads all lines from the [InputStream].
-     *
-     * Should more time pass than [timeout] the unfinished line is returned but also kept
-     * for the next attempt. The unfinished line will be completed until a line separator
-     * or EOF was encountered.
-     */
-    public fun forEachLine(block: (String) -> Unit): String = spanningLine(NonBlockingReader::class.simpleName + "." + ::forEachLine.name + "()") {
-        var lineCount = 0
-        while (true) {
-            val readLine: String? = readLine()
-            val line = readLine ?: break
-            block(line)
-            lineCount++
-        }
-        "$lineCount processed"
-    }
 
     /**
      * Closes this reader without throwing any exception.
@@ -173,4 +145,10 @@ public class NonBlockingReader(
     ).joinToString(prefix = "NonBlockingReader(",
         separator = "; ",
         postfix = ")") { "${it.first}: ${it.second}" }
+
+    public companion object {
+        private val CHAR_ATTRIBUTE: Key<String, String> = Key.stringKey("character") { it.debug }
+        private val LINE_ATTRIBUTE: Key<String, CharSequence> = Key.stringKey("line") { it.debug }
+        private val TIMEOUT_ATTRIBUTE: Key<String, Duration> = Key.stringKey("timeout") { it.toString() }
+    }
 }

@@ -2,7 +2,6 @@ package koodies.tracing.rendering
 
 import io.opentelemetry.api.trace.Span
 import koodies.toBaseName
-import koodies.tracing.Key
 import koodies.tracing.Key.KeyValue
 import koodies.tracing.SpanId
 import koodies.tracing.TraceId
@@ -23,43 +22,9 @@ public interface Renderer {
     public fun event(name: CharSequence, attributes: RenderableAttributes)
 
     /**
-     * Renders an event using the given [name], [description] and optional [attributes].
-     *
-     * Attributes with a `null` value are removed.
-     */
-    public fun event(
-        name: CharSequence,
-        description: CharSequence,
-        vararg attributes: KeyValue<*, *>,
-    ): Unit = event(name, RenderableAttributes.of(RenderingAttributes.DESCRIPTION to description, *attributes))
-
-    /**
-     * Renders an event using the given [description] and optional [attributes].
-     *
-     * Attributes with a `null` value are removed.
-     *
-     * ***Note:** This is a convenience method to facilitate migrating from an existing logger. The effectively required event name is derived from the description.
-     * This can lead to a high cardinality (esp. if the description contains variables).
-     * If too many different event names are created the value of the recorded data for later analysis is considerably reduced.
-     * Consider using [event] instead.*
-     */
-    public fun log(
-        description: CharSequence,
-        vararg attributes: KeyValue<*, *>,
-    ): Unit = event(description.toBaseName(), description, *attributes)
-
-    /**
      * Renders the given [exception] using the optional [attributes].
      */
     public fun exception(exception: Throwable, attributes: RenderableAttributes)
-
-    /**
-     * Renders the given [exception] using the optional [attributes].
-     */
-    public fun Renderer.exception(
-        exception: Throwable,
-        vararg attributes: Pair<Key<*, *>, Any>,
-    ): Unit = exception(exception, RenderableAttributes.of(*attributes))
 
     /**
      * Renders the end of a span using the given [result].
@@ -81,6 +46,32 @@ public interface Renderer {
     public fun printChild(text: CharSequence)
 
     public companion object {
+
+        /**
+         * Renders an event using the given [name], [description] and optional [attributes].
+         *
+         * Attributes with a `null` value are removed.
+         */
+        public fun Renderer.event(
+            name: CharSequence,
+            description: CharSequence,
+            vararg attributes: KeyValue<*, *>,
+        ): Unit = event(name, RenderableAttributes.of(RenderingAttributes.DESCRIPTION to description, *attributes))
+
+        /**
+         * Renders an event using the given [description] and optional [attributes].
+         *
+         * Attributes with a `null` value are removed.
+         *
+         * ***Note:** This is a convenience method to facilitate migrating from an existing logger. The effectively required event name is derived from the description.
+         * This can lead to a high cardinality (esp. if the description contains variables).
+         * If too many different event names are created the value of the recorded data for later analysis is considerably reduced.
+         * Consider using [event] instead.*
+         */
+        public fun Renderer.log(
+            description: CharSequence,
+            vararg attributes: KeyValue<*, *>,
+        ): Unit = event(description.toBaseName(), description, *attributes)
 
         public object NOOP : Renderer {
             override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit = Unit

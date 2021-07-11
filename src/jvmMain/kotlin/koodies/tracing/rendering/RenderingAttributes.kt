@@ -20,5 +20,8 @@ public class RenderingAttributes(attributes: Attributes) : Attributes by attribu
 
         public val DESCRIPTION: Key<String, CharSequence> = Key.stringKey("koodies.description") { it.toString() }
         public val EXTRA: Key<String, Any> = Key.stringKey("koodies.extra") { it.toString() }
+
+        public val RENDERER: Key<String, Renderer> = Key.stringKey("koodies.renderer") { it.toString() }
+        public val RENDERERS: Key<List<String>, List<String>> = Key.stringArrayKey("koodies.renderers")
     }
 }

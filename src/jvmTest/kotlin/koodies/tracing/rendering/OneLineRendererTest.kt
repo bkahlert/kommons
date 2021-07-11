@@ -8,6 +8,7 @@ import koodies.text.isSingleLine
 import koodies.text.matchesCurlyPattern
 import koodies.tracing.TestSpan
 import koodies.tracing.rendering.RenderableAttributes.Companion.EMPTY
+import koodies.tracing.rendering.Renderer.Companion.log
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -36,7 +37,7 @@ class OneLineRendererTest {
                 log(ansi11)
                 childRenderer().apply {
                     start("child")
-                    exception(RuntimeException("Now Panic!"))
+                    exception(RuntimeException("Now Panic!"), EMPTY)
                     log(plain11)
                     end(Result.failure<Unit>(RuntimeException("message")))
                 }
@@ -96,7 +97,7 @@ class OneLineRendererTest {
         val rendered = capturing {
             OneLineRenderer(settings.copy(printer = it)).run {
                 start("name")
-                exception(RuntimeException("exception"))
+                exception(RuntimeException("exception"), EMPTY)
                 end(Result.success(true))
             }
         }

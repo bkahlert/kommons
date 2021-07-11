@@ -23,7 +23,6 @@ import koodies.test.asserting
 import koodies.test.testEach
 import koodies.test.withTempDir
 import koodies.text.containsAnsi
-import koodies.tracing.TestSpan
 import koodies.unit.bytes
 import koodies.unit.hasSize
 import org.junit.jupiter.api.Nested
@@ -136,14 +135,12 @@ class DockerKtTest {
 
     @Suppress("SpellCheckingInspection")
     @DockerRequiring @Test
-    fun TestSpan.`should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val uri = "https://www.riscosopen.org/zipfiles/platform/raspberry-pi/BCM2835Dev.5.29.zip?1604815147"
         val unarchive: Path = download(uri).unarchive()
         val listDirectoryEntriesRecursively: List<Path> = unarchive.listDirectoryEntriesRecursively()
         val maxOf = listDirectoryEntriesRecursively.maxByOrNull { it.getSize() } ?: fail { "No image found." }
-        maxOf.dockerPi { io ->
-            event(event = io)
-        }.waitFor() asserting {
+        maxOf.dockerPi().waitFor() asserting {
             io.output.ansiRemoved.contains("Rebooting in 1 seconds")
         }
     }

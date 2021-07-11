@@ -44,7 +44,7 @@ class ExecutableTest {
     @TestFactory
     fun `should process`(uniqueId: UniqueId) = testProcesses(uniqueId) { process ->
         val processed = synchronizedListOf<IO>()
-        process.process { io -> processed.add(io) }.waitFor()
+        process.process { _, process -> process { io -> processed.add(io) } }.waitFor()
 
         expectThat(processed).contains(
             IO.Output typed "test output env",

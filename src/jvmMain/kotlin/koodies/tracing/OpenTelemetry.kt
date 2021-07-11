@@ -67,7 +67,8 @@ public object Tracer : io.opentelemetry.api.trace.Tracer {
 }
 
 /**
- * [AttributeKey] extension
+ * [AttributeKey] that points to a unmodified rendering-purpose value of type [R]
+ * that can be transformed using [transform] to a tracing-purpose value of type [T].
  */
 public class Key<T, R>(
     private val attributeKey: AttributeKey<T>,
