@@ -239,7 +239,7 @@ class TestPrinter : Printer {
     }
 
     sealed class TestIO(private val string: String) : CharSequence by string {
-        class Start(val traceId: TraceId, val spanId: SpanId, name: CharSequence) : TestIO(Renderable.of(name).render(COLUMNS, null))
+        class Start(val traceId: TraceId, val spanId: SpanId, name: CharSequence) : TestIO(Renderable.of(name).render(COLUMNS, 1))
         object Pass : TestIO("Pass".formattedAs.success)
         class Fail(val exception: Throwable) : TestIO(
             when (exception) {

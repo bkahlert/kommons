@@ -58,7 +58,7 @@ class TestTelemetry : TestExecutionListener {
         }
     }
 
-    override fun testPlanExecutionFinished(testPlan: TestPlan?) {
+    override fun testPlanExecutionFinished(testPlan: TestPlan) {
         if (ENABLED) {
             batchExporter.shutdown()
         }

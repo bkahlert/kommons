@@ -244,18 +244,19 @@ class JavaExecMockTest {
             inner class WithDefaultInputStream {
 
                 @Test
-                fun `should not be alive if exit is not delayed`() {
-                    expectThat(processMock().isAlive).isFalse()
+                fun `should not be alive if enough time has passed`() {
+                    expectThat(processMock(exitDelay = Duration.ZERO).isAlive).isFalse()
                 }
 
                 @Test
-                fun `should be alive if exit is delayed`() {
-                    expectThat(processMock(exitDelay = 50.milli.seconds).isAlive).isTrue()
+                fun `should be alive if too little time has passed`() {
+                    expectThat(processMock(exitDelay = 100.milli.seconds).isAlive).isTrue()
                 }
             }
 
             @Nested
             inner class WithSlowInputStream {
+
                 @Test
                 fun `should be finished if all read`() {
                     val p = withSlowInput(echoInput = true)
@@ -387,8 +388,7 @@ class JavaExecMockTest {
             process.enter("shutdown")
         }
 
-        val status =
-            process.process(ProcessingMode { async(NonInteractive(null)) }).waitFor()
+        val status = process.process(ProcessingMode { async(NonInteractive(null)) }).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

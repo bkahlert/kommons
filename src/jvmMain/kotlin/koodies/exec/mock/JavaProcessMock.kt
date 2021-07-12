@@ -4,15 +4,14 @@ import koodies.exec.mock.SlowInputStream.Companion.slowInputStream
 import koodies.io.ByteArrayOutputStream
 import koodies.io.TeeOutputStream
 import koodies.text.LineSeparators.LF
+import koodies.time.Now
 import koodies.time.busyWait
 import koodies.time.seconds
 import koodies.unit.milli
 import java.io.InputStream
 import java.io.InputStream.nullInputStream
 import java.io.OutputStream
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.time.Duration
 import java.lang.Process as JavaProcess
 
@@ -27,6 +26,9 @@ public open class JavaProcessMock(
     private val exitCode: JavaProcessMock.() -> Int = { 0 },
 ) : JavaProcess() {
 
+    private val startTimestamp: Long = System.currentTimeMillis()
+    private fun busyWait() = 10.milli.seconds.busyWait(11.milli.seconds)
+
     override fun toHandle(): ProcessHandle = ProcessHandleMock(this)
 
     private val pid: Long = 12345L
@@ -40,6 +42,47 @@ public open class JavaProcessMock(
             override fun toString(): String = completeOutputSequence.toString(Charsets.UTF_8)
         }
     }
+
+    override fun getOutputStream(): OutputStream = outputStream
+    override fun getInputStream(): InputStream = inputStream
+    override fun getErrorStream(): InputStream = errorStream
+    override fun waitFor(): Int {
+        while (isAlive) {
+            busyWait()
+        }
+        return exitCode()
+    }
+
+    override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
+        val start = System.currentTimeMillis()
+        val waitAtMost = Duration.milliseconds(unit.toMillis(timeout))
+        while (isAlive && Now.passedSince(start) < waitAtMost) {
+            busyWait()
+        }
+        return !isAlive
+    }
+
+    override fun exitValue(): Int {
+        if (isAlive) throw IllegalStateException("process has not terminated")
+        return exitCode()
+    }
+
+    override fun isAlive(): Boolean = when (inputStream) {
+        is SlowInputStream -> inputStream.unreadCount != 0
+        else -> Now.passedSince(startTimestamp) < exitDelay
+    }
+
+    public fun start(name: String? = null): ExecMock = ExecMock(this, name)
+
+    override fun destroy(): Unit = Unit
+
+    public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
+
+    override fun toString(): String =
+        StringBuilder("Process[pid=").append(pid)
+            .append(", exitValue=").append(if (!isAlive) exitCode() else "\"not exited\"")
+            .append("]").toString()
+
 
     public companion object {
 
@@ -96,45 +139,4 @@ public open class JavaProcessMock(
             )
         }
     }
-
-    override fun getOutputStream(): OutputStream = outputStream
-    override fun getInputStream(): InputStream = inputStream
-    override fun getErrorStream(): InputStream = errorStream
-    override fun waitFor(): Int {
-        exitDelay.busyWait()
-        return exitCode()
-    }
-
-    override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
-        exitDelay.busyWait()
-        return MILLISECONDS.convert(timeout, unit).milli.seconds >= exitDelay
-    }
-
-    override fun exitValue(): Int {
-        exitDelay.busyWait()
-        return exitCode()
-    }
-
-    override fun onExit(): CompletableFuture<java.lang.Process> {
-        return super.onExit().thenApply { process ->
-            exitDelay.busyWait()
-            process
-        }
-    }
-
-    override fun isAlive(): Boolean = when (inputStream) {
-        is SlowInputStream -> inputStream.unreadCount != 0
-        else -> exitDelay > Duration.ZERO
-    }
-
-    public fun start(name: String? = null): ExecMock = ExecMock(this, name)
-
-    override fun destroy(): Unit = Unit
-
-    public val received: String get() = completeOutputSequence.toString(Charsets.UTF_8)
-
-    override fun toString(): String =
-        StringBuilder("Process[pid=").append(pid)
-            .append(", exitValue=").append(if (!isAlive) exitCode() else "\"not exited\"")
-            .append("]").toString()
 }

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.endsWith
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import java.time.Instant
@@ -177,6 +178,33 @@ class ReturnValueKtTest {
                           ϟ Process 12345 terminated with exit code 42
                   """.trimIndent())
             }
+        }
+    }
+
+    @Nested
+    inner class OfSuccessful {
+
+        private val tick = "\u001B[32m✔︎\u001B[39m"
+
+        @Test
+        fun `should format as text representation + tick`() {
+            expectThat(ReturnValue.successful("value") { this }.format()).isEqualTo("$tick value")
+        }
+
+        @Test
+        fun `should format tick on null text representation`() {
+            val successful = ReturnValue.successful("value") { null }
+            expectThat(successful.format()).isEqualTo(tick)
+        }
+
+        @Test
+        fun `should format tick on blank text representation`() {
+            expectThat(ReturnValue.successful("value") { "   " }.format()).isEqualTo(tick)
+        }
+
+        @Test
+        fun `should format tick on missing transform`() {
+            expectThat(ReturnValue.successful("value").format()).isEqualTo(tick)
         }
     }
 }

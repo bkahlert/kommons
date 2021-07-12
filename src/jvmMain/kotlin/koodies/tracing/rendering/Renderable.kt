@@ -2,6 +2,8 @@ package koodies.tracing.rendering
 
 import koodies.regex.RegularExpressions.uriRegex
 import koodies.text.AnsiString.Companion.toAnsiString
+import koodies.text.LineSeparators.isMultiline
+import koodies.text.LineSeparators.wrapLines
 import koodies.text.joinLinesToString
 import koodies.text.truncateByColumns
 
@@ -31,22 +33,31 @@ public interface Renderable : CharSequence {
          * Creates a [Renderable] from the given [value] depending on its type:
          * - if a [Renderable] is provided, it will simply be returned
          * - if `null` is provided, an empty string is rendered
-         * - in all other cases [Any.toString] is used to render the value whereas
-         *   surplus lines are cut-off and too long lines truncated
+         * - in all other cases a [Any.toString] based heuristic is used to render
+         *   - multi-line strings are treated like a box with too exceeding columns and rows cut-off
+         *   - single-line strings are wrapped if the rows are not restricted;
+         *     otherwise the string is truncated from the center
          */
         public fun of(value: Any?): Renderable =
             when (value) {
                 is Renderable -> value
                 is Any -> of(value.toAnsiString()) { columns, rows ->
-                    lineSequence()
-                        .let { if (rows != null) it.take(rows) else it }
-                        .let {
-                            if (columns != null) it.map { line ->
-                                if (uriRegex.containsMatchIn(line)) line
-                                else line.truncateByColumns(columns)
-                            } else it
-                        }
-                        .joinLinesToString { it.toString() }
+                    if (isMultiline) {
+                        lineSequence()
+                            .let { if (rows != null) it.take(rows) else it }
+                            .let {
+                                if (columns != null) it.map { line ->
+                                    if (uriRegex.containsMatchIn(line)) line
+                                    else line.truncateByColumns(columns)
+                                } else it
+                            }
+                            .joinLinesToString { it.toString() }
+                    } else {
+                        if (uriRegex.containsMatchIn(this)) this.toString()
+                        else if (columns != null && rows != null) truncateByColumns(columns).toString()
+                        else if (columns != null && rows == null) wrapLines(columns).toString()
+                        else this.toString()
+                    }
                 }
                 else -> NULL
             }

@@ -9,6 +9,7 @@ import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
+import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.any
-import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
@@ -153,7 +153,7 @@ class BlockRendererTest {
         @Test
         fun TestSpan.`should render name`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).start("name") }
-            expectThat(rendered.ansiRemoved).isEqualTo("name")
+            expectThat(rendered).matchesCurlyPattern("name")
         }
 
         @Test
@@ -219,11 +219,11 @@ class BlockRendererTest {
 
             @Test
             fun TestSpan.`should delegate wrapping to rendereable`() {
-                val rendereable = Renderable.of("renderable") { columns, rows -> "$this: $columns x $rows" }
+                val rendereable = Renderable.of("!") { columns, rows -> "$this $columns x $rows" }
                 val rendered = capturing {
-                    BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(rendereable)
+                    BlockRenderer(settings.copy(layout = ColumnsLayout(DESCRIPTION columns 5), printer = it)).log(rendereable)
                 }
-                expectThat(rendered).contains("renderable: 40 x null")
+                expectThat(rendered).matchesCurlyPattern("! 5 x$LF null")
             }
         }
 
@@ -299,12 +299,12 @@ class BlockRendererTest {
 
             @Test
             fun TestSpan.`should delegate wrapping to rendereable`() {
-                val rendereable = Renderable.of("renderable") { columns, rows -> "$this: $columns x $rows" }
+                val rendereable = Renderable.of("!") { columns, rows -> "$this $columns x $rows" }
                 val rendered = capturing {
-                    BlockRenderer(settings.copy(layout = ColumnsLayout(EXTRA columns 10, DESCRIPTION columns 15), printer = it))
+                    BlockRenderer(settings.copy(layout = ColumnsLayout(DESCRIPTION columns 5, EXTRA columns 4), printer = it))
                         .log(rendereable, EXTRA to rendereable)
                 }
-                expectThat(rendered).isEqualTo("renderable: 40 x null")
+                expectThat(rendered).isEqualTo("! 5 x null! 4 x null")
             }
 
             @Test

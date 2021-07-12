@@ -195,11 +195,9 @@ public class SlowInputStream(
         var n = 0
         while (true) {
             val readCount = read1(b, off + n, len - n)
-            if (readCount <= 0) return if (n == 0) readCount else n
             n += readCount
             if (n >= len) return n
-            // if not closed but no bytes available, return
-            if (!closed && available() <= 0) return n
+            if ((closed || terminated) && available() <= 0) return n
         }
     }
 

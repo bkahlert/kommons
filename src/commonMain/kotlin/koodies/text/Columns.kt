@@ -133,11 +133,11 @@ public fun CharSequence.addColumn(
  * ```
  */
 public fun formatColumns(
-    vararg columns: Pair<AnsiString?, Int>,
+    vararg columns: Pair<CharSequence?, Int>,
     paddingCharacter: Char = ' ',
     paddingColumns: Int = 5,
     wrapLines: CharSequence?.(Int) -> CharSequence = { lineSepWrapLines(it) },
-): AnsiString {
+): CharSequence {
     val columnsWithMaxColumns = columns.map { (text, maxColumns) ->
         when {
             text == null -> AnsiString.EMPTY
@@ -162,53 +162,3 @@ public fun formatColumns(
         }
     }
 }
-
-/**
- * Returns a string that consists of the given [columns]
- * formatted next to each other. Each element specifies
- * the text to be formatted and the number of columns
- * to be used.
- *
- * **Example**
- * ```
- * Line 1
- * Line 1.1
- * Line 2
- * ```
- * and
- * ```
- * Line a
- * Line a.b
- * Line c
- * Line d
- * ```
- * and
- * ```
- *    ɑ
- *   β
- *  ɣ
- * ```
- * will result in
- * ```
- * Line 1       Line 1          ɑ
- * Line 1.1     Line a.b       β
- * Line 2       Line c        ɣ
- *              Line d
- * ```
- */
-public fun formatColumns(
-    vararg columns: Pair<CharSequence?, Int>,
-    paddingCharacter: Char = ' ',
-    paddingColumns: Int = 5,
-    wrapLines: CharSequence?.(Int) -> CharSequence = { lineSepWrapLines(it) },
-): String =
-    when (columns.size) {
-        0 -> ""
-        1 -> columns.first().let { (text, maxColumns) -> text.wrapLines(maxColumns).toString() }
-        else -> formatColumns(
-            columns = columns.map { (text, maxColumns) -> text?.toAnsiString() to maxColumns }.toTypedArray(),
-            paddingCharacter = paddingCharacter,
-            paddingColumns = paddingColumns,
-            wrapLines = wrapLines,
-        ).toString()
-    }

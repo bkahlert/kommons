@@ -194,7 +194,7 @@ class ColumnsKtTest {
     fun `should format multiple plain text columns`() {
         val plainText = ansiString.ansiRemoved
         val linedUp = formatColumns(plainText to 50, plainText to 30, plainText to 10)
-        expectThat(linedUp).isEqualTo("""
+        expectThat(linedUp).toStringIsEqualTo("""
             Important: This line has no ANSI escapes.              Important: This line has no AN     Important:
             This one's bold!                                       SI escapes.                         This line
             Last one is clean.                                     This one's bold!                    has no AN

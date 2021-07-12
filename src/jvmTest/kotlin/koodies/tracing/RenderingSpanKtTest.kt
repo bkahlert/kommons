@@ -9,7 +9,6 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
-import koodies.text.truncateByColumns
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import koodies.tracing.rendering.BlockStyles
 import koodies.tracing.rendering.BlockStyles.None
@@ -18,6 +17,7 @@ import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.OneLineStyles
 import koodies.tracing.rendering.Renderable
 import koodies.tracing.rendering.RenderingAttributes
+import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Style
 import koodies.tracing.rendering.spanningLine
@@ -103,9 +103,9 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    tracing { spanning(testName) { registerAsTestSpan(); log("event α") } }
+                    tracing { spanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); log("event α") } }
                     expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴${testName.truncateByColumns(76)}
+                        ╭──╴$testName
                         │
                         │   event α                                                                         
                         │
@@ -216,9 +216,9 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanning(testName) { registerAsTestSpan(); log("event α") }
+                    spanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); log("event α") }
                     expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴${testName.truncateByColumns(76)}
+                        ╭──╴$testName
                         │
                         │   event α                                                                         
                         │
@@ -244,9 +244,9 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanning(testName) { registerAsTestSpan(); tracing { log("event α") } }
+                    spanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); tracing { log("event α") } }
                     expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴${testName.truncateByColumns(76)}
+                        ╭──╴$testName
                         │
                         │   event α                                                                         
                         │
@@ -273,13 +273,13 @@ class RenderingSpanKtTest {
 
                 @Test
                 fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanning(testName) { registerAsTestSpan(); spanning("child") { log("event α") } }
+                    spanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); spanning("child") { log("event α") } }
                     expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴${testName.truncateByColumns(76)}
+                        ╭──╴$testName
                         │
                         │   ╭──╴child
                         │   │
-                        │   │   event α                                                                         
+                        │   │   event α
                         │   │
                         │   ╰──╴✔︎
                         │

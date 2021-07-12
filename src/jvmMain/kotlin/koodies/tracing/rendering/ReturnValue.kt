@@ -50,6 +50,13 @@ public interface ReturnValue : Symbolizable {
                 else -> AnyReturnValue(value)
             }
 
+        public fun <T> successful(value: T, transform: T.() -> String? = { null }): ReturnValue =
+            object : ReturnValue {
+                override val successful: Boolean = true
+                override val textRepresentation: String?
+                    get() = value.transform()
+            }
+
         /**
          * Computes the representation of the given [returnValue] as a result of a [Span].
          *

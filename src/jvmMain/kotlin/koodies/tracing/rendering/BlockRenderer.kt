@@ -4,7 +4,6 @@ import koodies.asString
 import koodies.regex.RegularExpressions
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.lineSequence
-import koodies.text.LineSeparators.wrapLines
 import koodies.text.formatColumns
 import koodies.text.maxColumns
 import koodies.text.takeUnlessEmpty
@@ -77,6 +76,10 @@ public class BlockRenderer(
 
     public companion object {
         private fun wrapNonUriLines(text: CharSequence?, maxColumns: Int): CharSequence =
-            if (text == null) "" else if (RegularExpressions.uriRegex.containsMatchIn(text)) text else text.wrapLines(maxColumns)
+            when {
+                text == null -> ""
+                RegularExpressions.uriRegex.containsMatchIn(text) -> text
+                else -> Renderable.of(text).render(maxColumns, null)
+            }
     }
 }
