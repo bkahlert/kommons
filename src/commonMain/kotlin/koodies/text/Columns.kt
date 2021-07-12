@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.collections.zipWithDefault
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.wrapLines as lineSepWrapLines
@@ -58,7 +58,7 @@ public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxColumn
             "$paddedLeft$rightLine"
         }
         .joinLinesToString(LF)
-        .asAnsiString()
+        .toAnsiString()
 
 /**
  * Returns a string that consists of two columns.
@@ -88,12 +88,12 @@ public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxColumn
  */
 public fun CharSequence.addColumn(
     column: CharSequence,
-    columnWidth: Int = asAnsiString().maxColumns(),
+    columnWidth: Int = toAnsiString().maxColumns(),
     paddingCharacter: Char = ' ',
     paddingWidth: Int = 5,
 ): String =
-    asAnsiString().addColumn(
-        column = column.asAnsiString(),
+    toAnsiString().addColumn(
+        column = column.toAnsiString(),
         columnWidth = columnWidth,
         paddingCharacter = paddingCharacter,
         paddingColumns = paddingWidth,
@@ -141,13 +141,13 @@ public fun formatColumns(
     val columnsWithMaxColumns = columns.map { (text, maxColumns) ->
         when {
             text == null -> AnsiString.EMPTY
-            text.columns <= maxColumns -> text.asAnsiString()
-            else -> text.wrapLines(maxColumns).asAnsiString()
+            text.columns <= maxColumns -> text.toAnsiString()
+            else -> text.wrapLines(maxColumns).toAnsiString()
         } to maxColumns
     }
     return when (columnsWithMaxColumns.size) {
         0 -> AnsiString.EMPTY
-        1 -> columnsWithMaxColumns.single().let { (text, maxColumns) -> text.wrapLines(maxColumns).asAnsiString() }
+        1 -> columnsWithMaxColumns.single().let { (text, maxColumns) -> text.wrapLines(maxColumns).toAnsiString() }
         else -> {
             var linedUp = AnsiString.EMPTY
             var summed = columns.first().second
@@ -206,7 +206,7 @@ public fun formatColumns(
         0 -> ""
         1 -> columns.first().let { (text, maxColumns) -> text.wrapLines(maxColumns).toString() }
         else -> formatColumns(
-            columns = columns.map { (text, maxColumns) -> text?.asAnsiString() to maxColumns }.toTypedArray(),
+            columns = columns.map { (text, maxColumns) -> text?.toAnsiString() to maxColumns }.toTypedArray(),
             paddingCharacter = paddingCharacter,
             paddingColumns = paddingColumns,
             wrapLines = wrapLines,

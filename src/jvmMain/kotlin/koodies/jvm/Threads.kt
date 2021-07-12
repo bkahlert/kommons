@@ -5,6 +5,7 @@ import koodies.runWrapping
 import koodies.time.seconds
 import koodies.time.sleep
 import koodies.tracing.Key
+import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import koodies.tracing.spanning
 import koodies.unit.milli
 import java.util.concurrent.CompletableFuture
@@ -60,13 +61,16 @@ public class BusyThread private constructor(
 ) : Thread({
     span.makeCurrent().use {
         spanning("busy waiting") {
-            while (!stopped.get().also { event("stop-request-checked", if (it) "stop requested" else null, RESULT_KEY to it) }) {
+            while (!stopped.get().also {
+                    if (it) event("stop-request-checked", DESCRIPTION to "stop requested", RESULT_KEY to it)
+                    event("stop-request-checked", RESULT_KEY to it)
+                }) {
                 try {
                     sleepInterval.sleep()
                     event("busy-waited", DURATION_KEY to sleepInterval)
                 } catch (e: InterruptedException) {
-                    if (!stopped.get()) currentThread().interrupt().also { event("interrupted", "interrupted", IGNORED_KEY to false) }
-                    else event("interrupted", "interruption ignored", IGNORED_KEY to true)
+                    if (!stopped.get()) currentThread().interrupt().also { event("interrupted", DESCRIPTION to "interrupted", IGNORED_KEY to false) }
+                    else event("interrupted", DESCRIPTION to "interruption ignored", IGNORED_KEY to true)
                 }
             }
         }

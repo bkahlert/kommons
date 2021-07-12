@@ -3,8 +3,7 @@ package koodies.text
 import koodies.test.expecting
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.ANSI.ansiRemoved
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.AnsiStringTest.Companion.ansiString
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.wrapLines
@@ -47,15 +46,15 @@ class ColumnsKtTest {
 
         @Test
         fun `should return max columns on ansi string`() {
-            expectThat("def曲lt\n${"magenta".ansi.magenta}".ansi.italic.asAnsiString().maxColumns()).isEqualTo(7)
+            expectThat("def曲lt\n${"magenta".ansi.magenta}".ansi.italic.toAnsiString().maxColumns()).isEqualTo(7)
         }
 
         @TestFactory
         fun `should return max columns on broken ansi`() {
             expecting { "${e}m".maxColumns() } that { isEqualTo(1) }
             expecting { "${e}[".maxColumns() } that { isEqualTo(1) }
-            expecting { "${e}m".asAnsiString().maxColumns() } that { isEqualTo(1) }
-            expecting { "${e}[".asAnsiString().maxColumns() } that { isEqualTo(1) }
+            expecting { "${e}m".toAnsiString().maxColumns() } that { isEqualTo(1) }
+            expecting { "${e}[".toAnsiString().maxColumns() } that { isEqualTo(1) }
         }
     }
 
@@ -98,13 +97,13 @@ class ColumnsKtTest {
 
         @Test
         fun `should wrap ANSI string as second column`() {
-            expectThat(ansiString.ansiRemoved.wrapLines(26).asAnsiString()
-                .addColumn(ansiString.wrapLines(26).asAnsiString())).isEqualTo("""
+            expectThat(ansiString.ansiRemoved.wrapLines(26).toAnsiString()
+                .addColumn(ansiString.wrapLines(26).toAnsiString())).isEqualTo("""
                 Important: This line has n     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 o ANSI escapes.                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 This one's bold!               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 Last one is clean.             $e[3;36mLast one is clean.$e[23;39m        
-            """.trimIndent().asAnsiString())
+            """.trimIndent().toAnsiString())
         }
     }
 
@@ -113,36 +112,36 @@ class ColumnsKtTest {
 
         @Test
         fun `should add ANSI string as second column`() {
-            expectThat(ansiString.wrapLines(26).asAnsiString()
-                .addColumn(ansiString.wrapLines(26).asAnsiString())).isEqualTo("""
+            expectThat(ansiString.wrapLines(26).toAnsiString()
+                .addColumn(ansiString.wrapLines(26).toAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m             $e[3;36mLast one is clean.$e[23;39m        
-            """.trimIndent().asAnsiString())
+            """.trimIndent().toAnsiString())
         }
 
         @Test
         fun `should add fewer lines as second column`() {
-            expectThat(ansiString.wrapLines(26).asAnsiString()
-                .addColumn(ansiString.lines().dropLast(1).joinLinesToString().asAnsiString().wrapLines(26).asAnsiString())).isEqualTo("""
+            expectThat(ansiString.wrapLines(26).toAnsiString()
+                .addColumn(ansiString.lines().dropLast(1).joinLinesToString().toAnsiString().wrapLines(26).toAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m             
-            """.trimIndent().asAnsiString())
+            """.trimIndent().toAnsiString())
         }
 
         @Test
         fun `should add more lines as second column`() {
-            expectThat(ansiString.wrapLines(26).asAnsiString()
-                .addColumn(("$ansiString\nThis is one too much.").asAnsiString().wrapLines(26).asAnsiString())).isEqualTo("""
+            expectThat(ansiString.wrapLines(26).toAnsiString()
+                .addColumn(("$ansiString\nThis is one too much.").toAnsiString().wrapLines(26).toAnsiString())).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m     $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m               $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m             $e[3;36mLast one is clean.$e[23;39m        
                                                This is one too much.     
-            """.trimIndent().asAnsiString())
+            """.trimIndent().toAnsiString())
         }
 
         @Test
@@ -159,24 +158,24 @@ class ColumnsKtTest {
 
     @Test
     fun `should apply specified padding character`() {
-        expectThat(ansiString.wrapLines(26).asAnsiString()
-            .addColumn(ansiString.wrapLines(26).asAnsiString(), paddingCharacter = '*')).isEqualTo("""
+        expectThat(ansiString.wrapLines(26).toAnsiString()
+            .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingCharacter = '*')).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m*****$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           *****$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m          *****$e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m        *****$e[3;36mLast one is clean.$e[23;39m        
-            """.trimIndent().asAnsiString())
+            """.trimIndent().toAnsiString())
     }
 
     @Test
     fun `should apply specified padding columns`() {
-        expectThat(ansiString.wrapLines(26).asAnsiString()
-            .addColumn(ansiString.wrapLines(26).asAnsiString(), paddingColumns = 10)).isEqualTo("""
+        expectThat(ansiString.wrapLines(26).toAnsiString()
+            .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingColumns = 10)).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m          $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m                     $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m                    $e[3;36mThis one's $e[1mbold!$e[23;39;22m          
                 $e[3;36mLast one is clean.$e[23;39m                  $e[3;36mLast one is clean.$e[23;39m        
-            """.trimIndent().asAnsiString())
+            """.trimIndent().toAnsiString())
     }
 
     @Test
@@ -210,7 +209,7 @@ class ColumnsKtTest {
 
     @Test
     fun `should format multiple ansi columns`() {
-        val linedUp = formatColumns(ansiString to 50, ansiString.ansiRemoved.asAnsiString() to 30, ansiString to 10)
+        val linedUp = formatColumns(ansiString to 50, ansiString.ansiRemoved.toAnsiString() to 30, ansiString to 10)
         expectThat(linedUp).toStringIsEqualTo("""
             $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m              Important: This line has no AN     $e[3;36m$e[4mImportant:$e[23;39;24m
             $e[3;36mThis one's $e[1mbold!$e[23;39;22m                                       SI escapes.                        $e[3;36;4m$e[24m This line$e[23;39m

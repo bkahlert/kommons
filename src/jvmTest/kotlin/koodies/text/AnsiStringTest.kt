@@ -4,7 +4,7 @@ import koodies.debug.debug
 import koodies.test.testEach
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.AnsiString.Companion.tokenize
 import koodies.text.LineSeparators.CRLF
 import koodies.text.LineSeparators.LF
@@ -53,15 +53,15 @@ class AnsiStringTest {
         @Test
         fun `should match same`() {
             val text: CharSequence = "abc"
-            val ansiString = text.asAnsiString()
-            expectThat(ansiString).isSameInstanceAs(text.asAnsiString())
+            val ansiString = text.toAnsiString()
+            expectThat(ansiString).isSameInstanceAs(text.toAnsiString())
         }
 
         @Test
         fun `should match equals`() {
             val text: CharSequence = "abc"
-            val ansiString = text.asAnsiString()
-            expectThat(ansiString).isSameInstanceAs("abc".asAnsiString())
+            val ansiString = text.toAnsiString()
+            expectThat(ansiString).isSameInstanceAs("abc".toAnsiString())
         }
     }
 
@@ -472,9 +472,9 @@ class AnsiStringTest {
         @Test
         fun `should chunk ANSI string`() {
             expectThat(ansiString.chunkedSequence(26).toList()).containsExactly(
-                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".asAnsiString(),
-                "$e[3;36;9mo$e[29m ANSI escapes.\nThis one's$e[23;39m".asAnsiString(),
-                "$e[3;36m $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39m".asAnsiString(),
+                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".toAnsiString(),
+                "$e[3;36;9mo$e[29m ANSI escapes.\nThis one's$e[23;39m".toAnsiString(),
+                "$e[3;36m $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39m".toAnsiString(),
             )
         }
     }
@@ -491,7 +491,7 @@ class AnsiStringTest {
         @Test
         fun `should create ANSI string from existing plus added string`() {
             expectThat(ansiString + "plus").isEqualTo(
-                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.\nThis one's $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39mplus".asAnsiString(),
+                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.\nThis one's $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39mplus".toAnsiString(),
             )
         }
     }

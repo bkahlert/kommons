@@ -955,9 +955,9 @@ private fun HueColor.hueAsTurns(): Float = h / 360f
 
 private object AnsiStringCache {
     private val cache = mutableMapOf<Int, AnsiString>()
-    fun getOrPut(charSequence: CharSequence): AnsiString = when {
+    fun getOrPut(charSequence: CharSequence?): AnsiString = when {
         charSequence is AnsiString -> charSequence
-        charSequence.isEmpty() -> AnsiString.EMPTY
+        charSequence.isNullOrEmpty() -> AnsiString.EMPTY
         else -> cache.getOrPut(charSequence.hashCode()) { charSequence.tokenize() }
     }
 }
@@ -999,12 +999,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
     public companion object {
         public val EMPTY: AnsiString = AnsiString()
 
-        public fun <T : CharSequence> T?.asAnsiString(): AnsiString = this?.let { AnsiStringCache.getOrPut(it) } ?: EMPTY
-        public fun Any.toAnsiString(): AnsiString = when (this) {
-            is AnsiString -> this
-            is CharSequence -> asAnsiString()
-            else -> toString().asAnsiString()
-        }
+        public fun Any?.toAnsiString(): AnsiString = AnsiStringCache.getOrPut((this as? CharSequence?) ?: toString())
 
         public fun CharSequence.tokenize(): AnsiString = TokenizationCache.getOrPut(this) {
             val tokens = mutableListOf<Token>()
@@ -1075,7 +1070,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
             } else {
                 firstToEnd
             }
-        }.asAnsiString()
+        }.toAnsiString()
     }
 
     private fun ansiSubSequence(endIndex: Int): Pair<String, List<IntArray>> {
@@ -1182,7 +1177,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
     }
 
     public fun chunkedByColumnsSequence(columns: Int): Sequence<AnsiString> =
-        chunkedByColumnsSequence(columns) { it.asAnsiString() }
+        chunkedByColumnsSequence(columns) { it.toAnsiString() }
 
     public operator fun plus(other: CharSequence): AnsiString {
         val otherTokens = if (other is AnsiString) other.tokens else other.toString().tokenize().tokens

@@ -43,9 +43,32 @@ private fun Span.linkRenderer(renderer: Renderer): Unit = linkedRenderersLock.wi
     }
 }
 
+/**
+ * Whether this span has a [Renderer] linked to it.
+ */
 internal val Span.rendererLinked: Boolean
+    get() = spanId.rendererLinked
+
+/**
+ * Whether this span has a [Renderer] linked to it.
+ */
+internal val SpanId.rendererLinked: Boolean
     get() = linkedRenderersLock.withLock {
-        linkedRenderers.containsKey(spanId)
+        linkedRenderers.containsKey(this)
+    }
+
+/**
+ * The [Renderer] linked to this span. If no renderer is linked, the [RootRenderer] is returned.
+ */
+internal val Span.linkedRenderer: Renderer
+    get() = spanId.linkedRenderer
+
+/**
+ * The [Renderer] linked to this span. If no renderer is linked, the [RootRenderer] is returned.
+ */
+internal val SpanId.linkedRenderer: Renderer
+    get() = linkedRenderersLock.withLock {
+        takeIf { it.valid }?.let { linkedRenderers[it] } ?: RootRenderer
     }
 
 private fun Span.unlinkRenderer(): Unit = linkedRenderersLock.withLock {
@@ -54,11 +77,6 @@ private fun Span.unlinkRenderer(): Unit = linkedRenderersLock.withLock {
 //        checkNotNull(linkedRenderers.remove(it)) { "Failed to unlink renderer for for span $it: no renderer linked" }
     }
 }
-
-private val Span.linkedRenderer: Renderer
-    get() = linkedRenderersLock.withLock {
-        spanId.takeIf { it.valid }?.let { linkedRenderers[it] } ?: RootRenderer
-    }
 
 /** Renderer that does not render does not render itself, but can only be used to create child renderer. */
 public object RootRenderer : Renderer {

@@ -25,6 +25,34 @@ Koodies is hosted on GitHub with releases provided on Maven Central.
 
 ## Features
 
+### OpenTelemetry Integration *(since 1.6.0)*
+
+The observability library [OpenTelemetry](https://opentelemetry.io/) is natively supported. Simply start a process and watch for yourself:
+
+[![DockerPi-based Test](assets/Tracing-DockerPi.png)](https://search.maven.org/search?q=g:com.bkahlert%20AND%20a:koodies)
+
+For manual instrumentation, the `spanning` function is provided:
+
+```kotlin
+spanning("span name") {
+    event("test event", Key.stringKey("test attribute") to "test value")
+    log("description") // = event("log", RenderingAttributes.DESCRIPTION to description)
+    42 // = return value
+}
+```
+
+[![Simple Span with two events](assets/Tracing-SimpleSpan.png)](https://search.maven.org/search?q=g:com.bkahlert%20AND%20a:koodies)
+
+By default, the span and all events with a description are also printed to the console:
+
+```text
+╭──╴span name
+│
+│   description                                                                 
+│
+╰──╴✔︎
+```
+
 ### Kotlin 1.5 Duration Extensions *(since 1.5.1)*
 
 Those of you missing the [duration extension removed in Kotlin 1.5](https://kotlinlang.org/docs/whatsnew15.html#duration-api-changes) may sigh of relief, since

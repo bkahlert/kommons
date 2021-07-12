@@ -2,7 +2,7 @@ package koodies.tracing.rendering
 
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.prefixWith
 import koodies.text.repeat
 import koodies.text.takeUnlessBlank
@@ -19,7 +19,7 @@ public object BlockStyles {
         override val indent: Int = INDENT
 
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
-            val startElements = Renderable.of(element).render(layout.totalWidth, 4).asAnsiString().lines()
+            val startElements = Renderable.of(element).render(layout.totalWidth, 4).toAnsiString().lines()
             appendLine(decorationFormatter(TOP), startElements.first())
             startElements.drop(1).forEach { startElement ->
                 appendLine(decorationFormatter(MIDDLE), MIDDLE_SPACE, startElement)
@@ -66,7 +66,7 @@ public object BlockStyles {
         override val indent: Int = INDENT
 
         override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
-            val startElements = Renderable.of(element).render(layout.totalWidth, 4).asAnsiString().lines()
+            val startElements = Renderable.of(element).render(layout.totalWidth, 4).toAnsiString().lines()
             append(decorationFormatter(playSymbol), MIDDLE_SPACE, startElements.first())
             startElements.drop(1).forEach { startElement ->
                 appendLine()

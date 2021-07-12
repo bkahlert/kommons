@@ -3,7 +3,7 @@ package koodies.text
 import koodies.math.ceilDiv
 import koodies.math.floorDiv
 import koodies.text.ANSI.ansiRemoved
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.Semantics.formattedAs
 
 /**
@@ -223,7 +223,7 @@ public fun CharSequence.chunkedByColumnsSequence(columns: Int): Sequence<String>
  */
 public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (CharSequence) -> R): Sequence<R> {
     require(columns > 0) { "Requested columns ${columns.formattedAs.input} must be greater than zero." }
-    var unprocessed = asAnsiString()
+    var unprocessed = toAnsiString()
     return generateSequence {
         if (unprocessed.isEmpty()) {
             null
@@ -297,7 +297,7 @@ private fun targetColumns(maxColumns: Int, marker: String): Int {
 /**
  * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(asAnsiString()) {
+public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(toAnsiString()) {
     requirePositiveColumns(maxColumns)
     if (length > 2 * maxColumns || columns > maxColumns) {
         val targetColumns = targetColumns(maxColumns, marker)
@@ -312,7 +312,7 @@ public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String =
 /**
  * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(asAnsiString()) {
+public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(toAnsiString()) {
     requirePositiveColumns(maxColumns)
     when {
         length > 3 * maxColumns -> { // save CPU by trashing obviously too much text
@@ -335,7 +335,7 @@ public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: Str
 /**
  * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
  */
-public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(asAnsiString()) {
+public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(toAnsiString()) {
     requirePositiveColumns(maxColumns)
     when {
         length > 3 * maxColumns -> { // save CPU by trashing obviously too much text

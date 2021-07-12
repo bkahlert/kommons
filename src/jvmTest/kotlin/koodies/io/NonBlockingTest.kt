@@ -40,7 +40,7 @@ class NonBlockingTest {
     @Nested
     inner class NonBlockingInputStreamReader {
 
-        @Test
+        @Slow @Test
         fun `should produce same byte sequence as ByteArrayInputStreamReader`() {
             val input = "A𝌪𝌫𝌬𝌭𝌮Z"
             val linesExpected = input.byteInputStream().reader(Charsets.UTF_8).readLines()
@@ -59,7 +59,7 @@ class NonBlockingTest {
             expectThat(readLines).isEqualTo(listOf("A\uD834\uDF2A", "\uD834\uDF2B", "\uD834\uDF2C\uD834\uDF2D\uD834\uDF2E", "Z"))
         }
 
-        @Test
+        @Slow @Test
         fun `should read no non-BEM unicode extremely slow input streams if buffered`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)
@@ -70,7 +70,7 @@ class NonBlockingTest {
             expectThat(readLines).isEqualTo(listOf("A\uD834\uDF2A", "\uD834\uDF2B", "\uD834\uDF2C\uD834\uDF2D\uD834\uDF2E", "Z"))
         }
 
-        @Smoke @Test
+        @Slow @Smoke @Test
         fun `should be equally readable like any other byte input stream`() {
             val input = "A𝌪\n𝌫\n𝌬𝌭𝌮\nZ"
             val inputStream = slowInputStream(1.seconds, Duration.ZERO to input)

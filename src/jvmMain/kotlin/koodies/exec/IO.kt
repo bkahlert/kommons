@@ -52,7 +52,7 @@ public sealed class IO(
     /**
      * An [IO] that represents information about a [Process].
      */
-    public sealed class Meta(type: String, text: String) : IO(type, text.asAnsiString()) {
+    public sealed class Meta(type: String, text: String) : IO(type, text.toAnsiString()) {
 
         /**
          * Not further specified information about a [Process].
@@ -85,7 +85,7 @@ public sealed class IO(
             /**
              * Factory to classify the given [text] as [Input].
              */
-            public infix fun typed(text: CharSequence): Input = if (text.isEmpty()) EMPTY else Input(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): Input = if (text.isEmpty()) EMPTY else Input(filter(text).toAnsiString())
         }
     }
 
@@ -99,7 +99,7 @@ public sealed class IO(
             /**
              * Factory to classify the given [text] as [Output].
              */
-            public infix fun typed(text: CharSequence): Output = if (text.isEmpty()) EMPTY else Output(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): Output = if (text.isEmpty()) EMPTY else Output(filter(text).toAnsiString())
         }
     }
 
@@ -111,7 +111,7 @@ public sealed class IO(
         /**
          * Creates a new error IO from the given [exception].
          */
-        public constructor(exception: Throwable) : this(exception.stackTraceToString().asAnsiString())
+        public constructor(exception: Throwable) : this(exception.stackTraceToString().toAnsiString())
 
         public companion object {
             private val EMPTY: Error = Error(AnsiString.EMPTY)
@@ -119,7 +119,7 @@ public sealed class IO(
             /**
              * Factory to classify the given [text] as an [Error].
              */
-            public infix fun typed(text: CharSequence): Error = if (text.isEmpty()) EMPTY else Error(filter(text).asAnsiString())
+            public infix fun typed(text: CharSequence): Error = if (text.isEmpty()) EMPTY else Error(filter(text).toAnsiString())
         }
     }
 

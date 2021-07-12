@@ -22,19 +22,6 @@ public interface CurrentSpan {
     ): CurrentSpan = event(Event.of(name, *attributes))
 
     /**
-     * Records an event using the given [name], [description] and optional [attributes].
-     *
-     * Attributes with a `null` value are removed; and together with the [name] and [description] rendered.
-     */
-    public fun event(
-        name: CharSequence,
-        description: CharSequence?,
-        vararg attributes: KeyValue<*, *>,
-    ): CurrentSpan = description
-        ?.let { event(Event.of(name, RenderingAttributes.DESCRIPTION to it, *attributes)) }
-        ?: event(Event.of(name, *attributes))
-
-    /**
      * Records an event using the given [description] and optional [attributes].
      *
      * Attributes with a `null` value are removed; and together with the [description] rendered.
@@ -48,7 +35,7 @@ public interface CurrentSpan {
     public fun log(
         description: CharSequence,
         vararg attributes: KeyValue<*, *>,
-    ): CurrentSpan = event("log", description, *attributes)
+    ): CurrentSpan = event("log", RenderingAttributes.DESCRIPTION to description, *attributes)
 
     /**
      * Records an event using the given [description], [extra] and optional [attributes].
@@ -61,11 +48,11 @@ public interface CurrentSpan {
      * If too many different event names are created the value of the recorded data for later analysis is considerably reduced.
      * Consider using [event] instead.*
      */
-    public fun logExtra(
+    public fun log(
         description: CharSequence,
         extra: CharSequence,
         vararg attributes: KeyValue<*, *>,
-    ): CurrentSpan = event("log", description, *attributes)
+    ): CurrentSpan = event("log", RenderingAttributes.DESCRIPTION to description, RenderingAttributes.EXTRA to extra, *attributes)
 
     /** Records the given [exception] using the given optional [attributes]. */
     public fun exception(exception: Throwable, vararg attributes: KeyValue<*, *>): CurrentSpan

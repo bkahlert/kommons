@@ -1,7 +1,7 @@
 package koodies.text
 
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.AnsiString.Companion.asAnsiString
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -40,7 +40,7 @@ class LinesKtTest {
 
         @Test
         fun `should return max length on ansi string`() {
-            expectThat("default\n${"magenta".ansi.magenta}".ansi.italic.asAnsiString().maxLength()).isEqualTo(7)
+            expectThat("default\n${"magenta".ansi.magenta}".ansi.italic.toAnsiString().maxLength()).isEqualTo(7)
         }
     }
 }

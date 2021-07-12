@@ -3,7 +3,6 @@ package koodies.tracing.rendering
 import koodies.asString
 import koodies.regex.RegularExpressions
 import koodies.text.ANSI.Text.Companion.ansi
-import koodies.text.AnsiString.Companion.asAnsiString
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.LineSeparators.wrapLines
 import koodies.text.formatColumns
@@ -33,7 +32,7 @@ public class BlockRenderer(
         val extractedColumns = style.layout.extract(attributes)
         if (extractedColumns.none { it.first != null }) return
         extractedColumns
-            .map { (text, maxColumns) -> text?.let { settings.contentFormatter(it) }?.asAnsiString() to maxColumns }
+            .map { (text, maxColumns) -> text?.let { settings.contentFormatter(it) } to maxColumns }
             .takeIf { it.any { (text, _) -> text != null } }
             ?.let { formatColumns(*it.toTypedArray(), paddingColumns = style.layout.gap, wrapLines = ::wrapNonUriLines) }
             ?.lineSequence()

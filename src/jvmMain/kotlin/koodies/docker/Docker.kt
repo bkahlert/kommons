@@ -471,8 +471,7 @@ public fun Path.download(
     uri: URI,
     fileName: String? = null,
     renderer: RendererProvider? = null,
-): Path =
-    download(uri.toString(), fileName, renderer)
+): Path = download(uri.toString(), fileName, renderer)
 
 private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }
 
