@@ -365,6 +365,9 @@ public object Unicode {
         public companion object : UnicodeBlockMeta<CombiningHalfMarksBlock> by metaFor()
     }
 
+    /** [ZERO WIDTH NO-BREAK SPACE](https://codepoints.net/U+FEFF) */
+    public const val ZERO_WIDTH_NO_BREAK_SPACE: Char = '\uFEFF'
+
     /** [REPLACEMENT CHARACTER](https://codepoints.net/U+FFFD) `�` */
     public const val REPLACEMENT_CHARACTER: Char = '\uFFFD'
 

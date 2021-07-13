@@ -8,6 +8,7 @@ import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.Fixtures.symbolicLink
 import koodies.test.HtmlFixture
+import koodies.test.expectThrows
 import koodies.test.withTempDir
 import koodies.time.Now
 import org.junit.jupiter.api.AfterAll
@@ -31,6 +32,7 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
+import kotlin.io.path.createFile
 import kotlin.io.path.div
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.writeText
@@ -213,23 +215,23 @@ class StdLibMissingKtTest {
         }
     }
 
-    private fun Path.empty(): Path {
-        listDirectoryEntriesRecursively()
-            .forEach { it.deleteRecursively() }
-        return this
-    }
-
     @Nested
-    inner class Empty {
+    inner class ListDirectoryEntriesRecursivelyOperation {
 
         @Test
-        fun `should delete contained files`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should delete directory contents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dir = resolve("dir")
             dir.directoryWithTwoFiles()
-            expectThat(dir.empty()) {
+            expectThat(dir.deleteDirectoryEntriesRecursively()) {
                 exists()
                 isEmpty()
             }
+        }
+
+        @Test
+        fun `should throws on non-directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val file = resolve("file").createFile()
+            expectThrows<NotDirectoryException> { file.deleteDirectoryEntriesRecursively() }
         }
     }
 

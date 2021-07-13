@@ -289,6 +289,14 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
     }
 
 /**
+ * Deletes the contents of this directory.
+ *
+ * Throws if this is no directory.
+ */
+public fun Path.deleteDirectoryEntriesRecursively(): Path =
+    apply { listDirectoryEntriesRecursively().forEach { it.deleteRecursively() } }
+
+/**
  * Registers this file for deletion the moment this program exits.
  *
  * For safety reasons, [recursively] must be explicitly set to `true`

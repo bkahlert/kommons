@@ -2,6 +2,8 @@ package koodies.text
 
 import koodies.collections.Dictionary
 import koodies.collections.dictOf
+import koodies.text.Unicode.ZERO_WIDTH_NO_BREAK_SPACE
+import koodies.text.Unicode.ZERO_WIDTH_SPACE
 
 /**
  * A collection of all whitespaces described in
@@ -93,8 +95,8 @@ public object Whitespaces : Collection<String> {
      */
     public val ZeroWidthWhitespaces: Dictionary<String, String> = dictOf(
         "\u180E" to "MONGOLIAN VOWEL SEPARATOR",
-        "\u200B" to "ZERO WIDTH SPACE",
-        "\uFEFF" to "ZERO WIDTH NO BREAK SPACE",
+        ZERO_WIDTH_SPACE.toString() to "ZERO WIDTH SPACE",
+        ZERO_WIDTH_NO_BREAK_SPACE.toString() to "ZERO WIDTH NO BREAK SPACE",
         default = { "UNKNOWN" })
 
     private val ALL = Dict.keys.toTypedArray()
