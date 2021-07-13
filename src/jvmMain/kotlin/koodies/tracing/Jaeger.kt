@@ -10,7 +10,7 @@ import koodies.tracing.Tracer.NOOP
 import java.net.URI
 
 /**
- * [Jaeger](https://www.jaegertracing.io/) [DockerImage] that you can
+ * [Jaeger](https://www.jaegertracing.io/) [DockerImage] that one can
  * simply [startLocally].
  */
 @Suppress("SpellCheckingInspection")

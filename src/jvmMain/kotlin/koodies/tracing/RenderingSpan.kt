@@ -206,16 +206,6 @@ internal data class RenderingSpan(
     }
 }
 
-/** Ends this span with the given [value]. */
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun <reified R> RenderingSpan.end(value: R): Unit =
-    end(Result.success(value))
-
-/** Ends this span with the given [exception]. */
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun RenderingSpan.end(exception: Throwable?): Unit =
-    exception?.let { end(Result.failure<Unit>(it)) } ?: end(Result.success(Unit))
-
 /**
  * Runs the given [block] with the [CurrentSpan]
  * as its receiver.

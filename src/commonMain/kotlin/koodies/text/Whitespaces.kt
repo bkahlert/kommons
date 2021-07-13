@@ -60,27 +60,25 @@ public object Whitespaces : Collection<String> {
     /** IDEOGRAPHIC SPACE: The width of ideographic (CJK) characters. */
     public const val IDEOGRAPHIC_SPACE: String = "\u3000"
 
-    public val Dict: Dictionary<String, String> by lazy {
-        dictOf(
-            SPACE to "SPACE",
-            NO_BREAK_SPACE to "NO BREAK SPACE",
-            OGHAM_SPACE_MARK to "OGHAM SPACE MARK",
-            EN_QUAD to "EN QUAD",
-            EM_QUAD to "EM QUAD",
-            EN_SPACE to "EN SPACE",
-            EM_SPACE to "EM SPACE",
-            THREE_PER_EM_SPACE to "THREE PER EM SPACE",
-            FOUR_PER_EM_SPACE to "FOUR PER EM SPACE",
-            SIX_PER_EM_SPACE to "SIX PER EM SPACE",
-            FIGURE_SPACE_FO to "FIGURE SPACE FO",
-            PUNCTUATION_SPACE to "PUNCTUATION SPACE",
-            THIN_SPACE to "THIN SPACE",
-            HAIR_SPACE to "HAIR SPACE",
-            NARROW_NO_BREAK_SPACE_FO to "NARROW NO BREAK SPACE FO",
-            MEDIUM_MATHEMATICAL_SPACE to "MEDIUM MATHEMATICAL SPACE",
-            IDEOGRAPHIC_SPACE to "IDEOGRAPHIC SPACE",
-            default = { "UNKNOWN" })
-    }
+    public val Dict: Dictionary<String, String> = dictOf(
+        SPACE to "SPACE",
+        NO_BREAK_SPACE to "NO BREAK SPACE",
+        OGHAM_SPACE_MARK to "OGHAM SPACE MARK",
+        EN_QUAD to "EN QUAD",
+        EM_QUAD to "EM QUAD",
+        EN_SPACE to "EN SPACE",
+        EM_SPACE to "EM SPACE",
+        THREE_PER_EM_SPACE to "THREE PER EM SPACE",
+        FOUR_PER_EM_SPACE to "FOUR PER EM SPACE",
+        SIX_PER_EM_SPACE to "SIX PER EM SPACE",
+        FIGURE_SPACE_FO to "FIGURE SPACE FO",
+        PUNCTUATION_SPACE to "PUNCTUATION SPACE",
+        THIN_SPACE to "THIN SPACE",
+        HAIR_SPACE to "HAIR SPACE",
+        NARROW_NO_BREAK_SPACE_FO to "NARROW NO BREAK SPACE FO",
+        MEDIUM_MATHEMATICAL_SPACE to "MEDIUM MATHEMATICAL SPACE",
+        IDEOGRAPHIC_SPACE to "IDEOGRAPHIC SPACE",
+        default = { "UNKNOWN" })
 
     /**
      * A Whitespace that "although called a “space” in its name, does not
@@ -93,25 +91,19 @@ public object Whitespaces : Collection<String> {
      * @return `true` if this code point is a space character
      * @see isWhitespace
      */
-    public val ZeroWidthWhitespaces: Dictionary<String, String> by lazy {
-        dictOf(
-            "\u180E" to "MONGOLIAN VOWEL SEPARATOR",
-            "\u200B" to "ZERO WIDTH SPACE",
-            "\uFEFF" to "ZERO WIDTH NO BREAK SPACE",
-            default = { "UNKNOWN" })
-    }
+    public val ZeroWidthWhitespaces: Dictionary<String, String> = dictOf(
+        "\u180E" to "MONGOLIAN VOWEL SEPARATOR",
+        "\u200B" to "ZERO WIDTH SPACE",
+        "\uFEFF" to "ZERO WIDTH NO BREAK SPACE",
+        default = { "UNKNOWN" })
 
-    private val ALL by lazy {
-        Dict.keys.toTypedArray()
-    }
+    private val ALL = Dict.keys.toTypedArray()
 
-    public val asCodePoints: List<CodePoint> by lazy {
-        ALL.map { it.asCodePoint() ?: error("Failed to convert whitespace ${it.toUByte()}") }
-    }
+    public val asCodePoints: List<CodePoint> = ALL.map { it.asCodePoint() ?: error("Failed to convert whitespace ${it.toUByte()}") }
 
-    public val asChars: List<Char> by lazy { ALL.map { it[0] } }
+    public val asChars: List<Char> = ALL.map { it[0] }
 
-    override val size: Int by lazy { ALL.size }
+    override val size: Int = ALL.size
 
     override fun contains(element: String): Boolean = ALL.contains(element)
 

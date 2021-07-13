@@ -63,20 +63,18 @@ public object LineSeparators : Collection<String> {
     public val DEFAULT: String = StringBuilder().appendLine().toString()
 
     /**
-     * [Regex] that matches all line separators.
-     */
-    public val REGEX: Regex by lazy {
-        CRLF.toLiteralRegex() or "[${ALL.filter { it != CRLF }.map { it.toLiteralRegex() }.joinToString("")}]".toRegex()
-    }
-
-    /**
      * [Regex] that matches only strings that contain no line separators, e.g. the last line of a multi-line text.
      */
-    public val LAST_LINE_REGEX: Regex by lazy { ".+$".toRegex() }
+    public val LAST_LINE_REGEX: Regex = ".+$".toRegex()
 
-    private val ALL by lazy { arrayOf(CRLF, LF, CR, NEL, PS, LS) }
+    private val ALL = arrayOf(CRLF, LF, CR, NEL, PS, LS)
 
-    override val size: Int by lazy { ALL.size }
+    /**
+     * [Regex] that matches all line separators.
+     */
+    public val REGEX: Regex = CRLF.toLiteralRegex() or "[${ALL.filter { it != CRLF }.map { it.toLiteralRegex() }.joinToString("")}]".toRegex()
+
+    override val size: Int = ALL.size
 
     override fun contains(element: String): Boolean = ALL.contains(element)
 
@@ -89,7 +87,7 @@ public object LineSeparators : Collection<String> {
     /**
      * The maximum length a line separator handled can have.
      */
-    public val MAX_LENGTH: Int by lazy { ALL.maxOf { it.length } }
+    public val MAX_LENGTH: Int = ALL.maxOf { it.length }
 
     /**
      * If this character sequence consists of more than one line this property is `true`.

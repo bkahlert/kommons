@@ -125,7 +125,6 @@ class RenderingSpanTest {
     @TestFactory
     fun fail(testName: TestName) = testEach<RenderingSpan.() -> Unit>(
         { end(Result.failure<Unit>(RuntimeException("test"))) },
-        { end(RuntimeException("test")) },
     ) { op ->
         val (traceId, rendered) = withRenderingSpan(testName, invokeEnd = false) { op() }
 
