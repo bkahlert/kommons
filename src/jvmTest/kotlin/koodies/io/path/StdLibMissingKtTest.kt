@@ -213,6 +213,26 @@ class StdLibMissingKtTest {
         }
     }
 
+    private fun Path.empty(): Path {
+        listDirectoryEntriesRecursively()
+            .forEach { it.deleteRecursively() }
+        return this
+    }
+
+    @Nested
+    inner class Empty {
+
+        @Test
+        fun `should delete contained files`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val dir = resolve("dir")
+            dir.directoryWithTwoFiles()
+            expectThat(dir.empty()) {
+                exists()
+                isEmpty()
+            }
+        }
+    }
+
     @Isolated
     @Nested
     inner class DeleteOnExit {

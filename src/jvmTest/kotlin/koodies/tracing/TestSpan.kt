@@ -208,7 +208,7 @@ class TestPrinter : Printer {
             is TestIO.Start -> {
                 println()
                 print("TraceID ".meta)
-                print(text.traceId.toString().ansi.gray)
+                print(text.traceId.ansi.gray)
                 print("   ")
                 println(text)
                 println(headerLine)
@@ -258,7 +258,7 @@ class TestPrinter : Printer {
     private companion object {
         private const val COLUMNS = 80
 
-        private val formatter = Formatter { it.toString().ansi.color(Colors.gray(.45)) }
+        private val formatter = Formatter<CharSequence> { it.ansi.color(Colors.gray(.45)) }
         val CharSequence.meta: CharSequence get() = formatter.invoke(this)
         val headerLine = StringBuilder().apply {
             append("─".repeat((COLUMNS floorDiv 2) + 1))

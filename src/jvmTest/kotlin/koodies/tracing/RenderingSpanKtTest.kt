@@ -491,7 +491,7 @@ class RenderingSpanKtTest {
             fun `should update one line style`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) {
                     spanning("name", oneLineStyle = object : Style by OneLineStyles.DEFAULT {
-                        override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence = "!$element!"
+                        override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence = "!$element!"
                     }) { spanningLine("one-line") { log("message") } }
                 }
                 expectThat(output).toStringMatchesCurlyPattern("""

@@ -12,17 +12,17 @@ public data class Settings(
     /**
      * Formatter to be applied to the name.
      */
-    public val nameFormatter: FilteringFormatter = FilteringFormatter { it.toString().ansi.bold },
+    public val nameFormatter: FilteringFormatter<CharSequence> = FilteringFormatter { it.ansi.bold },
 
     /**
      * Formatter to be applied to content.
      */
-    public val contentFormatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
+    public val contentFormatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence,
 
     /**
      * Formatter to be applied to decoration such as borders.
      */
-    public val decorationFormatter: Formatter = Formatter.ToCharSequence,
+    public val decorationFormatter: Formatter<CharSequence> = Formatter.ToCharSequence,
 
     /**
      * Transformation to be applied to a [ReturnValue] before rendered.

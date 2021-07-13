@@ -123,7 +123,7 @@ class BlockRendererTest {
                 blockStyle = style,
                 layout = ColumnsLayout(DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
-                decorationFormatter = { it.toString().ansi.brightRed },
+                decorationFormatter = { it.ansi.brightRed },
                 returnValueTransform = { it },
                 printer = printer,
             )).apply {

@@ -225,7 +225,7 @@ public fun <T : CharSequence> T.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
-    formatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
+    formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence,
 ): String {
     val block = this.lines().center(border[5])
     if (block.isEmpty()) return toString()
@@ -255,7 +255,7 @@ public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     border: CharSequence = Rounded,
     padding: Int = 2,
     margin: Int = 1,
-    formatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
+    formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence,
 ): String = joinLinesToString().wrapWithBorder(border, padding, margin, formatter)
 
 public class Draw(public val text: CharSequence) {
@@ -269,7 +269,7 @@ public class Draw(public val text: CharSequence) {
          *  └────────┘
          * ```
          */
-        public fun light(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun light(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(Light, padding, margin, formatter)
 
         /**
@@ -279,7 +279,7 @@ public class Draw(public val text: CharSequence) {
          *  ┗━━━━━━━━┛
          * ```
          */
-        public fun heavy(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun heavy(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(Heavy, padding, margin, formatter)
 
         /**
@@ -289,7 +289,7 @@ public class Draw(public val text: CharSequence) {
          *  ██████████
          * ```
          */
-        public fun block(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun block(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(Block, padding, margin, formatter)
 
         /**
@@ -299,7 +299,7 @@ public class Draw(public val text: CharSequence) {
          *  ╚════════╝
          * ```
          */
-        public fun double(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun double(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(Double, padding, margin, formatter)
 
         /**
@@ -309,7 +309,7 @@ public class Draw(public val text: CharSequence) {
          *  ╰────────╯
          * ```
          */
-        public fun rounded(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun rounded(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(Rounded, padding, margin, formatter)
 
         /**
@@ -319,7 +319,7 @@ public class Draw(public val text: CharSequence) {
          *  └┈┄┄┄┄┄┄┄┘
          * ```
          */
-        public fun lightDotted(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun lightDotted(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(LightDotted, padding, margin, formatter)
 
         /**
@@ -329,7 +329,7 @@ public class Draw(public val text: CharSequence) {
          *  ┗╍╍╍╍╍╍╍╍┛
          * ```
          */
-        public fun heavyDotted(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun heavyDotted(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(HeavyDotted, padding, margin, formatter)
 
         /**
@@ -339,7 +339,7 @@ public class Draw(public val text: CharSequence) {
          *   ▽▽▽▽▽▽▽▽
          * ```
          */
-        public fun spikedOutward(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun spikedOutward(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(SpikedOutward, padding, margin, formatter)
 
 
@@ -350,7 +350,7 @@ public class Draw(public val text: CharSequence) {
          *  ◺△△△△△△△△◿
          * ```
          */
-        public fun spikedInward(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence): String =
+        public fun spikedInward(padding: Int = 0, margin: Int = 0, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence): String =
             text.wrapWithBorder(SpikedInward, padding, margin, formatter)
     }
 }

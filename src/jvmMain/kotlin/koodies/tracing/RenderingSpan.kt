@@ -38,7 +38,7 @@ private fun Span.linkRenderer(renderer: Renderer): Unit = linkedRenderersLock.wi
         linkedRenderers[it] = renderer
         addEvent("renderer-linked", Attributes.of(
             RenderingAttributes.RENDERER, (RenderingAttributes.RENDERER to renderer).value.ansiRemoved,
-            RenderingAttributes.RENDERERS, linkedRenderersLock.withLock { linkedRenderers.keys.map { renderer -> renderer.toString().ansiRemoved } },
+            RenderingAttributes.RENDERERS, linkedRenderersLock.withLock { linkedRenderers.keys.map { renderer -> renderer.ansiRemoved } },
         ))
     }
 }
@@ -266,9 +266,9 @@ public fun <R> spanning(
     renderer: RendererProvider = { it(this) },
     tracer: io.opentelemetry.api.trace.Tracer = Tracer,
 
-    nameFormatter: FilteringFormatter? = null,
-    contentFormatter: FilteringFormatter? = null,
-    decorationFormatter: Formatter? = null,
+    nameFormatter: FilteringFormatter<CharSequence>? = null,
+    contentFormatter: FilteringFormatter<CharSequence>? = null,
+    decorationFormatter: Formatter<CharSequence>? = null,
     returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
     layout: ColumnsLayout? = null,
     blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,

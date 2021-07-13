@@ -99,9 +99,9 @@ public data class Executor<E : Exec>(
         workingDirectory: Path? = null,
         execTerminationCallback: ExecTerminationCallback? = null,
 
-        nameFormatter: FilteringFormatter? = null,
-        contentFormatter: FilteringFormatter? = null,
-        decorationFormatter: Formatter? = null,
+        nameFormatter: FilteringFormatter<CharSequence>? = null,
+        contentFormatter: FilteringFormatter<CharSequence>? = null,
+        decorationFormatter: Formatter<CharSequence>? = null,
         returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
         layout: ColumnsLayout? = null,
         blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,

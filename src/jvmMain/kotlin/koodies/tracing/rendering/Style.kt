@@ -22,7 +22,7 @@ public interface Style {
      */
     public fun start(
         element: CharSequence,
-        decorationFormatter: Formatter = ToCharSequence,
+        decorationFormatter: Formatter<CharSequence> = ToCharSequence,
     ): CharSequence?
 
     /**
@@ -33,7 +33,7 @@ public interface Style {
      */
     public fun content(
         element: CharSequence,
-        decorationFormatter: Formatter = ToCharSequence,
+        decorationFormatter: Formatter<CharSequence> = ToCharSequence,
     ): CharSequence?
 
     /**
@@ -45,7 +45,7 @@ public interface Style {
      */
     public fun parent(
         element: CharSequence,
-        decorationFormatter: Formatter = ToCharSequence,
+        decorationFormatter: Formatter<CharSequence> = ToCharSequence,
     ): CharSequence? = content(element, decorationFormatter)
 
     /**
@@ -57,7 +57,7 @@ public interface Style {
     public fun end(
         element: ReturnValue,
         resultValueFormatter: (ReturnValue) -> ReturnValue?,
-        decorationFormatter: Formatter = ToCharSequence,
+        decorationFormatter: Formatter<CharSequence> = ToCharSequence,
     ): CharSequence?
 
     public fun buildString(block: StringBuilder.() -> Unit): CharSequence? =

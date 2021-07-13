@@ -2,7 +2,7 @@ package koodies.exec
 
 import koodies.shell.ShellScript
 import koodies.test.tests
-import koodies.text.ANSI
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.FilteringFormatter.Companion.fromScratch
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
@@ -82,7 +82,7 @@ class RendererProvidersTest {
     @Nested
     inner class OneLineLog {
 
-        private val formatter: ANSI.FilteringFormatter = ANSI.FilteringFormatter { it.toString().ansi.inverse.magenta }
+        private val formatter: FilteringFormatter<CharSequence> = FilteringFormatter { it.ansi.inverse.magenta }
 
         @TestFactory
         fun TestSpan.`should compact log`() = testLogOfSyncAndAsyncExec("""

@@ -18,7 +18,7 @@ public object BlockStyles {
 
         override val indent: Int = INDENT
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
+        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
             val startElements = Renderable.of(element).render(layout.totalWidth, 4).toAnsiString().lines()
             appendLine(decorationFormatter(TOP), startElements.first())
             startElements.drop(1).forEach { startElement ->
@@ -27,11 +27,15 @@ public object BlockStyles {
             append(decorationFormatter(MIDDLE))
         }
 
-        override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
+        override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
             append(decorationFormatter(MIDDLE), MIDDLE_SPACE, element)
         }
 
-        override fun end(element: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue?, decorationFormatter: Formatter): CharSequence? {
+        override fun end(
+            element: ReturnValue,
+            resultValueFormatter: (ReturnValue) -> ReturnValue?,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? {
             val processReturnValue = resultValueFormatter(element)
 
             return when (element.successful) {
@@ -65,7 +69,7 @@ public object BlockStyles {
 
         override val indent: Int = INDENT
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
+        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
             val startElements = Renderable.of(element).render(layout.totalWidth, 4).toAnsiString().lines()
             append(decorationFormatter(playSymbol), MIDDLE_SPACE, startElements.first())
             startElements.drop(1).forEach { startElement ->
@@ -74,11 +78,15 @@ public object BlockStyles {
             }
         }
 
-        override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = buildString {
+        override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
             append(decorationFormatter(dot), " ", element)
         }
 
-        override fun end(element: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue?, decorationFormatter: Formatter): CharSequence? =
+        override fun end(
+            element: ReturnValue,
+            resultValueFormatter: (ReturnValue) -> ReturnValue?,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? =
             buildString {
                 val formatted = resultValueFormatter(element)?.format()
                 if (!element.successful) append(formatted?.ansi?.red?.bold)
@@ -102,13 +110,18 @@ public object BlockStyles {
 
         override val indent: Int = INDENT
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter): CharSequence? =
+        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? =
             Renderable.of(element).render(layout.totalWidth, 4).takeUnlessBlank()
 
-        override fun content(element: CharSequence, decorationFormatter: Formatter): CharSequence? = element.takeUnlessBlank()
-        override fun parent(element: CharSequence, decorationFormatter: Formatter): CharSequence? = content(element, decorationFormatter)?.prefixWith(PREFIX)
+        override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = element.takeUnlessBlank()
+        override fun parent(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? =
+            content(element, decorationFormatter)?.prefixWith(PREFIX)
 
-        override fun end(element: ReturnValue, resultValueFormatter: (ReturnValue) -> ReturnValue?, decorationFormatter: Formatter): CharSequence? =
+        override fun end(
+            element: ReturnValue,
+            resultValueFormatter: (ReturnValue) -> ReturnValue?,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? =
             resultValueFormatter(element)?.format()
 
         public companion object : (ColumnsLayout, Int) -> None {

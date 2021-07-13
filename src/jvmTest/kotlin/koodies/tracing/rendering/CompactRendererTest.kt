@@ -20,8 +20,8 @@ class CompactRendererTest {
     fun TestSpan.`should render`() {
         val rendered = capturing {
             CompactRenderer(settings.copy(
-                contentFormatter = { it.toString().ansi.underline },
-                decorationFormatter = { it.toString().ansi.brightMagenta },
+                contentFormatter = { it.ansi.underline },
+                decorationFormatter = { it.ansi.brightMagenta },
                 printer = it,
             )).run {
                 start("One Two Three")

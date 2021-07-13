@@ -119,9 +119,9 @@ public object ANSI {
         return toString().mapLines { "$it$reset" }
     }
 
-    public fun interface FilteringFormatter {
-        public operator fun invoke(value: Any): CharSequence?
-        public operator fun plus(other: FilteringFormatter): FilteringFormatter = FilteringFormatter { invoke(it)?.let(other::invoke) }
+    public fun interface FilteringFormatter<in T> {
+        public operator fun invoke(value: T): CharSequence?
+        public operator fun plus(other: FilteringFormatter<CharSequence>): FilteringFormatter<T> = FilteringFormatter { invoke(it)?.let(other::invoke) }
 
         public companion object {
 
@@ -130,18 +130,19 @@ public object ANSI {
              * from any previous formatting and wrapped in a [ANSI.Text] for convenient
              * customizations.
              */
-            public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter = FilteringFormatter { it.toString().ansiRemoved.ansi.transform() }
+            public fun fromScratch(transform: Text.() -> CharSequence?): FilteringFormatter<Any> =
+                FilteringFormatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
              * A formatter that applies [Any.toString] to its text if it's not already [CharSequence].
              */
-            public val ToCharSequence: FilteringFormatter = FilteringFormatter { text -> (text as? CharSequence) ?: text.toString() }
+            public val ToCharSequence: FilteringFormatter<Any> = FilteringFormatter { text -> (text as? CharSequence) ?: text.toString() }
         }
     }
 
-    public fun interface Formatter : FilteringFormatter {
-        override operator fun invoke(value: Any): CharSequence
-        public operator fun plus(other: Formatter): Formatter = Formatter { invoke(it).let(other::invoke) }
+    public fun interface Formatter<in T> : FilteringFormatter<T> {
+        override operator fun invoke(value: T): CharSequence
+        public operator fun plus(other: Formatter<CharSequence>): Formatter<T> = Formatter { invoke(it).let(other::invoke) }
 
         public companion object {
 
@@ -150,34 +151,34 @@ public object ANSI {
              * from any previous formatting and wrapped in a [ANSI.Text] for convenient
              * customizations.
              */
-            public fun fromScratch(transform: Text.() -> CharSequence): Formatter = Formatter { it.toString().ansiRemoved.ansi.transform() }
+            public fun fromScratch(transform: Text.() -> CharSequence): Formatter<Any> = Formatter { it.toString().ansiRemoved.ansi.transform() }
 
             /**
              * A formatter that applies [Any.toString] to its text if it's not already [CharSequence].
              */
-            public val ToCharSequence: Formatter = Formatter { text -> (text as? CharSequence) ?: text.toString() }
+            public val ToCharSequence: Formatter<Any> = Formatter { text -> (text as? CharSequence) ?: text.toString() }
         }
     }
 
     public fun CharSequence.colorize(): String = mapCharacters { Colors.random()(it) }
 
-    public interface Colorizer : Formatter {
-        public val bg: Formatter
-        public fun on(backgroundColorizer: Colorizer): Formatter
+    public interface Colorizer : Formatter<CharSequence> {
+        public val bg: Formatter<CharSequence>
+        public fun on(backgroundColorizer: Colorizer): Formatter<CharSequence>
     }
 
-    private open class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter {
-        override fun invoke(value: Any): String = ansiCode.format(value.toString())
-        override operator fun plus(other: Formatter): Formatter =
+    private open class AnsiCodeFormatter(private val ansiCode: AnsiCode) : Formatter<CharSequence> {
+        override fun invoke(value: CharSequence): String = ansiCode.format(value.toString())
+        override operator fun plus(other: Formatter<CharSequence>): Formatter<CharSequence> =
             (other as? AnsiCodeFormatter)?.ansiCode?.plus(ansiCode)?.let { AnsiCodeFormatter(it) } ?: super.plus(other)
 
-        override operator fun plus(other: FilteringFormatter): FilteringFormatter =
+        override operator fun plus(other: FilteringFormatter<CharSequence>): FilteringFormatter<CharSequence> =
             (other as? AnsiCodeFormatter)?.ansiCode?.plus(ansiCode)?.let { AnsiCodeFormatter(it) } ?: super.plus(other)
     }
 
     private class AnsiColorCodeFormatter(ansiCode: AnsiColorCode) : Colorizer, AnsiCodeFormatter(ansiCode) {
-        override val bg: Formatter = AnsiCodeFormatter(ansiCode.bg)
-        override fun on(backgroundColorizer: Colorizer): Formatter = this + (backgroundColorizer.bg)
+        override val bg: Formatter<CharSequence> = AnsiCodeFormatter(ansiCode.bg)
+        override fun on(backgroundColorizer: Colorizer): Formatter<CharSequence> = this + (backgroundColorizer.bg)
     }
 
     private fun reset(level: AnsiSupport) = if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0)
@@ -322,13 +323,13 @@ public object ANSI {
 
     public object Style {
 
-        public val bold: Formatter get() = AnsiCodeFormatter(ansi(1, 22))
-        public val dim: Formatter get() = AnsiCodeFormatter(ansi(2, 22))
-        public val italic: Formatter get() = AnsiCodeFormatter(ansi(3, 23))
-        public val underline: Formatter get() = AnsiCodeFormatter(ansi(4, 24))
-        public val inverse: Formatter get() = AnsiCodeFormatter(ansi(7, 27))
-        public val hidden: Formatter get() = AnsiCodeFormatter(ansi(8, 28))
-        public val strikethrough: Formatter get() = AnsiCodeFormatter(ansi(9, 29))
+        public val bold: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(1, 22))
+        public val dim: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(2, 22))
+        public val italic: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(3, 23))
+        public val underline: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(4, 24))
+        public val inverse: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(7, 27))
+        public val hidden: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(8, 28))
+        public val strikethrough: Formatter<CharSequence> get() = AnsiCodeFormatter(ansi(9, 29))
 
         public fun CharSequence.bold(): CharSequence = bold(this)
         public fun CharSequence.dim(): CharSequence = dim(this)
@@ -340,7 +341,7 @@ public object ANSI {
 
     public open class Preview(
         protected val text: CharSequence,
-        protected open val formatter: FilteringFormatter = FilteringFormatter.ToCharSequence,
+        protected open val formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence,
         public val done: String = formatter(text).toString(),
     ) : CharSequence by done {
         override fun toString(): String = done
@@ -376,8 +377,8 @@ public object ANSI {
     }
 
     public interface Styleable<T : CharSequence> {
-        public fun style(formatter: Formatter): T
-        public fun style(formatter: FilteringFormatter): T?
+        public fun style(formatter: Formatter<CharSequence>): T
+        public fun style(formatter: FilteringFormatter<CharSequence>): T?
 
         public val bold: T get() = style(Style.bold)
         public val dim: T get() = style(Style.dim)
@@ -388,18 +389,22 @@ public object ANSI {
         public val strikethrough: T get() = style(Style.strikethrough)
     }
 
-    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter = FilteringFormatter.ToCharSequence) :
+    public class Text private constructor(text: CharSequence, formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence) :
         Preview(text, formatter),
         Colorable<ColoredText>,
         Styleable<Text> {
         override fun color(colorizer: Colorizer): ColoredText = ColoredText(text, colorizer)
-        override fun style(formatter: Formatter): Text = Text(formatter(text))
-        override fun style(formatter: FilteringFormatter): Text? = formatter(text)?.let(::Text)
+        override fun style(formatter: Formatter<CharSequence>): Text = Text(formatter(text))
+        override fun style(formatter: FilteringFormatter<CharSequence>): Text? = formatter(text)?.let(::Text)
 
         public class ColoredText(text: CharSequence, private val colorizer: Colorizer) : Preview(text, colorizer),
             Styleable<Text> {
-            override fun style(formatter: Formatter): Text = Text(text, colorizer + formatter)
-            override fun style(formatter: FilteringFormatter): Text = Text(text, colorizer + formatter)
+            override fun style(formatter: Formatter<CharSequence>): Text {
+                val formatter1: Formatter<CharSequence> = colorizer + formatter
+                return Text(text, formatter1)
+            }
+
+            override fun style(formatter: FilteringFormatter<CharSequence>): Text = Text(text, colorizer + formatter)
             public val bg: Text get() = Text(text, colorizer.bg)
             public val on: ForegroundColoredText get() = ForegroundColoredText(text, colorizer)
         }
