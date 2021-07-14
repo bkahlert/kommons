@@ -370,6 +370,7 @@ class JavaExecMockTest {
 
     @Test
     fun `should read zero bytes without exception and delay onexit`() {
+        @Suppress("SpellCheckingInspection")
         val process = withIndividuallySlowInput(
             Duration.ZERO to "[  OK  ] Started Update UTMP about System Runlevel Changes.$LF",
             prompt(),

@@ -341,7 +341,7 @@ public class DockerRunCommandLine(
             /**
              * Context to build [Options].
              */
-
+            @Deprecated("use constructor")
             public class OptionsContext(override val captures: CapturesMap) : CapturingContext() {
 
                 /**
@@ -351,6 +351,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#detached--d"
                  * >Docker run reference: Detached (-d)</a>
                  */
+                @Deprecated("use property")
                 public val detached: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
 
                 /**
@@ -360,6 +361,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime"
                  * >Docker run reference: ENTRYPOINT (default command to execute at runtime)</a>
                  */
+                @Deprecated("use property")
                 public val entrypoint: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
 
                 /**
@@ -369,6 +371,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#name---name"
                  * >Docker run reference: Name (--name)</a>
                  */
+                @Deprecated("use property")
                 public val name: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
 
                 /**
@@ -380,6 +383,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#name---name"
                  * >Docker run reference: Name (--name)</a>
                  */
+                @Deprecated("use property")
                 public val container: SkippableCapturingBuilderInterface<() -> DockerContainer, DockerContainer?> by builder()
 
                 /**
@@ -401,6 +405,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#expose-incoming-ports"
                  * >Docker run reference: EXPOSE (incoming ports)</a>
                  */
+                @Deprecated("use property")
                 public val publish: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder()
 
                 /**
@@ -412,6 +417,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities"
                  * >Docker run reference: Runtime privilege and Linux capabilities</a>
                  */
+                @Deprecated("use property")
                 public val privileged: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
 
                 /**
@@ -422,6 +428,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#workdir"
                  * >Docker run reference: WORKDIR</a>
                  */
+                @Deprecated("use property")
                 public val workingDirectory: SkippableCapturingBuilderInterface<() -> ContainerPath, ContainerPath?> by builder()
 
                 /**
@@ -432,6 +439,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/run/#clean-up---rm"
                  * >Docker run reference: Clean up (--rm)</a>
                  */
+                @Deprecated("use property")
                 public val autoCleanup: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
 
                 /**
@@ -440,6 +448,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
                  * >Docker run: Options</a>
                  */
+                @Deprecated("use property")
                 public val interactive: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
 
                 /**
@@ -448,6 +457,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
                  * >Docker run: Options</a>
                  */
+                @Deprecated("use property")
                 public val pseudoTerminal: SkippableCapturingBuilderInterface<Context.() -> BooleanValue, Boolean?> by OnOff
 
                 /**
@@ -456,6 +466,7 @@ public class DockerRunCommandLine(
                  * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#add-bind-mounts-or-volumes-using-the---mount-flag"
                  * >Docker run: Add bind mounts or volumes using the --mount flag</a>
                  */
+                @Deprecated("use property")
                 public val mounts: SkippableCapturingBuilderInterface<Init<MountOptionContext<Unit>>, MountOptions?> by MountOptions
 
                 /**
@@ -467,6 +478,7 @@ public class DockerRunCommandLine(
                  * ***Note:** This feature should only be used if the needed option
                  * is not implemented.*
                  */
+                @Deprecated("use property")
                 public val custom: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>?> by ListBuilder()
             }
 
@@ -502,6 +514,7 @@ public class DockerRunCommandLine(
              * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#extended-description"
              * >Docker run: Extended Description</a>
              */
+            @Deprecated("use property")
             public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
 
             /**
@@ -511,11 +524,13 @@ public class DockerRunCommandLine(
              * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
              * >Docker run: Options</a>
              */
+            @Deprecated("use property")
             public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
 
             /**
              * The command line the [DockerRunCommandLine] should run.
              */
+            @Deprecated("use property")
             public val commandLine: SkippableCapturingBuilderInterface<CommandLineContext.() -> Unit, CommandLine?> by CommandLine
         }
 
@@ -551,24 +566,8 @@ public fun Executable<Exec>.dockerized(options: Options = Options(), image: Dock
 
 /**
  * Returns a [DockerRunCommandLine] that runs `this` [Executable]
- * using the [DockerImage] built by [image]
- * and the [Options] built by [options].
- */
-public fun Executable<Exec>.dockerized(image: DockerImageInit, options: Init<OptionsContext>): DockerRunCommandLine =
-    DockerRunCommandLine(DockerImage(image), Options(options), this)
-
-/**
- * Returns a [DockerRunCommandLine] that runs `this` [Executable]
  * using the specified [image]
  * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.content]).
  */
 public fun Executable<Exec>.dockerized(image: DockerImage, options: Options = Options()): DockerRunCommandLine =
     DockerRunCommandLine(image, options, this)
-
-/**
- * Returns a [DockerRunCommandLine] that runs `this` [Executable]
- * using the specified [image]
- * and the [Options] built by [options].
- */
-public fun Executable<Exec>.dockerized(image: DockerImage, options: Init<OptionsContext>): DockerRunCommandLine =
-    DockerRunCommandLine(image, Options(options), this)

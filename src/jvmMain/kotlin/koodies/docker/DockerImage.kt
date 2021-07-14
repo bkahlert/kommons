@@ -1,7 +1,6 @@
 package koodies.docker
 
 import koodies.Koodies
-import koodies.builder.Init
 import koodies.builder.StatelessBuilder
 import koodies.collections.head
 import koodies.collections.tail
@@ -9,7 +8,6 @@ import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerImage.Companion.parse
 import koodies.docker.DockerImage.ImageContext
 import koodies.docker.DockerRunCommandLine.Options
-import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.Exec
 import koodies.exec.Executable
 import koodies.exec.Process.ExitState
@@ -159,14 +157,6 @@ public open class DockerImage(
      */
     public fun Executable<Exec>.dockerized(options: Options): DockerRunCommandLine =
         dockerized(this@DockerImage, options)
-
-    /**
-     * Returns a [DockerRunCommandLine] that runs `this` [Executable]
-     * using `this` [DockerImage]
-     * and the [Options] built by [options].
-     */
-    public fun Executable<Exec>.dockerized(options: Init<OptionsContext>): DockerRunCommandLine =
-        dockerized(this@DockerImage, Options(options))
 
     private val string = repoAndPath.joinToString("/") + specifier
     override val length: Int = string.length

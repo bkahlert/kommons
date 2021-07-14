@@ -155,16 +155,19 @@ public open class CommandLine(
         /**
          * Context to build a [CommandLine].
          */
+        @Deprecated("use constructor")
         public class CommandLineContext(override val captures: CapturesMap) : CapturingContext() {
 
             /**
              * The command to be executed.
              */
+            @Deprecated("use property")
             public val command: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
 
             /**
              * Specifies the arguments to be passed to [command].
              */
+            @Deprecated("use property")
             public val arguments: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder()
         }
 

@@ -3,6 +3,7 @@ package koodies.docker
 import koodies.Exceptions
 import koodies.docker.Docker.info.get
 import koodies.docker.DockerExitStateHandler.Failed
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerSearchCommandLine.DockerSearchResult
 import koodies.exec.CommandLine
 import koodies.exec.Exec
@@ -176,10 +177,10 @@ public object Docker {
         executableProvider: (ContainerPath) -> Executable<Exec>,
     ): DockerExec {
         val containerPath = "/work".asContainerPath()
-        return executableProvider(containerPath).dockerized(image) {
-            mounts { workingDirectory mountAt containerPath }
-            workingDirectory { containerPath }
-        }.run {
+        return executableProvider(containerPath).dockerized(image, Options(
+            mounts = MountOptions { workingDirectory mountAt containerPath },
+            workingDirectory = containerPath,
+        )).run {
             val interactivity = if (inputStream != null) NonInteractive(inputStream) else Interactive(false)
             if (renderer != null) exec.mode { sync(interactivity) }.logging(renderer = renderer)
             else exec.mode { sync(interactivity) }()
@@ -489,10 +490,11 @@ private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathSt
 public fun Path.dockerPi(
     name: String = "dockerpi".withRandomSuffix(),
     processor: Processor<DockerExec> = Processors.spanningProcessor(),
-): DockerExec = DockerRunCommandLine {
-    image { "lukechilds" / "dockerpi" tag "vm" }
-    options {
-        name { name }
-        mounts { this@dockerPi mountAt "/sdcard/filesystem.img" }
-    }
-}.exec.mode { async(Interactive { nonBlocking }) }.processing(processor = processor) // TODO also set workingdir?
+): DockerExec = DockerRunCommandLine(
+    image = DockerImage { "lukechilds" / "dockerpi" tag "vm" },
+    options = Options(
+        name = DockerContainer.from(name),
+        mounts = MountOptions { this@dockerPi mountAt "/sdcard/filesystem.img" }
+    ),
+    executable = CommandLine(""),
+).exec.mode { async(Interactive { nonBlocking }) }.processing(processor = processor) // TODO also set workingdir?

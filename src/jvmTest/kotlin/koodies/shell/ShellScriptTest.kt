@@ -1,7 +1,12 @@
 package koodies.shell
 
+import koodies.docker.DockerContainer
+import koodies.docker.DockerImage
 import koodies.docker.DockerRunCommandLine
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerStopCommandLine
+import koodies.docker.MountOptions
+import koodies.exec.CommandLine
 import koodies.exec.exitCodeOrNull
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
@@ -290,31 +295,27 @@ class ShellScriptTest {
 
         @Nested
         inner class DockerCommand {
+
             @Test
             fun `should build valid docker run`() {
                 expectThat(ShellScript {
                     shebang
-                    !DockerRunCommandLine {
-                        image { "image" / "name" }
-                        options {
-                            name { "container-name" }
-                            mounts {
+                    !DockerRunCommandLine(
+                        image = DockerImage { "image" / "name" },
+                        options = Options(
+                            name = DockerContainer.from("container-name"),
+                            mounts = MountOptions {
                                 Path.of("/a/b") mountAt "/c/d"
                                 Path.of("/e/f/../g") mountAt "//h"
-                            }
-                        }
-                        commandLine {
-                            arguments {
-                                +"-arg1"
-                                +"--argument" + "2"
-                            }
-                        }
-                    }
+                            },
+                        ),
+                        executable = CommandLine("-arg1", "--argument", "2"),
+                    )
                 }).toStringIsEqualTo("""
-                #!/bin/sh
-                'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
-                
-            """.trimIndent())
+                    #!/bin/sh
+                    'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
+                    
+                """.trimIndent())
             }
 
             @Test

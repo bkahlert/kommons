@@ -1,9 +1,6 @@
 package koodies.docker
 
-import koodies.builder.Init
-import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options
-import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.docker.MountOptionContext.Type.bind
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
@@ -28,12 +25,10 @@ import koodies.io.path.pathString
 import koodies.io.tempDir
 import koodies.runtime.onExit
 import koodies.shell.ShellScript
-import koodies.test.BuilderFixture
 import koodies.test.HtmlFixture
 import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.expecting
-import koodies.test.test
 import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.toStringContains
@@ -56,6 +51,7 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isNotNull
 import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
+import strikt.assertions.isTrue
 import java.nio.file.Path
 import kotlin.time.measureTime
 
@@ -63,33 +59,21 @@ import kotlin.time.measureTime
 class DockerRunCommandLineTest {
 
     @Test
-    fun `should build command line`() {
-        val dockerRunCommand = DockerRunCommandLine(init)
-        expectThat(dockerRunCommand).isEqualTo(result)
-    }
-
-    @Test
-    fun `should build same format for no sub builders and empty sub builders`() {
-        val commandBuiltWithNoBuilders = DockerRunCommandLine { image by dockerImage }
-        val commandBuiltWithEmptyBuilders = DockerRunCommandLine {
-            image by dockerImage
-            options { name by commandBuiltWithNoBuilders.options.name?.name }
-            commandLine { }
-        }
-
-        expectThat(commandBuiltWithNoBuilders).isEqualTo(commandBuiltWithEmptyBuilders)
+    fun `should use default options if omitted`() {
+        expectThat(DockerRunCommandLine(DOCKER_IMAGE, EXECUTABLE)).isEqualTo(DockerRunCommandLine(DOCKER_IMAGE, Options(), EXECUTABLE))
     }
 
     @TestFactory
-    fun `should set have auto cleanup and interactive options on by default`() =
-        test(DockerRunCommandLine { image by dockerImage }.toCommandLine().arguments) {
-            asserting { contains("--rm") }
-            asserting { contains("--interactive") }
+    fun `should set have auto cleanup and interactive options on by default`() {
+        expectThat(Options()) {
+            get { autoCleanup }.isTrue()
+            get { interactive }.isTrue()
         }
+    }
 
     @Test
     fun `should build valid docker run`() {
-        expectThat(result).toStringIsEqualTo("""
+        expectThat(DOCKER_RUN_COMMAND_LINE).toStringIsEqualTo("""
                 'docker' \
                 'run' \
                 '-d' \
@@ -155,7 +139,7 @@ class DockerRunCommandLineTest {
 
         @Test
         fun `should return same options if name is set`() {
-            val options = Options { name { "container-name" } }
+            val options = Options(name = DockerContainer.from("container-name"))
             expectThat(options.withFallbackName("fallback-name"))
                 .isSameInstanceAs(options)
                 .get { name }.isNotNull().get { name }.isEqualTo("container-name")
@@ -259,11 +243,9 @@ class DockerRunCommandLineTest {
                 },
             ) { executable ->
                 expecting {
-                    executable.dockerized(Ubuntu) {
-                        mounts {
-                            tempDir mountAt "/host"
-                        }
-                    }.exec.logging(workDir)
+                    executable.dockerized(Ubuntu, Options(mounts = MountOptions {
+                        tempDir mountAt "/host"
+                    })).exec.logging(workDir)
                 } that {
                     commandLine.toStringContains("'/host/work/files/sample.html'")
                     io.output.ansiRemoved.isEqualTo(HtmlFixture.text)
@@ -343,7 +325,7 @@ class DockerRunCommandLineTest {
             @Test
             fun `should use entrypoint if set`() {
                 val commandLine = CommandLine("printenv", "HOME")
-                expecting { commandLine.dockerized(Ubuntu) { entrypoint { "echo" } }.exec.logging() } that {
+                expecting { commandLine.dockerized(Ubuntu, Options(entryPoint = "echo")).exec.logging() } that {
                     io.contains(Output typed "HOME")
                 }
             }
@@ -369,7 +351,7 @@ class DockerRunCommandLineTest {
                         return CommandLine("/any/interpreter", originalCommandLine.arguments.last())
                     }
                 }
-                expecting { script.dockerized(Ubuntu) { entrypoint { "bullshit" } }.exec.logging() } that { io.contains(Output typed "/root") }
+                expecting { script.dockerized(Ubuntu, Options(entryPoint = "bullshit")).exec.logging() } that { io.contains(Output typed "/root") }
                 expecting { script.dockerized(Ubuntu).exec.logging() } that { io.contains(Output typed "/root") }
             }
         }
@@ -453,25 +435,18 @@ class DockerRunCommandLineTest {
             .also { HtmlFixture.copyToDirectory(it) }
             .also { onExit { it.deleteRecursively() } }
 
-        private val optionsInit: Init<OptionsContext> = {
-            workingDirectory { "/tmp".asContainerPath() }
-            mounts {
+        private val options = Options(
+            workingDirectory = "/tmp".asContainerPath(),
+            mounts = MountOptions {
                 tempDir mountAs bind at "/tmp/host"
-            }
-        }
-
-        private val options = Options(optionsInit)
+            },
+        )
 
         @DockerRequiring @TestFactory
         fun `should exec using specified options`() = testEach<Executable<Exec>.() -> DockerExec>(
             { dockerized(Ubuntu, options).exec() },
-            { dockerized(Ubuntu) { optionsInit() }.exec() },
-
             { dockerized(options) { "ubuntu" }.exec() },
-            { dockerized({ "ubuntu" }) { optionsInit() }.exec() },
-
             { with(Ubuntu) { dockerized(options).exec() } },
-            { with(Ubuntu) { dockerized { optionsInit() } }.exec() },
         ) { execVariant ->
             expecting {
                 CommandLine("cat", "host/${HtmlFixture.name}").execVariant()
@@ -481,76 +456,34 @@ class DockerRunCommandLineTest {
         }
     }
 
-    companion object : BuilderFixture<Init<CommandContext>, DockerRunCommandLine>(
-        DockerRunCommandLine,
-        {
-            image { "repo" / "name" tag "tag" }
-            options {
-                detached { on }
-                publish {
-                    +"8080:6060"
-                    +"1234-1236:1234-1236/tcp"
-                }
-                name { "container-name" }
-                privileged { on }
-                autoCleanup { on }
-                workingDirectory { "/c".asContainerPath() }
-                interactive { on }
-                pseudoTerminal { on }
-                mounts {
-                    "/a/b" mountAt "/c/d"
-                    "/e/f/../g" mountAs bind at "//h"
-                }
-                custom {
-                    +"custom1"
-                    +"custom2"
-                }
-            }
-            commandLine {
-                command { "work" }
-                arguments {
-                    +"/etc/dnf/dnf.conf:s/check=1/check=0/"
-                    +"-arg1"
-                    +"--argument" + "2"
-                    +"/a/b/c" + "/c/d/e" + "/e/f/../g/h" + "/e/g/h" + "/h/i"
-                    +"arg=/a/b/c" + "arg=/c/d/e" + "arg=/e/f/../g/h" + "arg=/e/g/h" + "arg=/h/i"
-                    +"a/b/c" + "c/d/e" + "e/f/../g/h" + "e/g/h" + "h/i"
-                    +"arg=a/b/c" + "arg=c/d/e" + "arg=e/f/../g/h" + "arg=e/g/h" + "arg=h/i"
-                    +"b/c" + "d/e" + "f/../g/h" + "g/h" + "i"
-                    +"arg=b/c" + "arg=d/e" + "arg=f/../g/h" + "arg=g/h" + "arg=i"
-                }
-            }
-        },
-        DockerRunCommandLine(
-            DockerImage { "repo" / "name" tag "tag" },
-            Options(
-                detached = true,
-                name = DockerContainer.from("container-name"),
-                publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
-                privileged = true,
-                autoCleanup = true,
-                workingDirectory = "/c".asContainerPath(),
-                interactive = true,
-                pseudoTerminal = true,
-                mounts = MountOptions(
-                    MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
-                    MountOption("/e/f/../g".asHostPath(), "//h".asContainerPath(), "bind"),
-                ),
-                custom = listOf("custom1", "custom2")
+    companion object {
+        private val DOCKER_IMAGE = Docker.images { "repo" / "name" tag "tag" }
+        private val OPTIONS = Options(
+            detached = true,
+            name = DockerContainer.from("container-name"),
+            publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
+            privileged = true,
+            autoCleanup = true,
+            workingDirectory = "/c".asContainerPath(),
+            interactive = true,
+            pseudoTerminal = true,
+            mounts = MountOptions(
+                MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
+                MountOption("/e/f/../g".asHostPath(), "//h".asContainerPath(), "bind"),
             ),
-            CommandLine(
-                "work",
-                "/etc/dnf/dnf.conf:s/check=1/check=0/",
-                "-arg1", "--argument", "2",
-                "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
-                "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
-                "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
-                "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
-                "b/c", "d/e", "f/../g/h", "g/h", "i",
-                "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
-            ),
-        ),
-    ) {
-        private val dockerImage = Docker.images { "repo" / "name" tag "tag" }
+            custom = listOf("custom1", "custom2")
+        )
+        private val EXECUTABLE = CommandLine(
+            "work",
+            "/etc/dnf/dnf.conf:s/check=1/check=0/",
+            "-arg1", "--argument", "2",
+            "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
+            "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
+            "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
+            "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
+            "b/c", "d/e", "f/../g/h", "g/h", "i",
+            "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",
+        )
+        val DOCKER_RUN_COMMAND_LINE = DockerRunCommandLine(DOCKER_IMAGE, OPTIONS, EXECUTABLE)
     }
 }

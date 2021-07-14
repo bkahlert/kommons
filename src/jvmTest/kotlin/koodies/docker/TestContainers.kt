@@ -5,6 +5,7 @@ import koodies.collections.synchronizedListOf
 import koodies.collections.synchronizedMapOf
 import koodies.docker.DockerContainer.State.Existent.Exited
 import koodies.docker.DockerContainer.State.Existent.Running
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.TestImages.HelloWorld
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.CommandLine
@@ -203,11 +204,11 @@ class TestContainers(
         commandLine: CommandLine,
     ): DockerContainer {
         val container = DockerContainer.from(name = "$uniqueId", randomSuffix = true).also { provisioned.add(it) }
-        commandLine.dockerized(this@TestContainers.image) {
-            name by container.name
-            autoCleanup { off }
-            detached { on }
-        }.exec.logging(renderer = noDetails())
+        commandLine.dockerized(this@TestContainers.image, Options(
+            name = container,
+            autoCleanup = false,
+            detached = true,
+        )).exec.logging(renderer = noDetails())
         return container
     }
 
