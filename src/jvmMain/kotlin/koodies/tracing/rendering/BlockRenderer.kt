@@ -22,8 +22,7 @@ public class BlockRenderer(
     private val style = settings.blockStyle(settings.layout, settings.indent)
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        settings.nameFormatter(name)
-            ?.let { style.start(it, settings.decorationFormatter) }
+        style.start(name, settings.nameFormatter, settings.decorationFormatter)
             ?.let(settings.printer)
     }
 

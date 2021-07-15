@@ -1,8 +1,10 @@
 package koodies.tracing.rendering
 
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.AnsiString.Companion.toAnsiString
+import koodies.text.joinLinesToString
 import koodies.text.prefixWith
 import koodies.text.repeat
 import koodies.text.takeUnlessBlank
@@ -18,9 +20,17 @@ public object BlockStyles {
 
         override val indent: Int = INDENT
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
-            val startElements = Renderable.of(element).render(layout.totalWidth, 4).toAnsiString().lines()
-            appendLine(decorationFormatter(TOP), startElements.first())
+        override fun start(
+            element: CharSequence,
+            contentFormatter: FilteringFormatter<CharSequence>,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? = buildString {
+            val startElements = Renderable.of(element)
+                .render(layout.totalWidth, 4)
+                .toAnsiString()
+                .lines()
+                .mapNotNull { contentFormatter(it) }
+            appendLine(decorationFormatter(TOP), startElements.firstOrNull())
             startElements.drop(1).forEach { startElement ->
                 appendLine(decorationFormatter(MIDDLE), MIDDLE_SPACE, startElement)
             }
@@ -69,9 +79,17 @@ public object BlockStyles {
 
         override val indent: Int = INDENT
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
-            val startElements = Renderable.of(element).render(layout.totalWidth, 4).toAnsiString().lines()
-            append(decorationFormatter(playSymbol), MIDDLE_SPACE, startElements.first())
+        override fun start(
+            element: CharSequence,
+            contentFormatter: FilteringFormatter<CharSequence>,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? = buildString {
+            val startElements = Renderable.of(element)
+                .render(layout.totalWidth, 4)
+                .toAnsiString()
+                .lines()
+                .mapNotNull { contentFormatter(it) }
+            append(decorationFormatter(playSymbol), MIDDLE_SPACE, startElements.firstOrNull())
             startElements.drop(1).forEach { startElement ->
                 appendLine()
                 append(decorationFormatter(whitePlaySymbol), MIDDLE_SPACE, startElement)
@@ -110,8 +128,16 @@ public object BlockStyles {
 
         override val indent: Int = INDENT
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? =
-            Renderable.of(element).render(layout.totalWidth, 4).takeUnlessBlank()
+        override fun start(
+            element: CharSequence,
+            contentFormatter: FilteringFormatter<CharSequence>,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? = Renderable.of(element)
+            .render(layout.totalWidth, null)
+            .toAnsiString()
+            .lines()
+            .mapNotNull { contentFormatter(it) }
+            .run { takeIf { it.isNotEmpty() }?.joinLinesToString() }
 
         override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = element.takeUnlessBlank()
         override fun parent(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? =

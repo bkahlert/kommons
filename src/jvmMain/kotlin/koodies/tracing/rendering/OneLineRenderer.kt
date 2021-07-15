@@ -25,8 +25,7 @@ public class OneLineRenderer(
     private val messages = mutableListOf<CharSequence>()
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        settings.nameFormatter(name)
-            ?.let { settings.oneLineStyle.start(it, settings.decorationFormatter) }
+        settings.oneLineStyle.start(name, settings.contentFormatter, settings.decorationFormatter)
             ?.also { messages.add(it) }
     }
 

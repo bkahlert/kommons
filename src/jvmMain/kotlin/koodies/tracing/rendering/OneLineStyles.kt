@@ -1,5 +1,6 @@
 package koodies.tracing.rendering
 
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 
@@ -11,7 +12,11 @@ public object OneLineStyles {
         private val infix = "❱"
         private val suffix = "❱❱"
 
-        override fun start(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
+        override fun start(
+            element: CharSequence,
+            contentFormatter: FilteringFormatter<CharSequence>,
+            decorationFormatter: Formatter<CharSequence>,
+        ): CharSequence? = buildString {
             append(Renderable.of(element).render(null, 1))
         }
 

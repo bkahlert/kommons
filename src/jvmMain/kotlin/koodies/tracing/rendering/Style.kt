@@ -1,5 +1,6 @@
 package koodies.tracing.rendering
 
+import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Formatter.Companion.ToCharSequence
 import koodies.text.LineSeparators
@@ -17,18 +18,19 @@ public interface Style {
     /**
      * Styles the introducing first element.
      *
-     * The optional [decorationFormatter] will be applied on all
+     * The optional [contentFormatter] will to the headline, [decorationFormatter] will be applied to all
      * "decoration" added.
      */
     public fun start(
         element: CharSequence,
+        contentFormatter: FilteringFormatter<CharSequence>,
         decorationFormatter: Formatter<CharSequence> = ToCharSequence,
     ): CharSequence?
 
     /**
      * Styles a content element.
      *
-     * The optional [decorationFormatter] will be applied on all
+     * The optional [decorationFormatter] will be applied to all
      * "decoration" added.
      */
     public fun content(
@@ -40,7 +42,7 @@ public interface Style {
      * Styles an element to be inserted in its parent which
      * is necessary for nested layouts.
      *
-     * The optional [decorationFormatter] will be applied on all
+     * The optional [decorationFormatter] will be applied to all
      * "decoration" added.
      */
     public fun parent(
@@ -51,7 +53,7 @@ public interface Style {
     /**
      * Styles the finalizing last element.
      *
-     * The optional [decorationFormatter] will be applied on all
+     * The optional [decorationFormatter] will be applied to all
      * "decoration" added.
      */
     public fun end(
