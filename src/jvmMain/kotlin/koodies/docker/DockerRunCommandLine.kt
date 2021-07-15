@@ -12,11 +12,9 @@ import koodies.builder.context.CapturingContext
 import koodies.builder.context.ListBuildingContext
 import koodies.builder.context.SkippableCapturingBuilderInterface
 import koodies.docker.DockerExitStateHandler.Failed.ConnectivityProblem
-import koodies.docker.DockerRunCommandLine.Companion.CommandContext
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerRunCommandLine.Options.Companion.OptionsContext
 import koodies.exec.CommandLine
-import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Exec
 import koodies.exec.Exec.Companion.fallbackExitStateHandler
 import koodies.exec.ExecTerminationCallback
@@ -53,9 +51,9 @@ public class DockerRunCommandLine(
      * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
      * >Docker run: Options</a>
      */
-    options: Options,
+    options: Options = Options(),
 
-    private val executable: Executable<Exec>,
+    private val executable: Executable<Exec> = CommandLine(""),
 ) : Executable<DockerExec> {
 
     public constructor(image: DockerImage, executable: Executable<Exec>) : this(image, Options(), executable)
@@ -500,47 +498,7 @@ public class DockerRunCommandLine(
         }
     }
 
-    public companion object : BuilderTemplate<CommandContext, DockerRunCommandLine>() {
-
-        /**
-         * Context to build a [DockerRunCommandLine].
-         */
-
-        public class CommandContext(override val captures: CapturesMap) : CapturingContext() {
-
-            /**
-             * The image used to run the [DockerRunCommandLine].
-             *
-             * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#extended-description"
-             * >Docker run: Extended Description</a>
-             */
-            @Deprecated("use property")
-            public val image: SkippableCapturingBuilderInterface<DockerImageInit, DockerImage?> by DockerImage
-
-            /**
-             * The options used to run the [DockerRunCommandLine].
-             *
-             * @see Options
-             * @see <a href="https://docs.docker.com/engine/reference/commandline/run/#options"
-             * >Docker run: Options</a>
-             */
-            @Deprecated("use property")
-            public val options: SkippableCapturingBuilderInterface<OptionsContext.() -> Unit, Options?> by Options
-
-            /**
-             * The command line the [DockerRunCommandLine] should run.
-             */
-            @Deprecated("use property")
-            public val commandLine: SkippableCapturingBuilderInterface<CommandLineContext.() -> Unit, CommandLine?> by CommandLine
-        }
-
-        override fun BuildContext.build(): DockerRunCommandLine = ::CommandContext {
-            DockerRunCommandLine(
-                ::image.eval(),
-                ::options.evalOrDefault { Options() },
-                ::commandLine.evalOrDefault { CommandLine("") },
-            )
-        }
+    public companion object {
 
         private val DEFAULT_SHELL = BourneShell()
         public val DEFAULT_SHELL_COMMAND: String = DEFAULT_SHELL.shellCommand

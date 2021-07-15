@@ -1,7 +1,9 @@
 package koodies.tracing
 
+import koodies.docker.DockerContainer
 import koodies.docker.DockerImage
 import koodies.docker.DockerRunCommandLine
+import koodies.docker.DockerRunCommandLine.Options
 import koodies.exec.RendererProviders
 import koodies.net.headers
 import koodies.text.Semantics.formattedAs
@@ -42,23 +44,23 @@ public object Jaeger : DockerImage("jaegertracing", listOf("all-in-one")) {
         if (isRunning) return protobufEndpoint.toString()
         check(protobufEndpoint.host == "localhost") { "Can only locally but ${protobufEndpoint.formattedAs.input} was specified." }
 
-        DockerRunCommandLine {
-            image by this@Jaeger
-            options {
-                name { "jaeger" }
-                detached { on }
-                publish {
-                    +"5775:5775/udp"
-                    +"6831:6831/udp"
-                    +"6832:6832/udp"
-                    +"5778:5778"
-                    +"16686:${uiEndpoint.port}"
-                    +"14268:14268"
-                    +"14250:${protobufEndpoint.port}"
-                    +"9411:9411"
-                }
-            }
-        }.exec.logging(renderer = RendererProviders.errorsOnly(), tracer = NOOP)
+        DockerRunCommandLine(
+            image = this@Jaeger,
+            options = Options(
+                name = DockerContainer.from("jaeger"),
+                detached = true,
+                publish = listOf(
+                    "5775:5775/udp",
+                    "6831:6831/udp",
+                    "6832:6832/udp",
+                    "5778:5778",
+                    "16686:${uiEndpoint.port}",
+                    "14268:14268",
+                    "14250:${protobufEndpoint.port}",
+                    "9411:9411",
+                ),
+            ),
+        ).exec.logging(renderer = RendererProviders.errorsOnly(), tracer = NOOP)
 
         return protobufEndpoint.toString()
     }
