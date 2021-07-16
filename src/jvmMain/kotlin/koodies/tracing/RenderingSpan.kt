@@ -14,8 +14,6 @@ import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.ansiRemoved
 import koodies.tracing.Key.KeyValue
 import koodies.tracing.rendering.BlockRenderer
-import koodies.tracing.rendering.BlockStyle
-import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.Printer
@@ -26,6 +24,7 @@ import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.Style
+import koodies.tracing.rendering.Styles.None
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -108,7 +107,7 @@ internal fun Span.renderingChildSpan(
         linkedRenderer.let(rendererProvider)
             .also { span.linkRenderer(it) }
             .also { it.start(span.traceId, span.spanId, name) }
-    } else BlockRenderer(Settings(blockStyle = None))
+    } else BlockRenderer(Settings(style = None))
 
     return RenderingSpan(span, renderer)
 }
@@ -271,8 +270,7 @@ public fun <R> spanning(
     decorationFormatter: Formatter<CharSequence>? = null,
     returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
     layout: ColumnsLayout? = null,
-    blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,
-    oneLineStyle: Style? = null,
+    style: ((ColumnsLayout, Int) -> Style)? = null,
     printer: Printer? = null,
 
     block: CurrentSpan.() -> R,
@@ -285,8 +283,7 @@ public fun <R> spanning(
                 decorationFormatter = decorationFormatter ?: this.decorationFormatter,
                 returnValueTransform = returnValueTransform ?: this.returnValueTransform,
                 layout = layout ?: this.layout,
-                blockStyle = blockStyle ?: this.blockStyle,
-                oneLineStyle = oneLineStyle ?: this.oneLineStyle,
+                style = style ?: this.style,
                 printer = printer ?: this.printer,
             ), default)
         }

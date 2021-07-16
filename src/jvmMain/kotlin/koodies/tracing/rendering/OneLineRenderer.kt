@@ -22,33 +22,36 @@ public class OneLineRenderer(
     private val settings: Settings,
 ) : Renderer {
 
+    private val style = settings.style(settings.layout, settings.indent)
+    private val prefix = style.onlineLinePrefix
+    private val separator = style.onlineLineSeparator
+
     private val messages = mutableListOf<CharSequence>()
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        settings.oneLineStyle.start(name, settings.contentFormatter, settings.decorationFormatter)
+        settings.nameFormatter(name)
             ?.also { messages.add(it) }
     }
 
     override fun event(name: CharSequence, attributes: RenderableAttributes) {
         attributes[settings.layout.primaryKey]
             ?.let { settings.contentFormatter.invoke(it) }
-            ?.let { settings.oneLineStyle.content(it, settings.decorationFormatter) }
             ?.also { messages.add(it) }
     }
 
     override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         settings.contentFormatter.invoke(exception.toCompactString())
-            ?.let { settings.oneLineStyle.content(it, settings.decorationFormatter)?.ansi?.red }
             ?.also { messages.add(it) }
     }
 
     override fun <R> end(result: Result<R>) {
-        ReturnValue.of(result)
-            .let { settings.oneLineStyle.end(it, settings.returnValueTransform, settings.decorationFormatter) }
-            ?.also { messages.add(it) }
 
-        messages.takeUnless { it.isEmpty() }
-            ?.joinToString("") { LineSeparators.unify(it, "⏎") }
+        val formattedResult = ReturnValue.of(result)
+            .let { settings.returnValueTransform(it)?.format() }
+
+        (messages.takeUnless { it.isEmpty() }
+            ?.joinToString(prefix = settings.decorationFormatter(prefix), separator = settings.decorationFormatter(separator)) { LineSeparators.unify(it, "⏎") }
+            ?.let { "$it $formattedResult" } ?: formattedResult)
             ?.let(settings.printer)
     }
 
@@ -56,7 +59,10 @@ public class OneLineRenderer(
         renderer(settings.copy(printer = ::printChild)) { OneLineRenderer(it) }
 
     override fun printChild(text: CharSequence) {
-        settings.oneLineStyle.parent(text, settings.decorationFormatter)
+        FilteringFormatter<CharSequence> {
+            val child = it.toString().replaceFirst(Regex.fromLiteral(prefix), "") + settings.decorationFormatter(separator.trimEnd())
+            child.ansi.italic
+        }(text)
             ?.also { messages.add(it) }
     }
 
@@ -83,8 +89,7 @@ public fun <R> spanningLine(
     decorationFormatter: Formatter<CharSequence>? = null,
     returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
     layout: ColumnsLayout? = null,
-    blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,
-    oneLineStyle: Style? = null,
+    style: ((ColumnsLayout, Int) -> Style)? = null,
     printer: Printer? = null,
 
     block: CurrentSpan.() -> R,
@@ -98,8 +103,7 @@ public fun <R> spanningLine(
     decorationFormatter = decorationFormatter,
     returnValueTransform = returnValueTransform,
     layout = layout,
-    blockStyle = blockStyle,
-    oneLineStyle = oneLineStyle,
+    style = style,
     printer = printer,
     block = block
 )

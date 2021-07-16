@@ -45,7 +45,7 @@ public open class DeferringRenderer(
 
     override fun childRenderer(renderer: RendererProvider): Renderer =
         renderer(settings.copy(
-            indent = settings.indent + settings.blockStyle(settings.layout, settings.indent).indent,
+            indent = settings.indent + settings.style(settings.layout, settings.indent).indent,
             printer = ::printChild,
         )) {
             DeferringRenderer(it)

@@ -11,6 +11,7 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.prefixLinesWith
+import koodies.text.Semantics.formattedAs
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toUpperCase
@@ -21,13 +22,13 @@ import koodies.tracing.NOOP
 import koodies.tracing.SpanId
 import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
-import koodies.tracing.rendering.BlockStyles.Dotted
-import koodies.tracing.rendering.BlockStyles.None
-import koodies.tracing.rendering.BlockStyles.Solid
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.Renderer.Companion.log
 import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import koodies.tracing.rendering.RenderingAttributes.Keys.EXTRA
+import koodies.tracing.rendering.Styles.Dotted
+import koodies.tracing.rendering.Styles.None
+import koodies.tracing.rendering.Styles.Solid
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -47,7 +48,7 @@ class BlockRendererTest {
     private val ansi80 =
         "${"Lorem ipsum ${"dolor".ansi.cyan} sit".ansi.italic.underline} amet, ${"consetetur sadipscing".ansi.brightBlue} elitr, sed diam nonumy eirmod."
 
-    private val settings = Settings(blockStyle = None)
+    private val settings = Settings(style = None)
 
     @Smoke @TestFactory
     fun TestSpan.`should render using styles`() = testEach(
@@ -120,7 +121,7 @@ class BlockRendererTest {
     ) { (style, expected) ->
         val rendered = capturing { printer ->
             BlockRenderer(Settings(
-                blockStyle = style,
+                style = style,
                 layout = ColumnsLayout(DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.ansi.brightRed },
@@ -449,6 +450,18 @@ class BlockRendererTest {
                     !bar!
                 baz
             """.trimIndent())
+        }
+
+        @Test
+        fun TestSpan.`should support ANSI`() {
+            val rendered = capturing {
+                BlockRenderer(settings.copy(printer = it))
+                    .childRenderer()
+                    .end(Result.success(ReturnValue.successful("line 1${LF}line2") { formattedAs.debug }))
+            }
+            expectThat(rendered).isEqualTo(
+                "    \u001B[32m✔︎\u001B[39m \u001B[96mline 1\u001B[39m\n" +
+                    "    \u001B[96mline2\u001B[39m")
         }
     }
 }

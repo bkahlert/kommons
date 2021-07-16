@@ -4,22 +4,19 @@ import koodies.junit.TestName
 import koodies.test.CapturedOutput
 import koodies.test.SystemIOExclusive
 import koodies.text.ANSI.FilteringFormatter
-import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.joinLinesToString
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
-import koodies.tracing.rendering.BlockStyles
-import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
-import koodies.tracing.rendering.OneLineStyles
 import koodies.tracing.rendering.Renderable
 import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import koodies.tracing.rendering.ReturnValue
-import koodies.tracing.rendering.Style
+import koodies.tracing.rendering.Styles
+import koodies.tracing.rendering.Styles.None
 import koodies.tracing.rendering.spanningLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -462,7 +459,7 @@ class RenderingSpanKtTest {
             fun `should update layout`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) {
                     spanning("${"1234567".ansi.blue}     ${"12345".ansi.brightBlue}",
-                        blockStyle = None,
+                        style = None,
                         layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.EXTRA columns 5)) {
                         @Suppress("SpellCheckingInspection")
                         log("messagegoes      here", RenderingAttributes.EXTRA to "worksgreat-----")
@@ -479,7 +476,7 @@ class RenderingSpanKtTest {
 
             @Test
             fun `should update block style`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { spanning("name", blockStyle = BlockStyles.Dotted) { log("message") } }
+                withRootSpan(testName) { spanning("name", style = Styles.Dotted) { log("message") } }
                 expectThat(output).toStringMatchesCurlyPattern("""
                     ▶ name
                     · message                                                                         
@@ -490,9 +487,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should update one line style`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) {
-                    spanning("name", oneLineStyle = object : Style by OneLineStyles.DEFAULT {
-                        override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence = "!$element!"
-                    }) { spanningLine("one-line") { log("message") } }
+                    spanning("name") { spanningLine("one-line") { log("message") } }
                 }
                 expectThat(output).toStringMatchesCurlyPattern("""
                     ╭──╴name

@@ -4,13 +4,13 @@ import koodies.exec.IO.Error
 import koodies.exec.IO.Meta
 import koodies.text.truncate
 import koodies.tracing.rendering.BlockRenderer
-import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.OneLineRenderer
 import koodies.tracing.rendering.Renderable
 import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.rendering.Settings
+import koodies.tracing.rendering.Styles.None
 
 public object RendererProviders {
 
@@ -100,7 +100,7 @@ public object RendererProviders {
             returnValueTransform = {
                 it.takeUnless { it.successful }?.let(customized.returnValueTransform)
             },
-            blockStyle = None,
+            style = None,
         ))
     }
 }

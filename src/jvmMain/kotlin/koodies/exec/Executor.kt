@@ -6,7 +6,6 @@ import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.LineSeparators.LF
 import koodies.text.columns
-import koodies.tracing.rendering.BlockStyle
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.Printer
 import koodies.tracing.rendering.RendererProvider
@@ -90,8 +89,7 @@ public data class Executor<E : Exec>(
      * @param decorationFormatter convenience way to set [Settings.decorationFormatter]
      * @param returnValueTransform convenience way to set [Settings.returnValueTransform]
      * @param layout convenience way to set [Settings.layout]
-     * @param blockStyle convenience way to set [Settings.blockStyle]
-     * @param oneLineStyle convenience way to set [Settings.oneLineStyle]
+     * @param style convenience way to set [Settings.style]
      * @param printer convenience way to set [Settings.printer]
      * @param renderer used to render the execution (default: properly nested child renderer)
      */
@@ -104,8 +102,7 @@ public data class Executor<E : Exec>(
         decorationFormatter: Formatter<CharSequence>? = null,
         returnValueTransform: ((ReturnValue) -> ReturnValue?)? = null,
         layout: ColumnsLayout? = null,
-        blockStyle: ((ColumnsLayout, Int) -> BlockStyle)? = null,
-        oneLineStyle: Style? = null,
+        style: ((ColumnsLayout, Int) -> Style)? = null,
         printer: Printer? = null,
         tracer: Tracer? = null,
 
@@ -134,8 +131,7 @@ public data class Executor<E : Exec>(
                     decorationFormatter = decorationFormatter ?: this.decorationFormatter,
                     returnValueTransform = returnValueTransform ?: this.returnValueTransform,
                     layout = layout ?: this.layout,
-                    blockStyle = blockStyle ?: this.blockStyle,
-                    oneLineStyle = oneLineStyle ?: this.oneLineStyle,
+                    style = style ?: this.style,
                     printer = printer ?: this.printer,
                 ), default)
             },
@@ -148,15 +144,6 @@ public data class Executor<E : Exec>(
      *
      * @param workingDirectory the working directory to be used during execution
      * @param execTerminationCallback called the moment the [Exec] terminates—no matter if the [Exec] succeeds or fails
-     * @param nameFormatter convenience way to set [Settings.nameFormatter]
-     * @param contentFormatter convenience way to set [Settings.contentFormatter]
-     * @param decorationFormatter convenience way to set [Settings.decorationFormatter]
-     * @param returnValueTransform convenience way to set [Settings.returnValueTransform]
-     * @param layout convenience way to set [Settings.layout]
-     * @param blockStyle convenience way to set [Settings.blockStyle]
-     * @param oneLineStyle convenience way to set [Settings.oneLineStyle]
-     * @param printer convenience way to set [Settings.printer]
-     * @param renderer used to render the execution (default: properly nested child renderer)
      * @param processor used to process the [IO] of the execution
      */
     public fun processing(

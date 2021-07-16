@@ -3,6 +3,7 @@ package koodies.tracing.rendering
 import koodies.asString
 import koodies.regex.RegularExpressions
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.LineSeparators.lineSequence
 import koodies.text.formatColumns
 import koodies.text.maxColumns
@@ -19,7 +20,7 @@ public class BlockRenderer(
     private val settings: Settings,
 ) : Renderer {
 
-    private val style = settings.blockStyle(settings.layout, settings.indent)
+    private val style = settings.style(settings.layout, settings.indent)
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         style.start(name, settings.nameFormatter, settings.decorationFormatter)
@@ -64,7 +65,8 @@ public class BlockRenderer(
         renderer(settings.copy(indent = settings.indent + style.indent, printer = ::printChild)) { BlockRenderer(it) }
 
     override fun printChild(text: CharSequence) {
-        text.lineSequence()
+        text.toAnsiString()
+            .lineSequence()
             .mapNotNull { style.parent(it, settings.decorationFormatter) }
             .forEach(settings.printer)
     }

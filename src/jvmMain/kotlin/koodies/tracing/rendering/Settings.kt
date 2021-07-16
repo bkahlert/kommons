@@ -42,12 +42,7 @@ public data class Settings(
     /**
      * Style to be applied by block-based / fixed-size renderers.
      */
-    public val blockStyle: (ColumnsLayout, Int) -> BlockStyle = BlockStyles.DEFAULT,
-
-    /**
-     * Style to be applied by one-line renderers.
-     */
-    public val oneLineStyle: Style = OneLineStyles.DEFAULT,
+    public val style: (ColumnsLayout, Int) -> Style = Styles.DEFAULT,
 
     /**
      * Function to be used to print the actual rendered output.

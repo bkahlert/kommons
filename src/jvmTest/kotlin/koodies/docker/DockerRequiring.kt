@@ -10,7 +10,7 @@ import koodies.test.withAnnotation
 import koodies.text.Semantics.formattedAs
 import koodies.text.quoted
 import koodies.tracing.rendering.BackgroundPrinter
-import koodies.tracing.rendering.BlockStyles.None
+import koodies.tracing.rendering.Styles.None
 import koodies.tracing.rendering.spanningLine
 import koodies.tracing.spanning
 import koodies.tracing.tracing
@@ -64,7 +64,7 @@ enum class CleanUpMode {
 class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParameterResolver<DockerContainer>() {
 
     override fun beforeEach(context: ExtensionContext) = with(context) {
-        spanning("Checking for required images and running containers", blockStyle = None, printer = BackgroundPrinter) {
+        spanning("Checking for required images and running containers", style = None, printer = BackgroundPrinter) {
             pullRequiredImages()
 
             with(context.uniqueContainer()) {
@@ -77,7 +77,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
     }
 
     override fun afterEach(context: ExtensionContext) = with(context) {
-        spanning("Cleaning up", blockStyle = None, printer = BackgroundPrinter) {
+        spanning("Cleaning up", style = None, printer = BackgroundPrinter) {
             with(uniqueContainer()) {
                 when (withAnnotation<DockerRequiring, CleanUpMode?> { mode }) {
                     ThanksForCleaningUp -> {

@@ -147,7 +147,7 @@ class DockerRunCommandLineTest {
 
         @Test
         fun `should return new options with fallback name if name is not set`() {
-            val options = Options {}
+            val options = Options()
             expectThat(options.withFallbackName("fallback-name"))
                 .isNotSameInstanceAs(options)
                 .get { name }.isNotNull().get { name }.isEqualTo("fallback-name")

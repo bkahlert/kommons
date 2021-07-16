@@ -11,7 +11,7 @@ import koodies.text.Semantics.formattedAs
 import koodies.tracing.CurrentSpan
 import koodies.tracing.SpanId
 import koodies.tracing.TracingDsl
-import koodies.tracing.rendering.BlockStyles.Solid
+import koodies.tracing.rendering.Styles.Solid
 import koodies.tracing.tracing
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -77,7 +77,7 @@ public open class SharedPrinter(private val print: (CharSequence) -> Unit) : Pri
             val customize: Settings.() -> Settings = {
                 copy(
                     decorationFormatter = Formatter.fromScratch { formattedAs.warning },
-                    blockStyle = Solid,
+                    style = Solid,
                 )
             }
             tracing(renderer = { it(customize().copy(printer = { print(it) })) }, block = block)

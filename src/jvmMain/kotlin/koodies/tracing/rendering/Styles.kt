@@ -9,15 +9,12 @@ import koodies.text.prefixWith
 import koodies.text.repeat
 import koodies.text.takeUnlessBlank
 
-public interface BlockStyle : Style {
-    public val indent: Int
-    public val layout: ColumnsLayout
-}
+public object Styles {
 
-public object BlockStyles {
+    public class Solid(override val layout: ColumnsLayout) : Style {
 
-    public class Solid(override val layout: ColumnsLayout) : BlockStyle {
-
+        override val onlineLinePrefix: String = ONE_LINE_PREFIX
+        override val onlineLineSeparator: String = ONE_LINE_SEPARATOR
         override val indent: Int = INDENT
 
         override fun start(
@@ -61,6 +58,10 @@ public object BlockStyles {
         }
 
         public companion object : (ColumnsLayout, Int) -> Solid {
+
+            private const val ONE_LINE_PREFIX = "╏ "
+            private const val ONE_LINE_SEPARATOR = " ━ "
+
             private const val INDENT: Int = 4
 
             // @formatter:off
@@ -75,8 +76,9 @@ public object BlockStyles {
         }
     }
 
-    public class Dotted(override val layout: ColumnsLayout) : BlockStyle {
-
+    public class Dotted(override val layout: ColumnsLayout) : Style {
+        override val onlineLinePrefix: String = ONE_LINE_PREFIX
+        override val onlineLineSeparator: String = ONE_LINE_SEPARATOR
         override val indent: Int = INDENT
 
         override fun start(
@@ -89,15 +91,15 @@ public object BlockStyles {
                 .toAnsiString()
                 .lines()
                 .mapNotNull { contentFormatter(it) }
-            append(decorationFormatter(playSymbol), MIDDLE_SPACE, startElements.firstOrNull())
+            append(decorationFormatter(PLAY_SYMBOL), MIDDLE_SPACE, startElements.firstOrNull())
             startElements.drop(1).forEach { startElement ->
                 appendLine()
-                append(decorationFormatter(whitePlaySymbol), MIDDLE_SPACE, startElement)
+                append(decorationFormatter(WHITE_PLAY_SYMBOL), MIDDLE_SPACE, startElement)
             }
         }
 
         override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = buildString {
-            append(decorationFormatter(dot), " ", element)
+            append(decorationFormatter(DOT), " ", element)
         }
 
         override fun end(
@@ -112,20 +114,25 @@ public object BlockStyles {
             }
 
         public companion object : (ColumnsLayout, Int) -> Dotted {
+
+            private const val PLAY_SYMBOL = "▶"
+            private const val WHITE_PLAY_SYMBOL = "▷"
+            private const val DOT = "·"
+
+            private const val ONE_LINE_PREFIX = "$PLAY_SYMBOL "
+            private const val ONE_LINE_SEPARATOR = " $WHITE_PLAY_SYMBOL "
+
             private const val INDENT: Int = 2
 
-            private const val playSymbol = "▶"
-            private const val whitePlaySymbol = "▷"
-            private const val dot = "·"
-
-            private val MIDDLE_SPACE = " ".repeat(INDENT - dot.length)
+            private val MIDDLE_SPACE = " ".repeat(INDENT - DOT.length)
 
             override fun invoke(layout: ColumnsLayout, indent: Int): Dotted = Dotted(layout.shrinkBy(indent + INDENT))
         }
     }
 
-    public class None(override val layout: ColumnsLayout) : BlockStyle {
-
+    public class None(override val layout: ColumnsLayout) : Style {
+        override val onlineLinePrefix: String = ""
+        override val onlineLineSeparator: String = " ❱ "
         override val indent: Int = INDENT
 
         override fun start(
@@ -157,5 +164,5 @@ public object BlockStyles {
         }
     }
 
-    public val DEFAULT: (ColumnsLayout, Int) -> BlockStyle = Solid
+    public val DEFAULT: (ColumnsLayout, Int) -> Style = Solid
 }

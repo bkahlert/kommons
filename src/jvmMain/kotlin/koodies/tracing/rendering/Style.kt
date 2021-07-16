@@ -15,6 +15,12 @@ import koodies.text.takeUnlessEmpty
  */
 public interface Style {
 
+    public val onlineLinePrefix: String
+    public val onlineLineSeparator: String
+
+    public val indent: Int
+    public val layout: ColumnsLayout
+
     /**
      * Styles the introducing first element.
      *

@@ -1,11 +1,5 @@
 package koodies.exec
 
-import koodies.builder.BuilderTemplate
-import koodies.builder.context.CapturesMap
-import koodies.builder.context.CapturingContext
-import koodies.builder.context.ListBuildingContext
-import koodies.builder.context.SkippableCapturingBuilderInterface
-import koodies.exec.CommandLine.Companion.CommandLineContext
 import koodies.exec.Process.ExitState
 import koodies.exec.Process.ExitState.ExitStateHandler
 import koodies.io.path.asPath
@@ -150,30 +144,7 @@ public open class CommandLine(
 
     override fun hashCode(): Int = commandLineParts.contentHashCode()
 
-    public companion object : BuilderTemplate<CommandLineContext, CommandLine>() {
-
-        /**
-         * Context to build a [CommandLine].
-         */
-        @Deprecated("use constructor")
-        public class CommandLineContext(override val captures: CapturesMap) : CapturingContext() {
-
-            /**
-             * The command to be executed.
-             */
-            @Deprecated("use property")
-            public val command: SkippableCapturingBuilderInterface<() -> String, String?> by builder()
-
-            /**
-             * Specifies the arguments to be passed to [command].
-             */
-            @Deprecated("use property")
-            public val arguments: SkippableCapturingBuilderInterface<ListBuildingContext<String>.() -> Unit, List<String>> by listBuilder()
-        }
-
-        override fun BuildContext.build(): CommandLine = ::CommandLineContext {
-            CommandLine(::command.evalOrDefault(""), ::arguments.evalOrDefault(emptyList()))
-        }
+    public companion object {
 
         /**
          * Parses a [commandLine] string and returns an instance of [CommandLine]

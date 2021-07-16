@@ -1,14 +1,21 @@
 package koodies.tracing.rendering
 
 import koodies.exec.ExecAttributes
+import koodies.test.Smoke
+import koodies.test.testEach
 import koodies.test.tests
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
 import koodies.text.matchesCurlyPattern
+import koodies.text.toUpperCase
 import koodies.tracing.TestSpan
+import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.RenderableAttributes.Companion.EMPTY
 import koodies.tracing.rendering.Renderer.Companion.log
+import koodies.tracing.rendering.Styles.Dotted
+import koodies.tracing.rendering.Styles.None
+import koodies.tracing.rendering.Styles.Solid
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -24,29 +31,45 @@ class OneLineRendererTest {
 
     private val settings: Settings = Settings()
 
-    @Test
-    fun TestSpan.`should render`() {
-        val rendered = capturing {
-            OneLineRenderer(settings.copy(
-                contentFormatter = { it.ansi.underline },
-                decorationFormatter = { it.ansi.brightMagenta },
-                printer = it,
-            )).run {
-                start("One Two Three")
+    @Smoke @TestFactory
+    fun TestSpan.`should render using styles`() = testEach(
+        Solid to """
+            ╏ One Two Three ━ 123 ABC ━ child-span ━ 123 ABC ━ child-span ━ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ━ ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ━ ✔︎
+        """.trimIndent(),
+        Dotted to """
+            ▶ One Two Three ▷ 123 ABC ▷ child-span ▷ 123 ABC ▷ child-span ▷ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:64) ▷ ϟ RuntimeException: message at.(OneLineRendererTest.kt:66) ▷ ✔︎
+        """.trimIndent(),
+        None to """
+            One Two Three ❱ 123 ABC ❱ child-span ❱ 123 ABC ❱ child-span ❱ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ❱ ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ❱ ✔︎
+        """.trimIndent(),
+    ) { (style, expected) ->
+        val rendered = capturing { printer ->
+            OneLineRenderer(Settings(
+                style = style,
+                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, RenderingAttributes.EXTRA columns 20, maxColumns = 80),
+                contentFormatter = { it.toString().toUpperCase().ansi.random },
+                decorationFormatter = { it.ansi.brightRed },
+                returnValueTransform = { it },
+                printer = printer,
+            )).apply {
 
-                log(ansi11)
+                start("One Two Three")
+                log(ansi11, RenderingAttributes.EXTRA to plain11)
                 childRenderer().apply {
-                    start("child")
-                    exception(RuntimeException("Now Panic!"), EMPTY)
-                    log(plain11)
+                    start("child-span")
+                    log(ansi11, RenderingAttributes.EXTRA to plain11)
+                    childRenderer().apply {
+                        start("child-span")
+                        log(ansi11, RenderingAttributes.EXTRA to plain11)
+                        end(Result.failure<Unit>(RuntimeException("Now Panic!")))
+                    }
                     end(Result.failure<Unit>(RuntimeException("message")))
                 }
 
                 end(Result.success(true))
             }
         }
-        expectThat(rendered)
-            .matchesCurlyPattern("One Two Three ❱ 123 abc ❱❱ child ❱ RuntimeException: Now Panic! at.({}.kt:{}) ❱ 123 abc ϟ RuntimeException: message at.({}.kt:{}) ❱❱ ✔︎")
+        expecting { rendered } that { matchesCurlyPattern(expected) }
     }
 
     @TestFactory
@@ -61,7 +84,7 @@ class OneLineRendererTest {
                     end(Result.success(true))
                 }
             }
-        } that { ansiRemoved.isEqualTo("name ✔︎") }
+        } that { ansiRemoved.isEqualTo("╏ name ✔︎") }
     }
 
     @Test
@@ -89,7 +112,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.contains("❱ event")
+        expectThat(rendered).ansiRemoved.contains(" ━ event")
     }
 
     @Test
@@ -101,7 +124,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("name ❱ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ✔︎")
+        expectThat(rendered).matchesCurlyPattern("╏ name ━ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ✔︎")
     }
 
     @Test
@@ -112,7 +135,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.endsWith("name ✔︎")
+        expectThat(rendered).ansiRemoved.endsWith("╏ name ✔︎")
     }
 
     @Test
@@ -123,7 +146,7 @@ class OneLineRendererTest {
                 end(Result.failure<Unit>(RuntimeException("test")))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{})")
+        expectThat(rendered).matchesCurlyPattern("╏ name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{})")
     }
 
     @Test
@@ -135,7 +158,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("name ✔︎")
+        expectThat(rendered).matchesCurlyPattern("╏ name ✔︎")
     }
 
     @Test
@@ -168,7 +191,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("name ❱ event ❱❱ child ❱ child event ✔︎ ❱❱ ✔︎")
+        expectThat(rendered).matchesCurlyPattern("╏ name ━ event ━ child ━ child event ✔︎ ━ ✔︎")
     }
 
     @Test

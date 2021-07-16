@@ -31,9 +31,9 @@ import koodies.text.ANSI.resetLines
 import koodies.text.matchesCurlyPattern
 import koodies.text.toStringMatchesCurlyPattern
 import koodies.tracing.TestSpan
-import koodies.tracing.rendering.BlockStyles.Dotted
-import koodies.tracing.rendering.BlockStyles.None
-import koodies.tracing.rendering.BlockStyles.Solid
+import koodies.tracing.rendering.Styles.Dotted
+import koodies.tracing.rendering.Styles.None
+import koodies.tracing.rendering.Styles.Solid
 import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
@@ -91,7 +91,7 @@ class ExecutionIntegrationTest {
         }.exec.logging(
             contentFormatter = { "${"->".ansi.red} $it" },
             decorationFormatter = Colors.brightRed,
-            blockStyle = Solid,
+            style = Solid,
         ) check {
             expectThatRendered().matchesCurlyPattern("""
                 ╭──╴file://{}.sh
@@ -123,7 +123,7 @@ class ExecutionIntegrationTest {
             (10 downTo 7).forEach { echo(it) }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
-        }.exec.logging(renderer = RendererProviders.noDetails { copy(blockStyle = None) }) check {
+        }.exec.logging(renderer = RendererProviders.noDetails { copy(style = None) }) check {
 
             state { isA<Failed>() }
 
@@ -160,7 +160,7 @@ class ExecutionIntegrationTest {
                 (10 downTo 7).forEach { echo(it) }
                 !"1>&2 echo 'Boom!'"
                 !"exit 1"
-            }.exec.logging(blockStyle = Dotted) check {
+            }.exec.logging(style = Dotted) check {
 
                 state { isA<Failed>() }
 
@@ -255,26 +255,26 @@ class ExecutionIntegrationTest {
         with(executable) {
             spanning("existing logging context") {
                 exec.logging(
-                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Solid) }
+                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, style = Solid) }
                 )
             }
         }
 
-        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, blockStyle = Solid) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, style = Solid) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid)
+            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, style = Solid)
         }
-        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Solid) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, style = Solid) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted)
+            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, style = Dotted)
         }
-        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, blockStyle = Dotted) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, style = Dotted) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, blockStyle = Solid)
+            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, style = Solid)
         }
-        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, blockStyle = Dotted) {
+        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, style = Dotted) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, blockStyle = Dotted)
+            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, style = Dotted)
         }
 
         expectThatRendered().matchesCurlyPattern("""

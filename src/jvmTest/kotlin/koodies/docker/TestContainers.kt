@@ -21,8 +21,8 @@ import koodies.text.randomString
 import koodies.time.poll
 import koodies.time.seconds
 import koodies.tracing.rendering.BackgroundPrinter
-import koodies.tracing.rendering.BlockStyles.None
 import koodies.tracing.rendering.ReturnValues
+import koodies.tracing.rendering.Styles.None
 import koodies.tracing.spanning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -195,7 +195,7 @@ class TestContainers(
      */
     fun release() {
         val toBeReleased = provisioned.toList().also { provisioned.clear() }
-        spanning("Releasing ${toBeReleased.size} container(s)", blockStyle = None, printer = BackgroundPrinter) {
+        spanning("Releasing ${toBeReleased.size} container(s)", style = None, printer = BackgroundPrinter) {
             ReturnValues(toBeReleased.map { container -> kotlin.runCatching { container.remove(force = true) }.fold({ it }, { it }) })
         }
     }
@@ -227,7 +227,7 @@ class TestContainers(
      * Returns a container that does not exist on this system.
      */
     internal fun newNotExistentContainer() =
-        spanning("Providing non-existent container", blockStyle = None, printer = BackgroundPrinter) {
+        spanning("Providing non-existent container", style = None, printer = BackgroundPrinter) {
             DockerContainer.from(randomString())
         }
 
@@ -237,7 +237,7 @@ class TestContainers(
      * The next time this container is started it will run for the specified [duration] (default: 30 seconds).
      */
     internal fun newExitedTestContainer(duration: Duration = 30.seconds): DockerContainer =
-        spanning("Providing exited container", blockStyle = None, printer = BackgroundPrinter) {
+        spanning("Providing exited container", style = None, printer = BackgroundPrinter) {
             startContainerWithCommandLine(CommandLine("sh", "-c", """
                 if [ -f "booted-before" ]; then
                   sleep ${duration.toIntegerSeconds()}
@@ -258,7 +258,7 @@ class TestContainers(
      * Returns a container that is running for the specified [duration] (default: 30 seconds).
      */
     internal fun newRunningTestContainer(duration: Duration = 30.seconds): DockerContainer =
-        spanning("Providing running container", blockStyle = None, printer = BackgroundPrinter) {
+        spanning("Providing running container", style = None, printer = BackgroundPrinter) {
             newRunningContainer(duration).also { container ->
                 poll {
                     container.containerState is Running

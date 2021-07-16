@@ -26,7 +26,7 @@ import koodies.text.toStringMatchesCurlyPattern
 import koodies.tracing.TestSpan
 import koodies.tracing.TraceId
 import koodies.tracing.expectTraced
-import koodies.tracing.rendering.BlockStyles.None
+import koodies.tracing.rendering.Styles.None
 import koodies.tracing.rendering.capturing
 import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
@@ -152,10 +152,10 @@ class ExecutorTest {
             @TestFactory
             fun TestSpan.`should log to specified printer if specified`() = tests {
                 capturing { capture ->
-                    executable.exec.testProp.logging { it(copy(blockStyle = None, printer = capture)) }
+                    executable.exec.testProp.logging { it(copy(style = None, printer = capture)) }
                 } asserting { logsSuccessfulIO() }
                 capturing { capture ->
-                    executable.exec.logging { it(copy(blockStyle = None, printer = capture)) }
+                    executable.exec.logging { it(copy(style = None, printer = capture)) }
                 } asserting { containsDump() }
             }
 
@@ -176,7 +176,7 @@ class ExecutorTest {
 
                 @Test
                 fun TestSpan.`should print executable content by default`() {
-                    CommandLine("echo", "short").exec.logging(blockStyle = None)
+                    CommandLine("echo", "short").exec.logging(style = None)
                     expectThatRendered().matchesCurlyPattern("""
                         echo short
                         short
@@ -186,7 +186,7 @@ class ExecutorTest {
 
                 @Test
                 fun TestSpan.`should print name if specified`() {
-                    CommandLine("echo", "short", name = "custom name").exec.logging(blockStyle = None)
+                    CommandLine("echo", "short", name = "custom name").exec.logging(style = None)
                     expectThatRendered().matchesCurlyPattern("""
                         custom name
                         echo short
@@ -197,7 +197,7 @@ class ExecutorTest {
 
                 @Test
                 fun TestSpan.`should print commandline containing URI if too long`() {
-                    CommandLine("echo", "a very long argument that leads to a very long command line").exec.logging(blockStyle = None)
+                    CommandLine("echo", "a very long argument that leads to a very long command line").exec.logging(style = None)
                     expectThatRendered {
                         matchesCurlyPattern("""
                             file://{}
@@ -328,10 +328,10 @@ class ExecutorTest {
             @TestFactory
             fun TestSpan.`should log to specified printer if specified`() = tests {
                 capturing { capture ->
-                    executable.exec.testProp.async.logging { it(copy(blockStyle = None, printer = capture)) }.apply { waitFor() }
+                    executable.exec.testProp.async.logging { it(copy(style = None, printer = capture)) }.apply { waitFor() }
                 } asserting { logsSuccessfulIO() }
                 capturing { capture ->
-                    executable.exec.async.logging { it(copy(blockStyle = None, printer = capture)) }.apply { waitFor() }
+                    executable.exec.async.logging { it(copy(style = None, printer = capture)) }.apply { waitFor() }
                 } asserting { containsDump() }
             }
 
@@ -352,7 +352,7 @@ class ExecutorTest {
 
                 @Test
                 fun TestSpan.`should print executable content by default`() {
-                    CommandLine("echo", "short").exec.async.logging(blockStyle = None).waitFor()
+                    CommandLine("echo", "short").exec.async.logging(style = None).waitFor()
                     expectThatRendered().matchesCurlyPattern("""
                         echo short
                         short
@@ -362,7 +362,7 @@ class ExecutorTest {
 
                 @Test
                 fun TestSpan.`should print name if specified`() {
-                    CommandLine("echo", "short", name = "custom name").exec.async.logging(blockStyle = None).waitFor()
+                    CommandLine("echo", "short", name = "custom name").exec.async.logging(style = None).waitFor()
                     expectThatRendered().matchesCurlyPattern("""
                         custom name
                         echo short
@@ -373,7 +373,7 @@ class ExecutorTest {
 
                 @Test
                 fun TestSpan.`should print commandline containing URI if too long`() {
-                    CommandLine("echo", "a very long argument that leads to a very long command line").exec.async.logging(blockStyle = None).waitFor()
+                    CommandLine("echo", "a very long argument that leads to a very long command line").exec.async.logging(style = None).waitFor()
                     expectThatRendered {
                         matchesCurlyPattern("""
                             file://{}

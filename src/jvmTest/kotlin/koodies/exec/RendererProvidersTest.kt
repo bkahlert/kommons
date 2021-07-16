@@ -8,8 +8,8 @@ import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.matchesCurlyPattern
 import koodies.tracing.TestSpan
-import koodies.tracing.rendering.BlockStyles.Solid
 import koodies.tracing.rendering.Printer
+import koodies.tracing.rendering.Styles.Solid
 import koodies.tracing.rendering.TeePrinter
 import koodies.tracing.rendering.capturing
 import org.junit.jupiter.api.DynamicNode
@@ -54,7 +54,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = Solid,
+                    style = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -72,7 +72,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = Solid,
+                    style = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -137,7 +137,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = Solid,
+                    style = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
@@ -155,7 +155,7 @@ class RendererProvidersTest {
                 copy(
                     contentFormatter = fromScratch { random },
                     decorationFormatter = Formatter.fromScratch { brightYellow },
-                    blockStyle = Solid,
+                    style = Solid,
                     printer = TeePrinter(printer, it),
                 )
             })
