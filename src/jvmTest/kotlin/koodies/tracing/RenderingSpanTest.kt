@@ -59,7 +59,6 @@ class RenderingSpanTest {
                 {
                     spanName.contains("RenderingSpanTest ➜ event")
                     events.hasElements(
-                        { eventName.contains("linked") },
                         { eventName.isEqualTo("event name") }
                     )
                 }
@@ -84,7 +83,6 @@ class RenderingSpanTest {
             hasElements({
                 spanName.contains("RenderingSpanTest ➜ exception")
                 events.hasElements(
-                    { eventName.contains("linked") },
                     { eventName.isEqualTo("exception") }
                 )
             })
@@ -110,9 +108,6 @@ class RenderingSpanTest {
                 {
                     spanName.contains("RenderingSpanTest ➜ end")
                     isOkay()
-                    events.hasElements(
-                        { eventName.contains("linked") }
-                    )
                 }
             )
         }
@@ -134,9 +129,6 @@ class RenderingSpanTest {
                 {
                     spanName.contains("RenderingSpanTest ➜ fail")
                     isError("test")
-                    events.hasElements(
-                        { eventName.contains("linked") }
-                    )
                 }
             )
         }

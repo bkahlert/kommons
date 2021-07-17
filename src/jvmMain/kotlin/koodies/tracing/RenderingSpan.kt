@@ -13,7 +13,6 @@ import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.ansiRemoved
 import koodies.tracing.Key.KeyValue
-import koodies.tracing.rendering.BlockRenderer
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.Printer
@@ -24,7 +23,6 @@ import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Settings
 import koodies.tracing.rendering.Style
-import koodies.tracing.rendering.Styles.None
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -35,10 +33,6 @@ private val linkedRenderers = mutableMapOf<SpanId, Renderer>()
 private fun Span.linkRenderer(renderer: Renderer): Unit = linkedRenderersLock.withLock {
     spanId.takeIf { it.valid }?.let {
         linkedRenderers[it] = renderer
-        addEvent("renderer-linked", Attributes.of(
-            RenderingAttributes.RENDERER, (RenderingAttributes.RENDERER to renderer).value.ansiRemoved,
-            RenderingAttributes.RENDERERS, linkedRenderersLock.withLock { linkedRenderers.keys.map { renderer -> renderer.ansiRemoved } },
-        ))
     }
 }
 
@@ -96,18 +90,17 @@ internal fun Span.renderingChildSpan(
     vararg attributes: KeyValue<*, *>,
     rendererProvider: (Renderer) -> Renderer,
 ): RenderingSpan {
+    val renderer = rendererProvider(linkedRenderer)
+
     val span = tracer
         .spanBuilder(name.ansiRemoved)
         .setParent(Context.current().with(this))
         .setAllAttributes(attributes.toList().toAttributes())
-        .setAttribute(RenderingAttributes.RENDERERS, linkedRenderersLock.withLock { linkedRenderers.keys.map { it.toString() } })
+        .setAttribute(RenderingAttributes.RENDERER, (RenderingAttributes.RENDERER to renderer).value.ansiRemoved)
         .startSpan()
 
-    val renderer = if (span.spanId.valid) linkedRenderersLock.withLock {
-        linkedRenderer.let(rendererProvider)
-            .also { span.linkRenderer(it) }
-            .also { it.start(span.traceId, span.spanId, name) }
-    } else BlockRenderer(Settings(style = None))
+    if (span.spanId.valid) linkedRenderersLock.withLock { span.linkRenderer(renderer) }
+    renderer.start(span.traceId, span.spanId, name)
 
     return RenderingSpan(span, renderer)
 }

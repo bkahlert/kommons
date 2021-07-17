@@ -25,7 +25,6 @@ class TestSpanTest {
                 parentSpanId = actual.spanId
                 spanName.contains("should trace")
                 events.hasElements(
-                    { eventName.contains("linked") },
                     {
                         eventName.isEqualTo("log")
                         eventDescription.isEqualTo("event -1")
@@ -41,7 +40,6 @@ class TestSpanTest {
                 get { parentSpanContext.spanId }.isEqualTo(parentSpanId)
                 spanName.isEqualTo("SPAN A")
                 events.hasElements(
-                    { eventName.contains("linked") },
                     {
                         eventName.isEqualTo("log")
                         eventDescription.isEqualTo("event α")

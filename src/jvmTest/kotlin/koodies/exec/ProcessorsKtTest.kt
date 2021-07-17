@@ -14,7 +14,6 @@ import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
 import koodies.time.seconds
 import koodies.tracing.TraceId
-import koodies.tracing.eventName
 import koodies.tracing.eventText
 import koodies.tracing.events
 import koodies.tracing.expectTraced
@@ -23,7 +22,6 @@ import koodies.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThan
@@ -52,7 +50,6 @@ class ProcessorsKtTest {
                         hasSpanAttribute(ExecAttributes.NAME, "exec-name")
                         hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
                         events.hasElements(
-                            { eventName.contains("linked") },
                             { eventText.isEqualTo("Hello Cat!") },
                             { eventText.isEqualTo("Hello Cat!") },
                         )
@@ -144,7 +141,6 @@ class ProcessorsKtTest {
                         hasSpanAttribute(ExecAttributes.NAME, "exec-name")
                         hasSpanAttribute(ExecAttributes.EXECUTABLE, "cat")
                         events.hasElements(
-                            { eventName.contains("linked") },
                             { eventText.isEqualTo("Hello Cat!") },
                             { eventText.isEqualTo("Hello Cat!") },
                         )
@@ -204,7 +200,6 @@ class ProcessorsKtTest {
                 }
             }
         }
-
 
         @Nested
         inner class Interactively {
