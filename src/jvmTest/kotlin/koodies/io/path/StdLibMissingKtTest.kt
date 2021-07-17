@@ -9,6 +9,7 @@ import koodies.test.Fixtures.singleFile
 import koodies.test.Fixtures.symbolicLink
 import koodies.test.HtmlFixture
 import koodies.test.expectThrows
+import koodies.test.hasElements
 import koodies.test.withTempDir
 import koodies.time.Now
 import org.junit.jupiter.api.AfterAll
@@ -23,6 +24,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNull
 import strikt.java.exists
 import java.io.IOException
@@ -34,6 +36,7 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 import kotlin.io.path.div
+import kotlin.io.path.isDirectory
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.writeText
 
@@ -213,6 +216,18 @@ class StdLibMissingKtTest {
                 that(this@withTempDir).isEmpty()
             }
         }
+
+        @Test
+        fun `should delete filtered files`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val dir = resolve("dir")
+            val exception = dir.directoryWithTwoFiles().listDirectoryEntriesRecursively().first()
+            expectThat(dir.deleteRecursively { it != exception && !it.isDirectory() }) {
+                exists()
+                hasElements({
+                    isNotEqualTo(exception)
+                })
+            }
+        }
     }
 
     @Nested
@@ -225,6 +240,18 @@ class StdLibMissingKtTest {
             expectThat(dir.deleteDirectoryEntriesRecursively()) {
                 exists()
                 isEmpty()
+            }
+        }
+
+        @Test
+        fun `should delete filtered directory contents`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val dir = resolve("dir")
+            val exception = dir.directoryWithTwoFiles().listDirectoryEntriesRecursively().first()
+            expectThat(dir.deleteDirectoryEntriesRecursively { it != exception && !it.isDirectory() }) {
+                exists()
+                hasElements({
+                    isNotEqualTo(exception)
+                })
             }
         }
 

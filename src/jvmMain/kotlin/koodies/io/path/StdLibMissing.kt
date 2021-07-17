@@ -266,25 +266,27 @@ public fun Path.delete(vararg options: LinkOption): Path =
  *
  * Returns the deletes path.
  */
-public fun Path.deleteRecursively(vararg options: LinkOption): Path =
+public fun Path.deleteRecursively(vararg options: LinkOption, filter: (Path) -> Boolean = { true }): Path =
     apply {
         if (exists(*options, LinkOption.NOFOLLOW_LINKS)) {
             if (isDirectory(*options, LinkOption.NOFOLLOW_LINKS)) {
-                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS) }
+                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS, filter = filter) }
             }
-
-            var maxAttempts = 3
-            var ex: Throwable? = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
-            while (ex != null && maxAttempts > 0) {
-                maxAttempts--
-                if (ex is DirectoryNotEmptyException) {
-                    val files = listDirectoryEntriesRecursively(options = options)
-                    files.forEach { it.deleteRecursively(*options) }
+            
+            if (filter(this)) {
+                var maxAttempts = 3
+                var ex: Throwable? = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
+                while (ex != null && maxAttempts > 0) {
+                    maxAttempts--
+                    if (ex is DirectoryNotEmptyException) {
+                        val files = listDirectoryEntriesRecursively(options = options)
+                        files.forEach { it.deleteRecursively(*options, filter = filter) }
+                    }
+                    100.milli.seconds.sleep()
+                    ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
                 }
-                100.milli.seconds.sleep()
-                ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
+                if (ex != null) throw ex
             }
-            if (ex != null) throw ex
         }
     }
 
@@ -293,8 +295,8 @@ public fun Path.deleteRecursively(vararg options: LinkOption): Path =
  *
  * Throws if this is no directory.
  */
-public fun Path.deleteDirectoryEntriesRecursively(): Path =
-    apply { listDirectoryEntriesRecursively().forEach { it.deleteRecursively() } }
+public fun Path.deleteDirectoryEntriesRecursively(filter: (Path) -> Boolean = { true }): Path =
+    apply { listDirectoryEntriesRecursively().forEach { it.deleteRecursively(filter = filter) } }
 
 /**
  * Registers this file for deletion the moment this program exits.

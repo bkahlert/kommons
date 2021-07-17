@@ -77,7 +77,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
                 "Don't forget to remove them.".ansi.bold,
             )
                 .joinLinesToString()
-                .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { yellow })
+                .wrapWithBorder(padding = 2, margin = 0, formatter = fromScratch { yellow })
                 .also { println(it) }
         }
     }
