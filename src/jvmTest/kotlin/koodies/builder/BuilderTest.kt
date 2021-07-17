@@ -42,11 +42,6 @@ class BuilderTest {
             expecting { build(init) } that { isEqualTo(built) }
         }
 
-        group("skip") {
-            expecting { using(built) } that { isEqualTo(built) }
-            expecting { by(built) } that { isEqualTo(built) }
-        }
-
         group("build transform") {
             expecting { build(init, transform) } that { isEqualTo(transformed) }
         }

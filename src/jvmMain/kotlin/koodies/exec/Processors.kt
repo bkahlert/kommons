@@ -3,7 +3,6 @@ package koodies.exec
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.context.Context
-import koodies.builder.BooleanBuilder.BooleanValue
 import koodies.builder.StatelessBuilder
 import koodies.exec.IO.Error
 import koodies.exec.IO.Output
@@ -11,7 +10,6 @@ import koodies.exec.Process.ExitState
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.exec.ProcessingMode.Interactivity
 import koodies.exec.ProcessingMode.Interactivity.Interactive
-import koodies.exec.ProcessingMode.Interactivity.Interactive.Companion.InteractiveContext
 import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.ProcessingMode.Synchronicity.Async
 import koodies.exec.ProcessingMode.Synchronicity.Sync
@@ -81,16 +79,7 @@ public data class ProcessingMode(
     public enum class Synchronicity { Sync, Async }
 
     public sealed class Interactivity {
-        public class Interactive(public val nonBlocking: Boolean) : Interactivity() {
-            public companion object :
-                StatelessBuilder.PostProcessing<InteractiveContext, BooleanValue, Interactivity>(InteractiveContext, { Interactive(booleanValue()) }) {
-                public object InteractiveContext {
-                    public val nonBlocking: BooleanValue = BooleanValue { true }
-                    public val blocking: BooleanValue = BooleanValue { false }
-                }
-            }
-        }
-
+        public class Interactive(public val nonBlocking: Boolean) : Interactivity()
         public class NonInteractive(public val execInputStream: InputStream?) : Interactivity()
     }
 

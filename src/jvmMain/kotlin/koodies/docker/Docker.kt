@@ -497,4 +497,4 @@ public fun Path.dockerPi(
         mounts = MountOptions { this@dockerPi mountAt "/sdcard/filesystem.img" }
     ),
     executable = CommandLine(""),
-).exec.mode { async(Interactive { nonBlocking }) }.processing(processor = processor) // TODO also set workingdir?
+).exec.mode { async(Interactive(nonBlocking = true)) }.processing(processor = processor) // TODO also set workingdir?
