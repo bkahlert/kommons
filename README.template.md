@@ -29,7 +29,7 @@ Koodies is hosted on GitHub with releases provided on Maven Central.
 
 The observability library [OpenTelemetry](https://opentelemetry.io/) is natively supported. Simply start a process and watch for yourself:
 
-[![DockerPi-based Test](assets/Tracing-DockerPi.png)](https://search.maven.org/search?q=g:com.bkahlert%20AND%20a:koodies)
+[![DockerPi-based Test](assets/Tracing-DockerPi.png)](assets/Tracing-DockerPi.png)
 
 For manual instrumentation, the `spanning` function is provided:
 
@@ -41,7 +41,7 @@ spanning("span name") {
 }
 ```
 
-[![Simple Span with two events](assets/Tracing-SimpleSpan.png)](https://search.maven.org/search?q=g:com.bkahlert%20AND%20a:koodies)
+[![Simple Span with two events](assets/Tracing-SimpleSpan.png)](assets/Tracing-SimpleSpan.png)
 
 By default, the span and all events with a description are also printed to the console:
 
@@ -211,14 +211,14 @@ with(tempDir()) {
 ###### Output
 
 <!-- @formatter:off -->
-```kotlin
-&kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv.  
-RR&kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBRR&kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBRR&kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBRR&kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBBBRR&kyTx}vvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBBBBBRZT}vvvvvvvvvvvvvvvvvvvvvv.
+```text
+\kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv.  
+RR\kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBRR\kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBRR\kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBRR\kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBBBRR\kyTx/vvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBBBBBRZ\/vvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBBBBBQxvvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBBB&xvvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBZzvvvvvvvvvvvvvvvvvvvvvv.
@@ -252,195 +252,78 @@ MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
 - See [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
   [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples.
 
-### JUnit + Strikt Integration
-
-- self-explaining (even works likely if inlined by looking for matching classes and methods in source file manually)
-- each aspect its own test
-
-#### Before
+### JUnit + Strikt Integration + Automatically Named Tests
 
 ```kotlin
-TODO
-```
+class Tests {
+  
+    @TestFactory
+    fun `testing with subject`() = test("subject") {
 
-#### After
-
-```kotlin
-TODO
-```
-
-### Multi-Platform Builder Template
-
-#### Example: Car DSL *[full example](src/commonTest/kotlin/koodies/builder/CarDSL.kt)*
-
-##### CarBuilder Implementation
-
-```kotlin
-data class Car(
-    val name: String,
-    val color: String,
-    val traits: Set<Trait>,
-    val engine: Engine,
-    val wheels: List<Wheel>
-)
-
-object CarBuilder : BuilderTemplate<CarContext, Car>() {
-
-    class CarContext(
-        override val captures: CapturesMap,
-    ) : CapturingContext() {
-        var name by setter<String>()
-        val color by External::color
-        val traits by enumSetBuilder<Trait>()
-        val engine by Engine
-        val wheel by Wheel
-        val allWheels by Wheel then { builtWheel ->
-            repeat(4) { wheel using builtWheel }
-        }
+        "other" asserting { isEqualTo("other") }
+        asserting { isEqualTo("subject") }
+        expecting { length } that { isGreaterThan(5) }
+        expecting { length }
+            .that { isGreaterThan(5) }
+        expectCatching { length } that { isSuccess() }
+        expectThrows<RuntimeException> { throw RuntimeException() }
+        expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
     }
 
-    override fun BuildContext.build(): Car = ::CarContext {
-        Car(
-            ::name.eval(),
-            ::color.evalOrDefault("#111111"),
-            ::traits.eval(),
-            ::engine.eval(),
-            ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(4) { Wheel() },
-        )
+    @TestFactory
+    fun `testing without subject`() = tests {
+
+        "other" asserting { isEqualTo("other") }
+        asserting("subject") { isEqualTo("subject") }
+        expecting { "subject".length } that { isGreaterThan(5) }
+        expecting { "subject".length }
+            .that { isGreaterThan(5) }
+        expectCatching { "subject".length } that { isSuccess() }
+        expectThrows<RuntimeException> { throw RuntimeException() }
+        expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
     }
 }
 ```
 
-##### CarBuilder Usage
+[![JUnit Test Results](assets/JUnit-Strikt-Naming.png)](assets/JUnit-Strikt-Naming.png)
+
+### Multi-Platform Builders
+
+#### Array Builder
 
 ```kotlin
-fun car(init: Init<CarContext>): Car = CarBuilder(init)
-
-val exclusiveCar = car {
-    name = "Exclusive Car"
-    color(198, 82, 89)
-    engine {
-        power { 145.kW }
-        maxSpeed { 244.km per hour }
-    }
-    allWheels { diameter { 16.inch } }
-    traits { +Exclusive + TaxExempt }
+val array = buildArray {
+    add("test")
+    add("𓌈🥸𓂈")
 }
-
-val defaultCarWithCopiedMotor = car {
-    name = "Average Car"
-    engine using exclusiveCar.engine
-}
-
-println(exclusiveCar)
-println(defaultCarWithCopiedMotor)
 ```
 
-```text
-Car(name=Exclusive Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm])
-Car(name=Average Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
-```
-
-##### CarBuilder Parts *uses [DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
+#### List Builder
 
 ```kotlin
-
-data class EnginePower(val watts: BigDecimal) {
-    companion object : StatelessBuilder.Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
-        object EnginePowerContext {
-            val Int.kW: EnginePower get() = kilo.W
-            val BigDecimal.W: EnginePower get() = EnginePower(this)
-        }
-    }
-
-    override fun toString(): String = "\${watts.doubleValue() / 1000.0}kW"
+val array = buildList {
+    add("test")
+    add("𓌈🥸𓂈")
 }
+```
 
-data class Distance(val meter: BigDecimal) {
-    companion object : StatelessBuilder.Returning<DistanceContext, Distance>(DistanceContext) {
-        object DistanceContext {
-            val Int.mm: Distance get() = milli.m
-            val Int.inch: Distance get() = (toDouble() * 2.54).centi.m
-            val BigDecimal.m: Distance get() = Distance(this)
-        }
-    }
+#### Set Builder
 
-    override fun toString(): String = "\${meter}m"
+```kotlin
+val array = buildSet {
+    add("test")
+    add("𓌈🥸𓂈")
 }
+```
 
-data class Engine(val power: EnginePower, val maxSpeed: Speed) {
-    companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
+#### Map Builder
 
-        class EngineContext(
-            override val captures: CapturesMap,
-        ) : CapturingContext() {
-            val power by EnginePower
-            val maxSpeed by Speed
-        }
-
-        override fun BuildContext.build(): Engine = ::EngineContext {
-            Engine(::power.evalOrDefault { EnginePower { 130.kW } }, ::maxSpeed.evalOrDefault { Speed { 228.km per hour } })
-        }
-    }
-
-    override fun toString(): String = "\$maxSpeed, \$power"
+```kotlin
+val array = buildMap {
+    "ten" to 3
+    "𓌈🥸𓂈".let { it to it.length }
 }
-
-enum class Trait { Exclusive, PreOwned, TaxExempt }
-````
-
-#### Highlights
-
-* Compose and re-use builders, functions and callable properties
-    * a couple of default builders like **EnumSetBuilder**, **ArrayBuilder**, **ListBuilder** and **MapBuilder** are already provided
-* Auto-generate simple builders, functions and setters
-* BuilderTemplate based builders are…
-    * **thread-safe**
-        * Builders created with the builder template have no state.
-        * Instead, each build keeps its state in a dedicated context instance which you may implement on your own or assisted by
-          inheriting [CapturingContext](src/commonMain/kotlin/koodies/builder/context/CapturingContext.kt). The latter keeps your context free of any technical
-          concerns such as `build` methods which allows for clean DSLs.
-        * Some builders like the `Distance` builder in the [CarDSL](src/commonTest/kotlin/koodies/builder/CarDSL.kt) or
-          the [DockerImage](src/jvmMain/kotlin/koodies/docker/DockerImage.kt) builder
-          are [stateless context builders](src/commonMain/kotlin/koodies/builder/Builder.kt). Not having any state at all might sound very limiting but is ideal
-          for micro DSLs.
-    * usable as **singleton** `object CarBuilder`
-    * usable as **companion object**
-      ```kotlin
-      class Car(val name: String, …, val engine: Engine, val wheels: Int) {
-          companion object : BuilderTemplate<CarContext, Car> {
-               // same implementation as above 
-          }      
-      } 
-      ```
-      which lets you
-        * **instantiate using a constructor** `Car("boring", …, engine, 4)` *or*
-        * **build using the builder** `Car { name{ "exceptionel" }; engine { speed{ 1_200.km per hour } } }`
-    * **re-usable**
-        * just define a property like `val prop by CarBuilder` …
-            * … inside a BuilderTemplate to provide a function that looks like the builder but captures every invocation to be used as part of your own build
-              process
-            * … everywhere else to provide a function that delegates all invocations to the builder and returns the build result
-        * chain builders using `then`
-    * **optional**
-        * call `build { … }` to build an instance *or*
-        * call `build using …` / `build by …` (e.g. `build by myCar`) to skip the build process completely and use an already existing instance
-    * **defaultable**
-        * defaults can be specified for each property, e.g. `val wheels by builder<Int>() default 4`
-        * defaults can be provided during build, e.g. `::wheels.evalOrDefault(4)`
-        * container-like builders (ListBuilder, MapBuilder, etc.) have all non-null pre-defined defaults (emptyList(), emptyMap(), etc)
-    * **versatile**
-        * get single instances using `::engine.eval()`, `::engine.evalOrDefault()` or `::engine.evalOrNull()`
-        * get multiple instances using `::engine.evalAll()` *(order of invocations preserved)*
-        * get all instances of type `T` from all fields using `evalAll<T>()` *(order of invocations preserved)*
-        * implicitly build lists using infix functions, e.g.
-          ```kotlin
-          wheels {
-            // three-wheeler
-            axis with wheel { … } // 1st axis with one wheel
-            axis with wheel { … } + wheel { … } // 2nd axis with two wheels
-          }
-          ```
+```
 
 ### IP Address Tooling (4 & 6)
 
