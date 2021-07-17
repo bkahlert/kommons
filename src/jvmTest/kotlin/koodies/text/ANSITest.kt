@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
+import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -230,3 +231,6 @@ fun <T : CharSequence> Assertion.Builder<T>.containsAnsi(): Assertion.Builder<T>
 
 inline val <reified T : CharSequence> Assertion.Builder<T>.ansiRemoved: DescribeableBuilder<String>
     get() = get("escape sequences removed") { ansiRemoved }
+
+inline fun <reified T : CharSequence> Builder<T>.ansiRemoved(noinline assertions: Builder<String>.() -> Unit): Builder<T> =
+    with("escape sequences removed", { ansiRemoved }, assertions)
