@@ -5,6 +5,7 @@ import koodies.debug.asEmoji
 import koodies.debug.debug
 import koodies.exec.mock.SlowInputStream
 import koodies.runWrapping
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.INTERMEDIARY_LINE_PATTERN
 import koodies.text.LineSeparators
 import koodies.text.LineSeparators.CR
@@ -12,7 +13,9 @@ import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.hasTrailingLineSeparator
 import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.Unicode
+import koodies.text.asCodePoint
 import koodies.time.seconds
+import koodies.tracing.CurrentSpan
 import koodies.tracing.Key
 import koodies.tracing.rendering.Renderer.Companion.NOOP
 import koodies.tracing.spanning
@@ -71,7 +74,7 @@ public class NonBlockingReader(
                 }) { reader?.read(charArray, 0)!! }
 
                 if (read == -1) {
-                    event("EOF", LINE_ATTRIBUTE to unfinishedLine)
+                    eofEvent()
                     close()
                     return@spanning if (unfinishedLine.isEmpty()) {
                         lastReadLineDueTimeout = false
@@ -84,20 +87,18 @@ public class NonBlockingReader(
                         lastReadLine!!.trailingLineSeparatorRemoved
                     }
                 }
-                event("character-read",
-                    CHAR_ATTRIBUTE to justRead,
-                    LINE_ATTRIBUTE to unfinishedLine,
-                    TIMEOUT_ATTRIBUTE to (latestReadMoment - currentTimeMillis()).milli.seconds)
+
+                characterReadEvent(latestReadMoment)
+
                 if (read == 1) {
 
                     val lineAlreadyRead = lastReadLineDueTimeout == true && lastReadLine?.hasTrailingLineSeparator == true && !justReadCRLF
 
                     if (lineComplete) {
                         lastReadLineDueTimeout = false
-                        lastReadLine = "$unfinishedLine"
+                        lastReadLine = "$unfinishedLine".also { lineReadEvent(it) }
                         unfinishedLine.clear()
                         unfinishedLine.append(charArray)
-                        event("line-read", LINE_ATTRIBUTE to lastReadLine!!)
                         if (!lineAlreadyRead) {
                             return@spanning lastReadLine!!.trailingLineSeparatorRemoved
                         }
@@ -121,6 +122,22 @@ public class NonBlockingReader(
             @Suppress("UNREACHABLE_CODE")
             error("return statement missing")
         }
+
+    private fun CurrentSpan.characterReadEvent(latestReadMoment: Long) {
+        event("character read",
+            CHAR_ATTRIBUTE to justRead,
+            CODEPOINT_ATTRIBUTE to justRead,
+            LINE_ATTRIBUTE to unfinishedLine,
+            TIMEOUT_ATTRIBUTE to (latestReadMoment - currentTimeMillis()).milli.seconds)
+    }
+
+    private fun CurrentSpan.lineReadEvent(line: String) {
+        event("line-read", LINE_ATTRIBUTE to line)
+    }
+
+    private fun CurrentSpan.eofEvent() {
+        event("EOF", LINE_ATTRIBUTE to unfinishedLine)
+    }
 
     private fun calculateLatestReadMoment() = currentTimeMillis() + timeout.inWholeMilliseconds
 
@@ -147,8 +164,9 @@ public class NonBlockingReader(
         postfix = ")") { "${it.first}: ${it.second}" }
 
     public companion object {
-        private val CHAR_ATTRIBUTE: Key<String, String> = Key.stringKey("character") { it.debug }
-        private val LINE_ATTRIBUTE: Key<String, CharSequence> = Key.stringKey("line") { it.debug }
+        private val CHAR_ATTRIBUTE: Key<String, String> = Key.stringKey("character")
+        private val CODEPOINT_ATTRIBUTE: Key<String, String> = Key.stringKey("codepoint") { char -> char.asCodePoint()?.let { "0x${it.hexCode}" } ?: "" }
+        private val LINE_ATTRIBUTE: Key<String, CharSequence> = Key.stringKey("line") { it.ansiRemoved }
         private val TIMEOUT_ATTRIBUTE: Key<String, Duration> = Key.stringKey("timeout") { it.toString() }
     }
 }
