@@ -18,7 +18,7 @@ public class RenderingAttributes(attributes: Attributes) : Attributes by attribu
     public companion object Keys {
         public val Attributes.rendering: RenderingAttributes get(): RenderingAttributes = RenderingAttributes(this)
 
-        public val DESCRIPTION: Key<String, CharSequence> = Key.stringKey("koodies.description") { it.toString() }
+        public val DESCRIPTION: Key<String, CharSequence> = Key.stringKey("description") { it.toString() }
         public val EXTRA: Key<String, Any> = Key.stringKey("koodies.extra") { it.toString() }
 
         public val RENDERER: Key<String, Renderer> = Key.stringKey("koodies.renderer") { it.toString() }

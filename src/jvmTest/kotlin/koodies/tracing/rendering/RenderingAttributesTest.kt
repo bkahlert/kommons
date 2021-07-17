@@ -38,7 +38,7 @@ class RenderingAttributesTest {
         @Test
         fun `should contain all attributes`() {
             expectThat(renderingAttributes.toString())
-                .contains("koodies.description = custom description")
+                .contains("description = custom description")
                 .contains("koodies.extra = custom extra")
                 .contains("irrelevant-key = irrelevant value")
         }

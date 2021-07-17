@@ -53,7 +53,7 @@ class RenderableAttributesTest {
         @Test
         fun `should contain all attributes`() {
             expectThat(renderableAttributes.toString())
-                .contains("koodies.description.render = rendering only description")
+                .contains("description.render = rendering only description")
                 .contains("koodies.exec.io.text = /root")
                 .contains("irrelevant-key = irrelevant value")
         }
