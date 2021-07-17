@@ -1,6 +1,8 @@
 package koodies.tracing.rendering
 
 import koodies.text.LineSeparators.isMultiline
+import koodies.tracing.SpanId
+import koodies.tracing.TraceId
 
 /**
  * Renderer that behaves like a [BlockRenderer] with two exceptions:
@@ -21,6 +23,11 @@ public class CompactRenderer(
 
     private fun oneLineRenderer() {
         if (render(OneLineRenderer(settings))) isOneLine = true
+    }
+
+    override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
+        if (name.isMultiline) blockRenderer()
+        super.start(traceId, spanId, name)
     }
 
     override fun event(name: CharSequence, attributes: RenderableAttributes) {

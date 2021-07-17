@@ -23,7 +23,7 @@ class OneLineRendererKtTest {
                 ╭──╴block
                 │
                 │   block event                         
-                │   one-line ❱ one-line event ✔︎
+                │   ╎ one-line ─ one-line event ✔︎
                 │
                 ╰──╴✔︎
             """.trimIndent())
@@ -32,19 +32,19 @@ class OneLineRendererKtTest {
         @Test
         fun TestSpan.`should be customizable`() {
             spanningLine("parent", contentFormatter = { "!$it!" }) { spanning("child") { log("event") } }
-            expectThatRendered().matchesCurlyPattern("parent ❱❱ child ❱ !event! ✔︎ ❱❱ ✔︎")
+            expectThatRendered().matchesCurlyPattern("╎ parent ─ child ─ !event! ✔︎ ─ ✔︎")
         }
 
         @Test
         fun TestSpan.`should keep one-line rendering for nested spans`() {
             spanningLine("root") { spanning("parent") { spanning("child") { log("event") } } }
-            expectThatRendered().matchesCurlyPattern("root ❱❱ parent ❱❱ child ❱ event ✔︎ ❱❱ ✔︎ ❱❱ ✔︎")
+            expectThatRendered().matchesCurlyPattern("╎ root ─ parent ─ child ─ event ✔︎ ─ ✔︎ ─ ✔︎")
         }
 
         @Test
         fun TestSpan.`should support consecutive one-line span switches`() {
             spanningLine("parent") { spanningLine("child") { log("event") } }
-            expectThatRendered().matchesCurlyPattern("parent ❱❱ child ❱ event ✔︎ ❱❱ ✔︎")
+            expectThatRendered().matchesCurlyPattern("╎ parent ─ child ─ event ✔︎ ─ ✔︎")
         }
     }
 }

@@ -70,7 +70,11 @@ public object RendererProviders {
     public fun noDetails(
         customize: Settings.() -> Settings = { this },
     ): RendererProvider = {
-        OneLineRenderer(customize().copy(contentFormatter = { null }))
+        OneLineRenderer(customize().copy(
+            nameFormatter = { it },
+            contentFormatter = { null },
+            style = None,
+        ))
     }
 
     /**

@@ -1,5 +1,6 @@
 package koodies.exec.mock
 
+import koodies.exec.Exec
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
@@ -371,7 +372,7 @@ class JavaExecMockTest {
     @Test
     fun `should read zero bytes without exception and delay onexit`() {
         @Suppress("SpellCheckingInspection")
-        val process = withIndividuallySlowInput(
+        val exec: Exec = withIndividuallySlowInput(
             Duration.ZERO to "[  OK  ] Started Update UTMP about System Runlevel Changes.$LF",
             prompt(),
             100.milli.seconds to "Shutting down",
@@ -381,15 +382,16 @@ class JavaExecMockTest {
                 while (!outputStream.toString().contains("shutdown")) {
                     100.milli.seconds.sleep()
                 }
+
                 0
             }).start()
 
         daemon {
-            3.seconds.sleep()
-            process.enter("shutdown")
+            2.seconds.sleep()
+            exec.enter("shutdown")
         }
 
-        val status = process.process(ProcessingMode { async(NonInteractive(null)) }).waitFor()
+        val status = exec.process(ProcessingMode { async(NonInteractive(null)) }).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

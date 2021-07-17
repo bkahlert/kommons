@@ -1,6 +1,5 @@
 package koodies.builder
 
-
 /**
  * # Builder
  * This library defines a builder as follows:

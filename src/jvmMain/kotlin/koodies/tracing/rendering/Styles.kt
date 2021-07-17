@@ -59,8 +59,8 @@ public object Styles {
 
         public companion object : (ColumnsLayout, Int) -> Solid {
 
-            private const val ONE_LINE_PREFIX = "╏ "
-            private const val ONE_LINE_SEPARATOR = " ━ "
+            private const val ONE_LINE_PREFIX = "╎ "
+            private const val ONE_LINE_SEPARATOR = " ─ "
 
             private const val INDENT: Int = 4
 

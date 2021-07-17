@@ -34,7 +34,7 @@ class OneLineRendererTest {
     @Smoke @TestFactory
     fun TestSpan.`should render using styles`() = testEach(
         Solid to """
-            ╏ One Two Three ━ 123 ABC ━ child-span ━ 123 ABC ━ child-span ━ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ━ ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ━ ✔︎
+            ╎ One Two Three ─ 123 ABC ─ child-span ─ 123 ABC ─ child-span ─ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ─ ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ─ ✔︎
         """.trimIndent(),
         Dotted to """
             ▶ One Two Three ▷ 123 ABC ▷ child-span ▷ 123 ABC ▷ child-span ▷ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:64) ▷ ϟ RuntimeException: message at.(OneLineRendererTest.kt:66) ▷ ✔︎
@@ -84,7 +84,7 @@ class OneLineRendererTest {
                     end(Result.success(true))
                 }
             }
-        } that { ansiRemoved.isEqualTo("╏ name ✔︎") }
+        } that { ansiRemoved.isEqualTo("╎ name ✔︎") }
     }
 
     @Test
@@ -112,7 +112,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.contains(" ━ event")
+        expectThat(rendered).ansiRemoved.contains(" ─ event")
     }
 
     @Test
@@ -124,7 +124,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╏ name ━ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ✔︎")
+        expectThat(rendered).matchesCurlyPattern("╎ name ─ RuntimeException: exception at.(OneLineRendererTest.kt:{}) ✔︎")
     }
 
     @Test
@@ -135,7 +135,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.endsWith("╏ name ✔︎")
+        expectThat(rendered).ansiRemoved.endsWith("╎ name ✔︎")
     }
 
     @Test
@@ -146,7 +146,7 @@ class OneLineRendererTest {
                 end(Result.failure<Unit>(RuntimeException("test")))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╏ name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{})")
+        expectThat(rendered).matchesCurlyPattern("╎ name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{})")
     }
 
     @Test
@@ -158,7 +158,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╏ name ✔︎")
+        expectThat(rendered).matchesCurlyPattern("╎ name ✔︎")
     }
 
     @Test
@@ -191,7 +191,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╏ name ━ event ━ child ━ child event ✔︎ ━ ✔︎")
+        expectThat(rendered).matchesCurlyPattern("╎ name ─ event ─ child ─ child event ✔︎ ─ ✔︎")
     }
 
     @Test

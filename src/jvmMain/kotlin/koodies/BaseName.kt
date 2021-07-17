@@ -1,5 +1,6 @@
 package koodies
 
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.CodePoint
 import koodies.text.asCodePointSequence
 import koodies.text.decapitalize
@@ -20,7 +21,7 @@ public fun CharSequence?.toBaseName(minLength: Int = 8): String {
     var firstCharReplaced = false
 
     val sanitized = StringBuilder().also {
-        (this ?: "").asCodePointSequence().withIndex().joinTo(it, "") { (index: Int, codePoint: CodePoint) ->
+        (this?.ansiRemoved ?: "").asCodePointSequence().withIndex().joinTo(it, "") { (index: Int, codePoint: CodePoint) ->
             if (index == 0 && !codePoint.isAtoz) {
                 firstCharReplaced = true
                 when (codePoint.char) {

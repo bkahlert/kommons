@@ -44,7 +44,7 @@ class CompactRendererTest {
             ╭──╴One Two Three
             │
             │   123 abc                                                                         
-            │   one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:{})
+            │   ╎ one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:{})
             │   ╭──╴block
             │   │
             │   │   123 abc                                                                     
@@ -64,7 +64,7 @@ class CompactRendererTest {
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
-            name ✔︎
+            ╎ name ✔︎
         """.trimIndent())
     }
 
@@ -81,7 +81,32 @@ class CompactRendererTest {
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
-            parent ❱❱ child ✔︎ ❱❱ ✔︎
+            ╎ parent ─ child ✔︎ ─ ✔︎
+        """.trimIndent())
+    }
+
+    @Test
+    fun TestSpan.`should render block on multi-line start`() {
+        val rendered = capturing {
+            CompactRenderer(settings.copy(printer = it)).run {
+                start("parent")
+                childRenderer().run {
+                    start("child\nmulti-line")
+                    end(Result.success(true))
+                }
+                end(Result.success(true))
+            }
+        }
+        expectThat(rendered).matchesCurlyPattern("""
+            ╭──╴parent
+            │
+            │   ╭──╴child
+            │   │   multi-line
+            │   │
+            │   │
+            │   ╰──╴✔︎
+            │
+            ╰──╴✔︎
         """.trimIndent())
     }
 
@@ -220,7 +245,7 @@ class CompactRendererTest {
         expectThat(rendered).matchesCurlyPattern("""
             ╭──╴parent
             │
-            │   child ✔︎
+            │   ╎ child ✔︎
             │
             ╰──╴✔︎
         """.trimIndent())

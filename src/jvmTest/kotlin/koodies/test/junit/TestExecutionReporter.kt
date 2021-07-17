@@ -96,7 +96,7 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
                 "Docker is not running: ${skipped.size} tests skipped!".formattedAs.warning,
                 *groupBy.toTypedArray(),
             )
-                .wrapWithBorder(padding = 2, margin = 1, formatter = fromScratch { yellow })
+                .wrapWithBorder(padding = 2, margin = 0, formatter = fromScratch { yellow })
                 .also { println(it) }
         }
     }

@@ -17,7 +17,6 @@ import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Styles
 import koodies.tracing.rendering.Styles.None
-import koodies.tracing.rendering.spanningLine
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
@@ -394,7 +393,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should use render as rendered name`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { } }
-                expectThat(output).toStringMatchesCurlyPattern("null x 1 ✔︎")
+                expectThat(output).toStringMatchesCurlyPattern("╎ null x null ✔︎")
             }
         }
 
@@ -481,20 +480,6 @@ class RenderingSpanKtTest {
                     ▶ name
                     · message                                                                         
                     ✔︎
-                """.trimIndent())
-            }
-
-            @Test
-            fun `should update one line style`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) {
-                    spanning("name") { spanningLine("one-line") { log("message") } }
-                }
-                expectThat(output).toStringMatchesCurlyPattern("""
-                    ╭──╴name
-                    │
-                    │   one-line!message! ✔︎
-                    │
-                    ╰──╴✔︎
                 """.trimIndent())
             }
 

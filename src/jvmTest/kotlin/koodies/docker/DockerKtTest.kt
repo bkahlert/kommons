@@ -13,8 +13,10 @@ import koodies.io.LibRSvg
 import koodies.io.compress.Archiver.unarchive
 import koodies.io.copyTo
 import koodies.io.path.asPath
+import koodies.io.path.copyToDirectory
 import koodies.io.path.getSize
 import koodies.io.path.listDirectoryEntriesRecursively
+import koodies.io.useClassPath
 import koodies.junit.UniqueId
 import koodies.test.HtmlFixture
 import koodies.test.Smoke
@@ -136,11 +138,11 @@ class DockerKtTest {
     @Suppress("SpellCheckingInspection")
     @DockerRequiring @Test
     fun `should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val uri = "https://www.riscosopen.org/zipfiles/platform/raspberry-pi/BCM2835Dev.5.29.zip?1604815147"
-        val unarchive: Path = download(uri).unarchive()
-        val listDirectoryEntriesRecursively: List<Path> = unarchive.listDirectoryEntriesRecursively()
-        val maxOf = listDirectoryEntriesRecursively.maxByOrNull { it.getSize() } ?: fail { "No image found." }
-        maxOf.dockerPi().waitFor() asserting {
+        val image = useClassPath("BCM2835Dev.5.29.zip") { copyToDirectory(this@withTempDir) }
+            ?.unarchive()
+            ?.listDirectoryEntriesRecursively()
+            ?.maxByOrNull { it.getSize() } ?: fail { "No image found." }
+        image.dockerPi().waitFor() asserting {
             io.output.ansiRemoved.contains("Rebooting in 1 seconds")
         }
     }
