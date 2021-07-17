@@ -2,7 +2,7 @@ package koodies.tracing
 
 import io.opentelemetry.api.trace.Span
 import koodies.junit.TestName.Companion.testName
-import koodies.junit.isVerbose
+import koodies.junit.Verbosity
 import koodies.jvm.currentThread
 import koodies.jvm.orNull
 import koodies.math.floorDiv
@@ -89,7 +89,7 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpan>(), Before
     override fun beforeEach(extensionContext: ExtensionContext) {
         if (extensionContext.isAnnotated<NoTestSpan>()) return
         val name = extensionContext.testName
-        val printToConsole = extensionContext.isVerbose
+        val printToConsole = Verbosity.isVerbose
         val clientPrinter = InMemoryPrinter()
         val span: RenderingSpan = renderingSpan(name, Tracer) { TestRenderer(clientPrinter, printToConsole) }
         val scope = (span as Span).registerAsTestSpan().makeCurrent()

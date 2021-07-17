@@ -1,6 +1,5 @@
 package koodies.test.junit
 
-import koodies.debug.Debug
 import koodies.docker.Docker
 import koodies.docker.DockerRequiring
 import koodies.test.allContainerJavaClasses
@@ -41,7 +40,6 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
 
     override fun testPlanExecutionFinished(testPlan: TestPlan) {
         val timeNeeded = (System.currentTimeMillis() - startTimestamp).milli.seconds
-        checkDebug(testPlan)
         checkSkippedDockerTests(testPlan)
 
         if (failedTestsCount == 0) {
@@ -64,20 +62,6 @@ class TestExecutionReporter : TestExecutionListener, TestWatcher {
             )
                 .joinLinesToString()
                 .draw.border.rounded(padding = 2, margin = 0, fromScratch { red })
-                .also { println(it) }
-        }
-    }
-
-    private fun checkDebug(testPlan: TestPlan) {
-        val debugAnnotatedMethods = testPlan.allTestJavaMethods.withAnnotation<Debug>(ancestorsIgnored = false) { debug -> debug.includeInReport }
-        if (debugAnnotatedMethods.isNotEmpty()) {
-            listOf(
-                "${Debug::class.simpleName} in use!".formattedAs.warning,
-                "You are only seeing the results of the ${debugAnnotatedMethods.size} annotated tests.",
-                "Don't forget to remove them.".ansi.bold,
-            )
-                .joinLinesToString()
-                .wrapWithBorder(padding = 2, margin = 0, formatter = fromScratch { yellow })
                 .also { println(it) }
         }
     }

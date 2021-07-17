@@ -25,7 +25,7 @@ class TextWidthKtTest {
 
     class AwtInitializer : TestExecutionListener {
         override fun testPlanExecutionStarted(testPlan: TestPlan) {
-            TextWidth.calculateWidth("indirect AWT initialization")
+            TextWidth.calculateWidth("implicit AWT initialization")
         }
     }
 

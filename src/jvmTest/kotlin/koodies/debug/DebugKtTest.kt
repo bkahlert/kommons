@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-class DebugPropertyKtTest {
+class DebugKtTest {
 
     @Test
     fun `should render String`() {

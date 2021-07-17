@@ -62,7 +62,7 @@ class ClassPathTest {
 
         @TestFactory
         fun `should have data`() = testEach(dynamicClassPathFile, staticClassPathFile) {
-            expecting { data.decodeToString() } that { contains("koodies.debug.DebugCondition") }
+            expecting { data.decodeToString() } that { contains("koodies.junit.TestNameResolver") }
             expecting { data.size } that { isGreaterThan(10) }
         }
 
@@ -89,7 +89,7 @@ class ClassPathTest {
         fun `should copy file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expecting { META_INF.Services.JUnitExtensions.copyTo(resolve("test.txt")) } that {
                 fileName.toStringIsEqualTo("test.txt")
-                text.contains("koodies.debug.DebugCondition")
+                text.contains("koodies.junit.TestNameResolver")
             }
         }
 
@@ -97,7 +97,7 @@ class ClassPathTest {
         fun `should copy file to directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expecting { META_INF.Services.JUnitExtensions.copyToDirectory(this) } that {
                 fileName.toStringIsEqualTo("org.junit.jupiter.api.extension.Extension")
-                text.contains("koodies.debug.DebugCondition")
+                text.contains("koodies.junit.TestNameResolver")
             }
         }
 
@@ -105,7 +105,7 @@ class ClassPathTest {
         fun `should copy file to temp`() {
             expecting { META_INF.Services.JUnitExtensions.copyToTemp().deleteOnExit() } that {
                 parent.isEqualTo(Koodies.FilesTemp)
-                text.contains("koodies.debug.DebugCondition")
+                text.contains("koodies.junit.TestNameResolver")
             }
         }
     }
