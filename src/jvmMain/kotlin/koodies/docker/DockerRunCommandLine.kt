@@ -47,7 +47,7 @@ public class DockerRunCommandLine(
 
     public constructor(image: DockerImage, executable: Executable<Exec>) : this(image, Options(), executable)
 
-    override val name: CharSequence? = executable.name?.let { "$it 🐳 $image" }
+    override val name: CharSequence? = executable.name?.let { "$it 🐳 ${image.toString(includeSpecifier = false)}" }
 
     private val fallbackName = executable.content.toBaseName().withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
