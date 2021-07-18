@@ -6,6 +6,7 @@ import koodies.exception.toCompactString
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.Companion.ansi
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.LineSeparators
 import koodies.tracing.CurrentSpan
 import koodies.tracing.Key.KeyValue
@@ -25,23 +26,33 @@ public class OneLineRenderer(
     private val style = settings.style(settings.layout, settings.indent)
     private val prefix = style.onlineLinePrefix
     private val separator = style.onlineLineSeparator
+    private val prefixRegex = Regex.fromLiteral(prefix)
 
     private val messages = mutableListOf<CharSequence>()
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         settings.nameFormatter(name)
-            ?.also { messages.add(it) }
+            ?.also {
+                messages.add(settings.decorationFormatter(prefix))
+                messages.add(it)
+            }
     }
 
     override fun event(name: CharSequence, attributes: RenderableAttributes) {
         attributes[settings.layout.primaryKey]
             ?.let { settings.contentFormatter.invoke(it) }
-            ?.also { messages.add(it) }
+            ?.also {
+                messages.add(settings.decorationFormatter(separator))
+                messages.add(it)
+            }
     }
 
     override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         settings.contentFormatter.invoke(exception.toCompactString())
-            ?.also { messages.add(it) }
+            ?.also {
+                messages.add(settings.decorationFormatter(separator))
+                messages.add(it)
+            }
     }
 
     override fun <R> end(result: Result<R>) {
@@ -50,7 +61,7 @@ public class OneLineRenderer(
             .let { settings.returnValueTransform(it)?.format() }
 
         (messages.takeUnless { it.isEmpty() }
-            ?.joinToString(prefix = settings.decorationFormatter(prefix), separator = settings.decorationFormatter(separator)) { LineSeparators.unify(it, "⏎") }
+            ?.joinToString("") { LineSeparators.unify(it, "⏎") }
             ?.let { "$it $formattedResult" } ?: formattedResult)
             ?.let(settings.printer)
     }
@@ -59,11 +70,7 @@ public class OneLineRenderer(
         renderer(settings.copy(printer = ::printChild)) { OneLineRenderer(it) }
 
     override fun printChild(text: CharSequence) {
-        FilteringFormatter<CharSequence> {
-            val child = it.toString().replaceFirst(Regex.fromLiteral(prefix), "") + settings.decorationFormatter(separator.trimEnd())
-            child.ansi.italic
-        }(text)
-            ?.also { messages.add(it) }
+        messages.add(" " + text.ansiRemoved.ansi.gray)
     }
 
     override fun toString(): String = asString {

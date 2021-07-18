@@ -44,7 +44,7 @@ class CompactRendererTest {
             ╭──╴One Two Three
             │
             │   123 abc                                                                         
-            │   ╎ one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:{})
+            │   ╶──╴one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:{})
             │   ╭──╴block
             │   │
             │   │   123 abc                                                                     
@@ -64,7 +64,7 @@ class CompactRendererTest {
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
-            ╎ name ✔︎
+            ╶──╴name ✔︎
         """.trimIndent())
     }
 
@@ -81,7 +81,7 @@ class CompactRendererTest {
             }
         }
         expectThat(rendered).matchesCurlyPattern("""
-            ╎ parent ─ child ✔︎ ─ ✔︎
+            ╶──╴parent ╶──╴child ✔︎ ✔︎
         """.trimIndent())
     }
 
@@ -245,7 +245,7 @@ class CompactRendererTest {
         expectThat(rendered).matchesCurlyPattern("""
             ╭──╴parent
             │
-            │   ╎ child ✔︎
+            │   ╶──╴child ✔︎
             │
             ╰──╴✔︎
         """.trimIndent())

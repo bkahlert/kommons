@@ -393,7 +393,7 @@ class RenderingSpanKtTest {
             @Test
             fun `should use render as rendered name`(testName: TestName, output: CapturedOutput) {
                 withRootSpan(testName) { spanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { } }
-                expectThat(output).toStringMatchesCurlyPattern("╎ null x null ✔︎")
+                expectThat(output).toStringMatchesCurlyPattern("╶──╴null x null ✔︎")
             }
         }
 
