@@ -9,6 +9,7 @@ import koodies.text.ansiRemoved
 import koodies.text.isSingleLine
 import koodies.text.matchesCurlyPattern
 import koodies.text.toUpperCase
+import koodies.tracing.Key
 import koodies.tracing.TestSpan
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.RenderableAttributes.Companion.EMPTY
@@ -26,6 +27,8 @@ import strikt.assertions.isEqualTo
 
 class OneLineRendererTest {
 
+    private val EXTRA: Key<String, Any> = Key.stringKey("koodies.extra") { it.toString() }
+
     private val plain11 = "123 abc"
     private val ansi11 = "123".ansi.yellow.done + " " + "abc".ansi.green
 
@@ -34,19 +37,19 @@ class OneLineRendererTest {
     @Smoke @TestFactory
     fun TestSpan.`should render using styles`() = testEach(
         Solid to """
-            ╶──╴One Two Three╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:64) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
+            ╶──╴One Two Three╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
         """.trimIndent(),
         Dotted to """
-            ▶ One Two Three ▷ 123 ABC ▶ child-span ▷ 123 ABC ▶ child-span ▷ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:64) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
+            ▶ One Two Three ▷ 123 ABC ▶ child-span ▷ 123 ABC ▶ child-span ▷ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
         """.trimIndent(),
         None to """
-            One Two Three ❱ 123 ABC child-span ❱ 123 ABC child-span ❱ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:64) ϟ RuntimeException: message at.(OneLineRendererTest.kt:66) ✔︎
+            One Two Three ❱ 123 ABC child-span ❱ 123 ABC child-span ❱ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
         """.trimIndent(),
     ) { (style, expected) ->
         val rendered = capturing { printer ->
             OneLineRenderer(Settings(
                 style = style,
-                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, RenderingAttributes.EXTRA columns 20, maxColumns = 80),
+                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
                 contentFormatter = { it.toString().toUpperCase().ansi.random },
                 decorationFormatter = { it.ansi.brightRed },
                 returnValueTransform = { it },
@@ -54,13 +57,13 @@ class OneLineRendererTest {
             )).apply {
 
                 start("One Two Three")
-                log(ansi11, RenderingAttributes.EXTRA to plain11)
+                log(ansi11, EXTRA to plain11)
                 childRenderer().apply {
                     start("child-span")
-                    log(ansi11, RenderingAttributes.EXTRA to plain11)
+                    log(ansi11, EXTRA to plain11)
                     childRenderer().apply {
                         start("child-span")
-                        log(ansi11, RenderingAttributes.EXTRA to plain11)
+                        log(ansi11, EXTRA to plain11)
                         end(Result.failure<Unit>(RuntimeException("Now Panic!")))
                     }
                     end(Result.failure<Unit>(RuntimeException("message")))

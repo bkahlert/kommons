@@ -12,7 +12,6 @@ import koodies.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.Renderable
-import koodies.tracing.rendering.RenderingAttributes
 import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import koodies.tracing.rendering.ReturnValue
 import koodies.tracing.rendering.Styles
@@ -459,9 +458,9 @@ class RenderingSpanKtTest {
                 withRootSpan(testName) {
                     spanning("${"1234567".ansi.blue}     ${"12345".ansi.brightBlue}",
                         style = None,
-                        layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 7, RenderingAttributes.EXTRA columns 5)) {
+                        layout = ColumnsLayout(DESCRIPTION columns 7, EXTRA columns 5)) {
                         @Suppress("SpellCheckingInspection")
-                        log("messagegoes      here", RenderingAttributes.EXTRA to "worksgreat-----")
+                        log("messagegoes      here", EXTRA to "worksgreat-----")
                     }
                 }
                 expectThat(output).toStringMatchesCurlyPattern("""
@@ -507,4 +506,6 @@ class RenderingSpanKtTest {
         parentSpan.end()
         return result.getOrThrow()
     }
+
+    private val EXTRA: Key<String, Any> = Key.stringKey("koodies.extra") { it.toString() }
 }

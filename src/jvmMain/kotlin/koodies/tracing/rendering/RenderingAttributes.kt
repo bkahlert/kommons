@@ -9,7 +9,7 @@ import koodies.tracing.Key
  */
 public class RenderingAttributes(attributes: Attributes) : Attributes by attributes {
     public val description: String? by DESCRIPTION
-    public val extra: String? by EXTRA
+    public val renderer: String? by RENDERER
 
     override fun toString(): String = asString {
         asMap().forEach { (key, value) -> key to value }
@@ -18,10 +18,14 @@ public class RenderingAttributes(attributes: Attributes) : Attributes by attribu
     public companion object Keys {
         public val Attributes.rendering: RenderingAttributes get(): RenderingAttributes = RenderingAttributes(this)
 
-        /** Generic description attribute. */
+        /**
+         * Generic description attribute.
+         */
         public val DESCRIPTION: Key<String, CharSequence> = Key.stringKey("description") { it.toString() }
-        public val EXTRA: Key<String, Any> = Key.stringKey("koodies.extra") { it.toString() }
 
+        /**
+         * Renderer used for tracing.
+         */
         public val RENDERER: Key<String, Renderer> = Key.stringKey("koodies.renderer") { it.toString() }
     }
 }

@@ -36,21 +36,6 @@ class ColumnsLayoutTest {
     }
 
     @Nested
-    inner class Presets {
-
-        @Test
-        fun `should provide default layout`() {
-            expectThat(ColumnsLayout.DEFAULT).isEqualTo(ColumnsLayout(RenderingAttributes.DESCRIPTION columns 80))
-        }
-
-        @Test
-        fun `should provide description + extra layout`() {
-            expectThat(ColumnsLayout.DESCRIPTION_AND_EXTRA)
-                .isEqualTo(ColumnsLayout(RenderingAttributes.DESCRIPTION columns 120, RenderingAttributes.EXTRA columns 40))
-        }
-    }
-
-    @Nested
     inner class SingleColumn {
 
         @Test

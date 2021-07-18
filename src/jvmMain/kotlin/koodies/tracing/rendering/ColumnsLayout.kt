@@ -107,20 +107,5 @@ public data class ColumnsLayout(
          * Creates a [Column] with [width] describing the amount of columns taken up.
          */
         public infix fun Key<*, *>.columns(width: Int): Column = Column(this, width)
-
-        /**
-         * Default columns layout consisting of a single column that renders [RenderingAttributes.DESCRIPTION]`/80`.
-         */
-        public val DEFAULT: ColumnsLayout = ColumnsLayout()
-
-        /**
-         * Two columns layout consisting of:
-         * - one column that renders [RenderingAttributes.DESCRIPTION]`/120`
-         * - one column that renders [RenderingAttributes.EXTRA]`/40`.
-         */
-        public val DESCRIPTION_AND_EXTRA: ColumnsLayout = ColumnsLayout(
-            RenderingAttributes.DESCRIPTION columns 120,
-            RenderingAttributes.EXTRA columns 40,
-        )
     }
 }

@@ -25,7 +25,6 @@ import koodies.tracing.TraceId
 import koodies.tracing.rendering.ColumnsLayout.Companion.columns
 import koodies.tracing.rendering.Renderer.Companion.log
 import koodies.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
-import koodies.tracing.rendering.RenderingAttributes.Keys.EXTRA
 import koodies.tracing.rendering.Styles.Dotted
 import koodies.tracing.rendering.Styles.None
 import koodies.tracing.rendering.Styles.Solid
@@ -42,6 +41,8 @@ import strikt.assertions.startsWith
 import kotlin.time.Duration
 
 class BlockRendererTest {
+
+    private val EXTRA: Key<String, Any> = Key.stringKey("koodies.extra") { it.toString() }
 
     private val plain80 =
         "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod."
