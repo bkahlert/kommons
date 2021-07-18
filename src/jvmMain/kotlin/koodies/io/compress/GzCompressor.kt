@@ -15,6 +15,7 @@ import kotlin.io.path.outputStream
  * Provides (de-)compression functionality for the GNU GZIP format.
  */
 public object GzCompressor {
+    
     /**
      * Compresses this file using GNU ZIP.
      *

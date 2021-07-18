@@ -34,6 +34,7 @@ import koodies.io.compress.TarArchiveGzCompressor.listArchive as tarGzListArchiv
  * @see ArchiveStreamFactory
  */
 public object Archiver {
+
     /**
      * Archives this directory using the provided archive format.
      *
@@ -43,21 +44,22 @@ public object Archiver {
         format: String = ArchiveStreamFactory.ZIP,
         destination: Path = addExtensions(format),
         overwrite: Boolean = false,
+        predicate: (Path) -> Boolean = { true },
     ): Path =
         if (format == "tar.gz") {
             tarGzip(destination, overwrite = overwrite)
         } else {
             requireExists()
             if (overwrite) destination.deleteRecursively() else destination.requireExistsNot()
-            ArchiveStreamFactory().createArchiveOutputStream(format, destination.outputStream()).use { addToArchive(it) }
+            ArchiveStreamFactory().createArchiveOutputStream(format, destination.outputStream()).use { addToArchive(it, predicate) }
             destination
         }
 
     /**
      * Archives this directory by adding each entry to the [archiveOutputStream].
      */
-    public fun Path.addToArchive(archiveOutputStream: ArchiveOutputStream) {
-        listDirectoryEntriesRecursively().forEach { path ->
+    public fun Path.addToArchive(archiveOutputStream: ArchiveOutputStream, predicate: (Path) -> Boolean = { true }) {
+        listDirectoryEntriesRecursively().filter(predicate).forEach { path ->
             val entryName = "${relativize(path)}"
             val entry: ArchiveEntry = archiveOutputStream.createArchiveEntry(path.toFile(), entryName)
             archiveOutputStream.putArchiveEntry(entry)

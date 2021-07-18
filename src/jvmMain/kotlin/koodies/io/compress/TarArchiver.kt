@@ -20,6 +20,7 @@ import kotlin.io.path.exists
  * Provides (un-)archiving functionality for the TAR archive format.
  */
 public object TarArchiver {
+
     /**
      * Archives this directory using the TAR archive format.
      *
@@ -28,10 +29,11 @@ public object TarArchiver {
     public fun Path.tar(
         destination: Path = addExtensions("tar"),
         overwrite: Boolean = false,
+        predicate: (Path) -> Boolean = { true },
     ): Path {
         requireExists()
         if (overwrite) destination.deleteRecursively() else destination.requireExistsNot()
-        TarArchiveOutputStream(destination.bufferedOutputStream()).use { addToArchive(it) }
+        TarArchiveOutputStream(destination.bufferedOutputStream()).use { addToArchive(it, predicate) }
         return destination
     }
 

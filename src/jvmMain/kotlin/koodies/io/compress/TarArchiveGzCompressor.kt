@@ -32,11 +32,12 @@ public object TarArchiveGzCompressor {
     public fun Path.tarGzip(
         destination: Path = addExtensions("tar.gz"),
         overwrite: Boolean = false,
+        predicate: (Path) -> Boolean = { true },
     ): Path {
         requireExists()
         if (overwrite) destination.deleteRecursively() else destination.requireExistsNot()
         GzipCompressorOutputStream(destination.outputStream()).use { gzipOutput ->
-            TarArchiveOutputStream(gzipOutput).use { addToArchive(it) }
+            TarArchiveOutputStream(gzipOutput).use { addToArchive(it, predicate) }
         }
         return destination
     }

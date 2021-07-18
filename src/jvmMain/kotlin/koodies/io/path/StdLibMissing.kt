@@ -266,21 +266,21 @@ public fun Path.delete(vararg options: LinkOption): Path =
  *
  * Returns the deletes path.
  */
-public fun Path.deleteRecursively(vararg options: LinkOption, filter: (Path) -> Boolean = { true }): Path =
+public fun Path.deleteRecursively(vararg options: LinkOption, predicate: (Path) -> Boolean = { true }): Path =
     apply {
         if (exists(*options, LinkOption.NOFOLLOW_LINKS)) {
             if (isDirectory(*options, LinkOption.NOFOLLOW_LINKS)) {
-                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS, filter = filter) }
+                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS, predicate = predicate) }
             }
-            
-            if (filter(this)) {
+
+            if (predicate(this)) {
                 var maxAttempts = 3
                 var ex: Throwable? = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
                 while (ex != null && maxAttempts > 0) {
                     maxAttempts--
                     if (ex is DirectoryNotEmptyException) {
                         val files = listDirectoryEntriesRecursively(options = options)
-                        files.forEach { it.deleteRecursively(*options, filter = filter) }
+                        files.forEach { it.deleteRecursively(*options, predicate = predicate) }
                     }
                     100.milli.seconds.sleep()
                     ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
@@ -295,8 +295,8 @@ public fun Path.deleteRecursively(vararg options: LinkOption, filter: (Path) -> 
  *
  * Throws if this is no directory.
  */
-public fun Path.deleteDirectoryEntriesRecursively(filter: (Path) -> Boolean = { true }): Path =
-    apply { listDirectoryEntriesRecursively().forEach { it.deleteRecursively(filter = filter) } }
+public fun Path.deleteDirectoryEntriesRecursively(predicate: (Path) -> Boolean = { true }): Path =
+    apply { listDirectoryEntriesRecursively().forEach { it.deleteRecursively(predicate = predicate) } }
 
 /**
  * Registers this file for deletion the moment this program exits.

@@ -17,6 +17,7 @@ import kotlin.io.path.outputStream
  * @see CompressorStreamFactory
  */
 public object Compressor {
+
     /**
      * Compresses this file using the provided compression algorithm.
      *

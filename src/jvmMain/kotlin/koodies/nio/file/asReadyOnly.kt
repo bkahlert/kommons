@@ -67,9 +67,9 @@ private class ReadOnlyFileSystemProvider private constructor(private val provide
             provider.newByteChannel(path?.wrappedPath, options, *attrs)
         } else throw ReadOnlyFileSystemException()
 
-    override fun newDirectoryStream(dir: Path?, filter: DirectoryStream.Filter<in Path>?): DirectoryStream<Path> =
+    override fun newDirectoryStream(dir: Path?, predicate: DirectoryStream.Filter<in Path>?): DirectoryStream<Path> =
         object : DirectoryStream<Path> {
-            val stream = provider.newDirectoryStream(dir?.wrappedPath, filter)
+            val stream = provider.newDirectoryStream(dir?.wrappedPath, predicate)
 
             override fun iterator(): MutableIterator<Path> =
                 stream.iterator().asSequence().map { it.asReadOnly() }.toMutableList().listIterator()

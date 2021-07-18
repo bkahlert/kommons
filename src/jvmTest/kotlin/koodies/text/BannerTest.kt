@@ -16,20 +16,34 @@ class BannerTest {
         expectThat(Banner.banner("HandyKoodies")).isEqualToJoinedWords(rainbow, "$e[96mHANDY$e[39m", "$e[36mKOODIES$e[39m")
     }
 
-    @Test fun `should format camelCase`() {
+    @Test
+    fun `should format camelCase`() {
         expectThat(Banner.banner("camelCase")).isEqualToJoinedWords(rainbow, "$e[96mCAMEL$e[39m", "$e[36mCASE$e[39m")
     }
 
-    @Test fun `should format PascalCase`() {
+    @Test
+    fun `should format PascalCase`() {
         expectThat(Banner.banner("PascalCase")).isEqualToJoinedWords(rainbow, "$e[96mPASCAL$e[39m", "$e[36mCASE$e[39m")
     }
 
-    @Test fun `should format any CaSe`() {
+    @Test
+    fun `should format any CaSe`() {
         expectThat(Banner.banner("any CaSe")).isEqualToJoinedWords(rainbow, "$e[96mANY$e[39m", "$e[95mCASE$e[39m")
     }
 
-    @Test fun `should format camelCamelCase`() {
+    @Test
+    fun `should format camelCamelCase`() {
         expectThat(Banner.banner("camelCamelCase")).isEqualToJoinedWords(rainbow, "$e[96mCAMEL$e[39m", "$e[36mCAMELCASE$e[39m")
+    }
+
+    @Test
+    fun `should format with custom prefix`() {
+        expectThat(Banner.banner("camelCamelCase", "custom prefix")).isEqualToJoinedWords("custom prefix", "$e[96mCAMEL$e[39m", "$e[36mCAMELCASE$e[39m")
+    }
+
+    @Test
+    fun `should format with no prefix`() {
+        expectThat(Banner.banner("camelCamelCase", "")).isEqualToJoinedWords("$e[96mCAMEL$e[39m", "$e[36mCAMELCASE$e[39m")
     }
 }
 

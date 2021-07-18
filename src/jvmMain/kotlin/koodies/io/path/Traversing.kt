@@ -22,5 +22,5 @@ public fun <T> Path.traverse(
         file.traverse(operation(acc, transform(file)), transform, operation)
     } else initial
 
-public fun Path.listMatchingEntries(filter: Path.() -> Boolean): List<Path> =
-    traverse(emptyList(), { listOf(this) }) { list, path -> if (path.first().filter()) list + path else list }
+public fun Path.listMatchingEntries(predicate: Path.() -> Boolean): List<Path> =
+    traverse(emptyList(), { listOf(this) }) { list, path -> if (path.first().predicate()) list + path else list }

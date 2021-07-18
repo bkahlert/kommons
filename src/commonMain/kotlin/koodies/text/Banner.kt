@@ -12,11 +12,15 @@ public object Banner {
     private val delimiters = Regex("\\s+")
     private val capitalLetter = Regex("[A-Z]")
 
-    public fun banner(text: CharSequence): String {
+    /**
+     * Renders the given [text] with bright colors and the optional [prefix]
+     * which defaults to a rainbow spanning from cyan to red.
+     */
+    public fun banner(text: CharSequence, prefix: String = Banner.prefix): String {
         return text.split(delimiters).mapIndexed { index, word ->
             if (index == 0) {
                 val (first: String, second: String) = word.splitCamelCase()
-                (prefix + " " + first.toUpperCase().ansi.brightCyan + " " + second.toUpperCase().ansi.cyan).trim()
+                ((prefix.takeIf { it.isNotEmpty() }?.let { "$it " } ?: "") + first.toUpperCase().ansi.brightCyan + " " + second.toUpperCase().ansi.cyan).trim()
             } else {
                 word.toUpperCase().ansi.brightMagenta
             }
