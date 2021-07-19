@@ -14,5 +14,5 @@ object TestKoodies : Locations {
     /**
      * Directory in which all artifacts of a test run are stored.
      */
-    val TestRoot: Path by Locations.Temp.selfCleaning("com.bkahlert.koodies-test", Duration.ZERO, 0, cleanUpMode = OnStart)
+    val TestRoot: Path by Locations.Temp.resolve("koodies-test").selfCleaning(Duration.ZERO, 0, cleanUpMode = OnStart)
 }

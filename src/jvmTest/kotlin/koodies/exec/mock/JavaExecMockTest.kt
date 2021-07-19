@@ -43,8 +43,6 @@ import koodies.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
@@ -59,7 +57,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
-@Execution(CONCURRENT)
 class JavaExecMockTest {
 
     @Nested
@@ -369,7 +366,7 @@ class JavaExecMockTest {
         expectThat(p.received).isEqualTo("Test1234\rJust in case$LF")
     }
 
-    @Test
+    @Slow @Test
     fun `should read zero bytes without exception and delay onexit`() {
         @Suppress("SpellCheckingInspection")
         val exec: Exec = withIndividuallySlowInput(

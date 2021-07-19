@@ -4,7 +4,6 @@ import io.opentelemetry.api.trace.Tracer
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
-import koodies.text.LineSeparators.LF
 import koodies.text.columns
 import koodies.tracing.rendering.ColumnsLayout
 import koodies.tracing.rendering.Printer
@@ -117,9 +116,9 @@ public data class Executor<E : Exec>(
                 renderer(copy(
                     nameFormatter = {
                         val replacedSpanName = StringBuilder().apply {
-                            executable.name?.also { append("$it$LF") }
+                            executable.name?.also { append("$it: ") }
                             val contentLines = executable.content.lines()
-                            if ((contentLines.size <= 3) && (contentLines.all { it.columns <= 60 })) {
+                            if ((contentLines.size <= 1) && (contentLines.all { it.columns <= 60 })) {
                                 append(executable.content)
                             } else {
                                 append(executable.toLink())

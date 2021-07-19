@@ -21,10 +21,10 @@ import kotlin.time.Duration
 class SelfCleaningDirectoryTest {
 
     @Test
-    fun `should be sub directory`() {
-        expecting { Locations.Temp.selfCleaning("com.bkahlert.koodies.app-specific") } that {
-            isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("com.bkahlert.koodies.app-specific")))
-            toStringContains("com.bkahlert.koodies.app-specific")
+    fun `should take receiver directory`() {
+        expecting { Locations.Temp.resolve("koodies.app-specific").selfCleaning() } that {
+            isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("koodies.app-specific")))
+            toStringContains("koodies.app-specific")
         }
     }
 
@@ -41,7 +41,7 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should create if not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { selfCleaning(uniqueId.value) } that {
+        expecting { resolve(uniqueId.value).selfCleaning() } that {
             path.exists()
             path.isDirectory()
         }
@@ -49,19 +49,19 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should set POSIX permissions to 700`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { selfCleaning(uniqueId.value).path } that {
+        expecting { resolve(uniqueId.value).selfCleaning().path } that {
             permissions.containsExactlyInAnyOrder(OWNER_ALL_PERMISSIONS)
         }
     }
 
     @Test
     fun `should not delete files younger than 1h by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { selfCleaning("test") } that { keepAge.isEqualTo(1.hours) }
+        expecting { selfCleaning() } that { keepAge.isEqualTo(1.hours) }
     }
 
     @Test
     fun `should keep at most 100 files by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { selfCleaning("test") } that { keepCount.isEqualTo(100) }
+        expecting { selfCleaning() } that { keepCount.isEqualTo(100) }
     }
 }
 

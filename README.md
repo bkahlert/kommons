@@ -107,8 +107,8 @@ CommandLine("…") // ShellScript { … }
   ```text
   Process {PID} terminated with exit code {…}
   ➜ A dump has been written to:
-  - {WorkDir}/koodies.dump.{}.log
-  - {WorkDir}/koodies.dump.{}.ansi-removed.log
+  - {TempDir}/koodies/exec/dump.{}.log
+  - {TempDir}/koodies/exec/dump.{}.ansi-removed.log
     ➜ The last 10 lines are:
     {…}
     3

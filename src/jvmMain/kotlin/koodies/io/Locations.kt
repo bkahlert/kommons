@@ -14,13 +14,16 @@ import koodies.or
 import koodies.shell.ShellScript
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
+import koodies.text.takeUnlessEmpty
 import java.nio.file.FileSystems
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isWritable
 import kotlin.io.path.setPosixFilePermissions
 import kotlin.time.Duration
 
@@ -59,7 +62,7 @@ public interface Locations {
         /**
          * Directory in which temporary data can be stored.
          */
-        public val Temp: Path = Path.of(System.getProperty("java.io.tmpdir"))
+        public val Temp: Path = Paths.get("/tmp").takeIf { it.isWritable() } ?: Path.of(System.getProperty("java.io.tmpdir"))
     }
 }
 
@@ -75,7 +78,7 @@ public tailrec fun Path.randomPath(base: String = randomString(4), extension: St
     val minLength = 6
     val length = base.length + extension.length
     val randomSuffix = randomString((minLength - length).coerceAtLeast(3))
-    val randomPath = resolve("$base--$randomSuffix$extension")
+    val randomPath = resolve("${base.takeUnlessEmpty()?.let { "$it--" } ?: ""}$randomSuffix$extension")
     return randomPath.takeUnless { it.exists() } ?: randomPath(base, extension)
 }
 

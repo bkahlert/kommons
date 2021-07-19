@@ -188,8 +188,7 @@ class ExecutorTest {
                 fun TestSpan.`should print name if specified`() {
                     CommandLine("echo", "short", name = "custom name").exec.logging(style = None)
                     expectThatRendered().matchesCurlyPattern("""
-                        custom name
-                        echo short
+                        custom name: echo short
                         short
                         ✔︎
                     """.trimIndent())
@@ -364,8 +363,7 @@ class ExecutorTest {
                 fun TestSpan.`should print name if specified`() {
                     CommandLine("echo", "short", name = "custom name").exec.async.logging(style = None).waitFor()
                     expectThatRendered().matchesCurlyPattern("""
-                        custom name
-                        echo short
+                        custom name: echo short
                         short
                         ✔︎
                     """.trimIndent())

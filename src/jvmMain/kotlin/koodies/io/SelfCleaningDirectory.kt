@@ -99,9 +99,8 @@ public data class SelfCleaningDirectory(
 }
 
 /**
- * Creates a sub-directory [directoryName] in `this` directory that is cleaned when the program exits
- * by deleting files older than the specified [keepAge] and stopping when [keepCount] files
- * are left.
+ * Cleans `this` directory when the program exits by deleting files older than
+ * the specified [keepAge] and stopping when [keepCount] files are left.
  *
  * Because this process affects a potentially huge number of files,
  * this directory is required to be located somewhere inside of [Locations.Temp]
@@ -109,10 +108,8 @@ public data class SelfCleaningDirectory(
  */
 @Suppress("NOTHING_TO_INLINE")
 public inline fun Path.selfCleaning(
-    directoryName: String,
     keepAge: Duration = 1.hours,
     keepCount: Int = 100,
     enforceTempContainment: Boolean = true,
     cleanUpMode: CleanUpMode = CleanUpMode.OnShutdown,
-): SelfCleaningDirectory =
-    SelfCleaningDirectory(resolve(directoryName), keepAge, keepCount, enforceTempContainment, cleanUpMode)
+): SelfCleaningDirectory = SelfCleaningDirectory(this, keepAge, keepCount, enforceTempContainment, cleanUpMode)

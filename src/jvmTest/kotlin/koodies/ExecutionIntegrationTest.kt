@@ -137,8 +137,8 @@ class ExecutionIntegrationTest {
                 Boom!
                 Process $pid terminated with exit code $exitCode
                 ➜ A dump has been written to:
-                  - {}koodies.dump-{}.log (unchanged)
-                  - {}koodies.dump-{}.ansi-removed.log (ANSI escape/control sequences removed)
+                  - {}koodies/exec/dump--{}.log (unchanged)
+                  - {}koodies/exec/dump--{}.ansi-removed.log (ANSI escape/control sequences removed)
                 ➜ The last 7 lines are:
                   Countdown!
                   10
@@ -148,44 +148,6 @@ class ExecutionIntegrationTest {
                   Boom!
                   Process $pid terminated with exit code $exitCode
             """.trimIndent())
-            }
-        }
-    }
-
-    @Test
-    fun TestSpan.`should handle errorxxxs`() {
-        spanning("dsdsds") {
-            ShellScript {
-                echo("Countdown!")
-                (10 downTo 7).forEach { echo(it) }
-                !"1>&2 echo 'Boom!'"
-                !"exit 1"
-            }.exec.logging(style = Dotted) check {
-
-                state { isA<Failed>() }
-
-                io.ansiRemoved {
-                    matchesCurlyPattern("""
-                Countdown!
-                10
-                9
-                8
-                7
-                Boom!
-                Process $pid terminated with exit code $exitCode
-                ➜ A dump has been written to:
-                  - {}koodies.dump-{}.log (unchanged)
-                  - {}koodies.dump-{}.ansi-removed.log (ANSI escape/control sequences removed)
-                ➜ The last 7 lines are:
-                  Countdown!
-                  10
-                  9
-                  8
-                  7
-                  Boom!
-                  Process $pid terminated with exit code $exitCode
-            """.trimIndent())
-                }
             }
         }
     }
@@ -233,6 +195,7 @@ class ExecutionIntegrationTest {
     }
 
     @DockerRequiring @Test
+    @Suppress("SpellCheckingInspection")
     fun `should exec composed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         SvgFixture.copyTo(resolve("koodies.svg"))
 
@@ -255,26 +218,26 @@ class ExecutionIntegrationTest {
         with(executable) {
             spanning("existing logging context") {
                 exec.logging(
-                    renderer = RendererProviders.compact { copy(decorationFormatter = { Colors.brightBlue.invoke(it) }, style = Solid) }
+                    renderer = RendererProviders.compact { copy(decorationFormatter = { it.ansi.brightBlue }, style = Solid) }
                 )
             }
         }
 
-        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, style = Solid) {
+        spanning("existing logging context", decorationFormatter = { it.ansi.brightMagenta }, style = Solid) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, style = Solid)
+            executable.exec.logging(decorationFormatter = { it.ansi.magenta }, style = Solid)
         }
-        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, style = Solid) {
+        spanning("existing logging context", decorationFormatter = { it.ansi.brightBlue }, style = Solid) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, style = Dotted)
+            executable.exec.logging(decorationFormatter = { it.ansi.blue }, style = Dotted)
         }
-        spanning("existing logging context", decorationFormatter = { Colors.brightMagenta.invoke(it) }, style = Dotted) {
+        spanning("existing logging context", decorationFormatter = { it.ansi.brightMagenta }, style = Dotted) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.magenta.invoke(it) }, style = Solid)
+            executable.exec.logging(decorationFormatter = { it.ansi.magenta }, style = Solid)
         }
-        spanning("existing logging context", decorationFormatter = { Colors.brightBlue.invoke(it) }, style = Dotted) {
+        spanning("existing logging context", decorationFormatter = { it.ansi.brightBlue }, style = Dotted) {
             log("abc")
-            executable.exec.logging(decorationFormatter = { Colors.blue.invoke(it) }, style = Dotted)
+            executable.exec.logging(decorationFormatter = { it.ansi.blue }, style = Dotted)
         }
 
         expectThatRendered().matchesCurlyPattern("""
@@ -282,41 +245,41 @@ class ExecutionIntegrationTest {
             │
             │   ╭──╴echo test
             │   │
-            │   │   test                                                                            
+            │   │   test
             │   │
             │   ╰──╴✔︎
             │
             ╰──╴✔︎
             ╭──╴existing logging context
             │
-            │   abc                                                                             
+            │   abc
             │   ╭──╴echo test
             │   │
-            │   │   test                                                                            
+            │   │   test
             │   │
             │   ╰──╴✔︎
             │
             ╰──╴✔︎
             ╭──╴existing logging context
             │
-            │   abc                                                                             
+            │   abc
             │   ▶ echo test
-            │   · test                                                                            
+            │   · test
             │   ✔︎
             │
             ╰──╴✔︎
             ▶ existing logging context
-            · abc                                                                             
+            · abc
             · ╭──╴echo test
             · │
-            · │   test                                                                            
+            · │   test
             · │
             · ╰──╴✔︎
             ✔︎
             ▶ existing logging context
-            · abc                                                                             
+            · abc
             · ▶ echo test
-            · · test                                                                            
+            · · test
             · ✔︎
             ✔︎
         """.trimIndent())

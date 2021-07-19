@@ -4,6 +4,12 @@ import koodies.math.mod
 import koodies.text.CodePoint.CodePointRange
 import koodies.text.Unicode.UnicodeBlockMeta.Companion.metaFor
 
+/**
+ * Named Unicode code points, like [Unicode.LINE_FEED], [Unicode.SYMBOL_FOR_START_OF_HEADING], [Unicode.Emojis.BALLOT_BOX], etc.
+ *
+ * Further [Unicode.get] can be used to get a [CodePoint] by index.
+ */
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 public object Unicode {
 
     /** Returns the [CodePoint] with the specified index. */
@@ -265,7 +271,7 @@ public object Unicode {
     /** [SYMBOL FOR DELETE](https://codepoints.net/U+2421) `␡` */
     public const val SYMBOL_FOR_DELETE: Char = '\u2421'
 
-
+    /** Mapping of control characters to their respective symbols. */
     public val controlCharacters: Map<Char, Char> = mapOf(
         NULL to SYMBOL_FOR_NULL,
         START_OF_HEADING to SYMBOL_FOR_START_OF_HEADING,
@@ -316,7 +322,7 @@ public object Unicode {
      */
     public val CodePoint.replacementSymbol: Char? get() = char?.replacementSymbol
 
-    @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+    @Suppress("KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
     public enum class BoxDrawings(override val range: CodePointRange = CodePoint("─")..CodePoint("╿")) : UnicodeBlock<BoxDrawings> {
         LightHorizontal, HeavyHorizontal, LightVertical, HeavyVertical, LightTripleDashHorizontal, HeavyTripleDashHorizontal, LightTripleDashVertical, HeavyTripleDashVertical, LightQuadrupleDashHorizontal, HeavyQuadrupleDashHorizontal, LightQuadrupleDashVertical, HeavyQuadrupleDashVertical, LightDownAndRight, DownLightAndRightHeavy, DownHeavyAndRightLight, HeavyDownAndRight, LightDownAndLeft, DownLightAndLeftHeavy, DownHeavyAndLeftLight, HeavyDownAndLeft, LightUpAndRight, UpLightAndRightHeavy, UpHeavyAndRightLight, HeavyUpAndRight, LightUpAndLeft, UpLightAndLeftHeavy, UpHeavyAndLeftLight, HeavyUpAndLeft, LightVerticalAndRight, VerticalLightAndRightHeavy, UpHeavyAndRightDownLight, DownHeavyAndRightUpLight, VerticalHeavyAndRightLight, DownLightAndRightUpHeavy, UpLightAndRightDownHeavy, HeavyVerticalAndRight, LightVerticalAndLeft, VerticalLightAndLeftHeavy, UpHeavyAndLeftDownLight, DownHeavyAndLeftUpLight, VerticalHeavyAndLeftLight, DownLightAndLeftUpHeavy, UpLightAndLeftDownHeavy, HeavyVerticalAndLeft, LightDownAndHorizontal, LeftHeavyAndRightDownLight, RightHeavyAndLeftDownLight, DownLightAndHorizontalHeavy, DownHeavyAndHorizontalLight, RightLightAndLeftDownHeavy, LeftLightAndRightDownHeavy, HeavyDownAndHorizontal, LightUpAndHorizontal, LeftHeavyAndRightUpLight, RightHeavyAndLeftUpLight, UpLightAndHorizontalHeavy, UpHeavyAndHorizontalLight, RightLightAndLeftUpHeavy, LeftLightAndRightUpHeavy, HeavyUpAndHorizontal, LightVerticalAndHorizontal, LeftHeavyAndRightVerticalLight, RightHeavyAndLeftVerticalLight, VerticalLightAndHorizontalHeavy, UpHeavyAndDownHorizontalLight, DownHeavyAndUpHorizontalLight, VerticalHeavyAndHorizontalLight, LeftUpHeavyAndRightDownLight, RightUpHeavyAndLeftDownLight, LeftDownHeavyAndRightUpLight, RightDownHeavyAndLeftUpLight, DownLightAndUpHorizontalHeavy, UpLightAndDownHorizontalHeavy, RightLightAndLeftVerticalHeavy, LeftLightAndRightVerticalHeavy, HeavyVerticalAndHorizontal, LightDoubleDashHorizontal, HeavyDoubleDashHorizontal, LightDoubleDashVertical, HeavyDoubleDashVertical, DoubleHorizontal, DoubleVertical, DownSingleAndRightDouble, DownDoubleAndRightSingle, DoubleDownAndRight, DownSingleAndLeftDouble, DownDoubleAndLeftSingle, DoubleDownAndLeft, UpSingleAndRightDouble, UpDoubleAndRightSingle, DoubleUpAndRight, UpSingleAndLeftDouble, UpDoubleAndLeftSingle, DoubleUpAndLeft, VerticalSingleAndRightDouble, VerticalDoubleAndRightSingle, DoubleVerticalAndRight, VerticalSingleAndLeftDouble, VerticalDoubleAndLeftSingle, DoubleVerticalAndLeft, DownSingleAndHorizontalDouble, DownDoubleAndHorizontalSingle, DoubleDownAndHorizontal, UpSingleAndHorizontalDouble, UpDoubleAndHorizontalSingle, DoubleUpAndHorizontal, VerticalSingleAndHorizontalDouble, VerticalDoubleAndHorizontalSingle, DoubleVerticalAndHorizontal, LightArcDownAndRight, LightArcDownAndLeft, LightArcUpAndLeft, LightArcUpAndRight, LightDiagonalUpperRightToLowerLeft, LightDiagonalUpperLeftToLowerRight, LightDiagonalCross, LightLeft, LightUp, LightRight, LightDown, HeavyLeft, HeavyUp, HeavyRight, HeavyDown, LightLeftAndHeavyRight, LightUpAndHeavyDown, HeavyLeftAndLightRight, HeavyUpAndLightDown;
 
@@ -325,9 +331,7 @@ public object Unicode {
         public companion object : UnicodeBlockMeta<BoxDrawings> by metaFor()
     }
 
-    public val boxDrawings: List<Char> = ('\u2500'..'\u257F').toList()
-
-    @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+    @Suppress("KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
     public enum class CombiningDiacriticalMarks(override val range: CodePointRange = CodePoint("̀")..CodePoint("ͯ")) : UnicodeBlock<CombiningDiacriticalMarks> {
         CombiningGraveAccent, CombiningAcuteAccent, CombiningCircumflexAccent, CombiningTilde, CombiningMacron, CombiningOverline, CombiningBreve, CombiningDotAbove, CombiningDiaeresis, CombiningHookAbove, CombiningRingAbove, CombiningDoubleAcuteAccent, CombiningCaron, CombiningVerticalLineAbove, CombiningDoubleVerticalLineAbove, CombiningDoubleGraveAccent, CombiningCandrabindu, CombiningInvertedBreve, CombiningTurnedCommaAbove, CombiningCommaAbove, CombiningReversedCommaAbove, CombiningCommaAboveRight, CombiningGraveAccentBelow, CombiningAcuteAccentBelow, CombiningLeftTackBelow, CombiningRightTackBelow, CombiningLeftAngleAbove, CombiningHorn, CombiningLeftHalfRingBelow, CombiningUpTackBelow, CombiningDownTackBelow, CombiningPlusSignBelow, CombiningMinusSignBelow, CombiningPalatalizedHookBelow, CombiningRetroflexHookBelow, CombiningDotBelow, CombiningDiaeresisBelow, CombiningRingBelow, CombiningCommaBelow, CombiningCedilla, CombiningOgonek, CombiningVerticalLineBelow, CombiningBridgeBelow, CombiningInvertedDoubleArchBelow, CombiningCaronBelow, CombiningCircumflexAccentBelow, CombiningBreveBelow, CombiningInvertedBreveBelow, CombiningTildeBelow, CombiningMacronBelow, CombiningLowLine, CombiningDoubleLowLine, CombiningTildeOverlay, CombiningShortStrokeOverlay, CombiningLongStrokeOverlay, CombiningShortSolidusOverlay, CombiningLongSolidusOverlay, CombiningRightHalfRingBelow, CombiningInvertedBridgeBelow, CombiningSquareBelow, CombiningSeagullBelow, CombiningXAbove, CombiningVerticalTilde, CombiningDoubleOverline, CombiningGraveToneMark, CombiningAcuteToneMark, CombiningGreekPerispomeni, CombiningGreekKoronis, CombiningGreekDialytikaTonos, CombiningGreekYpogegrammeni, CombiningBridgeAbove, CombiningEqualsSignBelow, CombiningDoubleVerticalLineBelow, CombiningLeftAngleBelow, CombiningNotTildeAbove, CombiningHomotheticAbove, CombiningAlmostEqualToAbove, CombiningLeftRightArrowBelow, CombiningUpwardsArrowBelow, CombiningGraphemeJoiner, CombiningRightArrowheadAbove, CombiningLeftHalfRingAbove, CombiningFermata, CombiningXBelow, CombiningLeftArrowheadBelow, CombiningRightArrowheadBelow, CombiningRightArrowheadAndUpArrowheadBelow, CombiningRightHalfRingAbove, CombiningDotAboveRight, CombiningAsteriskBelow, CombiningDoubleRingBelow, CombiningZigzagAbove, CombiningDoubleBreveBelow, CombiningDoubleBreve, CombiningDoubleMacron, CombiningDoubleMacronBelow, CombiningDoubleTilde, CombiningDoubleInvertedBreve, CombiningDoubleRightwardsArrowBelow, CombiningLatinSmallLetterA, CombiningLatinSmallLetterE, CombiningLatinSmallLetterI, CombiningLatinSmallLetterO, CombiningLatinSmallLetterU, CombiningLatinSmallLetterC, CombiningLatinSmallLetterD, CombiningLatinSmallLetterH, CombiningLatinSmallLetterM, CombiningLatinSmallLetterR, CombiningLatinSmallLetterT, CombiningLatinSmallLetterV, CombiningLatinSmallLetterX;
 
@@ -336,7 +340,7 @@ public object Unicode {
         public companion object : UnicodeBlockMeta<CombiningDiacriticalMarks> by metaFor()
     }
 
-    @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+    @Suppress("KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
     public enum class CombiningDiacriticalMarksSupplementBlock(override val range: CodePointRange = CodePoint("᷀")..CodePoint("᷿")) :
         UnicodeBlock<CombiningDiacriticalMarksSupplementBlock> {
         CombiningDottedGraveAccent, CombiningDottedAcuteAccent, CombiningSnakeBelow, CombiningSuspensionMark, CombiningMacronAcute, CombiningGraveMacron, CombiningMacronGrave, CombiningAcuteMacron, CombiningGraveAcuteGrave, CombiningAcuteGraveAcute, CombiningLatinSmallLetterRBelow, CombiningBreveMacron, CombiningMacronBreve, CombiningDoubleCircumflexAbove, CombiningOgonekAbove, CombiningZigzagBelow, CombiningIsBelow, CombiningUrAbove, CombiningUsAbove, CombiningLatinSmallLetterFlattenedOpenAAbove, CombiningLatinSmallLetterAe, CombiningLatinSmallLetterAo, CombiningLatinSmallLetterAv, CombiningLatinSmallLetterCCedilla, CombiningLatinSmallLetterInsularD, CombiningLatinSmallLetterEth, CombiningLatinSmallLetterG, CombiningLatinLetterSmallCapitalG, CombiningLatinSmallLetterK, CombiningLatinSmallLetterL, CombiningLatinLetterSmallCapitalL, CombiningLatinLetterSmallCapitalM, CombiningLatinSmallLetterN, CombiningLatinLetterSmallCapitalN, CombiningLatinLetterSmallCapitalR, CombiningLatinSmallLetterRRotunda, CombiningLatinSmallLetterS, CombiningLatinSmallLetterLongS, CombiningLatinSmallLetterZ, CombiningDoubleInvertedBreveBelow, CombiningAlmostEqualToBelow, CombiningLeftArrowheadAbove, CombiningRightArrowheadAndDownArrowheadBelow;
@@ -346,7 +350,7 @@ public object Unicode {
         public companion object : UnicodeBlockMeta<CombiningDiacriticalMarksSupplementBlock> by metaFor()
     }
 
-    @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+    @Suppress("KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
     public enum class CombiningDiacriticalMarksForSymbolsBlock(override val range: CodePointRange = CodePoint("⃐")..CodePoint("⃰")) :
         UnicodeBlock<CombiningDiacriticalMarksForSymbolsBlock> {
         CombiningLeftHarpoonAbove, CombiningRightHarpoonAbove, CombiningLongVerticalLineOverlay, CombiningShortVerticalLineOverlay, CombiningAnticlockwiseArrowAbove, CombiningClockwiseArrowAbove, CombiningLeftArrowAbove, CombiningRightArrowAbove, CombiningRingOverlay, CombiningClockwiseRingOverlay, CombiningAnticlockwiseRingOverlay, CombiningThreeDotsAbove, CombiningFourDotsAbove, CombiningEnclosingCircle, CombiningEnclosingSquare, CombiningEnclosingDiamond, CombiningEnclosingCircleBackslash, CombiningLeftRightArrowAbove, CombiningEnclosingScreen, CombiningEnclosingKeycap, CombiningEnclosingUpwardPointingTriangle, CombiningReverseSolidusOverlay, CombiningDoubleVerticalStrokeOverlay, CombiningAnnuitySymbol, CombiningTripleUnderdot, CombiningWideBridgeAbove, CombiningLeftwardsArrowOverlay, CombiningLongDoubleSolidusOverlay, CombiningRightwardsHarpoonWithBarbDownwards, CombiningLeftwardsHarpoonWithBarbDownwards, CombiningLeftArrowBelow, CombiningRightArrowBelow, CombiningAsteriskAbove;
@@ -356,7 +360,7 @@ public object Unicode {
         public companion object : UnicodeBlockMeta<CombiningDiacriticalMarksForSymbolsBlock> by metaFor()
     }
 
-    @Suppress("unused", "KDocMissingDocumentation")
+    @Suppress("KDocMissingDocumentation", "LongLine")
     public enum class CombiningHalfMarksBlock(override val range: CodePointRange = CodePoint("︠")..CodePoint("︦")) : UnicodeBlock<CombiningHalfMarksBlock> {
         CombiningLigatureLeftHalf, CombiningLigatureRightHalf, CombiningDoubleTildeLeftHalf, CombiningDoubleTildeRightHalf, CombiningMacronLeftHalf, CombiningMacronRightHalf, CombiningConjoiningMacron;
 
@@ -372,10 +376,10 @@ public object Unicode {
     public const val REPLACEMENT_CHARACTER: Char = '\uFFFD'
 
     /** [GREEK LETTER KOPPA](https://codepoints.net/U+03DE) `Ϟ` */
-    public const val GREEK_LETTER_KOPPA: Char = 'Ϟ'
+    @Suppress("SpellCheckingInspection") public const val GREEK_LETTER_KOPPA: Char = 'Ϟ'
 
     /** [GREEK SMALL LETTER KOPPA](https://codepoints.net/U+03DF) `ϟ` */
-    public const val GREEK_SMALL_LETTER_KOPPA: Char = 'ϟ'
+    @Suppress("SpellCheckingInspection") public const val GREEK_SMALL_LETTER_KOPPA: Char = 'ϟ'
 
     /** [TRIPLE VERTICAL BAR DELIMITER](https://codepoints.net/U+2980) `⦀` */
     public const val TRIPLE_VERTICAL_BAR_DELIMITER: Char = '⦀'
@@ -385,11 +389,23 @@ public object Unicode {
      */
     public object Emojis {
 
+        /**
+         * Emoji, e.g. `🤓`
+         */
         public class Emoji(private val emoji: String) :
             CharSequence by emoji.removeSuffix(VARIATION_SELECTOR_15.toString()).removeSuffix(VARIATION_SELECTOR_16.toString()) {
             public constructor(emoji: Char) : this(emoji.toString())
 
+            /**
+             * The monochrome variant of this emoji.
+             * @see VARIATION_SELECTOR_15
+             */
             public val textVariant: String get() = "$emoji$VARIATION_SELECTOR_15"
+
+            /**
+             * The colorful variant of this emoji.
+             * @see VARIATION_SELECTOR_15
+             */
             public val emojiVariant: String get() = "$emoji$VARIATION_SELECTOR_16"
 
             override fun equals(other: Any?): Boolean = toString() == other.toString()
@@ -404,7 +420,7 @@ public object Unicode {
         /**
          * A dictionary that maps integers to a clock emoji that shows the corresponding full hour, e.g. `3` will return a "3 o'clock"/🕒 emoji.
          *
-         * The dictionary applies the [rem] operation. Consequently all multiples of 12 of a certain hour (e.g. `15` will return a "3 o'clock"/🕒 emoji)
+         * The dictionary applies the [mod] operation. Consequently all multiples of 12 of a certain hour (e.g. `15` will return a "3 o'clock"/🕒 emoji)
          * will also return the corresponding hour.
          */
         public object FullHoursDictionary {
@@ -414,98 +430,69 @@ public object Unicode {
         /**
          * A dictionary that maps integers to a clock emoji that shows the corresponding next half hour, e.g. `3` will return a "3:30 o'clock"/🕞 emoji.
          *
-         * This dictionary applies the [rem] operation. Consequently all multiples of 12 of a certain hour (e.g. `15` will return a "3:30 o'clock"/🕞 emoji)
+         * This dictionary applies the [mod] operation. Consequently all multiples of 12 of a certain hour (e.g. `15` will return a "3:30 o'clock"/🕞 emoji)
          * will also return the corresponding next half hour.
          */
         public object HalfHoursDictionary {
             public operator fun get(key: Int): Emoji = halfHourClocks[key.mod(halfHourClocks.size)] ?: error("Missing clock in dictionary")
         }
 
-        /**
-         * [HOURGLASS](https://codepoints.net/U+231B) ⌛️ ⌛︎
-         */
+        /** [HOURGLASS](https://codepoints.net/U+231B) ⌛️ ⌛︎ */
         public val HOURGLASS: Emoji = Emoji('⌛')
 
-        /**
-         * [HOURGLASS WITH FLOWING SAND](https://codepoints.net/U+23F3) ⏳️ ⏳︎
-         */
+        /** [HOURGLASS WITH FLOWING SAND](https://codepoints.net/U+23F3) ⏳️ ⏳︎ */
         public val HOURGLASS_WITH_FLOWING_SAND: Emoji = Emoji('⏳')
 
-        /**
-         * [BALLOT BOX](https://codepoints.net/U+2610) ☐️ ☐︎
-         */
+        /** [BALLOT BOX](https://codepoints.net/U+2610) ☐️ ☐︎ */
         public val BALLOT_BOX: Emoji = Emoji('☐')
 
-        /**
-         * [BALLOT BOX WITH CHECK](https://codepoints.net/U+2611) ☑️ ☑︎
-         */
+        /** [BALLOT BOX WITH CHECK](https://codepoints.net/U+2611) ☑️ ☑︎ */
         public val BALLOT_BOX_WITH_CHECK: Emoji = Emoji('☑')
 
-        /**
-         * [BALLOT BOX WITH X](https://codepoints.net/U+2612) ☒️ ☒︎
-         */
+        /** [BALLOT BOX WITH X](https://codepoints.net/U+2612) ☒️ ☒︎ */
         public val BALLOT_BOX_WITH_X: Emoji = Emoji('☒')
 
-
-        /**
-         * [LINE FEED (LF)](https://codepoints.net/U+26A1) ⚡️ ⚡︎
-         */
+        /** [LINE FEED (LF)](https://codepoints.net/U+26A1) ⚡️ ⚡︎ */
         public val HIGH_VOLTAGE_SIGN: Emoji = Emoji('⚡')
 
-        /**
-         * [CHECK MARK](https://codepoints.net/U+2713) ✓️ ✓︎
-         */
+        /** [CHECK MARK](https://codepoints.net/U+2713) ✓️ ✓︎ */
         public val CHECK_MARK: Emoji = Emoji('✓')
 
-        /**
-         * [HEAVY CHECK MARK](https://codepoints.net/U+2714) ✔️ ✔︎
-         */
+        /** [HEAVY CHECK MARK](https://codepoints.net/U+2714) ✔️ ✔︎ */
         public val HEAVY_CHECK_MARK: Emoji = Emoji('✔')
 
-        /**
-         * [WHITE HEAVY CHECK MARK](https://codepoints.net/U+2705) ✅️ ✅︎
-         */
+        /** [WHITE HEAVY CHECK MARK](https://codepoints.net/U+2705) ✅️ ✅︎ */
         public val WHITE_HEAVY_CHECK_MARK: Emoji = Emoji('✅')
 
-        /**
-         * [X MARK](https://codepoints.net/U+274E) ❎️ ❎︎
-         */
+        /** [X MARK](https://codepoints.net/U+274E) ❎️ ❎︎ */
         public val X_MARK: Emoji = Emoji('❎')
 
-        /**
-         * [BALLOT X](https://codepoints.net/U+2717) ✗️ ✗︎
-         */
+        /** [BALLOT X](https://codepoints.net/U+2717) ✗️ ✗︎ */
         public val BALLOT_X: Emoji = Emoji('✗')
 
-        /**
-         * [HEAVY BALLOT X](https://codepoints.net/U+2718) ✘️ ✘︎
-         */
+        /** [HEAVY BALLOT X](https://codepoints.net/U+2718) ✘️ ✘︎ */
         public val HEAVY_BALLOT_X: Emoji = Emoji('✘')
 
-        /**
-         * [CROSS MARK](https://codepoints.net/U+274C) ❌️ ❌︎
-         */
+        /** [CROSS MARK](https://codepoints.net/U+274C) ❌️ ❌︎ */
         public val CROSS_MARK: Emoji = Emoji('❌')
 
-        /**
-         * [HEAVY LARGE CIRCLE](https://codepoints.net/U+2B55) ⭕️ ⭕︎
-         */
+        /** [HEAVY LARGE CIRCLE](https://codepoints.net/U+2B55) ⭕️ ⭕︎ */
         public val HEAVY_LARGE_CIRCLE: Emoji = Emoji('⭕')
 
-        /**
-         * [HEAVY ROUND-TIPPED RIGHTWARDS ARROW](https://codepoints.net/U+279C) ➜️ ➜︎
-         */
+        /** [HEAVY ROUND-TIPPED RIGHTWARDS ARROW](https://codepoints.net/U+279C) ➜️ ➜︎ */
         public val HEAVY_ROUND_TIPPED_RIGHTWARDS_ARROW: Emoji = Emoji('➜')
 
-        /**
-         * [GREEN CIRCLE](https://codepoints.net/U+1F7E2) 🟢️ 🟢︎
-         */
+        /** [GREEN CIRCLE](https://codepoints.net/U+1F7E2) 🟢️ 🟢︎ */
         public val GREEN_CIRCLE: Emoji = Emoji("🟢")
 
-        /**
-         * [PAGE FACING UP](https://codepoints.net/U+1F4C4) 📄️ 📄︎
-         */
+        /** [PAGE FACING UP](https://codepoints.net/U+1F4C4) 📄️ 📄︎ */
         public val PAGE_FACING_UP: Emoji = Emoji("📄")
+
+        /** [LEFT-POINTING MAGNIFYING GLASS](https://codepoints.net/U+1F50D) 🔍️ 🔍︎ */
+        public val LEFT_POINTING_MAGNIFYING_GLASS: Emoji = Emoji("\uD83D\uDD0D")
+
+        /** [RIGHT-POINTING MAGNIFYING GLASS](https://codepoints.net/U+1F50E) 🔎️ 🔎︎ */
+        public val RIGHT_POINTING_MAGNIFYING_GLASS: Emoji = Emoji("\uD83D\uDD0E")
 
         /**
          * [VARIATION SELECTOR-15](https://codepoints.net/U+FE0E)
@@ -533,8 +520,9 @@ public object Unicode {
      *
      * `𝌀` to `𝍖`
      */
+    @Suppress("SpellCheckingInspection")
     public object DivinationSymbols {
-        @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+        @Suppress("KDocMissingDocumentation", "LongLine")
         public enum class Monograms(override val range: CodePointRange = CodePoint("𝌀")..CodePoint("𝌀")) : UnicodeBlock<Monograms> {
             Earth;
 
@@ -543,7 +531,7 @@ public object Unicode {
             public companion object : UnicodeBlockMeta<Monograms> by metaFor()
         }
 
-        @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+        @Suppress("KDocMissingDocumentation", "LongLine")
         public enum class Digrams(override val range: CodePointRange = CodePoint("𝌁")..CodePoint("𝌅")) : UnicodeBlock<Digrams> {
             HeavenlyEarth, HumanEarth, EarthlyHeaven, EarthlyHuman, Earth;
 
@@ -552,7 +540,7 @@ public object Unicode {
             public companion object : UnicodeBlockMeta<Digrams> by metaFor()
         }
 
-        @Suppress("unused", "KDocMissingDocumentation", "SpellCheckingInspection", "LongLine")
+        @Suppress("KDocMissingDocumentation", "LongLine")
         public enum class Tetragrams(override val range: CodePointRange = CodePoint("𝌆")..CodePoint("𝍖")) : UnicodeBlock<Tetragrams> {
             Centre, FullCircle, Mired, Barrier, KeepingSmall, Contrariety, Ascent, Opposition, BranchingOut, DefectivenessOrDistortion, Divergence, Youthfulness, Increase, Penetration, Reach, Contact, HoldingBack, Waiting, Following, Advance, Release, Resistance, Ease, Joy, Contention, Endeavour, Duties, Change, Decisiveness, BoldResolution, Packing, Legion, Closeness, Kinship, Gathering, Strength, Purity, Fullness, Residence, LawOrModel, Response, GoingToMeet, Encounters, Stove, Greatness, Enlargement, Pattern, Ritual, Flight, VastnessOrWasting, Constancy, Measure, Eternity, Unity, Diminishment, ClosedMouth, Guardedness, GatheringIn, Massing, Accumulation, Embellishment, Doubt, Watch, Sinking, Inner, Departure, Darkening, Dimming, Exhaustion, Severance, Stoppage, Hardness, Completion, Closure, Failure, Aggravation, Compliance, OnTheVerge, Difficulties, Labouring, Fostering;
 
@@ -565,7 +553,7 @@ public object Unicode {
     /**
      * Interface to facilitate implementing named, enumerable Unicode code points by their names.
      *
-     * @sample DivinationSymbols.Digrams
+     * @sample BoxDrawings
      */
     public interface UnicodeBlock<T : Enum<T>> : ClosedRange<CodePoint> {
         override val start: CodePoint get() = range.start
@@ -578,6 +566,9 @@ public object Unicode {
         public val string: String get() = (range.first + ordinal).string
     }
 
+    /**
+     * Meta information about a [UnicodeBlock].
+     */
     public interface UnicodeBlockMeta<T> where T : UnicodeBlock<T>, T : Enum<T> {
         public val valueCount: Int
         public val unicodeBlock: UnicodeBlock<T>
@@ -589,6 +580,7 @@ public object Unicode {
             public inline fun <reified T> metaFor(): UnicodeBlockMeta<T> where T : Enum<T>, T : UnicodeBlock<T> =
                 SimpleUnicodeBlockMeta(enumValues())
         }
+
 
         public class SimpleUnicodeBlockMeta<T>(public val values: Array<T>) : UnicodeBlockMeta<T> where T : Enum<T>, T : UnicodeBlock<T> {
             override val valueCount: Int by lazy { values.size }

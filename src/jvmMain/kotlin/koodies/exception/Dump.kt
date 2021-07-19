@@ -15,7 +15,7 @@ import java.nio.file.Path
 
 private object Dump {
     val dumpDir: Path = Koodies.ExecTemp
-    const val dumpPrefix = "koodies.dump"
+    const val dumpPrefix = "dump"
     const val dumpSuffix = ".log"
 }
 
