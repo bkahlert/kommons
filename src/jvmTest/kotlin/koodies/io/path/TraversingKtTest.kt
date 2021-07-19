@@ -9,7 +9,6 @@ import koodies.unit.Size
 import koodies.unit.bytes
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
@@ -42,14 +41,5 @@ class TraversingKtTest {
             {}/sub-dir/config.txt
             {}/example.html
         """.trimIndent())
-    }
-
-    @Test
-    fun `should list matching entries`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dir = directoryWithTwoFiles()
-
-        val listing = listMatchingEntries { isDirectory() }
-
-        expectThat(listing).contains(dir, dir.resolve("sub-dir"))
     }
 }
