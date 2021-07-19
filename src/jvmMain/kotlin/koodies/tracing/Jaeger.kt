@@ -4,11 +4,11 @@ import koodies.docker.DockerContainer
 import koodies.docker.DockerImage
 import koodies.docker.DockerRunCommandLine
 import koodies.docker.DockerRunCommandLine.Options
-import koodies.exec.RendererProviders
+import koodies.exec.Processors.processingProcessor
+import koodies.exec.RendererProviders.errorsOnly
 import koodies.net.headers
 import koodies.text.Semantics.formattedAs
 import koodies.tracing.Jaeger.startLocally
-import koodies.tracing.Tracer.NOOP
 import java.net.URI
 
 /**
@@ -60,7 +60,7 @@ public object Jaeger : DockerImage("jaegertracing", listOf("all-in-one")) {
                     "9411:9411",
                 ),
             ),
-        ).exec.logging(renderer = RendererProviders.errorsOnly(), tracer = NOOP)
+        ).exec.processing(processor = processingProcessor(errorsOnly()))
 
         return protobufEndpoint.toString()
     }

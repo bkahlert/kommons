@@ -1,6 +1,5 @@
 package koodies.tracing.rendering
 
-import io.opentelemetry.api.trace.Tracer
 import koodies.asString
 import koodies.exception.toCompactString
 import koodies.text.ANSI.FilteringFormatter
@@ -26,7 +25,6 @@ public class OneLineRenderer(
     private val style = settings.style(settings.layout, settings.indent)
     private val prefix = style.onlineLinePrefix
     private val separator = style.onlineLineSeparator
-    private val prefixRegex = Regex.fromLiteral(prefix)
 
     private val messages = mutableListOf<CharSequence>()
 
@@ -89,7 +87,6 @@ public class OneLineRenderer(
 public fun <R> spanningLine(
     name: CharSequence,
     vararg attributes: KeyValue<*, *>,
-    tracer: Tracer = koodies.tracing.Tracer,
 
     nameFormatter: FilteringFormatter<CharSequence>? = null,
     contentFormatter: FilteringFormatter<CharSequence>? = null,
@@ -104,7 +101,6 @@ public fun <R> spanningLine(
     name = name,
     attributes = attributes,
     renderer = { OneLineRenderer(this) },
-    tracer = tracer,
     nameFormatter = nameFormatter,
     contentFormatter = contentFormatter,
     decorationFormatter = decorationFormatter,

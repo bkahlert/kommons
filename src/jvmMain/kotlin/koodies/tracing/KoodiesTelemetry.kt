@@ -1,6 +1,7 @@
 package koodies.tracing
 
 import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.common.AttributeType.BOOLEAN
 import io.opentelemetry.api.common.AttributeType.BOOLEAN_ARRAY
@@ -12,16 +13,15 @@ import io.opentelemetry.api.common.AttributeType.STRING
 import io.opentelemetry.api.common.AttributeType.STRING_ARRAY
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.SpanBuilder
+import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.api.trace.TracerProvider
 import io.opentelemetry.context.propagation.ContextPropagators
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.withSuffix
 import koodies.tracing.Key.KeyValue
-import koodies.tracing.OpenTelemetry.NOOP
-import koodies.tracing.OpenTelemetry.register
+import koodies.tracing.KoodiesTelemetry.NOOP
+import koodies.tracing.KoodiesTelemetry.register
 import kotlin.reflect.KProperty
-import io.opentelemetry.api.OpenTelemetry as OpenTelemetryAPI
-import io.opentelemetry.api.trace.Tracer as TracerAPI
 
 /**
  * [OpenTelemetry](https://opentelemetry.io) instance used by this library.
@@ -31,12 +31,12 @@ import io.opentelemetry.api.trace.Tracer as TracerAPI
  *
  * For an implementation that never traces, use [NOOP].
  */
-public object OpenTelemetry : io.opentelemetry.api.OpenTelemetry {
-    private var instance: io.opentelemetry.api.OpenTelemetry? = null
-    private val instanceOrDefault: io.opentelemetry.api.OpenTelemetry
+public object KoodiesTelemetry : OpenTelemetry {
+    private var instance: OpenTelemetry? = null
+    private val instanceOrDefault: OpenTelemetry
         get() = instance ?: GlobalOpenTelemetry.get()
 
-    public fun register(customInstance: io.opentelemetry.api.OpenTelemetry) {
+    public fun register(customInstance: OpenTelemetry) {
         instance = customInstance
     }
 
@@ -46,7 +46,7 @@ public object OpenTelemetry : io.opentelemetry.api.OpenTelemetry {
     /**
      * [OpenTelemetryAPI] that does nothing.
      */
-    public object NOOP : OpenTelemetryAPI by OpenTelemetryAPI.noop()
+    public object NOOP : OpenTelemetry by OpenTelemetry.noop()
 }
 
 /**
@@ -55,15 +55,15 @@ public object OpenTelemetry : io.opentelemetry.api.OpenTelemetry {
  * The actual implementation to be used can be specified using [register].
  * If none is explicitly registered, the [TracerAPI] returned by the [TracerProvider] of [GlobalOpenTelemetry.get] is used.
  */
-public object Tracer : io.opentelemetry.api.trace.Tracer {
-    private val instance: TracerAPI get() = OpenTelemetry.tracerProvider.get("com.bkahlert.koodies", "1.5.1")
+public object KoodiesTracer : Tracer {
+    private val instance: Tracer get() = KoodiesTelemetry.tracerProvider.get("com.bkahlert.koodies", "1.5.1")
 
     override fun spanBuilder(spanName: String): SpanBuilder = instance.spanBuilder(spanName)
 
     /**
      * [TracerAPI] that does nothing.
      */
-    public object NOOP : TracerAPI by OpenTelemetry.NOOP.tracerProvider.get("com.bkahlert.koodies", "0.0.1")
+    public object NOOP : Tracer by KoodiesTelemetry.NOOP.tracerProvider.get("com.bkahlert.koodies", "0.0.1")
 }
 
 /**

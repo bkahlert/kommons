@@ -27,49 +27,41 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+// TODO use Context to link renderer
+//public class ContextUser {
+//
+//    private static final ContextKey<MyState> KEY = ContextKey.named("MyState");
+//
+//    public Context startWork() {
+//        return Context.withValues(KEY, new MyState());
+//    }
+//
+//    public void continueWork(Context context) {
+//        MyState state = context.get(KEY);
+//        // Keys are compared by reference only.
+//        assert state != Context.current().get(ContextKey.named("MyState"));
+//        ...
+//    }
+//}
+
 private val linkedRenderersLock = ReentrantLock()
 private val linkedRenderers = mutableMapOf<SpanId, Renderer>()
 
-private fun Span.linkRenderer(renderer: Renderer): Unit = linkedRenderersLock.withLock {
-    spanId.takeIf { it.valid }?.let {
-        linkedRenderers[it] = renderer
-    }
-}
+private fun Span.linkRenderer(renderer: Renderer): Unit = linkedRenderersLock.withLock { spanId.takeIf { it.valid }?.let { linkedRenderers[it] = renderer } }
 
-/**
- * Whether this span has a [Renderer] linked to it.
- */
-internal val Span.rendererLinked: Boolean
-    get() = spanId.rendererLinked
+/** Whether this span has a [Renderer] linked to it. */
+internal val Span.rendererLinked: Boolean get() = spanId.rendererLinked
 
-/**
- * Whether this span has a [Renderer] linked to it.
- */
-internal val SpanId.rendererLinked: Boolean
-    get() = linkedRenderersLock.withLock {
-        linkedRenderers.containsKey(this)
-    }
+/** Whether this span has a [Renderer] linked to it. */
+internal val SpanId.rendererLinked: Boolean get() = linkedRenderersLock.withLock { linkedRenderers.containsKey(this) }
 
-/**
- * The [Renderer] linked to this span. If no renderer is linked, the [RootRenderer] is returned.
- */
-internal val Span.linkedRenderer: Renderer
-    get() = spanId.linkedRenderer
+/** The [Renderer] linked to this span. If no renderer is linked, the [RootRenderer] is returned. */
+internal val Span.linkedRenderer: Renderer get() = spanId.linkedRenderer
 
-/**
- * The [Renderer] linked to this span. If no renderer is linked, the [RootRenderer] is returned.
- */
-internal val SpanId.linkedRenderer: Renderer
-    get() = linkedRenderersLock.withLock {
-        takeIf { it.valid }?.let { linkedRenderers[it] } ?: RootRenderer
-    }
+/** The [Renderer] linked to this span. If no renderer is linked, the [RootRenderer] is returned. */
+internal val SpanId.linkedRenderer: Renderer get() = linkedRenderersLock.withLock { takeIf { it.valid }?.let { linkedRenderers[it] } ?: RootRenderer }
 
-private fun Span.unlinkRenderer(): Unit = linkedRenderersLock.withLock {
-    spanId.takeIf { it.valid }?.let {
-        linkedRenderers.remove(it)
-//        checkNotNull(linkedRenderers.remove(it)) { "Failed to unlink renderer for for span $it: no renderer linked" }
-    }
-}
+private fun Span.unlinkRenderer(): Unit = linkedRenderersLock.withLock { spanId.takeIf { it.valid }?.let { linkedRenderers.remove(it) } }
 
 /** Renderer that does not render does not render itself, but can only be used to create child renderer. */
 public object RootRenderer : Renderer {
@@ -86,20 +78,22 @@ public object RootRenderer : Renderer {
  */
 internal fun Span.renderingChildSpan(
     name: CharSequence,
-    tracer: io.opentelemetry.api.trace.Tracer,
     vararg attributes: KeyValue<*, *>,
     rendererProvider: (Renderer) -> Renderer,
 ): RenderingSpan {
     val renderer = rendererProvider(linkedRenderer)
 
-    val span = tracer
+    val span = KoodiesTracer
         .spanBuilder(name.ansiRemoved)
         .setParent(Context.current().with(this))
         .setAllAttributes(attributes.toList().toAttributes())
         .setAttribute(RenderingAttributes.RENDERER, (RenderingAttributes.RENDERER to renderer).value.ansiRemoved)
         .startSpan()
 
-    if (span.spanId.valid) linkedRenderersLock.withLock { span.linkRenderer(renderer) }
+    if (span.spanId.valid) {
+        span.linkRenderer(renderer)
+    }
+
     renderer.start(span.traceId, span.spanId, name)
 
     return RenderingSpan(span, renderer)
@@ -110,10 +104,9 @@ internal fun Span.renderingChildSpan(
  */
 internal fun renderingSpan(
     name: CharSequence,
-    tracer: io.opentelemetry.api.trace.Tracer,
     vararg attributes: KeyValue<*, *>,
     rendererProvider: (Renderer) -> Renderer,
-): RenderingSpan = Span.getInvalid().renderingChildSpan(name, tracer, *attributes, rendererProvider = rendererProvider)
+): RenderingSpan = Span.getInvalid().renderingChildSpan(name, *attributes, rendererProvider = rendererProvider)
 
 /**
  * A span that renders all invocations using [renderer]
@@ -256,7 +249,6 @@ public fun <R> spanning(
     name: CharSequence,
     vararg attributes: KeyValue<*, *>,
     renderer: RendererProvider = { it(this) },
-    tracer: io.opentelemetry.api.trace.Tracer = Tracer,
 
     nameFormatter: FilteringFormatter<CharSequence>? = null,
     contentFormatter: FilteringFormatter<CharSequence>? = null,
@@ -268,7 +260,7 @@ public fun <R> spanning(
 
     block: CurrentSpan.() -> R,
 ): R = tracing(recordException = false) {
-    val renderingChildSpan = Span.current().renderingChildSpan(name, tracer, *attributes) {
+    val renderingChildSpan = Span.current().renderingChildSpan(name, *attributes) {
         it.childRenderer { default ->
             renderer(copy(
                 nameFormatter = nameFormatter ?: this.nameFormatter,

@@ -98,7 +98,7 @@ public object Docker {
     /**
      * Whether the Docker engine itself is running.
      */
-    public val engineRunning: Boolean get() = DockerInfoCommandLine().exec.invoke().successful
+    public val engineRunning: Boolean get() = DockerInfoCommandLine().exec().successful
 
     /**
      * Returns a [DockerContainer] representing a Docker container of the same

@@ -153,7 +153,7 @@ class RenderingSpanTest {
     }
 
     private fun <R> withRootSpan(testName: TestName, invokeEnd: Boolean = true, block: () -> R): R {
-        val parentSpan = renderingSpan(testName, Tracer) { it }.also { (it as Span).registerAsTestSpan() }
+        val parentSpan = renderingSpan(testName) { it }.also { (it as Span).registerAsTestSpan() }
         val scope = parentSpan.makeCurrent()
         val result = runCatching(block)
         scope.close()

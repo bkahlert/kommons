@@ -1,7 +1,6 @@
 package koodies.exec
 
 import io.opentelemetry.api.trace.Span
-import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.context.Context
 import koodies.builder.StatelessBuilder
 import koodies.exec.IO.Error
@@ -20,6 +19,11 @@ import koodies.nio.NonBlockingReader
 import koodies.tracing.CurrentSpan
 import koodies.tracing.Event
 import koodies.tracing.Key.KeyValue
+import koodies.tracing.RootRenderer
+import koodies.tracing.SpanId
+import koodies.tracing.TraceId
+import koodies.tracing.rendering.RenderableAttributes
+import koodies.tracing.rendering.Renderer
 import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.spanning
 import java.io.IOException
@@ -43,22 +47,35 @@ public typealias Processor<E> = (E, ((IO) -> Unit) -> ExitState) -> ExitState
 public object Processors {
 
     /**
-     * Returns a [Processor] that creates a [Span] using the specified [attributes], [renderer] and [tracer]
+     * Returns a [Processor] that creates a [Span] using the specified [attributes] and [renderer]
      * while calling the specified [process] everytime [IO] was read.
      */
     public fun <E : Exec> spanningProcessor(
         vararg attributes: KeyValue<*, *>,
         renderer: RendererProvider = RendererProviders.NOOP,
-        tracer: Tracer = koodies.tracing.Tracer,
         process: CurrentSpan.(E, IO) -> Unit = { _, io -> event(io as Event) },
     ): Processor<E> = { exec: E, block: ((IO) -> Unit) -> ExitState ->
         spanning(
             attributes.firstOrNull { it.key == ExecAttributes.NAME }?.value?.toString() ?: ExecAttributes.SPAN_NAME,
             *attributes,
             renderer = renderer,
-            tracer = tracer,
             block = { block { process(exec, it) } },
         )
+    }
+
+    /**
+     * Returns a [Processor] that calls the specified [process] everytime [IO] was read.
+     */
+    public fun <E : Exec> processingProcessor(
+        renderer: RendererProvider = RendererProviders.NOOP,
+        process: Renderer.(E, IO) -> Unit = { _, io -> event(io.name, RenderableAttributes.of(*io.attributes.toTypedArray())) },
+    ): Processor<E> = { exec: E, block: ((IO) -> Unit) -> ExitState ->
+        RootRenderer.childRenderer(renderer).run {
+            start(TraceId.invalid, SpanId.invalid, exec.commandLine.name ?: exec.commandLine.content)
+            val result: Result<ExitState> = kotlin.runCatching { block { process(exec, it) } }
+            end(result)
+            result.getOrThrow()
+        }
     }
 }
 

@@ -18,7 +18,7 @@ import koodies.shell.ShellScript
 import koodies.text.LineSeparators.DEFAULT
 import koodies.text.Semantics.formattedAs
 import koodies.time.Now
-import koodies.tracing.OpenTelemetry
+import koodies.tracing.KoodiesTelemetry
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -94,7 +94,7 @@ import kotlin.concurrent.withLock
  * 2) and a simplified API
  *
  * ### Tracing
- * If [OpenTelemetry](https://opentelemetry.io/) is detected or explicitly set using [koodies.tracing.OpenTelemetry.register]
+ * If [OpenTelemetry](https://opentelemetry.io/) is detected or explicitly set using [koodies.tracing.KoodiesTelemetry.register]
  * each execution of a process creates a new span with IO recorded as events. No further configuration is necessary.
  *
  * ### I/O Handling
@@ -159,7 +159,7 @@ import kotlin.concurrent.withLock
  * with no known limitations (provided, a shell is installed at all):
  * - [synchronously][ProcessingMode.Synchronicity.Sync]
  * - [asynchronously][ProcessingMode.Synchronicity.Async]
- * - [logging][OpenTelemetry]
+ * - [logging][KoodiesTelemetry]
  * - [interactively][ProcessingMode.Interactivity]
  * - [dockerized][Docker]
  */

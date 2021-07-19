@@ -54,7 +54,6 @@ import kotlin.reflect.KClass
 annotation class DockerRequiring(
     val value: Array<KClass<out DockerImage>> = [],
     val mode: CleanUpMode = FailAndKill,
-    val logging: Boolean = false,
 )
 
 enum class CleanUpMode {

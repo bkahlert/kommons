@@ -1,6 +1,5 @@
 package koodies.exec
 
-import io.opentelemetry.api.trace.Tracer
 import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
@@ -103,7 +102,6 @@ public data class Executor<E : Exec>(
         layout: ColumnsLayout? = null,
         style: ((ColumnsLayout, Int) -> Style)? = null,
         printer: Printer? = null,
-        tracer: Tracer? = null,
 
         renderer: RendererProvider = { it(this) },
     ): E = copy(
@@ -134,7 +132,6 @@ public data class Executor<E : Exec>(
                     printer = printer ?: this.printer,
                 ), default)
             },
-            tracer = tracer ?: koodies.tracing.Tracer,
         ),
     ).invoke(workingDirectory, execTerminationCallback)
 

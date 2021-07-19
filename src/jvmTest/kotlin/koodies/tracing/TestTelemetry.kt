@@ -27,7 +27,7 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 
 /**
- * [OpenTelemetry] integration in JUnit that runs OpenTelemetry
+ * [KoodiesTelemetry] integration in JUnit that runs OpenTelemetry
  * along a [TestPlan] execution and provides [InMemoryStoringSpanProcessor] and [expectTraced] to assess recorded data.
  */
 class TestTelemetry : TestExecutionListener {
@@ -54,9 +54,9 @@ class TestTelemetry : TestExecutionListener {
                 .setTracerProvider(tracerProvider)
                 .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                 .buildAndRegisterGlobal()
-                .let { OpenTelemetry.register(it) }
+                .let { KoodiesTelemetry.register(it) }
         } else {
-            OpenTelemetry.register(io.opentelemetry.api.OpenTelemetry.noop())
+            KoodiesTelemetry.register(io.opentelemetry.api.OpenTelemetry.noop())
         }
     }
 
@@ -77,7 +77,7 @@ class TestTelemetry : TestExecutionListener {
         /**
          * A span processor that throws if a span is encountered that was not created by [TestSpan] / [TestSpanParameterResolver].
          *
-         * ***Note:** Only spans created with [Tracer] are checked.*
+         * ***Note:** Only spans created with [KoodiesTracer] are checked.*
          */
         private object TestSpanCheckSpanProcessor : SpanProcessor {
             override fun isStartRequired(): Boolean = false
@@ -95,7 +95,7 @@ class TestTelemetry : TestExecutionListener {
         /**
          * A span processor that stores created traces to allow assertions.
          *
-         * ***Note:** Only spans created with [Tracer] are stored.*
+         * ***Note:** Only spans created with [KoodiesTracer] are stored.*
          */
         private object InMemoryStoringSpanProcessor : SpanProcessor {
             override fun isStartRequired(): Boolean = false

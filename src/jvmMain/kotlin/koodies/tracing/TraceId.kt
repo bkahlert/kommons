@@ -26,6 +26,12 @@ public value class TraceId(private val value: CharSequence) : CharSequence {
          */
         public inline val current: TraceId
             get() = Span.current().traceId
+
+        /**
+         * ID of an invalid [Span].
+         */
+        public inline val invalid: TraceId
+            get() = TraceId(io.opentelemetry.api.trace.TraceId.getInvalid())
     }
 }
 

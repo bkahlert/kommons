@@ -499,7 +499,7 @@ class RenderingSpanKtTest {
     }
 
     private fun <R> withRootSpan(testName: TestName, block: () -> R): R {
-        val parentSpan = Tracer.spanBuilder(testName.value).startSpan().registerAsTestSpan()
+        val parentSpan = KoodiesTracer.spanBuilder(testName.value).startSpan().registerAsTestSpan()
         val scope = parentSpan.makeCurrent()
         val result = runCatching(block)
         scope.close()
