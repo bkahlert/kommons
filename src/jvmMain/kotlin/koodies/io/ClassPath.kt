@@ -35,7 +35,7 @@ public open class ClassPath(public val pathString: String) {
      * @see copyToTemp
      */
     public fun copyTo(target: Path, overwrite: Boolean = false): Path =
-        useClassPath(pathString, fun Path.(): Path = copyTo(target, overwrite = overwrite))
+        useClassPath(pathString) { it.copyTo(target, overwrite = overwrite) }
             ?: error("Error copying ${fileName.quoted} to ${target.quoted}")
 
     /**
@@ -45,7 +45,7 @@ public open class ClassPath(public val pathString: String) {
      * @see copyToTemp
      */
     public fun copyToDirectory(target: Path): Path =
-        useClassPath(pathString, fun Path.(): Path = this.copyToDirectory(target))
+        useClassPath(pathString) { it.copyToDirectory(target) }
             ?: error("Error copying ${fileName.quoted} to ${target.quoted}")
 
     /**
@@ -65,7 +65,7 @@ public open class ClassPath(public val pathString: String) {
 public open class ClassPathDirectory(pathString: String) : ClassPath(pathString) {
 
     init {
-        require(use { isDirectory() }) { "$this is no directory" }
+        require(use { it.isDirectory() }) { "$this is no directory" }
     }
 
     public val name: String get() = fileName.pathString
@@ -84,14 +84,14 @@ public open class ClassPathDirectory(pathString: String) : ClassPath(pathString)
 public open class ClassPathFile(pathString: String) : ClassPath(pathString) {
 
     init {
-        require(use { isRegularFile() }) { "$this is no regular file" }
+        require(use { it.isRegularFile() }) { "$this is no regular file" }
     }
 
     public val name: String get() = fileName.pathString
-    public val data: ByteArray by lazy { use { readBytes() } }
+    public val data: ByteArray by lazy { use { it.readBytes() } }
 }
 
-public inline fun <reified T> ClassPath.use(crossinline transform: Path.() -> T): T =
+public inline fun <reified T> ClassPath.use(crossinline transform: (Path) -> T): T =
     useClassPath(pathString, transform) ?: error("Error processing ${pathString.quoted}")
 
 public inline val ClassPathFile.text: String

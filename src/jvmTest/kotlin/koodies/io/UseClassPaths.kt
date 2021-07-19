@@ -49,13 +49,13 @@ class ClassPathsKtTest {
 
         @Test fun `should map root with no provided path`() {
             expectThat(useClassPaths("") {
-                listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
+                it.listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
             }).filter { true }.size.isGreaterThan(2)
         }
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { readText() }).all { isEqualTo(data.decodeToString()) }
+            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { it.readText() }).all { isEqualTo(data.decodeToString()) }
         }
 
         @Test
@@ -69,23 +69,23 @@ class ClassPathsKtTest {
             "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
-        ) { expecting { useClassPaths(this) { readText() } } that { all { isEqualTo(data.decodeToString()) } } }
+        ) { expecting { useClassPaths(this) { it.readText() } } that { all { isEqualTo(data.decodeToString()) } } }
 
         @Test
         fun `should map read-only root`() {
-            expectThat(useClassPaths("") { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThan(2)
+            expectThat(useClassPaths("") { it::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThan(2)
         }
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { this::class.qualifiedName!! }).filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(
-                1)
+            expectThat(useClassPaths(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { it::class.qualifiedName!! })
+                .filter { it.contains("ReadOnly") }.size.isGreaterThanOrEqualTo(1)
         }
 
         @Test
         fun `should list read-only resources`() {
             expectThat(useClassPaths("") {
-                listDirectoryEntries().map { it::class.qualifiedName }.toList()
+                it.listDirectoryEntries().map { it::class.qualifiedName }.toList()
             }).filter { it.all { pathType -> pathType!!.contains("ReadOnly") } }.size.isGreaterThanOrEqualTo(2)
         }
 
@@ -97,10 +97,10 @@ class ClassPathsKtTest {
         ) { (_, operation) ->
             withTempDir(uniqueId) {
                 useClassPaths("try.it") {
-                    expectThat(exists()).isTrue()
-                    expectThrows<ReadOnlyFileSystemException> { operation(this@useClassPaths) }
-                    expectThat(exists()).isTrue()
-                    expectThat(readBytes()).isEqualTo(data)
+                    expectThat(it.exists()).isTrue()
+                    expectThrows<ReadOnlyFileSystemException> { operation(it) }
+                    expectThat(it.exists()).isTrue()
+                    expectThat(it.readBytes()).isEqualTo(data)
                 }
             }
         }
@@ -113,13 +113,13 @@ class ClassPathsKtTest {
         @Test
         fun `should map root with no provided path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(useClassPath("") {
-                listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
+                it.listDirectoryEntriesRecursively().any { it.fileName.toString().endsWith(".class") }
             }).isTrue()
         }
 
         @Test
         fun `should map resource on matching path`() {
-            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { readText() }).isEqualTo(data.decodeToString())
+            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { it.readText() }).isEqualTo(data.decodeToString())
         }
 
         @Test
@@ -133,21 +133,21 @@ class ClassPathsKtTest {
             "/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
             "classpath:/${Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString}",
-        ) { expecting { useClassPath(this) { readText() } } that { isEqualTo(data.decodeToString()) } }
+        ) { expecting { useClassPath(this) { it.readText() } } that { isEqualTo(data.decodeToString()) } }
 
         @Test
         fun `should map read-only root`() {
-            expectThat(useClassPath("") { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
+            expectThat(useClassPath("") { it::class.qualifiedName }).isNotNull().contains("ReadOnly")
         }
 
         @Test
         fun `should map read-only resource`() {
-            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { this::class.qualifiedName }).isNotNull().contains("ReadOnly")
+            expectThat(useClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { it::class.qualifiedName }).isNotNull().contains("ReadOnly")
         }
 
         @Test
         fun `should list read-only resources`() {
-            expectThat(useClassPath("") { listDirectoryEntries().mapNotNull { it::class.qualifiedName }.toList() }).isNotNull().all { contains("ReadOnly") }
+            expectThat(useClassPath("") { it.listDirectoryEntries().mapNotNull { it::class.qualifiedName }.toList() }).isNotNull().all { contains("ReadOnly") }
         }
 
         @TestFactory
@@ -158,15 +158,15 @@ class ClassPathsKtTest {
         ).map { (name, operation) ->
             dynamicTest(name) {
                 useClassPath("try.it") {
-                    expectThat(exists()).isTrue()
+                    expectThat(it.exists()).isTrue()
                     expectCatching {
                         withTempDir(uniqueId) {
                             val target = this
-                            target.operation(this@useClassPath)
+                            target.operation(it)
                         }
                     }.isFailure().isA<ReadOnlyFileSystemException>()
-                    expectThat(exists()).isTrue()
-                    expectThat(readBytes()).isEqualTo(data)
+                    expectThat(it.exists()).isTrue()
+                    expectThat(it.readBytes()).isEqualTo(data)
                 }
             }
         }
@@ -177,7 +177,7 @@ class ClassPathsKtTest {
             fun `should copy class path directory`() {
                 val fixtures by classPath("img")
                 useClassPath("img") {
-                    fixtures.copyToDirectory(randomDirectory("copy1")) to copyToDirectory(randomDirectory("copy2"))
+                    fixtures.copyToDirectory(it.randomDirectory("copy1")) to it.copyToDirectory(it.randomDirectory("copy2"))
                 }?.also { (copy1, copy2) ->
                     expectThat(copy1) {
                         size.isGreaterThan(Size.ZERO)
@@ -191,7 +191,7 @@ class ClassPathsKtTest {
 
     @TestFactory
     fun `use required class path`() = tests {
-        expecting { useRequiredClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { readText() } } that { isEqualTo(data.decodeToString()) }
+        expecting { useRequiredClassPath(Fixture61C285F09D95930D0AE298B00AF09F918B0A.pathString) { it.readText() } } that { isEqualTo(data.decodeToString()) }
         expectThrows<NoSuchFileException> { useRequiredClassPath("invalid.file") {} }
     }
 

@@ -34,10 +34,10 @@ public fun ClassLoader.loadClassOrNull(name: String): Class<*>? = kotlin.runCatc
  * @see <a href="https://stackoverflow.com/questions/15713119/java-nio-file-path-for-a-classpath-resource"
  * >java.nio.file.Path for a classpath resource</a>
  */
-public inline fun <reified T> useClassPaths(path: String, crossinline transform: Path.() -> T): List<T> {
+public inline fun <reified T> useClassPaths(path: String, crossinline transform: (Path) -> T): List<T> {
     val normalizedPath = path.removePrefix("classpath:").removePrefix("/")
     return contextClassLoader.getResources(normalizedPath).asSequence().map { url ->
-        url.toMappedPath { classPath -> classPath.asReadOnly().transform() }
+        url.toMappedPath { classPath -> transform(classPath.asReadOnly()) }
     }.toList()
 }
 
@@ -54,9 +54,9 @@ public inline fun <reified T> useClassPaths(path: String, crossinline transform:
  * >java.nio.file.Path for a classpath resource</a>
  * @see useClassPaths
  */
-public inline fun <reified T> useClassPath(path: String, crossinline transform: Path.() -> T): T? {
+public inline fun <reified T> useClassPath(path: String, crossinline transform: (Path) -> T): T? {
     val normalizedPath = path.removePrefix("classpath:").removePrefix("/")
-    return contextClassLoader.getResource(normalizedPath)?.toMappedPath { it.asReadOnly().transform() }
+    return contextClassLoader.getResource(normalizedPath)?.toMappedPath { transform(it.asReadOnly()) }
 }
 
 /**
@@ -66,7 +66,7 @@ public inline fun <reified T> useClassPath(path: String, crossinline transform: 
  *
  * @see useClassPath
  */
-public inline fun <reified T> useRequiredClassPath(path: String, crossinline transform: Path.() -> T): T =
+public inline fun <reified T> useRequiredClassPath(path: String, crossinline transform: (Path) -> T): T =
     useClassPath(path, transform) ?: throw noSuchFile(path)
 
 /**
@@ -77,7 +77,7 @@ public inline fun <reified T> useRequiredClassPath(path: String, crossinline tra
  * @see requireClassPathText
  */
 public fun readClassPathText(path: String): String? =
-    useClassPath(path) { readText() }
+    useClassPath(path) { it.readText() }
 
 /**
  * Reads the class path resource, the specified [path] points to and returns it.
@@ -87,7 +87,7 @@ public fun readClassPathText(path: String): String? =
  * @see readClassPathText
  */
 public fun requireClassPathText(path: String): String =
-    useRequiredClassPath(path) { readText() }
+    useRequiredClassPath(path) { it.readText() }
 
 /**
  * Reads the class path resource, the specified [path] points to and returns it.
@@ -97,7 +97,7 @@ public fun requireClassPathText(path: String): String =
  * @see requireClassPathBytes
  */
 public fun readClassPathBytes(path: String): ByteArray? =
-    useClassPath(path) { readBytes() }
+    useClassPath(path) { it.readBytes() }
 
 /**
  * Reads the class path resource, the specified [path] points to and returns it.
@@ -107,7 +107,7 @@ public fun readClassPathBytes(path: String): ByteArray? =
  * @see readClassPathBytes
  */
 public fun requireClassPathBytes(path: String): ByteArray =
-    useRequiredClassPath(path) { readBytes() }
+    useRequiredClassPath(path) { it.readBytes() }
 
 /**
  * Gets a proxied class path resource that get only accesses the moment
