@@ -199,11 +199,11 @@ class ExecutionIntegrationTest {
     fun `should exec composed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         SvgFixture.copyTo(resolve("koodies.svg"))
 
-        docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg")
+        docker("minidocks/librsvg", "-z", 5, "--output", "koodies.png", "koodies.svg", name = "rasterize vector")
         resolve("koodies.png") asserting { exists() }
 
         // run a shell script
-        docker("rafib/awesome-cli-binaries", renderer = null) {
+        docker("rafib/awesome-cli-binaries", name = "convert to ascii art", renderer = null) {
             """
                /opt/bin/chafa -c full -w 9 koodies.png
             """

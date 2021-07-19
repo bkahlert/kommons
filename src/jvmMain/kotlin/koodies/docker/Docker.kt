@@ -135,9 +135,12 @@ public object Docker {
         workingDirectory: Path,
         command: Any? = null,
         vararg arguments: Any,
+        name: CharSequence? = null,
         renderer: RendererProvider? = null,
         inputStream: InputStream? = null,
-    ): DockerExec = execute(image, workingDirectory, renderer, inputStream) { CommandLine(command?.toString() ?: "", arguments.map { it.toString() }) }
+    ): DockerExec = execute(image, workingDirectory, renderer, inputStream) {
+        CommandLine(command?.toString() ?: "", arguments.map { it.toString() }, name = name)
+    }
 
     /**
      * Builds a shell script using the given [scriptInit] and executes it in
@@ -153,10 +156,13 @@ public object Docker {
     public fun exec(
         image: DockerImage,
         workingDirectory: Path,
+        name: CharSequence? = null,
         renderer: RendererProvider? = null,
         inputStream: InputStream? = null,
         scriptInit: ScriptInitWithWorkingDirectory,
-    ): DockerExec = execute(image, workingDirectory, renderer, inputStream) { workDir -> ShellScript { scriptInit(workDir) } }
+    ): DockerExec = execute(image, workingDirectory, renderer, inputStream) { workDir ->
+        ShellScript(name) { scriptInit(workDir) }
+    }
 
     /**
      * Builds an [Executable] using the given [executableProvider] and executes it in
@@ -208,10 +214,11 @@ public fun Path.docker(
     image: String,
     command: Any? = null,
     vararg arguments: Any,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    Docker.exec(DockerImage { image }, this, command, *arguments, renderer = renderer, inputStream = inputStream)
+    Docker.exec(DockerImage { image }, this, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -228,10 +235,11 @@ public fun Path.docker(
     imageInit: DockerImageInit,
     command: Any? = null,
     vararg arguments: Any,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    Docker.exec(DockerImage(imageInit), this, command, *arguments, renderer = renderer, inputStream = inputStream)
+    Docker.exec(DockerImage(imageInit), this, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Runs the given [command] and its [arguments] in
@@ -248,10 +256,11 @@ public fun Path.docker(
     image: DockerImage,
     command: Any? = null,
     vararg arguments: Any,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    Docker.exec(image, this, command, *arguments, renderer = renderer, inputStream = inputStream)
+    Docker.exec(image, this, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -266,11 +275,12 @@ public fun Path.docker(
  */
 public fun Path.docker(
     image: String,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    Docker.exec(DockerImage { image }, this, renderer, inputStream, scriptInit)
+    Docker.exec(DockerImage { image }, this, name, renderer, inputStream, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -285,11 +295,12 @@ public fun Path.docker(
  */
 public fun Path.docker(
     imageInit: DockerImageInit,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    Docker.exec(DockerImage(imageInit), this, renderer, inputStream, scriptInit)
+    Docker.exec(DockerImage(imageInit), this, name, renderer, inputStream, scriptInit)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -304,11 +315,12 @@ public fun Path.docker(
  */
 public fun Path.docker(
     image: DockerImage,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    Docker.exec(image, this, renderer, inputStream, scriptInit)
+    Docker.exec(image, this, name, renderer, inputStream, scriptInit)
 
 
 /*
@@ -329,10 +341,11 @@ public fun Path.docker(
 public fun Path.ubuntu(
     command: Any? = null,
     vararg arguments: Any,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    docker(DockerImage { "ubuntu" }, command, *arguments, renderer = renderer, inputStream = inputStream)
+    docker(DockerImage { "ubuntu" }, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -346,11 +359,12 @@ public fun Path.ubuntu(
  * of the created process.
  */
 public fun Path.ubuntu(
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    docker(DockerImage { "ubuntu" }, renderer, inputStream, scriptInit)
+    docker(DockerImage { "ubuntu" }, name, renderer, inputStream, scriptInit)
 
 
 /*
@@ -371,10 +385,11 @@ public fun Path.ubuntu(
 public fun Path.busybox(
     command: Any? = null,
     vararg arguments: Any,
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
 ): DockerExec =
-    docker(DockerImage { "busybox" }, command, *arguments, renderer = renderer, inputStream = inputStream)
+    docker(DockerImage { "busybox" }, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -388,11 +403,12 @@ public fun Path.busybox(
  * of the created process.
  */
 public fun Path.busybox(
+    name: CharSequence? = null,
     renderer: RendererProvider? = null,
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    docker(DockerImage { "busybox" }, renderer, inputStream, scriptInit)
+    docker(DockerImage { "busybox" }, name, renderer, inputStream, scriptInit)
 
 
 /*
@@ -410,10 +426,11 @@ private val curlJqImage = DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
 public fun Path.curlJq(
+    name: CharSequence = "curl | jq",
     renderer: RendererProvider? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    docker(curlJqImage, renderer, null, scriptInit)
+    docker(curlJqImage, name, renderer, null, scriptInit)
 
 /**
  * Runs a [curl](https://curl.se/docs/manpage.html) with the given [arguments] in
@@ -425,9 +442,10 @@ public fun Path.curlJq(
  */
 public fun Path.curl(
     vararg arguments: Any,
+    name: CharSequence = "curl",
     renderer: RendererProvider? = null,
 ): DockerExec =
-    docker(curlJqImage, "curl", *arguments, renderer = renderer)
+    docker(curlJqImage, "curl", *arguments, name = name, renderer = renderer)
 
 /**
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using

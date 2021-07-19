@@ -12,6 +12,7 @@ import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadWriteSpan
 import io.opentelemetry.sdk.trace.ReadableSpan
 import io.opentelemetry.sdk.trace.SdkTracerProvider
+import io.opentelemetry.sdk.trace.SpanLimits
 import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
@@ -46,6 +47,7 @@ class TestTelemetry : TestExecutionListener {
                 .addSpanProcessor(InMemoryStoringSpanProcessor)
                 .addSpanProcessor(batchExporter)
                 .setResource(Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), "koodies-test")))
+                .setSpanLimits { SpanLimits.builder().setMaxNumberOfEvents(2500).build() }
                 .build()
 
             OpenTelemetrySdk.builder()

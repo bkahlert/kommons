@@ -55,7 +55,7 @@ public fun InMemoryImage.rasterize(renderer: RendererProvider = { NOOP }): ByteA
     if (isBitmap) data
     else runWithTempDir {
         val rasterized = "image.png"
-        docker(LibRSvg, "-z", 5, "--output", rasterized, renderer = renderer, inputStream = data.inputStream())
+        docker(LibRSvg, "-z", 5, "--output", rasterized, name = "rasterize vector", renderer = renderer, inputStream = data.inputStream())
         resolve(rasterized).readBytes()
     }
 
@@ -64,7 +64,7 @@ public fun InMemoryImage.rasterize(renderer: RendererProvider = { NOOP }): ByteA
  */
 public fun InMemoryImage.toAsciiArt(renderer: RendererProvider = { NOOP }): String = runWithTempDir {
     val fileName = resolve(this@toAsciiArt.baseName).writeBytes(rasterize(renderer)).fileName
-    docker(Chafa, renderer = renderer) { "/opt/bin/chafa -c full -w 9 $fileName" }
+    docker(Chafa, name = "convert to ascii art", renderer = renderer) { "/opt/bin/chafa -c full -w 9 $fileName" }
         .io.output.ansiKept.resetLines()
 }
 
