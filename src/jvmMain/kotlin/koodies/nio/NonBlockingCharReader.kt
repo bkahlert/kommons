@@ -24,7 +24,7 @@ public class NonBlockingCharReader(
     private val inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
     private val charset: Charset = Charsets.UTF_8,
-    name: String = "ImgCstmzr-${NonBlockingCharReader::class.simpleName}".withRandomSuffix(),
+    name: String = "NonBlockingCharReader".withRandomSuffix(),
 ) : Reader() {
 
     private val timeoutMillis: Long = timeout.inWholeMilliseconds
@@ -33,14 +33,6 @@ public class NonBlockingCharReader(
     public var reader: JLineNonBlockingReader? = NonBlocking.nonBlocking(name, inputStream, charset)
 
     public fun read(buffer: CharArray, off: Int): Int = if (reader == null) -1 else
-//        spanning(
-//            name = NonBlockingCharReader::class.simpleName + ".read()",
-//            renderer = {
-//                if (isDebugging) it(copy(decorationFormatter = { ANSI.Colors.brightCyan.invoke(it) }))
-//                else Renderer.Companion.NOOP
-//            },
-//            tracer = if (isDebugging) Tracer else Tracer.NOOP,
-//        ) {
         runWrapping({
             (inputStream as? SlowInputStream)?.run { parentSpan.also { parentSpan = Span.current() } }
         }, {
@@ -51,23 +43,15 @@ public class NonBlockingCharReader(
                     reader?.close()
                     -1
                 }.getOrThrow()) {
-                -1 -> {
-//                        log(IO.Meta typed "EOF")
-                    -1
-                }
-                -2 -> {
-//                        log(IO.Meta typed "TIMEOUT")
-                    0
-                }
+                -1 -> -1
+                -2 -> 0
                 else -> {
-//                        log(IO.Meta typed "SUCCESSFULLY READ ${read.debug}")
                     buffer[off] = read.toChar()
                     1
                 }
             }.also {
                 (inputStream as? SlowInputStream)?.parentSpan = Span.getInvalid()
             }
-//            }
         }
 
     override fun read(cbuf: CharArray, off: Int, len: Int): Int = read(cbuf, off)

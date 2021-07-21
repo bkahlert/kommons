@@ -138,7 +138,7 @@ class DockerKtTest {
     @Suppress("SpellCheckingInspection")
     @DockerRequiring @Test
     fun `should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val image = useClassPath("BCM2835Dev.5.29.zip") { copyToDirectory(this@withTempDir) }
+        val image = useClassPath("BCM2835Dev.5.29.zip") { it.copyToDirectory(this@withTempDir) }
             ?.unarchive()
             ?.listDirectoryEntriesRecursively()
             ?.maxByOrNull { it.getSize() } ?: fail { "No image found." }

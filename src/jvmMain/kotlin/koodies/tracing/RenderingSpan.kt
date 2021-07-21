@@ -258,6 +258,8 @@ public fun <R> spanning(
     style: ((ColumnsLayout, Int) -> Style)? = null,
     printer: Printer? = null,
 
+    mute: Boolean = false,
+
     block: CurrentSpan.() -> R,
 ): R = tracing(recordException = false) {
     val renderingChildSpan = Span.current().renderingChildSpan(name, *attributes) {
