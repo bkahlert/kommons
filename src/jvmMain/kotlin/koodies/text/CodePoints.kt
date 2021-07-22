@@ -19,7 +19,7 @@ public val CodePoint.chars: CharArray get() = Character.toChars(codePoint)
 /**
  * Contains the number of [Char] values needed to represent this code point.
  */
-public val CodePoint.charCount: Int get() = Character.charCount(codePoint)
+public actual val CodePoint.charCount: Int get() = Character.charCount(codePoint)
 
 public operator fun String.minus(amount: Int): String =
     asCodePointSequence().map { it - amount }.joinLinesToString("")

@@ -123,7 +123,7 @@ class KaomojiTest {
         Kaomoji.Happy, Kaomoji.Helpless, Kaomoji.Heroes, Kaomoji.Hide, Kaomoji.Hugging,
         Kaomoji.Kissing,
         Kaomoji.Laughing, Kaomoji.LennyFace, Kaomoji.Love,
-        Kaomoji.Magical, Kaomoji.MakeUpMyMind, Kaomoji.MiddleFinger, Kaomoji.Money, Kaomoji.Monkey, Kaomoji.Musical,
+        Kaomoji.MakeUpMyMind, Kaomoji.MiddleFinger, Kaomoji.Money, Kaomoji.Monkey, Kaomoji.Musical,
         Kaomoji.Nervious,
         Kaomoji.PeaceSign, Kaomoji.Pointing, Kaomoji.Proud, Kaomoji.Punching,
         Kaomoji.Rabbits, Kaomoji.Rain, Kaomoji.RogerThat, Kaomoji.RollOver, Kaomoji.Running,

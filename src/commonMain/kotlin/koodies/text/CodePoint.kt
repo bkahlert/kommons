@@ -580,3 +580,8 @@ public fun CharSequence.toLiteralRegex(): Regex {
         }
     }.joinLinesToString("").toRegex()
 }
+
+/**
+ * Contains the number of [Char] values needed to represent this code point.
+ */
+public expect val CodePoint.charCount: Int
