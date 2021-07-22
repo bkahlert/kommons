@@ -54,12 +54,12 @@ public object Processors {
         vararg attributes: KeyValue<*, *>,
         renderer: RendererProvider = RendererProviders.NOOP,
         process: CurrentSpan.(E, IO) -> Unit = { _, io -> event(io as Event) },
-    ): Processor<E> = { exec: E, block: ((IO) -> Unit) -> ExitState ->
+    ): Processor<E> = { exec: E, start: ((IO) -> Unit) -> ExitState ->
         spanning(
             attributes.firstOrNull { it.key == ExecAttributes.NAME }?.value?.toString() ?: ExecAttributes.SPAN_NAME,
             *attributes,
             renderer = renderer,
-            block = { block { process(exec, it) } },
+            block = { start { process(exec, it) } },
         )
     }
 
@@ -69,10 +69,10 @@ public object Processors {
     public fun <E : Exec> processingProcessor(
         renderer: RendererProvider = RendererProviders.NOOP,
         process: Renderer.(E, IO) -> Unit = { _, io -> event(io.name, RenderableAttributes.of(*io.attributes.toTypedArray())) },
-    ): Processor<E> = { exec: E, block: ((IO) -> Unit) -> ExitState ->
+    ): Processor<E> = { exec: E, start: ((IO) -> Unit) -> ExitState ->
         RootRenderer.childRenderer(renderer).run {
             start(TraceId.invalid, SpanId.invalid, exec.commandLine.name ?: exec.commandLine.content)
-            val result: Result<ExitState> = kotlin.runCatching { block { process(exec, it) } }
+            val result: Result<ExitState> = kotlin.runCatching { start { process(exec, it) } }
             end(result)
             result.getOrThrow()
         }

@@ -1,6 +1,7 @@
 package koodies.docker
 
 
+import koodies.docker.Docker.Official.nginx
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.Exec
@@ -24,16 +25,21 @@ import koodies.test.SvgFixture
 import koodies.test.asserting
 import koodies.test.testEach
 import koodies.test.withTempDir
+import koodies.text.ANSI.ansiRemoved
 import koodies.text.containsAnsi
+import koodies.time.poll
+import koodies.time.seconds
 import koodies.unit.bytes
 import koodies.unit.hasSize
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
+import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
+import strikt.assertions.isTrue
 import strikt.assertions.length
 import strikt.java.exists
 import strikt.java.fileName
@@ -133,6 +139,30 @@ class DockerKtTest {
             { download(it) },
             { download(URI.create(it)) },
         ) { download -> withTempDir(uniqueId) { expecting { download("$uri?a=b#c") } that { fileName.isEqualTo("example.png".asPath()) } } }
+    }
+
+    @Nested
+    inner class Nginx {
+
+        @DockerRequiring([nginx::class]) @Test
+        fun `should run nginx`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            HtmlFixture.copyTo(resolve("index.html"))
+            val nginxProcess = nginx(888)
+            val didConnect = poll { curl("-XGET", "host.docker.internal:888").output.ansiRemoved.contains("<head><title>Hello Title!</title>") }
+                .every(.5.seconds)
+                .forAtMost(8.seconds)
+            nginxProcess.kill()
+            expectThat(didConnect).isTrue()
+        }
+
+        @DockerRequiring([nginx::class]) @Test
+        fun `should run nginx with URI provided block`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            HtmlFixture.copyTo(resolve("index.html"))
+            val output = nginx(889) { uri ->
+                curl("-XGET", uri).output.ansiRemoved
+            }
+            expectThat(output).contains("<head><title>Hello Title!</title>")
+        }
     }
 
     @Suppress("SpellCheckingInspection")

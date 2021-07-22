@@ -190,6 +190,20 @@ class ShellScriptTest {
         }
 
         @Nested
+        inner class Poll {
+
+            @Test
+            fun `should proceed if connection succeeds`() {
+                TODO("Not yet implemented")
+            }
+
+            @Test
+            fun `should retry until succeeds`() {
+                TODO("Not yet implemented")
+            }
+        }
+
+        @Nested
         inner class FileOperations {
 
             @Test

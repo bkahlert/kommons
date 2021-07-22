@@ -7,6 +7,7 @@ import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerSearchCommandLine.DockerSearchResult
 import koodies.exec.CommandLine
 import koodies.exec.Exec
+import koodies.exec.ExecAttributes
 import koodies.exec.Executable
 import koodies.exec.IO
 import koodies.exec.ProcessingMode.Interactivity.Interactive
@@ -29,6 +30,10 @@ import koodies.shell.ShellScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.text.joinToKebabCase
 import koodies.text.withRandomSuffix
+import koodies.time.Now
+import koodies.time.seconds
+import koodies.tracing.CurrentSpan
+import koodies.tracing.Event
 import koodies.tracing.Key
 import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.spanning
@@ -191,6 +196,11 @@ public object Docker {
             if (renderer != null) exec.mode { sync(interactivity) }.logging(renderer = renderer)
             else exec.mode { sync(interactivity) }()
         }
+    }
+
+    public object Official {
+        @Suppress("SpellCheckingInspection")
+        public object nginx : DockerImage("nginx", emptyList())
     }
 }
 
@@ -493,6 +503,58 @@ public fun Path.download(
 ): Path = download(uri.toString(), fileName, renderer)
 
 private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }
+
+
+/**
+ * Hosts `this` directory using
+ * an [nginx](https://hub.docker.com/_/nginx) based [DockerContainer].
+ *
+ * nginx will be started [DockerRunCommandLine.Options.detached]
+ * and can be stopped using [DockerExec.stop].
+ */
+public fun Path.nginx(
+    port: Int = 8080,
+    name: String = "nginx".withRandomSuffix(),
+    processor: Processor<DockerExec> = Processors.spanningProcessor(),
+): DockerExec = DockerRunCommandLine(
+    image = Docker.Official.nginx,
+    options = Options(
+        name = DockerContainer.from(name),
+        mounts = MountOptions { this@nginx mountAt "/usr/share/nginx/html" },
+        publish = listOf("$port:80"),
+    ),
+    executable = CommandLine(""),
+).exec.mode { async(Interactive(nonBlocking = true)) }.processing(processor = processor)
+
+/**
+ * Hosts `this` directory using
+ * an [nginx](https://hub.docker.com/_/nginx) based [DockerContainer].
+ *
+ * nginx will only be running while [block] is executed and automatically
+ * stopped afterwards.
+ */
+public fun <R> Path.nginx(
+    port: Int = 8080,
+    name: String = "nginx".withRandomSuffix(),
+    block: CurrentSpan.(URI) -> R,
+): R {
+    val start = System.currentTimeMillis()
+    var result: Result<R>? = null
+    nginx(port, name, processor = Processors.spanningProcessor(ExecAttributes.NAME to "nginx") { dockerExec: DockerExec, io: IO ->
+        event(io as Event)
+        if (result == null && Now.passedSince(start) > 30.seconds) {
+            dockerExec.kill()
+        }
+        if (io.text.contains("Enabled listen", ignoreCase = true)) {
+            result = runCatching {
+                @Suppress("HttpUrlsUsage")
+                block(URI.create("http://host.docker.internal:$port"))
+            }
+            dockerExec.stop()
+        }
+    }).waitFor()
+    return result?.getOrThrow() ?: error("error running nginx")
+}
 
 
 /*
