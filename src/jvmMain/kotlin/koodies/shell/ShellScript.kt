@@ -63,6 +63,11 @@ public open class ShellScript(
     public override val content: String = content?.toString()?.trimIndent() ?: ""
 
     /**
+     * Whether this scripts starts with a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)).
+     */
+    public val hasShebang: Boolean = content?.isScript == true
+
+    /**
      * The [content] lines of this script.
      */
     private val lines get() = content.lines()
@@ -119,18 +124,19 @@ public open class ShellScript(
      * printed as the first command.
      */
     public fun toString(echoName: Boolean, name: CharSequence? = this.name): String =
-        if (echoName) {
-            var echoNameCommandAdded = false
-            val echoNameCommand = bannerEchoingCommand(name)
-            val script = lines.joinToString("") { line ->
-                if (!echoNameCommandAdded && line.isScript) {
-                    echoNameCommandAdded = true
-                    line + LF + echoNameCommand
-                } else {
-                    line + LF
-                }
+        if (echoName && name != null) {
+            if (hasShebang) {
+                StringBuilder().apply {
+                    appendLine(lines.first())
+                    appendLine("echo '${banner(name)}'")
+                    lines.drop(1).forEach { appendLine(it) }
+                }.toString()
+            } else {
+                StringBuilder().apply {
+                    appendLine("echo '${banner(name)}'")
+                    lines.forEach { appendLine(it) }
+                }.toString()
             }
-            if (echoNameCommandAdded) script else echoNameCommand + script
         } else {
             content + LF
         }
@@ -371,13 +377,6 @@ public open class ShellScript(
          * Builds a new [ShellScript] using the given [init].
          */
         override fun invoke(init: ScriptInit): ShellScript = invoke(null, init)
-
-        /**
-         * Return—if [name] is not `null`—a command line that echos [name].
-         *
-         * If [name] is `null` an empty string is returned.
-         */
-        public fun bannerEchoingCommand(name: CharSequence?): String = name?.takeIf { it.isNotBlank() }?.let { "echo '${banner(name)}'$LF" } ?: ""
 
         /**
          * Whether this byte array starts with `0x23 0x21` (`#!`).

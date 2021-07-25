@@ -45,8 +45,10 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import strikt.assertions.isTrue
 import strikt.java.exists
 import strikt.java.isExecutable
 import java.net.URI
@@ -130,7 +132,34 @@ class ShellScriptTest {
     }
 
     @Nested
-    inner class ShebangTest {
+    inner class HasShebang {
+
+        @Test
+        fun `should return true if starts with shebang`() {
+            expectThat(ShellScript {
+                shebang
+                echo("shebang")
+            }.hasShebang).isTrue()
+        }
+
+        @Test
+        fun `should return false if not starts with shebang`() {
+            expectThat(ShellScript {
+                echo("shebang")
+                shebang
+            }.hasShebang).isFalse()
+        }
+
+        @Test
+        fun `should return false if shebang is missing`() {
+            expectThat(ShellScript {
+                echo("shebang")
+            }.hasShebang).isFalse()
+        }
+    }
+
+    @Nested
+    inner class Shebang {
 
         @Test
         fun `should add using property`() {
@@ -251,6 +280,16 @@ class ShellScriptTest {
                 echo '$testBanner'
                 exit 0
                 #!/bin/sh
+    
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should echo name in first line on empty script`() {
+            val sh = ShellScript("test", null)
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+                echo '$testBanner'
+    
     
             """.trimIndent())
         }
