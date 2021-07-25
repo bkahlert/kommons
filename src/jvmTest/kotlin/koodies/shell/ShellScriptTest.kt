@@ -29,6 +29,7 @@ import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
 import koodies.text.LineSeparators.LF
+import koodies.text.LineSeparators.lines
 import koodies.text.joinLinesToString
 import koodies.text.lines
 import koodies.text.matchesCurlyPattern
@@ -129,6 +130,68 @@ class ShellScriptTest {
     }
 
     @Nested
+    inner class ShebangTest {
+
+        @Test
+        fun `should add using property`() {
+            expectThat(ShellScript {
+                shebang
+                echo("shebang")
+            }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+        }
+
+        @Test
+        fun `should add using function`() {
+            expectThat(ShellScript {
+                shebang()
+                echo("shebang")
+            }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+        }
+
+        @Test
+        fun `should add custom interpreter`() {
+            expectThat(ShellScript {
+                shebang("/bin/bash")
+                echo("shebang")
+            }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
+        }
+
+        @Test
+        fun `should add custom path interpreter`() {
+            expectThat(ShellScript {
+                shebang("/bin/bash".asPath())
+                echo("shebang")
+            }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
+        }
+
+        @Test
+        fun `should add custom interpreter with arguments`() {
+            expectThat(ShellScript {
+                shebang("/bin/bash", "arg1", "-arg2")
+                echo("shebang")
+            }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
+        }
+
+        @Test
+        fun `should add custom path interpreter with arguments`() {
+            expectThat(ShellScript {
+                shebang("/bin/bash".asPath(), "arg1", "-arg2")
+                echo("shebang")
+            }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
+        }
+
+        @Test
+        fun `should add anywhere`() {
+            expectThat(ShellScript {
+                shebang
+                echo("shebang")
+                shebang("/bin/bash")
+            }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "#!/bin/bash", "")
+        }
+    }
+
+
+    @Nested
     inner class Name {
 
         private val testBanner = "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m" +
@@ -166,6 +229,28 @@ class ShellScriptTest {
             expectThat(sh.toString(true, "different")).isEqualTo("""
                 echo '$differentBanner'
                 exit 0
+    
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should echo name after shebang in first line`() {
+            val sh = ShellScript("test", "#!/bin/sh\nexit 0")
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+                #!/bin/sh
+                echo '$testBanner'
+                exit 0
+    
+            """.trimIndent())
+        }
+
+        @Test
+        fun `should echo name in first line on missing shebang in first line`() {
+            val sh = ShellScript("test", "exit 0\n#!/bin/sh")
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+                echo '$testBanner'
+                exit 0
+                #!/bin/sh
     
             """.trimIndent())
         }
@@ -302,7 +387,7 @@ class ShellScriptTest {
         inner class Embed {
 
             private fun getEmbeddedShellScript() = ShellScript("embedded script 📝") {
-                shebang
+                shebang("/bin/bash")
                 !"mkdir 'dir'"
                 !"cd 'dir'"
                 !"sleep 1"
@@ -512,3 +597,7 @@ inline fun <reified T : Path> Builder<T>.isScript() =
         else if (!it.exists()) fail("does not exist")
         else fail("starts with ${it.inputStream().readNBytes(2)}")
     }
+
+fun Builder<ShellScript>.linesAreEqualTo(vararg lines: String) {
+    get("build %s") { toString().lines() }.containsExactly(*lines)
+}

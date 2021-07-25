@@ -123,7 +123,7 @@ public open class ShellScript(
             var echoNameCommandAdded = false
             val echoNameCommand = bannerEchoingCommand(name)
             val script = lines.joinToString("") { line ->
-                if (!echoNameCommandAdded && line.isShebang()) {
+                if (!echoNameCommandAdded && line.isScript) {
                     echoNameCommandAdded = true
                     line + LF + echoNameCommand
                 } else {
@@ -182,10 +182,16 @@ public open class ShellScript(
                 ""
             }
 
-        /**
-         * Adds `#!` to this script.
-         */
-        public val shebang: Shebang get() = Shebang(lines)
+        /** Adds the default [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) `#!/bin/sh` to this script. */
+        public val shebang: String get() = shebang()
+
+        /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
+        public fun shebang(interpreter: Path, vararg arguments: String): String = shebang(interpreter.pathString, *arguments)
+
+        /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
+        public fun shebang(interpreter: String = "/bin/sh", vararg arguments: String): String = lines {
+            lines.add("#!$interpreter" + arguments.joinToString("") { " $it" })
+        }
 
         /**
          * Adds `cd [directory] || exit [errorCode]` to this script.
@@ -295,10 +301,6 @@ public open class ShellScript(
 
         /**
          * Embeds the given [shellScript] in this script.
-         *
-         * As soon as the execution comes to this point, the script
-         * is unpacked to a temporary script file, executed and
-         * when it has completed, removed.
          */
         public fun embed(shellScript: ShellScript, echoName: Boolean = false): String = lines {
             val baseName = shellScript.name.toBaseName()
@@ -378,19 +380,19 @@ public open class ShellScript(
         public fun bannerEchoingCommand(name: CharSequence?): String = name?.takeIf { it.isNotBlank() }?.let { "echo '${banner(name)}'$LF" } ?: ""
 
         /**
-         * Whether this byte array starts with `0x23 0x21` (`!#`).
+         * Whether this byte array starts with `0x23 0x21` (`#!`).
          */
         public val ByteArray.isScript: Boolean
             get() = size >= 2 && get(0) == 0x23.toByte() && get(1) == 0x21.toByte()
 
         /**
-         * Whether this character sequence starts with bytes `0x23 0x21` (`!#`)
+         * Whether this character sequence starts with bytes `0x23 0x21` (`#!`)
          */
         public val CharSequence.isScript: Boolean
             get() = length >= 2 && get(0) == '#' && get(1) == '!'
 
         /**
-         * Whether this file exists and starts with bytes `0x23 0x21` (`!#`)
+         * Whether this file exists and starts with bytes `0x23 0x21` (`#!`)
          */
         public val Path.isScript: Boolean
             get() = takeIf { it.exists() }?.run {
