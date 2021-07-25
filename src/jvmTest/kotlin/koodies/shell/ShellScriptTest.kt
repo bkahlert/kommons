@@ -28,6 +28,7 @@ import koodies.test.testEach
 import koodies.test.tests
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
+import koodies.text.Banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.joinLinesToString
@@ -48,6 +49,8 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.java.exists
 import strikt.java.isExecutable
@@ -132,6 +135,25 @@ class ShellScriptTest {
     }
 
     @Nested
+    inner class ToCommandLine {
+
+        @Test
+        fun `should use existing shebang`() {
+            expectThat(ShellScript {
+                shebang("/bin/custom -x")
+                echo("test")
+            }.toCommandLine()).isEqualTo(CommandLine("/bin/custom", "-x", "-c", "'echo' 'test'$LF"))
+        }
+
+        @Test
+        fun `should use default interpreter on missing shebang`() {
+            expectThat(ShellScript {
+                echo("test")
+            }.toCommandLine()).isEqualTo(CommandLine("/bin/sh", "-c", "'echo' 'test'$LF"))
+        }
+    }
+
+    @Nested
     inner class HasShebang {
 
         @Test
@@ -162,60 +184,35 @@ class ShellScriptTest {
     inner class Shebang {
 
         @Test
-        fun `should add using property`() {
-            expectThat(ShellScript {
-                shebang
-                echo("shebang")
-            }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+        fun `should return shebang`() {
+            expectThat(ShellScript("""
+                #!/bin/bash
+                echo 'test'
+            """.trimIndent()))
+                .get { shebang }
+                .isNotNull()
+                .isEqualTo(CommandLine("/bin/bash"))
         }
 
         @Test
-        fun `should add using function`() {
-            expectThat(ShellScript {
-                shebang()
-                echo("shebang")
-            }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+        fun `should return shebang with with arguments`() {
+            expectThat(ShellScript("""
+                #!/bin/bash arg1 '-arg2'
+                echo 'test'
+            """.trimIndent()))
+                .get { shebang }
+                .isNotNull()
+                .isEqualTo(CommandLine("/bin/bash", "arg1", "-arg2"))
         }
 
         @Test
-        fun `should add custom interpreter`() {
-            expectThat(ShellScript {
-                shebang("/bin/bash")
-                echo("shebang")
-            }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
-        }
-
-        @Test
-        fun `should add custom path interpreter`() {
-            expectThat(ShellScript {
-                shebang("/bin/bash".asPath())
-                echo("shebang")
-            }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
-        }
-
-        @Test
-        fun `should add custom interpreter with arguments`() {
-            expectThat(ShellScript {
-                shebang("/bin/bash", "arg1", "-arg2")
-                echo("shebang")
-            }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
-        }
-
-        @Test
-        fun `should add custom path interpreter with arguments`() {
-            expectThat(ShellScript {
-                shebang("/bin/bash".asPath(), "arg1", "-arg2")
-                echo("shebang")
-            }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
-        }
-
-        @Test
-        fun `should add anywhere`() {
-            expectThat(ShellScript {
-                shebang
-                echo("shebang")
-                shebang("/bin/bash")
-            }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "#!/bin/bash", "")
+        fun `should return null on missing shebang in first line`() {
+            expectThat(ShellScript("""
+                echo 'test'
+                #!/bin/bash arg1 -arg2
+            """.trimIndent()))
+                .get { shebang }
+                .isNull()
         }
     }
 
@@ -312,6 +309,67 @@ class ShellScriptTest {
 
     @Nested
     inner class UsingScriptContext {
+
+        @Nested
+        inner class Shebang {
+
+            @Test
+            fun `should add using property`() {
+                expectThat(ShellScript {
+                    shebang
+                    echo("shebang")
+                }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+            }
+
+            @Test
+            fun `should add using function`() {
+                expectThat(ShellScript {
+                    shebang()
+                    echo("shebang")
+                }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+            }
+
+            @Test
+            fun `should add custom interpreter`() {
+                expectThat(ShellScript {
+                    shebang("/bin/bash")
+                    echo("shebang")
+                }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
+            }
+
+            @Test
+            fun `should add custom path interpreter`() {
+                expectThat(ShellScript {
+                    shebang("/bin/bash".asPath())
+                    echo("shebang")
+                }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
+            }
+
+            @Test
+            fun `should add custom interpreter with arguments`() {
+                expectThat(ShellScript {
+                    shebang("/bin/bash", "arg1", "-arg2")
+                    echo("shebang")
+                }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
+            }
+
+            @Test
+            fun `should add custom path interpreter with arguments`() {
+                expectThat(ShellScript {
+                    shebang("/bin/bash".asPath(), "arg1", "-arg2")
+                    echo("shebang")
+                }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
+            }
+
+            @Test
+            fun `should add anywhere`() {
+                expectThat(ShellScript {
+                    shebang
+                    echo("shebang")
+                    shebang("/bin/bash")
+                }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "#!/bin/bash", "")
+            }
+        }
 
         @TestFactory
         fun `should echo`() = testEach<Pair<String, ScriptInit>>(
@@ -433,10 +491,10 @@ class ShellScriptTest {
                 !"echo 'test' > 'file.txt'"
             }
 
-            private fun ScriptContext.shellScript(): String {
+            private fun ScriptContext.shellScript(echoName: Boolean): String {
                 shebang
                 !"echo 'about to run embedded script'"
-                embed(getEmbeddedShellScript(), true)
+                embed(getEmbeddedShellScript(), echoName)
                 !"echo 'finished to run embedded script'"
                 !"echo $(pwd)"
                 return ""
@@ -444,37 +502,40 @@ class ShellScriptTest {
 
             @Test
             fun `should embed shell script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(ShellScript { shellScript() }).toStringMatchesCurlyPattern("""
-                #!/bin/sh
-                echo 'about to run embedded script'
-                (
-                cat <<'EMBEDDED-SCRIPT-{}'
-                #!/bin/sh
-                echo '{}'
-                mkdir 'dir'
-                cd 'dir'
-                sleep 1
-                echo 'test' > 'file.txt'
-                EMBEDDED-SCRIPT-{}
-                ) > "./embedded-script-_.sh"
-                if [ -f "./embedded-script-_.sh" ]; then
-                  chmod 755 "./embedded-script-_.sh"
-                  "./embedded-script-_.sh"
-                  wait
-                  rm "./embedded-script-_.sh"
-                else
-                  echo "Error creating ""embedded-script-_.sh"
-                fi
-                echo 'finished to run embedded script'
-                echo $(pwd)
-            """.trimIndent())
+                expectThat(ShellScript { shellScript(false) }).toStringMatchesCurlyPattern("""
+                    #!/bin/sh
+                    echo 'about to run embedded script'
+                    '/bin/bash' '-c' 'mkdir '"'"'dir'"'"'
+                    cd '"'"'dir'"'"'
+                    sleep 1
+                    echo '"'"'test'"'"' > '"'"'file.txt'"'"'
+                    '
+                    echo 'finished to run embedded script'
+                    echo $(pwd)
+                """.trimIndent())
+            }
+
+            @Test
+            fun `should embed shell script with name if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                expectThat(ShellScript { shellScript(true) }).toStringMatchesCurlyPattern("""
+                    #!/bin/sh
+                    echo 'about to run embedded script'
+                    '/bin/bash' '-c' 'echo '"'"'${Banner.banner("embedded script 📝")}'"'"'
+                    mkdir '"'"'dir'"'"'
+                    cd '"'"'dir'"'"'
+                    sleep 1
+                    echo '"'"'test'"'"' > '"'"'file.txt'"'"'
+                    '
+                    echo 'finished to run embedded script'
+                    echo $(pwd)
+                """.trimIndent())
             }
 
             @Smoke @Test
             fun `should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = ShellScript {
                     changeDirectoryOrExit(this@withTempDir)
-                    shellScript()
+                    shellScript(true)
                 }.exec.logging()
 
                 expect {

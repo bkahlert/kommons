@@ -13,14 +13,10 @@ import koodies.text.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
-import koodies.text.LineSeparators.trailingLineSeparatorRemoved
 import koodies.text.joinLinesToString
 import koodies.text.quoted
-import koodies.text.withRandomSuffix
-import koodies.text.wrapMultiline
 import koodies.time.minutes
 import koodies.time.seconds
-import koodies.toBaseName
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
 import java.net.URI
@@ -65,7 +61,12 @@ public open class ShellScript(
     /**
      * Whether this scripts starts with a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)).
      */
-    public val hasShebang: Boolean = content?.isScript == true
+    public val hasShebang: Boolean get() = content.isScript
+
+    /**
+     * The [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) this script starts with, `null` otherwise.
+     */
+    public val shebang: CommandLine? get() = if (hasShebang) CommandLine.parse(lines.first().drop(2)) else null
 
     /**
      * The [content] lines of this script.
@@ -84,11 +85,13 @@ public open class ShellScript(
         workingDirectory: Path?,
         transform: (String) -> String,
     ): CommandLine {
-        val script: String = toString()
-        val transformedScript: String = transform(script)
-        return with(Commandline().shell) {
-            CommandLine(shellCommand, listOf(*shellArgsList.toTypedArray(), transformedScript), name = name)
-        }
+        val interpreter: CommandLine = shebang
+            ?.run { CommandLine(command, *arguments.toTypedArray(), "-c") }
+            ?: Commandline().shell.run { CommandLine(shellCommand, listOf(*shellArgsList.toTypedArray())) }
+
+        val scriptWithoutShebang: String = if (hasShebang) ShellScript(name, lines.drop(1).joinLinesToString()).toString() else toString()
+        val transformedScriptWithoutShebang: String = transform(scriptWithoutShebang)
+        return CommandLine(interpreter.command, *interpreter.arguments.toTypedArray(), transformedScriptWithoutShebang, name = name)
     }
 
     override fun toExec(
@@ -309,28 +312,9 @@ public open class ShellScript(
          * Embeds the given [shellScript] in this script.
          */
         public fun embed(shellScript: ShellScript, echoName: Boolean = false): String = lines {
-            val baseName = shellScript.name.toBaseName()
-            val fileName = "$baseName.sh"
-            val delimiter = "EMBEDDED-SCRIPT-$baseName".withRandomSuffix()
-            val finalScript = shellScript.toString(echoName = echoName).trailingLineSeparatorRemoved
-            lines.add(finalScript.wrapMultiline(
-                """
-                (
-                cat <<'$delimiter'
-                """,
-                """
-                $delimiter
-                ) > "./$fileName"
-                if [ -f "./$fileName" ]; then
-                  chmod 755 "./$fileName"
-                  "./$fileName"
-                  wait
-                  rm "./$fileName"
-                else
-                  echo "Error creating ""$fileName"
-                fi
-            """,
-            ))
+//            val interpreter = shellScript.shebang?.
+            val finalShellScript = if (echoName) ShellScript(null, shellScript.toString(true)) else shellScript
+            lines.add(finalShellScript.toCommandLine().shellCommand)
         }
 
         /**
