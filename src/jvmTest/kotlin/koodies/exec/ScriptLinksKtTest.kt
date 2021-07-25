@@ -3,7 +3,7 @@ package koodies.exec
 import koodies.docker.DockerImage
 import koodies.docker.DockerRunCommandLine
 import koodies.io.path.asPath
-import koodies.io.path.text
+import koodies.io.path.textContent
 import koodies.shell.ShellScript
 import koodies.test.testEach
 import koodies.text.matchesCurlyPattern
@@ -35,7 +35,7 @@ class ScriptLinksKtTest {
             """.trimIndent(),
         ) { (executable, pattern) ->
             expecting { executable.toLink() } that {
-                asPath().text.matchesCurlyPattern(pattern)
+                asPath().textContent.matchesCurlyPattern(pattern)
             }
         }
     }

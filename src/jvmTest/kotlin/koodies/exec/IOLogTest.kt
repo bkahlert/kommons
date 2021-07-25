@@ -2,7 +2,7 @@ package koodies.exec
 
 import koodies.exec.IO.Meta
 import koodies.io.path.pathString
-import koodies.io.path.text
+import koodies.io.path.textContent
 import koodies.io.path.writeText
 import koodies.junit.UniqueId
 import koodies.jvm.daemon
@@ -78,7 +78,7 @@ class IOLogTest {
             val dumps: Map<String, Path> = ioLog.dump(this, 123)
             expectThat(dumps.values) {
                 hasSize(2)
-                all { text.ansiRemoved.startsWith("processing") }
+                all { textContent.ansiRemoved.startsWith("processing") }
             }
         }
 
@@ -94,7 +94,7 @@ class IOLogTest {
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }
-                .single().text
+                .single().textContent
                 .containsAnsi()
                 .toStringIsEqualTo("""
                     processing
@@ -109,7 +109,7 @@ class IOLogTest {
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { it.pathString.endsWith("ansi-removed.log") }
-                .single().text
+                .single().textContent
                 .not { containsAnsi() }
                 .toStringIsEqualTo("""
                     processing

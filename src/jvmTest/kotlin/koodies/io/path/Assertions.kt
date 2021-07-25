@@ -12,6 +12,7 @@ import koodies.time.Now
 import koodies.time.minus
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
+import strikt.assertions.contentEquals
 import strikt.assertions.isEqualTo
 import java.io.File
 import java.nio.file.Path
@@ -38,14 +39,25 @@ fun <T : CharSequence> Builder<T>.containsOnlyCharacters(chars: CharArray) =
         }
     }
 
+
 fun <T : Path> Builder<T>.hasContent(expectedContent: String): Builder<T> =
-    and { text.isEqualTo(expectedContent) }
+    and { textContent.isEqualTo(expectedContent) }
 
-val <T : Path> Builder<T>.text: Builder<String>
-    get() = get("get text") { readText() }
+fun <T : Path> Builder<T>.hasContent(expectedContent: ByteArray): Builder<T> =
+    and { byteContent.contentEquals(expectedContent) }
 
-val <T : Path> Builder<T>.bytes: Builder<ByteArray>
+val <T : Path> Builder<T>.textContent: Builder<String>
+    get() = get("text context") { readText() }
+
+fun Builder<Path>.textContent(assertion: Builder<String>.() -> Unit): Builder<Path> =
+    with("text content", { readText() }, assertion)
+
+val <T : Path> Builder<T>.byteContent: Builder<ByteArray>
     get() = get("get bytes") { readBytes() }
+
+fun Builder<Path>.byteContent(assertion: Builder<ByteArray>.() -> Unit): Builder<Path> =
+    with("byte content", { readBytes() }, assertion)
+
 
 fun <T : Path> Builder<T>.hasEqualContent(other: Path) =
     assert("has equal content as \"$other\"") {

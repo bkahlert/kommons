@@ -10,7 +10,7 @@ import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.io.Locations
 import koodies.io.path.asPath
 import koodies.io.path.pathString
-import koodies.io.path.text
+import koodies.io.path.textContent
 import koodies.shell.ShellScript
 import koodies.test.DynamicTestsWithSubjectBuilder
 import koodies.test.Smoke
@@ -203,7 +203,7 @@ class ExecutorTest {
                             a very long argument that leads to a very long command line
                             ✔︎
                         """.trimIndent())
-                        lines().first().asPath().text.contains("""
+                        lines().first().asPath().textContent.contains("""
                             'echo' 'a very long argument that leads to a very long command line'
                         """.trimIndent())
                     }
@@ -378,7 +378,7 @@ class ExecutorTest {
                             a very long argument that leads to a very long command line
                             ✔︎
                         """.trimIndent())
-                        lines().first().asPath().text.contains("""
+                        lines().first().asPath().textContent.contains("""
                             'echo' 'a very long argument that leads to a very long command line'
                         """.trimIndent())
                     }

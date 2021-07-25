@@ -3,7 +3,7 @@ package koodies.io
 import koodies.Koodies
 import koodies.io.path.deleteOnExit
 import koodies.io.path.listDirectoryEntriesRecursively
-import koodies.io.path.text
+import koodies.io.path.textContent
 import koodies.junit.UniqueId
 import koodies.test.expectThrows
 import koodies.test.expecting
@@ -89,7 +89,7 @@ class ClassPathTest {
         fun `should copy file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expecting { META_INF.Services.JUnitExtensions.copyTo(resolve("test.txt")) } that {
                 fileName.toStringIsEqualTo("test.txt")
-                text.contains("koodies.junit.TestNameResolver")
+                textContent.contains("koodies.junit.TestNameResolver")
             }
         }
 
@@ -97,7 +97,7 @@ class ClassPathTest {
         fun `should copy file to directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expecting { META_INF.Services.JUnitExtensions.copyToDirectory(this) } that {
                 fileName.toStringIsEqualTo("org.junit.jupiter.api.extension.Extension")
-                text.contains("koodies.junit.TestNameResolver")
+                textContent.contains("koodies.junit.TestNameResolver")
             }
         }
 
@@ -105,7 +105,7 @@ class ClassPathTest {
         fun `should copy file to temp`() {
             expecting { META_INF.Services.JUnitExtensions.copyToTemp().deleteOnExit() } that {
                 parent.isEqualTo(Koodies.FilesTemp)
-                text.contains("koodies.junit.TestNameResolver")
+                textContent.contains("koodies.junit.TestNameResolver")
             }
         }
     }
