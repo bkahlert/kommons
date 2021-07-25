@@ -18,14 +18,18 @@ import koodies.text.joinLinesToString
 import koodies.text.quoted
 import koodies.text.withRandomSuffix
 import koodies.text.wrapMultiline
+import koodies.time.minutes
+import koodies.time.seconds
 import koodies.toBaseName
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
+import java.net.URI
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
+import kotlin.time.Duration
 
 /**
  * A shell script.
@@ -245,6 +249,33 @@ public open class ShellScript(
 
         /** Add an echo command with the given [arguments] */
         public fun echo(vararg arguments: Any): String = command("echo", arguments.map { it.toString() })
+
+        /**
+         * Adds a while loop that attempts to connect to the given [uri] until
+         * it succeeds or the [timeout] is reached (results in exit code `124`).
+         *
+         * @param uri The [URI] to connect to.
+         * @param interval The interval of connection attempts.
+         * @param attemptTimeout The maximum duration spent on a single connection attempt.
+         * @param timeout The maximum duration connection attempts are made before exiting.
+         */
+        public fun poll(
+            uri: URI,
+            interval: Duration = 2.seconds,
+            attemptTimeout: Duration = 5.seconds,
+            timeout: Duration = 5.minutes,
+        ): String {
+            require(interval >= 1.seconds) { "interval must be greater or equal to 1 second" }
+            require(attemptTimeout >= 1.seconds) { "attempt timeout must be greater or equal to 1 second" }
+            require(timeout >= 1.seconds) { "timeout must be greater or equal to 1 second" }
+            return command("timeout", "${timeout.inWholeSeconds}s", "sh", "-c", """
+                    while true; do
+                        echo "$uri"
+                        curl --silent --fail --max-time ${attemptTimeout.inWholeSeconds} '$uri' && break
+                        sleep ${interval.inWholeSeconds}
+                    done
+                """.trimIndent())
+        }
 
         /**
          * Initializes a [FileOperations] builder for the file specified by [path] and

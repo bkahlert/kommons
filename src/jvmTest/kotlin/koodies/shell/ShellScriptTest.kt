@@ -6,8 +6,12 @@ import koodies.docker.DockerRunCommandLine
 import koodies.docker.DockerRunCommandLine.Options
 import koodies.docker.DockerStopCommandLine
 import koodies.docker.MountOptions
+import koodies.docker.listeningNginx
+import koodies.docker.nginx
 import koodies.exec.CommandLine
+import koodies.exec.exitCode
 import koodies.exec.exitCodeOrNull
+import koodies.io.copyTo
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
 import koodies.io.path.pathString
@@ -16,7 +20,9 @@ import koodies.io.randomFile
 import koodies.junit.UniqueId
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
+import koodies.test.HtmlFixture
 import koodies.test.Smoke
+import koodies.test.expectThrows
 import koodies.test.string
 import koodies.test.testEach
 import koodies.test.tests
@@ -38,11 +44,15 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThan
+import strikt.assertions.isLessThan
 import strikt.java.exists
 import strikt.java.isExecutable
+import java.net.URI
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
+import kotlin.time.measureTime
 import koodies.text.Unicode.ESCAPE as e
 
 class ShellScriptTest {
@@ -193,13 +203,66 @@ class ShellScriptTest {
         inner class Poll {
 
             @Test
-            fun `should proceed if connection succeeds`() {
-                TODO("Not yet implemented")
+            fun `should proceed if connection succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                HtmlFixture.copyTo(resolve("index.html"))
+                val passedTime = listeningNginx(890) { uri ->
+                    measureTime {
+                        ShellScript { poll(URI("http://localhost:890")) }.exec.logging()
+                    }
+                }
+                expectThat(passedTime).isLessThan(3.seconds)
             }
 
             @Test
-            fun `should retry until succeeds`() {
-                TODO("Not yet implemented")
+            fun `should retry until succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                HtmlFixture.copyTo(resolve("index.html"))
+                val nginxProcess = nginx(891)
+                val passedTime = measureTime {
+                    ShellScript { poll(URI("http://localhost:891"), interval = 3.seconds) }.exec.logging()
+                }
+                nginxProcess.kill()
+                expectThat(passedTime).isGreaterThan(3.seconds)
+            }
+
+            @Test
+            fun `should exit on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                val passedTime = measureTime {
+                    ShellScript {
+                        poll(URI("http://localhost:892"),
+                            interval = 1.seconds,
+                            attemptTimeout = 2.seconds,
+                            timeout = 5.seconds)
+                    }.exec.logging()
+                }
+                expectThat(passedTime).isLessThan(8.seconds)
+            }
+
+            @Test
+            fun `should exit with 124 on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                val process = ShellScript {
+                    poll(
+                        URI("http://localhost:893"),
+                        interval = 1.seconds,
+                        attemptTimeout = 2.seconds,
+                        timeout = 5.seconds,
+                    )
+                }.exec.logging()
+                expectThat(process.exitCode).isEqualTo(124)
+            }
+
+            @Test
+            fun `should throw on invalid interval`() {
+                expectThrows<IllegalArgumentException> { ShellScript { poll(URI("http://localhost"), interval = .5.seconds) } }
+            }
+
+            @Test
+            fun `should throw on invalid attempt timeout`() {
+                expectThrows<IllegalArgumentException> { ShellScript { poll(URI("http://localhost"), attemptTimeout = .5.seconds) } }
+            }
+
+            @Test
+            fun `should throw on invalid timeout`() {
+                expectThrows<IllegalArgumentException> { ShellScript { poll(URI("http://localhost"), timeout = .5.seconds) } }
             }
         }
 

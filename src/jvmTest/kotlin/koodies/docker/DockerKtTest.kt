@@ -156,9 +156,9 @@ class DockerKtTest {
         }
 
         @DockerRequiring([nginx::class]) @Test
-        fun `should run nginx with URI provided block`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should run block when nginx is listening`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             HtmlFixture.copyTo(resolve("index.html"))
-            val output = nginx(889) { uri ->
+            val output = listeningNginx(889) { uri ->
                 curl("-XGET", uri).output.ansiRemoved
             }
             expectThat(output).contains("<head><title>Hello Title!</title>")

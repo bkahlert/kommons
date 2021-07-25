@@ -511,6 +511,9 @@ private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathSt
  *
  * nginx will be started [DockerRunCommandLine.Options.detached]
  * and can be stopped using [DockerExec.stop].
+ *
+ * ***Important:** A started nginx does not necessarily mean it's already listening.
+ * Use [listeningNginx] to not proceed until nginx is already providing content.
  */
 public fun Path.nginx(
     port: Int = 8080,
@@ -530,10 +533,10 @@ public fun Path.nginx(
  * Hosts `this` directory using
  * an [nginx](https://hub.docker.com/_/nginx) based [DockerContainer].
  *
- * nginx will only be running while [block] is executed and automatically
- * stopped afterwards.
+ * nginx will only be running for the purpose of executing [block] and
+ * will be automatically stopped afterwards.
  */
-public fun <R> Path.nginx(
+public fun <R> Path.listeningNginx(
     port: Int = 8080,
     name: String = "nginx".withRandomSuffix(),
     block: CurrentSpan.(URI) -> R,
