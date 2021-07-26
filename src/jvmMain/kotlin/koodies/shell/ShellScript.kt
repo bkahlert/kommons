@@ -185,7 +185,7 @@ public open class ShellScript(
          * return what they already added to the [lines] list (with the consequence
          * of adding the contents twice).
          */
-        private fun lines(block: ScriptContext.() -> Unit): String =
+        private fun lines(block: MutableList<String>.() -> Unit): String =
             lines.run {
                 block()
                 ""
@@ -199,35 +199,35 @@ public open class ShellScript(
 
         /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
         public fun shebang(interpreter: String = "/bin/sh", vararg arguments: String): String = lines {
-            lines.add("#!$interpreter" + arguments.joinToString("") { " $it" })
+            add("#!$interpreter" + arguments.joinToString("") { " $it" })
         }
 
         /**
          * Adds `cd [directory] || exit [errorCode]` to this script.
          */
         public fun changeDirectoryOrExit(directory: Path, errorCode: UByte = 1u): String = lines {
-            lines.add("cd \"$directory\" || exit $errorCode")
+            add("cd \"$directory\" || exit $errorCode")
         }
 
         /**
          * Adds `this` character sequence as a separate line to this script.
          */
         public operator fun @receiver:Language("Shell Script") CharSequence.not(): String = lines {
-            lines.add(this@not.toString())
+            add(this@not.toString())
         }
 
         /**
          * Adds the given [words] concatenated with a whitespace to this script.
          */
         public fun line(@Language("Shell Script") vararg words: CharSequence): String = lines {
-            lines.add(words.joinToString(" "))
+            add(words.joinToString(" "))
         }
 
         /**
          * Adds the given [line] to this script.
          */
         public fun line(@Language("Shell Script") line: CharSequence): String = lines {
-            lines.add(line.toString())
+            add(line.toString())
         }
 
         /**
@@ -253,7 +253,7 @@ public open class ShellScript(
          * Adds the given [CommandLine] to this script.
          */
         public fun command(command: CommandLine): String = lines {
-            this.lines.add(command.shellCommand)
+            add(command.shellCommand)
         }
 
         /**
@@ -279,17 +279,20 @@ public open class ShellScript(
             interval: Duration = 2.seconds,
             attemptTimeout: Duration = 5.seconds,
             timeout: Duration = 5.minutes,
+            verbose: Boolean = false,
         ): String {
             require(interval >= 1.seconds) { "interval must be greater or equal to 1 second" }
             require(attemptTimeout >= 1.seconds) { "attempt timeout must be greater or equal to 1 second" }
             require(timeout >= 1.seconds) { "timeout must be greater or equal to 1 second" }
-            return command("timeout", "${timeout.inWholeSeconds}s", "sh", "-c", """
-                    while true; do
-                        echo "$uri"
-                        curl --silent --fail --max-time ${attemptTimeout.inWholeSeconds} '$uri' && break
-                        sleep ${interval.inWholeSeconds}
-                    done
-                """.trimIndent())
+            return command("timeout", "${timeout.inWholeSeconds}s", "sh", "-c", StringBuilder().apply {
+                appendLine("while true; do")
+                if (verbose) appendLine("    echo 'Polling $uri...'")
+                append("    1>/dev/null curl --silent --fail --max-time ${attemptTimeout.inWholeSeconds} '$uri'")
+                if (verbose) append("&& echo 'Polled $uri successfully.'")
+                appendLine(" && break")
+                appendLine("    sleep ${interval.inWholeSeconds}")
+                appendLine("done")
+            }.toString())
         }
 
         /**
@@ -297,7 +300,7 @@ public open class ShellScript(
          * the optional [init] applied to it.
          */
         public fun file(path: String, init: FileOperations.() -> Unit = {}): String = lines {
-            FileOperations(this, path).apply(init)
+            FileOperations(this@ScriptContext, path).apply(init)
         }
 
         /**
@@ -305,14 +308,13 @@ public open class ShellScript(
          * the optional [init] applied to it.
          */
         public fun file(path: Path, init: FileOperations.() -> Unit = {}): String = lines {
-            FileOperations(this, path.pathString).apply(init)
+            FileOperations(this@ScriptContext, path.pathString).apply(init)
         }
 
         /**
          * Embeds the given [shellScript] in this script.
          */
         public fun embed(shellScript: ShellScript, echoName: Boolean = false): String = lines {
-//            val interpreter = shellScript.shebang?.
             val finalShellScript = if (echoName) ShellScript(null, shellScript.toString(true)) else shellScript
             lines.add(finalShellScript.toCommandLine().shellCommand)
         }

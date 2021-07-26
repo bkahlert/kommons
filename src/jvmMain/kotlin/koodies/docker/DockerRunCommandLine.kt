@@ -12,7 +12,6 @@ import koodies.io.file.resolveBetweenFileSystems
 import koodies.io.path.asPath
 import koodies.io.path.pathString
 import koodies.shell.ShellScript
-import koodies.shell.ShellScript.Companion.isScript
 import koodies.text.splitAndMap
 import koodies.text.takeUnlessBlank
 import koodies.text.withRandomSuffix
@@ -73,7 +72,11 @@ public class DockerRunCommandLine(
             add(image.toString())
 
             val runCommandLine = if (workingDirectory != null) {
-                executable.toCommandLine(environment, workingDirectory) { arg -> wdFixedOptions.remapPathsInArguments(workingDirectory, arg) }
+                executable.toCommandLine(environment, workingDirectory) { arg ->
+                    wdFixedOptions.remapPathsInArguments(workingDirectory,
+                        arg,
+                        executable is ShellScript)
+                }
             } else {
                 executable.toCommandLine(environment, workingDirectory)
             }
@@ -266,10 +269,10 @@ public class DockerRunCommandLine(
          *
          * Arguments of the form `a=b` get mapped with key and value treated separately.
          */
-        public fun remapPathsInArguments(hostWorkingDirectory: Path, arg: String): String =
+        public fun remapPathsInArguments(hostWorkingDirectory: Path, arg: String, fulltextStrategy: Boolean): String =
             if (arg.count { it == '=' } > 1) arg
             else arg.splitAndMap("=") {
-                if (isScript) {
+                if (fulltextStrategy) {
                     val pathString = hostWorkingDirectory.pathString
                     val baseDirRegex = Regex.escape(pathString).toRegex()
                     baseDirRegex.replace(this) {

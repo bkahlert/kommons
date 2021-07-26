@@ -9,8 +9,10 @@ import koodies.docker.MountOptions
 import koodies.docker.listeningNginx
 import koodies.docker.nginx
 import koodies.exec.CommandLine
+import koodies.exec.IO.Output
 import koodies.exec.exitCode
 import koodies.exec.exitCodeOrNull
+import koodies.exec.io
 import koodies.io.copyTo
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
@@ -43,8 +45,10 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
 import strikt.api.expect
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.first
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
@@ -404,6 +408,26 @@ class ShellScriptTest {
                 }
                 nginxProcess.kill()
                 expectThat(passedTime).isGreaterThan(3.seconds)
+            }
+
+            @Test
+            fun `should not print`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                HtmlFixture.copyTo(resolve("index.html"))
+                val nginxProcess = nginx(891)
+                val process = ShellScript { poll(URI("http://localhost:891"), interval = 1.seconds) }.exec.logging()
+                nginxProcess.kill()
+                expectThat(process).io.isEmpty()
+            }
+
+            @Test
+            fun `should print if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                HtmlFixture.copyTo(resolve("index.html"))
+                val nginxProcess = nginx(891)
+                val process = ShellScript { poll(URI("http://localhost:891"), interval = 3.seconds, verbose = true) }.exec.logging()
+                nginxProcess.kill()
+                expectThat(process).io
+                    .contains(Output typed "Polling http://localhost:891...")
+                    .contains(Output typed "Polled http://localhost:891 successfully.")
             }
 
             @Test
