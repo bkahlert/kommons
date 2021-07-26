@@ -144,6 +144,7 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
+    @kotlin.Suppress("UNUSED_VARIABLE")
     sourceSets {
         val commonMain by getting
         val commonTest by getting {
@@ -192,7 +193,7 @@ kotlin {
 
         val jsMain by getting
         val jsTest by getting
-        
+
         val nativeMain by getting
         val nativeTest by getting
 

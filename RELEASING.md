@@ -18,6 +18,12 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 
 ## Cheat Sheet
 
+### Release, Publish & Push
+
+```shell
+./gradlew final -Prelease.scope=minor publish && git push
+```
+
 ### Print Current Version
 
 ```shell

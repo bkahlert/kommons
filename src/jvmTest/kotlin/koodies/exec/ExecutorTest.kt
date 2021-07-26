@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
+import strikt.assertions.any
 import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.isA
@@ -187,11 +188,9 @@ class ExecutorTest {
                 @Test
                 fun TestSpan.`should print name if specified`() {
                     CommandLine("echo", "short", name = "custom name").exec.logging(style = None)
-                    expectThatRendered().matchesCurlyPattern("""
-                        custom name: echo short
-                        short
-                        ✔︎
-                    """.trimIndent())
+                    expectThatRendered().lines().any {
+                        isEqualTo("custom name: echo short")
+                    }
                 }
 
                 @Test
