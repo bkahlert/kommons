@@ -212,13 +212,13 @@ with(tempDir()) {
 
 <!-- @formatter:off -->
 ```text
-\kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv.  
-RR\kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBRR\kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBRR\kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBRR\kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBBBRR\kyTx/vvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBBBBBRZ\/vvvvvvvvvvvvvvvvvvvvvv.
+⧹kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv.  
+RR⧹kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBRR⧹kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBRR⧹kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBRR⧹kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBBBRR⧹kyTx/vvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBBBBBRZ⧹/vvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBBBBBQxvvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBBB&xvvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBZzvvvvvvvvvvvvvvvvvvvvvv.

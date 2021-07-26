@@ -12,18 +12,46 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
 
 Koodies is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert:koodies:1.5.0")`
+* **Gradle** `implementation("com.bkahlert:koodies:1.7.0-dev.0.uncommitted+7835c8f")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert</groupId>
       <artifactId>koodies</artifactId>
-      <version>1.5.0</version>
+      <version>1.7.0-dev.0.uncommitted+7835c8f</version>
   </dependency>
   ```
 
 ## Features
+
+### OpenTelemetry Integration *(since 1.6.0)*
+
+The observability library [OpenTelemetry](https://opentelemetry.io/) is natively supported. Simply start a process and watch for yourself:
+
+[![DockerPi-based Test](assets/Tracing-DockerPi.png)](assets/Tracing-DockerPi.png)
+
+For manual instrumentation, the `spanning` function is provided:
+
+```kotlin
+spanning("span name") {
+    event("test event", Key.stringKey("test attribute") to "test value")
+    log("description") // = event("log", RenderingAttributes.DESCRIPTION to description)
+    42 // = return value
+}
+```
+
+[![Simple Span with two events](assets/Tracing-SimpleSpan.png)](assets/Tracing-SimpleSpan.png)
+
+By default, the span and all events with a description are also printed to the console:
+
+```text
+╭──╴span name
+│
+│   description                                                                 
+│
+╰──╴✔︎
+```
 
 ### Kotlin 1.5 Duration Extensions *(since 1.5.1)*
 
@@ -183,14 +211,14 @@ with(tempDir()) {
 ###### Output
 
 <!-- @formatter:off -->
-```kotlin
-&kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv.  
-RR&kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBRR&kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBRR&kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBRR&kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBBBRR&kyTx}vvvvvvvvvvvvvvvvvvvvvv.
-BBBBBBBBBBRZT}vvvvvvvvvvvvvvvvvvvvvv.
+```text
+⧹kyTTTTTTTTTTTTTTTTTTTTuvvvvvvvvvvvvvvvvvvvvvvvv.  
+RR⧹kyTTTTTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBRR⧹kyTTTTTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBRR⧹kyTTTTTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBRR⧹kyTTTTTvvvvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBBBRR⧹kyTx/vvvvvvvvvvvvvvvvvvvvvv.
+BBBBBBBBBBRZ⧹/vvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBBBBBQxvvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBBB&xvvvvvvvvvvvvvvvvvvvvvv.
 BBBBBBZzvvvvvvvvvvvvvvvvvvvvvv.
@@ -212,7 +240,7 @@ MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
 ```
 <!-- @formatter:on -->
 
-- All docker commands (`docker`, `ubuntu`, `busybox`, `curl`, `download`, …) use the path in the receiver to
+- All docker commands (`docker`, `ubuntu`, `busybox`, `curl`, `download`, `nginx`, …) use the path in the receiver to
     - set the working directory of both the host command and the docker container
     - map the host working directory to the container's working directory,
     - that is, all files of that directory are equally available in your container instance.
@@ -224,195 +252,78 @@ MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
 - See [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
   [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples.
 
-### JUnit + Strikt Integration
-
-- self-explaining (even works likely if inlined by looking for matching classes and methods in source file manually)
-- each aspect its own test
-
-#### Before
+### JUnit + Strikt Integration + Automatically Named Tests
 
 ```kotlin
-TODO
-```
+class Tests {
 
-#### After
+    @TestFactory
+    fun `testing with subject`() = test("subject") {
 
-```kotlin
-TODO
-```
-
-### Multi-Platform Builder Template *(since 1.3.0)*
-
-#### Example: Car DSL *[full example](src/commonTest/kotlin/koodies/builder/CarDSL.kt)*
-
-##### CarBuilder Implementation
-
-```kotlin
-data class Car(
-    val name: String,
-    val color: String,
-    val traits: Set<Trait>,
-    val engine: Engine,
-    val wheels: List<Wheel>
-)
-
-object CarBuilder : BuilderTemplate<CarContext, Car>() {
-
-    class CarContext(
-        override val captures: CapturesMap,
-    ) : CapturingContext() {
-        var name by setter<String>()
-        val color by External::color
-        val traits by enumSetBuilder<Trait>()
-        val engine by Engine
-        val wheel by Wheel
-        val allWheels by Wheel then { builtWheel ->
-            repeat(4) { wheel using builtWheel }
-        }
+        "other" asserting { isEqualTo("other") }
+        asserting { isEqualTo("subject") }
+        expecting { length } that { isGreaterThan(5) }
+        expecting { length }
+            .that { isGreaterThan(5) }
+        expectCatching { length } that { isSuccess() }
+        expectThrows<RuntimeException> { throw RuntimeException() }
+        expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
     }
 
-    override fun BuildContext.build(): Car = ::CarContext {
-        Car(
-            ::name.eval(),
-            ::color.evalOrDefault("#111111"),
-            ::traits.eval(),
-            ::engine.eval(),
-            ::wheel.evalAll<Wheel>().takeUnless { it.isEmpty() } ?: List(4) { Wheel() },
-        )
+    @TestFactory
+    fun `testing without subject`() = tests {
+
+        "other" asserting { isEqualTo("other") }
+        asserting("subject") { isEqualTo("subject") }
+        expecting { "subject".length } that { isGreaterThan(5) }
+        expecting { "subject".length }
+            .that { isGreaterThan(5) }
+        expectCatching { "subject".length } that { isSuccess() }
+        expectThrows<RuntimeException> { throw RuntimeException() }
+        expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
     }
 }
 ```
 
-##### CarBuilder Usage
+[![JUnit Test Results](assets/JUnit-Strikt-Naming.png)](assets/JUnit-Strikt-Naming.png)
+
+### Multi-Platform Builders
+
+#### Array Builder
 
 ```kotlin
-fun car(init: Init<CarContext>): Car = CarBuilder(init)
-
-val exclusiveCar = car {
-    name = "Exclusive Car"
-    color(198, 82, 89)
-    engine {
-        power { 145.kW }
-        maxSpeed { 244.km per hour }
-    }
-    allWheels { diameter { 16.inch } }
-    traits { +Exclusive + TaxExempt }
+val array = buildArray {
+    add("test")
+    add("𓌈🥸𓂈")
 }
-
-val defaultCarWithCopiedMotor = car {
-    name = "Average Car"
-    engine using exclusiveCar.engine
-}
-
-println(exclusiveCar)
-println(defaultCarWithCopiedMotor)
 ```
 
-```text
-Car(name=Exclusive Car, color=hsv(198, 82, 89), traits=[Exclusive, TaxExempt], engine=244.0km/h, 145.0kW, wheels=[⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm, ⌀ 40.64cm])
-Car(name=Average Car, color=#111111, traits=[], engine=244.0km/h, 145.0kW, wheels=[⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm, ⌀ 35.56cm])
-```
-
-##### CarBuilder Parts *uses [DecimalUnit](src/commonMain/kotlin/koodies/unit/DecimalPrefix.kt)*
+#### List Builder
 
 ```kotlin
-
-data class EnginePower(val watts: BigDecimal) {
-    companion object : StatelessBuilder.Returning<EnginePowerContext, EnginePower>(EnginePowerContext) {
-        object EnginePowerContext {
-            val Int.kW: EnginePower get() = kilo.W
-            val BigDecimal.W: EnginePower get() = EnginePower(this)
-        }
-    }
-
-    override fun toString(): String = "${watts.doubleValue() / 1000.0}kW"
+val array = buildList {
+    add("test")
+    add("𓌈🥸𓂈")
 }
+```
 
-data class Distance(val meter: BigDecimal) {
-    companion object : StatelessBuilder.Returning<DistanceContext, Distance>(DistanceContext) {
-        object DistanceContext {
-            val Int.mm: Distance get() = milli.m
-            val Int.inch: Distance get() = (toDouble() * 2.54).centi.m
-            val BigDecimal.m: Distance get() = Distance(this)
-        }
-    }
+#### Set Builder
 
-    override fun toString(): String = "${meter}m"
+```kotlin
+val array = buildSet {
+    add("test")
+    add("𓌈🥸𓂈")
 }
+```
 
-data class Engine(val power: EnginePower, val maxSpeed: Speed) {
-    companion object EngineBuilder : BuilderTemplate<EngineContext, Engine>() {
+#### Map Builder
 
-        class EngineContext(
-            override val captures: CapturesMap,
-        ) : CapturingContext() {
-            val power by EnginePower
-            val maxSpeed by Speed
-        }
-
-        override fun BuildContext.build(): Engine = ::EngineContext {
-            Engine(::power.evalOrDefault { EnginePower { 130.kW } }, ::maxSpeed.evalOrDefault { Speed { 228.km per hour } })
-        }
-    }
-
-    override fun toString(): String = "$maxSpeed, $power"
+```kotlin
+val array = buildMap {
+    "ten" to 3
+    "𓌈🥸𓂈".let { it to it.length }
 }
-
-enum class Trait { Exclusive, PreOwned, TaxExempt }
-````
-
-#### Highlights
-
-* Compose and re-use builders, functions and callable properties
-    * a couple of default builders like **EnumSetBuilder**, **ArrayBuilder**, **ListBuilder** and **MapBuilder** are already provided
-* Auto-generate simple builders, functions and setters
-* BuilderTemplate based builders are…
-    * **thread-safe**
-        * Builders created with the builder template have no state.
-        * Instead, each build keeps its state in a dedicated context instance which you may implement on your own or assisted by
-          inheriting [CapturingContext](src/commonMain/kotlin/koodies/builder/context/CapturingContext.kt). The latter keeps your context free of any technical
-          concerns such as `build` methods which allows for clean DSLs.
-        * Some builders like the `Distance` builder in the [CarDSL](src/commonTest/kotlin/koodies/builder/CarDSL.kt) or
-          the [DockerImage](src/jvmMain/kotlin/koodies/docker/DockerImage.kt) builder
-          are [stateless context builders](src/commonMain/kotlin/koodies/builder/Builder.kt). Not having any state at all might sound very limiting but is ideal
-          for micro DSLs.
-    * usable as **singleton** `object CarBuilder`
-    * usable as **companion object**
-      ```kotlin
-      class Car(val name: String, …, val engine: Engine, val wheels: Int) {
-          companion object : BuilderTemplate<CarContext, Car> {
-               // same implementation as above 
-          }      
-      } 
-      ```
-      which lets you
-        * **instantiate using a constructor** `Car("boring", …, engine, 4)` *or*
-        * **build using the builder** `Car { name{ "exceptionel" }; engine { speed{ 1_200.km per hour } } }`
-    * **re-usable**
-        * just define a property like `val prop by CarBuilder` …
-            * … inside a BuilderTemplate to provide a function that looks like the builder but captures every invocation to be used as part of your own build
-              process
-            * … everywhere else to provide a function that delegates all invocations to the builder and returns the build result
-        * chain builders using `then`
-    * **optional**
-        * call `build { … }` to build an instance *or*
-        * call `build using …` / `build by …` (e.g. `build by myCar`) to skip the build process completely and use an already existing instance
-    * **defaultable**
-        * defaults can be specified for each property, e.g. `val wheels by builder<Int>() default 4`
-        * defaults can be provided during build, e.g. `::wheels.evalOrDefault(4)`
-        * container-like builders (ListBuilder, MapBuilder, etc.) have all non-null pre-defined defaults (emptyList(), emptyMap(), etc)
-    * **versatile**
-        * get single instances using `::engine.eval()`, `::engine.evalOrDefault()` or `::engine.evalOrNull()`
-        * get multiple instances using `::engine.evalAll()` *(order of invocations preserved)*
-        * get all instances of type `T` from all fields using `evalAll<T>()` *(order of invocations preserved)*
-        * implicitly build lists using infix functions, e.g.
-          ```kotlin
-          wheels {
-            // three-wheeler
-            axis with wheel { … } // 1st axis with one wheel
-            axis with wheel { … } + wheel { … } // 2nd axis with two wheels
-          }
-          ```
+```
 
 ### IP Address Tooling (4 & 6)
 
@@ -600,6 +511,7 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
   ```kotlin
   Kaomoji.Wizards.`(#-_-)o´・━・・━・━━・━☆`.random()
   ```
+  [![Kaomoji](assets/Kaomoji.png)](assets/Kaomoji.png)
 
 * Borders, Boxes, …
 
@@ -628,10 +540,8 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
   Use `debug` to check what's actually inside a `String`:
   ```kotlin
   "a  b
-
 ".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
-"�" // D800▌﹍ (low surrogate with a missing high surrogate)
-
+  "�" // D800▌﹍ (low surrogate with a missing high surrogate)
   ```
 
   Use `trace` to print stuff without interrupting the call chain:
@@ -644,7 +554,6 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
   // prints return value of endless() formatted with debug
   chain().of.endless().trace { debug }.calls() 
   ```
-
     - Never look for orphaned print statements again. trace is declared as deprecated and inflicts a build warning.  
       `w: Koodies.kt: (42, 15): 'trace: T' is deprecated. Don't forget to remove after you finished debugging.`
     - trace has `replaceWith` set so that in IntelliJ the cleanup action removes all trace statements in one stroke.
@@ -656,16 +565,13 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 
   ```kotlin
   LineSeparators.toList() == listOf(
-    LineSeparators.CRLF, // carriage return + line feed (
-
-)
-LineSeparators.LF, // line feed (
-)
-LineSeparators.CR, // carriage return (
-)
-LineSeparators.NL, // next line LineSeparators.PS, // paragraph separator LineSeparators.LS, // line separator
-)
-
+    LineSeparators.CRLF, // carriage return + line feed (\r\n)
+    LineSeparators.LF,   // line feed (\n)
+    LineSeparators.CR,   // carriage return (\r)
+    LineSeparators.NL,   // next line 
+    LineSeparators.PS,   // paragraph separator 
+    LineSeparators.LS,   // line separator
+  )
   ```
 
   Split string into its lines…
@@ -677,14 +583,22 @@ LineSeparators.NL, // next line LineSeparators.PS, // paragraph separator LineSe
   """.lines() // line 1, line 2 
   ```
 
-Split string into its lines lazily and keep the line separator…
-
-```kotlin
-"""
-line 1 line 2
-
-    """.lineSequence(keepDelimiters=true) // line 1␤, line 2␍␊ 
+  Split string into its lines lazily and keep the line separator…
+    ```kotlin
+    """
+    line 1
+    line 2
+  
+    """.lineSequence(keepDelimiters=true) // line 1⏎␤, line 2⏎␍␊ 
     ```
 
 ----
-**Releasing?** 👉 [RELEASING.md](RELEASING.md)
+**Upgrading**
+
+```shell
+# upgrade gradle
+./gradlew wrapper --gradle-version=7.0.2 --distribution-type=bin
+```
+
+**Releasing**  
+[RELEASING.md](RELEASING.md)
