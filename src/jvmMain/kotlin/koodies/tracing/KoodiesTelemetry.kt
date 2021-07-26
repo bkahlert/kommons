@@ -56,14 +56,14 @@ public object KoodiesTelemetry : OpenTelemetry {
  * If none is explicitly registered, the [TracerAPI] returned by the [TracerProvider] of [GlobalOpenTelemetry.get] is used.
  */
 public object KoodiesTracer : Tracer {
-    private val instance: Tracer get() = KoodiesTelemetry.tracerProvider.get("com.bkahlert.koodies", "1.5.1")
+    private val instance: Tracer get() = KoodiesTelemetry.tracerProvider.get("com.bkahlert.koodies", "1.6.0")
 
     override fun spanBuilder(spanName: String): SpanBuilder = instance.spanBuilder(spanName)
 
     /**
      * [TracerAPI] that does nothing.
      */
-    public object NOOP : Tracer by KoodiesTelemetry.NOOP.tracerProvider.get("com.bkahlert.koodies", "0.0.1")
+    public object NOOP : Tracer by KoodiesTelemetry.NOOP.tracerProvider.get("com.bkahlert.koodies")
 }
 
 /**

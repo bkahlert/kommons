@@ -59,11 +59,11 @@ public actual val ansiSupport: AnsiSupport
         return when {
             isIntelliJ -> ANSI24
             TERM_PROGRAM == "vscode" -> ANSI8
-            System.getenv("COLORTERM").lowercase(Locale.getDefault()) in listOf("24bit", "truecolor") -> ANSI24
+            System.getenv("COLORTERM")?.lowercase(Locale.getDefault()) in listOf("24bit", "truecolor") -> ANSI24
             System.console() == null -> AnsiSupport.NONE
             TERM_PROGRAM == "hyper" -> ANSI24 // stackoverflow.com/q/7052683
             TERM_PROGRAM == "apple_terminal" -> ANSI8
-            TERM_PROGRAM == "iterm.app" -> System.getenv("TERM_PROGRAM_VERSION").toIntOrNull()?.takeIf { it > 3 }?.let { ANSI24 } ?: ANSI8
+            TERM_PROGRAM == "iterm.app" -> System.getenv("TERM_PROGRAM_VERSION")?.toIntOrNull()?.takeIf { it > 3 }?.let { ANSI24 } ?: ANSI8
             TERM?.let { it.endsWith("-256color") || it.endsWith("-256") } == true -> ANSI8
             TERM == "cygwin" -> ANSI24.takeIf { System.getProperty("os.name") == "Windows 10" } ?: ANSI8
             TERM in listOf("xterm", "vt100", "screen", "ansi") -> ANSI4
