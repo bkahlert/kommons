@@ -67,6 +67,26 @@ public interface Locations {
 }
 
 /**
+ * Alias for [isSubPathOf].
+ */
+public fun Path.isInside(path: Path): Boolean = isSubPathOf(path)
+
+/**
+ * Returns whether this path is a sub path of [path].
+ */
+public fun Path.isSubPathOf(path: Path): Boolean =
+    normalize().toAbsolutePath().startsWith(path.normalize().toAbsolutePath())
+
+/**
+ * Returns this [Path] with all parent directories created.
+ *
+ * Example: If directory `/some/where` existed and this method was called on `/some/where/resides/a/file`,
+ * the missing directories `/some/where/resides` and `/some/where/resides/a` would be created.
+ */
+public fun Path.createParentDirectories(): Path = apply { parent.takeUnless { it.exists() }?.createDirectories() }
+
+
+/**
  * Returns this [Path] with a path segment added.
  *
  * The path segment is created based on [base] and [extension] and a random
@@ -101,19 +121,7 @@ public fun Path.randomDirectory(base: String = randomString(4), extension: Strin
  * Eventually missing directories are automatically created.
  */
 public fun Path.randomFile(base: String = randomString(4), extension: String = ".tmp"): Path =
-    randomPath(base, extension).apply { parent.createDirectories() }.createFile()
-
-/**
- * Creates a temporary directory inside of [Locations.Temp].
- *
- * The POSIX permissions are set to `700`.
- */
-public fun tempDir(base: String = "", extension: String = ""): Path {
-    val randomPath = Locations.Temp.randomPath(base, extension).requireTempSubPath()
-    return randomPath.createDirectories().apply {
-        setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
-    }
-}
+    randomPath(base, extension).createParentDirectories().createFile()
 
 
 /*
@@ -121,16 +129,20 @@ public fun tempDir(base: String = "", extension: String = ""): Path {
  */
 
 /**
+ * Creates a temporary directory inside of [Locations.Temp].
+ *
+ * The POSIX permissions are set to `700`.
+ */
+public fun tempDir(base: String = "", extension: String = ""): Path =
+    Locations.Temp.tempDir(base, extension)
+
+/**
  * Creates a temporary file inside of [Locations.Temp].
  *
  * The POSIX permissions are set to `700`.
  */
-public fun tempFile(base: String = "", extension: String = ""): Path {
-    val randomPath = Locations.Temp.randomPath(base, extension).requireTempSubPath()
-    return randomPath.createFile().apply {
-        setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
-    }
-}
+public fun tempFile(base: String = "", extension: String = ""): Path =
+    Locations.Temp.tempFile(base, extension)
 
 /**
  * Creates a temporary directory inside `this` temporary directory.
@@ -141,7 +153,9 @@ public fun tempFile(base: String = "", extension: String = ""): Path {
  * throw an [IllegalArgumentException].
  */
 public fun Path.tempDir(base: String = "", extension: String = ""): Path =
-    requireTempSubPath().randomDirectory(base, extension)
+    requireTempSubPath().randomDirectory(base, extension).apply {
+        setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
+    }
 
 /**
  * Creates a temporary file inside `this` temporary directory.
@@ -152,14 +166,16 @@ public fun Path.tempDir(base: String = "", extension: String = ""): Path =
  * throw an [IllegalArgumentException].
  */
 public fun Path.tempFile(base: String = "", extension: String = ""): Path =
-    requireTempSubPath().randomFile(base, extension)
+    requireTempSubPath().randomFile(base, extension).apply {
+        setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
+    }
 
 /**
  * Runs the given [block] with a temporary directory that
  * is automatically deleted on completion.
  */
 public fun <T> runWithTempDir(base: String = "", extension: String = "", block: Path.() -> T): T =
-    Locations.Temp.tempDir(base, extension).run {
+    tempDir(base, extension).run {
         val returnValue: T = block()
         deleteRecursively()
         returnValue

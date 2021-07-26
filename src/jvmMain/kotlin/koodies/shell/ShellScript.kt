@@ -4,9 +4,9 @@ import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
 import koodies.exec.Executable
+import koodies.io.createParentDirectories
 import koodies.io.path.executable
 import koodies.io.path.pathString
-import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeText
 import koodies.shell.ShellScript.ScriptContext
 import koodies.text.Banner.banner
@@ -149,7 +149,7 @@ public open class ShellScript(
      * @see toString
      */
     public fun toFile(path: Path, echoName: Boolean = false, name: CharSequence? = this.name): Path = path.apply {
-        if (notExists()) withDirectoriesCreated().createFile()
+        if (notExists()) createParentDirectories().createFile()
         writeText(this@ShellScript.toString(echoName, name))
         executable = true
     }

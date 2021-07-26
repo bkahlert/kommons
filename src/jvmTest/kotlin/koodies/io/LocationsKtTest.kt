@@ -1,7 +1,9 @@
 package koodies.io
 
+import koodies.io.path.Defaults
 import koodies.io.path.age
-import koodies.io.path.isInside
+import koodies.io.path.deleteOnExit
+import koodies.io.path.isEmpty
 import koodies.io.path.listDirectoryEntriesRecursively
 import koodies.junit.UniqueId
 import koodies.test.HtmlFixture
@@ -22,11 +24,17 @@ import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import strikt.assertions.size
 import strikt.java.exists
+import strikt.java.isDirectory
+import strikt.java.isRegularFile
+import strikt.java.parent
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.exists
+import kotlin.io.path.getPosixFilePermissions
 import kotlin.time.Duration
 
 class LocationsKtTest {
@@ -49,6 +57,189 @@ class LocationsKtTest {
     @Test
     fun `should resolve Temp`() {
         expectThat(Locations.Temp).exists()
+    }
+
+    @Nested
+    inner class IsInside {
+
+        @Test
+        fun `should return true if child`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(resolve("child")).isInside(this)
+        }
+
+        @Test
+        fun `should return true if descendent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(resolve("child1/child2")).isInside(this)
+        }
+
+        @Test
+        fun `should return true if path is obscure`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(resolve("child1/../child2")).isInside(this)
+        }
+
+        @Test
+        fun `should return true if same`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(this).isInside(this)
+        }
+
+        @Test
+        fun `should return false if not inside`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(Locations.HomeDirectory).not { isInside(this@withTempDir) }
+        }
+    }
+
+    @Nested
+    inner class CreateParentDirectories {
+
+        @Test
+        fun `should create missing directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val file = resolve("some/dir/some/file")
+            expectThat(file.createParentDirectories()).parent.isNotNull() and {
+                exists()
+                isDirectory()
+                isEmpty()
+            }
+        }
+    }
+
+    @Nested
+    inner class RandomPath {
+
+        @Test
+        fun `should create inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomPath()).isInside(this)
+        }
+
+        @Test
+        fun `should not exist`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomPath()).not { exists() }
+        }
+    }
+
+    @Nested
+    inner class RandomDirectory {
+
+        @Test
+        fun `should create inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomDirectory()).isInside(this)
+        }
+
+        @Test
+        fun `should create directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomDirectory()).isDirectory()
+        }
+
+        @Test
+        fun `should create directory inside non-existent parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomPath().randomDirectory()).isDirectory()
+        }
+    }
+
+    @Nested
+    inner class RandomFile {
+
+        @Test
+        fun `should create inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomFile()).isInside(this)
+        }
+
+        @Test
+        fun `should create regular file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomFile()).isRegularFile()
+        }
+
+        @Test
+        fun `should create regular file inside non-existent parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(randomPath().randomFile()).isRegularFile()
+        }
+    }
+
+    @Nested
+    inner class TempDirectory {
+
+        @Test
+        fun `should create inside temp directory`() {
+            expectThat(tempDir().deleteOnExit()).isInside(Locations.Temp)
+        }
+
+        @Test
+        fun `should create directory`() {
+            expectThat(tempDir().deleteOnExit()).isDirectory()
+        }
+
+        @Test
+        fun `should have exclusive rights`() {
+            expectThat(tempDir().deleteOnExit()).hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        }
+
+        @Test
+        fun `should create directory inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(tempDir())
+                .isInside(this)
+                .isDirectory()
+                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        }
+
+        @Test
+        fun `should create directory inside non-existent parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val nonExistentParent = randomPath()
+            expectThat(nonExistentParent.tempDir())
+                .isInside(nonExistentParent)
+                .isDirectory()
+                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        }
+    }
+
+    @Nested
+    inner class TempFile {
+
+        @Test
+        fun `should create inside temp directory`() {
+            expectThat(tempFile().deleteOnExit()).isInside(Locations.Temp)
+        }
+
+        @Test
+        fun `should create file`() {
+            expectThat(tempFile().deleteOnExit()).isRegularFile()
+        }
+
+        @Test
+        fun `should have exclusive rights`() {
+            expectThat(tempFile().deleteOnExit()).hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        }
+
+        @Test
+        fun `should create file inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            expectThat(tempFile())
+                .isInside(this)
+                .isRegularFile()
+                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        }
+
+        @Test
+        fun `should create file inside non-existent parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val nonExistentParent = randomPath()
+            expectThat(nonExistentParent.tempFile())
+                .isInside(nonExistentParent)
+                .isRegularFile()
+                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        }
+    }
+
+    @Nested
+    inner class RunWithTempDir {
+
+        @Test
+        fun `should run inside temp dir`() {
+            val tempDir: Path = runWithTempDir {
+                expectThat(this) {
+                    isDirectory()
+                    isInside(Locations.Temp)
+                }
+                this
+            }
+            expectThat(tempDir).not { exists() }
+        }
     }
 
     @Nested
@@ -115,5 +306,14 @@ fun Builder<Path>.isInside(path: Path): Builder<Path> =
         when (it.isInside(path)) {
             true -> pass()
             false -> fail()
+        }
+    }
+
+
+fun Builder<Path>.hasPosixPermissions(permissions: Set<PosixFilePermission>): Builder<Path> =
+    assert("has POSIX permissions") {
+        when (it.getPosixFilePermissions()) {
+            permissions -> pass()
+            else -> fail()
         }
     }

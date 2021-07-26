@@ -2,7 +2,7 @@ package koodies.exception
 
 import koodies.Koodies
 import koodies.io.Locations
-import koodies.io.path.isSubPathOf
+import koodies.io.isSubPathOf
 import koodies.io.path.withExtension
 import koodies.io.path.writeText
 import koodies.io.randomFile

@@ -1,7 +1,7 @@
 package koodies.docker
 
 import koodies.io.path.asPath
-import koodies.io.path.isSubPathOf
+import koodies.io.isSubPathOf
 import koodies.io.path.pathString
 import koodies.text.Semantics.formattedAs
 import koodies.text.styling.Borders.Rounded

@@ -9,7 +9,6 @@ import koodies.io.path.copyTo
 import koodies.io.path.copyToDirectory
 import koodies.io.path.extensionOrNull
 import koodies.io.path.pathString
-import koodies.io.path.withDirectoriesCreated
 import koodies.io.path.writeBytes
 import koodies.text.ANSI
 import koodies.text.ANSI.resetLines
@@ -28,7 +27,7 @@ import kotlin.io.path.readBytes
  * @see copyToTemp
  */
 public fun InMemoryFile.copyTo(target: Path): Path =
-    target.withDirectoriesCreated().writeBytes(data)
+    target.createParentDirectories().writeBytes(data)
 
 /**
  * Copies `this` in-memory file to the specified [target] directory.
@@ -37,7 +36,7 @@ public fun InMemoryFile.copyTo(target: Path): Path =
  * @see copyToTemp
  */
 public fun InMemoryFile.copyToDirectory(target: Path): Path =
-    target.resolve(name).withDirectoriesCreated().writeBytes(data)
+    target.resolve(name).createParentDirectories().writeBytes(data)
 
 /**
  * Copies `this` in-memory file to a temporary directory—the name based on the
