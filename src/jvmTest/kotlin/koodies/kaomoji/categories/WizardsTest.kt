@@ -14,7 +14,7 @@ class WizardsTest {
 
     @Test
     fun `should contain all kaomoji`() {
-        expecting { Wizards.size } that { isEqualTo(37) }
+        expecting { Wizards.size } that { isEqualTo(38) }
     }
 
     @TestFactory
@@ -56,6 +56,7 @@ class WizardsTest {
         Wizards.`(つ◕౪◕)つ━☆ﾟ․*･｡ﾟ` to Kaomoji("(つ", "◕", "౪", "◕", ")つ", "━☆ﾟ.*･｡ﾟ"),
         Wizards.`(*ﾟー^)／``*﹕;,．★` to Kaomoji("(*", "ﾟ", "ー", "^", ")", "/'`*:;,．★"),
         Wizards.`(∩｀-´)⊃━☆ﾟ․*･｡ﾟ` to Kaomoji("(∩", "｀", "-", "´", ")⊃", "━☆ﾟ.*･｡ﾟ"),
+        Wizards.`((ε(*･ω･)_／ﾟ･․*･･｡☆` to Kaomoji("((ε(*", "･", "ω", "･", ")_", "/ﾟ･.*･･｡☆"),
     ) { (actual, expected) ->
         expecting { actual } that { isEqualTo(expected) }
     }

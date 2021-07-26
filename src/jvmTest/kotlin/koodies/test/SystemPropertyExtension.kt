@@ -6,12 +6,15 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.parallel.ResourceAccessMode.READ_WRITE
+import org.junit.jupiter.api.parallel.ResourceLock
 import org.junit.platform.commons.support.AnnotationSupport
 import java.lang.annotation.Repeatable
 
 /**
  * Allows to annotate [SystemProperty] multiple times.
  */
+@ResourceLock(SystemPropertyExtension.RESOURCE, mode = READ_WRITE)
 @Retention(AnnotationRetention.RUNTIME)
 @Target(
     AnnotationTarget.ANNOTATION_CLASS,
@@ -34,6 +37,7 @@ annotation class SystemProperties(vararg val value: SystemProperty)
  *
  * *JUnit explicitly requires [Repeatable] (in contrast to [kotlin.annotation.Repeatable]).*
  */
+@ResourceLock(SystemPropertyExtension.RESOURCE, mode = READ_WRITE)
 @Suppress("DEPRECATED_JAVA_ANNOTATION")
 @Retention(AnnotationRetention.RUNTIME)
 @Target(
@@ -95,4 +99,8 @@ class SystemPropertyExtension : BeforeAllCallback, BeforeEachCallback, AfterEach
     }
 
     private fun ExtensionContext.getStore(): ExtensionContext.Store = getStore(ExtensionContext.Namespace.create(element))
+
+    companion object {
+        const val RESOURCE = "system-properties"
+    }
 }

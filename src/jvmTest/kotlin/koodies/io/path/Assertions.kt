@@ -47,7 +47,7 @@ fun <T : Path> Builder<T>.hasContent(expectedContent: ByteArray): Builder<T> =
     and { byteContent.contentEquals(expectedContent) }
 
 val <T : Path> Builder<T>.textContent: Builder<String>
-    get() = get("text context") { readText() }
+    get() = get("text content") { readText() }
 
 fun Builder<Path>.textContent(assertion: Builder<String>.() -> Unit): Builder<Path> =
     with("text content", { readText() }, assertion)

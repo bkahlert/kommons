@@ -53,4 +53,5 @@ public object Wizards : Category() {
     @JsName("wizards34") public val `(つ◕౪◕)つ━☆ﾟ․*･｡ﾟ`: Kaomoji by parts("(つ", "◕", "౪", "◕", ")つ", "━☆ﾟ.*･｡ﾟ")
     @JsName("wizards35") public val `(*ﾟー^)／``*﹕;,．★`: Kaomoji by parts("(*", "ﾟ", "ー", "^", ")", "/'`*:;,．★")
     @JsName("wizards36") public val `(∩｀-´)⊃━☆ﾟ․*･｡ﾟ`: Kaomoji by parts("(∩", "｀", "-", "´", ")⊃", "━☆ﾟ.*･｡ﾟ")
+    @JsName("wizards37") public val `((ε(*･ω･)_／ﾟ･․*･･｡☆`: Kaomoji by parts("((ε(*", "･", "ω", "･", ")_", "/ﾟ･.*･･｡☆")
 }
