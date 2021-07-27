@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.ExtensionContext.Namespace
 import org.junit.jupiter.api.parallel.ResourceAccessMode.READ_WRITE
 import org.junit.jupiter.api.parallel.ResourceLock
 import org.junit.platform.commons.support.AnnotationSupport
@@ -60,45 +61,43 @@ annotation class SystemProperty(val name: String, val value: String)
  *
  * The previous state will be restored after the test finished.
  */
-class SystemPropertyExtension : BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback {
+class SystemPropertyExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback {
 
-    // sets system properties on class level
     override fun beforeAll(context: ExtensionContext) {
-        context.backupAndApplyAllSystemProperties()
+        context.backupAndApplySystemProperties()
     }
 
-    // restores system properties set on class level
     override fun afterAll(context: ExtensionContext) {
-        context.restoreAllSystemProperties()
+        context.restoreBackedUpSystemProperties()
     }
 
-    // restores system properties set on method level
     override fun beforeEach(context: ExtensionContext) {
-        context.backupAndApplyAllSystemProperties()
+        context.backupAndApplySystemProperties()
     }
 
-    // restores system properties set on method level
     override fun afterEach(context: ExtensionContext) {
-        context.restoreAllSystemProperties()
+        context.restoreBackedUpSystemProperties()
     }
 
-    private fun ExtensionContext.backupAndApplyAllSystemProperties() {
-        AnnotationSupport.findRepeatableAnnotations(element, SystemProperty::class.java).forEach { property ->
+    private fun ExtensionContext.backupAndApplySystemProperties() {
+        annotatedSystemProperties.forEach { property ->
             val oldValue = System.setProperty(property.name, property.value)
             getStore().put(property, oldValue)
         }
     }
 
-    private fun ExtensionContext.restoreAllSystemProperties() {
-        AnnotationSupport.findRepeatableAnnotations(element, SystemProperty::class.java)
-            .forEach { property ->
-                val backupValue = getStore().get(property, String::class.java)
-                if (backupValue != null) System.setProperty(property.name, backupValue)
-                else System.clearProperty(property.name)
-            }
+    private fun ExtensionContext.restoreBackedUpSystemProperties() {
+        annotatedSystemProperties.forEach { property ->
+            val backupValue = getStore().get(property, String::class.java)
+            if (backupValue != null) System.setProperty(property.name, backupValue)
+            else System.clearProperty(property.name)
+        }
     }
 
-    private fun ExtensionContext.getStore(): ExtensionContext.Store = getStore(ExtensionContext.Namespace.create(element))
+    private val ExtensionContext.annotatedSystemProperties: List<SystemProperty>
+        get() = AnnotationSupport.findRepeatableAnnotations(element, SystemProperty::class.java)
+
+    private fun ExtensionContext.getStore(): ExtensionContext.Store = getStore(Namespace.create(element))
 
     companion object {
         const val RESOURCE = "system-properties"
