@@ -16,43 +16,47 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
 import kotlin.time.measureTime
 
-class LevenshteinDistanceKtTest {
+class SimilarityKtTest {
 
-    @Suppress("SpellCheckingInspection")
-    @TestFactory
-    fun `should calc Levenshtein distance 0`() = testEach(
-        "h1" to "h1",
-        "gil" to "gil",
-    ) { (from, to) ->
-        from asserting { levenshteinDistance(to).isEqualTo(0) }
-    }
+    @Nested
+    inner class LevenshteinDistance {
 
-    @Suppress("SpellCheckingInspection")
-    @TestFactory
-    fun `should calc Levenshtein distance 1`() = testEach(
-        "gil" to "gill",
-        "waht" to "what",
-        "waht" to "wait",
-        "Damerau" to "Damreau",
-    ) { (from, to) ->
-        from asserting { levenshteinDistance(to).isEqualTo(1) }
-    }
+        @Suppress("SpellCheckingInspection")
+        @TestFactory
+        fun `should return 0`() = testEach(
+            "h1" to "h1",
+            "gil" to "gil",
+        ) { (from, to) ->
+            from asserting { levenshteinDistance(to).isEqualTo(0) }
+        }
 
-    @Suppress("SpellCheckingInspection")
-    @TestFactory
-    fun `should calc Levenshtein distance 2`() = testEach(
-        "ca" to "abc",
-        "thaw" to "what",
-        "Damerau" to "uameraD",
-        "Damerau" to "Daremau",
-        "waht" to "whit",
-        "what" to "wtah",
-    ) { (from, to) ->
-        from asserting { levenshteinDistance(to).isEqualTo(2) }
+        @Suppress("SpellCheckingInspection")
+        @TestFactory
+        fun `should return 1`() = testEach(
+            "gil" to "gill",
+            "waht" to "what",
+            "waht" to "wait",
+            "Damerau" to "Damreau",
+        ) { (from, to) ->
+            from asserting { levenshteinDistance(to).isEqualTo(1) }
+        }
+
+        @Suppress("SpellCheckingInspection")
+        @TestFactory
+        fun `should return 2`() = testEach(
+            "ca" to "abc",
+            "thaw" to "what",
+            "Damerau" to "uameraD",
+            "Damerau" to "Daremau",
+            "waht" to "whit",
+            "what" to "wtah",
+        ) { (from, to) ->
+            from asserting { levenshteinDistance(to).isEqualTo(2) }
+        }
     }
 
     @Nested
-    inner class Fuzzy {
+    inner class FuzzyLevenshteinDistance {
 
         @TestFactory @Slow
         fun `should calculate fuzzy distance between similar strings`() = test(
