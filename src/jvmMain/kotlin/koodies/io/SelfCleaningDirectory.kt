@@ -7,7 +7,7 @@ import koodies.io.path.requireTempSubPath
 import koodies.jvm.onExit
 import koodies.time.hours
 import java.nio.file.Path
-import kotlin.io.path.createDirectory
+import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.setPosixFilePermissions
@@ -90,7 +90,7 @@ public data class SelfCleaningDirectory(
         if (path.exists()) {
             require(path.isDirectory()) { "$path already exists but is no directory." }
         } else {
-            path.createDirectory()
+            path.createDirectories()
         }
         path.setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
 

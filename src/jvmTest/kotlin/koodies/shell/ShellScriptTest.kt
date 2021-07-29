@@ -391,7 +391,7 @@ class ShellScriptTest {
             @Test
             fun `should proceed if connection succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 HtmlFixture.copyTo(resolve("index.html"))
-                val passedTime = listeningNginx(890) { uri ->
+                val passedTime = listeningNginx(890) {
                     measureTime {
                         ShellScript { poll(URI("http://localhost:890")) }.exec.logging()
                     }
@@ -582,6 +582,7 @@ class ShellScriptTest {
         @Nested
         inner class DockerCommand {
 
+            @Suppress("LongLine")
             @Test
             fun `should build valid docker run`() {
                 expectThat(ShellScript {

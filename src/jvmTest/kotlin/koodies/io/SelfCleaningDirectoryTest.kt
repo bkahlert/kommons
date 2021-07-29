@@ -3,14 +3,14 @@ package koodies.io
 import koodies.io.path.Defaults.OWNER_ALL_PERMISSIONS
 import koodies.io.path.touch
 import koodies.junit.UniqueId
-import koodies.test.expectThrows
-import koodies.test.expecting
 import koodies.test.toStringContains
 import koodies.test.withTempDir
 import koodies.time.hours
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
+import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
 import strikt.java.exists
@@ -22,9 +22,17 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should take receiver directory`() {
-        expecting { Locations.Temp.resolve("koodies.app-specific").selfCleaning() } that {
+        expectThat(Locations.Temp.resolve("koodies.app-specific").selfCleaning()) {
             isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("koodies.app-specific")))
             toStringContains("koodies.app-specific")
+        }
+    }
+
+    @Test
+    fun `should create missing directories`() {
+        expectThat(Locations.Temp.resolve("koodies.app-specific/A/B/C").selfCleaning()) {
+            isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("koodies.app-specific/A/B/C")))
+            toStringContains("koodies.app-specific/A/B/C")
         }
     }
 
@@ -41,7 +49,7 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should create if not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { resolve(uniqueId.value).selfCleaning() } that {
+        expectThat(resolve(uniqueId.value).selfCleaning()) {
             path.exists()
             path.isDirectory()
         }
@@ -49,19 +57,19 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should set POSIX permissions to 700`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { resolve(uniqueId.value).selfCleaning().path } that {
+        expectThat(resolve(uniqueId.value).selfCleaning().path) {
             permissions.containsExactlyInAnyOrder(OWNER_ALL_PERMISSIONS)
         }
     }
 
     @Test
     fun `should not delete files younger than 1h by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { selfCleaning() } that { keepAge.isEqualTo(1.hours) }
+        expectThat(selfCleaning()) { keepAge.isEqualTo(1.hours) }
     }
 
     @Test
     fun `should keep at most 100 files by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expecting { selfCleaning() } that { keepCount.isEqualTo(100) }
+        expectThat(selfCleaning()) { keepCount.isEqualTo(100) }
     }
 }
 
