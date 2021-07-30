@@ -80,7 +80,7 @@ allprojects {
 }
 
 description = "Random Kotlin Goodies"
-group = "com.bkahlert"
+group = "com.bkahlert.koodies"
 
 repositories {
     mavenCentral()

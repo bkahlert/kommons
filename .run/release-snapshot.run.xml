@@ -1,20 +1,17 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="x.y.z ➜ OSSRH, GitHubPackages" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="Release SNAPSHOT ➜ local" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="" />
+      <option name="scriptParameters" value="snapshot publishToMavenLocal -x :dokkaHtml" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
-        <list>
-          <option value="final" />
-          <option value="publish" />
-        </list>
+        <list />
       </option>
-      <option name="vmOptions" value="" />
+      <option name="vmOptions" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
