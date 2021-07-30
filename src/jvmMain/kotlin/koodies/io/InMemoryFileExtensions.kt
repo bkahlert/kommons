@@ -1,7 +1,8 @@
 package koodies.io
 
 import koodies.Koodies
-import koodies.docker.DockerImage
+import koodies.docker.Docker.AwesomeCliBinaries
+import koodies.docker.Docker.LibRSvg
 import koodies.docker.docker
 import koodies.exec.output
 import koodies.io.path.asPath
@@ -63,7 +64,7 @@ public fun InMemoryImage.rasterize(renderer: RendererProvider = { NOOP }): ByteA
  */
 public fun InMemoryImage.toAsciiArt(renderer: RendererProvider = { NOOP }): String = runWithTempDir {
     val fileName = resolve(this@toAsciiArt.baseName).writeBytes(rasterize(renderer)).fileName
-    docker(Chafa, name = "convert to ascii art", renderer = renderer) { "/opt/bin/chafa -c full -w 9 $fileName" }
+    docker(AwesomeCliBinaries, name = "convert to ascii art", renderer = renderer) { "/opt/bin/chafa -c full -w 9 $fileName" }
         .io.output.ansiKept.resetLines()
 }
 
@@ -76,9 +77,3 @@ public fun Path.asImageOrNull(): InMemoryImage? {
     }
     return null
 }
-
-@Suppress("SpellCheckingInspection")
-internal object LibRSvg : DockerImage("minidocks", listOf("librsvg"))
-
-@Suppress("SpellCheckingInspection")
-internal object Chafa : DockerImage("rafib", listOf("awesome-cli-binaries"))

@@ -46,7 +46,7 @@ public open class DockerImage(
     /**
      * Non-empty list of path elements
      */
-    public val path: List<String>,
+    public val path: List<String> = emptyList(),
 
     /**
      * Optional tag.

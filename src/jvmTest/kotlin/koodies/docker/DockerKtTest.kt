@@ -1,7 +1,8 @@
 package koodies.docker
 
 
-import koodies.docker.Docker.Official.nginx
+import koodies.docker.Docker.AwesomeCliBinaries
+import koodies.docker.Docker.LibRSvg
 import koodies.docker.TestImages.BusyBox
 import koodies.docker.TestImages.Ubuntu
 import koodies.exec.Exec
@@ -9,8 +10,6 @@ import koodies.exec.ansiKept
 import koodies.exec.ansiRemoved
 import koodies.exec.io
 import koodies.exec.output
-import koodies.io.Chafa
-import koodies.io.LibRSvg
 import koodies.io.compress.Archiver.unarchive
 import koodies.io.copyTo
 import koodies.io.path.asPath
@@ -144,7 +143,7 @@ class DockerKtTest {
     @Nested
     inner class Nginx {
 
-        @DockerRequiring([nginx::class]) @Test
+        @DockerRequiring([Docker.Nginx::class]) @Test
         fun `should run nginx`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             HtmlFixture.copyTo(resolve("index.html"))
             val nginxProcess = nginx(888)
@@ -155,7 +154,7 @@ class DockerKtTest {
             expectThat(didConnect).isTrue()
         }
 
-        @DockerRequiring([nginx::class]) @Test
+        @DockerRequiring([Docker.Nginx::class]) @Test
         fun `should run block when nginx is listening`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             HtmlFixture.copyTo(resolve("index.html"))
             val output = listeningNginx(889) { uri ->
@@ -178,14 +177,14 @@ class DockerKtTest {
     }
 
     @Suppress("SpellCheckingInspection")
-    @DockerRequiring([LibRSvg::class, Chafa::class]) @Smoke @Test
+    @DockerRequiring([LibRSvg::class, AwesomeCliBinaries::class]) @Smoke @Test
     fun `should run multiple containers`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         SvgFixture.copyTo(resolve("koodies.svg"))
 
         docker(LibRSvg, "-z", 10, "--output", "koodies.png", "koodies.svg")
         resolve("koodies.png") asserting { exists() }
 
-        docker(Chafa) {
+        docker(AwesomeCliBinaries) {
             """
                /opt/bin/chafa koodies.png 
                 """

@@ -51,7 +51,7 @@ object TestImages {
     /**
      * [Ubuntu](https://hub.docker.com/_/ubuntu) based [TestContainersProvider]
      */
-    object Ubuntu : DockerImage("ubuntu", emptyList()), TestContainersProvider {
+    object Ubuntu : DockerImage("ubuntu"), TestContainersProvider {
         override val image: DockerImage get() = this
         private val testContainersProvider: TestContainersProvider by lazy { TestContainersProvider.of(this) }
 
@@ -65,7 +65,7 @@ object TestImages {
     /**
      * [busybox](https://hub.docker.com/_/busybox) based [TestContainersProvider]
      */
-    object BusyBox : DockerImage("busybox", emptyList()), TestContainersProvider {
+    object BusyBox : DockerImage("busybox"), TestContainersProvider {
         override val image: DockerImage get() = this
         private val testContainersProvider: TestContainersProvider by lazy { TestContainersProvider.of(this) }
 
@@ -79,7 +79,7 @@ object TestImages {
     /**
      * [Hello World!](https://hub.docker.com/_/hello-world) based [TestImageProvider]
      */
-    object HelloWorld : DockerImage("hello-world", emptyList()), TestImageProvider {
+    object HelloWorld : DockerImage("hello-world"), TestImageProvider {
         override val image: DockerImage get() = this
         override val lock: ReentrantLock by lazy { ReentrantLock() }
     }

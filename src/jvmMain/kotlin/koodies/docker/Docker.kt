@@ -1,6 +1,11 @@
 package koodies.docker
 
 import koodies.Exceptions
+import koodies.docker.Docker.BusyBox
+import koodies.docker.Docker.CurlJq
+import koodies.docker.Docker.DockerPi
+import koodies.docker.Docker.Nginx
+import koodies.docker.Docker.Ubuntu
 import koodies.docker.Docker.info.get
 import koodies.docker.DockerExitStateHandler.Failed
 import koodies.docker.DockerRunCommandLine.Options
@@ -199,11 +204,94 @@ public object Docker {
         }
     }
 
-    public object Official {
-        @Suppress("SpellCheckingInspection")
-        public object nginx : DockerImage("nginx", emptyList())
-    }
+
+    /**
+     * **Official Image**
+     *
+     * [Ubuntu](https://hub.docker.com/_/ubuntu) is a Debian-based Linux operating system based on free software.
+     */
+    public object Ubuntu : DockerImage("ubuntu")
+
+    /**
+     * **Official Image**
+     *
+     * [Busybox base image](https://hub.docker.com/_/busybox)
+     */
+    public object BusyBox : DockerImage("busybox")
+
+    /**
+     * **Official Image**
+     *
+     * [Hello World!](https://hub.docker.com/_/hello-world)
+     */
+    public object HelloWorld : DockerImage("hello-world")
+
+    /**
+     * **Official Image**
+     *
+     * [nginx](https://hub.docker.com/_/nginx)
+     */
+    public object Nginx : DockerImage("nginx")
+
+    /**
+     * Alpine Docker Image with `curl`, `jq`, `bash`.
+     *
+     * [dwdraju/alpine-curl-jq](https://hub.docker.com/r/dwdraju/alpine-curl-jq)
+     */
+    @Suppress("SpellCheckingInspection")
+    public object CurlJq : DockerImage("dwdraju", listOf("alpine-curl-jq"), digest = "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954")
+
+    /**
+     * librsvg is a SVG rendering library.
+     * The Linux command-line program rsvg uses the library to turn SVG files into raster images.
+     *
+     * [minidocks/librsvg](https://hub.docker.com/r/minidocks/librsvg)
+     */
+    @Suppress("SpellCheckingInspection")
+    public object LibRSvg : DockerImage("minidocks", listOf("librsvg"))
+
+    /**
+     * Popular Linux x86_64 CLI app binaries.
+     * - `tmux` 3.1c (+ncurses 6.2 +libevent 2.1.12)
+     * - `bandwidth` 0.20.0
+     * - `bat` 0.17.1
+     * - `chafa` 1.4.1
+     * - `dua` 2.10.7
+     * - `duf` 0.4.0
+     * - `dyff` 1.1.0
+     * - `fd` 8.2.1
+     * - `fzf` 0.24.4
+     * - `glow` 1.1.0
+     * - `heksa` 1.13.0
+     * - `hexyl` 0.8.0
+     * - `httpiego` 0.6.0
+     * - `hyperfine` 1.11.0
+     * - `jq` 1.6
+     * - `lf` r18
+     * - `mkcert` 1.4.1
+     * - `ncdu` 1.15.1
+     * - `reg` 0.16.1
+     * - `ripgrep` 12.1.1
+     * - `starship` 0.46.2
+     * - `stern` 1.13.1
+     * - `yank` 1.2.0
+     * - `yj` 5.0.0
+     * - `zoxide` 0.5.0
+     *
+     * [rafib/awesome-cli-binaries](https://hub.docker.com/r/rafib/awesome-cli-binaries)
+     */
+    @Suppress("SpellCheckingInspection")
+    public object AwesomeCliBinaries : DockerImage("rafib", listOf("awesome-cli-binaries"))
+
+    /**
+     * A virtualized Raspberry Pi inside a Docker image.
+     *
+     * [lukechilds/dockerpi](https://hub.docker.com/r/lukechilds/dockerpi)
+     */
+    @Suppress("SpellCheckingInspection")
+    public object DockerPi : DockerImage("lukechilds", listOf("dockerpi"), tag = "vm")
 }
+
 
 /**
  * Type of the argument supported by [docker] and its variants (e.g. [ubuntu].
@@ -356,7 +444,7 @@ public fun Path.ubuntu(
     renderer: RendererProvider? = RendererProviders.errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
-    docker(DockerImage { "ubuntu" }, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
+    docker(Ubuntu, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -375,7 +463,7 @@ public fun Path.ubuntu(
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    docker(DockerImage { "ubuntu" }, name, renderer, inputStream, scriptInit)
+    docker(Ubuntu, name, renderer, inputStream, scriptInit)
 
 
 /*
@@ -400,7 +488,7 @@ public fun Path.busybox(
     renderer: RendererProvider? = RendererProviders.errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
-    docker(DockerImage { "busybox" }, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
+    docker(BusyBox, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -419,14 +507,8 @@ public fun Path.busybox(
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    docker(DockerImage { "busybox" }, name, renderer, inputStream, scriptInit)
+    docker(BusyBox, name, renderer, inputStream, scriptInit)
 
-
-/*
- * CURL & JQ
- */
-@Suppress("SpellCheckingInspection")
-private val curlJqImage = DockerImage { "dwdraju" / "alpine-curl-jq" digest "sha256:5f6561fff50ab16cba4a9da5c72a2278082bcfdca0f72a9769d7e78bdc5eb954" }
 
 /**
  * Builds a shell script using the given [scriptInit] and runs it in
@@ -441,7 +523,7 @@ public fun Path.curlJq(
     renderer: RendererProvider? = RendererProviders.errorsOnly(),
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
-    docker(curlJqImage, name, renderer, null, scriptInit)
+    docker(CurlJq, name, renderer, null, scriptInit)
 
 /**
  * Runs a [curl](https://curl.se/docs/manpage.html) with the given [arguments] in
@@ -456,7 +538,7 @@ public fun Path.curl(
     name: CharSequence = "curl",
     renderer: RendererProvider? = RendererProviders.errorsOnly(),
 ): DockerExec =
-    docker(curlJqImage, "curl", *arguments, name = name, renderer = renderer)
+    docker(CurlJq, "curl", *arguments, name = name, renderer = renderer)
 
 /**
  * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
@@ -521,7 +603,7 @@ public fun Path.nginx(
     name: String = "nginx".withRandomSuffix(),
     processor: Processor<DockerExec> = Processors.spanningProcessor(),
 ): DockerExec = DockerRunCommandLine(
-    image = Docker.Official.nginx,
+    image = Nginx,
     options = Options(
         name = DockerContainer.from(name),
         mounts = MountOptions { this@nginx mountAt "/usr/share/nginx/html" },
@@ -575,7 +657,7 @@ public fun Path.dockerPi(
     name: String = "dockerpi".withRandomSuffix(),
     processor: Processor<DockerExec> = Processors.spanningProcessor(),
 ): DockerExec = DockerRunCommandLine(
-    image = DockerImage { "lukechilds" / "dockerpi" tag "vm" },
+    image = DockerPi,
     options = Options(
         name = DockerContainer.from(name),
         mounts = MountOptions { this@dockerPi mountAt "/sdcard/filesystem.img" }

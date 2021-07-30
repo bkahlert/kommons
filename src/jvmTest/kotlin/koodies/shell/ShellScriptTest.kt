@@ -23,6 +23,7 @@ import koodies.junit.UniqueId
 import koodies.shell.ShellScript.Companion.isScript
 import koodies.shell.ShellScript.ScriptContext
 import koodies.test.HtmlFixture
+import koodies.test.Slow
 import koodies.test.Smoke
 import koodies.test.expectThrows
 import koodies.test.string
@@ -256,11 +257,10 @@ class ShellScriptTest {
         @Test
         fun `should use different name if specified`() {
             val sh = ShellScript("test", "exit 0")
-            expectThat(sh.toString(true, "different")).isEqualTo("""
-                echo '$differentBanner'
-                exit 0
-    
-            """.trimIndent())
+            expectThat(sh.toString(true, "different")) {
+                contains("DIFFERENT")
+                not { contains("TEST") }
+            }
         }
 
         @Test
@@ -385,7 +385,7 @@ class ShellScriptTest {
             expecting { ShellScript { init() } } that { string.lines().first().isEqualTo(expected) }
         }
 
-        @Nested
+        @Slow @Nested
         inner class Poll {
 
             @Test
@@ -600,7 +600,7 @@ class ShellScriptTest {
                     )
                 }).toStringIsEqualTo("""
                     #!/bin/sh
-                    'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
+                    'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '--' '-arg1' '--argument' '2'
                     
                 """.trimIndent())
             }
