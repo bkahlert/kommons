@@ -12,14 +12,14 @@ stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟
 
 Koodies is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.koodies:koodies:1.7.0")`
+* **Gradle** `implementation("com.bkahlert.koodies:koodies:1.9.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.koodies</groupId>
       <artifactId>koodies</artifactId>
-      <version>1.7.0</version>
+      <version>1.9.0</version>
   </dependency>
   ```
 

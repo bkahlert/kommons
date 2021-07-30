@@ -1,15 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Release PATCH ➜ OSSRH, GitHubPackages" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
-      <option name="env">
-        <map>
-          <entry key="-Prelease.scope" value="patch" />
-        </map>
-      </option>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="final publish" />
+      <option name="scriptParameters" value="final -Prelease.scope=patch publish" />
       <option name="taskDescriptions">
         <list />
       </option>
