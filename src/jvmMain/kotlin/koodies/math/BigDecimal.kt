@@ -137,6 +137,26 @@ public actual operator fun BigDecimal.dec(): BigDecimal = this.subtract(BigDecim
 public actual val BigDecimal.isInteger: Boolean get() = stripTrailingZeros().scale() <= 0
 
 /**
+ * Returns the value of this [Byte] number as a [BigDecimal].
+ */
+public actual fun Byte.toBigDecimal(): BigDecimal = toInt().toBigDecimalKotlin()
+
+/**
+ * Returns the value of this [UByte] number as a [BigDecimal].
+ */
+public actual fun UByte.toBigDecimal(): BigDecimal = toInt().toBigDecimalKotlin()
+
+/**
+ * Returns the value of this [Short] number as a [BigDecimal].
+ */
+public actual fun Short.toBigDecimal(): BigDecimal = toInt().toBigDecimalKotlin()
+
+/**
+ * Returns the value of this [UShort] number as a [BigDecimal].
+ */
+public actual fun UShort.toBigDecimal(): BigDecimal = toInt().toBigDecimalKotlin()
+
+/**
  * Returns the value of this [Int] number as a [BigDecimal].
  */
 public actual fun Int.toBigDecimal(): BigDecimal = toBigDecimalKotlin()
@@ -145,6 +165,16 @@ public actual fun Int.toBigDecimal(): BigDecimal = toBigDecimalKotlin()
  * Returns the value of this [UInt] number as a [BigDecimal].
  */
 public actual fun UInt.toBigDecimal(): BigDecimal = toLong().toBigDecimalKotlin()
+
+/**
+ * Returns the value of this [Long] number as a [BigDecimal].
+ */
+public actual fun Long.toBigDecimal(): BigDecimal = toBigDecimalKotlin()
+
+/**
+ * Returns the value of this [ULong] number as a [BigDecimal].
+ */
+public actual fun ULong.toBigDecimal(): BigDecimal = toString().toBigDecimalKotlin()
 
 /**
  * Returns the value of this [Double] number as a [BigDecimal].

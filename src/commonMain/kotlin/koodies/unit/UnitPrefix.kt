@@ -2,10 +2,10 @@ package koodies.unit
 
 import koodies.math.BigDecimal
 import koodies.math.BigDecimalConstants
+import koodies.math.BigInteger
 import koodies.math.times
 import koodies.math.toBigDecimal
 import koodies.text.CharRanges
-import koodies.text.Semantics.formattedAs
 import koodies.text.takeUnlessBlank
 import koodies.text.takeUnlessEmpty
 import koodies.unit.DecimalPrefixes.kilo
@@ -45,7 +45,15 @@ public interface UnitPrefix {
      * unit.
      */
     public fun of(number: Number): BigDecimal =
-        number.toDouble().toBigDecimal().times(factor, 0)
+        when (number) {
+            is Byte -> number.toBigDecimal()
+            is Short -> number.toBigDecimal()
+            is Int -> number.toBigDecimal()
+            is Long -> number.toBigDecimal()
+            is BigDecimal -> number
+            is BigInteger -> number.toBigDecimal()
+            else -> number.toDouble().toBigDecimal()
+        }.times(factor, 0)
 
     public companion object {
 
@@ -72,7 +80,7 @@ public interface UnitPrefix {
             val unitString = trimmed.takeLastWhile { !it.isDigit() && !it.isWhitespace() }
             val unitPrefixAndLength = generateSequence(unitString) { it.dropLast(1).takeUnlessEmpty() }.mapNotNull { prefix ->
                 parseUnitPrefixOrNull(prefix)?.let { unitPrefix -> unitPrefix to prefix.length }
-            }.firstOrNull() ?: null to 0
+            }.firstOrNull() ?: (null to 0)
 
             val factorAndBaseUnit = unitPrefixAndLength.let { (unitPrefix, length) ->
                 unitPrefix.factor to unitString.substring(length).takeUnlessBlank()
@@ -80,10 +88,7 @@ public interface UnitPrefix {
 
             val valueString = trimmed.dropLast(unitString.length).trim()
 
-            val value = "$valueString".toDoubleOrNull()
-                ?.toBigDecimal()
-                ?.let { value -> factorAndBaseUnit.let { (factor, _) -> value * factor } }
-                ?: throw IllegalArgumentException("${text.formattedAs.input} does not contain a numeric with with an optional unit.")
+            val value = "$valueString".toBigDecimal().let { value -> factorAndBaseUnit.let { (factor, _) -> value * factor } }
 
             return value to factorAndBaseUnit.let { (_, baseUnit) -> baseUnit }
         }

@@ -3,6 +3,7 @@ package koodies.unit
 import koodies.io.path.getSize
 import koodies.io.randomFile
 import koodies.junit.UniqueId
+import koodies.test.expectThrows
 import koodies.test.testEach
 import koodies.test.withTempDir
 import org.junit.jupiter.api.Nested
@@ -337,6 +338,11 @@ class SizeTest {
             fun `should parse fractional with no spacing`() {
                 expectThat("2.505".toSize()).isEqualTo(2.505.bytes)
             }
+        }
+
+        @Test
+        fun `should throw on invalid`() {
+            expectThrows<NumberFormatException> { "abc".toSize() }
         }
     }
 

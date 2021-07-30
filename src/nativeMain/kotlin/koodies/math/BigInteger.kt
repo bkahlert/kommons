@@ -70,6 +70,26 @@ public actual infix fun BigInteger.shl(n: Int): BigInteger = BigIntegerConstants
 public actual infix fun BigInteger.shr(n: Int): BigInteger = BigIntegerConstants.ZERO
 
 /**
+ * Returns the value of this [Byte] number as a [BigInteger].
+ */
+public actual fun Byte.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
+
+/**
+ * Returns the value of this [UByte] number as a [BigInteger].
+ */
+public actual fun UByte.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
+
+/**
+ * Returns the value of this [Short] number as a [BigInteger].
+ */
+public actual fun Short.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
+
+/**
+ * Returns the value of this [UShort] number as a [BigInteger].
+ */
+public actual fun UShort.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
+
+/**
  * Returns the value of this [Int] number as a [BigInteger].
  */
 public actual fun Int.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
@@ -78,6 +98,16 @@ public actual fun Int.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
  * Returns the value of this [UInt] number as a [BigInteger].
  */
 public actual fun UInt.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
+
+/**
+ * Returns the value of this [Long] number as a [BigInteger].
+ */
+public actual fun Long.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
+
+/**
+ * Returns the value of this [ULong] number as a [BigInteger].
+ */
+public actual fun ULong.toBigInteger(): BigInteger = BigIntegerConstants.ZERO
 
 /**
  * Returns the value of this [BigDecimal] number as a [BigInteger].

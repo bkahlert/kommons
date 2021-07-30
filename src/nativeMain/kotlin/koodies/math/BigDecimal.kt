@@ -135,6 +135,26 @@ public actual operator fun BigDecimal.dec(): BigDecimal = BigDecimalConstants.ZE
 public actual val BigDecimal.isInteger: Boolean get() = false
 
 /**
+ * Returns the value of this [Byte] number as a [BigDecimal].
+ */
+public actual fun Byte.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
+
+/**
+ * Returns the value of this [UByte] number as a [BigDecimal].
+ */
+public actual fun UByte.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
+
+/**
+ * Returns the value of this [Short] number as a [BigDecimal].
+ */
+public actual fun Short.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
+
+/**
+ * Returns the value of this [UShort] number as a [BigDecimal].
+ */
+public actual fun UShort.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
+
+/**
  * Returns the value of this [Int] number as a [BigDecimal].
  */
 public actual fun Int.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
@@ -143,6 +163,16 @@ public actual fun Int.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
  * Returns the value of this [UInt] number as a [BigDecimal].
  */
 public actual fun UInt.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
+
+/**
+ * Returns the value of this [Long] number as a [BigDecimal].
+ */
+public actual fun Long.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
+
+/**
+ * Returns the value of this [ULong] number as a [BigDecimal].
+ */
+public actual fun ULong.toBigDecimal(): BigDecimal = BigDecimalConstants.ZERO
 
 /**
  * Returns the value of this [Double] number as a [BigDecimal].

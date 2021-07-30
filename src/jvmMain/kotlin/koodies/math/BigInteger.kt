@@ -64,6 +64,26 @@ public actual infix fun BigInteger.shl(n: Int): BigInteger = this.shiftLeft(n)
 public actual infix fun BigInteger.shr(n: Int): BigInteger = this.shiftRight(n)
 
 /**
+ * Returns the value of this [Byte] number as a [BigInteger].
+ */
+public actual fun Byte.toBigInteger(): BigInteger = toInt().toBigIntegerKotlin()
+
+/**
+ * Returns the value of this [UByte] number as a [BigInteger].
+ */
+public actual fun UByte.toBigInteger(): BigInteger = toInt().toBigIntegerKotlin()
+
+/**
+ * Returns the value of this [Short] number as a [BigInteger].
+ */
+public actual fun Short.toBigInteger(): BigInteger = toInt().toBigIntegerKotlin()
+
+/**
+ * Returns the value of this [UShort] number as a [BigInteger].
+ */
+public actual fun UShort.toBigInteger(): BigInteger = toInt().toBigIntegerKotlin()
+
+/**
  * Returns the value of this [Int] number as a [BigInteger].
  */
 public actual fun Int.toBigInteger(): BigInteger = toBigIntegerKotlin()
@@ -72,6 +92,16 @@ public actual fun Int.toBigInteger(): BigInteger = toBigIntegerKotlin()
  * Returns the value of this [UInt] number as a [BigInteger].
  */
 public actual fun UInt.toBigInteger(): BigInteger = toLong().toBigIntegerKotlin()
+
+/**
+ * Returns the value of this [Long] number as a [BigInteger].
+ */
+public actual fun Long.toBigInteger(): BigInteger = toBigIntegerKotlin()
+
+/**
+ * Returns the value of this [ULong] number as a [BigInteger].
+ */
+public actual fun ULong.toBigInteger(): BigInteger = toString().toBigIntegerKotlin()
 
 /**
  * Returns the value of this [BigDecimal] number as a [BigInteger].

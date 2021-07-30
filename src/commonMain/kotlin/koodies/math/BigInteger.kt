@@ -59,6 +59,26 @@ public expect infix fun BigInteger.shl(n: Int): BigInteger
 public expect infix fun BigInteger.shr(n: Int): BigInteger
 
 /**
+ * Returns the value of this [Byte] number as a [BigInteger].
+ */
+public expect fun Byte.toBigInteger(): BigInteger
+
+/**
+ * Returns the value of this [UByte] number as a [BigInteger].
+ */
+public expect fun UByte.toBigInteger(): BigInteger
+
+/**
+ * Returns the value of this [Short] number as a [BigInteger].
+ */
+public expect fun Short.toBigInteger(): BigInteger
+
+/**
+ * Returns the value of this [UShort] number as a [BigInteger].
+ */
+public expect fun UShort.toBigInteger(): BigInteger
+
+/**
  * Returns the value of this [Int] number as a [BigInteger].
  */
 public expect fun Int.toBigInteger(): BigInteger
@@ -67,6 +87,16 @@ public expect fun Int.toBigInteger(): BigInteger
  * Returns the value of this [UInt] number as a [BigInteger].
  */
 public expect fun UInt.toBigInteger(): BigInteger
+
+/**
+ * Returns the value of this [Long] number as a [BigInteger].
+ */
+public expect fun Long.toBigInteger(): BigInteger
+
+/**
+ * Returns the value of this [ULong] number as a [BigInteger].
+ */
+public expect fun ULong.toBigInteger(): BigInteger
 
 /**
  * Returns the value of this [BigDecimal] number as a [BigInteger].

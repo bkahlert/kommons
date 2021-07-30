@@ -127,6 +127,26 @@ public expect operator fun BigDecimal.dec(): BigDecimal
 public expect val BigDecimal.isInteger: Boolean
 
 /**
+ * Returns the value of this [Byte] number as a [BigDecimal].
+ */
+public expect fun Byte.toBigDecimal(): BigDecimal
+
+/**
+ * Returns the value of this [UByte] number as a [BigDecimal].
+ */
+public expect fun UByte.toBigDecimal(): BigDecimal
+
+/**
+ * Returns the value of this [Short] number as a [BigDecimal].
+ */
+public expect fun Short.toBigDecimal(): BigDecimal
+
+/**
+ * Returns the value of this [UShort] number as a [BigDecimal].
+ */
+public expect fun UShort.toBigDecimal(): BigDecimal
+
+/**
  * Returns the value of this [Int] number as a [BigDecimal].
  */
 public expect fun Int.toBigDecimal(): BigDecimal
@@ -135,6 +155,16 @@ public expect fun Int.toBigDecimal(): BigDecimal
  * Returns the value of this [UInt] number as a [BigDecimal].
  */
 public expect fun UInt.toBigDecimal(): BigDecimal
+
+/**
+ * Returns the value of this [Long] number as a [BigDecimal].
+ */
+public expect fun Long.toBigDecimal(): BigDecimal
+
+/**
+ * Returns the value of this [ULong] number as a [BigDecimal].
+ */
+public expect fun ULong.toBigDecimal(): BigDecimal
 
 /**
  * Returns the value of this [Double] number as a [BigDecimal].

@@ -600,7 +600,7 @@ class ShellScriptTest {
                     )
                 }).toStringIsEqualTo("""
                     #!/bin/sh
-                    'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '--' '-arg1' '--argument' '2'
+                    'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
                     
                 """.trimIndent())
             }
