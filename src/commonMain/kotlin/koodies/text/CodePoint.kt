@@ -399,7 +399,7 @@ public value class CodePoint(
 /**
  * Attempts to read a code point from `this` byte array at the given [offset].
  *
- * The byte array is expected to be a UTF-8 encoded string.
+ * The byte array must be a UTF-8 encoded string.
  *
  * Returns a [Pair] with [Pair.first] being the number of bytes
  * the code point contained in [Pair.second] consists of.

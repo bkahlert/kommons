@@ -182,6 +182,11 @@ public fun Path.asString(): String = pathString
 public val Path.pathString: String get() = "${resolve("")}"
 
 /**
+ * String representation of this path's [Path.getFileName] that does **not** rely on [toString].
+ */
+public val Path.fileNameString: String get() = fileName.pathString
+
+/**
  * String representation of this path's [URI].
  */
 public val Path.uriString: String get() = toUri().toString()

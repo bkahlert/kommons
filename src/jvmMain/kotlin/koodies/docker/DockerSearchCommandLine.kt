@@ -59,7 +59,7 @@ public open class DockerSearchCommandLine(
             automated: Boolean? = null,
             official: Boolean? = null,
             limit: Int = 100,
-            provider: RendererProvider? = null,
+            provider: RendererProvider? = RendererProviders.errorsOnly(),
         ): List<DockerSearchResult> =
             DockerSearchCommandLine(term, stars, automated, official, limit)
                 .exec.logging(renderer = provider ?: RendererProviders.errorsOnly())
