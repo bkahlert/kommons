@@ -1,6 +1,6 @@
 package koodies.io
 
-import koodies.io.path.Defaults.OWNER_ALL_PERMISSIONS
+import koodies.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import koodies.io.path.touch
 import koodies.junit.UniqueId
 import koodies.test.toStringContains

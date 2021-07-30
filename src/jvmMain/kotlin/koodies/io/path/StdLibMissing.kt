@@ -1,8 +1,8 @@
 package koodies.io.path
 
 import koodies.io.noDirectory
-import koodies.io.path.Defaults.DEFAULT_APPEND_OPTIONS
-import koodies.io.path.Defaults.DEFAULT_WRITE_OPTIONS
+import koodies.io.path.StandardOpenOptions.DEFAULT_APPEND_OPTIONS
+import koodies.io.path.StandardOpenOptions.DEFAULT_WRITE_OPTIONS
 import koodies.runtime.onExit
 import koodies.time.seconds
 import koodies.time.sleep

@@ -2,7 +2,7 @@ package koodies.io
 
 import koodies.asString
 import koodies.io.SelfCleaningDirectory.CleanUpMode
-import koodies.io.path.Defaults
+import koodies.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import koodies.io.path.requireTempSubPath
 import koodies.jvm.onExit
 import koodies.time.hours
@@ -92,7 +92,7 @@ public data class SelfCleaningDirectory(
         } else {
             path.createDirectories()
         }
-        path.setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        path.setPosixFilePermissions(OWNER_ALL_PERMISSIONS)
 
         if (cleanUpMode.onShutdown) onExit { cleanUp() }
     }

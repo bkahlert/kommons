@@ -1,6 +1,6 @@
 package koodies.io
 
-import koodies.io.path.Defaults
+import koodies.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import koodies.io.path.age
 import koodies.io.path.deleteOnExit
 import koodies.io.path.isEmpty
@@ -169,7 +169,7 @@ class LocationsKtTest {
 
         @Test
         fun `should have exclusive rights`() {
-            expectThat(tempDir().deleteOnExit()).hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+            expectThat(tempDir().deleteOnExit()).hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
 
         @Test
@@ -177,7 +177,7 @@ class LocationsKtTest {
             expectThat(tempDir())
                 .isInside(this)
                 .isDirectory()
-                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+                .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
 
         @Test
@@ -186,7 +186,7 @@ class LocationsKtTest {
             expectThat(nonExistentParent.tempDir())
                 .isInside(nonExistentParent)
                 .isDirectory()
-                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+                .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
     }
 
@@ -205,7 +205,7 @@ class LocationsKtTest {
 
         @Test
         fun `should have exclusive rights`() {
-            expectThat(tempFile().deleteOnExit()).hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+            expectThat(tempFile().deleteOnExit()).hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
 
         @Test
@@ -213,7 +213,7 @@ class LocationsKtTest {
             expectThat(tempFile())
                 .isInside(this)
                 .isRegularFile()
-                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+                .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
 
         @Test
@@ -222,7 +222,7 @@ class LocationsKtTest {
             expectThat(nonExistentParent.tempFile())
                 .isInside(nonExistentParent)
                 .isRegularFile()
-                .hasPosixPermissions(Defaults.OWNER_ALL_PERMISSIONS)
+                .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
     }
 

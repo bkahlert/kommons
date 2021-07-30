@@ -5,7 +5,7 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.writeLines
 
-public object Defaults {
+public object StandardOpenOptions {
     /**
      * Default [StandardOpenOption] arguments for append operations such as [Path.writeLines].
      *
@@ -21,22 +21,4 @@ public object Defaults {
      */
     public val DEFAULT_APPEND_OPTIONS: Array<StandardOpenOption> =
         arrayOf(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
-
-    /**
-     * `0700`
-     */
-    public val OWNER_ALL_PERMISSIONS: Set<PosixFilePermission> =
-        setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE)
-
-    /**
-     * `0070`
-     */
-    public val GROUP_ALL_PERMISSIONS: Set<PosixFilePermission> =
-        setOf(PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_EXECUTE)
-
-    /**
-     * `0007`
-     */
-    public val OTHERS_ALL_PERMISSIONS: Set<PosixFilePermission> =
-        setOf(PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_WRITE, PosixFilePermission.OTHERS_EXECUTE)
 }

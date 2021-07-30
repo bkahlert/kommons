@@ -3,7 +3,7 @@ package koodies.io
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.RendererProviders
 import koodies.exec.parse
-import koodies.io.path.Defaults
+import koodies.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import koodies.io.path.age
 import koodies.io.path.delete
 import koodies.io.path.deleteRecursively
@@ -154,7 +154,7 @@ public fun tempFile(base: String = "", extension: String = ""): Path =
  */
 public fun Path.tempDir(base: String = "", extension: String = ""): Path =
     requireTempSubPath().randomDirectory(base, extension).apply {
-        setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        setPosixFilePermissions(OWNER_ALL_PERMISSIONS)
     }
 
 /**
@@ -167,7 +167,7 @@ public fun Path.tempDir(base: String = "", extension: String = ""): Path =
  */
 public fun Path.tempFile(base: String = "", extension: String = ""): Path =
     requireTempSubPath().randomFile(base, extension).apply {
-        setPosixFilePermissions(Defaults.OWNER_ALL_PERMISSIONS)
+        setPosixFilePermissions(OWNER_ALL_PERMISSIONS)
     }
 
 /**
