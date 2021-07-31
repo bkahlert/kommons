@@ -56,7 +56,7 @@ public class NonBlockingReader(
      * or EOF was encountered.
      */
     override fun readLine(): String? {
-        if (reader == null) return null
+        val reader = reader ?: return null
 
         var latestReadMoment = calculateLatestReadMoment()
         while (true) {
@@ -65,7 +65,7 @@ public class NonBlockingReader(
                 (inputStream as? SlowInputStream)?.run { parentSpan.also { parentSpan = Span.current() } }
             }, {
                 (inputStream as? SlowInputStream)?.parentSpan = it ?: error("No parent span to restore")
-            }) { reader?.read(charArray, 0)!! }
+            }) { reader.read(charArray, 0) }
 
             if (read == -1) {
                 close()
@@ -75,9 +75,10 @@ public class NonBlockingReader(
                     lastReadLine
                 } else {
                     lastReadLineDueTimeout = false
-                    lastReadLine = "$unfinishedLine"
-                    unfinishedLine.clear()
-                    lastReadLine!!.trailingLineSeparatorRemoved
+                    "$unfinishedLine".also {
+                        lastReadLine = it
+                        unfinishedLine.clear()
+                    }.trailingLineSeparatorRemoved
                 }
             }
 
@@ -103,8 +104,9 @@ public class NonBlockingReader(
             if (currentTimeMillis() >= latestReadMoment && !(blockOnEmptyLine && unfinishedLine.isEmpty())) {
                 // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                 lastReadLineDueTimeout = true
-                lastReadLine = "$unfinishedLine"
-                return lastReadLine!!.trailingLineSeparatorRemoved
+                return "$unfinishedLine".also {
+                    lastReadLine = it
+                }.trailingLineSeparatorRemoved
             }
         }
         @Suppress("UNREACHABLE_CODE")
