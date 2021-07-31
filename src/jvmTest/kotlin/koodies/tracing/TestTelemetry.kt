@@ -37,7 +37,7 @@ class TestTelemetry : TestExecutionListener {
     override fun testPlanExecutionStarted(testPlan: TestPlan) {
         if (ENABLED) {
             val jaegerExporter = JaegerGrpcSpanExporter.builder()
-                .setEndpoint(Jaeger.startLocally())
+                .setEndpoint(Jaeger("localhost").startLocally())
                 .build()
 
             batchExporter = BatchSpanProcessor.builder(jaegerExporter).build()
