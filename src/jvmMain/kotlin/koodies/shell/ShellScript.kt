@@ -9,12 +9,14 @@ import koodies.io.path.executable
 import koodies.io.path.pathString
 import koodies.io.path.writeText
 import koodies.shell.ShellScript.ScriptContext
+import koodies.shell.ShellScript.ScriptContext.Line
 import koodies.text.Banner.banner
 import koodies.text.LineSeparators.LF
 import koodies.text.LineSeparators.lines
 import koodies.text.LineSeparators.prefixLinesWith
 import koodies.text.joinLinesToString
 import koodies.text.quoted
+import koodies.text.singleQuoted
 import koodies.time.minutes
 import koodies.time.seconds
 import org.codehaus.plexus.util.cli.Commandline
@@ -175,95 +177,104 @@ public open class ShellScript(
     /**
      * Context to ease building shell scripts.
      */
-    public class ScriptContext(private val lines: MutableList<String>) {
+    public class ScriptContext(private val lines: MutableList<CharSequence>) {
 
-        /**
-         * The companion builder supports the build lambda argument to return a
-         * string itself that is also added to the script—next to [lines].
-         *
-         * This methods serves as a helper, so build methods don't accidentally
-         * return what they already added to the [lines] list (with the consequence
-         * of adding the contents twice).
-         */
-        private fun lines(block: MutableList<String>.() -> Unit): String =
-            lines.run {
-                block()
-                ""
+        public inner class Line(
+            @Language("Shell Script") private var line: String,
+        ) : CharSequence {
+
+            init {
+                lines.add(this)
             }
 
-        /** Adds the default [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) `#!/bin/sh` to this script. */
-        public val shebang: String get() = shebang()
+            public infix fun or(other: CharSequence): Line {
+                line += " || $other"
+                if (other is Line) other.line = ""
+                return this
+            }
 
-        /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
-        public fun shebang(interpreter: Path, vararg arguments: String): String = shebang(interpreter.pathString, *arguments)
+            public infix fun and(other: CharSequence): Line {
+                line += " && $other"
+                if (other is Line) other.line = ""
+                return this
+            }
 
-        /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
-        public fun shebang(interpreter: String = "/bin/sh", vararg arguments: String): String = lines {
-            add("#!$interpreter" + arguments.joinToString("") { " $it" })
+            public infix fun redirectTo(file: Path): Line {
+                line += " > ${file.pathString.singleQuoted}"
+                return this
+            }
+
+            override val length: Int get() = line.length
+            override fun get(index: Int): Char = line[index]
+            override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = line.subSequence(startIndex, endIndex)
+            override fun toString(): String = line
         }
+
+        /** Adds the default [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) `#!/bin/sh` to this script. */
+        public val shebang: Line get() = shebang()
+
+        /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
+        public fun shebang(interpreter: Path, vararg arguments: String): Line = shebang(interpreter.pathString, *arguments)
+
+        /** Adds a [Shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) to this script. */
+        public fun shebang(interpreter: String = "/bin/sh", vararg arguments: String): Line =
+            Line("#!$interpreter" + arguments.joinToString("") { " $it" })
+
+        /**
+         * Adds `cd [directory]` to this script.
+         */
+        public fun changeDirectory(directory: Path): Line = command("cd", directory.pathString)
 
         /**
          * Adds `cd [directory] || exit [errorCode]` to this script.
          */
-        public fun changeDirectoryOrExit(directory: Path, errorCode: UByte = 1u): String = lines {
-            add("cd \"$directory\" || exit $errorCode")
-        }
+        public fun changeDirectoryOrExit(directory: Path, errorCode: UByte = 1u): Line = changeDirectory(directory) or exit(errorCode)
 
         /**
          * Adds `this` character sequence as a separate line to this script.
          */
-        public operator fun @receiver:Language("Shell Script") CharSequence.not(): String = lines {
-            add(this@not.toString())
-        }
+        public operator fun @receiver:Language("Shell Script") CharSequence.not(): Line = Line(toString())
 
         /**
          * Adds the given [words] concatenated with a whitespace to this script.
          */
-        public fun line(@Language("Shell Script") vararg words: CharSequence): String = lines {
-            add(words.joinToString(" "))
-        }
+        public fun line(@Language("Shell Script") vararg words: CharSequence): Line = Line(words.joinToString(" "))
 
         /**
          * Adds the given [line] to this script.
          */
-        public fun line(@Language("Shell Script") line: CharSequence): String = lines {
-            add(line.toString())
-        }
+        public fun line(@Language("Shell Script") line: CharSequence): Line = Line(line.toString())
 
         /**
          * Adds the given [lines] to this script.
          */
-        public fun lines(@Language("Shell Script") lines: Iterable<CharSequence>): String = lines {
+        public fun lines(@Language("Shell Script") lines: Iterable<CharSequence>): String {
             lines.forEach { line(it) }
+            return ""
         }
 
         /**
          * Adds a [CommandLine] build with the given [command] and [arguments] to this script.
          */
-        public fun command(command: CharSequence, arguments: Iterable<CharSequence>): String =
-            command(CommandLine(command, arguments))
+        public fun command(command: CharSequence, arguments: Iterable<CharSequence>): Line = command(CommandLine(command, arguments))
 
         /**
          * Adds a [CommandLine] build with the given [command] and [arguments] to this script.
          */
-        public fun command(command: CharSequence, vararg arguments: CharSequence): String =
-            command(CommandLine(command, *arguments))
+        public fun command(command: CharSequence, vararg arguments: CharSequence): Line = command(CommandLine(command, *arguments))
 
         /**
          * Adds the given [CommandLine] to this script.
          */
-        public fun command(command: CommandLine): String = lines {
-            add(command.shellCommand)
-        }
+        public fun command(command: CommandLine): Line = Line(command.shellCommand)
 
         /**
          * Adds the [CommandLine] used by `this` [Executable] to this script.
          */
-        public operator fun Executable<*>.not(): String =
-            command(toCommandLine())
+        public operator fun Executable<*>.not(): Line = command(toCommandLine())
 
         /** Add an echo command with the given [arguments] */
-        public fun echo(vararg arguments: Any): String = command("echo", arguments.map { it.toString() })
+        public fun echo(vararg arguments: Any): Line = command("echo", arguments.map { it.toString() })
 
         /**
          * Adds a while loop that attempts to connect to the given [uri] until
@@ -280,7 +291,7 @@ public open class ShellScript(
             attemptTimeout: Duration = 5.seconds,
             timeout: Duration = 5.minutes,
             verbose: Boolean = false,
-        ): String {
+        ): Line {
             require(interval >= 1.seconds) { "interval must be greater or equal to 1 second" }
             require(attemptTimeout >= 1.seconds) { "attempt timeout must be greater or equal to 1 second" }
             require(timeout >= 1.seconds) { "timeout must be greater or equal to 1 second" }
@@ -299,43 +310,54 @@ public open class ShellScript(
          * Initializes a [FileOperations] builder for the file specified by [path] and
          * the optional [init] applied to it.
          */
-        public fun file(path: String, init: FileOperations.() -> Unit = {}): String = lines {
+        public fun file(path: String, init: FileOperations.() -> Unit = {}): String {
             FileOperations(this@ScriptContext, path).apply(init)
+            return ""
         }
 
         /**
          * Initializes a [FileOperations] builder for the file specified by [path] and
          * the optional [init] applied to it.
          */
-        public fun file(path: Path, init: FileOperations.() -> Unit = {}): String = lines {
+        public fun file(path: Path, init: FileOperations.() -> Unit = {}): String {
             FileOperations(this@ScriptContext, path.pathString).apply(init)
+            return ""
         }
 
         /**
          * Embeds the given [shellScript] in this script.
          */
-        public fun embed(shellScript: ShellScript, echoName: Boolean = false): String = lines {
+        public fun embed(shellScript: ShellScript, echoName: Boolean = false): Line {
             val finalShellScript = if (echoName) ShellScript(null, shellScript.toString(true)) else shellScript
-            lines.add(finalShellScript.toCommandLine().shellCommand)
+            return Line(finalShellScript.toCommandLine().shellCommand)
         }
+
+        /**
+         * Adds `shutdown -h now` to this script.
+         */
+        public val shutdown: Line
+            get() = shutdown()
+
+        /**
+         * Adds `shutdown` to this script.
+         */
+        public fun shutdown(halt: Boolean = true, time: String = "now", message: String? = null): Line =
+            command("shutdown", *listOfNotNull(if (halt) "-h" else null, time, message).toTypedArray())
 
         /**
          * Adds `exit [code]` to this script.
          */
-        public fun exit(code: Int): String =
-            command("exit", code.toString())
+        public fun exit(code: UByte = 0u): Line = command("exit", code.toString())
 
         /**
          * Adds the given [text] as a comment to this script.
          */
-        public fun comment(text: String): String =
-            lines { lines.add(text.prefixLinesWith("# ")) }
+        public fun comment(text: String): Line = Line(text.prefixLinesWith("# "))
 
         /**
          * Adds `echo "[password]" | sudo -S [command]` to this script.
          */
-        public fun sudo(password: String, command: String): String =
-            lines { lines.add("echo ${password.quoted} | sudo -S $command") }
+        public fun sudo(password: String, command: String): Line = Line("echo ${password.quoted} | sudo -S $command")
 
         /**
          * Adds a command that removes / deletes this script file.
@@ -344,8 +366,7 @@ public open class ShellScript(
          * the behavior of a script being deleted while executed
          * is undetermined.
          */
-        public fun deleteSelf(): String =
-            lines { lines.add("rm -- \"\$0\"") }
+        public fun deleteSelf(): Line = Line("rm -- \"\$0\"")
     }
 
     public companion object : koodies.builder.Builder<ScriptInit, ShellScript> {
@@ -354,9 +375,9 @@ public open class ShellScript(
          * Builds a new [ShellScript] using the given [name] and [init].
          */
         public operator fun invoke(name: CharSequence?, init: ScriptInit): ShellScript {
-            val lines = mutableListOf<String>()
-            val trailingContent = ScriptContext(lines).init()
-            return ShellScript(name, (lines + trailingContent.toString()).joinLinesToString())
+            val lines = mutableListOf<CharSequence>()
+            val trailingContent: String = ScriptContext(lines).init().takeUnless { it is Line }?.toString() ?: ""
+            return ShellScript(name, (lines.filterNot { it is Line && it.isEmpty() } + trailingContent).joinLinesToString())
         }
 
         /**

@@ -73,15 +73,14 @@ class ShellScriptTest {
         changeDirectoryOrExit(Path.of("/some/where"))
         echo("Hello World!")
         echo("Bye!")
-        exit(42)
+        exit(42u)
     }
 
     @Test
     fun `should build valid script`() {
-        //language=Shell Script
         expectThat(shellScript()).toStringIsEqualTo("""
             #!/bin/sh
-            cd "/some/where" || exit 1
+            'cd' '/some/where' || 'exit' '1'
             'echo' 'Hello World!'
             'echo' 'Bye!'
             'exit' '42'
@@ -95,19 +94,19 @@ class ShellScriptTest {
             .toStringIsEqualTo("echo '👈 no padding'$LF")
     }
 
-    @TestFactory
-    fun `should build with simple string`() = tests {
-        expecting {
-            ShellScript { "printenv HOME" }
-        } that {
-            toStringIsEqualTo("printenv HOME$LF")
-        }
+    @Test
+    fun `should build with string`() {
+        expectThat(ShellScript { "printenv HOME" }).toStringIsEqualTo("printenv HOME$LF")
+    }
 
-        expecting {
-            ShellScript { shebang; "printenv HOME" }
-        } that {
-            toStringIsEqualTo("#!/bin/sh${LF}printenv HOME$LF")
-        }
+    @Test
+    fun `should build with command`() {
+        expectThat(ShellScript { echo("test") }).toStringIsEqualTo("'echo' 'test'$LF")
+    }
+
+    @Test
+    fun `should build with command and string`() {
+        expectThat(ShellScript { echo("test"); "printenv HOME" }).toStringIsEqualTo("'echo' 'test'${LF}printenv HOME$LF")
     }
 
     @Test
@@ -117,7 +116,7 @@ class ShellScriptTest {
         //language=Shell Script
         expectThat(file).hasContent("""
             #!/bin/sh
-            cd "/some/where" || exit 1
+            'cd' '/some/where' || 'exit' '1'
             'echo' 'Hello World!'
             'echo' 'Bye!'
             'exit' '42'
@@ -322,7 +321,7 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang
                     echo("shebang")
-                }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+                }).containsExactly("#!/bin/sh", "'echo' 'shebang'")
             }
 
             @Test
@@ -330,7 +329,7 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang()
                     echo("shebang")
-                }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "")
+                }).containsExactly("#!/bin/sh", "'echo' 'shebang'")
             }
 
             @Test
@@ -338,7 +337,7 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang("/bin/bash")
                     echo("shebang")
-                }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
+                }).containsExactly("#!/bin/bash", "'echo' 'shebang'")
             }
 
             @Test
@@ -346,7 +345,7 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang("/bin/bash".asPath())
                     echo("shebang")
-                }).linesAreEqualTo("#!/bin/bash", "'echo' 'shebang'", "")
+                }).containsExactly("#!/bin/bash", "'echo' 'shebang'")
             }
 
             @Test
@@ -354,7 +353,7 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang("/bin/bash", "arg1", "-arg2")
                     echo("shebang")
-                }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
+                }).containsExactly("#!/bin/bash arg1 -arg2", "'echo' 'shebang'")
             }
 
             @Test
@@ -362,7 +361,7 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang("/bin/bash".asPath(), "arg1", "-arg2")
                     echo("shebang")
-                }).linesAreEqualTo("#!/bin/bash arg1 -arg2", "'echo' 'shebang'", "")
+                }).containsExactly("#!/bin/bash arg1 -arg2", "'echo' 'shebang'")
             }
 
             @Test
@@ -371,7 +370,69 @@ class ShellScriptTest {
                     shebang
                     echo("shebang")
                     shebang("/bin/bash")
-                }).linesAreEqualTo("#!/bin/sh", "'echo' 'shebang'", "#!/bin/bash", "")
+                }).containsExactly("#!/bin/sh", "'echo' 'shebang'", "#!/bin/bash")
+            }
+        }
+
+        @Nested
+        inner class WithLine {
+
+            @TestFactory
+            fun `should or`() = testEach(
+                ShellScript { echo("A") or echo("B"); echo("C") },
+                ShellScript { echo("A") or "'echo' 'B'"; echo("C") },
+            ) {
+                expecting { it } that { containsExactly("'echo' 'A' || 'echo' 'B'", "'echo' 'C'") }
+            }
+
+            @TestFactory
+            fun `should or at end`() = testEach(
+                ShellScript { echo("A"); echo("B") or echo("C") },
+                ShellScript { echo("A"); echo("B") or "'echo' 'C'" },
+            ) {
+                expecting { it } that { containsExactly("'echo' 'A'", "'echo' 'B' || 'echo' 'C'") }
+            }
+
+            @TestFactory
+            fun `should and`() = testEach(
+                ShellScript { echo("A") and echo("B"); echo("C") },
+                ShellScript { echo("A") and "'echo' 'B'"; echo("C") },
+            ) {
+                expecting { it } that { containsExactly("'echo' 'A' && 'echo' 'B'", "'echo' 'C'") }
+            }
+
+            @TestFactory
+            fun `should and at end`() = testEach(
+                ShellScript { echo("A"); echo("B") and echo("C") },
+                ShellScript { echo("A"); echo("B") and "'echo' 'C'" },
+            ) {
+                expecting { it } that { containsExactly("'echo' 'A'", "'echo' 'B' && 'echo' 'C'") }
+            }
+
+            @Test
+            fun `should redirect to file`() {
+                expectThat(ShellScript { echo("A") redirectTo "file".asPath(); echo("B") })
+                    .containsExactly("'echo' 'A' > 'file'", "'echo' 'B'")
+            }
+
+            @Test
+            fun `should redirect to file at end`() {
+                expectThat(ShellScript { echo("A"); echo("B") redirectTo "file".asPath() })
+                    .containsExactly("'echo' 'A'", "'echo' 'B' > 'file'")
+            }
+        }
+
+        @Nested
+        inner class ChangeDirectory {
+
+            @Test
+            fun `should build change directory command`() {
+                expectThat(ShellScript { changeDirectory("a/b/c".asPath()) }).containsExactly("'cd' 'a/b/c'")
+            }
+
+            @Test
+            fun `should build change directory command or exit`() {
+                expectThat(ShellScript { changeDirectoryOrExit("a/b/c".asPath()) }).containsExactly("'cd' 'a/b/c' || 'exit' '1'")
             }
         }
 
@@ -434,24 +495,16 @@ class ShellScriptTest {
             fun `should exit on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val passedTime = measureTime {
                     ShellScript {
-                        poll(URI("http://localhost:892"),
-                            interval = 1.seconds,
-                            attemptTimeout = 2.seconds,
-                            timeout = 5.seconds)
+                        poll(URI("http://localhost:892"), timeout = 1.seconds)
                     }.exec.logging()
                 }
-                expectThat(passedTime).isLessThan(8.seconds)
+                expectThat(passedTime).isLessThan(5.seconds)
             }
 
             @Test
             fun `should exit with 124 on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = ShellScript {
-                    poll(
-                        URI("http://localhost:893"),
-                        interval = 1.seconds,
-                        attemptTimeout = 2.seconds,
-                        timeout = 5.seconds,
-                    )
+                    poll(URI("http://localhost:893"), timeout = 1.seconds)
                 }.exec.logging()
                 expectThat(process.exitCode).isEqualTo(124)
             }
@@ -618,26 +671,66 @@ class ShellScriptTest {
             }
         }
 
-        @Test
-        fun `should build comments`() {
-            val sh = ShellScript {
-                comment("test")
-                "exit 0"
+        @Nested
+        inner class Shutdown {
+
+            @Test
+            fun `should build shutdown command`() {
+                expectThat(ShellScript { shutdown() }).containsExactly("'shutdown' '-h' 'now'")
             }
-            expectThat(sh).containsExactly("# test", "exit 0")
+
+            @Test
+            fun `should build shutdown command without halt flag if specified`() {
+                expectThat(ShellScript { shutdown(halt = false) }).containsExactly("'shutdown' 'now'")
+            }
+
+            @Test
+            fun `should build shutdown command with specified time`() {
+                expectThat(ShellScript { shutdown(time = "+2") }).containsExactly("'shutdown' '-h' '+2'")
+            }
+
+            @Test
+            fun `should build shutdown command with specified message`() {
+                expectThat(ShellScript { shutdown(message = "shutting down now") }).containsExactly("'shutdown' '-h' 'now' 'shutting down now'")
+            }
         }
 
-        @Test
-        fun `should build multi-line comments`() {
-            expectThat(ShellScript {
+        @Nested
+        inner class Exit {
 
-                comment("""
+            @Test
+            fun `should build exit command`() {
+                val sh = ShellScript {
+                    exit(42u)
+                }
+                expectThat(sh).containsExactly("'exit' '42'")
+            }
+        }
+
+        @Nested
+        inner class Comment {
+
+            @Test
+            fun `should build comments`() {
+                val sh = ShellScript {
+                    comment("test")
+                    "exit 0"
+                }
+                expectThat(sh).containsExactly("# test", "exit 0")
+            }
+
+            @Test
+            fun `should build multi-line comments`() {
+                expectThat(ShellScript {
+
+                    comment("""
                 line 1
                 line 2
             """.trimIndent())
-                "exit 0"
+                    "exit 0"
 
-            }).containsExactly("# line 1", "# line 2", "exit 0")
+                }).containsExactly("# line 1", "# line 2", "exit 0")
+            }
         }
 
         @Nested
@@ -722,7 +815,3 @@ inline fun <reified T : Path> Builder<T>.isScript() =
         else if (!it.exists()) fail("does not exist")
         else fail("starts with ${it.inputStream().readNBytes(2)}")
     }
-
-fun Builder<ShellScript>.linesAreEqualTo(vararg lines: String) {
-    get("build %s") { toString().lines() }.containsExactly(*lines)
-}

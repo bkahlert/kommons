@@ -116,6 +116,8 @@ kotlin {
                 showCauses = true
                 showStackTraces = true
             }
+            include("**/Ansi**.class")
+            systemProperty("org.gradle.console", "rich")
         }
 
         val anySetUpTest = tasks.withType<Test>().first()

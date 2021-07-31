@@ -249,7 +249,7 @@ class RendererProvidersTest {
         (10 downTo 5).forEach { echo(it) }
         !">&2 echo '4'"
         (3 downTo 0).forEach { echo(it) }
-        exit(1)
+        exit(1u)
     }
 
     private fun justStart() = ShellScript {
