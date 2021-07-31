@@ -3,7 +3,6 @@ package koodies.docker
 import koodies.Exceptions
 import koodies.docker.Docker.BusyBox
 import koodies.docker.Docker.CurlJq
-import koodies.docker.Docker.DockerPi
 import koodies.docker.Docker.Nginx
 import koodies.docker.Docker.Ubuntu
 import koodies.docker.Docker.info.get
@@ -282,14 +281,6 @@ public object Docker {
      */
     @Suppress("SpellCheckingInspection")
     public object AwesomeCliBinaries : DockerImage("rafib", listOf("awesome-cli-binaries"))
-
-    /**
-     * A virtualized Raspberry Pi inside a Docker image.
-     *
-     * [lukechilds/dockerpi](https://hub.docker.com/r/lukechilds/dockerpi)
-     */
-    @Suppress("SpellCheckingInspection")
-    public object DockerPi : DockerImage("lukechilds", listOf("dockerpi"), tag = "vm")
 }
 
 
@@ -641,26 +632,3 @@ public fun <R> Path.listeningNginx(
     }).waitFor()
     return result?.getOrThrow() ?: error("error running nginx")
 }
-
-
-/*
- * DOCKER-PI
- */
-
-/**
- * Boots `this` ARM based image using
- * a [dockerpi](https://hub.docker.com/lukechilds/dockerpi) based [DockerContainer]
- * and processes the [IO] with the given [processor].
- */
-@Suppress("SpellCheckingInspection")
-public fun Path.dockerPi(
-    name: String = "dockerpi".withRandomSuffix(),
-    processor: Processor<DockerExec> = Processors.spanningProcessor(),
-): DockerExec = DockerRunCommandLine(
-    image = DockerPi,
-    options = Options(
-        name = DockerContainer.from(name),
-        mounts = MountOptions { this@dockerPi mountAt "/sdcard/filesystem.img" }
-    ),
-    executable = CommandLine(""),
-).exec.mode { async(Interactive(nonBlocking = true)) }.processing(processor = processor) // TODO also set workingdir?

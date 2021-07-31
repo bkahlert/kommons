@@ -10,13 +10,8 @@ import koodies.exec.ansiKept
 import koodies.exec.ansiRemoved
 import koodies.exec.io
 import koodies.exec.output
-import koodies.io.compress.Archiver.unarchive
 import koodies.io.copyTo
 import koodies.io.path.asPath
-import koodies.io.path.copyToDirectory
-import koodies.io.path.getSize
-import koodies.io.path.listDirectoryEntriesRecursively
-import koodies.io.useClassPath
 import koodies.junit.UniqueId
 import koodies.test.HtmlFixture
 import koodies.test.Smoke
@@ -33,7 +28,6 @@ import koodies.unit.hasSize
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.fail
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
@@ -161,18 +155,6 @@ class DockerKtTest {
                 curl("-XGET", uri).output.ansiRemoved
             }
             expectThat(output).contains("<head><title>Hello Title!</title>")
-        }
-    }
-
-    @Suppress("SpellCheckingInspection")
-    @DockerRequiring @Test
-    fun `should run dockerpi`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val image = useClassPath("BCM2835Dev.5.29.zip") { it.copyToDirectory(this@withTempDir) }
-            ?.unarchive()
-            ?.listDirectoryEntriesRecursively()
-            ?.maxByOrNull { it.getSize() } ?: fail { "No image found." }
-        image.dockerPi().waitFor() asserting {
-            io.output.ansiRemoved.contains("Rebooting in 1 seconds")
         }
     }
 
