@@ -1,6 +1,6 @@
 # Releasing
 
-[Maven Central Nexus](https://oss.sonatype.org/#welcome)  
+[Maven Central Nexus](https://oss.sonatype.org/#stagingRepositories)  
 [Sonatype Jira](https://issues.sonatype.org/secure/Dashboard.jspa)
 
 New versions are released using the [Nebula Release Plugin](https://github.com/nebula-plugins/nebula-release-plugin) which

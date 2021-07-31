@@ -199,10 +199,13 @@ public open class ShellScript(
                 return this
             }
 
-            public infix fun redirectTo(file: Path): Line {
-                line += " > ${file.pathString.singleQuoted}"
+            public infix fun redirectTo(file: CharSequence): Line {
+                line += " > ${file.singleQuoted}"
                 return this
             }
+
+            public infix fun redirectTo(file: Path): Line =
+                redirectTo(file.pathString)
 
             override val length: Int get() = line.length
             override fun get(index: Int): Char = line[index]
