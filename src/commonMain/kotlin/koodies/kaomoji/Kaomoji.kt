@@ -336,6 +336,11 @@ public data class Kaomoji(
         public val Excited: koodies.kaomoji.categories.Excited = koodies.kaomoji.categories.Excited
 
         /**
+         * Selection of eyes [Kaomoji]
+         */
+        public val Eyes: koodies.kaomoji.categories.Eyes = koodies.kaomoji.categories.Eyes
+
+        /**
          * Selection of falling down [Kaomoji]
          */
         public val FallingDown: koodies.kaomoji.categories.FallingDown = koodies.kaomoji.categories.FallingDown
@@ -634,11 +639,6 @@ public data class Kaomoji(
          * Selection of TV-related [Kaomoji]
          */
         public val TV: koodies.kaomoji.categories.TV = koodies.kaomoji.categories.TV
-
-        /**
-         * Selection of unicode [Kaomoji]
-         */
-        public val Unicode: koodies.kaomoji.categories.Unicode = koodies.kaomoji.categories.Unicode
 
         /**
          * Selection of upset [Kaomoji]

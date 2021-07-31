@@ -130,7 +130,7 @@ class KaomojiTest {
         Kaomoji.Sad, Kaomoji.Salute, Kaomoji.Scared, Kaomoji.Screaming, Kaomoji.Sheep, Kaomoji.Shocked, Kaomoji.Shrugging, Kaomoji.Shy, Kaomoji.Sleeping,
         Kaomoji.Smiling, Kaomoji.Smoking, Kaomoji.Sparkling, Kaomoji.Spinning, Kaomoji.StereoTypes, Kaomoji.Surprised, Kaomoji.Sweating,
         Kaomoji.TableFlipping, Kaomoji.TakeABow, Kaomoji.ThatsIt, Kaomoji.ThumbsUp, Kaomoji.Tired, Kaomoji.Trembling, Kaomoji.TryMyBest, Kaomoji.TV,
-        Kaomoji.Unicode, Kaomoji.Upset,
+        Kaomoji.Eyes, Kaomoji.Upset,
         Kaomoji.Vomitting,
         Kaomoji.Weapons, Kaomoji.Weird, Kaomoji.Whales, Kaomoji.Why, Kaomoji.Winking, Kaomoji.Wizards, Kaomoji.Writing,
     ) { category ->
