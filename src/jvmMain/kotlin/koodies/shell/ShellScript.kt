@@ -1,5 +1,6 @@
 package koodies.shell
 
+import koodies.Koodies
 import koodies.exec.CommandLine
 import koodies.exec.Exec
 import koodies.exec.ExecTerminationCallback
@@ -8,6 +9,7 @@ import koodies.io.createParentDirectories
 import koodies.io.path.executable
 import koodies.io.path.pathString
 import koodies.io.path.writeText
+import koodies.io.tempFile
 import koodies.shell.ShellScript.ScriptContext
 import koodies.shell.ShellScript.ScriptContext.Line
 import koodies.text.Banner.banner
@@ -19,6 +21,7 @@ import koodies.text.quoted
 import koodies.text.singleQuoted
 import koodies.time.minutes
 import koodies.time.seconds
+import koodies.toBaseName
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
 import java.net.URI
@@ -150,7 +153,11 @@ public open class ShellScript(
      * Saves this shell script at the specified [path] and sets its [executable] flag.
      * @see toString
      */
-    public fun toFile(path: Path, echoName: Boolean = false, name: CharSequence? = this.name): Path = path.apply {
+    public fun toFile(
+        path: Path = Koodies.FilesTemp.tempFile(this.name.toBaseName(), ".sh"),
+        echoName: Boolean = false,
+        name: CharSequence? = this.name,
+    ): Path = path.apply {
         if (notExists()) createParentDirectories().createFile()
         writeText(this@ShellScript.toString(echoName, name))
         executable = true
