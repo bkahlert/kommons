@@ -28,6 +28,10 @@ import kotlin.time.Duration
 public class NonBlockingReader(
     private val inputStream: InputStream,
     private val timeout: Duration = 6.seconds,
+    /**
+     * Whether to ignore the specified [timeout] if nothing was read so far,
+     * that is, the [timeout] is only applied if at least one character was read.
+     */
     private val blockOnEmptyLine: Boolean = false,
 ) : BufferedReader(Reader.nullReader()) {
 
@@ -102,10 +106,10 @@ public class NonBlockingReader(
             }
 
             if (currentTimeMillis() >= latestReadMoment && !(blockOnEmptyLine && unfinishedLine.isEmpty())) {
-                // TODO evaluate if better to call a callback and continue working (without returning half-read lines)
                 lastReadLineDueTimeout = true
                 return "$unfinishedLine".also {
                     lastReadLine = it
+                    unfinishedLine.clear()
                 }.trailingLineSeparatorRemoved
             }
         }

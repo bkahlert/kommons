@@ -57,14 +57,14 @@ class NonBlockingReaderTest : SharedReaderTest({ inputStream: InputStream, timeo
         }
 
         @Smoke @Test
-        fun `should read full line if split delayed`() {
+        fun `should read separate line if delayed split`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
                 1.5.seconds to "Foo\nB",
                 1.5.seconds to "ar$LF",
             )
 
-            expectThat(read(slowInputStream)).containsExactly("", "Foo", "B", "Bar")
+            expectThat(read(slowInputStream)).containsExactly("", "Foo", "B", "ar")
         }
 
         private fun read(slowInputStream: InputStream): List<String> {

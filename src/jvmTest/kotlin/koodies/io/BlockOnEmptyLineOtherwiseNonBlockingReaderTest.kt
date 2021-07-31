@@ -73,14 +73,14 @@ class BlockOnEmptyLineOtherwiseNonBlockingReaderTest :
         }
 
         @Test
-        fun `should read full line if delayed split`() {
+        fun `should read separate line if delayed split`() {
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
                 1.5.seconds to "Foo\nB",
                 1.5.seconds to "ar$LF",
             )
 
-            expectThat(readerFactory(slowInputStream, 1.seconds).readLines()).containsExactly("Foo", "B", "Bar")
+            expectThat(readerFactory(slowInputStream, 1.seconds).readLines()).containsExactly("Foo", "B", "ar")
         }
     }
 }
