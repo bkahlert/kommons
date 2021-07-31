@@ -38,25 +38,25 @@ public class Jaeger(hostname: String) {
      * Starts a Jaeger container locally unless Jaeger [isRunning] already.
      */
     public fun startLocally(): String {
-        if (isRunning) return protobufEndpoint.toString()
-
-        DockerRunCommandLine(
-            image = DockerImage("jaegertracing", listOf("all-in-one")),
-            options = Options(
-                name = DockerContainer.from("jaeger"),
-                detached = true,
-                publish = listOf(
-                    "5775:5775/udp",
-                    "6831:6831/udp",
-                    "6832:6832/udp",
-                    "5778:5778",
-                    "16686:${uiEndpoint.port}",
-                    "14268:14268",
-                    "14250:${protobufEndpoint.port}",
-                    "9411:9411",
+        if (!isRunning) {
+            DockerRunCommandLine(
+                image = DockerImage("jaegertracing", listOf("all-in-one")),
+                options = Options(
+                    name = DockerContainer.from("jaeger"),
+                    detached = true,
+                    publish = listOf(
+                        "5775:5775/udp",
+                        "6831:6831/udp",
+                        "6832:6832/udp",
+                        "5778:5778",
+                        "16686:${uiEndpoint.port}",
+                        "14268:14268",
+                        "14250:${protobufEndpoint.port}",
+                        "9411:9411",
+                    ),
                 ),
-            ),
-        ).exec.processing(processor = Processors.processingProcessor(RendererProviders.errorsOnly()))
+            ).exec.processing(processor = Processors.processingProcessor(RendererProviders.errorsOnly()))
+        }
 
         return protobufEndpoint.toString()
     }

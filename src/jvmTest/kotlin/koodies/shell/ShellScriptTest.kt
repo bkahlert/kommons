@@ -13,7 +13,10 @@ import koodies.exec.IO.Output
 import koodies.exec.exitCode
 import koodies.exec.exitCodeOrNull
 import koodies.exec.io
+import koodies.io.Locations
 import koodies.io.copyTo
+import koodies.io.file.pathString
+import koodies.io.isInside
 import koodies.io.path.asPath
 import koodies.io.path.hasContent
 import koodies.io.path.pathString
@@ -57,7 +60,9 @@ import strikt.assertions.isLessThan
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
+import strikt.assertions.startsWith
 import strikt.java.exists
+import strikt.java.fileName
 import strikt.java.isExecutable
 import java.net.URI
 import java.nio.file.Path
@@ -109,33 +114,44 @@ class ShellScriptTest {
         expectThat(ShellScript { echo("test"); "printenv HOME" }).toStringIsEqualTo("'echo' 'test'${LF}printenv HOME$LF")
     }
 
-    @Test
-    fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val file = randomFile(extension = ".sh")
-        shellScript().toFile(file)
-        //language=Shell Script
-        expectThat(file).hasContent("""
-            #!/bin/sh
-            'cd' '/some/where' || 'exit' '1'
-            'echo' 'Hello World!'
-            'echo' 'Bye!'
-            'exit' '42'
+    @Nested
+    inner class ToFile {
 
-        """.trimIndent())
-    }
+        @Test
+        fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val file = shellScript().toFile()
+            expectThat(file)
+                .hasContent("""
+                    #!/bin/sh
+                    'cd' '/some/where' || 'exit' '1'
+                    'echo' 'Hello World!'
+                    'echo' 'Bye!'
+                    'exit' '42'
+        
+                """.trimIndent())
+        }
 
-    @Test
-    fun `should write executable script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val file = randomFile(extension = ".sh")
-        val returnedScript = shellScript().toFile(file)
-        expectThat(returnedScript).isExecutable()
-    }
+        @Test
+        fun `should use name for filename`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val file = shellScript("my script").toFile()
+            expectThat(file)
+                .isInside(Locations.Temp)
+                .fileName.pathString.startsWith("my-script")
+        }
 
-    @Test
-    fun `should return same file as saved to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val file = randomFile(extension = ".sh")
-        val returnedScript = shellScript().toFile(file)
-        expectThat(returnedScript).isEqualTo(file)
+        @Test
+        fun `should write executable script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val file = randomFile(extension = ".sh")
+            val returnedScript = shellScript().toFile(file)
+            expectThat(returnedScript).isExecutable()
+        }
+
+        @Test
+        fun `should return same file as saved to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val file = randomFile(extension = ".sh")
+            val returnedScript = shellScript().toFile(file)
+            expectThat(returnedScript).isEqualTo(file)
+        }
     }
 
     @Nested
