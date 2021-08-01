@@ -1,6 +1,5 @@
 package koodies.kaomoji
 
-import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.CodePoint
 import koodies.text.LineSeparators.LF
@@ -8,6 +7,7 @@ import koodies.text.LineSeparators.lines
 import koodies.text.asCodePointSequence
 import koodies.text.charCount
 import koodies.text.codePointCount
+import koodies.text.columns
 import koodies.text.maxLength
 import koodies.text.padEnd
 import koodies.text.takeIfNotBlank
@@ -89,7 +89,7 @@ public data class Kaomoji(
         return Kaomoji(leftArm, leftEye, mouth, rightEye, fishingArm, "$fishingRod$fish")
     }
 
-    private val blank: String by lazy { ansi.hidden.done }
+    private val blank: String by lazy { " ".repeat(toString().columns) }
 
     /**
      * Returns a thinking [Kaomoji] of the form:

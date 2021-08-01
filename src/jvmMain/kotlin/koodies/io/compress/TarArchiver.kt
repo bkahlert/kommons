@@ -33,7 +33,9 @@ public object TarArchiver {
     ): Path {
         requireExists()
         if (overwrite) destination.deleteRecursively() else destination.requireExistsNot()
-        TarArchiveOutputStream(destination.bufferedOutputStream()).use { addToArchive(it, predicate) }
+        TarArchiveOutputStream(destination.bufferedOutputStream())
+            .apply { setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX) }
+            .use { addToArchive(it, predicate) }
         return destination
     }
 
@@ -50,7 +52,8 @@ public object TarArchiver {
         if (overwrite) destination.deleteRecursively()
         if (!destination.exists()) destination.createDirectories()
         if (!overwrite) destination.requireEmpty()
-        TarArchiveInputStream(bufferedInputStream()).use { it.unarchiveTo(destination) }
+        TarArchiveInputStream(bufferedInputStream())
+            .use { it.unarchiveTo(destination) }
         return destination
     }
 }

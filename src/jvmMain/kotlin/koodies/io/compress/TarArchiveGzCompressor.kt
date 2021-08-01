@@ -37,7 +37,9 @@ public object TarArchiveGzCompressor {
         requireExists()
         if (overwrite) destination.deleteRecursively() else destination.requireExistsNot()
         GzipCompressorOutputStream(destination.outputStream()).use { gzipOutput ->
-            TarArchiveOutputStream(gzipOutput).use { addToArchive(it, predicate) }
+            TarArchiveOutputStream(gzipOutput)
+                .apply { setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX) }
+                .use { addToArchive(it, predicate) }
         }
         return destination
     }

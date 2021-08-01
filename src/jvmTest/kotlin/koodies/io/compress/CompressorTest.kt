@@ -66,7 +66,7 @@ class CompressorTest {
         file.requireNotEmpty()
 
         val compressedFile = file.compress()
-        expectThat(compressedFile.getSize()).isLessThan(file.getSize())
+        expectThat(compressedFile.getSize()).isLessThan(file.getSize() * 1.2)
 
         val renamedFile = file.renameTo("example".withRandomSuffix() + ".html")
 

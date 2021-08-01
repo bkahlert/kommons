@@ -7,7 +7,6 @@ import koodies.runtime.AnsiSupport.ANSI4
 import koodies.runtime.AnsiSupport.NONE
 import koodies.runtime.ansiSupport
 import koodies.runtime.isDebugging
-import koodies.runtime.isDeveloping
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.ANSI.Text.ColoredText
@@ -385,7 +384,7 @@ public object ANSI {
         public val italic: T get() = style(Style.italic)
         public val underline: T get() = style(Style.underline)
         public val inverse: T get() = style(Style.inverse)
-        public val hidden: T get() = style(if (isDeveloping) Formatter { " ".repeat(toString().columns) } else Style.hidden)
+        public val hidden: T get() = style(Style.hidden)
         public val strikethrough: T get() = style(Style.strikethrough)
     }
 

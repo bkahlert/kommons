@@ -62,7 +62,7 @@ class TarArchiverTest {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tar()
-        expectThat(archivedDir.getSize()).isGreaterThan(dir.getSize())
+        expectThat(archivedDir.getSize()).isGreaterThan(dir.getSize() * 1.2)
 
         val renamedDir = dir.renameTo("${dir.fileName}-renamed")
 

@@ -24,7 +24,7 @@ class TraversingKtTest {
             else kotlin.runCatching { fileSize().bytes }.getOrElse { 0.bytes }
         }
 
-        expectThat(totalSize).isEqualTo(144.bytes)
+        expectThat(totalSize).isEqualTo(242.bytes)
     }
 
     @Test

@@ -19,6 +19,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.ArchiveOutputStream
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -51,7 +52,10 @@ public object Archiver {
         } else {
             requireExists()
             if (overwrite) destination.deleteRecursively() else destination.requireExistsNot()
-            ArchiveStreamFactory().createArchiveOutputStream(format, destination.outputStream()).use { addToArchive(it, predicate) }
+            ArchiveStreamFactory()
+                .createArchiveOutputStream(format, destination.outputStream())
+                .apply { if (this is TarArchiveOutputStream) setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX) }
+                .use { addToArchive(it, predicate) }
             destination
         }
 

@@ -34,6 +34,8 @@ import kotlin.time.Duration
 
 /**
  * A shell script.
+ *
+ * @see <a href="https://pubs.opengroup.org/onlinepubs/7908799/xcu/chap2.html">Shell Command Language</a>
  */
 public open class ShellScript(
 

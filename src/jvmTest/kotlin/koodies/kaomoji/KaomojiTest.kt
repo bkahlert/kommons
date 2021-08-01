@@ -5,6 +5,7 @@ import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
+import koodies.text.columns
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -37,7 +38,7 @@ class KaomojiTest {
     inner class Thinking {
 
         private val kaomoji = Kaomoji.Bears.first()
-        private val blank = kaomoji.ansi.hidden
+        private val blank = " ".repeat(kaomoji.toString().columns)
 
         @TestFactory
         fun `should render empty`() = testEach(null, "", "   ") {

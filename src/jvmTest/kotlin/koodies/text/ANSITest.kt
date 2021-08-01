@@ -1,11 +1,9 @@
 package koodies.text
 
-import koodies.runtime.isDeveloping
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Style
 import koodies.text.ANSI.Style.bold
-import koodies.text.ANSI.Style.hidden
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.ANSI.colorize
@@ -210,8 +208,7 @@ class ANSITest {
 
         @Test
         fun `should format hidden`() {
-            expectThat("hidden".ansi.hidden)
-                .toStringIsEqualTo(if (isDeveloping) " ".repeat("hidden".columns) else hidden("hidden").toString(), false)
+            expectThat("hidden".ansi.hidden).toStringIsEqualTo(Style.hidden.invoke("hidden").toString(), false)
         }
 
         @Test

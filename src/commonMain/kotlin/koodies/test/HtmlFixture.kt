@@ -11,7 +11,7 @@ public object HtmlFixture : Fixture<String>, InMemoryTextFile(
         <html>
           <head><title>Hello Title!</title>
         </head>
-        <body>
+        <body style="background: url('data:image/gif;base64,R0lGODdhAQADAPABAP////8AACwAAAAAAQADAAACAgxQADs=')">
             <h1>Hello Headline!</h1>
             <p>Hello World!</p>
         </body>
