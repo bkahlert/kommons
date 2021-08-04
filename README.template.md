@@ -425,171 +425,92 @@ listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 42.mebi.days
 ```
 
-### More…
+### Unicode
 
-* Logging
-  ```kotlin
-  logging {
-    logLine { "lazy log message" }
-  }
-  ```
+#### Code Points and Grapheme Clusters
 
-* Fixtures
+```kotlin
+// Process each actual character (and not each `char`)
+"aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67".asCodePointSequence {
+    println(it) // "a", "Ⓑ", "☷", ":woman:" ZWJ, ":woman:", ZWJ, ":girl:", ZWJ, ":girl:"
+}
+```
 
-  **In-Memory**
-  ```kotlin
-  object HtmlFile : Fixture by TextFixture("example.html", 
-    """
-      <html>
-      …
-      </html>
-    """.trimIndent())
-  
-  HtmlFile.copyTo(Locations.Temp)
-  ```
+#### [LineSeparators](src/commonMain/kotlin/koodies/text/LineSeparators.kt)
 
-  **Jar / Class Path**
-  ```kotlin
-  object META_INF : ClassPathDirectoryFixture("META-INF") {
-      object Services : Dir("services") {
-          object JUnitExtensions : File("org.junit.jupiter.api.extension.Extension")
-      }
-  }
-  
-  println(META_INF.Services.JUnitExtensions.text)
-  ```
-
-* Constrained Functions
-  ```kotlin
-  class A {
-    val work by callable(atMost=2) {
-      doSomething()
-    }
-  }
-  
-  A().apply {
-    work() // calls doSomething()
-    work() // calls doSomething()
-    work() // only returns result of last call
-  }
-  ```
-
-* Time
-  ```kotlin
-  Now.emoji // :clock230: (= emoji showing the correct time) 
-  ```
-
-  ```kotlin
-  if(file.age > 3.minutes) …
-  ```
-
-* Unicode & Code Points
-
-  **Named Characters and Dictionary**
-  ```kotlin
-  Unicode.BoxDrawings.asTable()
-  ```
-  ```shell
-  ─	BOX DRAWINGS LIGHT HORIZONTAL
-  ━	BOX DRAWINGS HEAVY HORIZONTAL
-  │	BOX DRAWINGS LIGHT VERTICAL
-  ┃	BOX DRAWINGS HEAVY VERTICAL
-  …
-  ```  
-
-  **Process Each Actual Character** (and not each `char`)
-  ```kotlin
-  "aⒷ☷\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67".asCodePointSequence() -> "a", "Ⓑ", "☷", ":woman:" ZWJ, ":woman:", ZWJ, ":girl:", ZWJ, ":girl:"
-  ```
-
-* Colors & Formatting
-  ```shell
-  "string in".ansi.cyan + "or" + "bold".ansi.bold
-  ```
-
-* Kaomoji
-  ```kotlin
-  Kaomoji.Wizards.`(#-_-)o´・━・・━・━━・━☆`.random()
-  ```
-  [![Kaomoji](assets/Kaomoji.png)](assets/Kaomoji.png)
-
-* Borders, Boxes, …
-
-  ```shell
-   ╭───────────────────────────────────────────────────╮ 
-   │                                                   │ 
-   │        Done. All tests passed within 1.20s        │ 
-   │                                                   │ 
-   ╰───────────────────────────────────────────────────╯ 
-  ```
-
-  ```shell
-    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-    ████▌▄▌▄▐▐▌█████
-    ████▌▄▌▄▐▐▌▀████
-    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-  ```
-
-* Debugging
-
-  Check if your program currently runs in debugging mode.
-  ```kotlin
-  if(isDebugging) { … }
-  ```
-
-  Use `debug` to check what's actually inside a `String`:
-  ```kotlin
-  "a  b\n".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
-  "�" // D800▌﹍ (low surrogate with a missing high surrogate)
-  ```
-
-  Use `trace` to print stuff without interrupting the call chain:
-  ```kotlin
-  chain().of.endless().calls()
-  
-  // print return value of endless()
-  chain().of.endless().trace.calls() 
-  
-  // prints return value of endless() formatted with debug
-  chain().of.endless().trace { debug }.calls() 
-  ```
-    - Never look for orphaned print statements again. trace is declared as deprecated and inflicts a build warning.  
-      `w: Koodies.kt: (42, 15): 'trace: T' is deprecated. Don't forget to remove after you finished debugging.`
-    - trace has `replaceWith` set so that in IntelliJ the cleanup action removes all trace statements in one stroke.
-    - Each trace statement prints the file and line it was called at.  
-      `.ͥ (Koodies.kt:42) ⟨ … ⟩`
-
-* Line Separators are defined in the [LineSeparators](src/commonMain/kotlin/koodies/text/LineSeparators.kt)
-  and [Unicode](src/commonMain/kotlin/koodies/text/Unicode.kt) object
-
-  ```kotlin
-  LineSeparators.toList() == listOf(
+```kotlin
+LineSeparators.toList() == listOf(
     LineSeparators.CRLF, // carriage return + line feed (\\r\\n)
     LineSeparators.LF,   // line feed (\\n)
     LineSeparators.CR,   // carriage return (\\r)
     LineSeparators.NL,   // next line 
     LineSeparators.PS,   // paragraph separator 
     LineSeparators.LS,   // line separator
-  )
-  ```
+)
+```
 
-  Split string into its lines…
+##### Split string into its lines…
+
+```kotlin
+"""
+line 1
+line 2
+  
+""".lines() // line 1, line 2 
+```
+
+##### Split string into its lines lazily and keep the line separator…
+
   ```kotlin
   """
   line 1
   line 2
-  
-  """.lines() // line 1, line 2 
+ 
+  """.lineSequence(keepDelimiters = true) // line 1⏎␤, line 2⏎␍␊ 
   ```
 
-  Split string into its lines lazily and keep the line separator…
-    ```kotlin
-    """
-    line 1
-    line 2
-  
-    """.lineSequence(keepDelimiters=true) // line 1⏎␤, line 2⏎␍␊ 
-    ```
+#### Kaomoji
+
+```kotlin
+Kaomoji.Wizards.`(#-_-)o´・━・・━・━━・━☆`.random()
+```
+
+[![Kaomoji](assets/Kaomoji.png)](assets/Kaomoji.png)
+
+### Debugging
+
+Check if your program currently runs in debugging mode.
+
+  ```kotlin
+  if (isDebugging) {
+    …
+}
+  ```
+
+Use `debug` to check what's actually inside a `String`:
+
+  ```kotlin
+  "a  b\n".debug // a ❲THREE-PER-EM SPACE❳ b ⏎␊
+"�" // D800▌﹍ (low surrogate with a missing high surrogate)
+  ```
+
+Use `trace` to print stuff without interrupting the call chain:
+
+```kotlin
+chain().of.endless().calls()
+
+// print return value of endless()
+chain().of.endless().trace.calls()
+
+// prints return value of endless() formatted with debug
+chain().of.endless().trace { debug }.calls() 
+```
+
+- Never look for orphaned print statements again. trace is declared as deprecated and inflicts a build warning.  
+  `w: Koodies.kt: (42, 15): 'trace: T' is deprecated. Don't forget to remove after you finished debugging.`
+- trace has `replaceWith` set so that in IntelliJ the cleanup action removes all trace statements in one stroke.
+- Each trace statement prints the file and line it was called at.  
+  `.ͥ (Koodies.kt:42) ⟨ … ⟩`
 
 ----
 **Upgrading**
