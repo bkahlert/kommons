@@ -187,7 +187,7 @@ class JavaExecTest {
             })
 
             kotlin.runCatching {
-                exec.process(ProcessingMode { async }) { exec, callback ->
+                exec.process(ProcessingMode(async = true)) { exec, callback ->
                     callback { io ->
                         if (io !is Meta && io !is Input) {
                             kotlin.runCatching { exec.enter("just read $io") }

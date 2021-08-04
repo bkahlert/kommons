@@ -115,7 +115,7 @@ public class DockerContainer(public val name: String) {
         async: Boolean = false,
     ): ExitState =
         DockerStopCommandLine(name, time = timeout)
-            .exec.apply { if (async) mode { this.async } }
+            .exec.run { if (async) this.async else this }
             .logging(renderer = noDetails()).waitFor()
 
     /**
@@ -126,7 +126,7 @@ public class DockerContainer(public val name: String) {
         async: Boolean = false,
     ): ExitState =
         DockerKillCommandLine(name, signal = signal)
-            .exec.apply { if (async) mode { this.async } }
+            .exec.run { if (async) this.async else this }
             .logging(renderer = noDetails()).waitFor()
 
     /**
@@ -224,7 +224,7 @@ public class DockerContainer(public val name: String) {
             async: Boolean = false,
         ): ExitState =
             DockerKillCommandLine(*containers.map { it.name }.toTypedArray(), signal = signal)
-                .exec.apply { if (async) mode { this.async } }
+                .exec.run { if (async) this.async else this }
                 .logging(renderer = noDetails()).waitFor()
 
         /**

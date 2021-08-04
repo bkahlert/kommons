@@ -5,8 +5,7 @@
 <!-- C21E73 -->
 
 **Koodies is a Kotlin Multiplatform Library, with a minimal set of dependencies, allowing you to run Command Lines and Shell Scripts, locally or in a Docker
-Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, Unicode-aware string functions and
-stuff the world doesn't need `Kaomoji.Heroes.‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞o`.**
+Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, and Unicode-related features.**
 
 ## Installation / Setup
 
@@ -252,41 +251,6 @@ MMMMMMMMMMMMMMMMMMMM▆▂Zg33g▀BWWWRZ&▆▂gTxvvvvvvvvvv
 - See [ExecutionIntegrationTest.kt](src/jvmTest/kotlin/koodies/ExecutionIntegrationTest.kt) and
   [Docker.kt](src/jvmMain/kotlin/koodies/docker/Docker.kt) for more examples.
 
-### JUnit + Strikt Integration + Automatically Named Tests
-
-```kotlin
-class Tests {
-
-    @TestFactory
-    fun `testing with subject`() = test("subject") {
-
-        "other" asserting { isEqualTo("other") }
-        asserting { isEqualTo("subject") }
-        expecting { length } that { isGreaterThan(5) }
-        expecting { length }
-            .that { isGreaterThan(5) }
-        expectCatching { length } that { isSuccess() }
-        expectThrows<RuntimeException> { throw RuntimeException() }
-        expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
-    }
-
-    @TestFactory
-    fun `testing without subject`() = tests {
-
-        "other" asserting { isEqualTo("other") }
-        asserting("subject") { isEqualTo("subject") }
-        expecting { "subject".length } that { isGreaterThan(5) }
-        expecting { "subject".length }
-            .that { isGreaterThan(5) }
-        expectCatching { "subject".length } that { isSuccess() }
-        expectThrows<RuntimeException> { throw RuntimeException() }
-        expectThrows<RuntimeException> { throw RuntimeException() } that { message.isNullOrEmpty() }
-    }
-}
-```
-
-[![JUnit Test Results](assets/JUnit-Strikt-Naming.png)](assets/JUnit-Strikt-Naming.png)
-
 ### Multi-Platform Builders
 
 #### Array Builder
@@ -357,24 +321,8 @@ directory.deleteRecursively()
 #### Fluent API
 
 ```kotlin
-if (path.notExists()) path.withDirectoriesCreated().createFile()
+if (path.notExists()) path.createParentDirectories().createFile()
 ```
-
-#### Non-Blocking DynamicInputStream & DynamicReadableByteChannel
-
-```kotlin
-val inputStream = DynamicInputStream()
-// Data can be yielded everytime you want until you call close().
-inputStream.yield("Hello World!".toByteArray())
-// Stream effectively closes only after all data have been read.
-inputStream.close()
-
-val bytes = inputStream.readBytes()
-
-expectThat(bytes).isEqualTo("Hello World!".toByteArray())
-```
-
-Same functionality provided by `DynamicReadableByteChannel`.
 
 ### Units
 
@@ -468,14 +416,6 @@ line 2
  
   """.lineSequence(keepDelimiters = true) // line 1⏎␤, line 2⏎␍␊ 
   ```
-
-#### Kaomoji
-
-```kotlin
-Kaomoji.Wizards.`(#-_-)o´・━・・━・━━・━☆`.random()
-```
-
-[![Kaomoji](assets/Kaomoji.png)](assets/Kaomoji.png)
 
 ### Debugging
 

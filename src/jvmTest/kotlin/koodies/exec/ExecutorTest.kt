@@ -6,7 +6,6 @@ import koodies.exec.Process.ExitState
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
-import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.io.Locations
 import koodies.io.path.asPath
 import koodies.io.path.pathString
@@ -438,7 +437,7 @@ class ExecutorTest {
         @Smoke @Test
         fun `should apply custom processing options`() {
             val processed = mutableListOf<IO>()
-            CommandLine("cat").exec.testProp.mode { async(NonInteractive("Hello Cat!$LF".byteInputStream())) }.processing { _, process ->
+            CommandLine("cat").exec.testProp.mode(ProcessingMode(async = true, "Hello Cat!$LF".byteInputStream())).processing { _, process ->
                 process { io ->
                     processed.add(io)
                 }

@@ -5,7 +5,6 @@ import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.Process.State.Running
 import koodies.exec.ProcessingMode
-import koodies.exec.ProcessingMode.Interactivity.NonInteractive
 import koodies.exec.enter
 import koodies.exec.exitCode
 import koodies.exec.fails
@@ -27,7 +26,7 @@ import koodies.exec.status
 import koodies.exec.succeeds
 import koodies.io.ByteArrayOutputStream
 import koodies.jvm.daemon
-import koodies.nio.NonBlockingReader
+import koodies.nio.InputStreamReader
 import koodies.test.Slow
 import koodies.test.expectThrows
 import koodies.test.expecting
@@ -295,34 +294,6 @@ class JavaExecMockTest {
 
     @Slow
     @Test
-    fun `should terminate if all output is manually read`() {
-        val p = withIndividuallySlowInput(
-            0.5.seconds to "Welcome!$LF",
-            0.5.seconds to "Password? ",
-            prompt(),
-            0.5.seconds to "\r",
-            0.5.seconds to "Correct!$LF",
-            baseDelayPerInput = 1.seconds,
-            echoInput = true,
-        )
-
-        val reader = NonBlockingReader(p.inputStream)
-
-        daemon {
-            Thread.sleep(5000)
-            p.outputStream.enter("password")
-        }
-
-        expectThat(reader.readLine()).isEqualTo("Welcome!")
-        expectThat(reader.readLine()).isEqualTo("Password? password")
-        expectThat(reader.readLine()).isEqualTo("")
-        expectThat(reader.readLine()).isEqualTo("Correct!")
-        expectThat(reader.readLine()).isEqualTo(null)
-        expectThat(p.isAlive).isFalse()
-    }
-
-    @Slow
-    @Test
     fun `should terminate if all output is consumed`() {
         val p = withIndividuallySlowInput(
             0.5.seconds to "Welcome!$LF",
@@ -334,7 +305,7 @@ class JavaExecMockTest {
             echoInput = true,
         )
 
-        val reader = NonBlockingReader(p.inputStream)
+        val reader = InputStreamReader(p.inputStream)
 
         daemon {
             Thread.sleep(5000)
@@ -388,7 +359,7 @@ class JavaExecMockTest {
             exec.enter("shutdown")
         }
 
-        val status = exec.process(ProcessingMode { async(NonInteractive(null)) }).waitFor()
+        val status = exec.process(ProcessingMode(async = true)).waitFor()
 
         expectThat(status) {
             isA<Succeeded>().exitCode.isEqualTo(0)

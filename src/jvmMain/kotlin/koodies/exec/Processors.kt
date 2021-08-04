@@ -2,20 +2,13 @@ package koodies.exec
 
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.context.Context
-import koodies.builder.StatelessBuilder
 import koodies.exec.IO.Error
 import koodies.exec.IO.Output
 import koodies.exec.Process.ExitState
-import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
-import koodies.exec.ProcessingMode.Interactivity
-import koodies.exec.ProcessingMode.Interactivity.Interactive
-import koodies.exec.ProcessingMode.Interactivity.NonInteractive
-import koodies.exec.ProcessingMode.Synchronicity.Async
-import koodies.exec.ProcessingMode.Synchronicity.Sync
 import koodies.exec.Processors.spanningProcessor
 import koodies.jvm.completableFuture
+import koodies.nio.InputStreamReader
 import koodies.nio.NonBlockingLineReader
-import koodies.nio.NonBlockingReader
 import koodies.tracing.CurrentSpan
 import koodies.tracing.Event
 import koodies.tracing.Key.KeyValue
@@ -28,11 +21,9 @@ import koodies.tracing.rendering.RendererProvider
 import koodies.tracing.spanning
 import java.io.IOException
 import java.io.InputStream
-import java.io.Reader
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
-import org.jline.utils.InputStreamReader as JlineInputStreamReader
 
 /**
  * A processor is a function that accepts an [Exec] and
@@ -84,31 +75,21 @@ public object Processors {
  * so they get logged.
  */
 public inline fun <reified E : Exec> E.processSilently(): E =
-    process(ProcessingMode { async }, processor = spanningProcessor())
+    process(ProcessingMode(async = true), processor = spanningProcessor())
 
+/**
+ * The way the [IO] of an [Exec] should be processed.
+ */
 public data class ProcessingMode(
-    val synchronicity: Synchronicity,
-    val interactivity: Interactivity,
-) {
-
-    public val isSync: Boolean get() = synchronicity == Sync
-
-    public enum class Synchronicity { Sync, Async }
-
-    public sealed class Interactivity {
-        public class Interactive(public val nonBlocking: Boolean) : Interactivity()
-        public class NonInteractive(public val execInputStream: InputStream?) : Interactivity()
-    }
-
-    public companion object : StatelessBuilder.Returning<ProcessingModeContext, ProcessingMode>(ProcessingModeContext) {
-        public object ProcessingModeContext {
-            public val sync: ProcessingMode = ProcessingMode(Sync, NonInteractive(null))
-            public fun sync(interactivity: Interactivity): ProcessingMode = ProcessingMode(Sync, interactivity)
-            public val async: ProcessingMode = ProcessingMode(Async, NonInteractive(null))
-            public fun async(interactivity: Interactivity): ProcessingMode = ProcessingMode(Async, interactivity)
-        }
-    }
-}
+    /**
+     * Whether to process asynchronously.
+     */
+    public val async: Boolean = false,
+    /**
+     * Optional input stream to connect the [Exec] with.
+     */
+    public val inputStream: InputStream? = null,
+)
 
 /**
  * Attaches to the [Exec.outputStream] and [Exec.errorStream]
@@ -118,11 +99,11 @@ public data class ProcessingMode(
  * printed to the console.
  */
 public fun <E : Exec> E.process(
-    mode: ProcessingMode = ProcessingMode { sync },
+    mode: ProcessingMode = ProcessingMode(),
     processor: Processor<E> = spanningProcessor(),
-): E = when (mode.synchronicity) {
-    Sync -> processSynchronously(mode.interactivity, processor)
-    Async -> processAsynchronously(mode.interactivity, processor)
+): E = when (mode.async) {
+    false -> processSynchronously(mode.inputStream, processor)
+    true -> processAsynchronously(mode.inputStream, processor)
 }
 
 /**
@@ -133,7 +114,7 @@ public fun <E : Exec> E.process(
  * If no [processor] is specified a [Processors.spanningProcessor] traces all [IO].
  */
 public fun <E : Exec> E.processSynchronously(
-    interactivity: Interactivity = NonInteractive(null),
+    execInputStream: InputStream? = null,
     processor: Processor<E> = spanningProcessor(),
 ): E = apply {
     processor(this) { process ->
@@ -148,8 +129,9 @@ public fun <E : Exec> E.processSynchronously(
             },
         )
 
-        if (interactivity is NonInteractive && interactivity.execInputStream != null) {
-            interactivity.execInputStream.copyTo(inputStream)
+        execInputStream?.also {
+            it.copyTo(inputStream)
+            it.close()
             inputStream.close()
         }
         while (readers.any { !it.done }) {
@@ -171,7 +153,7 @@ public fun <E : Exec> E.processSynchronously(
  * TODO try out NIO processing; or just readLines with keepDelimiters respectively EOF as additional line separator
  */
 public fun <E : Exec> E.processAsynchronously(
-    interactivity: Interactivity = NonInteractive(null),
+    execInputStream: InputStream? = null,
     processor: Processor<E> = spanningProcessor(),
 ): E = apply {
     val preparationMutex = Semaphore(0) // block until preparation has completed; Exec.onExit must not be called until callbacks are registered
@@ -181,11 +163,6 @@ public fun <E : Exec> E.processAsynchronously(
     threadPool.completableFuture {
         processor(this) { process ->
             metaStream.subscribe { process(it) }
-
-            val (execInputStream: InputStream?, nonBlockingReader: Boolean) = when (interactivity) {
-                is Interactive -> null to interactivity.nonBlocking
-                is NonInteractive -> interactivity.execInputStream to false
-            }
 
             val inputProvider = execInputStream?.run {
                 threadPool.completableFuture {
@@ -204,13 +181,13 @@ public fun <E : Exec> E.processAsynchronously(
             }
 
             val outputConsumer = threadPool.completableFuture {
-                outputStream.readerForStream(nonBlockingReader).forEachLine { line ->
+                InputStreamReader(outputStream).forEachLine { line ->
                     process(Output typed line)
                 }
             }.thenPropagateException("stdout")
 
             val errorConsumer = threadPool.completableFuture {
-                errorStream.readerForStream(nonBlockingReader).forEachLine { line ->
+                InputStreamReader(errorStream).forEachLine { line ->
                     process(Error typed line)
                 }
             }.thenPropagateException("stderr")
@@ -233,10 +210,6 @@ public fun <E : Exec> E.processAsynchronously(
     }
     preparationMutex.acquire()
 }
-
-private fun InputStream.readerForStream(nonBlockingReader: Boolean): Reader =
-    if (nonBlockingReader) NonBlockingReader(this, blockOnEmptyLine = true)
-    else JlineInputStreamReader(this)
 
 private fun CompletableFuture<*>.thenPropagateException(type: String): CompletableFuture<out Any?> = handle { value, exception ->
     if (exception != null) {

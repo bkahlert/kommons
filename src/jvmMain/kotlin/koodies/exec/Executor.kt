@@ -1,6 +1,5 @@
 package koodies.exec
 
-import koodies.exec.ProcessingMode.Companion.ProcessingModeContext
 import koodies.text.ANSI.FilteringFormatter
 import koodies.text.ANSI.Formatter
 import koodies.text.columns
@@ -38,12 +37,9 @@ public data class Executor<E : Exec>(
     private val environment: Map<String, String> = emptyMap(),
 
     /**
-     * Mode that defines if the execution will be synchronous
-     * or asynchronous including mode-specific options, such as if the
-     * [Exec]'s [IO] is to be processed non-blocking
-     * (default: synchronous execution).
+     * The processing mode to apply for processing (default: synchronous processing).
      */
-    private val processingMode: ProcessingMode = ProcessingMode { sync },
+    private val processingMode: ProcessingMode = ProcessingMode(),
 
     /**
      * Processor used to interactively handle the [Exec]'s [IO]
@@ -151,14 +147,12 @@ public data class Executor<E : Exec>(
     /**
      * Set the [mode] to [ProcessingMode.Synchronicity.Async].
      */
-    public val async: Executor<E> get() = copy(processingMode = ProcessingMode { async })
+    public val async: Executor<E> get() = copy(processingMode = ProcessingMode(async = true))
 
     /**
-     * Configures if the execution will be synchronous
-     * or asynchronous including mode-specific options, such as if the
-     * [Exec]'s [IO] is to be processed non-blocking
-     * (default: synchronous execution).
+     * Configures the [processingMode] to use
+     * (default: synchronous execution with no input stream).
      */
-    public fun mode(processingModeInit: ProcessingModeContext.() -> ProcessingMode): Executor<E> =
-        copy(processingMode = ProcessingMode(processingModeInit))
+    public fun mode(processingMode: ProcessingMode): Executor<E> =
+        copy(processingMode = processingMode)
 }

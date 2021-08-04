@@ -93,12 +93,6 @@ fun <T : CharSequence> Builder<T>.notContainsLineSeparator() =
         else fail("but the following have been found: $matchedSeparators")
     }
 
-fun Builder<String>.prefixes(value: String) =
-    assert("prefixed by $value") { prefix ->
-        if (value.startsWith(prefix)) pass()
-        else fail("$value is not prefixed by ${prefix.debug}")
-    }
-
 fun <T> Builder<List<T>>.single(assertion: Builder<T>.() -> Unit) {
     hasSize(1).and { get { this[0] }.run(assertion) }
 }

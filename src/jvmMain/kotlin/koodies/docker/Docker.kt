@@ -14,8 +14,7 @@ import koodies.exec.Exec
 import koodies.exec.ExecAttributes
 import koodies.exec.Executable
 import koodies.exec.IO
-import koodies.exec.ProcessingMode.Interactivity.Interactive
-import koodies.exec.ProcessingMode.Interactivity.NonInteractive
+import koodies.exec.ProcessingMode
 import koodies.exec.Processor
 import koodies.exec.Processors
 import koodies.exec.RendererProviders
@@ -197,9 +196,9 @@ public object Docker {
             mounts = MountOptions { workingDirectory mountAt containerPath },
             workingDirectory = containerPath,
         )).run {
-            val interactivity = if (inputStream != null) NonInteractive(inputStream) else Interactive(false)
-            if (renderer != null) exec.mode { sync(interactivity) }.logging(renderer = renderer)
-            else exec.mode { sync(interactivity) }()
+            val mode = ProcessingMode(async = false, inputStream)
+            if (renderer != null) exec.mode(mode).logging(renderer = renderer)
+            else exec.mode(mode).invoke()
         }
     }
 
@@ -601,7 +600,7 @@ public fun Path.nginx(
         publish = listOf("$port:80"),
     ),
     executable = CommandLine(""),
-).exec.mode { async(Interactive(nonBlocking = true)) }.processing(processor = processor)
+).exec.async.processing(processor = processor)
 
 /**
  * Hosts `this` directory using

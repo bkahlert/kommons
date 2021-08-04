@@ -3,10 +3,6 @@ package koodies.exec
 import koodies.Koodies
 import koodies.collections.synchronizedListOf
 import koodies.exec.Process.ExitState
-import koodies.exec.ProcessingMode.Interactivity.Interactive
-import koodies.exec.ProcessingMode.Interactivity.NonInteractive
-import koodies.exec.ProcessingMode.Synchronicity.Async
-import koodies.exec.ProcessingMode.Synchronicity.Sync
 import koodies.junit.UniqueId
 import koodies.test.hasElements
 import koodies.test.toStringIsEqualTo
@@ -39,7 +35,7 @@ class ProcessorsKtTest {
             @Test
             fun `should trace`() {
                 CommandLine("tee", "/dev/fd/2").toExec()
-                    .process(ProcessingMode(Sync, NonInteractive("Hello Cat!${LF}".byteInputStream())), Processors.spanningProcessor(
+                    .process(ProcessingMode(async = false, "Hello Cat!${LF}".byteInputStream()), Processors.spanningProcessor(
                         ExecAttributes.NAME to "exec-name",
                         ExecAttributes.EXECUTABLE to CommandLine("cat"),
                     ))
@@ -58,66 +54,42 @@ class ProcessorsKtTest {
             }
         }
 
-        @Nested
-        inner class NonInteractively {
-
-            @Test
-            fun `should process with no input`() {
-                val log = mutableListOf<IO>()
-                CommandLine("echo", "Hello World!").toExec()
-                    .process(ProcessingMode(Sync, NonInteractive(null))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                        callback { log.add(it) }
-                    }
-                expectThat(log)
-                    .with({ size }) { isEqualTo(1) }
-                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
-            }
-
-            @Test
-            fun `should process with input`() {
-                val log = mutableListOf<IO>()
-                CommandLine("cat").toExec()
-                    .process(ProcessingMode(Sync, NonInteractive("Hello Cat!$LF".byteInputStream()))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                        callback { log.add(it) }
-                    }
-                expectThat(log)
-                    .with({ size }) { isEqualTo(1) }
-                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
-            }
+        @Test
+        fun `should process`() {
+            val log = mutableListOf<IO>()
+            CommandLine("echo", "Hello World!").toExec()
+                .process(ProcessingMode(async = false)) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                    callback { log.add(it) }
+                }
+            expectThat(log)
+                .with({ size }) { isEqualTo(1) }
+                .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
         }
 
+        @Test
+        fun `should process input stream`() {
+            val log = mutableListOf<IO>()
+            CommandLine("cat").toExec()
+                .process(ProcessingMode(async = false, "Hello Cat!$LF".byteInputStream())) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                    callback { log.add(it) }
+                }
+            expectThat(log)
+                .with({ size }) { isEqualTo(1) }
+                .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
+        }
 
-        @Nested
-        inner class Interactively {
-
-            @Test
-            fun `should process with non-blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val log = mutableListOf<IO>()
-                CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                    .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(ProcessingMode(Sync, Interactive(nonBlocking = true))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                        callback { log.add(it) }
-                    }
-                expectThat(log)
-                    .with({ size }) { isEqualTo(2) }
-                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-            }
-
-            @Test
-            fun `should process with blocking reader`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val log = mutableListOf<IO>()
-                CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                    .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                    .process(ProcessingMode(Sync, Interactive(nonBlocking = false))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                        callback { log.add(it) }
-                    }
-
-                expectThat(log)
-                    .with({ size }) { isEqualTo(2) }
-                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-            }
+        @Test
+        fun `should interact`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val log = mutableListOf<IO>()
+            CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
+                .also { it.enter("Hello Back!", delay = Duration.ZERO) }
+                .process(ProcessingMode(async = false)) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                    callback { log.add(it) }
+                }
+            expectThat(log)
+                .with({ size }) { isEqualTo(2) }
+                .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
+                .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
         }
     }
 
@@ -130,7 +102,7 @@ class ProcessorsKtTest {
             @Test
             fun `should trace`() {
                 CommandLine("tee", "/dev/fd/2").toExec()
-                    .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".repeat(3).byteInputStream())), Processors.spanningProcessor(
+                    .process(ProcessingMode(async = true, "Hello Cat!$LF".repeat(3).byteInputStream()), Processors.spanningProcessor(
                         ExecAttributes.NAME to "exec-name",
                         ExecAttributes.EXECUTABLE to CommandLine("cat"),
                     )).waitFor()
@@ -149,115 +121,77 @@ class ProcessorsKtTest {
             }
         }
 
+
         @Nested
-        inner class NonInteractively {
+        inner class WaitingForTermination {
 
-            @Nested
-            inner class WaitingForTermination {
-
-                @Test
-                fun `should process with no input`() {
-                    val log = synchronizedListOf<IO>()
-                    CommandLine("echo", "Hello World!").toExec()
-                        .process(ProcessingMode(Async, NonInteractive(null))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                            callback { log.add(it) }
-                        }.waitFor()
-                    expectThat(log)
-                        .with({ size }) { isEqualTo(1) }
-                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
-                }
-
-                @Test
-                fun `should process with input`() {
-                    val log = synchronizedListOf<IO>()
-                    CommandLine("cat").toExec()
-                        .process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream()))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                            callback { log.add(it) }
-                        }.waitFor()
-                    expectThat(log)
-                        .with({ size }) { isEqualTo(1) }
-                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
-                }
+            @Test
+            fun `should process`() {
+                val log = synchronizedListOf<IO>()
+                CommandLine("echo", "Hello World!").toExec()
+                    .process(ProcessingMode(async = true)) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
+                    }.waitFor()
+                expectThat(log)
+                    .with({ size }) { isEqualTo(1) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello World!") }
             }
 
-            @Nested
-            inner class NotWaitingForTermination {
+            @Test
+            fun `should process input stream`() {
+                val log = synchronizedListOf<IO>()
+                CommandLine("cat").toExec()
+                    .process(ProcessingMode(async = true,
+                        "Hello Cat!$LF".byteInputStream())) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
+                    }.waitFor()
+                expectThat(log)
+                    .with({ size }) { isEqualTo(1) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Cat!") }
+            }
 
-                @Test
-                fun `should process with no input`() {
-                    val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec().process(ProcessingMode(Async, NonInteractive(null)))
-                    }
-                    expectThat(timePassed).isLessThan(0.5.seconds)
-                }
-
-                @Test
-                fun `should process with input`() {
-                    val timePassed = measureTime {
-                        CommandLine("cat").toExec().process(ProcessingMode(Async, NonInteractive("Hello Cat!$LF".byteInputStream())))
-                    }
-                    expectThat(timePassed).isLessThan(0.5.seconds)
-                }
+            @Test
+            fun `should wait for termination`() {
+                val log = synchronizedListOf<IO>()
+                CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
+                    .also { it.enter("Hello Back!", delay = Duration.ZERO) }
+                    .process(ProcessingMode(async = true)) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                        callback { log.add(it) }
+                    }.waitFor()
+                expectThat(log)
+                    .with({ size }) { isEqualTo(2) }
+                    .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
+                    .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
             }
         }
 
         @Nested
-        inner class Interactively {
+        inner class NotWaitingForTermination {
 
-            @Nested
-            inner class WaitingForTermination {
-
-                @Test
-                fun `should process with non-blocking reader`() {
-                    val log = synchronizedListOf<IO>()
-                    CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                        .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(ProcessingMode(Async, Interactive(nonBlocking = true))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                            callback { log.add(it) }
-                        }.waitFor()
-                    expectThat(log)
-                        .with({ size }) { isEqualTo(2) }
-                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
+            @Test
+            fun `should process`() {
+                val timePassed = measureTime {
+                    CommandLine("sleep", "10").toExec().process(ProcessingMode(async = true))
                 }
-
-                @Test
-                fun `should process with blocking reader`() {
-                    val log = synchronizedListOf<IO>()
-                    CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
-                        .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                        .process(ProcessingMode(Async, Interactive(nonBlocking = false))) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
-                            callback { log.add(it) }
-                        }.waitFor()
-                    expectThat(log)
-                        .with({ size }) { isEqualTo(2) }
-                        .with({ get(0) }) { isA<IO.Output>().toStringIsEqualTo("Hello Back!") }
-                        .with({ get(1) }) { isA<IO.Output>().toStringIsEqualTo(" you, too") }
-                }
+                expectThat(timePassed).isLessThan(0.5.seconds)
             }
 
-            @Nested
-            inner class NotWaitingForTermination {
-
-                @Test
-                fun `should process with non-blocking reader`() {
-                    val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec()
-                            .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(ProcessingMode(Async, Interactive(nonBlocking = true)))
-                    }
-                    expectThat(timePassed).isLessThan(.5.seconds)
+            @Test
+            fun `should process input stream`() {
+                val timePassed = measureTime {
+                    CommandLine("cat").toExec().process(ProcessingMode(async = true, "Hello Cat!$LF".byteInputStream()))
                 }
+                expectThat(timePassed).isLessThan(0.5.seconds)
+            }
 
-                @Test
-                fun `should process with blocking reader`() {
-                    val timePassed = measureTime {
-                        CommandLine("sleep", "10").toExec()
-                            .also { it.enter("Hello Back!", delay = Duration.ZERO) }
-                            .process(ProcessingMode(Async, Interactive(nonBlocking = false)))
-                    }
-                    expectThat(timePassed).isLessThan(.5.seconds)
+            @Test
+            fun `should return immediately`() {
+                val timePassed = measureTime {
+                    CommandLine("sleep", "10").toExec()
+                        .also { it.enter("Hello Back!", delay = Duration.ZERO) }
+                        .process(ProcessingMode(async = true))
                 }
+                expectThat(timePassed).isLessThan(.5.seconds)
             }
         }
     }
