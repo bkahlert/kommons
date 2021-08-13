@@ -5,7 +5,6 @@ import koodies.builder.ArrayBuilder.Companion
 import koodies.builder.context.ListBuildingContext
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Builder to creates instances of an [E] typed [Array].
@@ -56,7 +55,6 @@ public open class ArrayBuilder<E> private constructor(private val transform: Lis
         /**
          * Builds a new [E] typed [Array].
          */
-        @OptIn(ExperimentalTypeInference::class) // TODO delete
         public inline operator fun <reified E> invoke(@BuilderInference noinline init: Init<ListBuildingContext<E>>): Array<E> =
             createInstance<E> { toTypedArray() }(init)
     }

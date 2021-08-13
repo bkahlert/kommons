@@ -1,8 +1,8 @@
 package koodies
 
-import koodies.io.SelfCleaningDirectory.CleanUpMode.OnStart
 import koodies.io.path.Locations
-import koodies.io.selfCleaning
+import koodies.io.path.SelfCleaningDirectory.CleanUpMode.OnStart
+import koodies.io.path.selfCleaning
 import java.nio.file.Path
 import kotlin.time.Duration
 

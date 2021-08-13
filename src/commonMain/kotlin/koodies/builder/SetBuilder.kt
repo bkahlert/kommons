@@ -4,7 +4,6 @@ import koodies.asString
 import koodies.builder.context.ListBuildingContext
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Builder to build sets of type [E].
@@ -36,7 +35,6 @@ public open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> 
 
     public companion object {
 
-        @OptIn(ExperimentalTypeInference::class)
         public operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = SetBuilder<E>().invoke(init)
     }
 }
@@ -44,7 +42,6 @@ public open class SetBuilder<E> : Builder<Init<ListBuildingContext<E>>, Set<E>> 
 /**
  * Builds a set of type [E] as specified by [init].
  */
-@OptIn(ExperimentalTypeInference::class)
 public fun <E> buildSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> {
     contract { callsInPlace(init, EXACTLY_ONCE) }
     return SetBuilder(init)

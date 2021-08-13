@@ -4,7 +4,6 @@ import koodies.asString
 import koodies.builder.context.ListBuildingContext
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Builder to build lists of type [E].
@@ -35,7 +34,6 @@ public open class ListBuilder<E> : Builder<Init<ListBuildingContext<E>>, List<E>
 
     public companion object {
 
-        @OptIn(ExperimentalTypeInference::class)
         public operator fun <E> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): List<E> =
             ListBuilder<E>().invoke(init)
     }
@@ -44,7 +42,6 @@ public open class ListBuilder<E> : Builder<Init<ListBuildingContext<E>>, List<E>
 /**
  * Builds a list of type [E] as specified by [init].
  */
-@OptIn(ExperimentalTypeInference::class)
 public fun <E> buildList(@BuilderInference init: Init<ListBuildingContext<E>>): List<E> {
     contract { callsInPlace(init, EXACTLY_ONCE) }
     return ListBuilder(init)

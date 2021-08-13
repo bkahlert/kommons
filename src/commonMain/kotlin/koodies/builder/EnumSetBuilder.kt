@@ -6,7 +6,6 @@ import koodies.asString
 import koodies.builder.context.ListBuildingContext
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Builder of an [Enum] [Set] of any enum type [E].
@@ -39,7 +38,6 @@ public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext
 
     public companion object {
 
-        @OptIn(ExperimentalTypeInference::class)
         public operator fun <E : Enum<E>> invoke(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> = EnumSetBuilder<E>().invoke(init)
     }
 }
@@ -47,7 +45,6 @@ public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext
 /**
  * Builds an enum set of enum type [E] as specified by [init].
  */
-@OptIn(ExperimentalTypeInference::class)
 public fun <E : Enum<E>> buildEnumSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> {
     contract { callsInPlace(init, EXACTLY_ONCE) }
     return EnumSetBuilder(init)

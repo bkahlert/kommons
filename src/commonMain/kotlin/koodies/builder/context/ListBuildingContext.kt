@@ -1,7 +1,5 @@
 package koodies.builder.context
 
-import kotlin.experimental.ExperimentalTypeInference
-
 @DslMarker
 public annotation class ListBuildingDsl
 
@@ -9,10 +7,9 @@ public annotation class ListBuildingDsl
  * A context that uses the [unaryPlus] `+` to
  * model the semantics of "add element" respectively "add elements".
  *
- * Also a [Unit.plus] is provided to allow for the first element
+ * Also, a [Unit.plus] is provided to allow for the first element
  * of a line to also start with a `+`.
  */
-@OptIn(ExperimentalTypeInference::class)
 @ListBuildingDsl
 public fun interface ListBuildingContext<E> {
 

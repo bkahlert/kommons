@@ -1,7 +1,5 @@
 package koodies.builder.context
 
-import kotlin.experimental.ExperimentalTypeInference
-
 @DslMarker
 public annotation class MapBuildingDsl
 
@@ -9,7 +7,6 @@ public annotation class MapBuildingDsl
  * A context that supports the [MutableMap] API
  * and [to] to put entries in a to be built map.
  */
-@OptIn(ExperimentalTypeInference::class)
 @MapBuildingDsl
 public interface MapBuildingContext<K, V> : MutableMap<K, V> {
 

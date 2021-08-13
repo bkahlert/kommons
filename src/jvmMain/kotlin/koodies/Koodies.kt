@@ -1,7 +1,7 @@
 package koodies
 
 import koodies.io.path.Locations
-import koodies.io.selfCleaning
+import koodies.io.path.selfCleaning
 import koodies.time.days
 import koodies.time.hours
 import koodies.time.minutes

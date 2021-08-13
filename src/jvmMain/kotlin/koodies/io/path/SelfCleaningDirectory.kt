@@ -1,10 +1,8 @@
-package koodies.io
+package koodies.io.path
 
 import koodies.asString
-import koodies.io.SelfCleaningDirectory.CleanUpMode
 import koodies.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
-import koodies.io.path.cleanUp
-import koodies.io.path.requireTempSubPath
+import koodies.io.path.SelfCleaningDirectory.CleanUpMode
 import koodies.runtime.onExit
 import koodies.time.hours
 import java.nio.file.Path
