@@ -1,2 +1,3 @@
-rootProject.name = "koodies"
+
+rootProject.name = "kommons"
 
