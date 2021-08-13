@@ -1,5 +1,4 @@
 @file:Suppress(
-    "PublicApiImplicitType",
     "KDocMissingDocumentation",
     "ObjectPropertyName",
     "RemoveRedundantBackticks",

@@ -1,5 +1,4 @@
 @file:Suppress(
-    "PublicApiImplicitType",
     "KDocMissingDocumentation",
     "ObjectPropertyName",
     "RemoveRedundantBackticks",
@@ -44,8 +43,10 @@ public object Spinning : Category() {
     @JsName("spinning25") public val `ヽ(･∀･)ﾉ━(∀･ﾉ)━(･ﾉ )━ヽ( )ﾉ━( ヽ･)━(ヽ･∀)━ヽ(･∀･)ﾉ`: Kaomoji by auto()
     @JsName("spinning26") public val `⊂⌒~⊃｡Д｡）⊃━⊂⌒O｡Д｡）⊃━O（｡Д｡）O━⊂（｡Д｡O⌒⊃━⊂（｡Д｡⊂~⌒⊃`: Kaomoji by auto()
     @JsName("spinning27") public val `(=ﾟωﾟ)ﾉ━( =ﾟω)━( 　=ﾟ)━(　　)━(ﾟ= ﾉ )━(ωﾟ=ﾉ)━(=ﾟωﾟ)ﾉ`: Kaomoji by auto("(=ﾟωﾟ)ﾉ━( =ﾟω)━( 　=ﾟ)━(　　)━(ﾟ= ﾉ )━(ωﾟ=ﾉ)━(=ﾟωﾟ)ﾉ")
+
     @JsName("spinning28")
     public val `＜丶｀∀´＞━＜丶｀∀＞━＜　丶｀＞━＜　　丶＞━＜　　　＞━＜´　　　＞━＜∀´　　＞━＜丶｀∀´＞`: Kaomoji by auto("<丶｀∀´>━<丶｀∀>━<　丶｀>━<　　丶>━<　　　>━<´　　　>━<∀´　　>━<丶｀∀´>")
+
     @JsName("spinning29")
     public val `(´･ω･`)━( ´･ω･)━( 　´･ω)━( 　　)━( 　　)━(ω･´　)━(･ω･´)━(｀･ω･´)`: Kaomoji by auto("(´･ω･`)━( ´･ω･)━( 　´･ω)━( 　　)━( 　　)━(ω･´　)━(･ω･´)━(｀･ω･´)")
 }

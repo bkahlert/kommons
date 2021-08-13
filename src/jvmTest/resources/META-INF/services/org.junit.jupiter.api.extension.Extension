@@ -1,4 +1,4 @@
-#koodies.tracing.TestSpanParameterResolver
+koodies.tracing.TestSpanParameterResolver
 koodies.test.junit.TestNameResolver
 koodies.test.junit.UniqueIdResolver
 koodies.test.IllegalUsageCheck

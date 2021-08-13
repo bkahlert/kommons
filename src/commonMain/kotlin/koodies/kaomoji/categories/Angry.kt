@@ -1,5 +1,4 @@
 @file:Suppress(
-    "PublicApiImplicitType",
     "KDocMissingDocumentation",
     "ObjectPropertyName",
     "RemoveRedundantBackticks",
@@ -20,7 +19,7 @@ import kotlin.js.JsName
  * Selection of angry [Kaomoji]
  */
 public object Angry : Category() {
-    
+
     /**
      * `ಠ_ಠ
      */

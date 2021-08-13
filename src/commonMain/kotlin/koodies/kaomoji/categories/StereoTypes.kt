@@ -1,5 +1,4 @@
 @file:Suppress(
-    "PublicApiImplicitType",
     "KDocMissingDocumentation",
     "ObjectPropertyName",
     "RemoveRedundantBackticks",
@@ -15,7 +14,7 @@ import koodies.kaomoji.Category
 import koodies.kaomoji.Kaomoji
 
 public object StereoTypes : Category() {
-    
+
     public val ORLY: Kaomoji by auto("""
         ,___,
         [O.o] - O RLY?

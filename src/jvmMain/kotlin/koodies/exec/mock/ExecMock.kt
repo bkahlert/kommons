@@ -20,7 +20,7 @@ public open class ExecMock(
         val delegateString =
             "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji ?: Symbols.Computation})"
         val string = "${ExecMock::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")")
-        return string.takeUnless { name != null } ?: string.substringBeforeLast(")") + ", name=$name)"
+        return string.takeUnless { name != null } ?: (string.substringBeforeLast(")") + ", name=$name)")
     }
 
     public companion object {

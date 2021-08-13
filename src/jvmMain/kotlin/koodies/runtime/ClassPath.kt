@@ -11,7 +11,6 @@ import koodies.io.path.tempFile
 import koodies.io.useClassPath
 import koodies.text.quoted
 import java.nio.file.Path
-import kotlin.io.path.copyTo
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.nameWithoutExtension
@@ -47,8 +46,8 @@ public open class ClassPath(public val pathString: String) {
      * @see copyTo
      * @see copyToTemp
      */
-    public fun copyToDirectory(target: Path): Path =
-        useClassPath(pathString) { it.copyToDirectory(target) }
+    public fun copyToDirectory(target: Path, overwrite: Boolean = false): Path =
+        useClassPath(pathString) { it.copyToDirectory(target, overwrite = overwrite) }
             ?: error("Error copying ${fileName.quoted} to ${target.quoted}")
 
     /**
