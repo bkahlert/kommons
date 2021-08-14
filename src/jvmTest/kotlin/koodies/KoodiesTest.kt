@@ -1,8 +1,8 @@
 package koodies
 
-import koodies.io.file.pathString
 import koodies.io.path.Locations
 import koodies.io.path.isInside
+import koodies.io.path.pathString
 import koodies.test.toStringContains
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

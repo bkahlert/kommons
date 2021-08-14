@@ -1,7 +1,6 @@
 package koodies.runtime
 
 import koodies.Koodies
-import koodies.io.file.quoted
 import koodies.io.path.asPath
 import koodies.io.path.copyTo
 import koodies.io.path.copyToDirectory
@@ -38,7 +37,7 @@ public open class ClassPath(public val pathString: String) {
      */
     public fun copyTo(target: Path, overwrite: Boolean = false): Path =
         useClassPath(pathString) { it.copyTo(target, overwrite = overwrite) }
-            ?: error("Error copying ${fileName.quoted} to ${target.quoted}")
+            ?: error("Error copying ${fileName.pathString.quoted} to ${target.pathString.quoted}")
 
     /**
      * Copies this resource to the specified [target] directory.
@@ -48,7 +47,7 @@ public open class ClassPath(public val pathString: String) {
      */
     public fun copyToDirectory(target: Path, overwrite: Boolean = false): Path =
         useClassPath(pathString) { it.copyToDirectory(target, overwrite = overwrite) }
-            ?: error("Error copying ${fileName.quoted} to ${target.quoted}")
+            ?: error("Error copying ${fileName.pathString.quoted} to ${target.pathString.quoted}")
 
     /**
      * Copies resource to a temporary directory—the name based on the

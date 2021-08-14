@@ -2,10 +2,6 @@ package koodies.io.path
 
 import koodies.io.EOF
 import koodies.io.directoryNotEmpty
-import koodies.io.file.CopyOptions
-import koodies.io.file.resolveBetweenFileSystems
-import koodies.io.file.resolveSibling
-import koodies.io.file.walkTopDown
 import koodies.io.fileAlreadyExists
 import koodies.io.fileSystemException
 import koodies.io.noSuchFile
@@ -13,12 +9,14 @@ import koodies.text.withRandomSuffix
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
+import java.nio.file.CopyOption
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystemException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
@@ -87,14 +85,18 @@ public fun Path.copyTo(
                     if (!dstFile.exists(*options)) {
 
                         val createdDir =
-                            Files.copy(src, dstFile, *CopyOptions.enumArrayOf(replaceExisting = overwrite, copyAttributes = preserve, copyOptions = options))
+                            Files.copy(src, dstFile, *copyOptions(
+                                replaceExisting = overwrite,
+                                copyAttributes = preserve,
+                                copyOptions = options
+                            ))
                         val isEmpty = createdDir.run { isDirectory(*options) && isEmpty(*options) }
                         if (!isEmpty && onError(src, dstFile.directoryNotEmpty()) == OnErrorAction.TERMINATE) {
                             return target
                         }
                     }
                 } else {
-                    val copiedFile = Files.copy(src, dstFile, *CopyOptions.enumArrayOf(
+                    val copiedFile = Files.copy(src, dstFile, *copyOptions(
                         replaceExisting = overwrite,
                         copyAttributes = preserve,
                         copyOptions = options,
@@ -113,6 +115,21 @@ public fun Path.copyTo(
     } catch (e: TerminateException) {
         return target
     }
+}
+
+private fun copyOptions(
+    replaceExisting: Boolean = false,
+    copyAttributes: Boolean = false,
+    atomicMove: Boolean = false,
+    vararg copyOptions: CopyOption,
+): Array<CopyOption> {
+    return listOf(
+        replaceExisting to StandardCopyOption.REPLACE_EXISTING,
+        copyAttributes to StandardCopyOption.COPY_ATTRIBUTES,
+        atomicMove to StandardCopyOption.ATOMIC_MOVE,
+    ).mapNotNull { (active, option) -> if (active) option else null }
+        .run { plus(copyOptions) }
+        .toTypedArray()
 }
 
 private fun InputStream.contentEquals(otherStream: InputStream): Boolean {

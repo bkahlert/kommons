@@ -287,7 +287,7 @@ class JavaExecTest {
 
         @Test
         fun `should have runtime`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val exec = createCompletingExec(0)
+            val exec = CommandLine("sleep", "1").exec()
             expectThat(exec).exited.get { runtime }.isGreaterThan(Duration.ZERO)
         }
 

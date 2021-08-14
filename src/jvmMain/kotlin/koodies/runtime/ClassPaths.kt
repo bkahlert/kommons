@@ -1,8 +1,8 @@
 package koodies.io
 
-import koodies.io.file.WrappedPath
-import koodies.io.file.asReadOnly
-import koodies.io.file.resolveBetweenFileSystems
+import koodies.io.path.WrappedPath
+import koodies.io.path.asReadOnly
+import koodies.io.path.resolveBetweenFileSystems
 import koodies.io.path.toMappedPath
 import koodies.runtime.contextClassLoader
 import java.net.URI

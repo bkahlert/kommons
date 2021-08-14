@@ -89,3 +89,35 @@ public inline fun <reified T> URI.toMappedPath(noinline transform: (Path) -> T):
  */
 public inline fun <reified T> URL.toMappedPath(noinline transform: (Path) -> T): T =
     toURI().toMappedPath(transform)
+
+/**
+ * Resolves the specified [path] against this path
+ * whereas [path] may be of a different [FileSystem] than
+ * the one of this path.
+ *
+ * If the [FileSystem] is the same, [Path.resolve] is used.
+ * Otherwise, this [FileSystem] is used—unless [path] is [absolute][Path.isAbsolute].
+ *
+ * In other words: [path] is resolved against this path's file system.
+ * So the resolved path will reside in this path's file system, too.
+ * The only exception is if [path] is absolute. Since
+ * an absolute path is already "fully-qualified" it is
+ * the resolved result *(and its file system the resulting file system)*.
+ */
+public fun Path.resolveBetweenFileSystems(path: Path): Path =
+    when {
+        fileSystem == path.fileSystem -> resolve(path)
+        path.isAbsolute -> path
+        else -> path.fold(this) { acc, segment -> acc.resolve("$segment") }
+    }
+
+/**
+ * Resolves a sibling by applying [transform] on one of the path segments.
+ * Which one is specified by [order] whereas `0` corresponds to the [Path.getFileName].
+ */
+public fun Path.resolveSibling(order: Int = 1, transform: Path.() -> Path): Path {
+    val ancestor = requireAncestor(order + 1)
+    val transformed = getName(nameCount - order - 1).transform()
+    val resolve = ancestor.resolve(transformed)
+    return if (order > 0) resolve.resolve(subpath(order)) else resolve
+}

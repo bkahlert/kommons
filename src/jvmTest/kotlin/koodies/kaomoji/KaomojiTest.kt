@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.endsWith
 import strikt.assertions.isA
@@ -19,6 +20,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.startsWith
 
+@Isolated
 class KaomojiTest {
 
     @Nested

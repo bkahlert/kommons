@@ -1,8 +1,6 @@
 package koodies.io.path
 
 import koodies.io.compress.TarArchiver.tar
-import koodies.io.file.isSiblingOf
-import koodies.io.file.lastModified
 import koodies.test.Fixtures.directoryWithTwoFiles
 import koodies.test.Fixtures.singleFile
 import koodies.test.junit.UniqueId

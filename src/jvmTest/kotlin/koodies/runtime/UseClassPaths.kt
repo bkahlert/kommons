@@ -1,7 +1,7 @@
 package koodies.runtime
 
 import koodies.io.classPath
-import koodies.io.file.WrappedPath
+import koodies.io.path.WrappedPath
 import koodies.io.path.asPath
 import koodies.io.path.copyToDirectory
 import koodies.io.path.isCopyOf

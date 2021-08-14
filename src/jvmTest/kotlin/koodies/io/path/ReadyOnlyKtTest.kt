@@ -1,10 +1,5 @@
-package koodies.io.file
+package koodies.io.path
 
-import koodies.io.path.copyTo
-import koodies.io.path.delete
-import koodies.io.path.hasContent
-import koodies.io.path.randomFile
-import koodies.io.path.writeText
 import koodies.test.junit.UniqueId
 import koodies.test.tests
 import koodies.test.withTempDir
@@ -20,7 +15,7 @@ import kotlin.io.path.moveTo
 import kotlin.io.path.outputStream
 import kotlin.io.path.readText
 
-class AsReadyOnlyKtTest {
+class ReadyOnlyKtTest {
 
     private fun Path.readOnlyFile() = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
 

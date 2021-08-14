@@ -3,7 +3,9 @@ package koodies.io.path
 import koodies.time.Now
 import koodies.time.seconds
 import koodies.unit.milli
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
@@ -25,4 +27,31 @@ public var Path.age: Duration
     get() :Duration = (Now.millis - getLastModifiedTime().toMillis()).milli.seconds
     set(value) {
         setLastModifiedTime(FileTime.from(Now.minus(value)))
+    }
+
+/**
+ * This path's creation time.
+ */
+public var Path.created: FileTime
+    get() = Files.getFileAttributeView(this, BasicFileAttributeView::class.java).readAttributes().creationTime()
+    set(fileTime) {
+        Files.setAttribute(this, "basic:creationTime", fileTime)
+    }
+
+/**
+ * This path's last accessed time.
+ */
+public var Path.lastAccessed: FileTime
+    get() = Files.getFileAttributeView(this, BasicFileAttributeView::class.java).readAttributes().lastAccessTime()
+    set(fileTime) {
+        Files.setAttribute(this, "basic:lastAccessTime", fileTime)
+    }
+
+/**
+ * This path's last modified time.
+ */
+public var Path.lastModified: FileTime
+    get() = Files.getLastModifiedTime(this)
+    set(fileTime) {
+        Files.setLastModifiedTime(this, fileTime)
     }

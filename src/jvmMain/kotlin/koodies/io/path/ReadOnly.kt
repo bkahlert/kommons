@@ -1,8 +1,8 @@
-package koodies.io.file
+package koodies.io.path
 
-import koodies.io.file.ReadOnlyFileSystem.Companion.privateAsReadyOnly
-import koodies.io.file.ReadOnlyFileSystemProvider.Companion.privateAsReadyOnly
-import koodies.io.file.ReadOnlyPath.Companion.privateAsReadyOnly
+import koodies.io.path.ReadOnlyFileSystem.Companion.privateAsReadyOnly
+import koodies.io.path.ReadOnlyFileSystemProvider.Companion.privateAsReadyOnly
+import koodies.io.path.ReadOnlyPath.Companion.privateAsReadyOnly
 import java.io.IOException
 import java.net.URI
 import java.nio.channels.SeekableByteChannel

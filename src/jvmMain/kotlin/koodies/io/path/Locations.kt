@@ -11,6 +11,7 @@ import koodies.text.randomString
 import koodies.text.takeUnlessEmpty
 import java.nio.file.FileSystems
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
@@ -202,22 +203,25 @@ public fun Path.ls(glob: String = ""): List<Path> =
 public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainment: Boolean = true): Path {
     if (enforceTempContainment) requireTempSubPath()
 
-    if (exists()) {
-        listDirectoryEntriesRecursively()
-            .filter { it.exists() && !it.isDirectory() }
-            .sortedBy { it.age }
-            .filter { it.age >= keepAge }
-            .drop(keepCount)
-            .forEach { it.delete(NOFOLLOW_LINKS) }
+    try {
+        if (exists()) {
+            listDirectoryEntriesRecursively()
+                .filter { it.exists() && !it.isDirectory() }
+                .sortedBy { it.age }
+                .filter { it.age >= keepAge }
+                .drop(keepCount)
+                .forEach { it.delete(NOFOLLOW_LINKS) }
 
-        listDirectoryEntriesRecursively()
-            .filter { it.isDirectory() }
-            .filter { it.isEmpty() }
-            .forEach { it.delete(NOFOLLOW_LINKS) }
+            listDirectoryEntriesRecursively()
+                .filter { it.isDirectory() }
+                .filter { it.isEmpty() }
+                .forEach { it.delete(NOFOLLOW_LINKS) }
 
-        if (listDirectoryEntriesRecursively().isEmpty()) {
-            delete(NOFOLLOW_LINKS)
+            if (listDirectoryEntriesRecursively().isEmpty()) {
+                delete(NOFOLLOW_LINKS)
+            }
         }
+    } catch (e: NoSuchFileException) {
     }
 
     return this

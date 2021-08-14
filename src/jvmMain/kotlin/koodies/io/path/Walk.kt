@@ -1,5 +1,7 @@
-package koodies.io.file
+package koodies.io.path
 
+import koodies.io.path.PathWalkDirection.BOTTOM_UP
+import koodies.io.path.PathWalkDirection.TOP_DOWN
 import java.nio.file.FileSystemException
 import java.nio.file.Path
 import java.util.ArrayDeque
@@ -32,14 +34,14 @@ public enum class PathWalkDirection {
  */
 public class PathTreeWalk private constructor(
     private val start: Path,
-    private val direction: PathWalkDirection = PathWalkDirection.TOP_DOWN,
+    private val direction: PathWalkDirection = TOP_DOWN,
     private val onEnter: ((Path) -> Boolean)?,
     private val onLeave: ((Path) -> Unit)?,
     private val onFail: ((f: Path, e: FileSystemException) -> Unit)?,
     private val maxDepth: Int = Int.MAX_VALUE,
 ) : Sequence<Path> {
 
-    internal constructor(start: Path, direction: PathWalkDirection = PathWalkDirection.TOP_DOWN) : this(start, direction, null, null, null)
+    internal constructor(start: Path, direction: PathWalkDirection = TOP_DOWN) : this(start, direction, null, null, null)
 
 
     /** Returns an iterator walking through paths. */
@@ -83,8 +85,8 @@ public class PathTreeWalk private constructor(
 
         private fun directoryState(root: Path): DirectoryState {
             return when (direction) {
-                PathWalkDirection.TOP_DOWN -> TopDownDirectoryState(root)
-                PathWalkDirection.BOTTOM_UP -> BottomUpDirectoryState(root)
+                TOP_DOWN -> TopDownDirectoryState(root)
+                BOTTOM_UP -> BottomUpDirectoryState(root)
             }
         }
 
@@ -250,17 +252,17 @@ public class PathTreeWalk private constructor(
  *
  * @param direction walk direction, top-down (by default) or bottom-up.
  */
-public fun Path.walk(direction: PathWalkDirection = PathWalkDirection.TOP_DOWN): PathTreeWalk =
+public fun Path.walk(direction: PathWalkDirection = TOP_DOWN): PathTreeWalk =
     PathTreeWalk(this, direction)
 
 /**
  * Gets a sequence for visiting this directory and all its content in top-down order.
  * Depth-first search is used and directories are visited before all their paths.
  */
-public fun Path.walkTopDown(): PathTreeWalk = walk(PathWalkDirection.TOP_DOWN)
+public fun Path.walkTopDown(): PathTreeWalk = walk(TOP_DOWN)
 
 /**
  * Gets a sequence for visiting this directory and all its content in bottom-up order.
  * Depth-first search is used and directories are visited after all their paths.
  */
-public fun Path.walkBottomUp(): PathTreeWalk = walk(PathWalkDirection.BOTTOM_UP)
+public fun Path.walkBottomUp(): PathTreeWalk = walk(BOTTOM_UP)

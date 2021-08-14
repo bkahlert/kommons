@@ -1,13 +1,13 @@
 package koodies.io
 
 import koodies.Koodies
-import koodies.io.file.pathString
 import koodies.io.path.deleteOnExit
 import koodies.io.path.hasContent
-import koodies.test.junit.UniqueId
+import koodies.io.path.pathString
 import koodies.test.Slow
 import koodies.test.SvgFixture
 import koodies.test.expecting
+import koodies.test.junit.UniqueId
 import koodies.test.withTempDir
 import koodies.text.containsAnsi
 import org.junit.jupiter.api.Test

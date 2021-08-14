@@ -1,10 +1,8 @@
 package koodies.io.path
 
 import koodies.debug.replaceNonPrintableCharacters
-import koodies.io.file.lastModified
-import koodies.io.file.quoted
-import koodies.io.file.resolveBetweenFileSystems
 import koodies.text.LineSeparators.LF
+import koodies.text.quoted
 import koodies.text.truncate
 import koodies.time.Now
 import koodies.time.minus
@@ -13,6 +11,7 @@ import strikt.api.expectThat
 import strikt.assertions.contentEquals
 import strikt.assertions.isEqualTo
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
@@ -84,14 +83,14 @@ fun <T : Path> Builder<Pair<T, Path>>.haveEqualContent() =
     }
 
 fun <T : Path> Builder<T>.hasSameFiles(other: Path) =
-    assert("has same files as ${other.quoted}") { actual ->
+    assert("has same files as ${other.pathString.quoted}") { actual ->
         expectThat(actual).containsAllFiles(other)
         expectThat(other).containsAllFiles(actual)
     }
 
 
 fun <T : Path> Builder<T>.containsAllFiles(other: Path) =
-    assert("contains all files as ${other.quoted}") { actual ->
+    assert("contains all files as ${other.pathString.quoted}") { actual ->
         if (!actual.isDirectory()) fail("$actual is no directory")
         if (!other.isDirectory()) fail("$other is no directory")
         other.listDirectoryEntriesRecursively().filter { it.isRegularFile() }.forEach { otherPath ->
@@ -130,3 +129,14 @@ fun <T : Path> Builder<T>.lastModified(duration: Duration) =
             else -> fail()
         }
     }
+
+val <T : Path> Builder<T>.pathString
+    get() = get("path as string") { pathString }
+
+/**
+ * Asserts that the subject is writable.
+ *
+ * @see Files.isWritable
+ */
+fun <T : Path> Builder<T>.isWritable(): Builder<T> =
+    assertThat("is writable") { Files.isWritable(it) }
