@@ -1,6 +1,7 @@
 package koodies.tracing
 
 import io.opentelemetry.api.trace.Span
+import koodies.exec.IO
 import koodies.math.floorDiv
 import koodies.runtime.currentThread
 import koodies.runtime.orNull
@@ -16,10 +17,12 @@ import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
 import koodies.text.AnsiString.Companion.toAnsiString
 import koodies.text.Semantics.formattedAs
+import koodies.text.joinLinesToString
 import koodies.text.padStartFixedLength
 import koodies.time.Now
 import koodies.time.minutes
 import koodies.time.seconds
+import koodies.tracing.TestPrinter.TestIO
 import koodies.tracing.rendering.BackgroundPrinter
 import koodies.tracing.rendering.CompactRenderer
 import koodies.tracing.rendering.InMemoryPrinter
@@ -90,8 +93,8 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpanScope>(), B
         if (extensionContext.isAnnotated<NoTestSpan>()) return
         val name = extensionContext.testName
         val printToConsole = Verbosity.isVerbose
-        val clientPrinter = InMemoryPrinter()
-        val spanScope: RenderingSpanScope = RenderingSpanScope.of(name) { TestRenderer(clientPrinter, printToConsole) }
+        val rendered = InMemoryPrinter()
+        val spanScope: RenderingSpanScope = RenderingSpanScope.of(name) { TestRenderer(rendered, printToConsole) }
         val scope = spanScope.makeCurrent()
         spanScope.registerAsTestSpan()
         extensionContext.store().put(CleanUp {
@@ -99,8 +102,10 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpanScope>(), B
             spanScope.end(extensionContext.executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit))
         })
         extensionContext.store().put(TestSpanScope(spanScope) { ignoreAnsi: Boolean ->
-            if (ignoreAnsi) clientPrinter.toString().ansiRemoved
-            else clientPrinter.toString()
+            rendered.toString().lineSequence()
+                .filterNot { it.startsWith(IO.ERASE_MARKER) }
+                .joinLinesToString()
+                .let { if (ignoreAnsi) it.ansiRemoved else it }
         })
     }
 
@@ -133,36 +138,36 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpanScope>(), B
 /**
  * Renders a [TestSpanScope] by passing all events to a [TestPrinter].
  * An event stream filtered to the ones actually triggered by the client
- * are passed to the given [printer].
+ * are passed to the given [consoleAndUpstreamPrinter].
  */
 class TestRenderer(
-    printer: Printer,
+    upstreamPrinter: Printer,
     printToConsole: Boolean,
 ) : Renderer {
 
     private lateinit var backgroundPrinterBackup: Printer
-    private val testOnlyPrinter: Printer = if (printToConsole) ThreadSafePrinter(TestPrinter()) else run { {} }
-    private val printer: Printer = ThreadSafePrinter(TeePrinter(testOnlyPrinter, printer))
+    private val consolePrinter: Printer = if (printToConsole) ThreadSafePrinter(TestPrinter()) else run { {} }
+    private val consoleAndUpstreamPrinter: Printer = ThreadSafePrinter(TeePrinter(consolePrinter, upstreamPrinter))
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         backgroundPrinterBackup = BackgroundPrinter.printer
-        BackgroundPrinter.printer = printer
-        testOnlyPrinter(TestPrinter.TestIO.Start(traceId, spanId, name))
+        BackgroundPrinter.printer = consoleAndUpstreamPrinter
+        consolePrinter(TestIO.Start(traceId, spanId, name))
     }
 
     override fun event(name: CharSequence, attributes: RenderableAttributes) {
-        attributes[RenderingAttributes.DESCRIPTION]?.render(null, null)?.let(printer)
-            ?: printer("$name: $attributes")
+        attributes[RenderingAttributes.DESCRIPTION]?.render(null, null)?.let(consoleAndUpstreamPrinter)
+            ?: consoleAndUpstreamPrinter("$name: $attributes")
     }
 
     override fun exception(exception: Throwable, attributes: RenderableAttributes) {
-        printer("$exception: $attributes")
+        consoleAndUpstreamPrinter("$exception: $attributes")
     }
 
     override fun <R> end(result: Result<R>) {
         when (val exception = result.exceptionOrNull()) {
-            null -> testOnlyPrinter(TestPrinter.TestIO.Pass)
-            else -> testOnlyPrinter(TestPrinter.TestIO.Fail(exception))
+            null -> consolePrinter(TestIO.Pass)
+            else -> consolePrinter(TestIO.Fail(exception))
         }
         BackgroundPrinter.printer = backgroundPrinterBackup
     }
@@ -171,7 +176,7 @@ class TestRenderer(
         renderer(Settings(printer = ::printChild)) { CompactRenderer(it) }
 
     override fun printChild(text: CharSequence) {
-        printer(text)
+        consoleAndUpstreamPrinter(text)
     }
 }
 

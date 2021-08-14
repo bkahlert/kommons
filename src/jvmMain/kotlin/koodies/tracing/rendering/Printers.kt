@@ -93,12 +93,17 @@ public open class SharedPrinter(private val print: (CharSequence) -> Unit) : Pri
  * - the output to specifically formatted to be distinguishable from regular log messages
  * - the output is not captured when testing
  */
-public object BackgroundPrinter : SharedPrinter({ message ->
-    val backgroundMessage = message.mapLines { "${IO.ERASE_MARKER}${it.ansiRemoved.formattedAs.meta}" }
-    BackgroundPrinter.printer(backgroundMessage)
-}) {
+public object BackgroundPrinter : Printer {
+
     /**
      * Printer used to print background messages.
      */
     public var printer: Printer = ::println
+
+    override fun invoke(message: CharSequence) {
+//        val xxx = if (message.contains("✔︎")) message.toString().replace("✔︎", "✔︎ — " + currentStackTrace.joinToString(" ||| ")) else message
+//        val backgroundMessage = xxx.mapLines { "${IO.ERASE_MARKER}${it.ansiRemoved.formattedAs.meta}" }
+        val backgroundMessage = message.mapLines { "${IO.ERASE_MARKER}${it.ansiRemoved.formattedAs.meta}" }
+        printer(backgroundMessage)
+    }
 }

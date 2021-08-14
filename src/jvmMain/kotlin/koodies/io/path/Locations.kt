@@ -9,9 +9,9 @@ import koodies.shell.ShellScript
 import koodies.text.Semantics.formattedAs
 import koodies.text.randomString
 import koodies.text.takeUnlessEmpty
+import java.io.UncheckedIOException
 import java.nio.file.FileSystems
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
-import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
@@ -221,7 +221,9 @@ public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainmen
                 delete(NOFOLLOW_LINKS)
             }
         }
+    } catch (e: UncheckedIOException) {
     } catch (e: NoSuchFileException) {
+    } catch (e: java.nio.file.NoSuchFileException) {
     }
 
     return this
