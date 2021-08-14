@@ -1,11 +1,13 @@
 package koodies.text
 
+import koodies.test.AnsiRequired
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import koodies.text.Unicode.ESCAPE as e
 
+@AnsiRequired
 class BannerTest {
 
     private val rainbow =

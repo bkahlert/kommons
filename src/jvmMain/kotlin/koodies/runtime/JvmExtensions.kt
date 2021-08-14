@@ -3,6 +3,8 @@ package koodies.runtime
 import koodies.Koodies
 import koodies.io.path.appendLine
 import koodies.io.path.delete
+import koodies.text.LineSeparators.LF
+import koodies.text.Semantics.formattedAs
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import java.nio.file.Path
@@ -74,22 +76,31 @@ public val java.lang.StackTraceElement.method: Method get() = clazz.declaredMeth
 
 private val onExitLogLock = ReentrantLock()
 private val onExitLog: Path = Koodies.InternalTemp.resolve(".onexit.log").apply { delete() }
-private fun <T : () -> Unit> T.toHook() = thread(start = false) {
-    runCatching {
-        invoke()
-    }.onFailure {
-        onExitLogLock.withLock {
-            onExitLog.appendLine(it.stackTraceToString())
+private fun <T : () -> Unit> T.toHook(): Thread {
+    val stackTrace = currentStackTrace
+    return thread(start = false) {
+        runCatching {
+            invoke()
+        }.onFailure {
+            onExitLogLock.withLock {
+                onExitLog.appendLine(it.stackTraceToString())
+            }
+            if (it !is IllegalStateException && it !is AccessControlException) {
+                throw IllegalStateException(
+                    "An exception occurred during shutdown.$LF" +
+                        "The shutdown hook was registered by$LF" +
+                        stackTrace.joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF), it)
+            }
         }
-        if (it !is IllegalStateException && it !is AccessControlException) throw it
     }
 }
 
 /**
  * Registers the given [handler] as a new virtual-machine shutdown hook.
  */
-public fun <T : () -> Unit> addShutDownHook(handler: T): T =
-    handler.apply { addShutDownHook(toHook()) }
+public fun <T : () -> Unit> addShutDownHook(handler: T): T {
+    return handler.apply { addShutDownHook(toHook()) }
+}
 
 /**
  * Registers the given [thread] as a new virtual-machine shutdown hook.

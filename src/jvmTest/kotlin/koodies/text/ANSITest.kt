@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.test.AnsiRequired
 import koodies.test.testEach
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Style
@@ -19,6 +20,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import koodies.text.Unicode.ESCAPE as e
 
+@AnsiRequired
 class ANSITest {
 
     private val italicCyan = Style.italic + ANSI.Colors.cyan

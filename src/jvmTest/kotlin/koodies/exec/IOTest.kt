@@ -6,6 +6,7 @@ import koodies.exec.IO.Meta
 import koodies.exec.IO.Meta.Dump
 import koodies.exec.IO.Meta.Text
 import koodies.exec.IO.Output
+import koodies.test.AnsiRequired
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.LineSeparators.LF
@@ -132,7 +133,7 @@ class IOTest {
             expectThat(IO_LIST.ansiRemoved).not { containsAnsi() }
         }
 
-        @Test
+        @AnsiRequired @Test
         fun `should keep ansi escape codes`() {
             expectThat(IO_LIST.ansiKept).containsAnsi()
         }

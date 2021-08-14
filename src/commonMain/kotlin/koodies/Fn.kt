@@ -10,27 +10,45 @@ import koodies.runtime.isDebugging
 import koodies.text.ANSI.containsAnsi
 import koodies.text.Semantics.formattedAs
 import koodies.text.truncate
-import kotlin.contracts.InvocationKind.EXACTLY_ONCE
-import kotlin.contracts.contract
 
 /**
- * Runs the specified [block] if `this` is `null` and provide
- * and expected instance of [T].
- *
- * Example:
- * ```kotlin
- * val value: String? = …
- *  …
- * val result: String = value otherwise { "fallback" }
- * ```
- *
- * @see takeIf
+ * Returns a new identity function that composes `this` optional identity function
+ * with the given identity [functions] by chaining them.
  */
-public inline infix fun <T> T?.otherwise(block: () -> T): T {
-    contract {
-        callsInPlace(block, EXACTLY_ONCE)
-    }
-    return this ?: block()
+public inline fun <reified T> ((T) -> T)?.compose(vararg functions: ((T) -> T)): ((T) -> T) =
+    functions.reversed().foldRight(compose { it }, { acc, x -> x + acc })
+
+/**
+ * Returns a new identity function that composes `this` optional identity function
+ * with the given mandatory identity [function] by chaining them.
+ */
+public inline fun <reified T> ((T) -> T)?.compose(crossinline function: ((T) -> T)): ((T) -> T) =
+    { function(this?.invoke(it) ?: it) }
+
+/**
+ * Returns a new identity function that composes `this` optional identity function
+ * with the given mandatory identity [function] by chaining them.
+ */
+public inline operator fun <reified T> ((T) -> T)?.plus(crossinline function: ((T) -> T)): ((T) -> T) =
+    { function(this?.invoke(it) ?: it) }
+
+/**
+ * Returns a new identity function that composes the given identity [functions]
+ * by chaining them.
+ */
+public inline fun <reified T> compositionOf(vararg functions: (T) -> T): ((T) -> T) {
+    if (functions.isEmpty()) return { t: T -> t }
+    return functions.first().compose(*functions.drop(1).toTypedArray())
+}
+
+/**
+ * Returns a new identity function that composes those functions of the given
+ * array of boolean-function pairs, with a [Pair.first] `true`.
+ */
+public inline fun <reified T> compositionOf(vararg functions: Pair<Boolean, (T) -> T>): ((T) -> T) {
+    if (functions.isEmpty()) return { t: T -> t }
+    return functions.first { it.first }.second
+        .compose(*functions.filter { it.first }.drop(1).map { it.second }.toTypedArray())
 }
 
 /**

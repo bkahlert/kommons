@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.test.AnsiRequired
 import koodies.test.test
 import koodies.test.testEach
 import koodies.test.tests
@@ -22,7 +23,7 @@ import strikt.assertions.startsWith
 
 class StringsKtTest {
 
-    @TestFactory
+    @AnsiRequired @TestFactory
     fun `should return length`() = tests {
         expecting { "red".length() } that { isEqualTo(3) }
         expecting { "red".ansi.red.length() } that { isEqualTo(3) }
@@ -131,7 +132,7 @@ class StringsKtTest {
     }
 
     @Suppress("SpellCheckingInspection")
-    @TestFactory
+    @AnsiRequired @TestFactory
     fun `should pad start`() = tests {
         expecting { "red".padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
         expecting { "red".ansi.red.padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
@@ -140,7 +141,7 @@ class StringsKtTest {
     }
 
     @Suppress("SpellCheckingInspection")
-    @TestFactory
+    @AnsiRequired @TestFactory
     fun `should pad end`() = tests {
         expecting { "red".padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
         expecting { "red".ansi.red.padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
@@ -205,7 +206,7 @@ class StringsKtTest {
     inner class MapColumns {
         private val Int.ansi get() = "column$this".ansi.red
 
-        @TestFactory
+        @AnsiRequired @TestFactory
         fun `should map two columns`() = tests {
             val transform: (String, String) -> String = { c1, c2 -> "${c1.last()}-${c2.last()}" }
             expecting { "column1\tcolumn2".mapColumns(transform = transform) } that { isEqualTo("1-2") }
@@ -222,7 +223,7 @@ class StringsKtTest {
             expecting { "${1.ansi}\t${2.ansi}".mapColumns(removeAnsi = false, transform = transform) } that { isEqualTo("m-m") }
         }
 
-        @TestFactory
+        @AnsiRequired @TestFactory
         fun `should map three columns`() = tests {
             val transform: (String, String, String) -> String = { c1, c2, c3 -> "${c1.last()}-${c2.last()}-${c3.last()}" }
             expecting { "column1\tcolumn2\tcolumn3".mapColumns(transform = transform) } that { isEqualTo("1-2-3") }

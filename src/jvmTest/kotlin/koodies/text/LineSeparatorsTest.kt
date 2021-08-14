@@ -5,6 +5,7 @@ import koodies.regex.group
 import koodies.regex.groupValues
 import koodies.regex.matchEntire
 import koodies.regex.value
+import koodies.test.AnsiRequired
 import koodies.test.Slow
 import koodies.test.expecting
 import koodies.test.testEach
@@ -433,7 +434,7 @@ class LineSeparatorsTest {
 
             private val text = "${"12345".ansi.cyan}曲7890".ansi.bold
 
-            @Test
+            @AnsiRequired @Test
             fun `should wrap ANSI lines`() {
                 expectThat(text.wrapLines(3)).isEqualTo("""
                 $e[1m$e[36m123$e[22;39m

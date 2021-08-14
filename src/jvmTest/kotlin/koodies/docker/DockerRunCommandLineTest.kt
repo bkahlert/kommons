@@ -297,7 +297,7 @@ class DockerRunCommandLineTest {
 
         private fun dockerRunCommandLine(workingDirectoryOption: String? = null) = DockerRunCommandLine(
             DockerImage { "repo" / "name" tag "tag" },
-            dockerOptions(workingDirectoryOption, "/a/b" to "/a/b/c/d", "/e/f/../g" to "//h"),
+            dockerOptions(workingDirectoryOption, "/a/b" to "/c/d", "/e/f/../g" to "//h"),
             CommandLine("command", "-arg1", "--argument", "/a/b/1")
         )
 
@@ -464,11 +464,11 @@ class DockerRunCommandLineTest {
             publish = listOf("8080:6060", "1234-1236:1234-1236/tcp"),
             privileged = true,
             autoCleanup = true,
-            workingDirectory = "/a/b/c".asContainerPath(),
+            workingDirectory = "/c".asContainerPath(),
             interactive = true,
             pseudoTerminal = true,
             mounts = MountOptions(
-                MountOption(source = "/a/b".asHostPath(), target = "/a/b/c/d".asContainerPath()),
+                MountOption(source = "/a/b".asHostPath(), target = "/c/d".asContainerPath()),
                 MountOption("/e/f/../g".asHostPath(), "//h".asContainerPath(), "bind"),
             ),
             custom = listOf("custom1", "custom2")
@@ -477,9 +477,9 @@ class DockerRunCommandLineTest {
             "work",
             "/etc/dnf/dnf.conf:s/check=1/check=0/",
             "-arg1", "--argument", "2",
-            "/a/b/c", "/a/b/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
+            "/a/b/c", "/c/d/e", "/e/f/../g/h", "/e/g/h", "/h/i",
             "arg=/a/b/c", "arg=/c/d/e", "arg=/e/f/../g/h", "arg=/e/g/h", "arg=/h/i",
-            "a/b/c", "a/b/c/d/e", "e/f/../g/h", "e/g/h", "h/i",
+            "a/b/c", "c/d/e", "e/f/../g/h", "e/g/h", "h/i",
             "arg=a/b/c", "arg=c/d/e", "arg=e/f/../g/h", "arg=e/g/h", "arg=h/i",
             "b/c", "d/e", "f/../g/h", "g/h", "i",
             "arg=b/c", "arg=d/e", "arg=f/../g/h", "arg=g/h", "arg=i",

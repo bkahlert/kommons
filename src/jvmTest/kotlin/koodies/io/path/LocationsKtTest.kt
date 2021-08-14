@@ -282,7 +282,7 @@ class LocationsKtTest {
         fun `should not delete files younger than specified age`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val a = tempFile("a").also { it.age = 30.minutes }
             val b = tempFile("b").also { it.age = 1.5.hours }
-            tempFile("a/b/c").also { it.age = 1.days }
+            tempFile("c").also { it.age = 1.days }
             expecting { cleanUp(2.hours, 0).listDirectoryEntriesRecursively() } that { containsExactlyInAnyOrder(a, b) }
         }
 

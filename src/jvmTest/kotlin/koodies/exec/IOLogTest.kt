@@ -5,6 +5,7 @@ import koodies.io.path.pathString
 import koodies.io.path.textContent
 import koodies.io.path.writeText
 import koodies.runtime.daemon
+import koodies.test.AnsiRequired
 import koodies.test.junit.UniqueId
 import koodies.test.toStringIsEqualTo
 import koodies.test.withTempDir
@@ -90,7 +91,7 @@ class IOLogTest {
             logPath.toFile().setWritable(true)
         }
 
-        @Test
+        @AnsiRequired @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }

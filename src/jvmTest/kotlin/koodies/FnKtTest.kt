@@ -18,18 +18,46 @@ import strikt.assertions.message
 class FnKtTest {
 
     @Nested
-    inner class Otherwise {
+    inner class ComposeKtTest {
+
+        fun a(arg: String): String = "${arg.length}"
+        fun b(arg: String): String = "$arg$arg"
+        fun c(arg: String): String = "${arg}c"
 
         @Test
-        fun `should run on null value`() {
-            val value: String? = null
-            expectThat(value otherwise { "fallback" }).isEqualTo("fallback")
+        fun `a + b should call b with result of a`() {
+            val ab = ::a.compose(::b)
+            expectThat(ab("abc")).isEqualTo("33")
         }
 
         @Test
-        fun `should return value if not null`() {
-            val value = "value"
-            expectThat(value otherwise { "fallback" }).isEqualTo("value")
+        fun `b + a should call a with result of b`() {
+            val ba = ::b.compose(::a)
+            expectThat(ba("abc")).isEqualTo("6")
+        }
+
+        @Test
+        fun `compose should have + infix function+`() {
+            val ab = ::a.plus(::b)
+            expectThat(ab("abc")).isEqualTo("33")
+        }
+
+        @Test
+        fun `should with three functions`() {
+            val ab = ::a.compose(::b, ::c)
+            expectThat(ab("abc")).isEqualTo("33c")
+        }
+
+        @Test
+        fun `should allow composition without receiver`() {
+            val ab = compositionOf(::a, ::b, ::c)
+            expectThat(ab("abc")).isEqualTo("33c")
+        }
+
+        @Test
+        fun `should allow conditional composition without receiver`() {
+            val ab = compositionOf(true to ::a, false to ::b, true to ::c)
+            expectThat(ab("abc")).isEqualTo("3c")
         }
     }
 

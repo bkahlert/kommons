@@ -1,5 +1,6 @@
 package koodies.text
 
+import koodies.test.AnsiRequired
 import koodies.test.expecting
 import koodies.test.toStringIsEqualTo
 import koodies.text.ANSI.Text.Companion.ansi
@@ -72,7 +73,7 @@ class ColumnsKtTest {
             """.trimIndent())
         }
 
-        @Test
+        @AnsiRequired @Test
         fun `should add fewer lines as second column`() {
             expectThat(ansiString.ansiRemoved.wrapLines(26)
                 .addColumn(ansiString.ansiRemoved.lines().dropLast(1).joinLinesToString().wrapLines(26))).isEqualTo("""
@@ -95,7 +96,7 @@ class ColumnsKtTest {
             """.trimIndent())
         }
 
-        @Test
+        @AnsiRequired @Test
         fun `should wrap ANSI string as second column`() {
             expectThat(ansiString.ansiRemoved.wrapLines(26).toAnsiString()
                 .addColumn(ansiString.wrapLines(26).toAnsiString())).isEqualTo("""
@@ -107,7 +108,7 @@ class ColumnsKtTest {
         }
     }
 
-    @Nested
+    @AnsiRequired @Nested
     inner class AnsiString {
 
         @Test
@@ -156,7 +157,7 @@ class ColumnsKtTest {
         }
     }
 
-    @Test
+    @AnsiRequired @Test
     fun `should apply specified padding character`() {
         expectThat(ansiString.wrapLines(26).toAnsiString()
             .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingCharacter = '*')).isEqualTo("""
@@ -167,7 +168,7 @@ class ColumnsKtTest {
             """.trimIndent().toAnsiString())
     }
 
-    @Test
+    @AnsiRequired @Test
     fun `should apply specified padding columns`() {
         expectThat(ansiString.wrapLines(26).toAnsiString()
             .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingColumns = 10)).isEqualTo("""
@@ -207,7 +208,7 @@ class ColumnsKtTest {
         """.trimIndent())
     }
 
-    @Test
+    @AnsiRequired @Test
     fun `should format multiple ansi columns`() {
         val linedUp = formatColumns(ansiString to 50, ansiString.ansiRemoved.toAnsiString() to 30, ansiString to 10)
         expectThat(linedUp).toStringIsEqualTo("""

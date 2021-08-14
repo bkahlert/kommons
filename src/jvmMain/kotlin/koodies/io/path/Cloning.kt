@@ -1,22 +1,19 @@
 package koodies.io.path
 
 import koodies.Koodies
+import koodies.exec.CommandLine
 import koodies.io.fileAlreadyExists
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 
 public val cloneFileSupport: Boolean by lazy {
-    val file: Path = Koodies.FilesTemp.tempFile().apply {
-        writeText("cloneFile test")
-        deleteOnExit()
-    }
-    val clone = file.resolveSibling("cloned").deleteOnExit()
-    Runtime.getRuntime()?.exec(arrayOf("cp", "-c", file.pathString, clone.pathString))
-        ?.waitFor()
-        ?.let { exitValue ->
-            exitValue == 0 && clone.exists() && clone.readText() == "cloneFile test"
-        } ?: false
+    val file: Path = Koodies.FilesTemp.tempFile().writeText("cloneFile test")
+    val clone = file.resolveSibling("${file.fileName}-cloned")
+    val exitCode = CommandLine("cp", "-c", file.pathString, clone.pathString).exec().waitFor().exitCode
+    file.delete()
+    clone.delete()
+    exitCode == 0 && clone.exists() && clone.readText() == "cloneFile test"
 }
 
 /**
@@ -24,14 +21,12 @@ public val cloneFileSupport: Boolean by lazy {
  *
  * In contract to [copyTo] this method tries a [clone copy](https://www.unix.com/man-page/mojave/2/clonefile/) first.
  */
-public fun Path.cloneTo(target: Path): Path {
-    return if (cloneFileSupport) {
+public fun Path.cloneTo(target: Path): Path =
+    if (cloneFileSupport) {
         if (target.exists()) throw fileAlreadyExists(this, target)
-        Runtime.getRuntime()?.exec(arrayOf("cp", "-c", pathString, target.pathString))?.waitFor()?.let { exitValue ->
-            check(exitValue == 0) { "Cloning failed with $exitValue" }
-            target
-        } ?: throw IllegalStateException("Error executing file cloning")
+        val exitCode = CommandLine("cp", "-c", pathString, target.pathString).exec().waitFor().exitCode
+        check(exitCode == 0) { "Cloning failed with $exitCode" }
+        target
     } else {
         copyTo(target)
     }
-}

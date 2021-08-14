@@ -1,8 +1,9 @@
 package koodies.text
 
+import koodies.compositionOf
 import koodies.debug.asEmoji
 import koodies.debug.debug
-import koodies.functional.compositionOf
+import koodies.test.AnsiRequired
 import koodies.test.test
 import koodies.test.testEach
 import koodies.text.ANSI.Text.Companion.ansi
@@ -160,12 +161,12 @@ class CurlyPatternKtTest {
 
     @Test
     fun `should remove ANSI escape sequences by default`() {
-        expectThat("ab".ansi.red.toString() + "a/b/c").matchesCurlyPattern("abc")
+        expectThat("ab".ansi.red.toString() + "c").matchesCurlyPattern("abc")
     }
 
-    @Test
+    @AnsiRequired @Test
     fun `should allow to deactivate removal of ANSI escape sequences`() {
-        expectThat("ab".ansi.red.toString() + "a/b/c").not { matchesCurlyPattern("abc", removeAnsi = false) }
+        expectThat("ab".ansi.red.toString() + "c").not { matchesCurlyPattern("abc", removeAnsi = false) }
     }
 
     @Test

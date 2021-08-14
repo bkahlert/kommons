@@ -3,6 +3,7 @@
 package koodies.tracing.rendering
 
 import koodies.exec.ExecAttributes
+import koodies.test.AnsiRequired
 import koodies.test.Smoke
 import koodies.test.expectThrows
 import koodies.test.testEach
@@ -180,7 +181,7 @@ class BlockRendererTest {
                 expectThat(rendered).isEqualTo(plain80)
             }
 
-            @Test
+            @AnsiRequired @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(printer = it)).log(ansi80) }
                 expectThat(rendered).isEqualTo(ansi80)
@@ -201,7 +202,7 @@ class BlockRendererTest {
                     """.trimIndent())
             }
 
-            @Test
+            @AnsiRequired @Test
             fun TestSpanScope.`should wrap too long ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(ansi80) }
                 expectThat(rendered).isEqualTo("""
@@ -250,7 +251,7 @@ class BlockRendererTest {
                     """.trimIndent())
             }
 
-            @Smoke @Test
+            @AnsiRequired @Smoke @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, EXTRA to ansi80) }
                 expectThat(rendered).isEqualTo("""
@@ -274,7 +275,7 @@ class BlockRendererTest {
                 expectThat(rendered).isEmpty()
             }
 
-            @Test
+            @AnsiRequired @Test
             fun TestSpanScope.`should leave column empty on missing attribute`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80) }
                 expectThat(rendered).isEqualTo("""
@@ -453,7 +454,7 @@ class BlockRendererTest {
             """.trimIndent())
         }
 
-        @Test
+        @AnsiRequired @Test
         fun TestSpanScope.`should support ANSI`() {
             val rendered = capturing {
                 BlockRenderer(settings.copy(printer = it))

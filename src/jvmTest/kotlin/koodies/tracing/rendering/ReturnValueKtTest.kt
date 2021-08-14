@@ -4,6 +4,7 @@ import koodies.exec.IOSequence
 import koodies.exec.Process.State.Exited.Failed
 import koodies.exec.Process.State.Exited.Succeeded
 import koodies.exec.mock.ExecMock
+import koodies.test.AnsiRequired
 import koodies.test.testEach
 import koodies.text.Semantics.Symbols
 import koodies.text.ansiRemoved
@@ -48,7 +49,7 @@ class ReturnValueKtTest {
 
     private val expectations = successfulExpectations + failedExpectations
 
-    @TestFactory
+    @AnsiRequired @TestFactory
     fun `should format as return value`() = testEach(
         null to Symbols.Null,
         Unit to "✔︎",
@@ -181,7 +182,7 @@ class ReturnValueKtTest {
         }
     }
 
-    @Nested
+    @AnsiRequired @Nested
     inner class OfSuccessful {
 
         private val tick = "\u001B[32m✔︎\u001B[39m"

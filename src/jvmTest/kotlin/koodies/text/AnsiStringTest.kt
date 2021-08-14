@@ -1,6 +1,7 @@
 package koodies.text
 
 import koodies.debug.debug
+import koodies.test.AnsiRequired
 import koodies.test.testEach
 import koodies.text.ANSI.Text.Companion.ansi
 import koodies.text.ANSI.ansiRemoved
@@ -26,6 +27,7 @@ import strikt.assertions.isNotBlank
 import strikt.assertions.isSameInstanceAs
 import koodies.text.Unicode.ESCAPE as e
 
+@AnsiRequired
 class AnsiStringTest {
 
     companion object {

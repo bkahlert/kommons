@@ -21,18 +21,10 @@ import kotlin.time.Duration
 class SelfCleaningDirectoryTest {
 
     @Test
-    fun `should take receiver directory`() {
-        expectThat(Locations.Temp.resolve("koodies.app-specific").selfCleaning()) {
-            isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("koodies.app-specific")))
-            toStringContains("koodies.app-specific")
-        }
-    }
-
-    @Test
-    fun `should create missing directories`() {
-        expectThat(Locations.Temp.resolve("koodies.app-specific/A/B/C").selfCleaning()) {
-            isEqualTo(SelfCleaningDirectory(Locations.Temp.resolve("koodies.app-specific/A/B/C")))
-            toStringContains("koodies.app-specific/A/B/C")
+    fun `should create missing directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        expectThat(resolve("koodies/a/b/c").selfCleaning()) {
+            isEqualTo(SelfCleaningDirectory(resolve("koodies/a/b/c")))
+            toStringContains("koodies/a/b/c")
         }
     }
 

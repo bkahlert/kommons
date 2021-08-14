@@ -169,7 +169,7 @@ class CommandLineTest {
     inner class Formatting {
         @Test
         fun `should output formatted`() {
-            expectThat(CommandLine("command", "-a", "--bee", "a/b/c", "x y z".quoted)).toStringIsEqualTo("""
+            expectThat(CommandLine("command", "-a", "--bee", "c", "x y z".quoted)).toStringIsEqualTo("""
             'command' \
             '-a' \
             '--bee' \
@@ -195,7 +195,7 @@ class CommandLineTest {
                 "command",
                 "-a",
                 "--bee",
-                CommandLine("command", "-a", "--bee", "a/b/c", "x y z".quoted).toString(),
+                CommandLine("command", "-a", "--bee", "c", "x y z".quoted).toString(),
                 "x y z".quoted)
             ).toStringIsEqualTo("""
             'command' \

@@ -221,7 +221,7 @@ class ExtensionsTest {
             Path.of("a/b/c.2"),
             Path.of("a/b.1/c.2"),
         ).testEach {
-            expecting { it.baseName } that { isEqualTo(it.fileSystem.getPath("a/b/c")) }
+            expecting { it.baseName } that { isEqualTo(it.fileSystem.getPath("c")) }
         }
 
         @TestFactory
