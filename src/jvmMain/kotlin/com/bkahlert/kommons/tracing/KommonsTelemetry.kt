@@ -57,14 +57,14 @@ public object KommonsTelemetry : OpenTelemetry {
  * If none is explicitly registered, the [TracerAPI] returned by the [TracerProvider] of [GlobalOpenTelemetry.get] is used.
  */
 public object KommonsTracer : Tracer {
-    private val instance: Tracer get() = KommonsTelemetry.tracerProvider.get(Kommons.group, Kommons.version.toString())
+    private val instance: Tracer get() = KommonsTelemetry.tracerProvider.get(Kommons.name, Kommons.version.toString())
 
     override fun spanBuilder(spanName: String): SpanBuilder = instance.spanBuilder(spanName)
 
     /**
      * [TracerAPI] that does nothing.
      */
-    public object NOOP : Tracer by KommonsTelemetry.NOOP.tracerProvider.get(Kommons.group, Kommons.version.toString())
+    public object NOOP : Tracer by KommonsTelemetry.NOOP.tracerProvider.get(Kommons.name, Kommons.version.toString())
 }
 
 /**
