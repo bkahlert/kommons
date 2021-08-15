@@ -181,7 +181,7 @@ class ExecutionIntegrationTest {
     fun `should exec using docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         CommandLine("printenv", "HOME").exec() check {
-            io.output.ansiRemoved { isEqualTo(Locations.HomeDirectory.pathString) }
+            io.output.ansiRemoved { isEqualTo(Locations.home.pathString) }
         }
 
         CommandLine("printenv", "HOME").dockerized { "ubuntu" }.exec() check {

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.tracing
 
-import io.opentelemetry.api.trace.Span
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.math.floorDiv
 import com.bkahlert.kommons.runtime.currentThread
@@ -36,6 +35,7 @@ import com.bkahlert.kommons.tracing.rendering.Settings
 import com.bkahlert.kommons.tracing.rendering.TeePrinter
 import com.bkahlert.kommons.tracing.rendering.ThreadSafePrinter
 import com.bkahlert.kommons.unit.milli
+import io.opentelemetry.api.trace.Span
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -129,8 +129,8 @@ class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpanScope>(), B
         fun SpanScope.registerAsTestSpan(): SpanScope = apply { tracesLock.withLock { traces.add(TraceId.current) } }
         val TraceId.testTrace get() = tracesLock.withLock { traces.contains(this) }
 
-        private val NoSpanString = NoTestSpan::class.simpleName.formattedAs.input
-        private val TestSpanScopeString = TestSpanScope::class.simpleName.formattedAs.input
+        private val NoSpanString = NoTestSpan::class.simpleName
+        private val TestSpanScopeString = TestSpanScope::class.simpleName
     }
 }
 

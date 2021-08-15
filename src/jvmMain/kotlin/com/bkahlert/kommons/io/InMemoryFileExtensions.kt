@@ -49,7 +49,7 @@ public fun InMemoryFile.copyToDirectory(target: Path): Path =
 public fun InMemoryFile.copyToTemp(
     base: String = name.asPath().nameWithoutExtension,
     extension: String = name.asPath().extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(Kommons.FilesTemp.tempFile(base, extension))
+): Path = copyTo(Kommons.filesTemp.tempFile(base, extension))
 
 /**
  * Returns this image as a bitmap. The image is automatically rasterized if necessary.

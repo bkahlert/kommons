@@ -56,7 +56,7 @@ public open class ClassPath(public val pathString: String) {
     public fun copyToTemp(
         base: String = nativePath.nameWithoutExtension,
         extension: String = nativePath.extensionOrNull?.let { ".$it" } ?: "",
-    ): Path = copyTo(Kommons.FilesTemp.tempFile(base, extension), overwrite = true)
+    ): Path = copyTo(Kommons.filesTemp.tempFile(base, extension), overwrite = true)
 }
 
 /**

@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.io.EOF
 import com.bkahlert.kommons.io.directoryNotEmpty
 import com.bkahlert.kommons.io.fileAlreadyExists
@@ -22,6 +23,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.notExists
 
 /**
@@ -184,6 +186,15 @@ public fun Path.copyToDirectory(
 
     return copyTo(targetDirectory.resolveBetweenFileSystems(fileName), overwrite = overwrite, preserve = preserve, onError = onError, options = options)
 }
+
+/**
+ * Copies this path to a temporary directory—the name based on the
+ * optional [base] and [extension].
+ */
+public fun Path.copyToTemp(
+    base: String = nameWithoutExtension,
+    extension: String = extensionOrNull?.let { ".$it" } ?: "",
+): Path = copyTo(Kommons.filesTemp.tempFile(base, extension), overwrite = true)
 
 /**
  * Duplicates this file or directory by copying to the same path but with a random string to its name.

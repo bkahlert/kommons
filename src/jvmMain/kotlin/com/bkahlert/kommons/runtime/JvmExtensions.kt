@@ -75,7 +75,7 @@ public val java.lang.StackTraceElement.clazz: Class<*> get() = Class.forName(cla
 public val java.lang.StackTraceElement.method: Method get() = clazz.declaredMethods.single { it.name == methodName }
 
 private val onExitLogLock = ReentrantLock()
-private val onExitLog: Path = Kommons.InternalTemp.resolve(".onexit.log").apply { delete() }
+private var onExitLog: Path? = null
 private fun <T : () -> Unit> T.toHook(): Thread {
     val stackTrace = currentStackTrace
     return thread(start = false) {
@@ -83,7 +83,10 @@ private fun <T : () -> Unit> T.toHook(): Thread {
             invoke()
         }.onFailure {
             onExitLogLock.withLock {
-                onExitLog.appendLine(it.stackTraceToString())
+                (onExitLog ?: Kommons.internalTemp.resolve(".onexit.log").apply { delete() }).let { path ->
+                    onExitLog = path
+                    path.appendLine(it.stackTraceToString())
+                }
             }
             if (it !is IllegalStateException && it !is AccessControlException) {
                 throw IllegalStateException(

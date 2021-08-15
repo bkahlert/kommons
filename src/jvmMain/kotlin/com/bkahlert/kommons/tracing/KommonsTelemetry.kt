@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.withSuffix
 import com.bkahlert.kommons.tracing.Key.KeyValue
@@ -56,14 +57,14 @@ public object KommonsTelemetry : OpenTelemetry {
  * If none is explicitly registered, the [TracerAPI] returned by the [TracerProvider] of [GlobalOpenTelemetry.get] is used.
  */
 public object KommonsTracer : Tracer {
-    private val instance: Tracer get() = KommonsTelemetry.tracerProvider.get("com.bkahlert.kommons", "1.6.0")
+    private val instance: Tracer get() = KommonsTelemetry.tracerProvider.get(Kommons.group, Kommons.version.toString())
 
     override fun spanBuilder(spanName: String): SpanBuilder = instance.spanBuilder(spanName)
 
     /**
      * [TracerAPI] that does nothing.
      */
-    public object NOOP : Tracer by KommonsTelemetry.NOOP.tracerProvider.get("com.bkahlert.kommons")
+    public object NOOP : Tracer by KommonsTelemetry.NOOP.tracerProvider.get(Kommons.group, Kommons.version.toString())
 }
 
 /**

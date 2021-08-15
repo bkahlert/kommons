@@ -108,7 +108,7 @@ class ClassPathTest {
         @Test
         fun `should copy file to temp`() {
             expecting { JUnitExtensions.copyToTemp().deleteOnExit() } that {
-                parent.isEqualTo(Kommons.FilesTemp)
+                parent.isEqualTo(Kommons.filesTemp)
                 textContent.contains("com.bkahlert.kommons.test.junit.TestNameResolver")
             }
         }
@@ -136,7 +136,7 @@ class ClassPathTest {
         @Test
         fun `should copy directory to temp`() {
             expecting { Services.copyToTemp().deleteOnExit(recursively = true) } that {
-                parent.isEqualTo(Kommons.FilesTemp)
+                parent.isEqualTo(Kommons.filesTemp)
                 get { listDirectoryEntriesRecursively() }.size.isGreaterThanOrEqualTo(2)
             }
         }

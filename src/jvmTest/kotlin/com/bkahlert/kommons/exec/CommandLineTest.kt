@@ -307,7 +307,7 @@ val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBu
     get() = get("continuation removed %s") { replace("\\s+\\\\.".toRegex(RegexOption.DOT_MATCHES_ALL), " ") }
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
-    get() = get("evaluated %s") { toExec(false, emptyMap(), Locations.Temp, null).process() }
+    get() = get("evaluated %s") { toExec(false, emptyMap(), Locations.temp, null).process() }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =
     evaluated.block()

@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.io.compress.TarArchiver.tar
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.singleFile
@@ -21,6 +22,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import strikt.java.fileName
+import strikt.java.parent
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
@@ -33,7 +35,7 @@ import kotlin.io.path.readBytes
 class CopyKtTest {
 
     @Nested
-    inner class CopyToKtTest {
+    inner class CopyTo {
 
         private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
@@ -115,7 +117,7 @@ class CopyKtTest {
         inner class CopyDirectory {
 
             @Test
-            fun `should copy file if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should copy directory if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val dest = randomPath(extension = ".txt")
                 expectThat(getTestDir().copyTo(dest))
                     .isCopyOf(getTestDir())
@@ -191,7 +193,7 @@ class CopyKtTest {
 
 
     @Nested
-    inner class CopyToDirectoryKtTest {
+    inner class CopyToDirectory {
 
         private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
@@ -282,7 +284,7 @@ class CopyKtTest {
         inner class CopyDirectory {
 
             @Test
-            fun `should copy file if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should copy directory if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
                 val dest = randomDirectory().resolve(srcDir.fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent))
@@ -363,6 +365,45 @@ class CopyKtTest {
             }
         }
     }
+
+
+    @Nested
+    inner class CopyToTemp {
+
+        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
+        private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
+
+        @Test
+        fun `should throw on missing src`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            val src = randomPath(extension = ".txt")
+            expectCatching { src.copyToTemp() }.isFailure().isA<NoSuchFileException>()
+        }
+
+        @Nested
+        inner class CopyFile {
+
+            @Test
+            fun `should copy file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                val srcFile = getTestFile()
+                expectThat(srcFile.copyToTemp())
+                    .hasContent("test file")
+                    .parent.isEqualTo(Kommons.filesTemp)
+            }
+        }
+
+        @Nested
+        inner class CopyDirectory {
+
+            @Test
+            fun `should copy directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                val srcDir = getTestDir()
+                expectThat(srcDir.copyToTemp())
+                    .isCopyOf(srcDir)
+                    .parent.isEqualTo(Kommons.filesTemp)
+            }
+        }
+    }
+
 
     @Nested
     inner class Duplicate {

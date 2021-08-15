@@ -38,9 +38,9 @@ class LocationsKtTest {
 
     @TestFactory
     fun paths() = testEach(
-        Locations.WorkingDirectory,
-        Locations.HomeDirectory,
-        Locations.Temp,
+        Locations.work,
+        Locations.home,
+        Locations.temp,
     ) { path ->
         expecting { path.isAbsolute } that { isTrue() }
         expecting { path.exists() } that { isTrue() }
@@ -48,12 +48,12 @@ class LocationsKtTest {
 
     @Test
     fun `should resolve HomeDirectory`() {
-        expectThat(Locations.HomeDirectory).exists()
+        expectThat(Locations.home).exists()
     }
 
     @Test
     fun `should resolve Temp`() {
-        expectThat(Locations.Temp).exists()
+        expectThat(Locations.temp).exists()
     }
 
     @Nested
@@ -81,7 +81,7 @@ class LocationsKtTest {
 
         @Test
         fun `should return false if not inside`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(Locations.HomeDirectory).not { isInside(this@withTempDir) }
+            expectThat(Locations.home).not { isInside(this@withTempDir) }
         }
     }
 
@@ -156,7 +156,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside temp directory`() {
-            expectThat(tempDir().deleteOnExit()).isInside(Locations.Temp)
+            expectThat(tempDir().deleteOnExit()).isInside(Locations.temp)
         }
 
         @Test
@@ -192,7 +192,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside temp directory`() {
-            expectThat(tempFile().deleteOnExit()).isInside(Locations.Temp)
+            expectThat(tempFile().deleteOnExit()).isInside(Locations.temp)
         }
 
         @Test
@@ -231,7 +231,7 @@ class LocationsKtTest {
             val tempDir: Path = runWithTempDir {
                 expectThat(this) {
                     isDirectory()
-                    isInside(Locations.Temp)
+                    isInside(Locations.temp)
                 }
                 this
             }

@@ -14,7 +14,7 @@ import com.bkahlert.kommons.text.Semantics.Symbols
 public open class ExecMock(
     private val process: JavaProcessMock,
     private val name: String? = null,
-) : Exec by JavaExec(process, Kommons.ExecTemp, CommandLine("echo", ExecMock::class.simpleName!!, name = name)) {
+) : Exec by JavaExec(process, Kommons.execTemp, CommandLine("echo", ExecMock::class.simpleName!!, name = name)) {
 
     override fun toString(): String {
         val delegateString =

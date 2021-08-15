@@ -6,7 +6,7 @@ import com.bkahlert.kommons.shell.ShellScript
 import java.net.URI
 import java.nio.file.Path
 
-private val shellScriptDir: Path = Kommons.ExecTemp
+private val shellScriptDir: Path = Kommons.execTemp
 private const val shellScriptExtension: String = ".sh"
 
 /**

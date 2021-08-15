@@ -14,5 +14,5 @@ object TestKommons : Locations {
     /**
      * Directory in which all artifacts of a test run are stored.
      */
-    val TestRoot: Path by Locations.Temp.resolve("kommons-test").selfCleaning(Duration.ZERO, 0, cleanUpMode = OnStart)
+    val TestRoot: Path by Locations.temp.resolve("kommons-test").selfCleaning(Duration.ZERO, 0, cleanUpMode = OnStart)
 }

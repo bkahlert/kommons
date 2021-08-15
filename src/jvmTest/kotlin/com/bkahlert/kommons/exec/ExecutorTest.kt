@@ -67,14 +67,14 @@ class ExecutorTest {
         @Test
         fun `should exec using specified environment`() {
             val random = randomString()
-            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(Locations.Temp)
+            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(Locations.temp)
             expectThat(exec.io.output.ansiRemoved).isEqualTo(random)
         }
 
         @Test
         fun `should exec using specified working directory`() {
-            val exec = CommandLine("pwd").exec(Kommons.ExecTemp)
-            val tempPaths = setOf(Kommons.ExecTemp.pathString, Kommons.ExecTemp.toRealPath().pathString)
+            val exec = CommandLine("pwd").exec(Kommons.execTemp)
+            val tempPaths = setOf(Kommons.execTemp.pathString, Kommons.execTemp.toRealPath().pathString)
             expectThat(tempPaths).contains(exec.io.output.ansiRemoved)
         }
 

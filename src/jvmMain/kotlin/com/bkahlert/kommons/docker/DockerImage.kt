@@ -137,7 +137,7 @@ public open class DockerImage(
             val page = 1
             val pageSize = 100
             val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
-            return Kommons.ExecTemp.curlJq("hub.docker.com tags") {
+            return Kommons.execTemp.curlJq("hub.docker.com tags") {
                 "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"
             }.io.output.ansiRemoved.lines()
         }

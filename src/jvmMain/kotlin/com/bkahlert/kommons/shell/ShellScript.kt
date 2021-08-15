@@ -156,7 +156,7 @@ public open class ShellScript(
      * @see toString
      */
     public fun toFile(
-        path: Path = Kommons.FilesTemp.tempFile(this.name.toBaseName(), ".sh"),
+        path: Path = Kommons.filesTemp.tempFile(this.name.toBaseName(), ".sh"),
         echoName: Boolean = false,
         name: CharSequence? = this.name,
     ): Path = path.apply {

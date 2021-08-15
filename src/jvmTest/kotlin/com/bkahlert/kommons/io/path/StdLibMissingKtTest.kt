@@ -265,7 +265,7 @@ class StdLibMissingKtTest {
     inner class DeleteOnExit {
 
         private val name = "kommons.onexit.does-not-work.txt"
-        private val markerFile: Path = Locations.Temp / name
+        private val markerFile: Path = Locations.temp / name
 
         @BeforeAll
         fun setUp() {

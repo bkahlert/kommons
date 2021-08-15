@@ -190,7 +190,7 @@ public interface Exec : Process {
          */
         public fun Exec.createDump(vararg errorMessage: String): String {
             metaStream.emit(Meta typed errorMessage.joinToString(DEFAULT))
-            return (workingDirectory ?: Locations.Temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
+            return (workingDirectory ?: Locations.temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
         }
     }
 

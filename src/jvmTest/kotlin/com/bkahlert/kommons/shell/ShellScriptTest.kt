@@ -134,7 +134,7 @@ class ShellScriptTest {
         fun `should use name for filename`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = shellScript("my script").toFile()
             expectThat(file)
-                .isInside(Locations.Temp)
+                .isInside(Locations.temp)
                 .fileName.pathString.startsWith("my-script")
         }
 

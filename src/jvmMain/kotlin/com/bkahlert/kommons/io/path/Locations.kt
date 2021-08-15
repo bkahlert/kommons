@@ -30,34 +30,34 @@ public interface Locations {
     /**
      * Working directory, that is, the directory in which this binary is located.
      */
-    public val WorkingDirectory: Path get() = Companion.WorkingDirectory
+    public val work: Path get() = Companion.work
 
     /**
      * Home directory of the currently logged in user.
      */
-    public val HomeDirectory: Path get() = Companion.HomeDirectory
+    public val home: Path get() = Companion.home
 
     /**
      * Directory in which temporary data can be stored.
      */
-    public val Temp: Path get() = Companion.Temp
+    public val temp: Path get() = Companion.temp
 
     public companion object {
 
         /**
          * Working directory, that is, the directory in which this binary is located.
          */
-        public val WorkingDirectory: Path = FileSystems.getDefault().getPath("").toAbsolutePath()
+        public val work: Path = FileSystems.getDefault().getPath("").toAbsolutePath()
 
         /**
          * Home directory of the currently logged in user.
          */
-        public val HomeDirectory: Path = Path.of(System.getProperty("user.home"))
+        public val home: Path = Path.of(System.getProperty("user.home"))
 
         /**
          * Directory in which temporary data can be stored.
          */
-        public val Temp: Path = Paths.get("/tmp").takeIf { it.isWritable() } ?: Path.of(System.getProperty("java.io.tmpdir"))
+        public val temp: Path = Paths.get("/tmp").takeIf { it.isWritable() } ?: Path.of(System.getProperty("java.io.tmpdir"))
     }
 }
 
@@ -124,27 +124,27 @@ public fun Path.randomFile(base: String = randomString(4), extension: String = "
  */
 
 /**
- * Creates a temporary directory inside of [Locations.Temp].
+ * Creates a temporary directory inside of [Locations.temp].
  *
  * The POSIX permissions are set to `700`.
  */
 public fun tempDir(base: String = "", extension: String = ""): Path =
-    Locations.Temp.tempDir(base, extension)
+    Locations.temp.tempDir(base, extension)
 
 /**
- * Creates a temporary file inside of [Locations.Temp].
+ * Creates a temporary file inside of [Locations.temp].
  *
  * The POSIX permissions are set to `700`.
  */
 public fun tempFile(base: String = "", extension: String = ""): Path =
-    Locations.Temp.tempFile(base, extension)
+    Locations.temp.tempFile(base, extension)
 
 /**
  * Creates a temporary directory inside `this` temporary directory.
  *
  * The POSIX permissions are set to `700`.
  *
- * Attempting to create a temporary directory outside of [Locations.Temp] will
+ * Attempting to create a temporary directory outside of [Locations.temp] will
  * throw an [IllegalArgumentException].
  */
 public fun Path.tempDir(base: String = "", extension: String = ""): Path =
@@ -157,7 +157,7 @@ public fun Path.tempDir(base: String = "", extension: String = ""): Path =
  *
  * The POSIX permissions are set to `700`.
  *
- * Attempting to create a temporary directory outside of [Locations.Temp] will
+ * Attempting to create a temporary directory outside of [Locations.temp] will
  * throw an [IllegalArgumentException].
  */
 public fun Path.tempFile(base: String = "", extension: String = ""): Path =
@@ -197,7 +197,7 @@ public fun Path.ls(glob: String = ""): List<Path> =
  * are left.
  *
  * Because this process affects a potentially huge number of files,
- * this directory is required to be located somewhere inside of [Locations.Temp]
+ * this directory is required to be located somewhere inside of [Locations.temp]
  * if not explicitly specified otherwise.
  */
 public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainment: Boolean = true): Path {

@@ -214,4 +214,4 @@ class ProcessorsKtTest {
     }
 }
 
-private fun CommandLine.toExec() = toExec(false, emptyMap(), Kommons.InternalTemp, null)
+private fun CommandLine.toExec() = toExec(false, emptyMap(), Kommons.internalTemp, null)

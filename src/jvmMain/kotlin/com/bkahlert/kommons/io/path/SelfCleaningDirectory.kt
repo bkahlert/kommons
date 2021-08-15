@@ -19,7 +19,7 @@ import kotlin.time.Duration
  * are left.
  *
  * Because this process affects a potentially huge number of files,
- * this directory is required to be located somewhere inside of [Locations.Temp]
+ * this directory is required to be located somewhere inside of [Locations.temp]
  * if not explicitly specified otherwise.
  */
 public data class SelfCleaningDirectory(
@@ -40,7 +40,7 @@ public data class SelfCleaningDirectory(
     public val keepCount: Int = 100,
 
     /**
-     * Whether to check if [path] is located inside of [Locations.Temp].
+     * Whether to check if [path] is located inside of [Locations.temp].
      */
     public val enforceTempContainment: Boolean = true,
 
@@ -102,7 +102,7 @@ public data class SelfCleaningDirectory(
  * the specified [keepAge] and stopping when [keepCount] files are left.
  *
  * Because this process affects a potentially huge number of files,
- * this directory is required to be located somewhere inside of [Locations.Temp]
+ * this directory is required to be located somewhere inside of [Locations.temp]
  * if not explicitly specified otherwise.
  */
 @Suppress("NOTHING_TO_INLINE")

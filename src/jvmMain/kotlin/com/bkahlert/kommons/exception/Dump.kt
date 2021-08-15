@@ -14,7 +14,7 @@ import java.io.IOException
 import java.nio.file.Path
 
 private object Dump {
-    val dumpDir: Path = Kommons.ExecTemp
+    val dumpDir: Path = Kommons.execTemp
     const val dumpPrefix = "dump"
     const val dumpSuffix = ".log"
 }
@@ -28,7 +28,7 @@ private object Dump {
  */
 public fun Path.dump(
     errorMessage: String?,
-    file: Path = (takeUnless { it.isSubPathOf(Locations.Temp) } ?: Dump.dumpDir).randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    file: Path = (takeUnless { it.isSubPathOf(Locations.temp) } ?: Dump.dumpDir).randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
     data: () -> String,
 ): String = runCatching {
     var dumped: String? = null

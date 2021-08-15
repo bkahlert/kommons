@@ -180,6 +180,11 @@ kotlin {
     }
 }
 
+tasks.withType<ProcessResources> {
+    filesMatching("build.properties") {
+        expand(project.properties)
+    }
+}
 
 tasks.register<Copy>("assembleReadme") {
     from(projectDir)

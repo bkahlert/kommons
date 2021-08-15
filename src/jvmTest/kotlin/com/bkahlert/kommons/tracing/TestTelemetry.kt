@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.collections.synchronizedMapOf
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.tracing.TestSpanParameterResolver.Companion.testTrace
@@ -46,7 +47,10 @@ class TestTelemetry : TestExecutionListener {
                 .let { if (TEST_SPAN_CHECK_ENABLED) it.addSpanProcessor(TestSpanCheckSpanProcessor) else it }
                 .addSpanProcessor(InMemoryStoringSpanProcessor)
                 .addSpanProcessor(batchExporter)
-                .setResource(Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), "kommons-test")))
+                .setResource(Resource.create(Attributes.of(
+                    AttributeKey.stringKey("service.name"), "kommons-test",
+                    AttributeKey.stringKey("service.version"), Kommons.version.toString(),
+                )))
                 .setSpanLimits { SpanLimits.builder().setMaxNumberOfEvents(2500).build() }
                 .build()
 
