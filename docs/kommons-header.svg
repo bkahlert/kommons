@@ -110,8 +110,8 @@
                                 <animate attributeName="y2" dur="80s" values="-540; 60; -540" repeatCount="indefinite"/>
                             </linearGradient>
                         </defs>
-                        <polygon points="0,0 30.1,0 0,30.1" fill="url(#upper-k)"/>
-                        <polygon points="30.1,0 0,30.1 0,60 60,0" fill="url(#strip)"/>
+                        <polygon points="0,0 30.5,0 0,30.5" fill="url(#upper-k)"/>
+                        <polygon points="30.5,0 0,30.5 0,60 60,0" fill="url(#strip)"/>
                         <polygon points="0,60 30,30 60,60" fill="url(#lower-k)"/>
                     </svg>
                     <span class="K">K</span>ommons
