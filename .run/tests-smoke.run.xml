@@ -1,51 +1,35 @@
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="All Smoke Tests" type="GradleRunConfiguration" factoryName="Gradle">
-        <ExternalSystemSettings>
-            <option name="executionName"/>
-            <option name="externalProjectPath" value="$PROJECT_DIR$"/>
-            <option name="externalSystemIdString" value="GRADLE"/>
-            <option name="scriptParameters" value=""/>
-            <option name="taskDescriptions">
-                <list/>
-            </option>
-            <option name="taskNames">
-                <list>
-                    <option value=":smokeTest"/>
-                </list>
-            </option>
-            <option name="vmOptions" value=""/>
-        </ExternalSystemSettings>
-        <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-        <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-        <extension name="net.ashald.envfile">
-            <option name="IS_ENABLED" value="false"/>
-            <option name="IS_SUBST" value="false"/>
-            <option name="IS_PATH_MACRO_SUPPORTED" value="false"/>
-            <option name="IS_IGNORE_MISSING_FILES" value="false"/>
-            <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false"/>
-            <ENTRIES>
-                <ENTRY IS_ENABLED="true" PARSER="runconfig"/>
-            </ENTRIES>
-        </extension>
-        <DebugAllEnabled>false</DebugAllEnabled>
-        <method v="2"/>
-    </configuration>
-    <configuration default="false" name=" 🧪 💨 Smoke Tests" type="JUnit" factoryName="JUnit">
-        <module name="koodies.jvmTest"/>
-        <extension name="coverage">
-            <pattern>
-                <option name="PATTERN" value="koodies.io.*"/>
-                <option name="ENABLED" value="true"/>
-            </pattern>
-        </extension>
-        <option name="ALTERNATIVE_JRE_PATH" value="11"/>
-        <option name="PACKAGE_NAME" value="koodies.shell"/>
-        <option name="MAIN_CLASS_NAME" value="koodies.shell.ShellScriptTest"/>
-        <option name="METHOD_NAME" value="should assert using builder"/>
-        <option name="TEST_OBJECT" value="tags"/>
-        <tag value="Smoke"/>
-        <method v="2">
-            <option name="Make" enabled="true"/>
-        </method>
-    </configuration>
+  <configuration default="false" name="All Smoke Tests" type="GradleRunConfiguration" factoryName="Gradle">
+    <ExternalSystemSettings>
+      <option name="executionName"/>
+      <option name="externalProjectPath" value="$PROJECT_DIR$"/>
+      <option name="externalSystemIdString" value="GRADLE"/>
+      <option name="scriptParameters" value=""/>
+      <option name="taskDescriptions">
+        <list/>
+      </option>
+      <option name="taskNames">
+        <list>
+          <option value=":smokeTest"/>
+        </list>
+      </option>
+      <option name="vmOptions" value=""/>
+    </ExternalSystemSettings>
+    <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+    <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+    <DebugAllEnabled>false</DebugAllEnabled>
+    <method v="2"/>
+  </configuration>
+  <configuration default="false" name=" 🧪 💨 Smoke Tests" type="JUnit" factoryName="JUnit">
+    <module name="kommons.jvmTest"/>
+    <option name="ALTERNATIVE_JRE_PATH" value="11"/>
+    <option name="PACKAGE_NAME" value="com.bkahlert.kommons.shell"/>
+    <option name="MAIN_CLASS_NAME" value="com.bkahlert.kommons.shell.ShellScriptTest"/>
+    <option name="METHOD_NAME" value="should assert using builder"/>
+    <option name="TEST_OBJECT" value="tags"/>
+    <tag value="Smoke"/>
+    <method v="2">
+      <option name="Make" enabled="true"/>
+    </method>
+  </configuration>
 </component>

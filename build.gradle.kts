@@ -1,25 +1,13 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.dokka.Platform.common
-import org.jetbrains.dokka.Platform.js
-import org.jetbrains.dokka.Platform.jvm
-import org.jetbrains.dokka.Platform.native
-import kotlin.text.toBoolean as kotlinToBoolean
 
-
-val camelCaseRegex = Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
-fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String = camelCaseRegex
-    .replace(this.toString().decapitalize(), "\${lowerLeftChar}$separator\${upperRightChar}")
-    .let(transform)
+fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String =
+    Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
+        .replace(toString().decapitalize(), "\${lowerLeftChar}$separator\${upperRightChar}")
+        .let(transform)
 
 fun CharSequence.camelCaseToScreamingSnakeCase() = convertCamelCase('_', String::toUpperCase)
-
-fun String?.toBoolean(default: Boolean = false): Boolean =
-    this?.run { isBlank() || kotlinToBoolean() } ?: default
-
-fun Project.findBooleanPropertyEverywhere(name: String, default: Boolean = false): Boolean =
-    findPropertyEverywhere(name).toBoolean(default)
 
 fun Project.findPropertyEverywhere(name: String): String? =
     extra.properties[name]?.toString()
@@ -29,14 +17,7 @@ fun Project.findPropertyEverywhere(name: String): String? =
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-private var _releasingFinal: Boolean? = null
-var Project.releasingFinal: Boolean
-    get() = _releasingFinal ?: findBooleanPropertyEverywhere("releasingFinal", true)
-    set(value) {
-        _releasingFinal = value
-    }
-
-val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
+val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/kommons")
 
 /**
  * Returns whether this object represents a final version number
@@ -44,7 +25,6 @@ val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://g
  */
 fun Any.isFinal(): Boolean =
     Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)").matches(toString())
-
 
 plugins {
     kotlin("multiplatform") version "1.5.21"
@@ -79,30 +59,26 @@ allprojects {
     }
 }
 
-description = "Random Kotlin Goodies"
-group = "com.bkahlert.koodies"
+description = "Kommons is a Kotlin Multiplatform Library, with a minimal set" +
+    " of dependencies, allowing you to run Command Lines and Shell Scripts," +
+    " locally or in a Docker Container—and a dozen of other features like" +
+    " various builders, an improved Java NIO 2 integration, decimal and" +
+    " binary units, and Unicode-related features."
+group = "com.bkahlert.kommons"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 kotlin {
     explicitApi()
 
-    if (releasingFinal && !version.isFinal()) {
-        println("\n\t\tProperty releasingFinal is set but the active version $version is not final.")
-    }
-
     jvm {
         compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-                freeCompilerArgs = listOf("-Xjvm-default=all")
-            }
+            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
         }
-
-        tasks.withType<Test>().all {
+        testRuns["test"].executionTask.configure {
             useJUnitPlatform()
             minHeapSize = "128m"
             maxHeapSize = "512m"
@@ -126,7 +102,6 @@ kotlin {
             useJUnitPlatform { includeTags("Smoke") }
         }
     }
-
     js(IR) {
         browser {
             commonWebpackConfig {
@@ -134,7 +109,6 @@ kotlin {
             }
         }
     }
-
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     val nativeTarget = when {
@@ -144,14 +118,12 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    @kotlin.Suppress("UNUSED_VARIABLE")
+    @Suppress("UNUSED_VARIABLE")
     sourceSets {
         val commonMain by getting
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
             }
         }
         val jvmMain by getting {
@@ -165,7 +137,6 @@ kotlin {
                 implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.3.0")
             }
         }
-
         val jvmTest by getting {
             dependencies {
                 implementation("io.opentelemetry:opentelemetry-sdk:1.3.0")
@@ -189,10 +160,8 @@ kotlin {
                 }
             }
         }
-
         val jsMain by getting
         val jsTest by getting
-
         val nativeMain by getting
         val nativeTest by getting
 
@@ -204,9 +173,16 @@ kotlin {
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
                 useExperimentalAnnotation("kotlin.time.ExperimentalTime")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+                useExperimentalAnnotation("kotlin.experimental.ExperimentalTypeInference")
                 progressiveMode = true // false by default
             }
         }
+    }
+}
+
+tasks.withType<ProcessResources> {
+    filesMatching("build.properties") {
+        expand(project.properties)
     }
 }
 
@@ -226,10 +202,10 @@ tasks.dokkaHtml {
     dokkaSourceSets {
         configureEach {
             displayName.set(when (platform.get()) {
-                jvm -> "jvm"
-                js -> "js"
-                native -> "native"
-                common -> "common"
+                org.jetbrains.dokka.Platform.jvm -> "jvm"
+                org.jetbrains.dokka.Platform.js -> "js"
+                org.jetbrains.dokka.Platform.native -> "native"
+                org.jetbrains.dokka.Platform.common -> "common"
             })
         }
     }
@@ -265,7 +241,7 @@ publishing {
 
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+            url = uri("https://maven.pkg.github.com/bkahlert/kommons")
             credentials {
                 username = findPropertyEverywhere("githubUsername", "")
                 password = findPropertyEverywhere("githubToken", "")
@@ -280,7 +256,7 @@ publishing {
             artifact(javadocJar)
 
             pom {
-                name.set("Koodies")
+                name.set("Kommons")
                 description.set(project.description)
                 url.set(baseUrl)
                 licenses {

@@ -1,14 +1,14 @@
 package filepeek
 
-import koodies.collections.head
-import koodies.collections.tail
-import koodies.io.path.asPath
-import koodies.io.path.pathString
-import koodies.text.joinLinesToString
-import koodies.text.joinToCamelCase
-import koodies.text.withSuffix
+import com.bkahlert.kommons.collections.head
+import com.bkahlert.kommons.collections.tail
+import com.bkahlert.kommons.text.joinLinesToString
+import com.bkahlert.kommons.text.joinToCamelCase
+import com.bkahlert.kommons.text.withSuffix
 import java.nio.file.Path
+import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.pathString
 import kotlin.io.path.readLines
 
 data class FileInfo(
@@ -44,8 +44,8 @@ class FilePeek2(
 
         val buildDir: Path = classesToSourceMappings.firstOrNull { classesDirectory.contains(it) } ?: error("Unknown build directory structure")
         val sourceDir = classesDirectory.pathString.split(buildDir.pathString, limit = 2).run {
-            val sourceRoot = first().asPath().resolve("src")
-            val suffix = last().asPath()
+            val sourceRoot = Path.of(first()) / "src"
+            val suffix = Path.of(last())
             val lang = suffix.head.pathString
             val sourceDir = suffix.map { it.pathString }.tail.joinToCamelCase()
             sourceRoot.resolve(sourceDir).resolve(lang)
