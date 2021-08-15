@@ -37,6 +37,11 @@ class KommonsTest {
     }
 
     @Test
+    fun `should return name`() {
+        expectThat(Kommons.name).isEqualTo("kommons")
+    }
+
+    @Test
     fun `should return group`() {
         expectThat(Kommons.group).isEqualTo("com.bkahlert.kommons")
     }

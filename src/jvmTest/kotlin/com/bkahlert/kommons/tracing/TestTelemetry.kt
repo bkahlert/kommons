@@ -48,7 +48,7 @@ class TestTelemetry : TestExecutionListener {
                 .addSpanProcessor(InMemoryStoringSpanProcessor)
                 .addSpanProcessor(batchExporter)
                 .setResource(Resource.create(Attributes.of(
-                    AttributeKey.stringKey("service.name"), "kommons-test",
+                    AttributeKey.stringKey("service.name"), "${Kommons.name}-test",
                     AttributeKey.stringKey("service.version"), Kommons.version.toString(),
                 )))
                 .setSpanLimits { SpanLimits.builder().setMaxNumberOfEvents(2500).build() }

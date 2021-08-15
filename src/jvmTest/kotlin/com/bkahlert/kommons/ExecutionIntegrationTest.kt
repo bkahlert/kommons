@@ -204,7 +204,7 @@ class ExecutionIntegrationTest {
         // run a shell script
         docker("rafib/awesome-cli-binaries", name = "convert to ascii art", renderer = null) {
             """
-               /opt/bin/chafa -c none --fill all  -w 9 kommons.png
+               /opt/bin/chafa -c full -w 9 kommons.png
             """
         }.io.output.ansiKept.also { println(it) }
     }

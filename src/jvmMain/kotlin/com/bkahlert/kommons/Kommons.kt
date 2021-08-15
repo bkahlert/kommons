@@ -30,9 +30,15 @@ public object Kommons : Locations {
      */
     internal val filesTemp: Path by internalTemp.resolve("files").selfCleaning(10.minutes, 20)
 
-    private val buildProperties by lazy {
+    private val buildProperties: Properties by lazy {
         useRequiredClassPath("build.properties") { Properties().apply { load(it.inputStream()) } }
     }
+
+    /**
+     * Name of this library.
+     */
+    public val name: String
+        get() = buildProperties["name"]?.toString() ?: error("Cannot find name in build properties")
 
     /**
      * Group name of this library.
