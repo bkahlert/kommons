@@ -17,7 +17,7 @@ fun Project.findPropertyEverywhere(name: String): String? =
 fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
     findPropertyEverywhere(name) ?: defaultValue
 
-val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/koodies")
+val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/kommons")
 
 /**
  * Returns whether this object represents a final version number
@@ -236,7 +236,7 @@ publishing {
 
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/bkahlert/koodies")
+            url = uri("https://maven.pkg.github.com/bkahlert/kommons")
             credentials {
                 username = findPropertyEverywhere("githubUsername", "")
                 password = findPropertyEverywhere("githubToken", "")
@@ -251,7 +251,7 @@ publishing {
             artifact(javadocJar)
 
             pom {
-                name.set("Koodies")
+                name.set("Kommons")
                 description.set(project.description)
                 url.set(baseUrl)
                 licenses {

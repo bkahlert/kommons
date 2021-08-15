@@ -1,10 +1,10 @@
-# Koodies Test
+# Kommons Test
 
 ## Install
 
 ### Maven Central
 
-* **Gradle** ![Koodies — Test](kommons-embed.svg)
+* **Gradle** ![Kommons — Test](kommons-embed.svg)
 
 * **Maven**
-  ![Koodies — Test](kommons-embed.svg)
+  ![Kommons — Test](kommons-embed.svg)

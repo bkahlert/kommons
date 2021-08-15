@@ -1,10 +1,10 @@
 package filepeek
 
-import koodies.collections.head
-import koodies.collections.tail
-import koodies.text.joinLinesToString
-import koodies.text.joinToCamelCase
-import koodies.text.withSuffix
+import com.bkahlert.kommons.collections.head
+import com.bkahlert.kommons.collections.tail
+import com.bkahlert.kommons.text.joinLinesToString
+import com.bkahlert.kommons.text.joinToCamelCase
+import com.bkahlert.kommons.text.withSuffix
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.exists

@@ -32,7 +32,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 
 ### Test Uncommited Changes on a Dependant Project
 
-1. Change dependency in dependent project to `implementation("com.bkahlert.koodies:koodies-jvm:2.2.0-SNAPSHOT")`.
+1. Change dependency in dependent project to `implementation("com.bkahlert.kommons:kommons-jvm:2.2.0-SNAPSHOT")`.
 2. Publish changes to local Maven repository using
 
 ```shell

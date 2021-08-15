@@ -19,13 +19,13 @@
                 </style>
             </head>
             <body>
-                <pre>implementation("com.bkahlert.koodies:koodies:${version}</pre>
+                <pre>implementation("com.bkahlert.kommons:kommons:${version}</pre>
                 <script>
-                    fetch('https://api.github.com/repos/bkahlert/koodies/releases/latest')
+                    fetch('https://api.github.com/repos/bkahlert/kommons/releases/latest')
                             .then(response => response.json())
                             .then(data => {
                                 let version = data['tag_name']
-                                let kotlinScript = `implementation("com.bkahlert.koodies:koodies:${version}")`
+                                let kotlinScript = `implementation("com.bkahlert.kommons:kommons:${version}")`
                                 document.querySelector('pre').textContent = kotlinScript
                             })
                 </script>

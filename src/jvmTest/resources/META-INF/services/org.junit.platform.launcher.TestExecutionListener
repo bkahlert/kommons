@@ -1,4 +1,4 @@
-koodies.tracing.TestTelemetry
-koodies.test.junit.TestExecutionReporter
-koodies.test.junit.Verbosity
-koodies.text.TextWidthKtTest$AwtInitializer
+com.bkahlert.kommons.tracing.TestTelemetry
+com.bkahlert.kommons.test.junit.TestExecutionReporter
+com.bkahlert.kommons.test.junit.Verbosity
+com.bkahlert.kommons.text.TextWidthKtTest$AwtInitializer
