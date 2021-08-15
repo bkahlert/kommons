@@ -17,7 +17,7 @@ import kotlin.js.JsName
 public object Wizards : Category() {
     @JsName("wizards00") public val `(ﾉ＞ω＜)ﾉ﹕･ﾟ’★,｡･﹕*﹕･ﾟ’☆`: Kaomoji by parts("(ﾉ", ">", "ω", "<", ")ﾉ", " :｡･:*:･ﾟ’★,｡･:*:･ﾟ’☆")
     @JsName("wizards01") public val `(＃￣_￣)o︠・━・・━・━━・━☆`: Kaomoji by parts("(＃", "￣", "_", "￣", ")o︠", "・━・・━・━━・━☆")
-    @JsName("wizards02") public val `(／￣‿￣)／~~☆’․･․･﹕★’․･․･﹕☆`: Kaomoji by parts("(/", "￣", "‿", "￣", ")/", "~~☆’.･.･:★’.･.･:☆")
+    @JsName("wizards02") public val `(／￣‿￣)／~~☆’․･․･﹕★`: Kaomoji by parts("(/", "￣", "‿", "￣", ")/", "~~☆’.･.･:★")
     @JsName("wizards03") public val `(∩ᄑ_ᄑ)⊃━☆ﾟ*･｡*･﹕≡( ε﹕)`: Kaomoji by parts("(∩", "ᄑ", "_", "ᄑ", ")⊃", "━☆ﾟ*･｡*･:≡( ε:)")
     @JsName("wizards04") public val `(ノ ˘_˘)ノ ζζζ  ζζζ  ζζζ`: Kaomoji by parts("(ノ ", "˘", "_", "˘", ")ノ", " ζζζ  ζζζ  ζζζ")
     @JsName("wizards05") public val `(ノ°∀°)ノ⌒･*﹕․｡․ ․｡․﹕*･゜ﾟ･*☆`: Kaomoji by parts("(ノ", "°", "∀", "°", ")ノ", "⌒･*:.｡. .｡.:*･゜ﾟ･*☆")
