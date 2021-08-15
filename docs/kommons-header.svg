@@ -51,7 +51,7 @@
 
                 @media (prefers-color-scheme: dark) {
                     small {
-                        color: #BBB;
+                        color: #ddd;
                     }
                 }
             </style></head><body>
