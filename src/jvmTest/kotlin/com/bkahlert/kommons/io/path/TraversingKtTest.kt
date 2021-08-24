@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
+import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.matchesCurlyPattern
@@ -37,9 +37,9 @@ class TraversingKtTest {
 
         expectThat(listing).matchesCurlyPattern("""
             {}
+            {}/example.html
             {}/sub-dir
             {}/sub-dir/config.txt
-            {}/example.html
         """.trimIndent())
     }
 }
