@@ -132,7 +132,7 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
 
-                api("io.opentelemetry:opentelemetry-api:1.3.0")
+                api("io.opentelemetry:opentelemetry-api:1.5.0")
                 implementation("io.opentelemetry:opentelemetry-extension-annotations:1.3.0")
                 implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.3.0")
             }
