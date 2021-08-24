@@ -142,7 +142,7 @@ kotlin {
                 implementation("io.opentelemetry:opentelemetry-sdk:1.3.0")
                 implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.3.0")
                 implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
-                implementation("io.grpc:grpc-okhttp:1.38.0")
+                implementation("io.grpc:grpc-okhttp:1.40.0")
 
                 implementation(kotlin("test-junit5"))
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
