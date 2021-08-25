@@ -12,7 +12,7 @@ import com.bkahlert.kommons.text.Unicode.Emojis.HalfHoursDictionary
 import com.bkahlert.kommons.text.Unicode.UnicodeBlockMeta
 import java.net.URL
 import java.time.Instant
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import kotlin.streams.toList
 
@@ -22,11 +22,11 @@ dictOf("unicode.dict.tsv".asSystemResourceUrl().loadTabSeparatedValues(skipLines
 public operator fun Unicode.get(codePoint: Long): String = UnicodeDict.get(codePoint)
 
 public fun Instant.asEmoji(roundingMode: RoundingMode = CEILING): Emoji {
-    val zonedDateTime: ZonedDateTime = atZone(ZoneId.systemDefault())
+    val zonedDateTime: ZonedDateTime = atZone(ZoneOffset.UTC)
     val hour = zonedDateTime.hour
     val minute = zonedDateTime.minute
     val closest = (roundingMode(minute.toDouble(), 30.0) / 30.0).toInt()
-    return listOf(FullHoursDictionary[hour - 1], HalfHoursDictionary[hour - 1], FullHoursDictionary[hour])[closest]
+    return listOf(FullHoursDictionary[hour], HalfHoursDictionary[hour], FullHoursDictionary[hour + 1])[closest]
 }
 
 public fun <T> UnicodeBlockMeta<T>.asTable(): String where T : Unicode.UnicodeBlock<T>, T : Enum<T> = with(unicodeBlock) {
