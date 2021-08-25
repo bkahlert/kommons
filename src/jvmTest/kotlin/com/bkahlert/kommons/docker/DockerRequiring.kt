@@ -124,24 +124,26 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
  */
 class DockerRunningCondition : ExecutionCondition {
 
-    private val dockerUpAndRunning: Boolean by lazy {
-        Docker.engineRunning
-            .also { isRunning ->
-                val message = if (isRunning) {
-                    listOf("Docker is running.".formattedAs.warning, )
-                        .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
-                } else {
-                    listOf("Docker is not running.".formattedAs.warning, )
-                        .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
-                }
-
-                    .also { println(it) }
-            }
-    }
-
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
         context.testName.let { testName ->
             if (dockerUpAndRunning) enabled("Test ${testName.quoted} enabled because Docker is found running.")
             else disabled("Test ${testName.quoted} disabled because Docker was NOT found running.")
         }
+
+    private companion object {
+        private val dockerUpAndRunning: Boolean by lazy {
+            Docker.engineRunning
+                .also { isRunning ->
+                    val message = if (isRunning) {
+                        listOf("Docker is running.".formattedAs.warning, )
+                            .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
+                    } else {
+                        listOf("Docker is not running.".formattedAs.warning, )
+                            .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
+                    }
+
+                        .also { println(it) }
+                }
+        }
+    }
 }
