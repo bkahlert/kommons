@@ -37,8 +37,8 @@ jobs:
         run: chmod +x gradlew
       - name: Install Courir Prime Font
         run: |
-          ls -lisa ~
-          cp -r ~/src/jvmMain/resources/courir-prime ~/.fonts/courir-prime
+          ls -lisa .
+          cp -r src/jvmMain/resources/courir-prime ~/.fonts/courir-prime
       - name: Build with Gradle
         run: ./gradlew build --console=rich
       - uses: actions/upload-artifact@v2
