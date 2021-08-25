@@ -19,12 +19,15 @@ internal actual object TextWidth {
     // of which such issue is not known.
     private val fontNames = listOf("Courier", "Monaco", "Times New Roman", "Courier Prime")
 
+    // TODO get tests running on github
+    // TODO get courir running and remove courier prime later
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         System.setProperty("java.awt.headless", "true")
         findSuitableFontsForMeasurement()
         val font = GraphicsEnvironment.getLocalGraphicsEnvironment().allFonts
             .firstOrNull { fontNames.contains(it.name) }?.run { deriveFont(10f) }
             ?: Font(Font.MONOSPACED, Font.PLAIN, 10)
+        "PICKED $font"
         Canvas().getFontMetrics(font)
     }
 
