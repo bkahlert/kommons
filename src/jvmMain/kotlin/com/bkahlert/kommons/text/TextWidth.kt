@@ -56,6 +56,9 @@ internal actual object TextWidth {
     private fun findSuitableFontsForMeasurement() {
         System.setProperty("java.awt.headless", "true")
         val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+        ge.allFonts.forEach {
+            println(it.name)
+        }
         ge.allFonts.forEach { baseFont ->
             val font = baseFont.deriveFont(10f)
             val metrics = Canvas().getFontMetrics(font)
