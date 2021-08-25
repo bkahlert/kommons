@@ -28,6 +28,7 @@ import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.styling.wrapWithBorder
 import com.bkahlert.kommons.time.Now
+import com.bkahlert.kommons.time.busyWait
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
@@ -337,7 +338,7 @@ class JavaExecTest {
                     that(createCompletingExec(exitValue = 0, execTerminationCallback = {
                         callbackCalled = true
                     })).succeeds()
-                    100.milli.seconds.sleep()
+                    100.milli.seconds.busyWait()
                     expectThat(callbackCalled).isTrue()
                 }
             }
