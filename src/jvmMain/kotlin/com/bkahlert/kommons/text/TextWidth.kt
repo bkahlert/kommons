@@ -14,13 +14,14 @@ import java.awt.GraphicsEnvironment
 internal actual object TextWidth {
 
     // For some reason, running tests using Gradle in iTerm on macOS uses
-    // a monospaced(?) font where some one column characters (i.e. em-dash) render
-    // wider than two column characters. Therefore we try to select a font explicitly
-    // of what such issue is not known.
+    // a monospaced(?) font where some one-column characters (i.e. em-dash) render
+    // wider than two column characters. Therefore, trying to select a font explicitly
+    // of which such issue is not known.
     private val fontNames = listOf("Courier", "Monaco", "Times New Roman")
 
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         System.setProperty("java.awt.headless", "true")
+        findSuitableFontsForMeasurement()
         val font = GraphicsEnvironment.getLocalGraphicsEnvironment().allFonts
             .firstOrNull { fontNames.contains(it.name) }?.run { deriveFont(10f) }
             ?: Font(Font.MONOSPACED, Font.PLAIN, 10)

@@ -21,6 +21,12 @@ class ColumnsKtTest {
     inner class MaxColumns {
 
         @Test
+        fun `should test with correct assumptions`() {
+            expectThat("c".maxColumns()).isEqualTo(1)
+            expectThat("曲".maxColumns()).isEqualTo(2)
+        }
+
+        @Test
         fun `should return max columns on multi line`() {
             expectThat("曲\nc".maxColumns()).isEqualTo(2)
         }
