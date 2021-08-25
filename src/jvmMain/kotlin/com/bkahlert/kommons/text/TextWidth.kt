@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.math.isEven
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -27,7 +28,7 @@ internal actual object TextWidth {
         val font = GraphicsEnvironment.getLocalGraphicsEnvironment().allFonts
             .firstOrNull { fontNames.contains(it.name) }?.run { deriveFont(10f) }
             ?: Font(Font.MONOSPACED, Font.PLAIN, 10)
-        "PICKED $font"
+        "PICKED $font".trace
         Canvas().getFontMetrics(font)
     }
 
