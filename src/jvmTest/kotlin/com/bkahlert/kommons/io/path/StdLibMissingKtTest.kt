@@ -82,9 +82,10 @@ class StdLibMissingKtTest {
             val dir = directoryWithTwoFiles()
             val subject = dir.listDirectoryEntriesRecursively()
             expectThat(subject).containsExactly(
+                dir.resolve("example.html"),
                 dir.resolve("sub-dir"),
                 dir.resolve("sub-dir/config.txt"),
-                dir.resolve("example.html"))
+            )
         }
 
         @Test
@@ -92,8 +93,9 @@ class StdLibMissingKtTest {
             val dir = directoryWithTwoFiles()
             val subject = dir.listDirectoryEntriesRecursively("**/*.*")
             expectThat(subject).containsExactly(
+                dir.resolve("example.html"),
                 dir.resolve("sub-dir/config.txt"),
-                dir.resolve("example.html"))
+            )
         }
 
         @Test

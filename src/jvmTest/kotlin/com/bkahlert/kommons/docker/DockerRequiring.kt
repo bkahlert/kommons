@@ -3,12 +3,14 @@ package com.bkahlert.kommons.docker
 import com.bkahlert.kommons.docker.CleanUpMode.FailAndKill
 import com.bkahlert.kommons.docker.CleanUpMode.ThanksForCleaningUp
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Running
+import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.junit.TestName.Companion.testName
 import com.bkahlert.kommons.test.junit.UniqueId.Companion.simplifiedId
-import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.withAnnotation
+import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.quoted
+import com.bkahlert.kommons.text.styling.wrapWithBorder
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.spanningLine
@@ -122,7 +124,20 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
  */
 class DockerRunningCondition : ExecutionCondition {
 
-    private val dockerUpAndRunning: Boolean by lazy { Docker.engineRunning }
+    private val dockerUpAndRunning: Boolean by lazy {
+        Docker.engineRunning
+            .also { isRunning ->
+                val message = if (isRunning) {
+                    listOf("Docker is running.".formattedAs.warning, )
+                        .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
+                } else {
+                    listOf("Docker is not running.".formattedAs.warning, )
+                        .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
+                }
+
+                    .also { println(it) }
+            }
+    }
 
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
         context.testName.let { testName ->
