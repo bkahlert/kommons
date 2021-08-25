@@ -62,6 +62,7 @@ internal actual object TextWidth {
             val suitable = oneColumnWidths.first < twoColumnWidths.first && oneColumnWidths.second < twoColumnWidths.second
 
             if (suitable) println("$oneColumnWidths .. $twoColumnWidths << ${font.name.formattedAs.input}")
+            else println("👎 $oneColumnWidths .. $twoColumnWidths << ${font.name.formattedAs.input}")
         }
     }
 }
