@@ -38,6 +38,7 @@ jobs:
       - name: Install Font
         run: |
           mkdir -p ~/.fonts/courir
+          ls src/jvmMain/resources
           cp src/jvmMain/resources/courir.ttf ~/.fonts/courir
       - name: Build with Gradle
         run: ./gradlew build --console=rich
