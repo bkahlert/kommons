@@ -37,9 +37,8 @@ jobs:
         run: chmod +x gradlew
       - name: Install Font
         run: |
-          mkdir -p ~/.fonts/courir
-          ls src/jvmMain/resources
-          cp src/jvmMain/resources/courir.ttf ~/.fonts/courir
+          mkdir -p ~/.fonts/courier
+          cp src/jvmMain/resources/courier.ttf ~/.fonts/courier
       - name: Build with Gradle
         run: ./gradlew build --console=rich
       - uses: actions/upload-artifact@v2
