@@ -35,10 +35,10 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Install Courir Prime Font
+      - name: Install Font
         run: |
-          mkdir -p ~/.fonts/courir-prime
-          cp -r src/jvmMain/resources/courir-prime ~/.fonts/courir-prime
+          mkdir -p ~/.fonts/courir
+          cp src/jvmMain/resources/courir.ttf ~/.fonts/courir
       - name: Build with Gradle
         run: ./gradlew build --console=rich
       - uses: actions/upload-artifact@v2
