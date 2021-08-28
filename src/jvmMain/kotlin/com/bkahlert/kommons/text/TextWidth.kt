@@ -1,23 +1,51 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.collections.synchronizedListOf
+import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.math.isEven
 import com.bkahlert.kommons.runtime.contextClassLoader
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import java.awt.Canvas
+import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.GraphicsEnvironment
+import java.awt.GridLayout
+import java.awt.Label
+import java.awt.Panel
+import javax.swing.JFrame
+import javax.swing.JLabel
+
 
 /**
  * Text width calculation.
  */
 internal actual object TextWidth {
 
+    // For some reason, running tests using Gradle in iTerm on macOS uses
+    // a monospaced(?) font where some one-column characters (i.e. em-dash) render
+    // wider than two column characters. Therefore, trying to select a font explicitly
+    // of which such issue is not known.
+    private val fontNames = listOf("Courier", "Monaco", "Times New Roman", "Courier Prime")
+
+    // TODO get tests running on github
+    // TODO get courir running and remove courier prime later
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         System.setProperty("java.awt.headless", "true")
-        val font = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).first().deriveFont(10f)
-        Canvas().getFontMetrics(font)
+//        findSuitableFontsForMeasurement()
+        val font = GraphicsEnvironment.getLocalGraphicsEnvironment().allFonts
+            .firstOrNull { fontNames.contains(it.name) }?.run { deriveFont(10f) }
+            ?: Font(Font.MONOSPACED, Font.PLAIN, 10)
+        font.attributes.toList().trace
+        val x = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).toList().trace
+        val font2 = x.first().deriveFont(font.attributes)
+        font.availableAttributes.toList().trace
+        font2.availableAttributes.toList().trace
+//        preview(font, font2)
+        Canvas().getFontMetrics(font2)
+//        Canvas().getFontMetrics(font)
     }
 
     /**
@@ -38,6 +66,7 @@ internal actual object TextWidth {
     actual fun calculateWidth(text: CharSequence): Int {
         if (text.isEmpty()) return 0
         val sanitized: String = text.replace(LineSeparators.REGEX, "").ansiRemoved
+//        preview(sanitized)
         return MONOSPACED_METRICS.stringWidth(sanitized)
     }
 
@@ -59,5 +88,38 @@ internal actual object TextWidth {
             if (suitable) println("$oneColumnWidths .. $twoColumnWidths << ${font.name.formattedAs.input}")
             else println("👎 $oneColumnWidths .. $twoColumnWidths << ${font.name.formattedAs.input}")
         }
+    }
+
+    private var labels: MutableList<JLabel> = synchronizedListOf()
+
+    private fun preview(vararg fonts: Font) {
+        val frame = JFrame().apply {
+            title = "Preview"
+            layout = FlowLayout(FlowLayout.LEFT);
+        }
+
+        Panel().apply {
+            layout = GridLayout(fonts.size, 1)
+            fonts.forEach { font ->
+                add(JLabel(font.toString(), Label.LEFT))
+            }
+        }.also { frame.add(it) }
+
+        Panel().apply {
+            layout = GridLayout(fonts.size, 1)
+            fonts.forEach {
+                add(JLabel("", Label.RIGHT)
+                    .apply { font = it }
+                    .also { labels.add(it) })
+            }
+        }.also { frame.add(it) }
+
+        frame.pack()
+        frame.size = Dimension(frame.width * 2, frame.height)
+        frame.isVisible = true
+    }
+
+    private fun preview(text: String) {
+        labels.forEach { it.text = text }
     }
 }
