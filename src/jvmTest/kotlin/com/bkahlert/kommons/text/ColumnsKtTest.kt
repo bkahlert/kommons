@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.test.AnsiRequired
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.toStringIsEqualTo
@@ -22,8 +23,8 @@ class ColumnsKtTest {
 
         @Test
         fun `should test with correct assumptions`() {
-            expectThat("c".also { it.asGraphemeClusterSequence().sumOf { it.columns } }.also { it.columns }.maxColumns()).isEqualTo(1)
-            expectThat("曲".also { it.asGraphemeClusterSequence().sumOf { it.columns } }.also { it.columns }.maxColumns()).isEqualTo(2)
+            expectThat("c".also { it.asGraphemeClusterSequence().sumOf { it.columns.trace("GRAPHEME COLUMNS") } }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(1)
+            expectThat("曲".also { it.asGraphemeClusterSequence().sumOf { it.columns.trace("GRAPHEME COLUMNS") } }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(2)
         }
 
         @Test
