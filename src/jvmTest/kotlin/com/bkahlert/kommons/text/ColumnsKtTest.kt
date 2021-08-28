@@ -22,8 +22,8 @@ class ColumnsKtTest {
 
         @Test
         fun `should test with correct assumptions`() {
-            expectThat("c".maxColumns()).isEqualTo(1)
-            expectThat("曲".maxColumns()).isEqualTo(2)
+            expectThat("c".also { it.asGraphemeClusterSequence().sumOf { it.columns } }.also { it.columns }.maxColumns()).isEqualTo(1)
+            expectThat("曲".also { it.asGraphemeClusterSequence().sumOf { it.columns } }.also { it.columns }.maxColumns()).isEqualTo(2)
         }
 
         @Test
