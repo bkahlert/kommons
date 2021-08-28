@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.collections.synchronizedListOf
-import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.math.isEven
 import com.bkahlert.kommons.runtime.contextClassLoader
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
@@ -15,6 +14,7 @@ import java.awt.GraphicsEnvironment
 import java.awt.GridLayout
 import java.awt.Label
 import java.awt.Panel
+import java.awt.font.TextAttribute
 import javax.swing.JFrame
 import javax.swing.JLabel
 
@@ -24,32 +24,26 @@ import javax.swing.JLabel
  */
 internal actual object TextWidth {
 
-    // For some reason, running tests using Gradle in iTerm on macOS uses
-    // a monospaced(?) font where some one-column characters (i.e. em-dash) render
-    // wider than two column characters. Therefore, trying to select a font explicitly
-    // of which such issue is not known.
-    private val fontNames = listOf("Courier", "Monaco", "Times New Roman", "Courier Prime")
-
-    // TODO get tests running on github
-    // TODO get courir running and remove courier prime later
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         System.setProperty("java.awt.headless", "true")
 //        findSuitableFontsForMeasurement()
-        val font = GraphicsEnvironment.getLocalGraphicsEnvironment().allFonts
-            .firstOrNull { fontNames.contains(it.name) }?.run { deriveFont(10f) }
-            ?: Font(Font.MONOSPACED, Font.PLAIN, 10)
-        font.attributes.toList().trace
-        val x = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).toList().trace
-        val font2 = x.first().deriveFont(font.attributes)
-        font.availableAttributes.toList().trace
-        font2.availableAttributes.toList().trace
+        // explicit font to create stable measure which is not the case for monospace
+        val font = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).first().deriveFont(mapOf(
+            TextAttribute.WIDTH to null,
+            TextAttribute.TRANSFORM to null,
+            TextAttribute.TRACKING to null,
+            TextAttribute.SIZE to 10,
+            TextAttribute.POSTURE to null,
+            TextAttribute.FAMILY to "Courier",
+            TextAttribute.SUPERSCRIPT to null,
+            TextAttribute.WEIGHT to null,
+        ))
 //        preview(font, font2)
-        Canvas().getFontMetrics(font2)
-//        Canvas().getFontMetrics(font)
+        Canvas().getFontMetrics(font)
     }
 
     /**
-     * The width of an monospaced letter `X`.
+     * The width of a monospaced letter `X`.
      */
     actual val X_WIDTH: Int by lazy { MONOSPACED_METRICS.charWidth('X') }
 
