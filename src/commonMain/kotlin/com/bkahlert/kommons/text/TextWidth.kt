@@ -240,8 +240,21 @@ public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (C
  * Returns a character sequence with content of this character sequence padded at the beginning
  * to the specified number of [columns] with the specified [padChar] or space.
  */
-public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence =
-    toString().reversed().padEndByColumns(columns, padChar).reversed()
+public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence {
+    require(columns >= 0) { "Desired number of columns ${columns.formattedAs.input} is less than zero." }
+    require(padChar.columns > 0) { "Desired pad character ${padChar.formattedAs.input} is ${padChar.columns.formattedAs.input} columns but must be greater 0." }
+    val actualColumns = this.columns
+    if (columns <= actualColumns) return this
+
+    val sb = StringBuilder(toString())
+    val padCharColumns = padChar.columns
+    var remaining = columns - actualColumns
+    while (remaining >= padCharColumns) {
+        sb.insert(0, padChar)
+        remaining = columns - sb.columns
+    }
+    return sb
+}
 
 /**
  * Pads the string to the specified number of [columns] at the beginning with the specified [padChar] or space.
@@ -266,7 +279,6 @@ public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): Char
         sb.append(padChar)
         remaining = columns - sb.columns
     }
-    if (remaining > 0) sb.append(" ".repeat(remaining))
     return sb
 }
 

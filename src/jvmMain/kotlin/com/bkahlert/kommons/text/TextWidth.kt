@@ -1,16 +1,17 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.collections.synchronizedListOf
+import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.math.isEven
 import com.bkahlert.kommons.runtime.contextClassLoader
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
-import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.time.seconds
+import com.bkahlert.kommons.time.sleep
 import java.awt.Canvas
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.FontMetrics
-import java.awt.GraphicsEnvironment
 import java.awt.GridLayout
 import java.awt.Label
 import java.awt.Panel
@@ -24,9 +25,10 @@ import javax.swing.JLabel
  */
 internal actual object TextWidth {
 
+    private val preview = false
+
     private val MONOSPACED_METRICS: FontMetrics by lazy {
-        System.setProperty("java.awt.headless", "true")
-//        findSuitableFontsForMeasurement()
+        if (!preview) System.setProperty("java.awt.headless", "true")
         // explicit font to create stable measure which is not the case for monospace
         val font = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).first().deriveFont(mapOf(
             TextAttribute.WIDTH to null,
@@ -38,8 +40,8 @@ internal actual object TextWidth {
             TextAttribute.SUPERSCRIPT to null,
             TextAttribute.WEIGHT to null,
         ))
-//        preview(font, font2)
-        Canvas().getFontMetrics(font)
+        if (preview) preview(font, Font(Font.MONOSPACED, Font.PLAIN, 10))
+        Canvas().getFontMetrics(Font(Font.MONOSPACED, Font.PLAIN, 10))
     }
 
     /**
@@ -60,31 +62,19 @@ internal actual object TextWidth {
     actual fun calculateWidth(text: CharSequence): Int {
         if (text.isEmpty()) return 0
         val sanitized: String = text.replace(LineSeparators.REGEX, "").ansiRemoved
-//        preview(sanitized)
+        if (preview) preview(sanitized)
         return MONOSPACED_METRICS.stringWidth(sanitized)
     }
 
-    private fun findSuitableFontsForMeasurement() {
-        System.setProperty("java.awt.headless", "true")
-        val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-        ge.allFonts.forEach {
-            println(it.name)
-        }
-        ge.allFonts.forEach { baseFont ->
-            val font = baseFont.deriveFont(10f)
-            val metrics = Canvas().getFontMetrics(font)
+    private var previews: MutableList<JLabel> = synchronizedListOf()
 
-            val oneColumnWidths = listOf('A', '—').maxOf { metrics.charWidth(it) } to listOf("A", "—", "‾͟͟͞", "—̳͟͞͞").maxOf { metrics.stringWidth(it) }
-            val twoColumnWidths =
-                listOf('한', '글', '⮕').minOf { metrics.charWidth(it) } to listOf("한", "글", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧").minOf { metrics.stringWidth(it) }
-            val suitable = oneColumnWidths.first < twoColumnWidths.first && oneColumnWidths.second < twoColumnWidths.second
-
-            if (suitable) println("$oneColumnWidths .. $twoColumnWidths << ${font.name.formattedAs.input}")
-            else println("👎 $oneColumnWidths .. $twoColumnWidths << ${font.name.formattedAs.input}")
-        }
+    @JvmStatic
+    fun main(args: Array<String>) {
+        "c曲".columns
+        preview("c曲")
+        preview("—̠͞".also { it.columns.trace })
+        10.seconds.sleep()
     }
-
-    private var labels: MutableList<JLabel> = synchronizedListOf()
 
     private fun preview(vararg fonts: Font) {
         val frame = JFrame().apply {
@@ -104,7 +94,7 @@ internal actual object TextWidth {
             fonts.forEach {
                 add(JLabel("", Label.RIGHT)
                     .apply { font = it }
-                    .also { labels.add(it) })
+                    .also { previews.add(it) })
             }
         }.also { frame.add(it) }
 
@@ -114,6 +104,6 @@ internal actual object TextWidth {
     }
 
     private fun preview(text: String) {
-        labels.forEach { it.text = text }
+        previews.forEach { it.text = text }
     }
 }

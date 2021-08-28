@@ -1,16 +1,13 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.text.LineSeparators.CR
 import com.bkahlert.kommons.text.LineSeparators.CRLF
 import com.bkahlert.kommons.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
 import strikt.assertions.first
-import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
@@ -63,47 +60,15 @@ class GraphemeClusterTest {
             }
         }
 
-        @Test
-        fun `should handle multi-codepoint cluster`() {
-            expecting { "‾͟͟͞".toGraphemeClusterList() } that {
-                get(0) and {
-                    get { codePoints } and {
-                        containsExactly(
-                            CodePoint("‾"),
-                            CodePoint("͟"),
-                            CodePoint("͟"),
-                            CodePoint("͞"),
-                        )
-                    }
-                }
-                hasSize(1)
-            }
-        }
-
         @TestFactory
         fun `should handle multi-codepoint clusters`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
-            expecting { "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!".fn() } that {
+            expecting { "⸺̲͞o".fn() } that {
                 containsExactly(
-                    "‾͟͟͞".toGraphemeClusterList().single(),
-                    "(".toGraphemeClusterList().single(),
-                    "(".toGraphemeClusterList().single(),
-                    "(".toGraphemeClusterList().single(),
-                    "ꎤ".toGraphemeClusterList().single(),
-                    " ".toGraphemeClusterList().single(),
-                    "✧".toGraphemeClusterList().single(),
-                    "曲".toGraphemeClusterList().single(),
-                    "✧".toGraphemeClusterList().single(),
-                    ")̂".toGraphemeClusterList().single(),
-                    "—̳͟͞͞".toGraphemeClusterList().single(),
-                    "O".toGraphemeClusterList().single(),
-                    " ".toGraphemeClusterList().single(),
-                    "H".toGraphemeClusterList().single(),
-                    "I".toGraphemeClusterList().single(),
-                    "T".toGraphemeClusterList().single(),
-                    "!".toGraphemeClusterList().single(),
+                    "⸺̲͞".toGraphemeClusterList().single(),
+                    "o".toGraphemeClusterList().single(),
                 )
             }
         }
@@ -131,7 +96,7 @@ class GraphemeClusterTest {
         "A",
         "曲",
         "🟥",
-        "‾͟͟͞",
+        "a̠",
         "😀",
         "👨🏾",
         "👩‍👩‍👧‍👧",
@@ -145,7 +110,7 @@ class GraphemeClusterTest {
         "" to 0,
         "$e" to 1,
         "${e}M" to 2,
-        "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!" to 17,
+        "⸺̲͞o" to 2,
         "🟥🟧🟨🟩🟦🟪" to 6,
         "😀" to 1,
         "👨🏾" to 1,
@@ -159,7 +124,7 @@ class GraphemeClusterTest {
         "" to emptyList(),
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
-        "‾͟͟͞(((ꎤ ✧曲✧)̂—̳͟͞͞O HIT!" to listOf(4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 5, 1, 1, 1, 1, 1, 1),
+        "⸺̲͞ (((ꎤ ✧曲✧)—̠͞o HIT!" to listOf(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
         "🟥🟧🟨🟩🟦🟪" to listOf(1, 1, 1, 1, 1, 1),
         "👨🏾‍" to listOf(3),
     ) { (string, expectedCount) ->
