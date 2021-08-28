@@ -23,8 +23,18 @@ class ColumnsKtTest {
 
         @Test
         fun `should test with correct assumptions`() {
-            expectThat("c".also { it.asGraphemeClusterSequence().sumOf { it.columns.trace("GRAPHEME COLUMNS") } }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(1)
-            expectThat("曲".also { it.asGraphemeClusterSequence().sumOf { it.columns.trace("GRAPHEME COLUMNS") } }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(2)
+            expectThat("c".also {
+                it.asGraphemeClusterSequence().sumOf {
+                    TextWidth.calculateWidth(it.toString()).trace("WIDTH")
+                    it.columns.trace("GRAPHEME COLUMNS")
+                }
+            }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(1)
+            expectThat("曲".also {
+                it.asGraphemeClusterSequence().sumOf {
+                    TextWidth.calculateWidth(it.toString()).trace("WIDTH")
+                    it.columns.trace("GRAPHEME COLUMNS")
+                }
+            }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(2)
         }
 
         @Test
