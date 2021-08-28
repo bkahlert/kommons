@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.math.isEven
+import com.bkahlert.kommons.runtime.contextClassLoader
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import java.awt.Canvas
@@ -14,21 +14,9 @@ import java.awt.GraphicsEnvironment
  */
 internal actual object TextWidth {
 
-    // For some reason, running tests using Gradle in iTerm on macOS uses
-    // a monospaced(?) font where some one-column characters (i.e. em-dash) render
-    // wider than two column characters. Therefore, trying to select a font explicitly
-    // of which such issue is not known.
-    private val fontNames = listOf("Courier", "Monaco", "Times New Roman", "Courier Prime")
-
-    // TODO get tests running on github
-    // TODO get courir running and remove courier prime later
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         System.setProperty("java.awt.headless", "true")
-        findSuitableFontsForMeasurement()
-        val font = GraphicsEnvironment.getLocalGraphicsEnvironment().allFonts
-            .firstOrNull { fontNames.contains(it.name) }?.run { deriveFont(10f) }
-            ?: Font(Font.MONOSPACED, Font.PLAIN, 10)
-        "PICKED $font".trace
+        val font = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).first().deriveFont(10f)
         Canvas().getFontMetrics(font)
     }
 
