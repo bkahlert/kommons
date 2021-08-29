@@ -1,6 +1,8 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 
 fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String =
     Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
@@ -84,14 +86,6 @@ kotlin {
             maxHeapSize = "512m"
             failFast = false
             ignoreFailures = true
-
-            testLogging {
-                events = setOf(TestLogEvent.FAILED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR)
-                exceptionFormat = TestExceptionFormat.FULL
-                showExceptions = true
-                showCauses = true
-                showStackTraces = true
-            }
         }
 
         val testTask = tasks.withType<Test>().first()
@@ -106,6 +100,16 @@ kotlin {
             classpath = testTask.classpath
             testClassesDirs = testTask.testClassesDirs
             useJUnitPlatform { includeTags("playground") }
+        }
+
+        tasks.withType<Test>().configureEach {
+            testLogging {
+                events = setOf(FAILED, STANDARD_OUT, STANDARD_ERROR)
+                exceptionFormat = FULL
+                showExceptions = true
+                showCauses = true
+                showStackTraces = true
+            }
         }
     }
     js(IR) {
