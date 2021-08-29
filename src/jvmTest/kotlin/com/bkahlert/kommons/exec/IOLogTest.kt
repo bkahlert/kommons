@@ -5,7 +5,7 @@ import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.textContent
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.runtime.daemon
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.test.withTempDir
@@ -91,7 +91,7 @@ class IOLogTest {
             logPath.toFile().setWritable(true)
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = ioLog.dump(this, 123).values
             expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }

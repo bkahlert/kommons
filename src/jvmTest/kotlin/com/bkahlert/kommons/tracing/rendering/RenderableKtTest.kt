@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
@@ -59,7 +59,7 @@ class RenderableKtTest {
             expectThat(Renderable.of("😀😀😀😀").render(7, 1)).isEqualTo("😀 … 😀")
         }
 
-        @AnsiRequired @TestFactory
+        @AnsiRequiring @TestFactory
         fun `should support ANSI`() = test(Renderable.of("blue-blue".ansi.blue)) {
             expecting { render(7, 1) } that { isEqualTo("${"bl".ansi.blue} … ${"ue".ansi.blue}") }
             expecting { render(100, 1) } that { isEqualTo("blue-blue".ansi.blue.done) }

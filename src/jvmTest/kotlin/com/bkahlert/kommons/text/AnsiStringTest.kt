@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.debug.debug
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
@@ -27,7 +27,7 @@ import strikt.assertions.isNotBlank
 import strikt.assertions.isSameInstanceAs
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
-@AnsiRequired
+@AnsiRequiring
 class AnsiStringTest {
 
     companion object {

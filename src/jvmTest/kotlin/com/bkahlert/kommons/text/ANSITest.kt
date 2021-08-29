@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Style
@@ -20,7 +20,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
-@AnsiRequired
+@AnsiRequiring
 class ANSITest {
 
     private val italicCyan = Style.italic + ANSI.Colors.cyan

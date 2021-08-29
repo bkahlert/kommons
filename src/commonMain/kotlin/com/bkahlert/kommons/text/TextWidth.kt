@@ -69,16 +69,19 @@ public val CharSequence.columns: Int
  */
 public fun CharSequence.findIndexByColumns(column: Int): Int? {
     require(column >= 0) { "Requested column ${column.formattedAs.input} is less than zero." }
+    if (column == 0) return 0
     if (column == columns) return length
-    for (i in 0 until length) {
-        val currentColumns = subSequence(0, i).columns
+    var len = 0
+    asGraphemeClusterSequence().forEach {
+        len += it.toString().length
+        val currentColumns = subSequence(0, len).columns
         if (currentColumns == column) {
-            var index = i
-            while (subSequence(0, index + 1).columns == column) index++
+            var index = len
+            while (subSequence(0, index + 1).columns == currentColumns) index++
             return index
         }
         if (currentColumns > column) {
-            return i - 1
+            return len - it.toString().length
         }
     }
     return null

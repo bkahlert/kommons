@@ -18,7 +18,7 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 @Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
 @Retention(RUNTIME)
 @ExtendWith(AnsiCondition::class)
-annotation class AnsiRequired
+annotation class AnsiRequiring
 
 /**
  * Condition that disables the test if no [ANSI] support was detected.

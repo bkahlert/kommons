@@ -120,7 +120,7 @@ class GraphemeClusterTest {
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
         "a̳o" to listOf(2, 1),
-        "x😀" to listOf(2, 1),
+        "x😀" to listOf(1, 1),
         "👨🏾‍" to listOf(3),
     ) { (string, expectedCount) ->
         expecting { string.mapGraphemeClusters { it.codePoints.size } } that {

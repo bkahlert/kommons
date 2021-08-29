@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
-@AnsiRequired
+@AnsiRequiring
 class BannerTest {
 
     private val rainbow =

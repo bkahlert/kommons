@@ -4,7 +4,7 @@ import com.bkahlert.kommons.exec.IOSequence
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.mock.ExecMock
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.ansiRemoved
@@ -49,7 +49,7 @@ class ReturnValueKtTest {
 
     private val expectations = successfulExpectations + failedExpectations
 
-    @AnsiRequired @TestFactory
+    @AnsiRequiring @TestFactory
     fun `should format as return value`() = testEach(
         null to Symbols.Null,
         Unit to "✔︎",
@@ -182,7 +182,7 @@ class ReturnValueKtTest {
         }
     }
 
-    @AnsiRequired @Nested
+    @AnsiRequiring @Nested
     inner class OfSuccessful {
 
         private val tick = "\u001B[32m✔︎\u001B[39m"

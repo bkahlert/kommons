@@ -3,7 +3,7 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.exec.ExecAttributes
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.testEach
@@ -182,7 +182,7 @@ class BlockRendererTest {
                 expectThat(rendered).isEqualTo(plain80)
             }
 
-            @AnsiRequired @Test
+            @AnsiRequiring @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(printer = it)).log(ansi80) }
                 expectThat(rendered).isEqualTo(ansi80)
@@ -203,7 +203,7 @@ class BlockRendererTest {
                     """.trimIndent())
             }
 
-            @AnsiRequired @Test
+            @AnsiRequiring @Test
             fun TestSpanScope.`should wrap too long ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(ansi80) }
                 expectThat(rendered).isEqualTo("""
@@ -252,7 +252,7 @@ class BlockRendererTest {
                     """.trimIndent())
             }
 
-            @AnsiRequired @Smoke @Test
+            @AnsiRequiring @Smoke @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, EXTRA to ansi80) }
                 expectThat(rendered).isEqualTo("""
@@ -276,7 +276,7 @@ class BlockRendererTest {
                 expectThat(rendered).isEmpty()
             }
 
-            @AnsiRequired @Test
+            @AnsiRequiring @Test
             fun TestSpanScope.`should leave column empty on missing attribute`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80) }
                 expectThat(rendered).isEqualTo("""
@@ -455,7 +455,7 @@ class BlockRendererTest {
             """.trimIndent())
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun TestSpanScope.`should support ANSI`() {
             val rendered = capturing {
                 BlockRenderer(settings.copy(printer = it))

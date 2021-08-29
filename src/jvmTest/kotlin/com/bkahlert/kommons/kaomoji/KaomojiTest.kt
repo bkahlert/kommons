@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.kaomoji
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.toStringIsEqualTo
@@ -101,7 +101,7 @@ class KaomojiTest {
             }
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun `should render ANSI`() {
             expecting {
                 kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done)

@@ -5,7 +5,7 @@ import com.bkahlert.kommons.regex.group
 import com.bkahlert.kommons.regex.groupValues
 import com.bkahlert.kommons.regex.matchEntire
 import com.bkahlert.kommons.regex.value
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.testEach
@@ -434,7 +434,7 @@ class LineSeparatorsTest {
 
             private val text = "${"12345".ansi.cyan}😀7890".ansi.bold
 
-            @AnsiRequired @Test
+            @AnsiRequiring @Test
             fun `should wrap ANSI lines`() {
                 expectThat(text.wrapLines(3)).isEqualTo("""
                 $e[1m$e[36m123$e[22;39m

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.tests
@@ -23,7 +23,7 @@ import strikt.assertions.startsWith
 
 class StringsKtTest {
 
-    @AnsiRequired @TestFactory
+    @AnsiRequiring @TestFactory
     fun `should return length`() = tests {
         expecting { "red".length() } that { isEqualTo(3) }
         expecting { "red".ansi.red.length() } that { isEqualTo(3) }
@@ -132,7 +132,7 @@ class StringsKtTest {
     }
 
     @Suppress("SpellCheckingInspection")
-    @AnsiRequired @TestFactory
+    @AnsiRequiring @TestFactory
     fun `should pad start`() = tests {
         expecting { "red".padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
         expecting { "red".ansi.red.padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
@@ -141,7 +141,7 @@ class StringsKtTest {
     }
 
     @Suppress("SpellCheckingInspection")
-    @AnsiRequired @TestFactory
+    @AnsiRequiring @TestFactory
     fun `should pad end`() = tests {
         expecting { "red".padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
         expecting { "red".ansi.red.padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
@@ -206,7 +206,7 @@ class StringsKtTest {
     inner class MapColumns {
         private val Int.ansi get() = "column$this".ansi.red
 
-        @AnsiRequired @TestFactory
+        @AnsiRequiring @TestFactory
         fun `should map two columns`() = tests {
             val transform: (String, String) -> String = { c1, c2 -> "${c1.last()}-${c2.last()}" }
             expecting { "column1\tcolumn2".mapColumns(transform = transform) } that { isEqualTo("1-2") }
@@ -223,7 +223,7 @@ class StringsKtTest {
             expecting { "${1.ansi}\t${2.ansi}".mapColumns(removeAnsi = false, transform = transform) } that { isEqualTo("m-m") }
         }
 
-        @AnsiRequired @TestFactory
+        @AnsiRequiring @TestFactory
         fun `should map three columns`() = tests {
             val transform: (String, String, String) -> String = { c1, c2, c3 -> "${c1.last()}-${c2.last()}-${c3.last()}" }
             expecting { "column1\tcolumn2\tcolumn3".mapColumns(transform = transform) } that { isEqualTo("1-2-3") }

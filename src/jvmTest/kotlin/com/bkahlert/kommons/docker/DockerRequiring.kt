@@ -136,7 +136,7 @@ class DockerRunningCondition : ExecutionCondition {
                 .also { isRunning ->
                     val message = if (isRunning) {
                         listOf("Docker is running.".formattedAs.success)
-                            .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
+                            .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { green })
                     } else {
                         listOf("Docker is not running.".formattedAs.warning)
                             .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
