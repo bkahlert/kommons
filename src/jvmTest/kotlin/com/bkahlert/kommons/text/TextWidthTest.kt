@@ -89,7 +89,7 @@ class TextWidthKtTest {
             expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should calc columns for complex text`() = tests {
             expecting { "a̳o".columns } that { isEqualTo(2) }
             expecting { "text        ".columns } that { isEqualTo(12) }
@@ -110,7 +110,7 @@ class TextWidthKtTest {
             expecting { "😀".asCodePoint()!!.columns } that { isEqualTo(2) }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should provide columns for grapheme cluster`() = tests {
             expecting { "A".asGraphemeCluster()!!.columns } that { isEqualTo(1) }
             expecting { "👩‍👩‍👧‍👧".asGraphemeCluster()!!.columns } that { isEqualTo(2) }
@@ -120,7 +120,7 @@ class TextWidthKtTest {
     @Nested
     inner class FindIndex {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should find index`() = testEach(
             0 to 0, // ""
             1 to 2, // ""
@@ -149,7 +149,7 @@ class TextWidthKtTest {
             expecting { "a̳o".subSequence(startColumn, endColumn) } that { isEqualTo(expected) }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should return columns sub sequence ⧸ substring`() = testEach(
             0 to 0 too "",
             0 to 1 too "a̳",
@@ -159,7 +159,7 @@ class TextWidthKtTest {
             expecting { "a̳o".substringByColumns(startColumn, endColumn) } that { isEqualTo(expected) }
         }
 
-        @Test
+        @TextWidthRequiring @Test
         fun `should return till end of string by default`() {
             expecting { "a̳o".substringByColumns(1) } that { isEqualTo("o") }
         }
@@ -180,7 +180,7 @@ class TextWidthKtTest {
     @Nested
     inner class DropColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should drop columns`() = testEach(
             0 to "a̳o",
             1 to "o",
@@ -200,7 +200,7 @@ class TextWidthKtTest {
     @Nested
     inner class DropLastColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should drop last columns`() = testEach(
             0 to "a̳o",
             1 to "a̳",
@@ -220,7 +220,7 @@ class TextWidthKtTest {
     @Nested
     inner class TakeColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should take columns`() = testEach(
             0 to "",
             1 to "a̳",
@@ -240,7 +240,7 @@ class TextWidthKtTest {
     @Nested
     inner class TakeLastColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should take last columns`() = testEach(
             0 to "",
             1 to "o",
@@ -260,7 +260,7 @@ class TextWidthKtTest {
     @Nested
     inner class ChunkedByColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should return chunked`() = testEach<CharSequence.(Int) -> List<String>>(
             { chunkedByColumns(it) },
             { chunkedByColumnsSequence(it).toList() },
@@ -270,7 +270,7 @@ class TextWidthKtTest {
             }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should return transformed`() = testEach<CharSequence.(Int, (CharSequence) -> String) -> List<String>>(
             { columns, transform -> chunkedByColumns(columns, transform) },
             { columns, transform -> chunkedByColumnsSequence(columns, transform).toList() },
@@ -284,7 +284,7 @@ class TextWidthKtTest {
     @Nested
     inner class PadStartByColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should pad`() = testEach<CharSequence.(Int) -> CharSequence>(
             { padStartByColumns(it) },
             { toString().padStartByColumns(it) },
@@ -302,7 +302,7 @@ class TextWidthKtTest {
             expecting { string.padStartByColumns(11) } that { isEqualTo(" $string") }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should pad with custom pad char`() = testEach<CharSequence.(Int, String) -> CharSequence>(
             { columns, padChar -> padStartByColumns(columns, padChar) },
             { columns, padChar -> toString().padStartByColumns(columns, padChar) },
@@ -321,7 +321,7 @@ class TextWidthKtTest {
             }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should not pad if wide enough already`() = testEach<CharSequence.(Int) -> CharSequence>(
             { padStartByColumns(it) },
             { toString().padStartByColumns(it) },
@@ -354,7 +354,7 @@ class TextWidthKtTest {
     @Nested
     inner class PadEndByColumns {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should pad`() = testEach<CharSequence.(Int) -> CharSequence>(
             { padEndByColumns(it) },
             { toString().padEndByColumns(it) },
@@ -372,7 +372,7 @@ class TextWidthKtTest {
             expecting { string.padEndByColumns(11) } that { isEqualTo("$string ") }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should pad with custom pad char`() = testEach<CharSequence.(Int, String) -> CharSequence>(
             { columns, padChar -> padEndByColumns(columns, padChar) },
             { columns, padChar -> toString().padEndByColumns(columns, padChar) },

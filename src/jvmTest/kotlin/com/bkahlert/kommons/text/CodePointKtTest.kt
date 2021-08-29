@@ -75,8 +75,7 @@ class CodePointKtTest {
 
     @TestFactory
     fun columns() = testEach(
-        CodePoint("\u0006") to 0,
-        CodePoint("\u2406") to 2,
+        CodePoint(Unicode.ACKNOWLEDGE) to 0,
         CodePoint("${Unicode.ZERO_WIDTH_JOINER}") to 0,
         CodePoint(" ") to 1,
         CodePoint("a") to 1,

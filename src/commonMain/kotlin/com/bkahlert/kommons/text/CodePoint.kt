@@ -26,6 +26,7 @@ public value class CodePoint(
      */
     public val codePoint: Int,
 ) : Comparable<CodePoint> {
+    public constructor(char: Char) : this(char.code)
     public constructor(charSequence: CharSequence) : this("$charSequence".also {
         require(it.isValidCodePoint()) { "$it does not represent a single Unicode code point" }
     }.singleCodePoint()!!)
