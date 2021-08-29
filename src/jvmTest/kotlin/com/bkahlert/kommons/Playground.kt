@@ -1,9 +1,9 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.test.junit.runTests
 import com.bkahlert.kommons.text.TextWidth
 import com.bkahlert.kommons.text.columns
+import com.bkahlert.kommons.tracing.TestSpanScope
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage
@@ -20,9 +20,9 @@ class Playground {
 
     @Test
     @Tag("playground")
-    fun name() {
+    fun TestSpanScope.name() {
         listOf("x", "한", "曲", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧").forEach {
-            "$it — ${TextWidth.calculateWidth(it)}, ${it.columns}".trace
+            log("$it — ${TextWidth.calculateWidth(it)}, ${it.columns}")
         }
     }
 }
