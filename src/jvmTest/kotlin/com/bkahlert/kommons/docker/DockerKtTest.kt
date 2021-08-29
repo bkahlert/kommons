@@ -12,11 +12,11 @@ import com.bkahlert.kommons.exec.io
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.io.copyTo
 import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.SvgFixture
 import com.bkahlert.kommons.test.asserting
+import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
@@ -140,8 +140,8 @@ class DockerKtTest {
         @DockerRequiring([Docker.Nginx::class]) @Test
         fun `should run nginx`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             HtmlFixture.copyTo(resolve("index.html"))
-            val nginxProcess = nginx(888)
-            val didConnect = poll { curl("-XGET", "host.docker.internal:888").output.ansiRemoved.contains("<head><title>Hello Title!</title>") }
+            val nginxProcess = nginx(4242)
+            val didConnect = poll { curl("-XGET", "host.docker.internal:4242").output.ansiRemoved.contains("<head><title>Hello Title!</title>") }
                 .every(.5.seconds)
                 .forAtMost(8.seconds)
             nginxProcess.kill()
@@ -151,7 +151,7 @@ class DockerKtTest {
         @DockerRequiring([Docker.Nginx::class]) @Test
         fun `should run block when nginx is listening`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             HtmlFixture.copyTo(resolve("index.html"))
-            val output = listeningNginx(889) { uri ->
+            val output = listeningNginx(4243) { uri ->
                 curl("-XGET", uri).output.ansiRemoved
             }
             expectThat(output).contains("<head><title>Hello Title!</title>")

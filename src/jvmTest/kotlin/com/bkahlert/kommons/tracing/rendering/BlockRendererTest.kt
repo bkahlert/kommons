@@ -13,6 +13,7 @@ import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.prefixLinesWith
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.TextWidthRequiring
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.toUpperCase
@@ -352,7 +353,7 @@ class BlockRendererTest {
                 }
             }
 
-            @Test
+            @TextWidthRequiring @Test
             fun TestSpanScope.`should log second columns on same column even if using wide characters`() {
                 val rendered = capturing {
                     BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).apply {
