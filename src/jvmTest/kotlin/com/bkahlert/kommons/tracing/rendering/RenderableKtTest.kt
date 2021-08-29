@@ -56,7 +56,7 @@ class RenderableKtTest {
 
         @Test
         fun `should crop by columns`() {
-            expectThat(Renderable.of("⮕⮕⮕⮕").render(7, 1)).isEqualTo("⮕ … ⮕")
+            expectThat(Renderable.of("😀😀😀😀").render(7, 1)).isEqualTo("😀 … 😀")
         }
 
         @AnsiRequired @TestFactory

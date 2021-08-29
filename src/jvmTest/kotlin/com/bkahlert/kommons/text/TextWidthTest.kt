@@ -107,7 +107,7 @@ class TextWidthKtTest {
         @TestFactory
         fun `should provide columns for code points`() = tests {
             expecting { "A".asCodePoint()!!.columns } that { isEqualTo(1) }
-            expecting { "⮕".asCodePoint()!!.columns } that { isEqualTo(2) }
+            expecting { "😀".asCodePoint()!!.columns } that { isEqualTo(2) }
         }
 
         @TestFactory
@@ -314,16 +314,16 @@ class TextWidthKtTest {
             { columns, padChar -> padStartByColumns(columns, padChar) },
             { columns, padChar -> toString().padStartByColumns(columns, padChar) },
         ) { fn ->
-            expecting { "⸺̲͞o".fn(5, '⮕') } that {
-                toStringIsEqualTo("⮕⸺̲͞o")
+            expecting { "⸺̲͞o".fn(5, '😀') } that {
+                toStringIsEqualTo("😀⸺̲͞o")
                 columns.isEqualTo(5)
             }
-            expecting { "⸺̲͞o".fn(6, '⮕') } that {
-                toStringIsEqualTo("⮕⸺̲͞o")
+            expecting { "⸺̲͞o".fn(6, '😀') } that {
+                toStringIsEqualTo("😀⸺̲͞o")
                 columns.isEqualTo(5)
             }
-            expecting { "⸺̲͞o".fn(7, '⮕') } that {
-                toStringIsEqualTo("⮕⮕⸺̲͞o")
+            expecting { "⸺̲͞o".fn(7, '😀') } that {
+                toStringIsEqualTo("😀😀⸺̲͞o")
                 columns.isEqualTo(7)
             }
         }
@@ -384,16 +384,16 @@ class TextWidthKtTest {
             { columns, padChar -> padEndByColumns(columns, padChar) },
             { columns, padChar -> toString().padEndByColumns(columns, padChar) },
         ) { fn ->
-            expecting { "⸺̲͞o".fn(5, '⮕') } that {
-                toStringIsEqualTo("⸺̲͞o⮕")
+            expecting { "⸺̲͞o".fn(5, '😀') } that {
+                toStringIsEqualTo("⸺̲͞o😀")
                 columns.isEqualTo(5)
             }
-            expecting { "⸺̲͞o".fn(6, '⮕') } that {
-                toStringIsEqualTo("⸺̲͞o⮕")
+            expecting { "⸺̲͞o".fn(6, '😀') } that {
+                toStringIsEqualTo("⸺̲͞o😀")
                 columns.isEqualTo(5)
             }
-            expecting { "⸺̲͞o".fn(7, '⮕') } that {
-                toStringIsEqualTo("⸺̲͞o⮕⮕")
+            expecting { "⸺̲͞o".fn(7, '😀') } that {
+                toStringIsEqualTo("⸺̲͞o😀😀")
                 columns.isEqualTo(7)
             }
         }
@@ -441,7 +441,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⬅⬅⬅⬅⬅⬅".truncateByColumns()).isEqualTo("⮕⮕⮕ … ⬅⬅⬅")
+            expectThat("😀😀😀😀😀😀😀😀😀😀😀😀".truncateByColumns()).isEqualTo("😀😀😀 … 😀😀😀")
         }
 
         @Test
@@ -477,7 +477,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅⬅".truncateStartByColumns()).isEqualTo(" … ⬅⬅⬅⬅⬅⬅")
+            expectThat("😀😀😀😀😀😀😀😀😀😀😀".truncateStartByColumns()).isEqualTo(" … 😀😀😀😀😀😀")
         }
 
         @Test
@@ -513,7 +513,7 @@ class TextWidthKtTest {
 
         @Test
         fun `should truncate using columns`() {
-            expectThat("⮕⮕⮕⮕⮕⮕⮕⮕⮕⮕".truncateEndByColumns()).isEqualTo("⮕⮕⮕⮕⮕⮕ … ")
+            expectThat("😀😀😀😀😀😀😀😀😀😀".truncateEndByColumns()).isEqualTo("😀😀😀😀😀😀 … ")
         }
 
         @Test
