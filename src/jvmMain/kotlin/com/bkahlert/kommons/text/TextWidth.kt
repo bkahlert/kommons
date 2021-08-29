@@ -1,12 +1,9 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.collections.synchronizedListOf
-import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.math.isEven
 import com.bkahlert.kommons.runtime.contextClassLoader
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
-import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.time.sleep
 import java.awt.Canvas
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -25,7 +22,7 @@ import javax.swing.JLabel
  */
 internal actual object TextWidth {
 
-    private val preview = false
+    private val preview = true
 
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         if (!preview) System.setProperty("java.awt.headless", "true")
@@ -67,14 +64,6 @@ internal actual object TextWidth {
     }
 
     private var previews: MutableList<JLabel> = synchronizedListOf()
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        "c曲".columns
-        preview("c曲")
-        preview("—̠͞".also { it.columns.trace })
-        10.seconds.sleep()
-    }
 
     private fun preview(vararg fonts: Font) {
         val frame = JFrame().apply {

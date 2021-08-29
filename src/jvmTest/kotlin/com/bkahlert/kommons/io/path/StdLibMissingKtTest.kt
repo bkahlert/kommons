@@ -18,7 +18,7 @@ import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -81,7 +81,7 @@ class StdLibMissingKtTest {
         fun `should list all entries recursively`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dir = directoryWithTwoFiles()
             val subject = dir.listDirectoryEntriesRecursively()
-            expectThat(subject).containsExactly(
+            expectThat(subject).containsExactlyInAnyOrder(
                 dir.resolve("example.html"),
                 dir.resolve("sub-dir"),
                 dir.resolve("sub-dir/config.txt"),
@@ -92,7 +92,7 @@ class StdLibMissingKtTest {
         fun `should apply glob expression`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dir = directoryWithTwoFiles()
             val subject = dir.listDirectoryEntriesRecursively("**/*.*")
-            expectThat(subject).containsExactly(
+            expectThat(subject).containsExactlyInAnyOrder(
                 dir.resolve("example.html"),
                 dir.resolve("sub-dir/config.txt"),
             )

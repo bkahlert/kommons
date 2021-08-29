@@ -94,12 +94,18 @@ kotlin {
             }
         }
 
-        val anySetUpTest = tasks.withType<Test>().first()
+        val testTask = tasks.withType<Test>().first()
         tasks.register<Test>("smokeTest") {
             group = VERIFICATION_GROUP
-            classpath = anySetUpTest.classpath
-            testClassesDirs = anySetUpTest.testClassesDirs
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
             useJUnitPlatform { includeTags("Smoke") }
+        }
+        tasks.register<Test>("playground") {
+            group = VERIFICATION_GROUP
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+            useJUnitPlatform { includeTags("playground") }
         }
     }
     js(IR) {
