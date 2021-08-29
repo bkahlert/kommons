@@ -2,18 +2,15 @@ package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.collections.synchronizedListOf
 import com.bkahlert.kommons.math.isEven
-import com.bkahlert.kommons.runtime.contextClassLoader
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import java.awt.Canvas
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.FontMetrics
-import java.awt.GraphicsEnvironment
 import java.awt.GridLayout
 import java.awt.Label
 import java.awt.Panel
-import java.awt.font.TextAttribute
 import javax.swing.JFrame
 import javax.swing.JLabel
 
@@ -27,20 +24,9 @@ internal actual object TextWidth {
 
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         if (!preview) System.setProperty("java.awt.headless", "true")
-        // explicit font to create stable measure which is not the case for monospace
-        val font = Font.createFonts(contextClassLoader.getResourceAsStream("SourceCodePro-Regular.ttf")).first().deriveFont(mapOf(
-            TextAttribute.WIDTH to null,
-            TextAttribute.TRANSFORM to null,
-            TextAttribute.TRACKING to null,
-            TextAttribute.SIZE to 75,
-            TextAttribute.POSTURE to null,
-            TextAttribute.FAMILY to "Monospaced",
-            TextAttribute.SUPERSCRIPT to null,
-            TextAttribute.WEIGHT to null,
-        ))
-        GraphicsEnvironment.getLocalGraphicsEnvironment().preferProportionalFonts()
-        if (preview) preview(font, Font(Font.MONOSPACED, Font.PLAIN, 75))
-        Canvas().getFontMetrics(Font(Font.MONOSPACED, Font.PLAIN, 75))
+        val font = Font(Font.MONOSPACED, Font.PLAIN, 75)
+        if (preview) preview(font)
+        Canvas().getFontMetrics(font)
     }
 
     /**

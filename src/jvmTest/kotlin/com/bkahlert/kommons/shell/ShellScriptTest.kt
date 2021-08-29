@@ -39,7 +39,6 @@ import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.toByteArray
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
 import org.junit.jupiter.api.Nested

@@ -40,7 +40,7 @@ class TextWidthKtTest {
     }
 
     @TestFactory
-    fun `should calc smaller width for one-column string than two-column string`() = testEach("한", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
+    fun `should calc smaller width for one-column string than two-column string`() = testEach("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
         expecting { TextWidth.calculateWidth("A") } that { isLessThan(TextWidth.calculateWidth(it)) }
         expecting { TextWidth.calculateWidth("—") } that { isLessThan(TextWidth.calculateWidth(it)) }
     }
@@ -69,7 +69,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should calc two columns for wide characters`() = testEach("한", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
+        fun `should calc two columns for wide characters`() = testEach("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
             expecting { it.columns } that { isEqualTo(2) }
         }
 

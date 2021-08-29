@@ -33,7 +33,7 @@ class Playground {
         val affinetransform = AffineTransform()
         val frc = FontRenderContext(affinetransform, false, false)
 
-        listOf(".", "x", "x̅", "한", "曲", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧").forEach {
+        listOf(".", "x", "x̅", "曲", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧").forEach {
             log("$it — ${TextWidth.calculateWidth(it)}, ${it.columns}")
             val font = Font.createFonts(contextClassLoader.getResourceAsStream("NotoSerifCJKjp-Regular.otf")).first().deriveFont(mapOf(
                 TextAttribute.WIDTH to null,
@@ -45,7 +45,7 @@ class Playground {
                 TextAttribute.SUPERSCRIPT to null,
                 TextAttribute.WEIGHT to null,
             ))
-            log("$it — ${font.getStringBounds(it, frc)}")
+            log("$it — ${font.getStringBounds(it, frc).width}")
             log("$it — ${font.canDisplay(it.codePoints().findFirst().asInt)}")
         }
         fail("xxx")

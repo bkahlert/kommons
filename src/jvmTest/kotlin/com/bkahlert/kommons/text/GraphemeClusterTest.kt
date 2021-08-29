@@ -124,7 +124,7 @@ class GraphemeClusterTest {
         "" to emptyList(),
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
-        "⸺̲͞ (((ꎤ ✧曲✧)—̠͞o HIT!" to listOf(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+        "⸺̲͞ (((ꎤ ✧曲✧)—̠͞o HIT!" to listOf(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1),
         "🟥🟧🟨🟩🟦🟪" to listOf(1, 1, 1, 1, 1, 1),
         "👨🏾‍" to listOf(3),
     ) { (string, expectedCount) ->
