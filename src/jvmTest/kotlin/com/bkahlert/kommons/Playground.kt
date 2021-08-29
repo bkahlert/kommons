@@ -31,11 +31,11 @@ class Playground {
     fun TestSpanScope.name() {
 
         val affinetransform = AffineTransform()
-        val frc = FontRenderContext(affinetransform, true, true)
+        val frc = FontRenderContext(affinetransform, false, false)
 
-        listOf("x", "한", "曲", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧").forEach {
+        listOf("x", "x͡", "한", "曲", "⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧").forEach {
             log("$it — ${TextWidth.calculateWidth(it)}, ${it.columns}")
-            val font = Font.createFonts(contextClassLoader.getResourceAsStream("SourceCodePro-Regular.ttf")).first().deriveFont(mapOf(
+            val font = Font.createFonts(contextClassLoader.getResourceAsStream("NotoSerifCJKjp-Regular.otf")).first().deriveFont(mapOf(
                 TextAttribute.WIDTH to null,
                 TextAttribute.TRANSFORM to null,
                 TextAttribute.TRACKING to null,
@@ -46,6 +46,7 @@ class Playground {
                 TextAttribute.WEIGHT to null,
             ))
             log("$it — ${font.getStringBounds(it, frc)}")
+            log("$it — ${font.canDisplay(it.codePoints().findFirst().asInt)}")
         }
         fail("xxx")
     }
