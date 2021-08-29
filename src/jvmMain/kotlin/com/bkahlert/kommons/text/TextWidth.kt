@@ -31,7 +31,7 @@ internal actual object TextWidth {
             TextAttribute.WIDTH to null,
             TextAttribute.TRANSFORM to null,
             TextAttribute.TRACKING to null,
-            TextAttribute.SIZE to 100,
+            TextAttribute.SIZE to 75,
             TextAttribute.POSTURE to null,
             TextAttribute.FAMILY to "Courier",
             TextAttribute.SUPERSCRIPT to null,
