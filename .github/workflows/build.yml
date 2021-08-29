@@ -36,8 +36,6 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build --console=rich
-      #      - name: Main
-      #        run: ./gradlew playground --console=rich
       - uses: actions/upload-artifact@v2
         with:
           name: package

@@ -8,8 +8,6 @@ import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Text
 import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.styling.draw
-import com.bkahlert.kommons.tracing.SpanScope
-import com.bkahlert.kommons.tracing.runSpanning
 import io.ktor.application.call
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -47,19 +45,16 @@ fun printTestExecutionStatus(vararg lines: CharSequence, formatBorder: Text.() -
 fun <R> http(
     port: Int = 8000,
     responseText: String = HtmlFixture.text,
-    block: SpanScope.() -> R,
+    block: () -> R,
 ): R {
-    var result: Result<R>? = null
-    runSpanning("server") {
-        val engine = embeddedServer(Netty, port = port) {
-            routing {
-                get("/") {
-                    call.respondText(responseText)
-                }
+    val engine = embeddedServer(Netty, port = port) {
+        routing {
+            get("/") {
+                call.respondText(responseText)
             }
-        }.start(wait = false)
-        result = kotlin.runCatching { block() }
-        engine.stop(0L, 0L)
-    }
-    return result?.getOrThrow() ?: error("error running nginx")
+        }
+    }.start(wait = false)
+    val result = runCatching(block)
+    engine.stop(0L, 0L)
+    return result.getOrThrow()
 }
