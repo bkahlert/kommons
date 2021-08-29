@@ -386,7 +386,7 @@ class LineSeparatorsTest {
     @Nested
     inner class LinesOfColumnsKtTest {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should be split into lines with columns`() = testEach<CharSequence.() -> List<CharSequence>>(
             { linesOfColumnsSequence(3).toList() },
             { linesOfColumns(3) },
@@ -413,7 +413,7 @@ class LineSeparatorsTest {
 
             private val text = "12345曲7890"
 
-            @Test
+            @TextWidthRequiring @Test
             fun `should wrap non-ANSI lines`() {
                 expectThat(text.wrapLines(3)).isEqualTo("""
                 123
