@@ -39,8 +39,8 @@ internal actual object TextWidth {
             TextAttribute.WEIGHT to null,
         ))
         GraphicsEnvironment.getLocalGraphicsEnvironment().preferProportionalFonts()
-        if (preview) preview(font, Font(Font.MONOSPACED, Font.PLAIN, 10))
-        Canvas().getFontMetrics(font)
+        if (preview) preview(font, Font(Font.MONOSPACED, Font.PLAIN, 75))
+        Canvas().getFontMetrics(Font(Font.MONOSPACED, Font.PLAIN, 75))
     }
 
     /**
