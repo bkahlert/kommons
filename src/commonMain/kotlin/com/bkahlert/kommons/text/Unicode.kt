@@ -385,12 +385,12 @@ public object Unicode {
     public const val TRIPLE_VERTICAL_BAR_DELIMITER: Char = '⦀'
 
     /**
-     * Unicode emojis as specified by the [Unicode® Technical Standard #51](https://unicode.org/reports/tr51/) 🤓
+     * Unicode emojis as specified by the [Unicode® Technical Standard #51](https://unicode.org/reports/tr51/)
      */
     public object Emojis {
 
         /**
-         * Emoji, e.g. `🤓`
+         * Emoji, e.g. `😀`
          */
         public class Emoji(private val emoji: String) :
             CharSequence by emoji.removeSuffix(VARIATION_SELECTOR_15.toString()).removeSuffix(VARIATION_SELECTOR_16.toString()) {
