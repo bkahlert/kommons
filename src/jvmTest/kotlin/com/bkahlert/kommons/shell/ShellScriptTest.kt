@@ -6,14 +6,11 @@ import com.bkahlert.kommons.docker.DockerRunCommandLine
 import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.docker.DockerStopCommandLine
 import com.bkahlert.kommons.docker.MountOptions
-import com.bkahlert.kommons.docker.listeningNginx
-import com.bkahlert.kommons.docker.nginx
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.IO.Output
 import com.bkahlert.kommons.exec.exitCode
 import com.bkahlert.kommons.exec.exitCodeOrNull
 import com.bkahlert.kommons.exec.io
-import com.bkahlert.kommons.io.copyTo
 import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.hasContent
@@ -41,6 +38,15 @@ import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
+import com.bkahlert.kommons.time.sleep
+import com.bkahlert.kommons.tracing.SpanScope
+import com.bkahlert.kommons.tracing.runSpanning
+import io.ktor.application.call
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -64,6 +70,7 @@ import strikt.java.fileName
 import strikt.java.isExecutable
 import java.net.URI
 import java.nio.file.Path
+import kotlin.concurrent.thread
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.time.measureTime
@@ -465,10 +472,9 @@ class ShellScriptTest {
 
             @Test
             fun `should proceed if connection succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                HtmlFixture.copyTo(resolve("index.html"))
-                val passedTime = listeningNginx(890) {
+                val passedTime = http(8900) {
                     measureTime {
-                        ShellScript { poll(URI("http://localhost:890")) }.exec.logging()
+                        ShellScript { poll(URI("http://localhost:8900")) }.exec.logging()
                     }
                 }
                 expectThat(passedTime).isLessThan(3.seconds)
@@ -476,40 +482,39 @@ class ShellScriptTest {
 
             @Test
             fun `should retry until succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                HtmlFixture.copyTo(resolve("index.html"))
-                val nginxProcess = nginx(891)
                 val passedTime = measureTime {
-                    ShellScript { poll(URI("http://localhost:891"), interval = 3.seconds) }.exec.logging()
+                    thread {
+                        2.seconds.sleep()
+                        http(8901) { 5.seconds.sleep() }
+                    }
+                    ShellScript { poll(URI("http://localhost:8901"), interval = 3.seconds) }.exec.logging()
                 }
-                nginxProcess.kill()
                 expectThat(passedTime).isGreaterThan(3.seconds)
             }
 
             @Test
             fun `should not print`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                HtmlFixture.copyTo(resolve("index.html"))
-                val nginxProcess = nginx(891)
-                val process = ShellScript { poll(URI("http://localhost:891"), interval = 1.seconds) }.exec.logging()
-                nginxProcess.kill()
+                val process = http(8902) {
+                    ShellScript { poll(URI("http://localhost:8902"), interval = 1.seconds) }.exec.logging()
+                }
                 expectThat(process).io.isEmpty()
             }
 
             @Test
             fun `should print if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                HtmlFixture.copyTo(resolve("index.html"))
-                val nginxProcess = nginx(891)
-                val process = ShellScript { poll(URI("http://localhost:891"), interval = 3.seconds, verbose = true) }.exec.logging()
-                nginxProcess.kill()
+                val process = http(8903) {
+                    ShellScript { poll(URI("http://localhost:8903"), interval = 3.seconds, verbose = true) }.exec.logging()
+                }
                 expectThat(process).io
-                    .contains(Output typed "Polling http://localhost:891...")
-                    .contains(Output typed "Polled http://localhost:891 successfully.")
+                    .contains(Output typed "Polling http://localhost:8903...")
+                    .contains(Output typed "Polled http://localhost:8903 successfully.")
             }
 
             @Test
             fun `should exit on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val passedTime = measureTime {
                     ShellScript {
-                        poll(URI("http://localhost:892"), timeout = 1.seconds)
+                        poll(URI("http://localhost:8904"), timeout = 1.seconds)
                     }.exec.logging()
                 }
                 expectThat(passedTime).isLessThan(5.seconds)
@@ -518,7 +523,7 @@ class ShellScriptTest {
             @Test
             fun `should exit with 124 on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val process = ShellScript {
-                    poll(URI("http://localhost:893"), timeout = 1.seconds)
+                    poll(URI("http://localhost:8905"), timeout = 1.seconds)
                 }.exec.logging()
                 expectThat(process.exitCode).isEqualTo(124)
             }
@@ -829,3 +834,23 @@ inline fun <reified T : Path> Builder<T>.isScript() =
         else if (!it.exists()) fail("does not exist")
         else fail("starts with ${it.inputStream().readNBytes(2)}")
     }
+
+fun <R> http(
+    port: Int = 8000,
+    responseText: String = HtmlFixture.text,
+    block: SpanScope.() -> R,
+): R {
+    var result: Result<R>? = null
+    runSpanning("server") {
+        val engine = embeddedServer(Netty, port = port) {
+            routing {
+                get("/") {
+                    call.respondText(responseText)
+                }
+            }
+        }.start(wait = false)
+        result = kotlin.runCatching { block() }
+        engine.stop(0L, 0L)
+    }
+    return result?.getOrThrow() ?: error("error running nginx")
+}

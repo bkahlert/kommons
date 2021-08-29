@@ -19,20 +19,14 @@ import com.bkahlert.kommons.test.asserting
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.containsAnsi
-import com.bkahlert.kommons.time.poll
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.unit.bytes
 import com.bkahlert.kommons.unit.hasSize
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
-import strikt.assertions.isTrue
 import strikt.assertions.length
 import strikt.java.exists
 import strikt.java.fileName
@@ -132,30 +126,6 @@ class DockerKtTest {
             { download(it) },
             { download(URI.create(it)) },
         ) { download -> withTempDir(uniqueId) { expecting { download("$uri?a=b#c") } that { fileName.isEqualTo("example.png".asPath()) } } }
-    }
-
-    @Nested
-    inner class Nginx {
-
-        @DockerRequiring([Docker.Nginx::class]) @Test
-        fun `should run nginx`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            HtmlFixture.copyTo(resolve("index.html"))
-            val nginxProcess = nginx(4242)
-            val didConnect = poll { curl("-XGET", "host.docker.internal:4242").output.ansiRemoved.contains("<head><title>Hello Title!</title>") }
-                .every(.5.seconds)
-                .forAtMost(8.seconds)
-            nginxProcess.kill()
-            expectThat(didConnect).isTrue()
-        }
-
-        @DockerRequiring([Docker.Nginx::class]) @Test
-        fun `should run block when nginx is listening`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            HtmlFixture.copyTo(resolve("index.html"))
-            val output = listeningNginx(4243) { uri ->
-                curl("-XGET", uri).output.ansiRemoved
-            }
-            expectThat(output).contains("<head><title>Hello Title!</title>")
-        }
     }
 
     @Suppress("SpellCheckingInspection")

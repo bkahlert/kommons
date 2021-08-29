@@ -154,6 +154,9 @@ kotlin {
                 implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
                 implementation("io.grpc:grpc-okhttp:1.38.0")
 
+                implementation("io.ktor:ktor-server-core:1.6.3")
+                implementation("io.ktor:ktor-server-netty:1.6.3")
+
                 implementation(kotlin("test-junit5"))
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
