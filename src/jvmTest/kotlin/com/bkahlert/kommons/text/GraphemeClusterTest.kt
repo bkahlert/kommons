@@ -60,7 +60,7 @@ class GraphemeClusterTest {
             }
         }
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should handle multi-codepoint clusters`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
@@ -78,14 +78,9 @@ class GraphemeClusterTest {
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
-            expecting { "🟥🟧🟨🟩🟦🟪".fn() } that {
+            expecting { "😀".fn() } that {
                 containsExactly(
-                    "🟥".toGraphemeClusterList().first(),
-                    "🟧".toGraphemeClusterList().first(),
-                    "🟨".toGraphemeClusterList().first(),
-                    "🟩".toGraphemeClusterList().first(),
-                    "🟦".toGraphemeClusterList().first(),
-                    "🟪".toGraphemeClusterList().first(),
+                    "😀".toGraphemeClusterList().first(),
                 )
             }
         }
@@ -105,13 +100,13 @@ class GraphemeClusterTest {
         expecting { graphemeCluster.toString() } that { isEqualTo(input) }
     }
 
-    @TextWidthRequiring @TestFactory
+    @TestFactory
     fun `should return grapheme cluster count`() = testEach(
         "" to 0,
         "$e" to 1,
         "${e}M" to 2,
         "a̳o" to 2,
-        "🟥🟧🟨🟩🟦🟪" to 6,
+        "x😀" to 2,
         "😀" to 1,
         "👨🏾" to 1,
         "👩‍👩‍👧‍👧" to 1,
@@ -119,13 +114,13 @@ class GraphemeClusterTest {
         expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
     }
 
-    @TextWidthRequiring @TestFactory
+    @TestFactory
     fun `should map grapheme clusters`() = testEach(
         "" to emptyList(),
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
         "a̳o" to listOf(2, 1),
-        "🟥🟧🟨🟩🟦🟪" to listOf(1, 1, 1, 1, 1, 1),
+        "x😀" to listOf(2, 1),
         "👨🏾‍" to listOf(3),
     ) { (string, expectedCount) ->
         expecting { string.mapGraphemeClusters { it.codePoints.size } } that {
