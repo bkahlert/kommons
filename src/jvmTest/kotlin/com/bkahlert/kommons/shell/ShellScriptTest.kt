@@ -20,7 +20,6 @@ import com.bkahlert.kommons.io.path.randomFile
 import com.bkahlert.kommons.io.path.writeBytes
 import com.bkahlert.kommons.shell.ShellScript.Companion.isScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
-import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.expectThrows
@@ -39,14 +38,6 @@ import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
-import com.bkahlert.kommons.tracing.SpanScope
-import com.bkahlert.kommons.tracing.runSpanning
-import io.ktor.application.call
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -834,23 +825,3 @@ inline fun <reified T : Path> Builder<T>.isScript() =
         else if (!it.exists()) fail("does not exist")
         else fail("starts with ${it.inputStream().readNBytes(2)}")
     }
-
-fun <R> http(
-    port: Int = 8000,
-    responseText: String = HtmlFixture.text,
-    block: SpanScope.() -> R,
-): R {
-    var result: Result<R>? = null
-    runSpanning("server") {
-        val engine = embeddedServer(Netty, port = port) {
-            routing {
-                get("/") {
-                    call.respondText(responseText)
-                }
-            }
-        }.start(wait = false)
-        result = kotlin.runCatching { block() }
-        engine.stop(0L, 0L)
-    }
-    return result?.getOrThrow() ?: error("error running nginx")
-}
