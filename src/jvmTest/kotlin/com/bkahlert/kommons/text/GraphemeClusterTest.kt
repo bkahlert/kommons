@@ -105,7 +105,7 @@ class GraphemeClusterTest {
         expecting { graphemeCluster.toString() } that { isEqualTo(input) }
     }
 
-    @TestFactory
+    @TextWidthRequiring @TestFactory
     fun `should return grapheme cluster count`() = testEach(
         "" to 0,
         "$e" to 1,
@@ -119,7 +119,7 @@ class GraphemeClusterTest {
         expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
     }
 
-    @TestFactory
+    @TextWidthRequiring @TestFactory
     fun `should map grapheme clusters`() = testEach(
         "" to emptyList(),
         "$e" to listOf(1),
