@@ -105,11 +105,17 @@ class GraphemeClusterTest {
         "" to 0,
         "$e" to 1,
         "${e}M" to 2,
-        "a̳o" to 2,
         "x😀" to 2,
         "😀" to 1,
         "👨🏾" to 1,
         "👩‍👩‍👧‍👧" to 1,
+    ) { (string, expectedCount) ->
+        expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
+    }
+
+    @TextWidthRequiring @TestFactory
+    fun `should return grapheme cluster count for combining characters`() = testEach(
+        "a̳o" to 2,
     ) { (string, expectedCount) ->
         expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
     }
@@ -119,9 +125,18 @@ class GraphemeClusterTest {
         "" to emptyList(),
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
-        "a̳o" to listOf(2, 1),
         "x😀" to listOf(1, 1),
         "👨🏾‍" to listOf(3),
+    ) { (string, expectedCount) ->
+        expecting { string.mapGraphemeClusters { it.codePoints.size } } that {
+            isEqualTo(expectedCount)
+            get { sumOf { it } }.isEqualTo(string.codePointCount)
+        }
+    }
+
+    @TextWidthRequiring @TestFactory
+    fun `should map grapheme clusters for combining characters`() = testEach(
+        "a̳o" to listOf(2, 1),
     ) { (string, expectedCount) ->
         expecting { string.mapGraphemeClusters { it.codePoints.size } } that {
             isEqualTo(expectedCount)

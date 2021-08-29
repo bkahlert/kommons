@@ -366,7 +366,7 @@ class LineSeparatorsTest {
     @Nested
     inner class LinesOfLengthKtTest {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should be split with maximum line length`() = testEach<CharSequence.() -> List<CharSequence>>(
             { linesOfLengthSequence(3).toList() },
             { linesOfLength(3) },

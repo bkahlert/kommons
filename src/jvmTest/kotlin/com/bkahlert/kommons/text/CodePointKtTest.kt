@@ -82,7 +82,6 @@ class CodePointKtTest {
         CodePoint("😀") to 2,
         CodePoint(Unicode.LINE_FEED.toString()) to 0,
         CodePoint("►") to 1,
-        CodePoint("㍙") to 2,
     ) { (codePoint, expectedColumns) ->
         expecting { codePoint.columns } that { isEqualTo(expectedColumns) }
     }
