@@ -28,7 +28,6 @@ import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.styling.wrapWithBorder
 import com.bkahlert.kommons.time.Now
-import com.bkahlert.kommons.time.busyWait
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
@@ -335,11 +334,11 @@ class JavaExecTest {
             fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
                 val process = createCompletingExec(exitValue = 0, execTerminationCallback = {
-                    println("CALLBACK CALLED")
                     callbackCalled = true
                 })
                 expectThat(process).succeeds()
-                100.milli.seconds.busyWait()
+
+                poll { callbackCalled }.every(0.1.seconds).forAtMost(1.seconds)
                 expectThat(callbackCalled).isTrue()
             }
 
