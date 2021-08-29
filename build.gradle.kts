@@ -154,8 +154,16 @@ kotlin {
                 implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
                 implementation("io.grpc:grpc-okhttp:1.38.0")
 
-                implementation("io.ktor:ktor-server-core:1.6.3")
-                implementation("io.ktor:ktor-server-netty:1.6.3")
+                implementation("io.ktor:ktor-server-core:1.6.3") {
+                    because("tests needing a short-lived webserver")
+                }
+                implementation("io.ktor:ktor-server-netty:1.6.3") {
+                    because("tests needing a short-lived webserver")
+                }
+                implementation("org.slf4j:slf4j-nop:1.7.32") {
+                    because("suppress failed to load class StaticLoggerBinder")
+                }
+
 
                 implementation(kotlin("test-junit5"))
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))

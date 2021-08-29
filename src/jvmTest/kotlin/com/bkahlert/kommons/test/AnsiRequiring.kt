@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.printTestExecutionStatus
 import com.bkahlert.kommons.runtime.AnsiSupport.NONE
 import com.bkahlert.kommons.test.junit.TestName.Companion.testName
 import com.bkahlert.kommons.text.ANSI
@@ -25,11 +26,19 @@ annotation class AnsiRequiring
  */
 class AnsiCondition : ExecutionCondition {
 
-    private val ansiSupported: Boolean by lazy { com.bkahlert.kommons.runtime.ansiSupport != NONE }
-
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
         context.testName.let { testName ->
             if (ansiSupported) ConditionEvaluationResult.enabled("Test ${testName.quoted} enabled because ANSI is supported.")
             else ConditionEvaluationResult.disabled("Test ${testName.quoted} disabled because ANSI is NOT supported.")
         }
+
+    companion object {
+
+        private val ansiSupported: Boolean by lazy {
+            val support = com.bkahlert.kommons.runtime.ansiSupport
+            (support != NONE).also {
+                printTestExecutionStatus("ANSI support: $support") { if (it) green else yellow }
+            }
+        }
+    }
 }

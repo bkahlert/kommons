@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.printTestExecutionStatus
 import com.bkahlert.kommons.test.junit.TestName.Companion.testName
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled
@@ -37,7 +38,12 @@ class TextWidthCondition : ExecutionCondition {
                 TextWidth.calculateWidth("X"),
                 TextWidth.calculateWidth("⮕"),
                 TextWidth.calculateWidth("😀"),
-            ).zipWithNext { left, right -> left < right }.all { it }
+            ).zipWithNext { left, right -> left < right }
+                .all { it }
+                .also {
+                    if (it) printTestExecutionStatus("Text width measuring: fine-grained") { green }
+                    else printTestExecutionStatus("Text width measuring: simple") { yellow }
+                }
         }
     }
 }

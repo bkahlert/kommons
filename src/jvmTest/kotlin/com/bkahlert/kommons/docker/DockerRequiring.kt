@@ -3,17 +3,16 @@ package com.bkahlert.kommons.docker
 import com.bkahlert.kommons.docker.CleanUpMode.FailAndKill
 import com.bkahlert.kommons.docker.CleanUpMode.ThanksForCleaningUp
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Running
+import com.bkahlert.kommons.printTestExecutionStatus
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.junit.TestName.Companion.testName
 import com.bkahlert.kommons.test.junit.UniqueId.Companion.simplifiedId
 import com.bkahlert.kommons.test.withAnnotation
-import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.quoted
-import com.bkahlert.kommons.text.styling.wrapWithBorder
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.Styles.None
-import com.bkahlert.kommons.tracing.rendering.spanningLine
+import com.bkahlert.kommons.tracing.rendering.runSpanningLine
 import com.bkahlert.kommons.tracing.runSpanning
 import com.bkahlert.kommons.tracing.spanScope
 import org.junit.jupiter.api.Timeout
@@ -108,7 +107,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
     private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId)
 
     private fun ExtensionContext.pullRequiredImages() =
-        spanningLine("Pulling required images") {
+        runSpanningLine("Pulling required images") {
             val missing = requiredDockerImages() subtract DockerImage.list()
             missing.forEach { it.pull() }
         }
@@ -134,15 +133,8 @@ class DockerRunningCondition : ExecutionCondition {
         private val dockerUpAndRunning: Boolean by lazy {
             Docker.engineRunning
                 .also { isRunning ->
-                    val message = if (isRunning) {
-                        listOf("Docker is running.".formattedAs.success)
-                            .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { green })
-                    } else {
-                        listOf("Docker is not running.".formattedAs.warning)
-                            .wrapWithBorder(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch { yellow })
-                    }
-
-                        .also { println(it) }
+                    if (isRunning) printTestExecutionStatus("Docker is running.") { green }
+                    else printTestExecutionStatus("Docker is not running.".formattedAs.warning) { yellow }
                 }
         }
     }

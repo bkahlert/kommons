@@ -15,7 +15,7 @@ class OneLineRendererKtTest {
         fun TestSpanScope.`should switch to one-line rendering`() {
             runSpanning("block") {
                 log("block event")
-                spanningLine("one-line") {
+                runSpanningLine("one-line") {
                     log("one-line event")
                 }
             }
@@ -31,19 +31,19 @@ class OneLineRendererKtTest {
 
         @Test
         fun TestSpanScope.`should be customizable`() {
-            spanningLine("parent", contentFormatter = { "!$it!" }) { runSpanning("child") { log("event") } }
+            runSpanningLine("parent", contentFormatter = { "!$it!" }) { runSpanning("child") { log("event") } }
             expectThatRendered().matchesCurlyPattern("╶──╴parent ╶──╴child╶─╴!event! ✔︎ ✔︎")
         }
 
         @Test
         fun TestSpanScope.`should keep one-line rendering for nested spans`() {
-            spanningLine("root") { runSpanning("parent") { runSpanning("child") { log("event") } } }
+            runSpanningLine("root") { runSpanning("parent") { runSpanning("child") { log("event") } } }
             expectThatRendered().matchesCurlyPattern("╶──╴root ╶──╴parent ╶──╴child╶─╴event ✔︎ ✔︎ ✔︎")
         }
 
         @Test
         fun TestSpanScope.`should support consecutive one-line span switches`() {
-            spanningLine("parent") { spanningLine("child") { log("event") } }
+            runSpanningLine("parent") { runSpanningLine("child") { log("event") } }
             expectThatRendered().matchesCurlyPattern("╶──╴parent ╶──╴child╶─╴event ✔︎ ✔︎")
         }
     }

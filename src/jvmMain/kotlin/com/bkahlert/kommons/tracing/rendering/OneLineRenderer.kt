@@ -91,7 +91,7 @@ public class OneLineRenderer(
  * Logging is rendered by a [OneLineRenderer].
  */
 @TracingDsl
-public fun <R> spanningLine(
+public fun <R> runSpanningLine(
     name: CharSequence,
     vararg attributes: KeyValue<*, *>,
 
