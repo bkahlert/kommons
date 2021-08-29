@@ -371,12 +371,12 @@ class LineSeparatorsTest {
             { linesOfLengthSequence(3).toList() },
             { linesOfLength(3) },
         ) { fn ->
-            expecting { "12345😀7890$LF".fn().map { it.toString() } } that {
+            expecting { "12345x̅7890$LF".fn().map { it.toString() } } that {
                 containsExactly(
                     "123",
-                    "45😀",
-                    "789",
-                    "0",
+                    "45x",
+                    "̅78",
+                    "90",
                     "",
                 )
             }
