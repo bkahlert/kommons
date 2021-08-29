@@ -160,7 +160,7 @@ class ColumnsKtTest {
     @AnsiRequired @Test
     fun `should apply specified padding character`() {
         expectThat(ansiString.wrapLines(26).toAnsiString()
-            .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingCharacter = '*')).isEqualTo("""
+            .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingCharacter = "*")).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m*****$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           *****$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m          *****$e[3;36mThis one's $e[1mbold!$e[23;39;22m          

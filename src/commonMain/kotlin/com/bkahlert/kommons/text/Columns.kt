@@ -51,7 +51,7 @@ public fun Sequence<CharSequence>.maxColumns(): Int =
  *              Line d
  * ```
  */
-public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxColumns(), paddingCharacter: Char = ' ', paddingColumns: Int = 5): AnsiString =
+public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxColumns(), paddingCharacter: String = " ", paddingColumns: Int = 5): AnsiString =
     lineSequence()
         .zipWithDefault(column.lineSequence(), "" to "") { leftLine: String, rightLine: String ->
             val paddedLeft = leftLine.padEndByColumns(columnWidth + paddingColumns, padChar = paddingCharacter)
@@ -89,7 +89,7 @@ public fun AnsiString.addColumn(column: AnsiString, columnWidth: Int = maxColumn
 public fun CharSequence.addColumn(
     column: CharSequence,
     columnWidth: Int = toAnsiString().maxColumns(),
-    paddingCharacter: Char = ' ',
+    paddingCharacter: String = " ",
     paddingWidth: Int = 5,
 ): String =
     toAnsiString().addColumn(
@@ -134,7 +134,7 @@ public fun CharSequence.addColumn(
  */
 public fun formatColumns(
     vararg columns: Pair<CharSequence?, Int>,
-    paddingCharacter: Char = ' ',
+    paddingCharacter: String = " ",
     paddingColumns: Int = 5,
     wrapLines: CharSequence?.(Int) -> CharSequence = { lineSepWrapLines(it) },
 ): CharSequence {

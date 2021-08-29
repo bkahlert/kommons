@@ -65,9 +65,9 @@ class GraphemeClusterTest {
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
-            expecting { "⸺̲͞o".fn() } that {
+            expecting { "a̳o".fn() } that {
                 containsExactly(
-                    "⸺̲͞".toGraphemeClusterList().single(),
+                    "a̳".toGraphemeClusterList().single(),
                     "o".toGraphemeClusterList().single(),
                 )
             }
@@ -110,7 +110,7 @@ class GraphemeClusterTest {
         "" to 0,
         "$e" to 1,
         "${e}M" to 2,
-        "⸺̲͞o" to 2,
+        "a̳o" to 2,
         "🟥🟧🟨🟩🟦🟪" to 6,
         "😀" to 1,
         "👨🏾" to 1,
@@ -124,7 +124,7 @@ class GraphemeClusterTest {
         "" to emptyList(),
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
-        "⸺̲͞ (((ꎤ ✧曲✧)—̠͞o HIT!" to listOf(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1),
+        "a̳o" to listOf(2, 1),
         "🟥🟧🟨🟩🟦🟪" to listOf(1, 1, 1, 1, 1, 1),
         "👨🏾‍" to listOf(3),
     ) { (string, expectedCount) ->

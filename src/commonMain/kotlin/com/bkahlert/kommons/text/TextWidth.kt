@@ -240,7 +240,7 @@ public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (C
  * Returns a character sequence with content of this character sequence padded at the beginning
  * to the specified number of [columns] with the specified [padChar] or space.
  */
-public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence {
+public fun CharSequence.padStartByColumns(columns: Int, padChar: String = " "): CharSequence {
     require(columns >= 0) { "Desired number of columns ${columns.formattedAs.input} is less than zero." }
     require(padChar.columns > 0) { "Desired pad character ${padChar.formattedAs.input} is ${padChar.columns.formattedAs.input} columns but must be greater 0." }
     val actualColumns = this.columns
@@ -259,14 +259,14 @@ public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): Ch
 /**
  * Pads the string to the specified number of [columns] at the beginning with the specified [padChar] or space.
  */
-public fun String.padStartByColumns(columns: Int, padChar: Char = ' '): String =
+public fun String.padStartByColumns(columns: Int, padChar: String = " "): String =
     (this as CharSequence).padStartByColumns(columns, padChar).toString()
 
 /**
  * Returns a character sequence with content of this character sequence padded at the end
  * to the specified number of [columns] with the specified [padChar] or space.
  */
-public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): CharSequence {
+public fun CharSequence.padEndByColumns(columns: Int, padChar: String = " "): CharSequence {
     require(columns >= 0) { "Desired number of columns ${columns.formattedAs.input} is less than zero." }
     require(padChar.columns > 0) { "Desired pad character ${padChar.formattedAs.input} is ${padChar.columns.formattedAs.input} columns but must be greater 0." }
     val actualColumns = this.columns
@@ -285,7 +285,7 @@ public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): Char
 /**
  * Pads the string to the specified number of [columns] at the end with the specified [padChar] or space.
  */
-public fun String.padEndByColumns(columns: Int, padChar: Char = ' '): String =
+public fun String.padEndByColumns(columns: Int, padChar: String = " "): String =
     (this as CharSequence).padEndByColumns(columns, padChar).toString()
 
 
