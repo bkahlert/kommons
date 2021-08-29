@@ -328,7 +328,6 @@ class TextWidthKtTest {
         ) { fn ->
             expecting { "a̳o".fn(2) } that {
                 toStringIsEqualTo("a̳o")
-                columns.isEqualTo(2)
             }
         }
 
@@ -398,7 +397,6 @@ class TextWidthKtTest {
         ) { fn ->
             expecting { "a̳o".fn(2) } that {
                 toStringIsEqualTo("a̳o")
-                columns.isEqualTo(2)
             }
         }
 
