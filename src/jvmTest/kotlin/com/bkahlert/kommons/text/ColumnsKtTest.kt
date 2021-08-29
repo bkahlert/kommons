@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.test.AnsiRequired
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.toStringIsEqualTo
@@ -22,30 +21,13 @@ class ColumnsKtTest {
     inner class MaxColumns {
 
         @Test
-        fun `should test with correct assumptions`() {
-            // TODO
-            expectThat("c".also {
-                it.asGraphemeClusterSequence().sumOf {
-                    TextWidth.calculateWidth(it.toString()).trace("WIDTH")
-                    it.columns.trace("GRAPHEME COLUMNS")
-                }
-            }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(1)
-            expectThat("曲".also {
-                it.asGraphemeClusterSequence().sumOf {
-                    TextWidth.calculateWidth(it.toString()).trace("WIDTH")
-                    it.columns.trace("GRAPHEME COLUMNS")
-                }
-            }.also { it.columns.trace("SUM") }.maxColumns()).isEqualTo(2)
-        }
-
-        @Test
         fun `should return max columns on multi line`() {
-            expectThat("曲\nc".maxColumns()).isEqualTo(2)
+            expectThat("😀\nc".maxColumns()).isEqualTo(2)
         }
 
         @Test
         fun `should return max columns on single line`() {
-            expectThat("曲c".maxColumns()).isEqualTo(3)
+            expectThat("😀c".maxColumns()).isEqualTo(3)
         }
 
         @Test
@@ -60,12 +42,12 @@ class ColumnsKtTest {
 
         @Test
         fun `should return max columns on mixed ansi string line`() {
-            expectThat("def曲lt\n${"magenta".ansi.magenta}".maxColumns()).isEqualTo(7)
+            expectThat("def😀lt\n${"magenta".ansi.magenta}".maxColumns()).isEqualTo(7)
         }
 
         @Test
         fun `should return max columns on ansi string`() {
-            expectThat("def曲lt\n${"magenta".ansi.magenta}".ansi.italic.toAnsiString().maxColumns()).isEqualTo(7)
+            expectThat("def😀lt\n${"magenta".ansi.magenta}".ansi.italic.toAnsiString().maxColumns()).isEqualTo(7)
         }
 
         @TestFactory

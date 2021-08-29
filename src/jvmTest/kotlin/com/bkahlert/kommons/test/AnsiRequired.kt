@@ -21,7 +21,7 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 annotation class AnsiRequired
 
 /**
- * Conditions that disables the test if no [ANSI] support was detected.
+ * Condition that disables the test if no [ANSI] support was detected.
  */
 class AnsiCondition : ExecutionCondition {
 

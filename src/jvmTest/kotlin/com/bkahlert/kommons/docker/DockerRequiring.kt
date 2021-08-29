@@ -120,7 +120,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
 }
 
 /**
- * Conditions that disables the test if no running Docker can be found.
+ * Condition that disables the test if no running Docker can be found.
  */
 class DockerRunningCondition : ExecutionCondition {
 
