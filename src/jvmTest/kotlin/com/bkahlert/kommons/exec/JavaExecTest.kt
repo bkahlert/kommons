@@ -333,13 +333,13 @@ class JavaExecTest {
             @Test
             fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
-                expect {
-                    that(createCompletingExec(exitValue = 0, execTerminationCallback = {
-                        callbackCalled = true
-                    })).succeeds()
-                    100.milli.seconds.sleep()
-                    expectThat(callbackCalled).isTrue()
-                }
+                val process = createCompletingExec(exitValue = 0, execTerminationCallback = {
+                    callbackCalled = true
+                })
+                expectThat(process).succeeds()
+
+                poll { callbackCalled }.every(0.1.seconds).forAtMost(1.seconds)
+                expectThat(callbackCalled).isTrue()
             }
 
             @Test

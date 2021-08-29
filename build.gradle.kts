@@ -1,6 +1,8 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 
 fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String =
     Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
@@ -84,22 +86,30 @@ kotlin {
             maxHeapSize = "512m"
             failFast = false
             ignoreFailures = true
+        }
 
+        val testTask = tasks.withType<Test>().first()
+        tasks.register<Test>("smokeTest") {
+            group = VERIFICATION_GROUP
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+            useJUnitPlatform { includeTags("Smoke") }
+        }
+        tasks.register<Test>("playground") {
+            group = VERIFICATION_GROUP
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+            useJUnitPlatform { includeTags("playground") }
+        }
+
+        tasks.withType<Test>().configureEach {
             testLogging {
-                events = setOf(TestLogEvent.FAILED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR)
-                exceptionFormat = TestExceptionFormat.FULL
+                events = setOf(FAILED, STANDARD_OUT, STANDARD_ERROR)
+                exceptionFormat = FULL
                 showExceptions = true
                 showCauses = true
                 showStackTraces = true
             }
-        }
-
-        val anySetUpTest = tasks.withType<Test>().first()
-        tasks.register<Test>("smokeTest") {
-            group = VERIFICATION_GROUP
-            classpath = anySetUpTest.classpath
-            testClassesDirs = anySetUpTest.testClassesDirs
-            useJUnitPlatform { includeTags("Smoke") }
         }
     }
     js(IR) {
@@ -143,6 +153,17 @@ kotlin {
                 implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.3.0")
                 implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
                 implementation("io.grpc:grpc-okhttp:1.38.0")
+
+                implementation("io.ktor:ktor-server-core:1.6.3") {
+                    because("tests needing a short-lived webserver")
+                }
+                implementation("io.ktor:ktor-server-netty:1.6.3") {
+                    because("tests needing a short-lived webserver")
+                }
+                implementation("org.slf4j:slf4j-nop:1.7.32") {
+                    because("suppress failed to load class StaticLoggerBinder")
+                }
+
 
                 implementation(kotlin("test-junit5"))
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))

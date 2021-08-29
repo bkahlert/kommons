@@ -69,16 +69,19 @@ public val CharSequence.columns: Int
  */
 public fun CharSequence.findIndexByColumns(column: Int): Int? {
     require(column >= 0) { "Requested column ${column.formattedAs.input} is less than zero." }
+    if (column == 0) return 0
     if (column == columns) return length
-    for (i in 0 until length) {
-        val currentColumns = subSequence(0, i).columns
+    var len = 0
+    asGraphemeClusterSequence().forEach {
+        len += it.toString().length
+        val currentColumns = subSequence(0, len).columns
         if (currentColumns == column) {
-            var index = i
-            while (subSequence(0, index + 1).columns == column) index++
+            var index = len
+            while (subSequence(0, index + 1).columns == currentColumns) index++
             return index
         }
         if (currentColumns > column) {
-            return i - 1
+            return len - it.toString().length
         }
     }
     return null
@@ -240,20 +243,33 @@ public fun <R> CharSequence.chunkedByColumnsSequence(columns: Int, transform: (C
  * Returns a character sequence with content of this character sequence padded at the beginning
  * to the specified number of [columns] with the specified [padChar] or space.
  */
-public fun CharSequence.padStartByColumns(columns: Int, padChar: Char = ' '): CharSequence =
-    toString().reversed().padEndByColumns(columns, padChar).reversed()
+public fun CharSequence.padStartByColumns(columns: Int, padChar: String = " "): CharSequence {
+    require(columns >= 0) { "Desired number of columns ${columns.formattedAs.input} is less than zero." }
+    require(padChar.columns > 0) { "Desired pad character ${padChar.formattedAs.input} is ${padChar.columns.formattedAs.input} columns but must be greater 0." }
+    val actualColumns = this.columns
+    if (columns <= actualColumns) return this
+
+    val sb = StringBuilder(toString())
+    val padCharColumns = padChar.columns
+    var remaining = columns - actualColumns
+    while (remaining >= padCharColumns) {
+        sb.insert(0, padChar)
+        remaining = columns - sb.columns
+    }
+    return sb
+}
 
 /**
  * Pads the string to the specified number of [columns] at the beginning with the specified [padChar] or space.
  */
-public fun String.padStartByColumns(columns: Int, padChar: Char = ' '): String =
+public fun String.padStartByColumns(columns: Int, padChar: String = " "): String =
     (this as CharSequence).padStartByColumns(columns, padChar).toString()
 
 /**
  * Returns a character sequence with content of this character sequence padded at the end
  * to the specified number of [columns] with the specified [padChar] or space.
  */
-public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): CharSequence {
+public fun CharSequence.padEndByColumns(columns: Int, padChar: String = " "): CharSequence {
     require(columns >= 0) { "Desired number of columns ${columns.formattedAs.input} is less than zero." }
     require(padChar.columns > 0) { "Desired pad character ${padChar.formattedAs.input} is ${padChar.columns.formattedAs.input} columns but must be greater 0." }
     val actualColumns = this.columns
@@ -266,14 +282,13 @@ public fun CharSequence.padEndByColumns(columns: Int, padChar: Char = ' '): Char
         sb.append(padChar)
         remaining = columns - sb.columns
     }
-    if (remaining > 0) sb.append(" ".repeat(remaining))
     return sb
 }
 
 /**
  * Pads the string to the specified number of [columns] at the end with the specified [padChar] or space.
  */
-public fun String.padEndByColumns(columns: Int, padChar: Char = ' '): String =
+public fun String.padEndByColumns(columns: Int, padChar: String = " "): String =
     (this as CharSequence).padEndByColumns(columns, padChar).toString()
 
 

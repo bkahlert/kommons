@@ -3,7 +3,6 @@ package com.bkahlert.kommons.docker
 import com.bkahlert.kommons.Exceptions
 import com.bkahlert.kommons.docker.Docker.BusyBox
 import com.bkahlert.kommons.docker.Docker.CurlJq
-import com.bkahlert.kommons.docker.Docker.Nginx
 import com.bkahlert.kommons.docker.Docker.Ubuntu
 import com.bkahlert.kommons.docker.Docker.info.get
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
@@ -11,12 +10,8 @@ import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.docker.DockerSearchCommandLine.DockerSearchResult
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
-import com.bkahlert.kommons.exec.ExecAttributes
 import com.bkahlert.kommons.exec.Executable
-import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.ProcessingMode
-import com.bkahlert.kommons.exec.Processor
-import com.bkahlert.kommons.exec.Processors
 import com.bkahlert.kommons.exec.RendererProviders
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.parse
@@ -33,11 +28,6 @@ import com.bkahlert.kommons.regex.RegularExpressions
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.text.joinToKebabCase
-import com.bkahlert.kommons.text.withRandomSuffix
-import com.bkahlert.kommons.time.Now
-import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.tracing.SpanScope
-import com.bkahlert.kommons.tracing.Event
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.runSpanning
@@ -576,58 +566,3 @@ public fun Path.download(
 ): Path = download(uri.toString(), fileName, renderer)
 
 private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }
-
-
-/**
- * Hosts `this` directory using
- * an [nginx](https://hub.docker.com/_/nginx) based [DockerContainer].
- *
- * nginx will be started [DockerRunCommandLine.Options.detached]
- * and can be stopped using [DockerExec.stop].
- *
- * ***Important:** A started nginx does not necessarily mean it's already listening.
- * Use [listeningNginx] to not proceed until nginx is already providing content.
- */
-public fun Path.nginx(
-    port: Int = 8080,
-    name: String = "nginx".withRandomSuffix(),
-    processor: Processor<DockerExec> = Processors.spanningProcessor(),
-): DockerExec = DockerRunCommandLine(
-    image = Nginx,
-    options = Options(
-        name = DockerContainer.from(name),
-        mounts = MountOptions { this@nginx mountAt "/usr/share/nginx/html" },
-        publish = listOf("$port:80"),
-    ),
-    executable = CommandLine(""),
-).exec.async.processing(processor = processor)
-
-/**
- * Hosts `this` directory using
- * an [nginx](https://hub.docker.com/_/nginx) based [DockerContainer].
- *
- * nginx will only be running for the purpose of executing [block] and
- * will be automatically stopped afterwards.
- */
-public fun <R> Path.listeningNginx(
-    port: Int = 8080,
-    name: String = "nginx".withRandomSuffix(),
-    block: SpanScope.(URI) -> R,
-): R {
-    val start = System.currentTimeMillis()
-    var result: Result<R>? = null
-    nginx(port, name, processor = Processors.spanningProcessor(ExecAttributes.NAME to "nginx") { dockerExec: DockerExec, io: IO ->
-        event(io as Event)
-        if (result == null && Now.passedSince(start) > 30.seconds) {
-            dockerExec.kill()
-        }
-        if (io.text.contains("Enabled listen", ignoreCase = true)) {
-            result = runCatching {
-                @Suppress("HttpUrlsUsage")
-                block(URI.create("http://host.docker.internal:$port"))
-            }
-            dockerExec.stop()
-        }
-    }).waitFor()
-    return result?.getOrThrow() ?: error("error running nginx")
-}

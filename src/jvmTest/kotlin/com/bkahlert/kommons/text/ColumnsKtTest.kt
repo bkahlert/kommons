@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
@@ -22,12 +22,12 @@ class ColumnsKtTest {
 
         @Test
         fun `should return max columns on multi line`() {
-            expectThat("曲\nc".maxColumns()).isEqualTo(2)
+            expectThat("😀\nc".maxColumns()).isEqualTo(2)
         }
 
         @Test
         fun `should return max columns on single line`() {
-            expectThat("曲c".maxColumns()).isEqualTo(3)
+            expectThat("😀c".maxColumns()).isEqualTo(3)
         }
 
         @Test
@@ -42,12 +42,12 @@ class ColumnsKtTest {
 
         @Test
         fun `should return max columns on mixed ansi string line`() {
-            expectThat("def曲lt\n${"magenta".ansi.magenta}".maxColumns()).isEqualTo(7)
+            expectThat("def😀lt\n${"magenta".ansi.magenta}".maxColumns()).isEqualTo(7)
         }
 
         @Test
         fun `should return max columns on ansi string`() {
-            expectThat("def曲lt\n${"magenta".ansi.magenta}".ansi.italic.toAnsiString().maxColumns()).isEqualTo(7)
+            expectThat("def😀lt\n${"magenta".ansi.magenta}".ansi.italic.toAnsiString().maxColumns()).isEqualTo(7)
         }
 
         @TestFactory
@@ -73,7 +73,7 @@ class ColumnsKtTest {
             """.trimIndent())
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun `should add fewer lines as second column`() {
             expectThat(ansiString.ansiRemoved.wrapLines(26)
                 .addColumn(ansiString.ansiRemoved.lines().dropLast(1).joinLinesToString().wrapLines(26))).isEqualTo("""
@@ -96,7 +96,7 @@ class ColumnsKtTest {
             """.trimIndent())
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun `should wrap ANSI string as second column`() {
             expectThat(ansiString.ansiRemoved.wrapLines(26).toAnsiString()
                 .addColumn(ansiString.wrapLines(26).toAnsiString())).isEqualTo("""
@@ -108,7 +108,7 @@ class ColumnsKtTest {
         }
     }
 
-    @AnsiRequired @Nested
+    @AnsiRequiring @Nested
     inner class AnsiString {
 
         @Test
@@ -157,10 +157,10 @@ class ColumnsKtTest {
         }
     }
 
-    @AnsiRequired @Test
+    @AnsiRequiring @Test
     fun `should apply specified padding character`() {
         expectThat(ansiString.wrapLines(26).toAnsiString()
-            .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingCharacter = '*')).isEqualTo("""
+            .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingCharacter = "*")).isEqualTo("""
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m*****$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m
                 $e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           *****$e[3;36;9mo$e[29m ANSI escapes.$e[23;39m           
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m          *****$e[3;36mThis one's $e[1mbold!$e[23;39;22m          
@@ -168,7 +168,7 @@ class ColumnsKtTest {
             """.trimIndent().toAnsiString())
     }
 
-    @AnsiRequired @Test
+    @AnsiRequiring @Test
     fun `should apply specified padding columns`() {
         expectThat(ansiString.wrapLines(26).toAnsiString()
             .addColumn(ansiString.wrapLines(26).toAnsiString(), paddingColumns = 10)).isEqualTo("""
@@ -208,7 +208,7 @@ class ColumnsKtTest {
         """.trimIndent())
     }
 
-    @AnsiRequired @Test
+    @AnsiRequiring @Test
     fun `should format multiple ansi columns`() {
         val linedUp = formatColumns(ansiString to 50, ansiString.ansiRemoved.toAnsiString() to 30, ansiString to 10)
         expectThat(linedUp).toStringIsEqualTo("""

@@ -3,7 +3,7 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.compositionOf
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.debug.debug
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
@@ -164,7 +164,7 @@ class CurlyPatternKtTest {
         expectThat("ab".ansi.red.toString() + "c").matchesCurlyPattern("abc")
     }
 
-    @AnsiRequired @Test
+    @AnsiRequiring @Test
     fun `should allow to deactivate removal of ANSI escape sequences`() {
         expectThat("ab".ansi.red.toString() + "c").not { matchesCurlyPattern("abc", removeAnsi = false) }
     }

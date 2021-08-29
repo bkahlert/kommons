@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.exec.mock
 
-import io.opentelemetry.api.trace.Span
 import com.bkahlert.kommons.debug.debug
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -8,11 +7,12 @@ import com.bkahlert.kommons.text.takeUnlessEmpty
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
 import com.bkahlert.kommons.tracing.SpanScope
-import com.bkahlert.kommons.tracing.rendering.spanningLine
+import com.bkahlert.kommons.tracing.rendering.runSpanningLine
 import com.bkahlert.kommons.tracing.runSpanning
 import com.bkahlert.kommons.tracing.spanId
 import com.bkahlert.kommons.unit.bytes
 import com.bkahlert.kommons.unit.milli
+import io.opentelemetry.api.trace.Span
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration
@@ -217,7 +217,7 @@ public class SlowInputStream(
 
 private fun <R> Span?.spanningWithDisabledPrinterOnIllegalSpan(name: String, block: SpanScope.() -> R): R =
     this?.takeIf { it.spanId.valid }?.makeCurrent()?.use {
-        spanningLine(name, block = block)
+        runSpanningLine(name, block = block)
     } ?: Span.getInvalid().makeCurrent().use {
-        spanningLine(name, printer = {}, block = block)
+        runSpanningLine(name, printer = {}, block = block)
     }

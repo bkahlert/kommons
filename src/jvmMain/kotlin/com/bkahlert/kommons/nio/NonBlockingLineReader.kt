@@ -6,7 +6,6 @@ import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.hasTrailingLineSeparator
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
-import com.bkahlert.kommons.text.toByteArray
 import java.io.InputStream
 
 /**
@@ -34,7 +33,7 @@ public open class NonBlockingLineReader(
             }
         lineBuffer.toByteArray().apply {
             lineBuffer.reset()
-            lineBuffer.write(drop(fullyRead.toByteArray().size).toByteArray())
+            lineBuffer.write(drop(fullyRead.toString().toByteArray().size).toByteArray())
         }
     }
 

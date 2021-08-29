@@ -5,7 +5,7 @@ import com.bkahlert.kommons.regex.group
 import com.bkahlert.kommons.regex.groupValues
 import com.bkahlert.kommons.regex.matchEntire
 import com.bkahlert.kommons.regex.value
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.testEach
@@ -366,17 +366,17 @@ class LineSeparatorsTest {
     @Nested
     inner class LinesOfLengthKtTest {
 
-        @TestFactory
+        @TextWidthRequiring @TestFactory
         fun `should be split with maximum line length`() = testEach<CharSequence.() -> List<CharSequence>>(
             { linesOfLengthSequence(3).toList() },
             { linesOfLength(3) },
         ) { fn ->
-            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
+            expecting { "12345x̅7890$LF".fn().map { it.toString() } } that {
                 containsExactly(
                     "123",
-                    "45曲",
-                    "789",
-                    "0",
+                    "45x",
+                    "̅78",
+                    "90",
                     "",
                 )
             }
@@ -391,11 +391,11 @@ class LineSeparatorsTest {
             { linesOfColumnsSequence(3).toList() },
             { linesOfColumns(3) },
         ) { fn ->
-            expecting { "12345曲7890$LF".fn().map { it.toString() } } that {
+            expecting { "12345😀7890$LF".fn().map { it.toString() } } that {
                 containsExactly(
                     "123",
                     "45",
-                    "曲7",
+                    "😀7",
                     "890",
                     "",
                 )
@@ -411,14 +411,14 @@ class LineSeparatorsTest {
         @Nested
         inner class NonAnsi {
 
-            private val text = "12345曲7890"
+            private val text = "12345😀7890"
 
             @Test
             fun `should wrap non-ANSI lines`() {
                 expectThat(text.wrapLines(3)).isEqualTo("""
                 123
                 45$space
-                曲7
+                😀7
                 890
             """.trimIndent())
             }
@@ -432,14 +432,14 @@ class LineSeparatorsTest {
         @Nested
         inner class Ansi {
 
-            private val text = "${"12345".ansi.cyan}曲7890".ansi.bold
+            private val text = "${"12345".ansi.cyan}😀7890".ansi.bold
 
-            @AnsiRequired @Test
+            @AnsiRequiring @Test
             fun `should wrap ANSI lines`() {
                 expectThat(text.wrapLines(3)).isEqualTo("""
                 $e[1m$e[36m123$e[22;39m
                 $e[1;36m45$e[22;39m$space
-                $e[1;36m$e[39m曲7$e[22m
+                $e[1;36m$e[39m😀7$e[22m
                 $e[1m890$e[22m
             """.trimIndent())
             }

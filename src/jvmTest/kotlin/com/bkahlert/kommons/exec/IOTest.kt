@@ -6,7 +6,7 @@ import com.bkahlert.kommons.exec.IO.Meta
 import com.bkahlert.kommons.exec.IO.Meta.Dump
 import com.bkahlert.kommons.exec.IO.Meta.Text
 import com.bkahlert.kommons.exec.IO.Output
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.LF
@@ -133,7 +133,7 @@ class IOTest {
             expectThat(IO_LIST.ansiRemoved).not { containsAnsi() }
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun `should keep ansi escape codes`() {
             expectThat(IO_LIST.ansiKept).containsAnsi()
         }

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.kaomoji
 
-import com.bkahlert.kommons.test.AnsiRequired
+import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.toStringIsEqualTo
@@ -21,7 +21,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.startsWith
 
-@Disabled // blocking during initialization
+//@Disabled // blocking during initialization
 @Isolated
 class KaomojiTest {
 
@@ -101,16 +101,16 @@ class KaomojiTest {
             }
         }
 
-        @AnsiRequired @Test
+        @AnsiRequiring @Test
         fun `should render ANSI`() {
             expecting {
                 kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done)
             } that {
                 isEqualTo("""
-                                 ⎛ [4m[94m123[24;39m        ⎞
-                                 ⎜ [4m[24m           ⎟
-                                 ⎜ [4m1234567890[24m ⎟
-                            ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
+                                ⎛ [4m[94m123[24;39m        ⎞
+                                ⎜ [4m[24m           ⎟
+                                ⎜ [4m1234567890[24m ⎟
+                           ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
                     ・㉨・
                 """.trimIndent())
             }

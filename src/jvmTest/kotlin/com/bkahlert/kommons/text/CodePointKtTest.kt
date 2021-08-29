@@ -75,16 +75,13 @@ class CodePointKtTest {
 
     @TestFactory
     fun columns() = testEach(
-        CodePoint("\u0006") to 0,
-        CodePoint("\u2406") to 2,
+        CodePoint(Unicode.ACKNOWLEDGE) to 0,
         CodePoint("${Unicode.ZERO_WIDTH_JOINER}") to 0,
         CodePoint(" ") to 1,
         CodePoint("a") to 1,
         CodePoint("😀") to 2,
-        CodePoint("🤓") to 2,
         CodePoint(Unicode.LINE_FEED.toString()) to 0,
         CodePoint("►") to 1,
-        CodePoint("㍙") to 2,
     ) { (codePoint, expectedColumns) ->
         expecting { codePoint.columns } that { isEqualTo(expectedColumns) }
     }
@@ -92,7 +89,7 @@ class CodePointKtTest {
     @TestFactory
     fun using() = listOf(
         "\u0041" to 1L, // A
-        "\uD83E\uDD13" to 1L, // 🤓
+        "\uD83D\uDE00" to 1L, // 😀
         "\u2192\uD808\uDC31\u2190" to 3L, // →𒀱←
         "\uD83D\uDF03\uD83D\uDF02\uD83D\uDF01\uD83D\uDF04" to 4L, // 🜃🜂🜁🜄
     ).flatMap { (string, codePointCount) ->

@@ -10,6 +10,7 @@ import com.bkahlert.kommons.text.Unicode.NEXT_LINE
 import com.bkahlert.kommons.text.Unicode.TAB
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
+import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 import strikt.assertions.startsWith
@@ -75,9 +76,9 @@ class UnicodeTest {
             Instant.parse("2020-02-02T02:02:02Z") to listOf(Emoji("🕝"), Emoji("🕑"), Emoji("🕑")),
             Instant.parse("2020-02-02T22:32:02Z") to listOf(Emoji("🕚"), Emoji("🕥"), Emoji("🕥")),
         ) { (instant, expectations) ->
-            expecting { instant.asEmoji(CEILING) } that { isEqualTo(expectations[0]) }
-            expecting { instant.asEmoji(FLOOR) } that { isEqualTo(expectations[1]) }
-            expecting { instant.asEmoji(HALF_UP) } that { isEqualTo(expectations[2]) }
+            expecting { listOf(instant.asEmoji(CEILING), instant.asEmoji(FLOOR), instant.asEmoji(HALF_UP)) } that {
+                containsExactly(expectations)
+            }
         }
     }
 }
