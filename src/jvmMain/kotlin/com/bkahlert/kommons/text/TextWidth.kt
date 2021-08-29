@@ -27,13 +27,13 @@ internal actual object TextWidth {
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         if (!preview) System.setProperty("java.awt.headless", "true")
         // explicit font to create stable measure which is not the case for monospace
-        val font = Font.createFonts(contextClassLoader.getResourceAsStream("courier.ttf")).first().deriveFont(mapOf(
+        val font = Font.createFonts(contextClassLoader.getResourceAsStream("SourceCodePro-Regular.ttf")).first().deriveFont(mapOf(
             TextAttribute.WIDTH to null,
             TextAttribute.TRANSFORM to null,
             TextAttribute.TRACKING to null,
             TextAttribute.SIZE to 75,
             TextAttribute.POSTURE to null,
-            TextAttribute.FAMILY to "Courier",
+            TextAttribute.FAMILY to "Monospaced",
             TextAttribute.SUPERSCRIPT to null,
             TextAttribute.WEIGHT to null,
         ))
