@@ -22,7 +22,7 @@ import javax.swing.JLabel
  */
 internal actual object TextWidth {
 
-    private val preview = true
+    private val preview = false
 
     private val MONOSPACED_METRICS: FontMetrics by lazy {
         if (!preview) System.setProperty("java.awt.headless", "true")
