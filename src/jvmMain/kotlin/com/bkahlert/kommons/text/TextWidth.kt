@@ -9,6 +9,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.FontMetrics
+import java.awt.GraphicsEnvironment
 import java.awt.GridLayout
 import java.awt.Label
 import java.awt.Panel
@@ -37,6 +38,7 @@ internal actual object TextWidth {
             TextAttribute.SUPERSCRIPT to null,
             TextAttribute.WEIGHT to null,
         ))
+        GraphicsEnvironment.getLocalGraphicsEnvironment().preferProportionalFonts()
         if (preview) preview(font, Font(Font.MONOSPACED, Font.PLAIN, 10))
         Canvas().getFontMetrics(font)
     }
