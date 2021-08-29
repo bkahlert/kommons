@@ -31,14 +31,14 @@ internal actual object TextWidth {
             TextAttribute.WIDTH to null,
             TextAttribute.TRANSFORM to null,
             TextAttribute.TRACKING to null,
-            TextAttribute.SIZE to 10,
+            TextAttribute.SIZE to 100,
             TextAttribute.POSTURE to null,
             TextAttribute.FAMILY to "Courier",
             TextAttribute.SUPERSCRIPT to null,
             TextAttribute.WEIGHT to null,
         ))
         if (preview) preview(font, Font(Font.MONOSPACED, Font.PLAIN, 10))
-        Canvas().getFontMetrics(Font(Font.MONOSPACED, Font.PLAIN, 10))
+        Canvas().getFontMetrics(font)
     }
 
     /**
