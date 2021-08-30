@@ -920,11 +920,10 @@ private fun HueColor.hueAsTurns(): Float = h / 360f
 
 
 private object AnsiStringCache {
-    private val cache = mutableMapOf<Int, AnsiString>()
     fun getOrPut(charSequence: CharSequence?): AnsiString = when {
         charSequence is AnsiString -> charSequence
         charSequence.isNullOrEmpty() -> AnsiString.EMPTY
-        else -> cache.getOrPut(charSequence.hashCode()) { charSequence.tokenize() }
+        else -> charSequence.tokenize()
     }
 }
 
@@ -993,8 +992,6 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
             }
             AnsiString(*tokens.toTypedArray())
         }
-
-        private val subSequenceCache = mutableMapOf<Pair<Int, Pair<Int, Int>>, String>()
     }
 
     public val containsAnsi: Boolean = tokens.any { it.isEscapeSequence }
@@ -1026,17 +1023,16 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      * Eventually open sequences will be closes at the of the sub sequence.
      */
     override fun subSequence(startIndex: Int, endIndex: Int): AnsiString {
-        return subSequenceCache.getOrPut(hashCode() to (startIndex to endIndex)) {
-            val firstToEnd: String = ansiSubSequence(endIndex).first
-            if (startIndex > 0) {
-                val (prefix, unclosedCodes) = ansiSubSequence(startIndex)
-                val controlSequence: String = controlSequence(unclosedCodes.flatMap { it.toList() })
-                val startIndex1 = prefix.length - closingControlSequence(unclosedCodes).length
-                controlSequence + firstToEnd.subSequence(startIndex1, firstToEnd.length)
-            } else {
-                firstToEnd
-            }
-        }.toAnsiString()
+        val firstToEnd: String = ansiSubSequence(endIndex).first
+        val x = if (startIndex > 0) {
+            val (prefix, unclosedCodes) = ansiSubSequence(startIndex)
+            val controlSequence: String = controlSequence(unclosedCodes.flatMap { it.toList() })
+            val startIndex1 = prefix.length - closingControlSequence(unclosedCodes).length
+            controlSequence + firstToEnd.subSequence(startIndex1, firstToEnd.length)
+        } else {
+            firstToEnd
+        }
+        return x.toAnsiString()
     }
 
     private fun ansiSubSequence(endIndex: Int): Pair<String, List<IntArray>> {

@@ -95,12 +95,6 @@ kotlin {
             testClassesDirs = testTask.testClassesDirs
             useJUnitPlatform { includeTags("Smoke") }
         }
-        tasks.register<Test>("playground") {
-            group = VERIFICATION_GROUP
-            classpath = testTask.classpath
-            testClassesDirs = testTask.testClassesDirs
-            useJUnitPlatform { includeTags("playground") }
-        }
 
         tasks.withType<Test>().configureEach {
             testLogging {
@@ -169,7 +163,7 @@ kotlin {
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-RC1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
                 listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
-                runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-M1") {
+                runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-RC1") {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
