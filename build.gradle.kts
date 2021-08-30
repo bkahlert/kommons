@@ -30,7 +30,7 @@ fun Any.isFinal(): Boolean =
 
 plugins {
     kotlin("multiplatform") version "1.5.21"
-    id("org.jetbrains.dokka") version "1.4.32"
+    id("org.jetbrains.dokka") version "1.5.0"
     id("com.github.ben-manes.versions") version "0.39.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.17"
 
@@ -142,17 +142,17 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
 
-                api("io.opentelemetry:opentelemetry-api:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.3.0")
+                api("io.opentelemetry:opentelemetry-api:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.5.0")
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("io.opentelemetry:opentelemetry-sdk:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
-                implementation("io.grpc:grpc-okhttp:1.38.0")
+                implementation("io.opentelemetry:opentelemetry-sdk:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.5.0")
+                implementation("io.grpc:grpc-okhttp:1.40.1")
 
                 implementation("io.ktor:ktor-server-core:1.6.3") {
                     because("tests needing a short-lived webserver")
@@ -166,7 +166,7 @@ kotlin {
 
 
                 implementation(kotlin("test-junit5"))
-                implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-M1"))
+                implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-RC1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
                 listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
                 runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-M1") {
