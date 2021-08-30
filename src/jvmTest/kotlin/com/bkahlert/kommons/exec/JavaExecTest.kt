@@ -407,11 +407,13 @@ class JavaExecTest {
             @Test
             fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 var callbackCalled = false
-                val exec = createCompletingExec(42, execTerminationCallback = { callbackCalled = true })
-                expect {
-                    expectThat(exec.waitFor()).isA<Failed>()
-                    expectThat(callbackCalled).isTrue()
-                }
+                val process = createCompletingExec(exitValue = 42, execTerminationCallback = {
+                    callbackCalled = true
+                })
+                expectThat(process.waitFor()).isA<Failed>()
+
+                poll { callbackCalled }.every(0.1.seconds).forAtMost(1.seconds)
+                expectThat(callbackCalled).isTrue()
             }
 
             @Test
@@ -477,11 +479,11 @@ class JavaExecTest {
                 @Test
                 fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                     var callbackCalled = false
-                    val exec = fatallyFailingExec { callbackCalled = true }
-                    expect {
-                        that(exec.onExit).wait().isSuccess().isA<Excepted>()
-                        that(callbackCalled).isTrue()
-                    }
+                    val process = fatallyFailingExec { callbackCalled = true }
+                    expectThat(process.onExit).wait().isSuccess().isA<Excepted>()
+
+                    poll { callbackCalled }.every(0.1.seconds).forAtMost(1.seconds)
+                    expectThat(callbackCalled).isTrue()
                 }
 
                 @Smoke @Test
