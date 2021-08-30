@@ -29,7 +29,7 @@ fun Any.isFinal(): Boolean =
     Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)").matches(toString())
 
 plugins {
-    kotlin("multiplatform") version "1.5.21"
+    kotlin("multiplatform") version "1.5.30"
     id("org.jetbrains.dokka") version "1.5.0"
     id("com.github.ben-manes.versions") version "0.39.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.17"
