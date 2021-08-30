@@ -142,16 +142,16 @@ kotlin {
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.3.0")
 
-                api("io.opentelemetry:opentelemetry-api:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.3.0")
+                api("io.opentelemetry:opentelemetry-api:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.5.0")
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("io.opentelemetry:opentelemetry-sdk:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.3.0")
-                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.3.0")
+                implementation("io.opentelemetry:opentelemetry-sdk:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-logging:1.5.0")
                 implementation("io.grpc:grpc-okhttp:1.40.1")
 
                 implementation("io.ktor:ktor-server-core:1.6.3") {
