@@ -30,7 +30,7 @@ fun Any.isFinal(): Boolean =
 
 plugins {
     kotlin("multiplatform") version "1.5.21"
-    id("org.jetbrains.dokka") version "1.4.32"
+    id("org.jetbrains.dokka") version "1.5.0"
     id("com.github.ben-manes.versions") version "0.39.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.17"
 
@@ -169,7 +169,7 @@ kotlin {
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-RC1"))
                 listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
                 listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
-                runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-M1") {
+                runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-RC1") {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
