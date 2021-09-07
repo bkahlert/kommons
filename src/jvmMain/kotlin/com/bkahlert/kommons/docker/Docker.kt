@@ -12,8 +12,10 @@ import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Executable
 import com.bkahlert.kommons.exec.ProcessingMode
-import com.bkahlert.kommons.exec.RendererProviders
+import com.bkahlert.kommons.exec.Processors.processingProcessor
+import com.bkahlert.kommons.exec.RendererProviders.errorsOnly
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
+import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.exec.successful
 import com.bkahlert.kommons.io.path.deleteRecursively
@@ -36,11 +38,27 @@ import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
 import java.util.Locale
+import kotlin.io.path.isExecutable
 
 /**
  * Entrypoint to ease discovery of Docker related features.
  */
 public object Docker {
+
+    /**
+     * Whether the Docker CLI is installed.
+     */
+    public val isInstalled: Boolean by lazy {
+        val commandLine = CommandLine("which", "docker", name = "check docker")
+        val exec = commandLine.exec.processing(processor = processingProcessor(errorsOnly()))
+        val bin = Path.of(exec.output)
+        exec.successful && bin.isExecutable()
+    }
+
+    /**
+     * Whether the Docker engine itself is running.
+     */
+    public val engineRunning: Boolean get() = isInstalled && DockerInfoCommandLine().exec().successful
 
     /**
      * System wide information regarding the Docker installation.
@@ -95,11 +113,6 @@ public object Docker {
     public val containers: DockerContainer.Companion = DockerContainer.Companion
 
     /**
-     * Whether the Docker engine itself is running.
-     */
-    public val engineRunning: Boolean get() = DockerInfoCommandLine().exec().successful
-
-    /**
      * Returns a [DockerContainer] representing a Docker container of the same
      * (sanitized) name.
      */
@@ -115,7 +128,7 @@ public object Docker {
         automated: Boolean? = null,
         official: Boolean? = null,
         limit: Int = 100,
-        renderer: RendererProvider? = RendererProviders.errorsOnly(),
+        renderer: RendererProvider? = errorsOnly(),
     ): List<DockerSearchResult> = DockerSearchCommandLine.search(term, stars, automated, official, limit, renderer)
 
     /**
@@ -135,7 +148,7 @@ public object Docker {
         command: Any? = null,
         vararg arguments: Any,
         name: CharSequence? = null,
-        renderer: RendererProvider? = RendererProviders.errorsOnly(),
+        renderer: RendererProvider? = errorsOnly(),
         inputStream: InputStream? = null,
     ): DockerExec = execute(image, workingDirectory, renderer, inputStream) {
         CommandLine(command?.toString() ?: "", arguments.map { it.toString() }, name = name)
@@ -156,7 +169,7 @@ public object Docker {
         image: DockerImage,
         workingDirectory: Path,
         name: CharSequence? = null,
-        renderer: RendererProvider? = RendererProviders.errorsOnly(),
+        renderer: RendererProvider? = errorsOnly(),
         inputStream: InputStream? = null,
         scriptInit: ScriptInitWithWorkingDirectory,
     ): DockerExec = execute(image, workingDirectory, renderer, inputStream) { workDir ->
@@ -177,7 +190,7 @@ public object Docker {
     private fun execute(
         image: DockerImage,
         workingDirectory: Path,
-        renderer: RendererProvider? = RendererProviders.errorsOnly(),
+        renderer: RendererProvider? = errorsOnly(),
         inputStream: InputStream? = null,
         executableProvider: (ContainerPath) -> Executable<Exec>,
     ): DockerExec {
@@ -294,7 +307,7 @@ public fun Path.docker(
     command: Any? = null,
     vararg arguments: Any,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
     Docker.exec(DockerImage { image }, this, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
@@ -315,7 +328,7 @@ public fun Path.docker(
     command: Any? = null,
     vararg arguments: Any,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
     Docker.exec(DockerImage(imageInit), this, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
@@ -336,7 +349,7 @@ public fun Path.docker(
     command: Any? = null,
     vararg arguments: Any,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
     Docker.exec(image, this, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
@@ -355,7 +368,7 @@ public fun Path.docker(
 public fun Path.docker(
     image: String,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -375,7 +388,7 @@ public fun Path.docker(
 public fun Path.docker(
     imageInit: DockerImageInit,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -395,7 +408,7 @@ public fun Path.docker(
 public fun Path.docker(
     image: DockerImage,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -421,7 +434,7 @@ public fun Path.ubuntu(
     command: Any? = null,
     vararg arguments: Any,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
     docker(Ubuntu, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
@@ -439,7 +452,7 @@ public fun Path.ubuntu(
  */
 public fun Path.ubuntu(
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -465,7 +478,7 @@ public fun Path.busybox(
     command: Any? = null,
     vararg arguments: Any,
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
 ): DockerExec =
     docker(BusyBox, command, *arguments, name = name, renderer = renderer, inputStream = inputStream)
@@ -483,7 +496,7 @@ public fun Path.busybox(
  */
 public fun Path.busybox(
     name: CharSequence? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     inputStream: InputStream? = null,
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
@@ -500,7 +513,7 @@ public fun Path.busybox(
  */
 public fun Path.curlJq(
     name: CharSequence = "curl | jq",
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
     scriptInit: ScriptInitWithWorkingDirectory,
 ): DockerExec =
     docker(CurlJq, name, renderer, null, scriptInit)
@@ -516,7 +529,7 @@ public fun Path.curlJq(
 public fun Path.curl(
     vararg arguments: Any,
     name: CharSequence = "curl",
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
 ): DockerExec =
     docker(CurlJq, "curl", *arguments, name = name, renderer = renderer)
 
@@ -527,7 +540,7 @@ public fun Path.curl(
 public fun Path.download(
     uri: String,
     fileName: String? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
 ): Path = runSpanning("Downloading $uri", Key.stringKey("uri") to uri) {
     if (fileName != null) {
         resolve(fileName).also {
@@ -562,7 +575,7 @@ public fun Path.download(
 public fun Path.download(
     uri: URI,
     fileName: String? = null,
-    renderer: RendererProvider? = RendererProviders.errorsOnly(),
+    renderer: RendererProvider? = errorsOnly(),
 ): Path = download(uri.toString(), fileName, renderer)
 
 private fun Path.cleanFileName(): String = listOf("?", "#").fold(fileName.pathString) { acc, symbol -> acc.substringBefore(symbol) }

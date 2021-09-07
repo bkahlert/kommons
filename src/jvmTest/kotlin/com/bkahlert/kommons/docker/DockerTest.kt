@@ -19,6 +19,20 @@ import strikt.assertions.isTrue
 class DockerTest {
 
     @Nested
+    inner class IsInstalled {
+
+        @Test
+        fun `should not throw`() {
+            expectCatching { Docker.isInstalled }.isSuccess()
+        }
+    }
+
+    @DockerRequiring @Test
+    fun `should return true if engine is running`() {
+        expectThat(Docker.engineRunning).isTrue()
+    }
+
+    @Nested
     inner class InfoProperty {
 
         @DockerRequiring @Test
@@ -58,11 +72,6 @@ class DockerTest {
         fun `should provide commands`() {
             expectCatching { Docker.containers.list() }.isSuccess()
         }
-    }
-
-    @DockerRequiring @Test
-    fun `should return true if engine is running`() {
-        expectThat(Docker.engineRunning).isTrue()
     }
 
     @Nested

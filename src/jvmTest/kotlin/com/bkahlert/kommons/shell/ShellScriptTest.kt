@@ -486,18 +486,18 @@ class ShellScriptTest {
 
             @Test
             fun `should not print`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = http(8902) {
+                val exec = http(8902) {
                     ShellScript { poll(URI("http://localhost:8902"), interval = 1.seconds) }.exec.logging()
                 }
-                expectThat(process).io.isEmpty()
+                expectThat(exec).io.isEmpty()
             }
 
             @Test
             fun `should print if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = http(8903) {
+                val exec = http(8903) {
                     ShellScript { poll(URI("http://localhost:8903"), interval = 3.seconds, verbose = true) }.exec.logging()
                 }
-                expectThat(process).io
+                expectThat(exec).io
                     .contains(Output typed "Polling http://localhost:8903...")
                     .contains(Output typed "Polled http://localhost:8903 successfully.")
             }
@@ -514,10 +514,10 @@ class ShellScriptTest {
 
             @Test
             fun `should exit with 124 on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val process = ShellScript {
+                val exec = ShellScript {
                     poll(URI("http://localhost:8905"), timeout = 1.seconds)
                 }.exec.logging()
-                expectThat(process.exitCode).isEqualTo(124)
+                expectThat(exec.exitCode).isEqualTo(124)
             }
 
             @Test

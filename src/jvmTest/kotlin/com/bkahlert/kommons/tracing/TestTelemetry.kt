@@ -88,6 +88,7 @@ class TestTelemetry : TestExecutionListener {
             override fun onStart(parentContext: Context, span: ReadWriteSpan): Unit = Unit
             override fun isEndRequired(): Boolean = true
             override fun onEnd(span: ReadableSpan) {
+                if (span.name == "check docker") return
                 if (span.name == "docker info") return
                 require(span.traceId.testTrace) { "Span ${span.name.formattedAs.input} (trace ID: ${span.traceId.formattedAs.input}) is no test span." }
             }

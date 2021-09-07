@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.docker.DockerContainer
 import com.bkahlert.kommons.docker.DockerImage
 import com.bkahlert.kommons.docker.DockerRunCommandLine
@@ -38,7 +39,7 @@ public class Jaeger(hostname: String) {
      * Starts a Jaeger container locally unless Jaeger [isRunning] already.
      */
     public fun startLocally(): String {
-        if (!isRunning) {
+        if (!isRunning && Docker.isInstalled) {
             DockerRunCommandLine(
                 image = DockerImage("jaegertracing", listOf("all-in-one")),
                 options = Options(
