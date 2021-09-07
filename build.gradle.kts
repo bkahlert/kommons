@@ -134,7 +134,7 @@ kotlin {
             dependencies {
                 implementation("org.apache.commons:commons-compress:1.21")
                 implementation("org.apache.commons:commons-exec:1.3")
-                implementation("org.codehaus.plexus:plexus-utils:3.3.0")
+                implementation("org.codehaus.plexus:plexus-utils:3.4.1")
 
                 api("io.opentelemetry:opentelemetry-api:1.5.0")
                 implementation("io.opentelemetry:opentelemetry-extension-annotations:1.5.0")
