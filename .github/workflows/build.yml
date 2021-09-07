@@ -5,24 +5,32 @@ name: build and test
 
 on:
   push:
+    branches: ['master']
+    tags: ['v*']
+    paths-ignore: ['**.md']
   pull_request:
-    tags: [dependencies]
+    branches: ['master']
+    tags: ['dependencies']
+    paths-ignore: ['**.md']
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
           cache: gradle
+
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+
       - name: Cache Gradle packages
         uses: actions/cache@v2
         with:
@@ -32,10 +40,13 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
       - name: Build with Gradle
-        run: ./gradlew build --console=rich
+        run: ./gradlew build
+
       - uses: actions/upload-artifact@v2
         with:
           name: package
@@ -44,6 +55,7 @@ jobs:
             build/publications
             build/reports
             build/test-results
+
       - name: Cleanup Gradle Cache
         # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
         # Restoring these files from a GitHub Actions cache might cause problems for future builds.
