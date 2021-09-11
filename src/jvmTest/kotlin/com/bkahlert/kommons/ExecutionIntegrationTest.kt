@@ -15,7 +15,6 @@ import com.bkahlert.kommons.exec.successful
 import com.bkahlert.kommons.io.copyTo
 import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.deleteRecursively
-import com.bkahlert.kommons.io.path.ls
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.tempDir
 import com.bkahlert.kommons.shell.ShellScript
@@ -48,6 +47,7 @@ import strikt.assertions.isTrue
 import strikt.assertions.length
 import strikt.java.exists
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
 
 @Smoke @Isolated
 class ExecutionIntegrationTest {
@@ -164,7 +164,7 @@ class ExecutionIntegrationTest {
                 io.output.ansiRemoved { length.isEqualTo(HtmlFixture.text.length) }
             }
 
-            ls().map { it.fileName } check {
+            listDirectoryEntries().map { it.fileName } check {
                 size { isEqualTo(1) }
                 this {
                     any { toStringMatchesCurlyPattern("sample.html") }

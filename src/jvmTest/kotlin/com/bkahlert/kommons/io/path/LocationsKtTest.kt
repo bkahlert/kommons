@@ -1,9 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.io.copyTo
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
-import com.bkahlert.kommons.test.HtmlFixture
-import com.bkahlert.kommons.test.TextFixture
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.testEach
@@ -17,9 +14,7 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
@@ -236,23 +231,6 @@ class LocationsKtTest {
                 this
             }
             expectThat(tempDir).not { exists() }
-        }
-    }
-
-    @Nested
-    inner class Ls {
-
-        @Test
-        fun `should list matching files`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            listOf(resolve("a.html"), resolve("b/c.html"), resolve("b/d.html")).map { HtmlFixture.copyTo(it) }
-            listOf(resolve("a.txt"), resolve("b/c.txt"), resolve("b/d.txt")).map { TextFixture.copyTo(it) }
-            expectThat(ls("**/*.html")).containsExactly(resolve("b/c.html"), resolve("b/d.html"))
-        }
-
-        @Test
-        fun `should return empty list on no matching files`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            listOf(resolve("a.txt"), resolve("b/c.txt"), resolve("b/d.txt")).map { TextFixture.copyTo(it) }
-            expectThat(ls("**/*.html")).isEmpty()
         }
     }
 

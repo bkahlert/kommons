@@ -1,19 +1,14 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.exec.Process.State.Exited.Failed
-import com.bkahlert.kommons.exec.RendererProviders
-import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
-import com.bkahlert.kommons.or
-import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.text.takeUnlessEmpty
-import java.io.UncheckedIOException
 import java.nio.file.FileSystems
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
@@ -180,16 +175,7 @@ public fun <T> runWithTempDir(base: String = "", extension: String = "", block: 
 /*
  * Misc
  */
-
-/**
- * Resolves [glob] using the system's `ls` command line tool.
- */
-public fun Path.ls(glob: String = ""): List<Path> =
-    ShellScript("${this.formattedAs.input} $ ls ${glob.formattedAs.input}") { !"ls $glob" }
-        .exec.logging(this, renderer = RendererProviders.errorsOnly())
-        .parse.columns<Path, Failed>(1) {
-            resolve(it[0])
-        } or { emptyList() }
+private val cleanUpLock = ReentrantLock()
 
 /**
  * Cleans up this directory by
@@ -203,27 +189,24 @@ public fun Path.ls(glob: String = ""): List<Path> =
 public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainment: Boolean = true): Path {
     if (enforceTempContainment) requireTempSubPath()
 
-    try {
+    cleanUpLock.withLock {
         if (exists()) {
             listDirectoryEntriesRecursively()
-                .filter { it.exists() && !it.isDirectory() }
-                .sortedBy { it.age }
-                .filter { it.age >= keepAge }
+                .mapNotNull { kotlin.runCatching { if (!it.isDirectory()) it to it.age else null }.getOrNull() }
+                .sortedBy { (_, age) -> age }
+                .filter { (_, age) -> age >= keepAge }
                 .drop(keepCount)
-                .forEach { it.delete(NOFOLLOW_LINKS) }
+                .forEach { (file, _) -> file.runCatching { delete(NOFOLLOW_LINKS) } }
 
             listDirectoryEntriesRecursively()
-                .filter { it.isDirectory() }
-                .filter { it.isEmpty() }
-                .forEach { it.delete(NOFOLLOW_LINKS) }
+                .forEach {
+                    kotlin.runCatching {
+                        if (it.isDirectory() && it.isEmpty()) it.delete(NOFOLLOW_LINKS)
+                    }
+                }
 
-            if (listDirectoryEntriesRecursively().isEmpty()) {
-                delete(NOFOLLOW_LINKS)
-            }
+            kotlin.runCatching { if (isEmpty()) delete(NOFOLLOW_LINKS) }
         }
-    } catch (e: UncheckedIOException) {
-    } catch (e: NoSuchFileException) {
-    } catch (e: java.nio.file.NoSuchFileException) {
     }
 
     return this

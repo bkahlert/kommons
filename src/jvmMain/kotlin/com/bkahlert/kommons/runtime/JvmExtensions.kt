@@ -91,7 +91,7 @@ private fun <T : () -> Unit> T.toHook(): Thread {
             if (it !is IllegalStateException && it !is AccessControlException) {
                 throw IllegalStateException(
                     "An exception occurred during shutdown.$LF" +
-                        "The shutdown hook was registered by$LF" +
+                        "The shutdown hook was registered by:$LF" +
                         stackTrace.joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF), it)
             }
         }
