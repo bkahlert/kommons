@@ -17,23 +17,23 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 @Retention(RUNTIME)
 @Target(ANNOTATION_CLASS, CLASS, FUNCTION)
 @Extensions(
-    ExtendWith(TextWidthCondition::class),
+    ExtendWith(WideUnicodeGlyphsCondition::class),
 )
 annotation class TextWidthRequiring
 
 /**
- * Condition that disables the test if no the setup does not allow for fine-grained text width measuring.
+ * Condition that disables the test if wide Unicode characters cannot be measured correctly.
  */
-class TextWidthCondition : ExecutionCondition {
+class WideUnicodeGlyphsCondition : ExecutionCondition {
 
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
         context.testName.let { testName ->
-            if (fineGrainedTextWidth) enabled("Test ${testName.quoted} enabled because fine-grained text width measuring is possible.")
-            else disabled("Test ${testName.quoted} disabled because fine-grained text width measuring is NOT possible.")
+            if (wideUnicodeGlyphs) enabled("Test ${testName.quoted} enabled because wide Unicode glyphs can be measured correctly.")
+            else disabled("Test ${testName.quoted} disabled because wide Unicode characters cannot be measured correctly.")
         }
 
     private companion object {
-        private val fineGrainedTextWidth: Boolean by lazy {
+        private val wideUnicodeGlyphs: Boolean by lazy {
             listOf(
                 TextWidth.calculateWidth("X"),
                 TextWidth.calculateWidth("⮕"),
@@ -41,8 +41,8 @@ class TextWidthCondition : ExecutionCondition {
             ).zipWithNext { left, right -> left < right }
                 .all { it }
                 .also {
-                    if (it) printTestExecutionStatus("Text width measuring: fine-grained") { green }
-                    else printTestExecutionStatus("Text width measuring: simple") { yellow }
+                    if (it) printTestExecutionStatus("Wide Unicode Glyphs: supported") { green }
+                    else printTestExecutionStatus("Wide Unicode Glyphs: not supported") { yellow }
                 }
         }
     }

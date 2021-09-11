@@ -3,8 +3,10 @@ package com.bkahlert.kommons.io.path
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.text.takeUnlessEmpty
+import java.io.UncheckedIOException
 import java.nio.file.FileSystems
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.locks.ReentrantLock
@@ -190,22 +192,26 @@ public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainmen
     if (enforceTempContainment) requireTempSubPath()
 
     cleanUpLock.withLock {
-        if (exists()) {
-            listDirectoryEntriesRecursively()
-                .mapNotNull { kotlin.runCatching { if (!it.isDirectory()) it to it.age else null }.getOrNull() }
-                .sortedBy { (_, age) -> age }
-                .filter { (_, age) -> age >= keepAge }
-                .drop(keepCount)
-                .forEach { (file, _) -> file.runCatching { delete(NOFOLLOW_LINKS) } }
+        try {
+            if (exists()) {
+                listDirectoryEntriesRecursively()
+                    .mapNotNull { kotlin.runCatching { if (!it.isDirectory()) it to it.age else null }.getOrNull() }
+                    .sortedBy { (_, age) -> age }
+                    .filter { (_, age) -> age >= keepAge }
+                    .drop(keepCount)
+                    .forEach { (file, _) -> file.runCatching { delete(NOFOLLOW_LINKS) } }
 
-            listDirectoryEntriesRecursively()
-                .forEach {
-                    kotlin.runCatching {
-                        if (it.isDirectory() && it.isEmpty()) it.delete(NOFOLLOW_LINKS)
+                listDirectoryEntriesRecursively()
+                    .forEach {
+                        kotlin.runCatching {
+                            if (it.isDirectory() && it.isEmpty()) it.delete(NOFOLLOW_LINKS)
+                        }
                     }
-                }
 
-            kotlin.runCatching { if (isEmpty()) delete(NOFOLLOW_LINKS) }
+                kotlin.runCatching { if (isEmpty()) delete(NOFOLLOW_LINKS) }
+            }
+        } catch (e: UncheckedIOException) {
+            if (e.cause !is NoSuchFileException) throw e
         }
     }
 

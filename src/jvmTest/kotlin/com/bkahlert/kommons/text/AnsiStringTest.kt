@@ -52,6 +52,7 @@ class AnsiStringTest {
 
     @Nested
     inner class AnsiStringCache {
+
         @Test
         fun `should match same`() {
             val text: CharSequence = "abc"
@@ -64,6 +65,19 @@ class AnsiStringTest {
             val text: CharSequence = "abc"
             val ansiString = text.toAnsiString()
             expectThat(ansiString).isSameInstanceAs("abc".toAnsiString())
+        }
+
+        @Test
+        fun `should not match same hash`() {
+            val a: CharSequence = object : CharSequence by "2s" {
+                override fun hashCode(): Int = 1
+            }
+            val b: CharSequence = object : CharSequence by "45" {
+                override fun hashCode(): Int = 1
+            }
+            expectThat(a.toAnsiString()).not {
+                toStringIsEqualTo(b.toAnsiString())
+            }
         }
     }
 

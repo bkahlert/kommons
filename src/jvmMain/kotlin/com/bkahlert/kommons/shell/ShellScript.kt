@@ -310,7 +310,7 @@ public open class ShellScript(
             return command("timeout", "${timeout.inWholeSeconds}s", "sh", "-c", StringBuilder().apply {
                 appendLine("while true; do")
                 if (verbose) appendLine("    echo 'Polling $uri...'")
-                append("    1>/dev/null curl --silent --fail --max-time ${attemptTimeout.inWholeSeconds} '$uri'")
+                append("    1>/dev/null curl --silent --fail --location --max-time ${attemptTimeout.inWholeSeconds} '$uri'")
                 if (verbose) append("&& echo 'Polled $uri successfully.'")
                 appendLine(" && break")
                 appendLine("    sleep ${interval.inWholeSeconds}")

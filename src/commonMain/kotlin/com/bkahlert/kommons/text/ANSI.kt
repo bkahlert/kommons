@@ -943,9 +943,13 @@ public value class Token private constructor(private val token: Pair<CharSequenc
 }
 
 private object TokenizationCache {
-    private val cache = mutableMapOf<Int, AnsiString>()
+    private val cache = mutableMapOf<Int, List<AnsiString>>()
     fun getOrPut(text: CharSequence, block: () -> AnsiString): AnsiString {
-        return cache.getOrPut(text.hashCode(), block)
+        val hashCode = text.hashCode()
+        val matches = cache.getOrElse(hashCode) { emptyList() }
+        val renderedText = text.toString()
+        return matches.find { match -> match.toString() == renderedText }
+            ?: block().also { cache[hashCode] = matches + it }
     }
 }
 
