@@ -320,7 +320,7 @@ class BlockRendererTest {
                         .log(plain80, EXTRA to "foo-bar", durationKey to 2.seconds)
                 }
                 expectThat(rendered).isEqualTo("""
-                        foo-bar       2.00s        Lorem ipsum dolor sit amet, conse
+                        foo-bar       2s           Lorem ipsum dolor sit amet, conse
                                                    tetur sadipscing elitr, sed diam 
                                                    nonumy eirmod.                   
                     """.trimIndent())

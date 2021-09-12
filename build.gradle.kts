@@ -1,6 +1,7 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 
@@ -29,12 +30,12 @@ fun Any.isFinal(): Boolean =
     Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)").matches(toString())
 
 plugins {
-    kotlin("multiplatform") version "1.5.21"
+    kotlin("multiplatform") version "1.5.30"
     id("org.jetbrains.dokka") version "1.5.0"
-    id("com.github.ben-manes.versions") version "0.39.0"
-    id("se.patrikerdes.use-latest-versions") version "0.2.17"
+//    id("com.github.ben-manes.versions") version "0.39.0"
+//    id("se.patrikerdes.use-latest-versions") version "0.2.17"
 
-    id("org.ajoberstar.grgit") version "4.1.0"
+//    id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
     id("signing")
     id("nebula.release") version "15.3.1"
@@ -42,23 +43,23 @@ plugins {
 
 allprojects {
     apply { plugin("maven-publish") }
-    apply { plugin("com.github.ben-manes.versions") }
-    apply { plugin("se.patrikerdes.use-latest-versions") }
+//    apply { plugin("com.github.ben-manes.versions") }
+//    apply { plugin("se.patrikerdes.use-latest-versions") }
 
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            val kotlinVersion = "1.5.21"
-            val kotlinModules = listOf(
-                "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
-                "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
-                "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
-            if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
-                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
-                useVersion(kotlinVersion)
-                because("of ambiguity issues")
-            }
-        }
-    }
+//    configurations.all {
+//        resolutionStrategy.eachDependency {
+//            val kotlinVersion = "1.5.30"
+//            val kotlinModules = listOf(
+//                "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
+//                "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
+//                "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
+//            if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
+//                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
+//                useVersion(kotlinVersion)
+//                because("of ambiguity issues")
+//            }
+//        }
+//    }
 }
 
 description = "Kommons is a Kotlin Multiplatform Library, with a minimal set" +
@@ -98,7 +99,7 @@ kotlin {
 
         tasks.withType<Test>().configureEach {
             testLogging {
-                events = setOf(FAILED, STANDARD_OUT, STANDARD_ERROR)
+                events = setOf(SKIPPED, FAILED, STANDARD_OUT, STANDARD_ERROR)
                 exceptionFormat = FULL
                 showExceptions = true
                 showCauses = true
@@ -170,7 +171,7 @@ kotlin {
                 implementation("io.strikt:strikt-core:0.30.1")
                 implementation("io.strikt:strikt-jvm:0.30.1")
 
-                implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.21") {
+                implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.30") {
                     because("filepeek takes 1.3")
                 }
             }
@@ -184,11 +185,11 @@ kotlin {
             languageSettings.apply {
                 languageVersion = "1.5"
                 apiVersion = "1.5"
-                useExperimentalAnnotation("kotlin.RequiresOptIn")
-                useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
-                useExperimentalAnnotation("kotlin.time.ExperimentalTime")
-                useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
-                useExperimentalAnnotation("kotlin.experimental.ExperimentalTypeInference")
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlin.ExperimentalUnsignedTypes")
+                optIn("kotlin.time.ExperimentalTime")
+                optIn("kotlin.contracts.ExperimentalContracts")
+                optIn("kotlin.experimental.ExperimentalTypeInference")
                 progressiveMode = true // false by default
             }
         }
