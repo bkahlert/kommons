@@ -5,29 +5,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 
-fun CharSequence.convertCamelCase(separator: Char, transform: (String) -> String): String =
-    Regex("(?<lowerLeftChar>[a-z0-9]|(?=[A-Z]))(?<upperRightChar>[A-Z])")
-        .replace(toString().decapitalize(), "\${lowerLeftChar}$separator\${upperRightChar}")
-        .let(transform)
-
-fun CharSequence.camelCaseToScreamingSnakeCase() = convertCamelCase('_', String::toUpperCase)
-
-fun Project.findPropertyEverywhere(name: String): String? =
-    extra.properties[name]?.toString()
-        ?: findProperty(name)?.toString()
-        ?: System.getenv(name.camelCaseToScreamingSnakeCase())
-
-fun Project.findPropertyEverywhere(name: String, defaultValue: String): String =
-    findPropertyEverywhere(name) ?: defaultValue
-
-val Project.baseUrl: String get() = findPropertyEverywhere("baseUrl", "https://github.com/bkahlert/kommons")
-
-/**
- * Returns whether this object represents a final version number
- * of the format `<major>.<minor.<patch>`.
- */
-fun Any.isFinal(): Boolean =
-    Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)").matches(toString())
+val baseUrl: String get() = "https://github.com/bkahlert/kommons"
 
 plugins {
     kotlin("multiplatform") version "1.5.30"
@@ -37,7 +15,7 @@ plugins {
 
 //    id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
-    id("signing")
+    signing
     id("nebula.release") version "15.3.1"
 }
 
@@ -68,6 +46,9 @@ description = "Kommons is a Kotlin Multiplatform Library, with a minimal set" +
     " various builders, an improved Java NIO 2 integration, decimal and" +
     " binary units, and Unicode-related features."
 group = "com.bkahlert.kommons"
+
+// version automatically determined by nebula-release plugin
+// see https://github.com/nebula-plugins/nebula-release-plugin
 
 repositories {
     mavenCentral()
@@ -244,14 +225,10 @@ publishing {
 
         maven {
             name = "OSSRH"
-            url = if (version.isFinal()) {
-                uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            } else {
-                uri("https://oss.sonatype.org/content/repositories/snapshots/")
-            }
+            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = findPropertyEverywhere("sonatypeNexusUsername", "")
-                password = findPropertyEverywhere("sonatypeNexusPassword", "")
+                username = System.getenv("OSSRH_USERNAME")
+                password = System.getenv("OSSRH_PASSWORD")
             }
         }
 
@@ -259,8 +236,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/bkahlert/kommons")
             credentials {
-                username = findPropertyEverywhere("githubUsername", "")
-                password = findPropertyEverywhere("githubToken", "")
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
@@ -311,6 +288,9 @@ publishing {
 }
 
 signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
     sign(publishing.publications)
 }
 
