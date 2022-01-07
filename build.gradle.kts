@@ -119,7 +119,7 @@ kotlin {
                 implementation("org.codehaus.plexus:plexus-utils:3.4.1")
 
                 api("io.opentelemetry:opentelemetry-api:1.5.0")
-                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.10.0")
                 implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.5.0")
             }
         }
