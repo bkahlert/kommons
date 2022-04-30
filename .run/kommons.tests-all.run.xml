@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Tests" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="All Tests" type="GradleRunConfiguration" factoryName="Gradle" folderName="kommons">
     <target name="ubuntu@node01.local:32022" />
     <ExternalSystemSettings>
       <option name="executionName" />
@@ -19,13 +19,14 @@
     <DebugAllEnabled>false</DebugAllEnabled>
     <method v="2" />
   </configuration>
-  <configuration default="false" name=" 🧪 All Tests" type="JUnit" factoryName="JUnit">
-    <module name="kommons.jvmTest" />
+  <configuration default="false" name=" 🧪 All Tests" type="JUnit" factoryName="JUnit" folderName="kommons">
+    <module name="kommons" />
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <option name="PACKAGE_NAME" value="com.bkahlert.kommons" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />
+    <option name="WORKING_DIRECTORY" value="$ModuleFileDir$" />
     <tag value="Smoke" />
     <method v="2">
       <option name="Make" enabled="true" />

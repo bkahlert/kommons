@@ -1,14 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name=" 🧪 ⏩ Fast Tests" type="JUnit" factoryName="JUnit">
-    <module name="kommons.jvmTest" />
-    <projectPathOnTarget name="projectPathOnTarget" value="/home/ubuntu" />
-    <target name="ubuntu@node01.local:32022" />
+  <configuration default="false" name=" 🧪 💨 / ⏩ SmokeTests &amp; Fast Tests" type="JUnit" factoryName="JUnit" folderName="kommons">
+    <module name="kommons" />
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <option name="PACKAGE_NAME" value="com.bkahlert.kommons.shell" />
     <option name="MAIN_CLASS_NAME" value="com.bkahlert.kommons.shell.ShellScriptTest" />
     <option name="METHOD_NAME" value="should assert using builder" />
     <option name="TEST_OBJECT" value="tags" />
-    <tag value="!Slow" />
+    <option name="WORKING_DIRECTORY" value="$ModuleFileDir$" />
+    <tag value="Smoke|!Slow" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
