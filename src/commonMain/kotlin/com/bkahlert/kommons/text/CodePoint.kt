@@ -10,9 +10,9 @@ import kotlin.Char.Companion.MIN_SURROGATE
 import kotlin.Char.Companion.MIN_VALUE
 import kotlin.jvm.JvmInline
 import kotlin.random.Random
+import kotlin.text.padStart as kotlinPadStart
 
-private const val ESCAPED_X = "\\x"
-private fun String.escape() = "$ESCAPED_X{$this}"
+private fun String.escape() = "\\u$this"
 
 /**
  * Representation of a [Unicode code point](https://unicode.org/glossary/#code_point)
@@ -36,12 +36,12 @@ public value class CodePoint(
      * e.g. `0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    public val hexCode: String get() = codePoint.toHexadecimalString(pad = true).toUpperCase()
+    public val hexCode: String get() = codePoint.toHexadecimalString(pad = true).uppercase()
 
     /**
      * Returns this code point as string that can be used to match exactly this code point using a regular expression.
      */
-    public fun toLiteralRegex(): Regex = hexCode.escape().toRegex()
+    public fun toLiteralRegex(): Regex = hexCode.kotlinPadStart(4, '0').escape().toRegex()
 
     /**
      * Contains the character pointed to and represented by a [String].
@@ -569,7 +569,7 @@ public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence
 /**
  * Returns a [Regex] matching exactly `this` character sequence.
  *
- * Each char is matched using it's hexadecimal encoding.
+ * Each char is matched using its hexadecimal encoding.
  */
 public fun CharSequence.toLiteralRegex(): Regex {
     val bytes = toString().encodeToByteArray()

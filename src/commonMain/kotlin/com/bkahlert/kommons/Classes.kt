@@ -46,7 +46,7 @@ public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
                     @Suppress("UNCHECKED_CAST") val typedProperty = property as KProperty1<T, *>
                     typedProperty.get(this@asString)
                 }.recover { "<$it>" }.getOrThrow()
-                else -> "<unexpected property type ${this::class.toSimpleString()}>"
+                else -> "<unexpected property type ${toSimpleClassName()}>"
             })
         }
     }
@@ -60,37 +60,42 @@ private fun StringBuilder.close() = append(brackets.second)
  * built by the given [init] in the format `ClassName(name1=value1, name2=value2, …)`.
  */
 public fun Any.asString(
-    className: String = this::class.toSimpleString(),
+    className: String = toSimpleClassName(),
     init: Init<MapBuildingContext<Any?, Any?>>,
-): String =
-    StringBuilder(className).apply {
-        append(" ")
-        val content = StringBuilder()
-        val flatContent = mutableListOf<String>()
-        indenting { indentString ->
+): String = buildString {
+    append(className)
+    val content = StringBuilder()
+    val flatContent = mutableListOf<String>()
+    indenting { indentString ->
+        indenting { propIndent ->
+            buildMap(init).forEach { (key, value) ->
+                val keyString = key.let { it as? KProperty<*> }?.name ?: key.toString()
+                val valueString = value.toString()
+                content.appendMultiline(propIndent, keyString, valueString)
+                flatContent.add("$keyString = $valueString")
+            }
+        }
+        if (flatContent.none { it.isMultiline }) {
+            content.clear()
+            if (flatContent.isNotEmpty()) {
+                append(" ")
+                open()
+                append(" ")
+                flatContent.joinTo(this@buildString, FieldDelimiters.FIELD.spaced)
+                append(" ")
+                close()
+            }
+        } else {
+            flatContent.clear()
+            append(" ")
             open()
-            indenting { propIndent ->
-                buildMap(init).forEach { (key, value) ->
-                    val keyString = key.let { it as? KProperty<*> }?.name ?: key.toString()
-                    val valueString = value.toString()
-                    content.appendMultiline(propIndent, keyString, valueString)
-                    flatContent.add("$keyString = $valueString")
-                }
-            }
-            if (flatContent.none { it.isMultiline }) {
-                content.clear()
-                append(" ")
-                append(flatContent.joinToString(FieldDelimiters.FIELD.spaced))
-                append(" ")
-            } else {
-                flatContent.clear()
-                append(content)
-                append(LF)
-                append(indentString)
-            }
+            append(content)
+            append(LF)
+            append(indentString)
             close()
         }
-    }.toString()
+    }
+}
 
 private fun StringBuilder.appendMultiline(propIndent: String, keyString: String, valueString: String) {
     val keyIndentString = "$propIndent$keyString = "

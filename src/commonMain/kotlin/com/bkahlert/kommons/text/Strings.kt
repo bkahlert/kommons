@@ -18,9 +18,9 @@ public object CharRanges {
  * Creates a random string of the specified [length] made up of the specified [allowedCharacters].
  */
 public fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRanges.Alphanumeric): String =
-    StringBuilder().apply {
+    buildString {
         repeat(length) { append(allowedCharacters[Random.nextInt(0, allowedCharacters.size)]) }
-    }.toString()
+    }
 
 private const val randomSuffixLength = 4
 private val randomSuffixMatcher: Regex = Regex(".*--[0-9a-zA-Z]{$randomSuffixLength}\$")

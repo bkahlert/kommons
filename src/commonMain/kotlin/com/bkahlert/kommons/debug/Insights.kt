@@ -11,114 +11,106 @@ import com.bkahlert.kommons.runtime.getCaller
 import com.bkahlert.kommons.text.CodePoint
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.isMultiline
 import com.bkahlert.kommons.text.Semantics.BlockDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.Unicode
 import com.bkahlert.kommons.text.Unicode.replacementSymbol
 import com.bkahlert.kommons.text.asCodePointSequence
 
+
 public class XRay<T>(
     private val description: CharSequence?,
     private val subject: T,
-    private val stringifier: (T.() -> String)?,
-    private val transform: (T.() -> Any)?,
-) : CharSequence {
+    private val stringifier: ((T) -> String)?,
+    private val transform: ((T) -> Any?)?,
+) {
 
-    private fun <T> asString(subject: T): String = when (subject) {
-        is Array<*> -> asString(subject.toList())
-        is ByteArray -> asString(subject.toHexadecimalString())
-        is UByteArray -> asString(subject.toHexadecimalString())
-        else -> subject.toString()
-    }
-
-    private fun <T> T.selfString(): String {
-        val selfString = stringifier?.let { it(subject) } ?: asString(subject)
-        return if (selfString.isMultiline) {
-            "${selfBrackets.first}$LF$selfString$LF${selfBrackets.second}"
-        } else {
-            "${selfBrackets.first} $selfString ${selfBrackets.second}"
-        }
-    }
-
-    private fun <T> T.transformedString(): String {
-        val transformedString = asString(this)
-        return if (transformedString.isMultiline) {
-            "${transformedBrackets.first}$LF$transformedString$LF${transformedBrackets.second}"
-        } else {
-            "${transformedBrackets.first} $transformedString ${transformedBrackets.second}"
-        }
-    }
-
-    private val string: String = run {
-        val source = getCaller {
+    override fun toString(): String = buildString {
+        val caller = getCaller {
             receiver?.endsWith(".InsightsKt") == true ||
                 receiver?.endsWith(".XRay") == true ||
                 function == "trace" ||
                 function == "xray"
-        }.run { ".⃦⃥ͥ ".formattedAs.debug + "($file:$line) ".formattedAs.meta + (description?.let { "$it " } ?: "").formattedAs.debug }
-        source + run {
-            transform?.let {
-                subject.selfString() + " " + subject.it().transformedString()
-            } ?: subject.selfString()
         }
-    }
+        append(".⃦⃥ͥ ".formattedAs.debug)
+        append("(${caller.file}:${caller.line}) ".formattedAs.meta)
+        description?.also {
+            append(it.formattedAs.debug)
+            append(" ")
+        }
 
-    override val length: Int = string.length
-    override fun get(index: Int): Char = string[index]
-    override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = string.subSequence(startIndex, endIndex)
-    override fun toString(): String = string
-    public fun print(): T {
-        println(toString())
-        return subject
+        appendWrapped(stringifier?.invoke(subject) ?: defaultStringify(subject), selfBrackets)
+        val transformed = transform?.invoke(subject)
+        if (transformed != null) {
+            append(" ")
+            appendWrapped(defaultStringify(transformed), transformedBrackets)
+        }
     }
 
     /**
      * Returns an instance that applies the given [transform] to [subject].
      */
-    public fun transform(transform: T.() -> String): XRay<T> =
+    public fun transform(transform: (T) -> String): XRay<T> =
         XRay(description, subject, stringifier, transform)
 
     /**
      * Returns an instance that applies the given [transform] to
      * the code points the stringified [subject] consists of.
      */
-    private fun xray(transform: CodePoint.() -> String): XRay<T> =
-        XRay(description, subject, stringifier) {
-            val sb = StringBuilder()
-            asString(subject).asCodePointSequence().forEach { sb.append(it.transform()) }
-            sb.toString()
-        }
-
-    public val invisibles: XRay<T>
-        get() = xray {
-            val current = string
-            if (current.length == 1) {
-                Unicode.controlCharacters[current[0]]?.toString() ?: current
-            } else {
-                current
+    private fun xray(transform: (CodePoint) -> String): XRay<T> =
+        XRay(description, subject, stringifier) { subject ->
+            buildString {
+                defaultStringify(subject).asCodePointSequence().forEach { append(transform(it)) }
             }
         }
 
+    public val invisibles: XRay<T>
+        get() = xray { codePoint ->
+            codePoint.char
+                ?.let { char -> Unicode.controlCharacters[char]?.toString() }
+                ?: codePoint.string
+        }
+
     public val breaks: XRay<T>
-        get() = xray {
-            when (val current = string) {
+        get() = xray { codePoint ->
+            when (val string = codePoint.string) {
                 LineSeparators.NEL -> lineBreakSymbol("␤")
                 LineSeparators.PS -> lineBreakSymbol("ₛᷮ")
                 LineSeparators.LS -> lineBreakSymbol("ₛᷞ")
-                in LineSeparators -> lineBreakSymbol(replacementSymbol.toString())
-                else -> current
+                in LineSeparators -> lineBreakSymbol(codePoint.replacementSymbol.toString())
+                else -> string
             }
         }
 
     public companion object {
+        private val LINE_BREAK_REGEX = Regex("[${Unicode.CARRIAGE_RETURN}${Unicode.LINE_FEED}|${Unicode.LINE_FEED}|${Unicode.CARRIAGE_RETURN}]")
+        private val String.isMultiline: Boolean get() = LINE_BREAK_REGEX.find(this) != null
+
         private fun lineBreakSymbol(lineBreak: String) = "⏎$lineBreak"
+        private fun <T> defaultStringify(subject: T): String {
+            return when (subject) {
+                is Array<*> -> defaultStringify(subject.toList())
+                is ByteArray -> defaultStringify(subject.toHexadecimalString())
+                is UByteArray -> defaultStringify(subject.toHexadecimalString())
+                else -> subject.toString()
+            }
+        }
+
+        private fun StringBuilder.appendWrapped(value: String, brackets: Pair<String, String>) {
+            val separator = if (value.isMultiline) Unicode.LINE_FEED else ' '
+            append(brackets.first)
+            append(separator)
+            append(value)
+            append(separator)
+            append(brackets.second)
+        }
 
         internal fun highlight(subject: Any?) = subject.toString().formattedAs.debug
         private val selfBrackets = BlockDelimiters.UNIT.map { it.formattedAs.debug }
         private val transformedBrackets = BlockDelimiters.BLOCK.map { it.formattedAs.debug }
     }
 }
+
 
 /**
  * Helper property that supports
@@ -171,10 +163,10 @@ public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = null, tran
  * will be printed.
  */
 public fun <T> T.xray(description: CharSequence? = null): XRay<T> = XRay(description, this, stringifier = null, transform = null)
-public fun <T> T.xray(description: CharSequence? = null, transform: (T.() -> Any)?): XRay<out T> =
+public fun <T> T.xray(description: CharSequence? = null, transform: (T.() -> Any?)?): XRay<out T> =
     XRay(description, this, stringifier = null, transform = transform)
 
-public fun <T> T.xray(description: CharSequence? = null, stringifier: T.() -> String, transform: (T.() -> Any)?): XRay<out T> =
+public fun <T> T.xray(description: CharSequence? = null, stringifier: T.() -> String, transform: (T.() -> Any?)?): XRay<out T> =
     XRay(description, this, stringifier = stringifier, transform = transform)
 
 /**
@@ -231,7 +223,7 @@ public val <T> T.trace: T
  * at the property `prop` of that value are printed.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T> T.trace(description: CharSequence? = null, transform: (T.() -> Any)? = null): T =
+public fun <T> T.trace(description: CharSequence? = null, transform: (T.() -> Any?)? = null): T =
     apply { println(xray(description, transform = transform)) }
 
 

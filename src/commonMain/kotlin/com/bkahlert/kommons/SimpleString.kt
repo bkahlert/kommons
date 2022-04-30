@@ -43,8 +43,7 @@ private fun String.formatParams(limit: Int = 1): String =
         .joinToString(", ")
 
 /**
- * Contains an package-free class name like `ClassName`.
- * for strings containing a
+ * Contains a package-free class name like `ClassName` for strings containing a
  * - simple class name
  * - fully qualified class name
  * - any of the above with a `class ` prefix.
@@ -64,5 +63,5 @@ private val String.simpleClassName: String
                 ?.let { classNameResult ->
                     classNameResult["classItype"]?.replace("$", FieldDelimiters.UNIT)
                 }
-            ?: toString()
+            ?: stringWithoutPossibleClassPrefix
     }

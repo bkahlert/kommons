@@ -1,7 +1,5 @@
 package com.bkahlert.kommons.collections
 
-import com.bkahlert.kommons.text.toLowerCase
-
 /**
  * Returns a new [LinkedHashMap] of all elements.
  *
@@ -28,7 +26,7 @@ public fun <K, V, `K'`> Map<K, V>.matchKeysBy(transform: K.() -> `K'`): Map<K, V
 
 public fun <K : String?, V> Map<K, V>.matchKeysByIgnoringCase(): Map<K, V> {
     @Suppress("UNCHECKED_CAST")
-    val transform: (K) -> K = { it?.toLowerCase() as K }
+    val transform: (K) -> K = { it?.lowercase() as K }
     val delegate = mapKeys { transform(it.key) }
     return object : Map<K, V> by this {
         override fun containsKey(key: K): Boolean = delegate.containsKey(transform(key))

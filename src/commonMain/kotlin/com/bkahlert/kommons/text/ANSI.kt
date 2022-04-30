@@ -994,7 +994,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
                     }))
                 }
             }
-            AnsiString(*tokens.toTypedArray())
+            AnsiString(tokens.toTypedArray())
         }
     }
 

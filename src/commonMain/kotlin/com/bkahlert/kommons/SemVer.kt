@@ -18,7 +18,7 @@ public data class SemVer(
 ) {
 
     override fun toString(): String =
-        StringBuilder().apply {
+        buildString {
             append(major)
             append('.')
             append(minor)
@@ -32,7 +32,7 @@ public data class SemVer(
                 append('+')
                 append(it)
             }
-        }.toString()
+        }
 
     public companion object {
 

@@ -7,7 +7,7 @@ public object Banner {
     private val prefix = with(Colors) {
         listOf(
             black to gray, cyan to brightCyan, blue to brightBlue, green to brightGreen, yellow to brightYellow, magenta to brightMagenta, red to brightRed,
-        ).joinToString("") { (normal, bright) -> (normal.bg + bright)("░") }
+        ).joinToString("") { (normal, bright) -> (normal.bg + bright)("▒") }
     }
     private val delimiters = Regex("\\s+")
     private val capitalLetter = Regex("[A-Z]")
@@ -20,9 +20,9 @@ public object Banner {
         return text.split(delimiters).mapIndexed { index, word ->
             if (index == 0) {
                 val (first: String, second: String) = word.splitCamelCase()
-                ((prefix.takeIf { it.isNotEmpty() }?.let { "$it " } ?: "") + first.toUpperCase().ansi.brightCyan + " " + second.toUpperCase().ansi.cyan).trim()
+                ((prefix.takeIf { it.isNotEmpty() }?.let { "$it " } ?: "") + first.uppercase().ansi.brightCyan + " " + second.uppercase().ansi.cyan).trim()
             } else {
-                word.toUpperCase().ansi.brightMagenta
+                word.uppercase().ansi.brightMagenta
             }
         }.joinToString(" ")
     }
