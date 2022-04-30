@@ -16,5 +16,5 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Fishing : Category() {
-    @JsName("fishing00") public val `(;`ー´)o／￣￣￣`: Kaomoji by auto("(;`ー´)o/￣￣￣")
+    @JsName("fishing00") public val `（;`ー´）o／￣￣￣`: Kaomoji by auto("(;`ー´)o/￣￣￣")
 }

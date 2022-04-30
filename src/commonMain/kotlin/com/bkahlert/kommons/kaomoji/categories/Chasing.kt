@@ -16,6 +16,6 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Chasing : Category() {
-    @JsName("chasing00") public val `(○｀д´)ﾉｼ Σ(っﾟДﾟ)っ`: Kaomoji by auto()
-    @JsName("chasing01") public val `☎Σ⊂⊂(☉ω☉∩)`: Kaomoji by auto()
+    @JsName("chasing00") public val `（○｀д´）ﾉｼ Σ（っﾟДﾟ）っ`: Kaomoji by auto("(○｀д´)ﾉｼ Σ(っﾟДﾟ)っ")
+    @JsName("chasing01") public val `☎Σ⊂⊂（☉ω☉∩）`: Kaomoji by auto("☎Σ⊂⊂(☉ω☉∩)")
 }

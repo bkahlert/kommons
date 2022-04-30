@@ -26,7 +26,7 @@ public object Funny : Category() {
     @JsName("funny07") public val `ಠ◡ಠ`: Kaomoji by auto()
     @JsName("funny08") public val `ಠ▃ಠ`: Kaomoji by auto()
     @JsName("funny09") public val `☉_☉`: Kaomoji by auto()
-    @JsName("funny10") public val `ಠ~ಠ`: Kaomoji by auto()
+    @JsName("funny10") public val `ಠ～ಠ`: Kaomoji by auto("ಠ~ಠ")
     @JsName("funny11") public val `ಠ․ಠ`: Kaomoji by auto("ಠ.ಠ")
     @JsName("funny12") public val `◮_◮`: Kaomoji by auto()
     public val `ಠ_ಠ`: Kaomoji by auto()

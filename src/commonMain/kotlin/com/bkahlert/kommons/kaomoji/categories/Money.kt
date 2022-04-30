@@ -15,5 +15,5 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Money : Category() {
-    @JsName("money00") public val `［̲̅$̲̅(̲̅5̲̅)̲̅$̲̅］`: Kaomoji by auto("[̲̅\$̲̅(̲̅5̲̅)̲̅\$̲̅]")
+    @JsName("money00") public val `［̲̅＄̲̅（̲̅5̲̅）̲̅＄̲̅］`: Kaomoji by auto("[̲̅\$̲̅(̲̅5̲̅)̲̅\$̲̅]")
 }

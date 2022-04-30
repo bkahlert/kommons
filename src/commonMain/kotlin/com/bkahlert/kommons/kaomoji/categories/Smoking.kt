@@ -15,5 +15,5 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Smoking : Category() {
-    @JsName("smoking00") public val `౦０o ｡ (‾́。‾́ )y~~`: Kaomoji by auto()
+    @JsName("smoking00") public val `౦０o ｡ （‾́。‾́ ）y～～`: Kaomoji by auto("౦０o ｡ (‾́。‾́ )y~~")
 }

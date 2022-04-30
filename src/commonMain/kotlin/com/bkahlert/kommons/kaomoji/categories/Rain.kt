@@ -15,6 +15,6 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Rain : Category() {
-    @JsName("rain00") public val `｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ`: Kaomoji by auto()
-    @JsName("rain01") public val `｀ヽ｀((((( ( ⊃・ω・)⊃☂｀(´ω｀u)))ヽ｀、`: Kaomoji by auto()
+    @JsName("rain00") public val `｀、ヽ｀ヽ｀、ヽ（ノ＞＜）ノ ｀、ヽ｀☂ヽ｀、ヽ`: Kaomoji by auto("｀、ヽ｀ヽ｀、ヽ(ノ＞＜)ノ ｀、ヽ｀☂ヽ｀、ヽ")
+    @JsName("rain01") public val `｀ヽ｀（（（（（ （ ⊃・ω・）⊃☂｀（´ω｀u）））ヽ｀、`: Kaomoji by auto("｀ヽ｀((((( ( ⊃・ω・)⊃☂｀(´ω｀u)))ヽ｀、")
 }

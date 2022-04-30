@@ -16,6 +16,6 @@ import kotlin.js.JsName
 
 public object Why : Category() {
     @JsName("why00") public val `щ（ﾟДﾟщ`: Kaomoji by auto()
-    @JsName("why01") public val `щ(ಠ益ಠщ)`: Kaomoji by auto()
-    @JsName("why02") public val `щ(ಥДಥщ)`: Kaomoji by auto()
+    @JsName("why01") public val `щ（ಠ益ಠщ）`: Kaomoji by auto("щ(ಠ益ಠщ)")
+    @JsName("why02") public val `щ（ಥДಥщ）`: Kaomoji by auto("щ(ಥДಥщ)")
 }

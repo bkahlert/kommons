@@ -15,7 +15,7 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Whales : Category() {
-    @JsName("whales00") public val `․ ＞＜{{{․______)`: Kaomoji by auto(". ><{{{.______)")
-    @JsName("whales01") public val `․ ＞＜{{{o ______)`: Kaomoji by auto(". ><{{{o ______)")
-    @JsName("whales02") public val `․ ＞＜{{{x_______)`: Kaomoji by auto(". ><{{{x_______)")
+    @JsName("whales00") public val `․ ＞＜｛｛｛․______）`: Kaomoji by auto(". ><{{{.______)")
+    @JsName("whales01") public val `․ ＞＜｛｛｛o ______）`: Kaomoji by auto(". ><{{{o ______)")
+    @JsName("whales02") public val `․ ＞＜｛｛｛x_______）`: Kaomoji by auto(". ><{{{x_______)")
 }

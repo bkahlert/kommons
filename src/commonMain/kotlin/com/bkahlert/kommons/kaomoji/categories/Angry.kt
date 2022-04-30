@@ -63,61 +63,61 @@ public object Angry : Category() {
      * `(¬_¬)
      */
     @JsName("angry07")
-    public val `(¬_¬)`: Kaomoji by auto()
+    public val `（¬_¬）`: Kaomoji by auto("(¬_¬)")
 
     /**
      * `(｀ε´)
      */
     @JsName("angry08")
-    public val `(｀ε´)`: Kaomoji by auto()
+    public val `（｀ε´）`: Kaomoji by auto("(｀ε´)")
 
     /**
      * `(｀Д´)
      */
     @JsName("angry09")
-    public val `(｀Д´)`: Kaomoji by auto()
+    public val `（｀Д´）`: Kaomoji by auto("(｀Д´)")
 
     /**
      * `(ಠ⌣ಠ)
      */
     @JsName("angry10")
-    public val `(ಠ⌣ಠ)`: Kaomoji by auto()
+    public val `（ಠ⌣ಠ）`: Kaomoji by auto("(ಠ⌣ಠ)")
 
     /**
      * `(◣_◢)
      */
     @JsName("angry11")
-    public val `(◣_◢)`: Kaomoji by auto()
+    public val `（◣_◢）`: Kaomoji by auto("(◣_◢)")
 
     /**
      * `(¬▂¬)
      */
     @JsName("angry12")
-    public val `(¬▂¬)`: Kaomoji by auto()
+    public val `（¬▂¬）`: Kaomoji by auto("`(¬▂¬)`")
 
     /**
      * `(┳◇┳)
      */
     @JsName("angry13")
-    public val `(┳◇┳)`: Kaomoji by auto()
+    public val `（┳◇┳）`: Kaomoji by auto("`(┳◇┳)`")
 
     /**
      * `(눈_눈)
      */
     @JsName("angry14")
-    public val `(눈_눈)`: Kaomoji by auto()
+    public val `（눈_눈）`: Kaomoji by auto("(눈_눈)")
 
     /**
      * `(¬､¬)
      */
     @JsName("angry15")
-    public val `(¬､¬)`: Kaomoji by auto()
+    public val `（¬､¬）`: Kaomoji by auto("`(¬､¬)`")
 
     /**
      * `(`A´)
      */
     @JsName("angry16")
-    public val `(`A´)`: Kaomoji by auto("(`A´)")
+    public val `（`A´）`: Kaomoji by auto("(`A´)")
 
     /**
      * `（▽д▽）
@@ -135,13 +135,13 @@ public object Angry : Category() {
      * `(’益’)
      */
     @JsName("angry19")
-    public val `(’益’)`: Kaomoji by auto()
+    public val `（’益’）`: Kaomoji by auto("(’益’)")
 
     /**
      * `(⋋▂⋌)
      */
     @JsName("angry20")
-    public val `(⋋▂⋌)`: Kaomoji by auto()
+    public val `（⋋▂⋌）`: Kaomoji by auto("(⋋▂⋌)")
 
     /**
      * `〴⋋_⋌〵
@@ -153,19 +153,19 @@ public object Angry : Category() {
      * `(◔ д◔)
      */
     @JsName("angry22")
-    public val `(◔ д◔)`: Kaomoji by auto()
+    public val `（◔ д◔）`: Kaomoji by auto("(◔ д◔)")
 
     /**
      * `☜(`o´)
      */
     @JsName("angry23")
-    public val `☜(`o´)`: Kaomoji by auto("☜(`o´)")
+    public val `☜（`o´）`: Kaomoji by auto("☜(`o´)")
 
     /**
      * `(ʘдʘ╬)
      */
     @JsName("angry24")
-    public val `(ʘдʘ╬)`: Kaomoji by auto()
+    public val `（ʘдʘ╬）`: Kaomoji by auto("(ʘдʘ╬)")
 
     /**
      * `（♯▼皿▼）
@@ -177,23 +177,23 @@ public object Angry : Category() {
      * `(#｀皿´)
      */
     @JsName("angry26")
-    public val `(#｀皿´)`: Kaomoji by auto()
+    public val `（＃｀皿´）`: Kaomoji by auto("(#｀皿´)")
 
     /**
      * `(╬ಠ益ಠ)
      */
     @JsName("angry27")
-    public val `(╬ಠ益ಠ)`: Kaomoji by auto()
+    public val `（╬ಠ益ಠ）`: Kaomoji by auto("(╬ಠ益ಠ)")
 
     /**
      * `(ಠ ∩ಠ)
      */
     @JsName("angry28")
-    public val `(ಠ ∩ಠ)`: Kaomoji by auto()
+    public val `（ಠ ∩ಠ）`: Kaomoji by auto("(ಠ ∩ಠ)")
 
     /**
      * `ლಠ益ಠ)ლ`
      */
     @JsName("angry29")
-    public val `ლಠ益ಠ)ლ`: Kaomoji by auto()
+    public val `ლಠ益ಠ）ლ`: Kaomoji by auto("ლಠ益ಠ")
 }

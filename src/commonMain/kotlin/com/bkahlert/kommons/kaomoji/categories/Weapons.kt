@@ -15,5 +15,5 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Weapons : Category() {
-    @JsName("weapons00") public val ` ̿̿`̿`＼̵͇̿̿＼=(•̪●)=／̵͇̿̿／`̿̿ ̿ ̿ ̿`: Kaomoji by auto()
+    @JsName("weapons00") public val ` ̿̿`̿`＼̵͇̿̿＼=（•̪●）=／̵͇̿̿／`̿̿ ̿ ̿ ̿`: Kaomoji by auto(" ̿̿`̿`＼̵͇̿̿＼=(•̪●)=／̵͇̿̿／`̿̿ ̿ ̿ ̿")
 }

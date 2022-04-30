@@ -23,15 +23,15 @@ public object Babies : Category() {
     /**
      * `ლ(´ڡ´ლ)`
      */
-    @JsName("babies00") public val `ლ(´ڡ´ლ)`: Kaomoji by auto("ლ(´ڡ`ლ)")
+    @JsName("babies00") public val `ლ（´ڡ´ლ）`: Kaomoji by auto("ლ(´ڡ`ლ)")
 
     /**
      * `ლ(́◉◞౪◟◉‵ლ)`
      */
-    @JsName("babies01") public val `ლ(́◉◞౪◟◉‵ლ)`: Kaomoji by auto()
+    @JsName("babies01") public val `ლ（́◉◞౪◟◉‵ლ）`: Kaomoji by auto("ლ(́◉◞౪◟◉‵ლ)")
 
     /**
      * `(●´ω｀●)`
      */
-    @JsName("babies02") public val `(●´ω｀●)`: Kaomoji by auto()
+    @JsName("babies02") public val `（●´ω｀●）`: Kaomoji by auto("(●´ω｀●)")
 }

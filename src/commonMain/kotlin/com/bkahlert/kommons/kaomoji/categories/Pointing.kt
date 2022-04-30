@@ -16,7 +16,7 @@ import kotlin.js.JsName
 
 public object Pointing : Category() {
     @JsName("pointing00") public val `☜ق❂Ⴢ❂ق☞`: Kaomoji by auto()
-    @JsName("pointing01") public val `☜(⌒▽⌒)☞`: Kaomoji by auto()
-    @JsName("pointing02") public val `☜(ﾟヮﾟ☜)`: Kaomoji by auto()
-    @JsName("pointing03") public val `☜-(ΘLΘ)-☞`: Kaomoji by auto()
+    @JsName("pointing01") public val `☜（⌒▽⌒）☞`: Kaomoji by auto("☜(⌒▽⌒)☞")
+    @JsName("pointing02") public val `☜（ﾟヮﾟ☜）`: Kaomoji by auto("☜(ﾟヮﾟ☜)")
+    @JsName("pointing03") public val `☜-（ΘLΘ）-☞`: Kaomoji by auto("☜-(ΘLΘ)-☞")
 }

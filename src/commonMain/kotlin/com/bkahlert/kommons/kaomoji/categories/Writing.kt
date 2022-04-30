@@ -15,5 +15,5 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Writing : Category() {
-    @JsName("writing00") public val `( ￣ー￣)φ__`: Kaomoji by auto()
+    @JsName("writing00") public val `（ ￣ー￣）φ__`: Kaomoji by auto("( ￣ー￣)φ__")
 }

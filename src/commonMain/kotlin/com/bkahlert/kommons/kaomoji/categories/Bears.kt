@@ -77,12 +77,12 @@ public object Bears : Category() {
     /**
      * `(๏㉨๏)`
      */
-    @JsName("bears11") public val `(๏㉨๏)`: Kaomoji by auto()
+    @JsName("bears11") public val `（๏㉨๏）`: Kaomoji by auto()
 
     /**
      * `(ó㉨ò)`
      */
-    @JsName("bears12") public val `(ó㉨ò)`: Kaomoji by auto()
+    @JsName("bears12") public val `（ó㉨ò）`: Kaomoji by auto()
 
     /**
      * `ʢᵕᴗᵕʡ`
@@ -117,7 +117,7 @@ public object Bears : Category() {
     /**
      * `(✪㉨✪)`
      */
-    @JsName("bears19") public val `(✪㉨✪)`: Kaomoji by auto()
+    @JsName("bears19") public val `（✪㉨✪）`: Kaomoji by auto()
 
     /**
      * `ʕ∙ჲ∙ʔ`
@@ -132,7 +132,7 @@ public object Bears : Category() {
     /**
      * `(◉㉨◉)`
      */
-    @JsName("bears22") public val `(◉㉨◉)`: Kaomoji by auto("[｡◉㉨◉]")
+    @JsName("bears22") public val `（◉㉨◉）`: Kaomoji by auto("[｡◉㉨◉]")
 
     /**
      * `ʕº̫͡ºʔ`
@@ -147,7 +147,7 @@ public object Bears : Category() {
     /**
      * `ʕ*̫͡*ʔ`
      */
-    @JsName("bears25") public val `ʕ*̫͡*ʔ`: Kaomoji by auto()
+    @JsName("bears25") public val `ʕ＊̫͡＊ʔ`: Kaomoji by auto("ʕ*̫͡*ʔ")
 
     /**
      * `ʕ•̮͡•ʔ`
@@ -167,5 +167,5 @@ public object Bears : Category() {
     /**
      * `|ｴ)･)⊃`
      */
-    @JsName("bears29") public val `|ｴ)･)⊃`: Kaomoji by auto()
+    @JsName("bears29") public val `￨ｴ）･）⊃`: Kaomoji by auto()
 }
