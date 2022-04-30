@@ -76,13 +76,13 @@ public enum class Boxes(private var render: (String) -> String) {
         val paddedText = text.center(Unicode.NBSP, fillCount)
         val fill = ' '.repeat((paddedText.maxLength() - fillCount).coerceAtLeast(0))
 
-        StringBuilder().apply {
-            append("${sphericalLeft}$fill${sphericalRight}$LF")
+        buildString {
+            append("${SphericalLeft}$fill${SphericalRight}$LF")
             paddedText.lineSequence().joinToString(separator = "") {
-                append("${sphericalMiddleLeft}$it${sphericalMiddleRight}$LF")
+                append("${SphericalMiddleLeft}$it${SphericalMiddleRight}$LF")
             }
-            append("${sphericalLeft}$fill${sphericalRight}")
-        }.toString()
+            append("${SphericalLeft}$fill${SphericalRight}")
+        }
     }),
 
     /**
@@ -120,10 +120,6 @@ public enum class Boxes(private var render: (String) -> String) {
     ;
 
     public companion object {
-        private const val sphericalLeft = """  █ ▉▕▊▕▋▕▌▕▍▕▎▕▏ ▏  ▏ """
-        private const val sphericalRight = """ ▕  ▕  ▏▕▎▕▍▕▌▕▋▕▊▕▉ █"""
-        private const val sphericalMiddleLeft = """█ ▉ ▊ ▋ ▌ ▍ ▎ ▏ """
-        private const val sphericalMiddleRight = """  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █"""
 
         /**
          * Centers this [CharSequence] and puts a styled [box] (see [Boxes]) around it.
@@ -137,3 +133,8 @@ public enum class Boxes(private var render: (String) -> String) {
 
     override fun toString(): String = render(name)
 }
+
+private const val SphericalLeft = """  █ ▉▕▊▕▋▕▌▕▍▕▎▕▏ ▏  ▏ """
+private const val SphericalRight = """ ▕  ▕  ▏▕▎▕▍▕▌▕▋▕▊▕▉ █"""
+private const val SphericalMiddleLeft = """█ ▉ ▊ ▋ ▌ ▍ ▎ ▏ """
+private const val SphericalMiddleRight = """  ▏ ▎ ▍ ▌ ▋ ▊ ▉ █"""

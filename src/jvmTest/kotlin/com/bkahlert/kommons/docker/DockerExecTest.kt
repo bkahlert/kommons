@@ -27,6 +27,7 @@ import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.times
 import com.bkahlert.kommons.unit.milli
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import strikt.api.expectThat
@@ -40,6 +41,7 @@ import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
+@Tag("xxx")
 class DockerExecTest {
 
     @DockerRequiring([BusyBox::class]) @Test

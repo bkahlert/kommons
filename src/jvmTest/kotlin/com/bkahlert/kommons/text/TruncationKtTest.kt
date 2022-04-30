@@ -3,11 +3,13 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.testEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
+@Tag("xxx")
 class TruncationKtTest {
 
     private val longText = "1234567890".repeat(1000)

@@ -178,7 +178,7 @@ public class DockerContainer(public val name: String) {
                         Dead::class.simpleName -> Dead(status)
                         else -> Error(-1, "Unknown status $state: $status")
                     }
-                }.map { singleOrNull() ?: NotExistent } or { error(it) }
+                }.map { it.singleOrNull() ?: NotExistent } or { error(it) }
 
         /**
          * Lists locally available instances this containers.

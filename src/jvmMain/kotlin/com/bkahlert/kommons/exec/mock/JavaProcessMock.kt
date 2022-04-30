@@ -13,6 +13,7 @@ import java.io.InputStream.nullInputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import java.lang.Process as JavaProcess
 
 /**
@@ -55,7 +56,7 @@ public open class JavaProcessMock(
 
     override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
         val start = System.currentTimeMillis()
-        val waitAtMost = Duration.milliseconds(unit.toMillis(timeout))
+        val waitAtMost = unit.toMillis(timeout).milliseconds
         while (isAlive && Now.passedSince(start) < waitAtMost) {
             busyWait()
         }

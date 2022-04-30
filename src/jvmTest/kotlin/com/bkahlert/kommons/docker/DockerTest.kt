@@ -6,6 +6,7 @@ import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -16,6 +17,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 
+@Tag("xxx")
 class DockerTest {
 
     @Nested

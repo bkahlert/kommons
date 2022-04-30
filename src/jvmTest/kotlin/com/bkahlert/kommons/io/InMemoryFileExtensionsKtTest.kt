@@ -10,6 +10,7 @@ import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.containsAnsi
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.assertions.endsWith
@@ -23,6 +24,7 @@ import strikt.java.fileName
 import strikt.java.parent
 import kotlin.io.path.createDirectory
 
+@Tag("xxx")
 class InMemoryFileExtensionsKtTest {
 
     @Test

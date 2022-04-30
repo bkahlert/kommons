@@ -8,7 +8,6 @@ import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.isSingleLine
 import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.toUpperCase
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout.Companion.columns
@@ -50,7 +49,7 @@ class OneLineRendererTest {
             OneLineRenderer(Settings(
                 style = style,
                 layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
-                contentFormatter = { it.toString().toUpperCase().ansi.random },
+                contentFormatter = { it.toString().uppercase().ansi.random },
                 decorationFormatter = { it.ansi.brightRed },
                 returnValueTransform = { it },
                 printer = printer,

@@ -73,7 +73,7 @@ class TestTelemetry : TestExecutionListener {
     companion object {
 
         /** Whether [TestTelemetry] is enabled. */
-        const val ENABLED: Boolean = true
+        const val ENABLED: Boolean = false
 
         /** Whether span should be checked if they were only created by [TestSpanScope] / [TestSpanParameterResolver]. */
         const val TEST_SPAN_CHECK_ENABLED: Boolean = true

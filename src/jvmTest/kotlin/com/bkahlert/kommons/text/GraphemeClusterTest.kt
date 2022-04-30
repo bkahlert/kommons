@@ -5,6 +5,7 @@ import com.bkahlert.kommons.text.LineSeparators.CR
 import com.bkahlert.kommons.text.LineSeparators.CRLF
 import com.bkahlert.kommons.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
 import strikt.assertions.first
@@ -14,6 +15,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.last
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
+@Tag("xxx")
 class GraphemeClusterTest {
 
     @Nested

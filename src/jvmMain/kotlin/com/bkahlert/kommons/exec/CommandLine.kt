@@ -13,6 +13,12 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandline
 
+/*
+exact syntax: https://unix.stackexchange.com/questions/22111/difference-between-and-with-dev-tty
+TODO: consider adding env and redirections
+A=foo 2>/dev/null B=bar cmd arg1 arg2 >file 3>&4 arg3
+Here, parameters 2>/dev/null, >file and 3>&4 are special parameters (containing an unescaped >¹), they are used to establish io-redirections, and can appear anywhere in the command line. Filedesciptor 2 is redirected to /dev/null, filedescriptor 1 (implicit) is redirected to file and filedescriptor 3 is redirected to what filedescriptor 4 was linked to.
+*/
 /**
  * A command as it can be run in a shell.
  */

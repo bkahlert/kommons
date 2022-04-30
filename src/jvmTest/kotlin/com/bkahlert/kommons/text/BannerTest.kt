@@ -11,7 +11,7 @@ import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 class BannerTest {
 
     private val rainbow =
-        "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m"
+        "$e[90;40m▒$e[39;49m$e[96;46m▒$e[39;49m$e[94;44m▒$e[39;49m$e[92;42m▒$e[39;49m$e[93;43m▒$e[39;49m$e[95;45m▒$e[39;49m$e[91;41m▒$e[39;49m"
 
     @Test
     fun `should format HandyKommons`() {

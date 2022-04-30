@@ -15,7 +15,7 @@ import com.bkahlert.kommons.http
 import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.hasContent
-import com.bkahlert.kommons.io.path.isInside
+import com.bkahlert.kommons.io.path.isSubPathOf
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.randomFile
 import com.bkahlert.kommons.io.path.writeBytes
@@ -40,6 +40,7 @@ import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -68,6 +69,7 @@ import kotlin.io.path.inputStream
 import kotlin.time.measureTime
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
+@Tag("xxx")
 class ShellScriptTest {
 
     private fun shellScript(name: String? = "Test") = ShellScript(name) {
@@ -132,7 +134,7 @@ class ShellScriptTest {
         fun `should use name for filename`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = shellScript("my script").toFile()
             expectThat(file)
-                .isInside(Locations.temp)
+                .isSubPathOf(Locations.temp)
                 .fileName.pathString.startsWith("my-script")
         }
 
@@ -237,14 +239,14 @@ class ShellScriptTest {
     @Nested
     inner class Name {
 
-        private val testBanner = "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m" +
-            "$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░" +
-            "$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m " +
+        private val testBanner = "$e[90;40m▒$e[39;49m$e[96;46m▒$e[39;49m" +
+            "$e[94;44m▒$e[39;49m$e[92;42m▒$e[39;49m$e[93;43m▒" +
+            "$e[39;49m$e[95;45m▒$e[39;49m$e[91;41m▒$e[39;49m " +
             "$e[96mTEST$e[39m"
 
-        private val differentBanner = "$e[90;40m░$e[39;49m$e[96;46m░$e[39;49m" +
-            "$e[94;44m░$e[39;49m$e[92;42m░$e[39;49m$e[93;43m░" +
-            "$e[39;49m$e[95;45m░$e[39;49m$e[91;41m░$e[39;49m " +
+        private val differentBanner = "$e[90;40m▒$e[39;49m$e[96;46m▒$e[39;49m" +
+            "$e[94;44m▒$e[39;49m$e[92;42m▒$e[39;49m$e[93;43m▒" +
+            "$e[39;49m$e[95;45m▒$e[39;49m$e[91;41m▒$e[39;49m " +
             "$e[96mDIFFERENT$e[39m"
 
         @Test
@@ -631,7 +633,7 @@ class ShellScriptTest {
                     that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
                         .matchesCurlyPattern("""
                         about to run embedded script
-                        ░░░░░░░ EMBEDDED SCRIPT 📝
+                        ▒▒▒▒▒▒▒ EMBEDDED SCRIPT 📝
                         finished to run embedded script
                         $pathString
                     """.trimIndent())

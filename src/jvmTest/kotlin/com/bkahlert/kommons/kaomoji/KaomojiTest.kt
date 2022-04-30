@@ -10,6 +10,7 @@ import com.bkahlert.kommons.text.columns
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Isolated
@@ -101,6 +102,7 @@ class KaomojiTest {
             }
         }
 
+        @Tag("xxx")
         @AnsiRequiring @Test
         fun `should render ANSI`() {
             expecting {

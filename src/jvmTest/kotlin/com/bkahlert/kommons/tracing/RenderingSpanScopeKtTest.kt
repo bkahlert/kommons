@@ -17,6 +17,7 @@ import com.bkahlert.kommons.tracing.rendering.ReturnValue
 import com.bkahlert.kommons.tracing.rendering.Styles
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
@@ -25,6 +26,7 @@ import strikt.assertions.first
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
+@Tag("xxx")
 @Isolated
 @SystemIOExclusive
 @NoTestSpan

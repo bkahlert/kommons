@@ -50,7 +50,7 @@ public fun CharSequence?.toBaseName(minLength: Int = 8): String {
 
     return sanitized
         .idempotentFillUp(minLength)
-        .run { if (decapitalize) decapitalize().toString() else toString() }
+        .run { if (decapitalize) toString().decapitalize() else toString() }
 }
 
 private fun CharSequence.idempotentFillUp(target: Int): CharSequence {

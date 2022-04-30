@@ -10,7 +10,7 @@ import com.bkahlert.kommons.math.toAtMostDecimalsString
 import com.bkahlert.kommons.math.toExactDecimalsString
 import com.bkahlert.kommons.math.toScientificString
 import com.bkahlert.kommons.regex.groupValue
-import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.joinLinesToString
 import java.util.concurrent.locks.ReentrantLock
@@ -49,7 +49,7 @@ public val <T : Thread> T.trace: Thread
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun <T : Thread> T.trace(description: CharSequence? = null, transform: (T.() -> Any)? = null): T =
-    xray(description, { highlightedName }, transform).print()
+    also { println(xray(description, { highlightedName }, transform)) }
 
 /**
  * Helper property that supports
@@ -69,7 +69,11 @@ public val Array<StackTraceElement>.trace: Array<StackTraceElement>
 public fun Array<StackTraceElement>.trace(
     description: CharSequence? = null,
     transform: (Array<StackTraceElement>.() -> Any)? = null,
-): Array<StackTraceElement> = xray(description, { joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF) { it.highlightedMethod } }, transform).print()
+): Array<StackTraceElement> = also {
+    println(xray(description,
+        { joinToString("${LineSeparators.LF}\t${"at".formattedAs.debug} ", postfix = LineSeparators.LF) { it.highlightedMethod } },
+        transform))
+}
 
 /**
  * Helper property that supports

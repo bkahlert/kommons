@@ -112,7 +112,7 @@ public fun addShutDownHook(thread: Thread): Thread =
     thread.also { Runtime.getRuntime().addShutdownHook(it) }
 
 /**
- * Unregisters the given [thread] from the the virtual-machine shutdown hooks.
+ * Unregisters the given [thread] from the virtual-machine shutdown hooks.
  */
 public fun removeShutdownHook(thread: Thread): Any =
     runCatching { Runtime.getRuntime().removeShutdownHook(thread) }.onFailure {

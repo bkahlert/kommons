@@ -266,17 +266,17 @@ class TestPrinter : Printer {
 
         private val formatter = Formatter<CharSequence> { it.ansi.color(Colors.gray(.45)) }
         val CharSequence.meta: CharSequence get() = formatter.invoke(this)
-        val headerLine = StringBuilder().apply {
+        val headerLine = buildString {
             append("─".repeat((COLUMNS floorDiv 2) + 1))
             append("┬".repeat(1))
             append("─".repeat(COLUMNS + 1))
         }.meta
-        val footerLine = StringBuilder().apply {
+        val footerLine = buildString {
             append("─".repeat((COLUMNS floorDiv 2) + 1))
             append("┴".repeat(1))
             append("─".repeat(COLUMNS + 1))
         }.meta
-        val resultPrefix = StringBuilder().apply {
+        val resultPrefix = buildString {
             append(" ".repeat(31))
             append(" ".repeat(2))
         }.meta

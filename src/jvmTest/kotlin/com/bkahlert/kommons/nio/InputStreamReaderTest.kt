@@ -95,7 +95,7 @@ class InputStreamReaderTest {
         private val size = 1.Mebi.bytes
         private val input = HtmlFixture.text
         private val expected: String =
-            StringBuilder().apply { (size / input.length).wholeBytes.toInt() * { append(input);append(LineSeparators.LF) } }.toString()
+            buildString { (size / input.length).wholeBytes.toInt() * { append(input);append(LineSeparators.LF) } }
 
         @Test
         fun `should quickly read`(uniqueId: UniqueId) = withTempDir(uniqueId) {

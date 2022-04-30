@@ -23,7 +23,7 @@ private fun Path.contains(other: Path): Boolean =
         map { it.pathString }.windowed(otherStrings.size).contains(otherStrings)
     }
 
-class FilePeek2(
+class FilePeekMPP(
     private val stackTraceElement: StackTraceElement,
     private val classesToSourceMappings: List<Path> = listOf(
         Path.of("out", "classes"), // IDEA
@@ -34,7 +34,7 @@ class FilePeek2(
 
     private val classLoader = javaClass.classLoader
 
-    fun getCallerFileInfo(): FileInfo {
+    fun getCallerFileInfo(): FileInfo? {
 
         val classesDirectory: Path = stackTraceElement.run {
             val baseClassName = className.substringBefore('$')
@@ -48,14 +48,20 @@ class FilePeek2(
             val suffix = Path.of(last())
             val lang = suffix.head.pathString
             val sourceDir = suffix.map { it.pathString }.tail.joinToCamelCase()
-            sourceRoot.resolve(sourceDir).resolve(lang)
+            sourceRoot
+                .resolve(sourceDir).takeIf { it.exists() }
+                ?.resolve(lang)?.takeIf { it.exists() }
+                ?: return null
         }
 
         val pkg = stackTraceElement.className.split(".").dropLast(1)
         val fileName = stackTraceElement.fileName ?: error("Unknown filename in $stackTraceElement")
         val fileNames: List<String> = listOf(fileName, fileName.removeSuffix(".kt").withSuffix("Kt.kt"))
         val sourceFileDir = sourceDir.resolve(Path.of(pkg.head, *pkg.tail.toTypedArray()))
-        val sourceFile: Path = fileNames.map { sourceFileDir.resolve(it) }.single { it.exists() }
+        val sourceFile: Path = fileNames
+            .map { sourceFileDir.resolve(it) }
+            .firstOrNull { it.exists() }
+            ?: return null
 
         val (lines, lineNumber) = sourceFile.readLines().let { lines ->
             if (stackTraceElement.lineNumber < lines.size) {

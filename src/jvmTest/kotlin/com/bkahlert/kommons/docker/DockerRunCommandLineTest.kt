@@ -40,6 +40,7 @@ import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.TeePrinter
 import com.bkahlert.kommons.tracing.rendering.capturing
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -55,6 +56,7 @@ import strikt.assertions.isTrue
 import java.nio.file.Path
 import kotlin.time.measureTime
 
+@Tag("xxx")
 @Slow
 class DockerRunCommandLineTest {
 

@@ -14,7 +14,7 @@ class IPAddressTest {
     inner class Parse {
 
         @Test
-        fun name() {
+        fun parse() {
             val ip4 = ip4Of("192.168.16.25")
             val ip6: IPv6Address = ip4.toIPv6Address()
             val range: IPv6Range = ip6.."::ffff:c0a8:1028".toIPv6() // ::ffff:c0a8:1019..::ffff:c0a8:1028

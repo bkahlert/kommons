@@ -96,7 +96,7 @@ public object Docker {
                         } else {
                             null
                         }
-                    }.map { singleOrNull() } or { null }
+                    }.map { it.singleOrNull() } or { null }
             }
 
         private fun String.unify() = lowercase(Locale.getDefault()).split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()

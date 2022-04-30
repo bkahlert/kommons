@@ -109,7 +109,7 @@ public data class Executor<E : Exec>(
             renderer = { default ->
                 renderer(copy(
                     nameFormatter = {
-                        val replacedSpanName = StringBuilder().apply {
+                        val replacedSpanName = buildString {
                             executable.name?.also { append("$it: ") }
                             val contentLines = executable.content.lines()
                             if ((contentLines.size <= 1) && (contentLines.all { it.columns <= 60 })) {

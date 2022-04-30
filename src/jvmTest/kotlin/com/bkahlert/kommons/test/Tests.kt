@@ -36,6 +36,7 @@ import com.bkahlert.kommons.text.wrap
 import com.bkahlert.kommons.toBaseName
 import com.bkahlert.kommons.toSimpleString
 import com.bkahlert.kommons.tracing.rendering.SLF4J
+import filepeek.FilePeekMPP
 import filepeek.LambdaBody
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -51,7 +53,6 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
 import org.junit.jupiter.api.extension.ExtensionContext.Store
 import strikt.api.Assertion.Builder
-import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -72,7 +73,6 @@ import kotlin.reflect.KProperty
 import kotlin.streams.asSequence
 import kotlin.streams.asStream
 import kotlin.system.exitProcess
-import filepeek.FilePeek2 as FilePeek
 
 /**
  * Workaround annotation for
@@ -239,17 +239,17 @@ object Tester {
         }
     }
 
-    val callerSource: URI
+    val callerSource: URI?
         get() = findCaller().let {
-            FilePeek(it.stackTraceElement).getCallerFileInfo().run {
+            FilePeekMPP(it.stackTraceElement).getCallerFileInfo()?.run {
                 val sourceFile = sourceFileName.asPath()
                 val columnNumber = sourceFile.findMethodCallColumn(lineNumber, it.function)
                 sourceFile.asSourceUri(lineNumber, columnNumber)
             }
         }
 
-    val CallStackElement.callerSource: URI
-        get() = FilePeek(stackTraceElement).getCallerFileInfo().run {
+    val CallStackElement.callerSource: URI?
+        get() = FilePeekMPP(stackTraceElement).getCallerFileInfo()?.run {
             val sourceFile = sourceFileName.asPath()
             val columnNumber = sourceFile.findMethodCallColumn(lineNumber, function)
             sourceFile.asSourceUri(lineNumber, columnNumber)
@@ -272,7 +272,7 @@ object Tester {
         callStackElement: CallStackElement,
         explicitMethodName: String? = null,
     ) = kotlin.runCatching {
-        val line = FilePeek(callStackElement.stackTraceElement).getCallerFileInfo().line
+        val line = FilePeekMPP(callStackElement.stackTraceElement).getCallerFileInfo()?.line ?: return null
         if (explicitMethodName != null) {
             line.takeIf { it.contains(explicitMethodName) }?.let {
                 LambdaBody(explicitMethodName, it).body.trim().truncate(40, " … ")
@@ -289,7 +289,7 @@ object Tester {
     @Suppress("DEPRECATION")
     fun findCaller(): CallStackElement {
         if (isDebugging) {
-            "FINDING CALLER".trace
+            "FINDING CALLER".trace()
             currentStackTrace.trace
         }
         return getCaller {
@@ -306,9 +306,9 @@ object Tester {
         ?: error("unknown name")
 }
 
-class IllegalUsageException(function: String, caller: URI) : IllegalArgumentException(
+class IllegalUsageException(function: String, caller: URI?) : IllegalArgumentException(
     "$function { … } call was not finished with ${"that { … }".formattedAs.input}".let {
-        caller.let { uri -> "$it at " + uri.path + ":" + uri.query.takeLastWhile { it.isDigit() } }
+        caller?.let { uri -> "$it at " + uri.path + ":" + uri.query.takeLastWhile { it.isDigit() } } ?: it
     }
 )
 
@@ -420,9 +420,9 @@ inline val <reified T : Any> Builder<T>.actual: T
 fun <T> Builder<out Iterable<T>>.hasElements(vararg assertions: Builder<T>.() -> Unit): Builder<out Iterable<T>> =
     compose("fulfills ${assertions.size}") {
         val elements = it.toList()
-        expectThat(elements).size.isGreaterThanOrEqualTo(assertions.size)
+        strikt.api.expectThat(elements).size.isGreaterThanOrEqualTo(assertions.size)
         elements.zip(assertions).forEach { (element, assertion) ->
-            expectThat(element, assertion)
+            strikt.api.expectThat(element, assertion)
         }
     } then {
         if (allPassed) pass() else fail()
@@ -444,11 +444,10 @@ class IllegalUsageCheck : AfterEachCallback {
 
     override fun afterEach(context: ExtensionContext) {
         val id = context.id
-        illegalUsages[id]?.also { illegalUsage ->
-            if (!context.illegalUsageExpected) {
-                throw illegalUsage
-            }
-        } ?: if (context.illegalUsageExpected) {
+        val illegalUsage = illegalUsages[id]
+        if (illegalUsage != null) {
+            if (!context.illegalUsageExpected) throw illegalUsage
+        } else if (context.illegalUsageExpected) {
             error("${IllegalUsageException::class} expected but not thrown.")
         }
     }
@@ -993,6 +992,7 @@ fun DynamicTest.execute() {
     executable.execute()
 }
 
+@Tag("xxx")
 @Smoke
 class TesterTest {
 

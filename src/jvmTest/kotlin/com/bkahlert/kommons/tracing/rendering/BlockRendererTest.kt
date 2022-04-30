@@ -16,7 +16,6 @@ import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.TextWidthRequiring
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.toUpperCase
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.NOOP
@@ -126,7 +125,7 @@ class BlockRendererTest {
             BlockRenderer(Settings(
                 style = style,
                 layout = ColumnsLayout(DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
-                contentFormatter = { it.toString().toUpperCase().ansi.random },
+                contentFormatter = { it.toString().uppercase().ansi.random },
                 decorationFormatter = { it.ansi.brightRed },
                 returnValueTransform = { it },
                 printer = printer,

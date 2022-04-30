@@ -3,19 +3,13 @@ name: Publish package to the Maven Central and GitHub Packages
 on:
   release:
     types: ['published']
-# TODO new pipeline that triggers on new tag, see RELEASING.md
-#  push:
-#    branches: ['master']
-#    tags: ['v*']
-#    paths-ignore: ['**.md']
-#  pull_request:
-#    branches: ['master']
-#    tags: ['dependencies']
-#    paths-ignore: ['**.md']
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout
@@ -26,7 +20,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-          cache: gradle
 
       - name: Publish
         uses: gradle/gradle-build-action@v1
@@ -41,3 +34,13 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add artifacts to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          draft: false
+          body_path: CHANGELOG.md
+          files: build/libs
+          token: ${{ secrets.GITHUB_TOKEN }}
+# TODO close and promote on https://oss.sonatype.org/#welcome

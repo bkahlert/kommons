@@ -18,6 +18,7 @@ import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.TestSpanScope
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
@@ -38,6 +39,7 @@ import strikt.assertions.length
 import java.nio.file.Path
 import kotlin.time.measureTime
 
+@Tag("xxx")
 @Execution(CONCURRENT)
 class DockerContainerTest {
 

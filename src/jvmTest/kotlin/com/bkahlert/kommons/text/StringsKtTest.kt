@@ -34,7 +34,7 @@ class StringsKtTest {
     }
 
     @Nested
-    inner class RandomKtTest {
+    inner class RandomTest {
 
         @Test
         fun `should have 16 length by default`() {
@@ -69,7 +69,7 @@ class StringsKtTest {
     }
 
     @Nested
-    inner class WithRandomSuffixKtTest {
+    inner class WithRandomSuffixTest {
 
         @TestFactory
         fun `should add 4 random characters`() = testEach("the-string", "four-char") {
@@ -90,7 +90,7 @@ class StringsKtTest {
     }
 
     @Nested
-    inner class WithPrefixKtTest {
+    inner class WithPrefixTest {
 
         @Suppress("SpellCheckingInspection")
         @Test
@@ -112,7 +112,7 @@ class StringsKtTest {
     }
 
     @Nested
-    inner class WithSuffixKtTest {
+    inner class WithSuffixTest {
 
         @Test
         fun `should append suffix if missing`() {

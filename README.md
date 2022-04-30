@@ -4,8 +4,11 @@
 
 <!-- C21E73 -->
 
-**Kommons is a Kotlin Multiplatform Library, with a minimal set of dependencies, allowing you to run Command Lines and Shell Scripts, locally or in a Docker
-Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, and Unicode-related features.**
+## About
+
+**Kommons** is a Kotlin Multiplatform Library, with a minimal set of dependencies, allowing you to run Command Lines and Shell Scripts, locally or in a Docker
+Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, and Unicode-related features.
+
 
 ## Installation / Setup
 

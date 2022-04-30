@@ -69,7 +69,7 @@ public interface Style {
     ): CharSequence?
 
     public fun buildString(block: StringBuilder.() -> Unit): CharSequence? =
-        StringBuilder().apply(block).takeUnlessEmpty()
+        kotlin.text.buildString(block).takeUnlessEmpty()
 
     public fun StringBuilder.append(vararg text: CharSequence?): StringBuilder =
         apply { text.forEach { if (it != null) append(it) } }

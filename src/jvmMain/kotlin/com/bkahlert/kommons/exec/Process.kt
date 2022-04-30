@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Platform independent representation of a running program.
@@ -223,7 +224,7 @@ public interface Process {
         /**
          * [Duration] the process took to execute.
          */
-        public val runtime: Duration get() = Duration.milliseconds(end.toEpochMilli() - start.toEpochMilli())
+        public val runtime: Duration get() = (end.toEpochMilli() - start.toEpochMilli()).milliseconds
 
         /**
          * Exit code the process terminated with.

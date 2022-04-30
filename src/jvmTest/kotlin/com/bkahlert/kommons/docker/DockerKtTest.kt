@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-
 import com.bkahlert.kommons.docker.Docker.AwesomeCliBinaries
 import com.bkahlert.kommons.docker.Docker.LibRSvg
 import com.bkahlert.kommons.docker.TestImages.BusyBox
@@ -23,6 +22,7 @@ import com.bkahlert.kommons.text.containsAnsi
 import com.bkahlert.kommons.unit.bytes
 import com.bkahlert.kommons.unit.hasSize
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
@@ -34,6 +34,7 @@ import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
 
+@Tag("xxx")
 class DockerKtTest {
 
     /**

@@ -10,6 +10,7 @@ import com.bkahlert.kommons.text.Semantics.formattedAs
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
@@ -22,6 +23,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.matches
 
+@Tag("xxx")
 class RegularExpressionsTest {
 
     @Nested
@@ -41,7 +43,7 @@ class RegularExpressionsTest {
 
             @TestFactory
             fun `should return false if not all is grouped`() = testEach(
-                "a()",
+                "^[0-9]*a()$",
                 "()b"
             ) {
                 expecting { Regex(this).isGrouped } that { isFalse() }

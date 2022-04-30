@@ -8,6 +8,7 @@ import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.tracing.TestSpanScope
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
@@ -19,6 +20,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
+@Tag("xxx")
 @Execution(CONCURRENT)
 class DockerImageTest {
 

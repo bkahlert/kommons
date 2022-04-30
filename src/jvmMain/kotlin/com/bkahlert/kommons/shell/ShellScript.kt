@@ -136,16 +136,16 @@ public open class ShellScript(
     public fun toString(echoName: Boolean, name: CharSequence? = this.name): String =
         if (echoName && name != null) {
             if (hasShebang) {
-                StringBuilder().apply {
+                buildString {
                     appendLine(lines.first())
                     appendLine("echo '${banner(name)}'")
                     lines.drop(1).forEach { appendLine(it) }
-                }.toString()
+                }
             } else {
-                StringBuilder().apply {
+                buildString {
                     appendLine("echo '${banner(name)}'")
                     lines.forEach { appendLine(it) }
-                }.toString()
+                }
             }
         } else {
             content + LF
@@ -307,15 +307,18 @@ public open class ShellScript(
             require(interval >= 1.seconds) { "interval must be greater or equal to 1 second" }
             require(attemptTimeout >= 1.seconds) { "attempt timeout must be greater or equal to 1 second" }
             require(timeout >= 1.seconds) { "timeout must be greater or equal to 1 second" }
-            return command("timeout", "${timeout.inWholeSeconds}s", "sh", "-c", StringBuilder().apply {
-                appendLine("while true; do")
-                if (verbose) appendLine("    echo 'Polling $uri...'")
-                append("    1>/dev/null curl --silent --fail --location --max-time ${attemptTimeout.inWholeSeconds} '$uri'")
-                if (verbose) append("&& echo 'Polled $uri successfully.'")
-                appendLine(" && break")
-                appendLine("    sleep ${interval.inWholeSeconds}")
-                appendLine("done")
-            }.toString())
+            return command(
+                "timeout", "${timeout.inWholeSeconds}s", "sh", "-c",
+                buildString {
+                    appendLine("while true; do")
+                    if (verbose) appendLine("    echo 'Polling $uri...'")
+                    append("    1>/dev/null curl --silent --fail --location --max-time ${attemptTimeout.inWholeSeconds} '$uri'")
+                    if (verbose) append("&& echo 'Polled $uri successfully.'")
+                    appendLine(" && break")
+                    appendLine("    sleep ${interval.inWholeSeconds}")
+                    appendLine("done")
+                }.toString(),
+            )
         }
 
         /**

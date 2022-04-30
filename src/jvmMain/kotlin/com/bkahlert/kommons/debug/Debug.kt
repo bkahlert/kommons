@@ -12,7 +12,7 @@ import com.bkahlert.kommons.toSimpleString
 import java.util.Locale
 
 public val <T> XRay<T>.debug: XRay<T>
-    get() = transform { debug }
+    get() = transform { it.debug }
 
 public inline val CharSequence?.debug: String
     get() = if (this == null) null.wrap(INTROSPECTION.map { it.formattedAs.debug })
@@ -27,11 +27,11 @@ public inline val Char?.debug: String get() = this.toString().replaceNonPrintabl
  */
 public inline val Byte?.debug: String
     get() = this?.let { byte: Byte ->
-        StringBuilder().apply {
+        buildString {
             append("0x".formattedAs.debug)
             append(String.format("%02x", byte).uppercase(Locale.getDefault()))
             append(byte.asCodePoint().string.replaceNonPrintableCharacters().formattedAs.input)
-        }.toString()
+        }
     }.let { it.wrap(INTROSPECTION.first.formattedAs.debug, INTROSPECTION.second.formattedAs.debug) }
 public val Array<*>?.debug: String
     get() = this?.joinToString(",") {

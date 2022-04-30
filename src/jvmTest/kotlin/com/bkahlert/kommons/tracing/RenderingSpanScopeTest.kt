@@ -24,6 +24,7 @@ import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes
 import com.bkahlert.kommons.tracing.rendering.Settings
 import com.bkahlert.kommons.unit.nano
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -35,6 +36,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
 import kotlin.time.Duration
 
+@Tag("xxx")
 @NoTestSpan
 class RenderingSpanScopeTest {
 

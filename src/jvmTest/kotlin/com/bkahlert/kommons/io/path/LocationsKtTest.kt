@@ -52,31 +52,31 @@ class LocationsKtTest {
     }
 
     @Nested
-    inner class IsInside {
+    inner class IsSubPathOf {
 
         @Test
         fun `should return true if child`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(resolve("child")).isInside(this)
+            expectThat(resolve("child")).isSubPathOf(this)
         }
 
         @Test
         fun `should return true if descendent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(resolve("child1/child2")).isInside(this)
+            expectThat(resolve("child1/child2")).isSubPathOf(this)
         }
 
         @Test
         fun `should return true if path is obscure`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(resolve("child1/../child2")).isInside(this)
+            expectThat(resolve("child1/../child2")).isSubPathOf(this)
         }
 
         @Test
         fun `should return true if same`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(this).isInside(this)
+            expectThat(this).isSubPathOf(this)
         }
 
         @Test
         fun `should return false if not inside`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(Locations.home).not { isInside(this@withTempDir) }
+            expectThat(Locations.home).not { isSubPathOf(this@withTempDir) }
         }
     }
 
@@ -99,7 +99,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(randomPath()).isInside(this)
+            expectThat(randomPath()).isSubPathOf(this)
         }
 
         @Test
@@ -113,7 +113,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(randomDirectory()).isInside(this)
+            expectThat(randomDirectory()).isSubPathOf(this)
         }
 
         @Test
@@ -132,7 +132,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(randomFile()).isInside(this)
+            expectThat(randomFile()).isSubPathOf(this)
         }
 
         @Test
@@ -151,7 +151,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside temp directory`() {
-            expectThat(tempDir().deleteOnExit()).isInside(Locations.temp)
+            expectThat(tempDir().deleteOnExit()).isSubPathOf(Locations.temp)
         }
 
         @Test
@@ -167,7 +167,7 @@ class LocationsKtTest {
         @Test
         fun `should create directory inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(tempDir())
-                .isInside(this)
+                .isSubPathOf(this)
                 .isDirectory()
                 .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
@@ -176,7 +176,7 @@ class LocationsKtTest {
         fun `should create directory inside non-existent parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val nonExistentParent = randomPath()
             expectThat(nonExistentParent.tempDir())
-                .isInside(nonExistentParent)
+                .isSubPathOf(nonExistentParent)
                 .isDirectory()
                 .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
@@ -187,7 +187,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside temp directory`() {
-            expectThat(tempFile().deleteOnExit()).isInside(Locations.temp)
+            expectThat(tempFile().deleteOnExit()).isSubPathOf(Locations.temp)
         }
 
         @Test
@@ -203,7 +203,7 @@ class LocationsKtTest {
         @Test
         fun `should create file inside receiver path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             expectThat(tempFile())
-                .isInside(this)
+                .isSubPathOf(this)
                 .isRegularFile()
                 .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
@@ -212,7 +212,7 @@ class LocationsKtTest {
         fun `should create file inside non-existent parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val nonExistentParent = randomPath()
             expectThat(nonExistentParent.tempFile())
-                .isInside(nonExistentParent)
+                .isSubPathOf(nonExistentParent)
                 .isRegularFile()
                 .hasPosixPermissions(OWNER_ALL_PERMISSIONS)
         }
@@ -226,7 +226,7 @@ class LocationsKtTest {
             val tempDir: Path = runWithTempDir {
                 expectThat(this) {
                     isDirectory()
-                    isInside(Locations.temp)
+                    isSubPathOf(Locations.temp)
                 }
                 this
             }
@@ -276,9 +276,9 @@ class LocationsKtTest {
     }
 }
 
-fun Builder<Path>.isInside(path: Path): Builder<Path> =
+fun Builder<Path>.isSubPathOf(path: Path): Builder<Path> =
     assert("is inside $path") {
-        when (it.isInside(path)) {
+        when (it.isSubPathOf(path)) {
             true -> pass()
             false -> fail()
         }

@@ -29,6 +29,7 @@ import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.capturing
 import com.bkahlert.kommons.tracing.spanName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -41,6 +42,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
+@Tag("xxx")
 class ExecutorTest {
 
     private val executable = CommandLine("printenv", "TEST_PROP")

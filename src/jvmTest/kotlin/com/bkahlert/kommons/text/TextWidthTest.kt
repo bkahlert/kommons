@@ -10,6 +10,7 @@ import com.bkahlert.kommons.test.tests
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.platform.launcher.TestExecutionListener
@@ -21,6 +22,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 
+@Tag("xxx")
 class TextWidthKtTest {
 
     class AwtInitializer : TestExecutionListener {

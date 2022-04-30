@@ -33,6 +33,7 @@ import com.bkahlert.kommons.tracing.rendering.Styles.Dotted
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
 import com.bkahlert.kommons.tracing.runSpanning
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
@@ -49,15 +50,16 @@ import strikt.java.exists
 import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 
+@Tag("xxx")
 @Smoke @Isolated
 class ExecutionIntegrationTest {
 
     @Test
     fun `should exec command line`() {
 
-        CommandLine("echo", "Hello, World!").exec() check {
+        CommandLine("echo", "Hello World!").exec() check {
 
-            io.output.ansiRemoved { isEqualTo("Hello, World!") }
+            io.output.ansiRemoved { isEqualTo("Hello World!") }
 
             exitCode { isEqualTo(0) }
             successful { isTrue() }

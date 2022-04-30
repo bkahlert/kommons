@@ -4,8 +4,10 @@ import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.runSpanning
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("xxx")
 class OneLineRendererKtTest {
 
     @Nested
