@@ -9,9 +9,6 @@ import kotlin.contracts.contract
 
 /**
  * Builder of an [Enum] [Set] of any enum type [E].
- *
- * @see EnumSetBuilderSamples.directUse
- * @see EnumSetBuilderSamples.indirectUse
  */
 public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext<E>>, Set<E>> {
 
@@ -48,29 +45,4 @@ public open class EnumSetBuilder<E : Enum<E>> : Builder<Init<ListBuildingContext
 public fun <E : Enum<E>> buildEnumSet(@BuilderInference init: Init<ListBuildingContext<E>>): Set<E> {
     contract { callsInPlace(init, EXACTLY_ONCE) }
     return EnumSetBuilder(init)
-}
-
-@Suppress("UNUSED_VARIABLE", "unused")
-private object EnumSetBuilderSamples {
-
-    enum class Features {
-        FeatureA, FeatureB, FeatureC
-    }
-
-    fun directUse() {
-
-        val features = EnumSetBuilder {
-            +Features.FeatureA + Features.FeatureC
-        }
-    }
-
-    fun indirectUse() {
-
-        fun builderAcceptingFunction(init: Init<ListBuildingContext<Features>>) {
-            val enumSet = EnumSetBuilder(init)
-            println("Et voilà, $enumSet")
-        }
-
-        val enumSet = builderAcceptingFunction { +Features.FeatureA + Features.FeatureC }
-    }
 }
