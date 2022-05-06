@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.spaced
@@ -23,9 +22,9 @@ public open class DockerStartCommandLine(
     public val interactive: Boolean = false,
 ) : DockerCommandLine(
     dockerCommand = "start",
-    arguments = buildArray {
-        if (attach) +"--attach"
-        if (interactive) +"--interactive"
+    arguments = buildList {
+        if (attach) add("--attach")
+        if (interactive) add("--interactive")
         addAll(containers)
     },
     name = "Starting ${containers.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}",

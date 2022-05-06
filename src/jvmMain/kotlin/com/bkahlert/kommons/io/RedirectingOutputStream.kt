@@ -18,6 +18,6 @@ public class RedirectingOutputStream(private val redirection: (ByteArray) -> Uni
         write(byteArrayOf((b and 0xFF).toByte()))
 
     override fun toString(): String = asString {
-        ::redirection to redirection
+        put(::redirection, redirection)
     }
 }

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.spaced
@@ -22,8 +21,8 @@ public open class DockerStopCommandLine(
     public val time: Duration?,
 ) : DockerCommandLine(
     dockerCommand = "stop",
-    arguments = buildArray {
-        time?.also { +"--time" + "${time.inWholeSeconds}" }
+    arguments = buildList {
+        time?.also { add("--time"); add("${time.inWholeSeconds}") }
         addAll(containers)
     },
     name = "Stopping ${containers.joinToString(FieldDelimiters.FIELD.spaced) { it.formattedAs.input }}"

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildList
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.exec.CommandLine
@@ -73,9 +72,11 @@ public class DockerRunCommandLine(
 
             val runCommandLine = if (workingDirectory != null) {
                 executable.toCommandLine(environment, workingDirectory) { arg ->
-                    wdFixedOptions.remapPathsInArguments(workingDirectory,
+                    wdFixedOptions.remapPathsInArguments(
+                        workingDirectory,
                         arg,
-                        executable is ShellScript)
+                        executable is ShellScript
+                    )
                 }
             } else {
                 executable.toCommandLine(environment, workingDirectory)
@@ -197,7 +198,7 @@ public class DockerRunCommandLine(
         /**
          * Whether to automatically remove the container when it exits.
          *
-         * By default a container’s file system persists even after the container exits.
+         * By default, a container’s file system persists even after the container exits.
          *
          * @see <a href="https://docs.docker.com/engine/reference/run/#clean-up---rm"
          * >Docker run reference: Clean up (--rm)</a>
@@ -240,16 +241,16 @@ public class DockerRunCommandLine(
         val custom: List<String> = emptyList(),
     ) : List<String> by (buildList {
         detached.takeIf { it }?.also { add("-d") }
-        entryPoint?.also { add("--entrypoint", entryPoint) }
-        name?.also { add("--name", name.name) }
-        publish.forEach { p -> add("-p", p) }
+        entryPoint?.also { add("--entrypoint"); add(entryPoint) }
+        name?.also { add("--name");add(name.name) }
+        publish.forEach { p -> add("-p");add(p) }
         privileged.takeIf { it }?.also { add("--privileged") }
-        workingDirectory?.also { add("--workdir", it.asString()) }
+        workingDirectory?.also { add("--workdir");add(it.asString()) }
         autoCleanup.takeIf { it }?.also { add("--rm") }
         interactive.takeIf { it }?.also { add("--interactive") }
         pseudoTerminal.takeIf { it }?.also { add("--tty") }
-        mounts.addAll { this }
-        custom.forEach { add(it) }
+        addAll(mounts.flatten())
+        addAll(custom)
     }) {
         /**
          * Checks if [hostPath] represents a path accessible by one of the [mounts]

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.leftSpaced
 
@@ -18,7 +17,7 @@ public open class DockerPsCommandLine(
     public vararg val filters: Pair<String, String>,
 ) : DockerCommandLine(
     dockerCommand = "ps",
-    arguments = buildArray {
+    arguments = buildList {
         if (all) add("--all")
         filters.forEach { (key, value) -> add("--filter"); add("$key=$value") }
         add("--no-trunc")

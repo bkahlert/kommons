@@ -84,7 +84,7 @@ public open class SharedPrinter(private val print: (CharSequence) -> Unit) : Pri
         }
 
     override fun toString(): String = asString {
-        ::exclusive to exclusive
+        put(::exclusive, exclusive)
     }
 }
 

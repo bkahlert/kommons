@@ -72,7 +72,7 @@ public class OneLineRenderer(
     }
 
     override fun toString(): String = asString {
-        ::settings to settings
+        put(::settings, settings)
     }
 
     public companion object : RendererFactory {
@@ -84,7 +84,7 @@ public class OneLineRenderer(
 }
 
 /**
- * Creates a new nested span inside of the currently active span,
+ * Creates a new nested span inside the currently active span,
  * and runs [block] with this newly creates span as its [SpanScope] in the receiver.
  *
  * This method behaves like [runSpanning] with one difference:

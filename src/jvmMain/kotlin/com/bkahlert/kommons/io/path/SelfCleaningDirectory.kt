@@ -60,9 +60,9 @@ public data class SelfCleaningDirectory(
     public inline fun cleanUp(): Path = path.cleanUp(keepAge, keepCount, enforceTempContainment)
 
     override fun toString(): String = asString {
-        ::path to path
-        ::keepAge to keepAge
-        ::keepCount to keepCount
+        put(::path, path)
+        put(::keepAge, keepAge)
+        put(::keepCount, keepCount)
     }
 
     /** When cleanup should be done. */

@@ -38,10 +38,10 @@ public open class NonBlockingLineReader(
     }
 
     override fun toString(): String = asString {
-        ::lineBuffer.name to lineBuffer
-        ::lineProcessor.name to lineProcessor
-        ::inputStream.name to inputStream
-        ::outputStream.name to outputStream
+        put(::lineBuffer.name, lineBuffer)
+        put(::lineProcessor.name, lineProcessor)
+        put(::inputStream.name, inputStream)
+        put(::outputStream.name, outputStream)
     }
 
     override fun close() {

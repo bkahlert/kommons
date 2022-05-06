@@ -2,7 +2,6 @@ package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.builder.Builder
 import com.bkahlert.kommons.builder.Init
-import com.bkahlert.kommons.builder.context.ListBuildingContext
 import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.shell.HereDoc.Companion.HereDocContext
 import com.bkahlert.kommons.text.CharRanges
@@ -68,7 +67,7 @@ public class HereDoc(
                 HereDoc(commands.toString(), delimiter = delimiter, substituteParameters = substituteParameters)
             }
 
-        public class HereDocContext(private val commands: StringBuilder) : ListBuildingContext<CharSequence> {
+        public class HereDocContext(private val commands: StringBuilder) {
 
             /**
              * Identifier to delimit this here document from the surrounding text.
@@ -85,7 +84,7 @@ public class HereDoc(
              */
             public var substituteParameters: Boolean = true
 
-            override fun add(element: CharSequence) {
+            public fun add(element: CharSequence) {
                 if (!commands.isEmpty()) commands.appendLine()
                 commands.append(element)
             }

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.leftSpaced
 
@@ -18,7 +17,7 @@ public open class DockerImagePullCommandLine(
     public val allTags: Boolean = false,
 ) : DockerImageCommandLine(
     dockerImageCommand = "pull",
-    dockerImageArguments = buildArray {
+    dockerImageArguments = buildList {
         if (allTags) add("--all-tags")
         add(image.toString())
     },

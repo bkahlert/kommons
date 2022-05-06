@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
 import com.bkahlert.kommons.exec.RendererProviders
 import com.bkahlert.kommons.exec.parse
@@ -34,14 +33,14 @@ public open class DockerSearchCommandLine(
     public val limit: Int? = 25,
 ) : DockerCommandLine(
     dockerCommand = "search",
-    arguments = buildArray {
+    arguments = buildList {
         add("--no-trunc")
         add("--format")
         add("{{.Name}}\t{{.Description}}\t{{.StarCount}}\t{{.IsOfficial}}\t{{.IsAutomated}}")
-        stars?.also { +"--filter" + "stars=$it" }
-        isAutomated?.also { +"--filter" + "is-automated=$it" }
-        isOfficial?.also { +"--filter" + "is-official=$it" }
-        limit.also { +"--limit" + "$limit" }
+        stars?.also { add("--filter"); add("stars=$it") }
+        isAutomated?.also { add("--filter"); add("is-automated=$it") }
+        isOfficial?.also { add("--filter"); add("is-official=$it") }
+        limit.also { add("--limit"); add("$limit") }
         add(term)
     },
     name = "Searching up to ${limit.formattedAs.input} images",

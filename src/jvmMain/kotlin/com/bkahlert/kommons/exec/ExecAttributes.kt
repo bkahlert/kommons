@@ -12,7 +12,7 @@ public class ExecAttributes(attributes: Attributes) : Attributes by attributes {
     public val executable: String? by EXECUTABLE
 
     override fun toString(): String = asString {
-        asMap().forEach { (key, value) -> key to value }
+        asMap().forEach { (key, value) -> put(key, value) }
     }
 
     public companion object {

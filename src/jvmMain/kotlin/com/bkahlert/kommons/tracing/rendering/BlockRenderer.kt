@@ -48,8 +48,10 @@ public class BlockRenderer(
                 .map { it.ansi.red }
                 .forEach(settings.printer)
         } else {
-            event(exception::class.toSimpleClassName(),
-                RenderableAttributes.of(*attributes.toList().toTypedArray(), style.layout.primaryKey to formatted))
+            event(
+                exception::class.toSimpleClassName(),
+                RenderableAttributes.of(*attributes.toList().toTypedArray(), style.layout.primaryKey to formatted)
+            )
         }
     }
 
@@ -72,7 +74,7 @@ public class BlockRenderer(
     }
 
     override fun toString(): String = asString {
-        ::settings to settings
+        put(::settings, settings)
     }
 
     public companion object : RendererFactory {

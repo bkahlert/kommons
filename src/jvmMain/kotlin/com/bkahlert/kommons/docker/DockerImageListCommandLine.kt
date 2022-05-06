@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.formattedAs
 
 /**
@@ -17,7 +16,7 @@ public open class DockerImageListCommandLine(
     public val all: Boolean = false,
 ) : DockerImageCommandLine(
     dockerImageCommand = "ls",
-    dockerImageArguments = buildArray {
+    dockerImageArguments = buildList {
         if (all) add("--all")
         add("--no-trunc")
         add("--format")

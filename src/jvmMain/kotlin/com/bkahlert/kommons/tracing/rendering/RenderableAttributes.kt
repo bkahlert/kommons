@@ -1,11 +1,10 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import io.opentelemetry.api.common.AttributeKey
-import io.opentelemetry.api.common.Attributes
 import com.bkahlert.kommons.asString
-import com.bkahlert.kommons.builder.buildSet
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.toList
+import io.opentelemetry.api.common.AttributeKey
+import io.opentelemetry.api.common.Attributes
 import java.util.AbstractMap.SimpleEntry
 import kotlin.collections.Map.Entry
 
@@ -24,16 +23,16 @@ public interface RenderableAttributes : Map<AttributeKey<*>, Renderable> {
 
         constructor(entries: Iterable<KeyValue<*, *>>) : this(buildSet<Pair<AttributeKey<*>, Any>> {
             // copy regular attributes
-            entries.filter { (key, _) -> !key.isRenderingKey }.forEach { (key, renderingValue) ->
-                renderingValue?.also {
-                    add(key.valueKey to it)
+            entries.filter { !it.key.isRenderingKey }.forEach {
+                it.renderingValue?.also { value ->
+                    add(it.key.valueKey to value)
                 }
             }
             // copy rendering attributes (e.g. description.render) as is and as regular attribute (e.g. description)
-            entries.filter { (key, _) -> key.isRenderingKey }.forEach { (key, renderingValue) ->
-                renderingValue?.also {
-                    add(key.renderingKey to it)
-                    add(key.valueKey to it)
+            entries.filter { it.key.isRenderingKey }.forEach {
+                it.renderingValue?.also { value ->
+                    add(it.key.renderingKey to value)
+                    add(it.key.valueKey to value)
                 }
             }
         })
@@ -43,7 +42,7 @@ public interface RenderableAttributes : Map<AttributeKey<*>, Renderable> {
             .toSet()
 
         override fun toString(): String = asString("RenderableAttributes") {
-            this@RenderingKeyPreferringAttributes.forEach { (key, value) -> key to value.render(null, null) }
+            this@RenderingKeyPreferringAttributes.forEach { (key, value) -> put(key, value.render(null, null)) }
         }
     }
 

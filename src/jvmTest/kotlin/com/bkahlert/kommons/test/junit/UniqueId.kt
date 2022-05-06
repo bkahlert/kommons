@@ -54,7 +54,7 @@ class UniqueId private constructor(
          */
         val ExtensionContext.simplifiedId: String get() = from(parse(uniqueId)).value
 
-        fun from(callStackElement: CallStackElement) = UniqueId(com.bkahlert.kommons.builder.buildList {
+        fun from(callStackElement: CallStackElement) = UniqueId(buildList {
             callStackElement.receiver?.split('$')?.forEach {
                 add(formatClass(it))
             }

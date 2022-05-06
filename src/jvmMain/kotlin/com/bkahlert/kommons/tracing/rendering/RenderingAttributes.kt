@@ -12,7 +12,7 @@ public class RenderingAttributes(attributes: Attributes) : Attributes by attribu
     public val renderer: String? by RENDERER
 
     override fun toString(): String = asString {
-        asMap().forEach { (key, value) -> key to value }
+        asMap().forEach { (key, value) -> put(key, value) }
     }
 
     public companion object Keys {

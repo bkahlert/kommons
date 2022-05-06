@@ -96,9 +96,9 @@ public class IOLog : Sequence<IO> {
     public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("kommons.exec.$pid.log")) { dump() }
 
     override fun toString(): String = asString {
-        Symbols.OK to joinToString { it.truncate() }
-        "OUT" to output.incompleteBytes
-        "ERR" to error.incompleteBytes
+        put(Symbols.OK, joinToString { it.truncate() })
+        put("OUT", output.incompleteBytes)
+        put("ERR", error.incompleteBytes)
     }
 }
 

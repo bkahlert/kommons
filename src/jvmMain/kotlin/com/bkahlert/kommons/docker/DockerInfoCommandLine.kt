@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.formattedAs
 
@@ -18,7 +17,7 @@ public open class DockerInfoCommandLine(
     query: List<String> = emptyList(),
 ) : DockerCommandLine(
     dockerCommand = "info",
-    arguments = buildArray {
+    arguments = buildList {
         format?.also {
             add("--format")
             add(it)

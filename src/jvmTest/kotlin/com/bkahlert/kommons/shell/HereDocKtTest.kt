@@ -17,12 +17,14 @@ class HereDocKtTest {
     @Test
     fun `should create here document using HERE- delimiter`() {
         val hereDoc = listOf("line 1", "line 2").toHereDoc()
-        expectThat(hereDoc).matchesCurlyPattern("""
+        expectThat(hereDoc).matchesCurlyPattern(
+            """
             <<HERE-{}
             line 1
             line 2
             HERE-{}
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 
     @Nested
@@ -73,10 +75,12 @@ class HereDocKtTest {
     @Test
     fun `should accept empty list`() {
         val hereDoc = listOf<String>().toHereDoc()
-        expectThat(hereDoc).matchesCurlyPattern("""
+        expectThat(hereDoc).matchesCurlyPattern(
+            """
             <<HERE-{}
             HERE-{}
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 
     @Nested
@@ -97,8 +101,8 @@ class HereDocKtTest {
             val hereDoc = HereDoc {
                 delimiter = "DELIMITER"
                 substituteParameters = false
-                +"command a-1"
-                +"command a-2"
+                add("command a-1")
+                add("command a-2")
             }
             expectThat(hereDoc)
                 .isEqualTo(HereDoc("command a-1", "command a-2", delimiter = "DELIMITER", substituteParameters = false))
@@ -110,23 +114,27 @@ class HereDocKtTest {
         @Test
         fun `for Array`() {
             val hereDoc = arrayOf("line 1", "line 2").toHereDoc()
-            expectThat(hereDoc).matchesCurlyPattern("""
+            expectThat(hereDoc).matchesCurlyPattern(
+                """
             <<HERE-{}
             line 1
             line 2
             HERE-{}
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
 
         @Test
         fun `for Iterable`() {
             val hereDoc = listOf("line 1", "line 2").asIterable().toHereDoc()
-            expectThat(hereDoc).matchesCurlyPattern("""
+            expectThat(hereDoc).matchesCurlyPattern(
+                """
             <<HERE-{}
             line 1
             line 2
             HERE-{}
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
     }
 
@@ -136,12 +144,14 @@ class HereDocKtTest {
         @Test
         fun `should take unnamed arguments as lines `() {
             val hereDoc = HereDoc("line 1", "line 2")
-            expectThat(hereDoc).matchesCurlyPattern("""
+            expectThat(hereDoc).matchesCurlyPattern(
+                """
             <<HERE-{}
             line 1
             line 2
             HERE-{}
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
     }
 }

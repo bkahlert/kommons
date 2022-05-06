@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.spaced
@@ -19,8 +18,8 @@ public open class DockerKillCommandLine(
     public val signal: String? = null,
 ) : DockerCommandLine(
     dockerCommand = "kill",
-    arguments = buildArray {
-        signal?.let {
+    arguments = buildList {
+        signal?.also {
             add("--signal")
             add(it)
         }

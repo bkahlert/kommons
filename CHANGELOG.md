@@ -18,7 +18,11 @@
 
 ### Removed
 
-*none*
+- ArrayBuilder
+- ListBuilder
+- SetBuilder
+- EnumSetBuilder
+- MapBuilder
 
 ### Fixed
 

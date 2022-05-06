@@ -145,8 +145,8 @@ public class DockerContainer(public val name: String) {
             .exec.logging(renderer = noDetails()).waitFor()
 
     override fun toString(): String = asString {
-        ::name.name to name
-        "state" to cachedState
+        put(::name.name, name)
+        put("state", cachedState)
     }
 
     override fun equals(other: Any?): Boolean {

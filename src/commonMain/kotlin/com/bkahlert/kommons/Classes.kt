@@ -1,8 +1,5 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.builder.Init
-import com.bkahlert.kommons.builder.buildMap
-import com.bkahlert.kommons.builder.context.MapBuildingContext
 import com.bkahlert.kommons.collections.map
 import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
@@ -40,14 +37,15 @@ public val KClass<*>.lowerSentenceCaseName: String
 public fun <T : Any> T.asString(vararg properties: KProperty<*>): String =
     asString {
         properties.forEach { property ->
-            property.name to (when (property) {
+            put(property.name, when (property) {
                 is KProperty0<*> -> kotlin.runCatching { property.get() }.recover { "<$it>" }.getOrThrow()
                 is KProperty1<*, *> -> kotlin.runCatching {
                     @Suppress("UNCHECKED_CAST") val typedProperty = property as KProperty1<T, *>
                     typedProperty.get(this@asString)
                 }.recover { "<$it>" }.getOrThrow()
                 else -> "<unexpected property type ${toSimpleClassName()}>"
-            })
+            }
+            )
         }
     }
 
@@ -61,7 +59,8 @@ private fun StringBuilder.close() = append(brackets.second)
  */
 public fun Any.asString(
     className: String = toSimpleClassName(),
-    init: Init<MapBuildingContext<Any?, Any?>>,
+    maxLineLength: Int = 160,
+    init: MutableMap<Any?, Any?>.() -> Unit,
 ): String = buildString {
     append(className)
     val content = StringBuilder()
@@ -75,6 +74,7 @@ public fun Any.asString(
                 flatContent.add("$keyString = $valueString")
             }
         }
+//        if (flatContent.none { it.isMultiline } && flatContent.sumOf { it.length } <= maxLineLength) {
         if (flatContent.none { it.isMultiline }) {
             content.clear()
             if (flatContent.isNotEmpty()) {

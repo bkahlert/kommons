@@ -48,7 +48,7 @@ public open class TeeOutputStream(
     }
 
     override fun toString(): String = asString {
-        ::output to output
-        ::branches to branches.toList()
+        put(::output, output)
+        put(::branches, branches.toList())
     }
 }

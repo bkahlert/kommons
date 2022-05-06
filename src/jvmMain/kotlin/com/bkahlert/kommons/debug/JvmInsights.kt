@@ -70,9 +70,13 @@ public fun Array<StackTraceElement>.trace(
     description: CharSequence? = null,
     transform: (Array<StackTraceElement>.() -> Any)? = null,
 ): Array<StackTraceElement> = also {
-    println(xray(description,
-        { joinToString("${LineSeparators.LF}\t${"at".formattedAs.debug} ", postfix = LineSeparators.LF) { it.highlightedMethod } },
-        transform))
+    println(
+        xray(
+            description,
+            { joinToString("${LineSeparators.LF}\t${"at".formattedAs.debug} ", postfix = LineSeparators.LF) { it.highlightedMethod } },
+            transform
+        )
+    )
 }
 
 /**
@@ -84,9 +88,9 @@ public fun Array<StackTraceElement>.trace(
 public val ReentrantLock.trace: ReentrantLock
     get() = also {
         println(asString {
-            "isFair" to isFair
-            "isLocked" to isLocked
-            "isHeldByCurrentThread" to isHeldByCurrentThread
+            put("isFair", isFair)
+            put("isLocked", isLocked)
+            put("isHeldByCurrentThread", isHeldByCurrentThread)
         })
     }
 
@@ -99,12 +103,12 @@ public val ReentrantLock.trace: ReentrantLock
 public val ReentrantReadWriteLock.trace: ReentrantReadWriteLock
     get() = also {
         println(asString {
-            "isFair" to isFair
-            "readLockCount" to readLockCount
-            "readHoldCount" to readHoldCount
-            "writeHoldCount" to writeHoldCount
-            "isWriteLocked" to isWriteLocked
-            "isWriteLockedByCurrentThread" to isWriteLockedByCurrentThread
+            put("isFair", isFair)
+            put("readLockCount", readLockCount)
+            put("readHoldCount", readHoldCount)
+            put("writeHoldCount", writeHoldCount)
+            put("isWriteLocked", isWriteLocked)
+            put("isWriteLockedByCurrentThread", isWriteLockedByCurrentThread)
         })
     }
 
@@ -131,14 +135,14 @@ public val <T : MatchResult?> T.trace: T
 public val BigDecimal.trace: BigDecimal
     get() = also {
         println(asString {
-            "double" to it.toDouble()
-            "string value" to it.toString()
-            "at most 3 decimals" to it.toAtMostDecimalsString(3)
-            "exact 3 decimals" to it.toExactDecimalsString(3)
-            "scientific" to it.toScientificString()
-            "engineering" to it.toEngineeringString()
-            "plain" to it.toPlainString()
-            "scale" to it.scale
-            "precision" to it.precision
+            put("double", it.toDouble())
+            put("string value", it.toString())
+            put("at most 3 decimals", it.toAtMostDecimalsString(3))
+            put("exact 3 decimals", it.toExactDecimalsString(3))
+            put("scientific", it.toScientificString())
+            put("engineering", it.toEngineeringString())
+            put("plain", it.toPlainString())
+            put("scale", it.scale)
+            put("precision", it.precision)
         })
     }

@@ -44,10 +44,12 @@ public open class DeferringRenderer(
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer =
-        renderer(settings.copy(
-            indent = settings.indent + settings.style(settings.layout, settings.indent).indent,
-            printer = ::printChild,
-        )) {
+        renderer(
+            settings.copy(
+                indent = settings.indent + settings.style(settings.layout, settings.indent).indent,
+                printer = ::printChild,
+            )
+        ) {
             DeferringRenderer(it)
         }
 
@@ -56,9 +58,9 @@ public open class DeferringRenderer(
     }
 
     override fun toString(): String = asString {
-        ::calls to calls
-        ::renderer to if (::renderer.isInitialized) renderer else "renderer not initialized"
-        ::settings to settings
+        put(::calls, calls)
+        put(::renderer, if (::renderer.isInitialized) renderer else "renderer not initialized")
+        put(::settings, settings)
     }
 
     public companion object : RendererFactory {

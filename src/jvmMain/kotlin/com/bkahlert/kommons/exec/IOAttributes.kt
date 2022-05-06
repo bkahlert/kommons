@@ -12,7 +12,7 @@ public class IOAttributes(attributes: Attributes) : Attributes by attributes {
     public val text: String? by TEXT
 
     override fun toString(): String = asString {
-        asMap().forEach { (key, value) -> key to value }
+        asMap().forEach { (key, value) -> put(key, value) }
     }
 
     public companion object {

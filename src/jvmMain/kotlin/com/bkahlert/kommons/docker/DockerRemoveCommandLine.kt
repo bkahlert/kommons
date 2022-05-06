@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.spaced
@@ -27,10 +26,10 @@ public open class DockerRemoveCommandLine(
     public val volumes: Boolean = false,
 ) : DockerCommandLine(
     dockerCommand = "rm",
-    arguments = buildArray {
-        if (force) +"--force"
-        if (link) +"--link"
-        if (volumes) +"--volumes"
+    arguments = buildList {
+        if (force) add("--force")
+        if (link) add("--link")
+        if (volumes) add("--volumes")
         addAll(containers)
     },
     name = kotlin.run {
