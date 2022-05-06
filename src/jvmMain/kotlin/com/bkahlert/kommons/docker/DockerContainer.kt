@@ -17,9 +17,9 @@ import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.io.path.pathString
+import com.bkahlert.kommons.leftOrElse
 import com.bkahlert.kommons.lowerSentenceCaseName
-import com.bkahlert.kommons.map
-import com.bkahlert.kommons.or
+import com.bkahlert.kommons.mapLeft
 import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.requireSaneInput
 import com.bkahlert.kommons.text.CharRanges.Alphanumeric
@@ -178,7 +178,7 @@ public class DockerContainer(public val name: String) {
                         Dead::class.simpleName -> Dead(status)
                         else -> Error(-1, "Unknown status $state: $status")
                     }
-                }.map { it.singleOrNull() ?: NotExistent } or { error(it) }
+                }.mapLeft { it.singleOrNull() ?: NotExistent } leftOrElse { error(it) }
 
         /**
          * Lists locally available instances this containers.
@@ -188,7 +188,7 @@ public class DockerContainer(public val name: String) {
                 .exec.logging(renderer = noDetails())
                 .parse.columns<DockerContainer, Failed>(3) { (name, _, _) ->
                     DockerContainer(name)
-                } or { error(it) }
+                } leftOrElse { error(it) }
 
         /**
          * Starts the given [containers].

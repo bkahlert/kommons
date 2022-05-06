@@ -10,7 +10,6 @@ public inline fun <reified T : Comparable<T>, reified R : Comparable<R>> ClosedR
     transform: T.() -> R,
 ): ClosedRange<R> = start.transform()..endInclusive.transform()
 
-
 /**
  * Contains the absolute difference between the [ClosedRange.start]
  * and [ClosedRange.endInclusive] `+1`.

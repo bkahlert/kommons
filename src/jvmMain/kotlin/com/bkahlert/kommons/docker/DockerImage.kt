@@ -14,7 +14,7 @@ import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.parse
-import com.bkahlert.kommons.or
+import com.bkahlert.kommons.leftOrElse
 import com.bkahlert.kommons.requireSaneInput
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -254,7 +254,7 @@ public open class DockerImage(
             val (tag: String?, digest: String?) =
                 imageWithTag.takeIf { it.size == 2 }?.let { it[1] to null }
                     ?: imageWithDigest.takeIf { it.size == 2 }?.let { null to it[1] }
-                    ?: null to null
+                    ?: (null to null)
             val (repository, path) = imageWithTag[0].split("/").map { it.trim() }.let { it[0] to it.drop(1) }
             return DockerImage(repository, path, tag, digest)
         }
@@ -284,5 +284,5 @@ private fun Exec.parseImages(): List<DockerImage> {
         repository.takeUnlessBlank()?.let { repo ->
             DockerImage(repo, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())
         }
-    } or { emptyList() }
+    } leftOrElse { emptyList() }
 }

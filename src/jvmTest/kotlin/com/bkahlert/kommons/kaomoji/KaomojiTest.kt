@@ -181,17 +181,17 @@ class KaomojiTest {
 
             @Test
             fun `should use manually specified form`() {
-                expecting { Kaomoji.Angry.`(`A´)` } that { toStringIsEqualTo("(`A´)") }
+                expecting { Kaomoji.Angry.`-`д´-` } that { toStringIsEqualTo("-`д´-") }
             }
 
             @Test
             fun `should parse automatically`() {
-                expecting { Kaomoji.Angry.`(`A´)` } that {
-                    get("left arm") { leftArm }.isEqualTo("(")
-                    get("right arm") { rightArm }.isEqualTo(")")
+                expecting { Kaomoji.Angry.`-`д´-` } that {
+                    get("left arm") { leftArm }.isEqualTo("-")
+                    get("right arm") { rightArm }.isEqualTo("-")
                     get("left eye") { leftEye }.isEqualTo("`")
                     get("right eye") { rightEye }.isEqualTo("´")
-                    get("mouth") { mouth }.isEqualTo("A")
+                    get("mouth") { mouth }.isEqualTo("д")
                 }
             }
 

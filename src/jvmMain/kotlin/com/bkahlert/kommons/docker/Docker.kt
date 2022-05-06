@@ -24,8 +24,8 @@ import com.bkahlert.kommons.io.path.moveTo
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.randomDirectory
 import com.bkahlert.kommons.io.path.uriString
-import com.bkahlert.kommons.map
-import com.bkahlert.kommons.or
+import com.bkahlert.kommons.leftOrNull
+import com.bkahlert.kommons.mapLeft
 import com.bkahlert.kommons.regex.RegularExpressions
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
@@ -96,7 +96,7 @@ public object Docker {
                         } else {
                             null
                         }
-                    }.map { it.singleOrNull() } or { null }
+                    }.mapLeft { it.singleOrNull() }.leftOrNull()
             }
 
         private fun String.unify() = lowercase(Locale.getDefault()).split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()

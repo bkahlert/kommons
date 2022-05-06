@@ -4,7 +4,7 @@ import com.bkahlert.kommons.builder.buildArray
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
 import com.bkahlert.kommons.exec.RendererProviders
 import com.bkahlert.kommons.exec.parse
-import com.bkahlert.kommons.or
+import com.bkahlert.kommons.leftOrElse
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 
@@ -65,7 +65,7 @@ public open class DockerSearchCommandLine(
                 .exec.logging(renderer = provider ?: RendererProviders.errorsOnly())
                 .parse.columns<DockerSearchResult, Failed>(5) { (name, description, starCount, isOfficial, isAutomated) ->
                     DockerSearchResult(DockerImage { name }, description, starCount.toIntOrNull() ?: 0, isOfficial.isNotBlank(), isAutomated.isNotBlank())
-                } or { emptyList() }
+                } leftOrElse { emptyList() }
     }
 
     public data class DockerSearchResult(

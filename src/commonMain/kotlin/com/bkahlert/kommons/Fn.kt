@@ -1,7 +1,5 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.Either.Left
-import com.bkahlert.kommons.Either.Right
 import com.bkahlert.kommons.debug.xray
 import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.BigIntegerConstants
@@ -169,35 +167,3 @@ public fun <T> T.takeIfDebugging(): T? = takeIf { isDebugging }
  * Returns `this` object if this program does not run in debug mode or `null`, if it is.
  */
 public fun <T> T.takeUnlessDebugging(): T? = takeIf { isDebugging }
-
-/**
- * Represents a container containing either an instance of type [A] ([Left])
- * or [B] ([Right]).
- */
-public sealed interface Either<A, B> {
-    public class Left<A, B>(public val left: A) : Either<A, B>
-    public class Right<A, B>(public val right: B) : Either<A, B>
-}
-
-/**
- * Returns either the encapsulated instance [A] or
- * the encapsulated instance [B] transformed to an instance of [A]
- * using the given [transform].
- */
-public inline infix fun <reified A, reified B> Either<A, B>.or(transform: (B) -> A): A =
-    when (this) {
-        is Left -> left
-        is Right -> transform(right)
-    }
-
-/**
- * Returns either the encapsulated instance [A] mapped using [transform] or
- * the encapsulated instance [B].
- */
-public inline fun <reified A, reified B, reified R> Either<A, B>.map(transform: A.() -> R): Either<R, B> =
-    when (this) {
-        is Left -> Left(left.transform())
-        is Right ->
-            @Suppress("UNCHECKED_CAST")
-            this.also { check(it === right) } as Either<R, B>
-    }
