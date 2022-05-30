@@ -18,7 +18,7 @@ import com.bkahlert.kommons.leftOrElse
 import com.bkahlert.kommons.requireSaneInput
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.takeUnlessBlank
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],

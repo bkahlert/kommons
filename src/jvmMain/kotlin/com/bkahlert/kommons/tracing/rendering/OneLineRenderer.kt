@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.exception.toCompactString
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.SpanId
@@ -68,7 +68,7 @@ public class OneLineRenderer(
         renderer(settings.copy(printer = ::printChild)) { OneLineRenderer(it) }
 
     override fun printChild(text: CharSequence) {
-        messages.add(" " + text.ansiRemoved.ansi.gray)
+        messages.add(" " + text.toString().ansiRemoved.ansi.gray)
     }
 
     override fun toString(): String = asString {

@@ -5,6 +5,7 @@ import com.bkahlert.kommons.collections.peekingIterator
 import com.bkahlert.kommons.text.GraphemeCluster.Companion.readGraphemeCluster
 import kotlin.jvm.JvmInline
 
+// TODO replace with kommons-debug
 /**
  * Representation of a [Unicode grapheme cluster](https://unicode.org/glossary/#grapheme_cluster)
  *

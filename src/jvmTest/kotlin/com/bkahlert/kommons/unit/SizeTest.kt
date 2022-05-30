@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.unit
 
 import com.bkahlert.kommons.io.path.getSize
-import com.bkahlert.kommons.io.path.randomFile
+import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.testEach

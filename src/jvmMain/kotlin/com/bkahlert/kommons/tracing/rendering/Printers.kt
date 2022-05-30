@@ -1,10 +1,9 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import io.opentelemetry.api.trace.Span
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.text.ANSI.Formatter
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.mapLines
 import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -13,6 +12,7 @@ import com.bkahlert.kommons.tracing.SpanScope
 import com.bkahlert.kommons.tracing.TracingDsl
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
 import com.bkahlert.kommons.tracing.spanScope
+import io.opentelemetry.api.trace.Span
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 

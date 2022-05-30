@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.io.compress
 
+import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.path.addExtensions
 import com.bkahlert.kommons.io.path.bufferedInputStream
-import com.bkahlert.kommons.io.path.deleteRecursively
 import com.bkahlert.kommons.io.path.extensionOrNull
 import com.bkahlert.kommons.io.path.removeExtensions
 import com.bkahlert.kommons.io.path.requireExists

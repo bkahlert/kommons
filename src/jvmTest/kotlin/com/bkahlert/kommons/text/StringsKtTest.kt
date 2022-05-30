@@ -2,24 +2,17 @@ package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.tests
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
-import strikt.api.expectThat
-import strikt.assertions.doesNotContain
-import strikt.assertions.hasLength
-import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.matches
 import strikt.assertions.message
-import strikt.assertions.startsWith
 
 class StringsKtTest {
 
@@ -31,104 +24,6 @@ class StringsKtTest {
         expecting { "red".ansi.red.length(ansi = true) } that { isEqualTo(3) }
         expecting { "red".length(ansi = false) } that { isEqualTo(3) }
         expecting { "red".ansi.red.length(ansi = false) } that { isEqualTo(13) }
-    }
-
-    @Nested
-    inner class RandomTest {
-
-        @Test
-        fun `should have 16 length by default`() {
-            expectThat(randomString()).hasLength(16)
-        }
-
-        @Test
-        fun `should have allow variable length`() {
-            expectThat(randomString(7)).hasLength(7)
-        }
-
-        @Test
-        fun `should only use alphanumeric characters by default`() {
-            expectThat(randomString(10000)).containsOnlyCharacters(CharRanges.Alphanumeric)
-        }
-
-        @Test
-        fun `should not easily produce the same string`() {
-            val calculated = mutableListOf<String>()
-            (0 until 1000).onEach {
-                calculated += randomString(8).also {
-                    expectThat(calculated).doesNotContain(it)
-                }
-            }
-            expectThat(calculated).hasSize(1000)
-        }
-
-        @Test
-        fun `should allow different character ranges`() {
-            expectThat(randomString(1000, charArrayOf('A', 'B'))).containsOnlyCharacters(charArrayOf('A', 'B'))
-        }
-    }
-
-    @Nested
-    inner class WithRandomSuffixTest {
-
-        @TestFactory
-        fun `should add 4 random characters`() = testEach("the-string", "four-char") {
-            expecting { withRandomSuffix() } that {
-                startsWith("$it-")
-                matches(Regex("$it--[0-9a-zA-Z]{4}"))
-            }
-        }
-
-        @TestFactory
-        fun `should not append to already existing random suffix`() = testEach("the-string", "four-char") {
-            expecting { withRandomSuffix().withRandomSuffix() } that {
-                startsWith("$it-")
-                matches(Regex("$it--[0-9a-zA-Z]{4}"))
-                endsWithRandomSuffix()
-            }
-        }
-    }
-
-    @Nested
-    inner class WithPrefixTest {
-
-        @Suppress("SpellCheckingInspection")
-        @Test
-        fun `should prepend prefix if missing`() {
-            expectThat("foo".withPrefix("bar")).isEqualTo("barfoo")
-        }
-
-        @Suppress("SpellCheckingInspection")
-        @Test
-        fun `should fully prepend prefix if partially present`() {
-            expectThat("rfoo".withPrefix("bar")).isEqualTo("barrfoo")
-        }
-
-        @Suppress("SpellCheckingInspection")
-        @Test
-        fun `should not prepend prefix if present`() {
-            expectThat("barfoo".withPrefix("bar")).isEqualTo("barfoo")
-        }
-    }
-
-    @Nested
-    inner class WithSuffixTest {
-
-        @Test
-        fun `should append suffix if missing`() {
-            expectThat("foo".withSuffix("bar")).isEqualTo("foobar")
-        }
-
-        @Suppress("SpellCheckingInspection")
-        @Test
-        fun `should fully append suffix if partially missing`() {
-            expectThat("foob".withSuffix("bar")).isEqualTo("foobbar")
-        }
-
-        @Test
-        fun `should not append suffix if present`() {
-            expectThat("foobar".withSuffix("bar")).isEqualTo("foobar")
-        }
     }
 
     @Suppress("SpellCheckingInspection")
@@ -152,54 +47,16 @@ class StringsKtTest {
     @TestFactory
     fun `wrap multiline`() = test("foo".wrapMultiline("  bar 1\n    bar 2", "  \n    baz 1\n    baz 2\n        ")) {
         asserting {
-            isEqualTo("""
+            isEqualTo(
+                """
             bar 1
               bar 2
             foo
             baz 1
             baz 2
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
-    }
-
-    @TestFactory
-    fun `take if not empty`() = testEach(
-        "" to null,
-        "abc" to "abc",
-    ) { (string, expected) ->
-        expecting { string.takeIfNotEmpty() } that { isEqualTo(expected) }
-        expecting { (string as CharSequence).takeIfNotEmpty() } that { isEqualTo(expected) }
-    }
-
-    @TestFactory
-    fun `take if not blank`() = testEach(
-        "" to null,
-        " " to null,
-        *Whitespaces.map { it to null }.toTypedArray(),
-        "abc" to "abc",
-    ) { (string, expected) ->
-        expecting { string.takeIfNotBlank() } that { isEqualTo(expected) }
-        expecting { (string as CharSequence).takeIfNotBlank() } that { isEqualTo(expected) }
-    }
-
-    @TestFactory
-    fun `take unless empty`() = testEach(
-        "" to null,
-        "abc" to "abc",
-    ) { (string, expected) ->
-        expecting { string.takeUnlessEmpty() } that { isEqualTo(expected) }
-        expecting { (string as CharSequence).takeUnlessEmpty() } that { isEqualTo(expected) }
-    }
-
-    @TestFactory
-    fun `take unless blank`() = testEach(
-        "" to null,
-        " " to null,
-        *Whitespaces.map { it to null }.toTypedArray(),
-        "abc" to "abc",
-    ) { (string, expected) ->
-        expecting { string.takeUnlessBlank() } that { isEqualTo(expected) }
-        expecting { (string as CharSequence).takeUnlessBlank() } that { isEqualTo(expected) }
     }
 
     @Nested

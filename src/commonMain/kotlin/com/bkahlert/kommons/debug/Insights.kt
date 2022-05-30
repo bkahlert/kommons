@@ -3,14 +3,9 @@
 package com.bkahlert.kommons.debug
 
 import com.bkahlert.kommons.collections.map
-import com.bkahlert.kommons.debug.XRay.Companion.highlight
-import com.bkahlert.kommons.math.toHexadecimalString
-import com.bkahlert.kommons.regex.groupValue
-import com.bkahlert.kommons.runtime.CallStackElement
 import com.bkahlert.kommons.runtime.getCaller
 import com.bkahlert.kommons.text.CodePoint
 import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.BlockDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.Unicode
@@ -168,87 +163,3 @@ public fun <T> T.xray(description: CharSequence? = null, transform: (T.() -> Any
 
 public fun <T> T.xray(description: CharSequence? = null, stringifier: T.() -> String, transform: (T.() -> Any?)?): XRay<out T> =
     XRay(description, this, stringifier = stringifier, transform = transform)
-
-/**
- * Helper property that supports
- * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing this to [println] while still returning this.
- *
- * **Example**
- * ```kotlin
- * chain().of.endless().trace.calls()
- * ```
- *
- * … does the same as …
- *
- * ```kotlin
- * chain().of.endless().calls()
- * ```
- *
- * … with the only difference that the return value of
- *
- * ```kotlin
- * chain().of.endless()
- * ```
- *
- * will be printed.
- */
-@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public val <T> T.trace: T
-    get() : T = apply { println(xray) }
-
-/**
- * Helper function that supports
- * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing this and this applied to the given [transform] to [println]
- * while still returning this.
- *
- * **Example**
- * ```kotlin
- * chain().of.endless().trace { prop }.calls()
- * ```
- *
- * … does the same as …
- *
- * ```kotlin
- * chain().of.endless().calls()
- * ```
- *
- * … with the only difference that the return value of
- *
- * ```kotlin
- * chain().of.endless()
- * ```
- *
- * at the property `prop` of that value are printed.
- */
-@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T> T.trace(description: CharSequence? = null, transform: (T.() -> Any?)? = null): T =
-    apply { println(xray(description, transform = transform)) }
-
-
-public val CallStackElement.highlightedMethod: String
-    get() = toString().replace(Regex("(?<prefix>.*\\.)(?<method>.*?)(?<suffix>\\(.*)")) {
-        val prefix = it.groupValue("prefix")
-        val suffix = it.groupValue("suffix")
-        val methodName = highlight(it.groupValue("method"))
-        prefix + methodName + suffix
-    }
-
-/**
- * Helper property that supports
- * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing this stacktrace and highlighting the method names.
- */
-@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public val Array<CallStackElement>.trace: Array<CallStackElement>
-    get() = also { println(joinToString("$LF\t${highlight("at")} ", postfix = LF) { it.highlightedMethod }) }
-
-/**
- * Helper property that supports
- * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing this stacktrace and highlighting the method names.
- */
-@Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public val Iterable<CallStackElement>.trace: Iterable<CallStackElement>
-    get() = also { println(joinToString("$LF\t${highlight("at")} ", postfix = LF) { it.highlightedMethod }) }

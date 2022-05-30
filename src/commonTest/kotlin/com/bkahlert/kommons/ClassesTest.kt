@@ -56,6 +56,8 @@ class ClassesTest {
                 }
         """.trimIndent(), multiLine.run { asString { ::bar.name to bar; "baz" to baz } })
     }
+
+    // TODO maxLineLength
 }
 
 private data class Foo(

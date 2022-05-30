@@ -7,7 +7,7 @@ import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.prefixWith
 import com.bkahlert.kommons.text.repeat
-import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.takeUnlessBlank
 
 public object Styles {
 

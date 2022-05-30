@@ -1,6 +1,5 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.isSubPathOf
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.test.toStringContains

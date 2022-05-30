@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.too
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.CannotKillContainer
@@ -22,7 +23,6 @@ import com.bkahlert.kommons.exec.status
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.tests
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -94,7 +94,8 @@ class DockerExitStateHandlerTest {
     @TestFactory
     fun `should match cannot remove running container error messages`() = test(
         "Error response from daemon: You cannot remove a running container 2c5e082a462134. " +
-            "Stop the container before attempting removal or force remove") { errorMessage ->
+            "Stop the container before attempting removal or force remove"
+    ) { errorMessage ->
 
         val badRequestState = handleTermination(errorMessage)
 

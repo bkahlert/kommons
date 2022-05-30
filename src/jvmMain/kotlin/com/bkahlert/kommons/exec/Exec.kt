@@ -3,6 +3,7 @@ package com.bkahlert.kommons.exec
 import com.bkahlert.kommons.Either
 import com.bkahlert.kommons.Either.Left
 import com.bkahlert.kommons.Either.Right
+import com.bkahlert.kommons.Locations
 import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.exception.dump
 import com.bkahlert.kommons.exec.IO.Meta
@@ -13,7 +14,6 @@ import com.bkahlert.kommons.exec.Process.ExitState.ExitStateHandler
 import com.bkahlert.kommons.exec.Process.State
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
-import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.text.LineSeparators.DEFAULT
 import com.bkahlert.kommons.text.Semantics.formattedAs

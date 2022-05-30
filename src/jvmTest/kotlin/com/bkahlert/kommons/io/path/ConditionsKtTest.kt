@@ -1,6 +1,9 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.io.copyToDirectory
+import com.bkahlert.kommons.randomDirectory
+import com.bkahlert.kommons.randomFile
+import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir

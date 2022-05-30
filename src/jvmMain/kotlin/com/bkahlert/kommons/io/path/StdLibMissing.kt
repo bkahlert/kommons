@@ -1,42 +1,28 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.io.noDirectory
+import com.bkahlert.kommons.delete
+import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.path.StandardOpenOptions.DEFAULT_APPEND_OPTIONS
 import com.bkahlert.kommons.io.path.StandardOpenOptions.DEFAULT_WRITE_OPTIONS
 import com.bkahlert.kommons.runtime.onExit
-import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.time.sleep
-import com.bkahlert.kommons.unit.milli
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.BufferedWriter
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.net.URI
 import java.nio.charset.Charset
-import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
-import java.nio.file.FileVisitOption
 import java.nio.file.Files
-import java.nio.file.LinkOption
-import java.nio.file.NotDirectoryException
 import java.nio.file.Path
-import java.nio.file.PathMatcher
 import java.nio.file.StandardOpenOption
-import java.util.stream.Stream
 import kotlin.io.path.bufferedWriter
-import kotlin.io.path.exists
-import kotlin.io.path.forEachDirectoryEntry
 import kotlin.io.path.inputStream
-import kotlin.io.path.isDirectory
 import kotlin.io.path.outputStream
 import kotlin.io.path.useLines
 import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
-import kotlin.streams.asSequence
-import kotlin.streams.toList
 import kotlin.io.path.appendBytes as kotlinAppendBytes
 import kotlin.io.path.writeBytes as kotlinWriteBytes
 
@@ -185,117 +171,6 @@ public val Path.fileNameString: String get() = fileName.pathString
  */
 public val Path.uriString: String get() = toUri().toString()
 
-
-private fun Path.getPathMatcher(glob: String): PathMatcher? {
-    // avoid creating a matcher if all entries are required.
-    if (glob == "*" || glob == "**" || glob == "**/*") return null
-
-    // create a matcher and return a filter that uses it.
-    return fileSystem.getPathMatcher("glob:$glob")
-}
-
-private fun Path.streamContentsRecursively(glob: String = "*", vararg options: LinkOption): Stream<Path> {
-    if (!isDirectory(*options)) throw noDirectory()
-    val fileVisitOptions = options.let { if (it.contains(LinkOption.NOFOLLOW_LINKS)) emptyArray() else arrayOf(FileVisitOption.FOLLOW_LINKS) }
-    val walk = Files.walk(this, *fileVisitOptions).filter { it != this }
-    return getPathMatcher(glob)
-        ?.let { matcher -> walk.filter { path -> matcher.matches(path) } }
-        ?: walk
-}
-
-/**
- * Returns a list of the entries in this directory and its subdirectories
- * optionally filtered by matching against the specified [glob] pattern.
- *
- * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
- *
- * @throws java.util.regex.PatternSyntaxException if the glob pattern is invalid.
- * @throws NotDirectoryException If this path does not refer to a directory.
- * @throws IOException If an I/O error occurs.
- *
- * @see Files.walk
- */
-public fun Path.listDirectoryEntriesRecursively(glob: String = "*", vararg options: LinkOption): List<Path> =
-    streamContentsRecursively(glob, *options).toList()
-
-/**
- * Calls the [block] callback with a sequence of all entries in this directory
- * and its subdirectories optionally filtered by matching against the specified [glob] pattern.
- *
- * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
- *
- * @throws java.util.regex.PatternSyntaxException if the glob pattern is invalid.
- * @throws NotDirectoryException If this path does not refer to a directory.
- * @throws IOException If an I/O error occurs.
- * @return the value returned by [block].
- *
- * @see Files.walk
- */
-public fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", vararg options: LinkOption, block: (Sequence<Path>) -> T): T =
-    streamContentsRecursively(glob, *options).use { block(it.asSequence()) }
-
-/**
- * Performs the given [action] on each entry in this directory and its subdirectories
- * optionally filtered by matching against the specified [glob] pattern.
- *
- * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
- *
- * @throws java.util.regex.PatternSyntaxException if the glob pattern is invalid.
- * @throws NotDirectoryException If this path does not refer to a directory.
- * @throws IOException If an I/O error occurs.
- *
- * @see Files.walk
- */
-public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", vararg options: LinkOption, action: (Path) -> Unit): Unit =
-    streamContentsRecursively(glob, *options).use { it.forEach(action) }
-
-
-/**
- * Deletes this file or empty directory.
- *
- * Returns the deletes path.
- */
-public fun Path.delete(vararg options: LinkOption): Path =
-    apply { if (exists(*options)) Files.delete(this) }
-
-/**
- * Deletes this file or directory recursively.
- *
- * Symbolic links are not followed but deleted themselves.
- *
- * Returns the deletes path.
- */
-public fun Path.deleteRecursively(vararg options: LinkOption, predicate: (Path) -> Boolean = { true }): Path =
-    apply {
-        if (exists(*options, LinkOption.NOFOLLOW_LINKS)) {
-            if (isDirectory(*options, LinkOption.NOFOLLOW_LINKS)) {
-                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS, predicate = predicate) }
-            }
-
-            if (predicate(this)) {
-                var maxAttempts = 3
-                var ex: Throwable? = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
-                while (ex != null && maxAttempts > 0) {
-                    maxAttempts--
-                    if (ex is DirectoryNotEmptyException) {
-                        val files = listDirectoryEntriesRecursively(options = options)
-                        files.forEach { it.deleteRecursively(*options, predicate = predicate) }
-                    }
-                    100.milli.seconds.sleep()
-                    ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
-                }
-                if (ex != null) throw ex
-            }
-        }
-    }
-
-/**
- * Deletes the contents of this directory.
- *
- * Throws if this is no directory.
- */
-public fun Path.deleteDirectoryEntriesRecursively(predicate: (Path) -> Boolean = { true }): Path =
-    apply { listDirectoryEntriesRecursively().forEach { it.deleteRecursively(predicate = predicate) } }
 
 /**
  * Registers this file for deletion the moment this program exits.

@@ -13,10 +13,7 @@ import com.bkahlert.kommons.exec.exitCode
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.successful
 import com.bkahlert.kommons.io.copyTo
-import com.bkahlert.kommons.io.path.Locations
-import com.bkahlert.kommons.io.path.deleteRecursively
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.tempDir
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Smoke

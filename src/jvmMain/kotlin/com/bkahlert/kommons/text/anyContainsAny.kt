@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.containsAny
+
 /**
  * Returns `true` if any of the character sequences contains any of the specified [others] as a substring.
  *

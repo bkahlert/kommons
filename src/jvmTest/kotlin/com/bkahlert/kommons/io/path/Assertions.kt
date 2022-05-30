@@ -1,6 +1,8 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.debug.replaceNonPrintableCharacters
+import com.bkahlert.kommons.lastModified
+import com.bkahlert.kommons.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.quoted
 import com.bkahlert.kommons.text.truncate
@@ -65,7 +67,8 @@ fun <T : Path> Builder<T>.hasEqualContent(other: Path) =
             else -> fail(
                 "was ${actualContent.size} instead of ${expectedContent.size} bytes.$LF" +
                     "Actual content:$LF" + String(actualContent).replaceNonPrintableCharacters() + LF +
-                    "Expected content:$LF" + String(expectedContent).replaceNonPrintableCharacters() + LF)
+                    "Expected content:$LF" + String(expectedContent).replaceNonPrintableCharacters() + LF
+            )
         }
     }
 
@@ -78,7 +81,8 @@ fun <T : Path> Builder<Pair<T, Path>>.haveEqualContent() =
             else -> fail(
                 "was ${firstContent.size} instead of ${lastContent.size} bytes.$LF" +
                     "Content #1:$LF" + String(firstContent).replaceNonPrintableCharacters() + LF +
-                    "Content #2:$LF" + String(lastContent).replaceNonPrintableCharacters() + LF)
+                    "Content #2:$LF" + String(lastContent).replaceNonPrintableCharacters() + LF
+            )
         }
     }
 

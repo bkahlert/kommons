@@ -9,12 +9,12 @@ import com.bkahlert.kommons.io.path.addExtensions
 import com.bkahlert.kommons.io.path.copyTo
 import com.bkahlert.kommons.io.path.getSize
 import com.bkahlert.kommons.io.path.hasSameFiles
-import com.bkahlert.kommons.io.path.randomDirectory
-import com.bkahlert.kommons.io.path.randomPath
 import com.bkahlert.kommons.io.path.removeExtensions
 import com.bkahlert.kommons.io.path.renameTo
 import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
+import com.bkahlert.kommons.randomDirectory
+import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.Fixtures.archiveWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
 import com.bkahlert.kommons.test.junit.UniqueId

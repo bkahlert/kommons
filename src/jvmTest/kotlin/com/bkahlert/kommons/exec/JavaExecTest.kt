@@ -13,7 +13,7 @@ import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.randomPath
+import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.runtime.wait
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.Slow
@@ -214,7 +214,8 @@ class JavaExecTest {
                     """
                     Logged instead:
                     ${exec.io.toList()}
-                    """.trimIndent().wrapWithBorder())
+                    """.trimIndent().wrapWithBorder()
+                )
             }.getOrThrow()
         }
     }

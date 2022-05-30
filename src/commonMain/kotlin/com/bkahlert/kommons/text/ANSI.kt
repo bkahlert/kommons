@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.math.mod
 import com.bkahlert.kommons.regex.namedGroups
 import com.bkahlert.kommons.runtime.AnsiSupport
@@ -11,7 +12,6 @@ import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.ColoredText
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.AnsiCode.Companion.REGEX
 import com.bkahlert.kommons.text.AnsiCodeHelper.closingControlSequence
 import com.bkahlert.kommons.text.AnsiCodeHelper.controlSequence
@@ -36,18 +36,6 @@ import kotlin.text.contains as containsNonAnsiAware
 public object ANSI {
 
     private val level by lazy { if (isDebugging && false) NONE else ansiSupport }
-
-    /**
-     * Contains this character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
-     */
-    public val CharSequence.ansiRemoved: String
-        get() = if (this is AnsiString) toString(removeAnsi = true) else REGEX.replace(this, "")
-
-    /**
-     * Whether this character sequence contains [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
-     */
-    public val CharSequence.containsAnsi: Boolean
-        get() = if (this is AnsiString) containsAnsi else REGEX.containsMatchIn(this)
 
     /**
      * Returns this character sequence as a string with all lines terminated with

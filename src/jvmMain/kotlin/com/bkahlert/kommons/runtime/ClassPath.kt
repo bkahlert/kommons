@@ -6,8 +6,8 @@ import com.bkahlert.kommons.io.path.copyTo
 import com.bkahlert.kommons.io.path.copyToDirectory
 import com.bkahlert.kommons.io.path.extensionOrNull
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.tempFile
 import com.bkahlert.kommons.io.useClassPath
+import com.bkahlert.kommons.tempFile
 import com.bkahlert.kommons.text.quoted
 import java.nio.file.Path
 import kotlin.io.path.isDirectory

@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.math.ceilDiv
 import com.bkahlert.kommons.math.floorDiv
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.Semantics.formattedAs
 
@@ -62,7 +62,7 @@ public val GraphemeCluster.columns: Int
  * Number of columns needed to represent this character sequence.
  */
 public val CharSequence.columns: Int
-    get() = ansiRemoved.asGraphemeClusterSequence().sumOf { it.columns }
+    get() = this.ansiRemoved.asGraphemeClusterSequence().sumOf { it.columns }
 
 /**
  * Returns the index where the given [column] starts.

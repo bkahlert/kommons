@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.docker.MountOptionContext.Type.bind
 import com.bkahlert.kommons.docker.TestImages.Ubuntu
@@ -20,11 +21,10 @@ import com.bkahlert.kommons.exec.state
 import com.bkahlert.kommons.io.copyTo
 import com.bkahlert.kommons.io.copyToDirectory
 import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.deleteRecursively
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.tempDir
 import com.bkahlert.kommons.runtime.onExit
 import com.bkahlert.kommons.shell.ShellScript
+import com.bkahlert.kommons.tempDir
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
@@ -75,7 +75,8 @@ class DockerRunCommandLineTest {
 
     @Test
     fun `should build valid docker run`() {
-        expectThat(DOCKER_RUN_COMMAND_LINE).toStringIsEqualTo("""
+        expectThat(DOCKER_RUN_COMMAND_LINE).toStringIsEqualTo(
+            """
                 'docker' \
                 'run' \
                 '-d' \
@@ -133,7 +134,8 @@ class DockerRunCommandLineTest {
                 'arg=f/../g/h' \
                 'arg=g/h' \
                 'arg=i'
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Nested
@@ -385,13 +387,15 @@ class DockerRunCommandLineTest {
                 }
             }
         } that {
-            matchesCurlyPattern("""
+            matchesCurlyPattern(
+                """
                 ╭──╴file://{}.sh
                 │
                 │   /root
                 │
                 ╰──╴✔︎
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 

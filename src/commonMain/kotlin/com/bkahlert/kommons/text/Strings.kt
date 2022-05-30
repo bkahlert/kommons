@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.Exceptions
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.takeIfNotBlank
 import com.bkahlert.kommons.text.LineSeparators.LF
-import kotlin.random.Random
 
 public object CharRanges {
     public val Numeric: CharRange = '0'..'9'
@@ -15,44 +15,12 @@ public object CharRanges {
 }
 
 /**
- * Creates a random string of the specified [length] made up of the specified [allowedCharacters].
- */
-public fun randomString(length: Int = 16, allowedCharacters: CharArray = CharRanges.Alphanumeric): String =
-    buildString {
-        repeat(length) { append(allowedCharacters[Random.nextInt(0, allowedCharacters.size)]) }
-    }
-
-private const val randomSuffixLength = 4
-private val randomSuffixMatcher: Regex = Regex(".*--[0-9a-zA-Z]{$randomSuffixLength}\$")
-
-/**
- * Returns this [CharSequence] with a random suffix of two dashes dash and four alpha-numeric characters.
- */
-public fun CharSequence.withRandomSuffix(): String {
-    if (randomSuffixMatcher.matches(this)) return this.toString()
-    return "$this--${randomString(length = randomSuffixLength, allowedCharacters = CharRanges.Alphanumeric)}"
-}
-
-/**
- * Returns this [CharSequence] with the [prefix] prepended if it is not already there.
- */
-public fun CharSequence.withPrefix(prefix: String): String =
-    if (startsWith(prefix)) toString() else prefix + toString()
-
-/**
- * Returns this [CharSequence] with the [suffix] appended if it is not already there.
- */
-public fun CharSequence.withSuffix(suffix: String): String =
-    if (endsWith(suffix)) toString() else toString() + suffix
-
-
-/**
  * Returns the length of this character sequence.
  * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
  * @return number of characters
  */
 public fun CharSequence.length(ansi: Boolean = true): Int =
-    if (ansi) ansiRemoved.length else length
+    if (ansi) this.ansiRemoved.length else length
 
 /**
  * Returns a character sequence with content of this character sequence padded at the beginning
@@ -129,50 +97,6 @@ public fun String.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean = true)
  */
 public fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
     "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"
-
-// TODO replaced by kommons-debug
-
-/**
- * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
- */
-public fun CharSequence.takeIfNotEmpty(): CharSequence? = takeIf { it.isNotEmpty() }
-
-/**
- * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
- */
-public fun String.takeIfNotEmpty(): String? = takeIf { it.isNotEmpty() }
-
-
-/**
- * Returns this character sequence if it [isNotBlank] or `null`, if it is.
- */
-public fun CharSequence.takeIfNotBlank(): CharSequence? = takeIf { it.isNotBlank() }
-
-/**
- * Returns this character sequence if it [isNotBlank] or `null`, if it is.
- */
-public fun String.takeIfNotBlank(): String? = takeIf { it.isNotBlank() }
-
-/**
- * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
- */
-public fun CharSequence.takeUnlessEmpty(): CharSequence? = takeUnless { it.isEmpty() }
-
-/**
- * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
- */
-public fun String.takeUnlessEmpty(): String? = takeUnless { it.isEmpty() }
-
-
-/**
- * Returns this character sequence if it [isNotBlank] or `null`, if it is.
- */
-public fun CharSequence.takeUnlessBlank(): CharSequence? = takeUnless { it.isBlank() }
-
-/**
- * Returns this character sequence if it [isNotBlank] or `null`, if it is.
- */
-public fun String.takeUnlessBlank(): String? = takeUnless { it.isBlank() }
 
 /**
  * Splits this character sequence into at most [limit] columns

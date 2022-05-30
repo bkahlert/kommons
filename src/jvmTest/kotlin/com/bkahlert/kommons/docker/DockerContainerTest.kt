@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.docker.DockerContainer.State
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Exited
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Running
@@ -8,7 +9,6 @@ import com.bkahlert.kommons.test.IdeaWorkaroundTest
 import com.bkahlert.kommons.test.IdeaWorkaroundTestFactory
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters.FIELD
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.Symbols.OK
@@ -254,10 +254,12 @@ class DockerContainerTest {
                 @ContainersTest @IdeaWorkaroundTest
                 fun TestSpanScope.`should start multiple and log`(testContainers: TestContainers) {
                     val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newExitedTestContainer())
-                    expectThat(DockerContainer.start(
-                        *containers.toTypedArray(),
-                        attach = false,
-                    )).isFailed()
+                    expectThat(
+                        DockerContainer.start(
+                            *containers.toTypedArray(),
+                            attach = false,
+                        )
+                    ).isFailed()
                     expectThatRendered().contains("Starting ${containers[0].name} ${FIELD.ansiRemoved} ${containers[1].name} ${Negative.ansiRemoved} no such container")
                     expectThat(containers).all { not { hasState<Exited>() } }
                 }

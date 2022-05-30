@@ -13,6 +13,7 @@ import kotlin.reflect.KClass
  */
 public fun KClass<*>.toSimpleString(): String = toString().simpleClassName
 
+// TODO replace with render
 /**
  * Returns a **simple** string representation of this object.
  */
@@ -22,6 +23,7 @@ public fun Any?.toSimpleString(): String =
         string.simpleClassName
     } ?: Symbols.Null
 
+// TODO replace with renderType
 /**
  * Returns a **simple** string representation of this object's [KClass].
  *

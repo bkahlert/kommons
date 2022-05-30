@@ -2,8 +2,9 @@ package com.bkahlert.kommons.exception
 
 import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.randomPath
 import com.bkahlert.kommons.io.path.writeText
+import com.bkahlert.kommons.randomPath
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.regex.RegularExpressions
 import com.bkahlert.kommons.regex.findAllValues
 import com.bkahlert.kommons.test.TextFixture
@@ -12,7 +13,6 @@ import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.joinLinesToString
-import com.bkahlert.kommons.text.randomString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -108,19 +108,23 @@ class DumpKtTest {
         @Test
         fun `should dump IO to file with ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
-            expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }.single().hasContent("""
+            expectThat(dumps).filter { !it.pathString.endsWith("ansi-removed.log") }.single().hasContent(
+                """
                 ${"ansi".ansi.bold}
                 no ansi
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
         fun `should dump IO to file without ansi formatting`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val dumps = persistDump(path = randomPath(extension = ".log"), data = { "ansi".ansi.bold.done + LF + "no ansi" }).values
-            expectThat(dumps).filter { it.pathString.endsWith("ansi-removed.log") }.single().hasContent("""
+            expectThat(dumps).filter { it.pathString.endsWith("ansi-removed.log") }.single().hasContent(
+                """
                 ansi
                 no ansi
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 }

@@ -25,7 +25,7 @@ import com.bkahlert.kommons.text.containsAll
 import com.bkahlert.kommons.text.rightSpaced
 import com.bkahlert.kommons.text.spaced
 import com.bkahlert.kommons.text.splitPascalCase
-import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.time.Now
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -209,12 +209,14 @@ public object DockerExitStateHandler : ExitStateHandler {
                             }
 
                             innerStatus.split(messageSplitRegex, limit = 2)
-                                .let { it.size == 2 && it[0].containsAll("no", "such", "container", ignoreCase = true) } -> NoSuchContainer(start,
+                                .let { it.size == 2 && it[0].containsAll("no", "such", "container", ignoreCase = true) } -> NoSuchContainer(
+                                start,
                                 end,
                                 pid,
                                 exitCode,
                                 io,
-                                innerStatus.split(messageSplitRegex, limit = 2)[1])
+                                innerStatus.split(messageSplitRegex, limit = 2)[1]
+                            )
 
                             else -> UnknownError(start, end, pid, exitCode, io, status)
                         }
@@ -245,12 +247,14 @@ public object DockerExitStateHandler : ExitStateHandler {
                         matches<PathDoesNotExistInsideTheContainer>() -> PathDoesNotExistInsideTheContainer(start, end, pid, exitCode, io, status)
                         matches<NameAlreadyInUse>() -> NameAlreadyInUse(start, end, pid, exitCode, io, status)
                         matches<Conflict>() -> Conflict(start, end, pid, exitCode, io, status)
-                        matches<CannotKillContainer>() -> CannotKillContainer(start,
+                        matches<CannotKillContainer>() -> CannotKillContainer(
+                            start,
                             end,
                             pid,
                             exitCode,
                             io,
-                            CannotKillContainer.parseWrapped(start, end, pid, exitCode, io, status))
+                            CannotKillContainer.parseWrapped(start, end, pid, exitCode, io, status)
+                        )
                         else -> null
                     }
                 }
@@ -264,8 +268,10 @@ public object DockerExitStateHandler : ExitStateHandler {
                     message: String,
                 ): BadRequest? = when {
                     listOf("remove", "running container", "force").all { message.contains(it, ignoreCase = true) } -> {
-                        CannotRemoveRunningContainer(start, end, pid, exitCode, io,
-                            "You cannot remove a running container. Stop the container before attempting removal or force remove.")
+                        CannotRemoveRunningContainer(
+                            start, end, pid, exitCode, io,
+                            "You cannot remove a running container. Stop the container before attempting removal or force remove."
+                        )
                     }
                     else -> null
                 }

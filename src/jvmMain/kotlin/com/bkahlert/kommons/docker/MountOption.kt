@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.isSubPathOf
 import com.bkahlert.kommons.io.path.pathString
+import com.bkahlert.kommons.isSubPathOf
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.styling.Borders.Rounded
 import com.bkahlert.kommons.text.styling.wrapWithBorder

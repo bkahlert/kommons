@@ -13,7 +13,7 @@ import kotlin.random.Random
 import kotlin.text.padStart as kotlinPadStart
 
 private fun String.escape() = "\\u$this"
-
+// TODO replace with kommons-debug
 /**
  * Representation of a [Unicode code point](https://unicode.org/glossary/#code_point)
  *

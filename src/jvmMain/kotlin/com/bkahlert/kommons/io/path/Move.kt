@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.deleteRecursively
 import java.nio.file.FileSystemException
 import java.nio.file.LinkOption
 import java.nio.file.Path

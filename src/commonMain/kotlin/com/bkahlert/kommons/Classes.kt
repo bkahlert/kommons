@@ -1,7 +1,6 @@
 package com.bkahlert.kommons
 
 import com.bkahlert.kommons.collections.map
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.isMultiline
 import com.bkahlert.kommons.text.Semantics

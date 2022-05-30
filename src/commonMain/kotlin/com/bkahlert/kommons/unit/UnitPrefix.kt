@@ -5,9 +5,9 @@ import com.bkahlert.kommons.math.BigDecimalConstants
 import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.times
 import com.bkahlert.kommons.math.toBigDecimal
+import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.CharRanges
-import com.bkahlert.kommons.text.takeUnlessBlank
-import com.bkahlert.kommons.text.takeUnlessEmpty
 import com.bkahlert.kommons.unit.DecimalPrefixes.kilo
 import com.bkahlert.kommons.unit.DecimalPrefixes.milli
 

@@ -5,10 +5,10 @@ import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.ExecTerminationCallback
 import com.bkahlert.kommons.exec.Executable
-import com.bkahlert.kommons.io.path.createParentDirectories
+import com.bkahlert.kommons.createParentDirectories
 import com.bkahlert.kommons.io.path.executable
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.tempFile
+import com.bkahlert.kommons.tempFile
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext.Line
@@ -21,7 +21,7 @@ import com.bkahlert.kommons.text.quoted
 import com.bkahlert.kommons.text.singleQuoted
 import com.bkahlert.kommons.time.minutes
 import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.toBaseName
+import com.bkahlert.kommons.toIdentifier
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
 import java.net.URI
@@ -156,7 +156,7 @@ public open class ShellScript(
      * @see toString
      */
     public fun toFile(
-        path: Path = Kommons.FilesTemp.tempFile(this.name.toBaseName(), ".sh"),
+        path: Path = Kommons.FilesTemp.tempFile(this.name.toIdentifier(8), ".sh"),
         echoName: Boolean = false,
         name: CharSequence? = this.name,
     ): Path = path.apply {

@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.debug
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.map
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.BlockDelimiters.INTROSPECTION
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters.FIELD
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -16,8 +16,10 @@ public val <T> XRay<T>.debug: XRay<T>
 
 public inline val CharSequence?.debug: String
     get() = if (this == null) null.wrap(INTROSPECTION.map { it.formattedAs.debug })
-    else toString().replaceNonPrintableCharacters().wrap("❬".formattedAs.debug,
-        FIELD.ansiRemoved.formattedAs.debug + "${this.length}".ansi.gray + "❭".formattedAs.debug)
+    else toString().replaceNonPrintableCharacters().wrap(
+        "❬".formattedAs.debug,
+        FIELD.ansiRemoved.formattedAs.debug + "${this.length}".ansi.gray + "❭".formattedAs.debug
+    )
 public inline val <T> Iterable<T>?.debug: String get() = this?.joinToString("") { it.toString().debug }.debug
 public inline val List<Byte>?.debug: String get() = this?.toByteArray()?.let { bytes: ByteArray -> String(bytes) }.debug
 public inline val Char?.debug: String get() = this.toString().replaceNonPrintableCharacters().wrap("❬", "❭")

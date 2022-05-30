@@ -2,11 +2,10 @@ package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.builder.Builder
 import com.bkahlert.kommons.builder.Init
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.shell.HereDoc.Companion.HereDocContext
-import com.bkahlert.kommons.text.CharRanges
 import com.bkahlert.kommons.text.joinLinesToString
-import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.text.singleQuoted
 
 /**
@@ -100,7 +99,7 @@ public class HereDoc(
         /**
          * Returns a random—most likely unique—label to be used for a [HereDoc].
          */
-        public fun randomDelimiter(): String = "HERE-" + randomString(8, CharRanges.UpperCaseAlphanumeric)
+        public fun randomDelimiter(): String = "HERE-" + randomString(8).uppercase()
     }
 }
 

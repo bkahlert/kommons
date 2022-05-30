@@ -5,7 +5,6 @@ import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.BigIntegerConstants
 import com.bkahlert.kommons.math.toBigInteger
 import com.bkahlert.kommons.runtime.isDebugging
-import com.bkahlert.kommons.text.ANSI.containsAnsi
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.truncate
 
@@ -111,33 +110,12 @@ public operator fun <R> BigInteger.times(block: (index: Int) -> R): List<R> {
  */
 public operator fun <R, T : (R) -> R> T?.invoke(arg: R): R = this?.invoke(arg) ?: arg
 
-
-// @formatter:off
-/** Throws an [IllegalArgumentException] if this string [isEmpty]. */
-public fun String.requireNotEmpty(): String = also{require(it.isNotEmpty())}
-/** Throws an [IllegalArgumentException] with the result of calling [lazyMessage] if this string [isEmpty]. */
-public fun String.requireNotEmpty(lazyMessage: () -> Any): String = also{require(it.isNotEmpty(),lazyMessage)}
-/** Throws an [IllegalArgumentException] if this string [isBlank]. */
-public fun String.requireNotBlank(): String = also{require(isNotBlank())}
-/** Throws an [IllegalArgumentException] with the result of calling [lazyMessage] if this string [isBlank]. */
-public fun String.requireNotBlank(lazyMessage: () -> Any): String = also{require(it.isNotBlank(),lazyMessage)}
-
-/** Throws an [IllegalStateException] if this string [isEmpty]. */
-public fun String.checkNotEmpty(): String = also{check(it.isNotEmpty())}
-/** Throws an [IllegalStateException] with the result of calling [lazyMessage] if this string [isEmpty]. */
-public fun String.checkNotEmpty(lazyMessage: () -> Any): String = also{check(it.isNotEmpty(),lazyMessage)}
-/** Throws an [IllegalStateException] if this string [isBlank]. */
-public fun String.checkNotBlank(): String = also{check(it.isNotBlank())}
-/** Throws an [IllegalStateException] with the result of calling [lazyMessage] if this string [isBlank]. */
-public fun String.checkNotBlank(lazyMessage: () -> Any): String = also{check(it.isNotBlank(),lazyMessage)}
-// @formatter:on
-
 /**
  * Throws an [IllegalArgumentException] with the details if the value is obviously
  * spoiled with unusual characters such as escape sequences.
  */
 public fun String.requireSaneInput() {
-    require(!containsAnsi) {
+    require(!ansiContained) {
         "ANSI escape sequences detected: $xray"
     }
     if (length > 1) {

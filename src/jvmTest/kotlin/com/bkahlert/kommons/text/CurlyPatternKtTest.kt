@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.compositionOf
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.debug.debug
@@ -7,7 +8,6 @@ import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.isMultiline
 import com.bkahlert.kommons.text.LineSeparators.mapLines
@@ -55,24 +55,29 @@ class CurlyPatternKtTest {
 
     @Test
     fun `should not match non-matching multi line string`() {
-        expectThat("""
+        expectThat(
+            """
             Executing [sh, -c, >&1 echo "test output"
             >&2 echo "test error"] instantly.
             Started Process(pid=72692, exitValue=0)
             Process(pid=72692, exitValue=0) stopped with exit code 0
-        """.trimIndent()).not {
-            matchesCurlyPattern("""
+        """.trimIndent()
+        ).not {
+            matchesCurlyPattern(
+                """
                     Executing [sh, -c, >&1 echo "test output"
                     >&2 echo "test error"] in {}
                     Started Process(pid={}, exitValue={})
                     Process(pid={}, exitValue={}) stopped with exit code {}
-                """.trimIndent())
+                """.trimIndent()
+            )
         }
     }
 
     @Test
     fun `should not match non-matching multi line string2`() {
-        expectThat("""
+        expectThat(
+            """
             ▶ JavaExec(process=Process(pid=27252, exitValue="not exited"), noErrors=✅, started=false, commandLine=/var/folders/hh/739sq9w1 … /kommons.exec.o50.sh, .isA<Failed>()execTerminationCallback=${Symbols.Null}, destroyOnShutdown=✅)
             · Executing /var/folders/hh/739sq9w11lv2hvgh7ymlwwzr20wd76/T/kommons12773028758187394965/ScriptsKtTest.SynchronousExecution.should_process_log_to_consol
             · e_by_default-CapturedOutput-UniqueId/kommons.exec.o50.sh
@@ -82,8 +87,10 @@ class CurlyPatternKtTest {
             · test error 1
             · test error 2
             · Process 27252 terminated successfully at 2021-02-23T02:31:53.968444Z.
-        """.trimIndent()) {
-            matchesCurlyPattern("""
+        """.trimIndent()
+        ) {
+            matchesCurlyPattern(
+                """
                     ▶{}commandLine{{}}
                     · Executing {{}}
                     · {} file:{}
@@ -91,12 +98,14 @@ class CurlyPatternKtTest {
                     · test output 2
                     · test error 1
                     · test error 2{{}} 
-                """.trimIndent())
+                """.trimIndent()
+            )
         }
     }
 
     @TestFactory
-    fun `should match line breaks`() = test("""
+    fun `should match line breaks`() = test(
+        """
             ▶{}commandLine{{}}
             · Executing {}
             · {} file:{}
@@ -104,7 +113,8 @@ class CurlyPatternKtTest {
             · test output 2
             · test error 1
             · test error 2{{}}
-        """.trimIndent()) { pattern ->
+        """.trimIndent()
+    ) { pattern ->
 
         expecting("matching lines") {
             """
@@ -175,65 +185,81 @@ class CurlyPatternKtTest {
     }
 
     @TestFactory
-    fun `should match leading line breaks with multi-line placeholder`() = test("""
+    fun `should match leading line breaks with multi-line placeholder`() = test(
+        """
             a
             b
             c
-        """.trimIndent()) {
+        """.trimIndent()
+    ) {
 
         asserting {
-            matchesCurlyPattern("""
+            matchesCurlyPattern(
+                """
                                     {{}}a
                                     b
                                     c
-                                """.trimIndent())
+                                """.trimIndent()
+            )
         }
 
         asserting {
-            matchesCurlyPattern("""
+            matchesCurlyPattern(
+                """
                                     {{}}
                                     a
                                     b
                                     c
-                                """.trimIndent())
+                                """.trimIndent()
+            )
         }
     }
 
     @TestFactory
-    fun `should match trailing line breaks with multi-line placeholder`() = test("""
+    fun `should match trailing line breaks with multi-line placeholder`() = test(
+        """
             a
             b
             c
-        """.trimIndent()) {
+        """.trimIndent()
+    ) {
 
         asserting {
-            matchesCurlyPattern("""
+            matchesCurlyPattern(
+                """
                                     a
                                     b
                                     c{{}}
-                                """.trimIndent())
+                                """.trimIndent()
+            )
         }
 
         asserting {
-            matchesCurlyPattern("""
+            matchesCurlyPattern(
+                """
                                     a
                                     b
                                     c
                                     {{}}
-                                """.trimIndent())
+                                """.trimIndent()
+            )
         }
     }
 
     @Test
     fun `should right trim spaces on each line`() {
         // first line has trailing whitespaces
-        expectThat("""
+        expectThat(
+            """
             │   
             │
-        """.trimIndent()).matchesCurlyPattern("""
+        """.trimIndent()
+        ).matchesCurlyPattern(
+            """
                     │
                     │   
-                """.trimIndent()) // second line has trailing whitespaces
+                """.trimIndent()
+        ) // second line has trailing whitespaces
     }
 }
 

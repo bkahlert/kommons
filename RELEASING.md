@@ -40,7 +40,7 @@ uses [grgit](https://github.com/ajoberstar/grgit) to interact with the Git repos
 ```
 
 ```shell
-./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository -x publishNativePublicationToBintrayRepository -x publishKotlinMultiplatformPublicationToBintrayRepository -x publishPackageToBintray -x publishAllPublicationsToGitHubPackagesRepository -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishNativePublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository -x publishJsPublicationToOSSRHRepository -x publishJvmPublicationToOSSRHRepository -x publishNativePublicationToOSSRHRepository -x publishKotlinMultiplatformPublicationToOSSRHRepository
+./gradlew snapshot publishToMavenLocal -x :dokkaHtml  -x :javadoc -x publishJsPublicationToBintrayRepository -x publishJvmPublicationToBintrayRepository
 ```
 
 .

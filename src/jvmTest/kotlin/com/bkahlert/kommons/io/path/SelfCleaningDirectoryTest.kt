@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.Locations
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.io.permissions
 import com.bkahlert.kommons.test.junit.UniqueId

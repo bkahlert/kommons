@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.test.junit
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.docker.DockerRequiring
 import com.bkahlert.kommons.printTestExecutionStatus
@@ -7,7 +8,6 @@ import com.bkahlert.kommons.test.allContainerJavaClasses
 import com.bkahlert.kommons.test.allTestJavaMethods
 import com.bkahlert.kommons.test.withAnnotation
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.toSimpleString

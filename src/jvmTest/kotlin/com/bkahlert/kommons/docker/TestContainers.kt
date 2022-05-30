@@ -10,6 +10,7 @@ import com.bkahlert.kommons.docker.TestImages.HelloWorld
 import com.bkahlert.kommons.docker.TestImages.Ubuntu
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.get
 import com.bkahlert.kommons.test.junit.UniqueId
@@ -17,7 +18,6 @@ import com.bkahlert.kommons.test.junit.UniqueId.Companion.id
 import com.bkahlert.kommons.test.put
 import com.bkahlert.kommons.test.storeForNamespaceAndTest
 import com.bkahlert.kommons.test.withAnnotation
-import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
@@ -204,11 +204,13 @@ class TestContainers(
         commandLine: CommandLine,
     ): DockerContainer {
         val container = DockerContainer.from(name = "$uniqueId", randomSuffix = true).also { provisioned.add(it) }
-        commandLine.dockerized(this@TestContainers.image, Options(
-            name = container,
-            autoCleanup = false,
-            detached = true,
-        )).exec.logging(renderer = noDetails())
+        commandLine.dockerized(
+            this@TestContainers.image, Options(
+                name = container,
+                autoCleanup = false,
+                detached = true,
+            )
+        ).exec.logging(renderer = noDetails())
         return container
     }
 
@@ -238,14 +240,18 @@ class TestContainers(
      */
     internal fun newExitedTestContainer(duration: Duration = 30.seconds): DockerContainer =
         runSpanning("Providing exited container", style = None, printer = BackgroundPrinter) {
-            startContainerWithCommandLine(CommandLine("sh", "-c", """
+            startContainerWithCommandLine(
+                CommandLine(
+                    "sh", "-c", """
                 if [ -f "booted-before" ]; then
                   sleep ${duration.toIntegerSeconds()}
                 else
                   touch "booted-before"
                 fi
                 exit 0
-            """.trimIndent(), name = "$duration sleep")).also { container ->
+            """.trimIndent(), name = "$duration sleep"
+                )
+            ).also { container ->
                 poll {
                     container.containerState is Exited
                 }.every(0.5.seconds).forAtMost(5.seconds) { timeout ->

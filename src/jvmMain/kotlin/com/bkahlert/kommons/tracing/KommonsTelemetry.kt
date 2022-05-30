@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
-import com.bkahlert.kommons.text.withSuffix
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.KommonsTelemetry.NOOP
 import com.bkahlert.kommons.tracing.KommonsTelemetry.register
+import com.bkahlert.kommons.withSuffix
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.AttributeKey

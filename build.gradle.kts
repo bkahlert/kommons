@@ -6,10 +6,6 @@ val baseUrl: String get() = "https://github.com/bkahlert/kommons"
 plugins {
     kotlin("multiplatform") version "1.6.20"
     id("org.jetbrains.dokka") version "1.6.20"
-//    id("com.github.ben-manes.versions") version "0.39.0"
-//    id("se.patrikerdes.use-latest-versions") version "0.2.17"
-
-//    id("org.ajoberstar.grgit") version "4.1.0"
     id("maven-publish")
     signing
     id("nebula.release") version "15.3.1"
@@ -17,23 +13,6 @@ plugins {
 
 allprojects {
     apply { plugin("maven-publish") }
-//    apply { plugin("com.github.ben-manes.versions") }
-//    apply { plugin("se.patrikerdes.use-latest-versions") }
-
-//    configurations.all {
-//        resolutionStrategy.eachDependency {
-//            val kotlinVersion = "1.6.20"
-//            val kotlinModules = listOf(
-//                "bom", "reflect", "main-kts", "compiler", "compiler-embeddable",
-//                "stdlib", "stdlib-js", "stdlib-jdk7", "stdlib-jdk8", "stdlib-common",
-//                "test", "test-common", "test-js", "test-junit", "test-junit5").map { "kotlin-$it" }
-//            if (requested.group == "org.jetbrains.kotlin" && requested.name in kotlinModules && requested.version != kotlinVersion) {
-//                println("${requested.group}:${requested.name}:$kotlinVersion  ‾͞ヽ(#ﾟДﾟ)ﾉ┌┛ ͞͞ᐨ̵  ${requested.version}")
-//                useVersion(kotlinVersion)
-//                because("of ambiguity issues")
-//            }
-//        }
-//    }
 }
 
 description = "Kommons is a Kotlin Multiplatform Library, with a minimal set" +
@@ -48,6 +27,7 @@ group = "com.bkahlert.kommons"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 kotlin {
@@ -91,18 +71,14 @@ kotlin {
             }
         }
     }
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
 
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                api("com.bkahlert.kommons:kommons-debug:0.3.0-SNAPSHOT")
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
@@ -150,8 +126,6 @@ kotlin {
         }
         val jsMain by getting
         val jsTest by getting
-        val nativeMain by getting
-        val nativeTest by getting
 
         all {
             languageSettings.apply {
@@ -189,12 +163,14 @@ tasks.dokkaHtml {
     outputDirectory.set(file(dokkaOutputDir))
     dokkaSourceSets {
         configureEach {
-            displayName.set(when (platform.get()) {
-                org.jetbrains.dokka.Platform.jvm -> "jvm"
-                org.jetbrains.dokka.Platform.js -> "js"
-                org.jetbrains.dokka.Platform.native -> "native"
-                org.jetbrains.dokka.Platform.common -> "common"
-            })
+            displayName.set(
+                when (platform.get()) {
+                    org.jetbrains.dokka.Platform.jvm -> "jvm"
+                    org.jetbrains.dokka.Platform.js -> "js"
+                    org.jetbrains.dokka.Platform.native -> "native"
+                    org.jetbrains.dokka.Platform.common -> "common"
+                }
+            )
         }
     }
 }
@@ -291,7 +267,6 @@ listOf(
     tasks.getByName("publishKotlinMultiplatformPublicationToMavenLocal"),
     tasks.getByName("publishJsPublicationToMavenLocal"),
     tasks.getByName("publishJvmPublicationToMavenLocal"),
-    tasks.getByName("publishNativePublicationToMavenLocal")
 ).forEach {
     it.dependsOn(signingTasks)
 }

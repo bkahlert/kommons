@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.ansiRemoved
 import io.opentelemetry.api.trace.Span
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 
 /**
  * ID of a trace.
@@ -18,7 +18,7 @@ public value class TraceId(private val value: CharSequence) : CharSequence {
     override fun get(index: Int): Char = value[index]
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = value.subSequence(startIndex, endIndex)
 
-    override fun toString(): String = value.ansiRemoved
+    override fun toString(): String = value.toString().ansiRemoved
 
     public companion object {
         /**

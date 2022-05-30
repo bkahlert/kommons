@@ -20,18 +20,18 @@ import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.leftOrElse
 import com.bkahlert.kommons.lowerSentenceCaseName
 import com.bkahlert.kommons.mapLeft
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.requireSaneInput
 import com.bkahlert.kommons.text.CharRanges.Alphanumeric
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.capitalize
-import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.text.truncate
-import com.bkahlert.kommons.text.withRandomSuffix
 import com.bkahlert.kommons.text.wrap
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
+import com.bkahlert.kommons.withRandomSuffix
 import java.nio.file.Path
 import kotlin.time.Duration
 
@@ -312,7 +312,7 @@ public class DockerContainer(public val name: String) {
             }.joinToString("",
                 postfix = (LENGTH_RANGE.first - nameWithSuffix.length)
                     .takeIf { it > 0 }?.let {
-                        randomString(it, Alphanumeric)
+                        randomString(it).uppercase()
                     } ?: "")
                 .let {
                     it.take(it.length.coerceAtMost(LENGTH_RANGE.last - suffix.length)) + suffix

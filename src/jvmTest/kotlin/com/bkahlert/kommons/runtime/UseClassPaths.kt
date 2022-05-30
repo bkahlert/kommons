@@ -5,9 +5,6 @@ import com.bkahlert.kommons.io.path.WrappedPath
 import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.copyToDirectory
 import com.bkahlert.kommons.io.path.isCopyOf
-import com.bkahlert.kommons.io.path.listDirectoryEntriesRecursively
-import com.bkahlert.kommons.io.path.randomDirectory
-import com.bkahlert.kommons.io.path.randomPath
 import com.bkahlert.kommons.io.readClassPathBytes
 import com.bkahlert.kommons.io.readClassPathText
 import com.bkahlert.kommons.io.requireClassPathBytes
@@ -15,6 +12,9 @@ import com.bkahlert.kommons.io.requireClassPathText
 import com.bkahlert.kommons.io.useClassPath
 import com.bkahlert.kommons.io.useClassPaths
 import com.bkahlert.kommons.io.useRequiredClassPath
+import com.bkahlert.kommons.listDirectoryEntriesRecursively
+import com.bkahlert.kommons.randomDirectory
+import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A
 import com.bkahlert.kommons.test.Fixture61C285F09D95930D0AE298B00AF09F918B0A.data
 import com.bkahlert.kommons.test.junit.UniqueId

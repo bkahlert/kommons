@@ -1,8 +1,10 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.Locations
 import com.bkahlert.kommons.io.directoryNotEmpty
 import com.bkahlert.kommons.io.fileAlreadyExists
 import com.bkahlert.kommons.io.noSuchFile
+import com.bkahlert.kommons.isSubPathOf
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.LinkOption
 import java.nio.file.NotDirectoryException

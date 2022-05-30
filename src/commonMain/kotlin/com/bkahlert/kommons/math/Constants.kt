@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.math
 
+// TODO remove
 public object Constants {
 
     public const val TWO_POW_128_PLUS_1_HEX_STRING: String =

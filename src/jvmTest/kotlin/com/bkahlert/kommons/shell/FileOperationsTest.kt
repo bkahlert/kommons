@@ -8,7 +8,7 @@ import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Names
-import com.bkahlert.kommons.toBaseName
+import com.bkahlert.kommons.toIdentifier
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -21,7 +21,7 @@ class FileOperationsTest {
     inner class RemoveLine {
 
         private fun Path.file(lineSeparator: String): Path =
-            resolve("${LineSeparators.Names[lineSeparator].toBaseName()}.txt").apply {
+            resolve("${LineSeparators.Names[lineSeparator].toIdentifier(8)}.txt").apply {
                 appendText("line 1$lineSeparator")
                 appendText("line 2$lineSeparator")
                 appendText("line 2.1$lineSeparator")
@@ -54,11 +54,13 @@ class FileOperationsTest {
 
         private fun Path.file(): Path =
             resolve("file.txt").apply {
-                appendText("""
+                appendText(
+                    """
                     line 1
                     line 2
                     
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
         @Test

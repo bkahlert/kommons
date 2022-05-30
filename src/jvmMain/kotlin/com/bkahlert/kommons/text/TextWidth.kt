@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.synchronizedListOf
 import com.bkahlert.kommons.math.isEven
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import java.awt.Canvas
 import java.awt.Dimension
 import java.awt.FlowLayout

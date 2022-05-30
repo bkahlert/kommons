@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiContained
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Style
 import com.bkahlert.kommons.text.ANSI.Style.bold
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.ANSI.colorize
-import com.bkahlert.kommons.text.ANSI.containsAnsi
 import com.bkahlert.kommons.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -165,8 +165,10 @@ class ANSITest {
 
         @Test
         fun `should colorize foreground and background`() {
-            expectThat("cyan on magenta".ansi.cyan.on.magenta).toStringIsEqualTo((ANSI.Colors.cyan + ANSI.Colors.magenta.bg)("cyan on magenta").toString(),
-                false)
+            expectThat("cyan on magenta".ansi.cyan.on.magenta).toStringIsEqualTo(
+                (ANSI.Colors.cyan + ANSI.Colors.magenta.bg)("cyan on magenta").toString(),
+                false
+            )
         }
 
         @Test
@@ -222,14 +224,14 @@ class ANSITest {
 
 fun <T : CharSequence> Assertion.Builder<T>.containsAnsi(): Assertion.Builder<T> =
     assert("contains ANSI escape sequences") {
-        when (val actual = it.toString().containsAnsi) {
+        when (val actual = it.toString().ansiContained) {
             true -> pass()
             else -> fail(actual = actual)
         }
     }
 
 inline val <reified T : CharSequence> Assertion.Builder<T>.ansiRemoved: DescribeableBuilder<String>
-    get() = get("escape sequences removed") { ansiRemoved }
+    get() = get("escape sequences removed") { this.toString().ansiRemoved }
 
 inline fun <reified T : CharSequence> Builder<T>.ansiRemoved(noinline assertions: Builder<String>.() -> Unit): Builder<T> =
-    with("escape sequences removed", { ansiRemoved }, assertions)
+    with("escape sequences removed", { toString().ansiRemoved }, assertions)

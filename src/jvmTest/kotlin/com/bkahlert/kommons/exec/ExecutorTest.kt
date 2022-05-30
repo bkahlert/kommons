@@ -1,15 +1,16 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.Locations
 import com.bkahlert.kommons.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
-import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.textContent
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.DynamicTestsWithSubjectBuilder
 import com.bkahlert.kommons.test.Smoke
@@ -20,7 +21,6 @@ import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.mapLines
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.TraceId

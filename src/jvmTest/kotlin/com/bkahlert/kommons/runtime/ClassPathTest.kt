@@ -2,8 +2,8 @@ package com.bkahlert.kommons.runtime
 
 import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.io.path.deleteOnExit
-import com.bkahlert.kommons.io.path.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.io.path.textContent
+import com.bkahlert.kommons.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.runtime.ClassPathTest.META_INF.Services
 import com.bkahlert.kommons.runtime.ClassPathTest.META_INF.Services.JUnitExtensions
 import com.bkahlert.kommons.runtime.ClassPathTest.resources.a.b.c

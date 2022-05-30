@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.test

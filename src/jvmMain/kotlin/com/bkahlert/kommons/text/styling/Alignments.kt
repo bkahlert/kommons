@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.text.styling
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.math.ceilDiv
 import com.bkahlert.kommons.math.floorDiv
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Unicode
 import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.maxLength

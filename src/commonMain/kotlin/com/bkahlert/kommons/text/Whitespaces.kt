@@ -2,6 +2,7 @@ package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.collections.Dictionary
 import com.bkahlert.kommons.collections.dictOf
+import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.Unicode.ZERO_WIDTH_NO_BREAK_SPACE
 import com.bkahlert.kommons.text.Unicode.ZERO_WIDTH_SPACE
 

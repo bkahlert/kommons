@@ -5,7 +5,6 @@ import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Meta
 import com.bkahlert.kommons.exec.IO.Output
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.AnsiString
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs

@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.io.path.hasContent
-import com.bkahlert.kommons.io.path.randomDirectory
-import com.bkahlert.kommons.io.path.randomFile
-import com.bkahlert.kommons.io.path.randomPath
-import com.bkahlert.kommons.io.path.tempFile
 import com.bkahlert.kommons.io.path.writeText
+import com.bkahlert.kommons.randomDirectory
+import com.bkahlert.kommons.randomFile
+import com.bkahlert.kommons.randomPath
+import com.bkahlert.kommons.tempFile
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.tests

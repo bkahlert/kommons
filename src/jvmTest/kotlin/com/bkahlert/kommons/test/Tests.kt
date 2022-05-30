@@ -2,6 +2,7 @@ package com.bkahlert.kommons.test
 
 import com.bkahlert.kommons.Exceptions.ISE
 import com.bkahlert.kommons.TestKommons
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.asStream
 import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.exception.toCompactString
@@ -26,14 +27,13 @@ import com.bkahlert.kommons.test.Tester.throwingDisplayName
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.junit.UniqueId.Companion.id
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.decapitalize
-import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.truncate
-import com.bkahlert.kommons.text.withRandomSuffix
+import com.bkahlert.kommons.withRandomSuffix
 import com.bkahlert.kommons.text.wrap
-import com.bkahlert.kommons.toBaseName
+import com.bkahlert.kommons.toIdentifier
 import com.bkahlert.kommons.toSimpleString
 import com.bkahlert.kommons.tracing.rendering.SLF4J
 import filepeek.FilePeekMPP
@@ -956,7 +956,7 @@ class DynamicTestBuilder<T>(val subject: T, private val buildErrors: MutableList
  * @throws IllegalStateException if called from outside a test
  */
 fun withTempDir(uniqueId: UniqueId, block: Path.() -> Unit) {
-    val tempDir: Path = TestKommons.TestRoot.resolve(uniqueId.value.toBaseName().withRandomSuffix()).createDirectories()
+    val tempDir: Path = TestKommons.TestRoot.resolve(uniqueId.value.toIdentifier(8).withRandomSuffix()).createDirectories()
     tempDir.block()
     check(TestKommons.TestRoot.exists()) {
         println("The shared root temp directory was deleted by $uniqueId or a concurrently running test. This must not happen.".ansi.red.toString())

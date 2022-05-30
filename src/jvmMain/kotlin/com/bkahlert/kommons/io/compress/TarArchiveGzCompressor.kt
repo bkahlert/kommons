@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.io.compress
 
+import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.compress.Archiver.addToArchive
 import com.bkahlert.kommons.io.compress.Archiver.list
 import com.bkahlert.kommons.io.compress.Archiver.unarchiveTo
 import com.bkahlert.kommons.io.path.addExtensions
 import com.bkahlert.kommons.io.path.bufferedInputStream
-import com.bkahlert.kommons.io.path.deleteRecursively
 import com.bkahlert.kommons.io.path.removeExtensions
 import com.bkahlert.kommons.io.path.requireEmpty
 import com.bkahlert.kommons.io.path.requireExists

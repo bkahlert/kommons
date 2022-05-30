@@ -158,7 +158,7 @@ class TimeOperationsKtTest {
     }
 
     @Test
-    fun `should return FileType`() {
+    fun `should return FileTime`() {
         val now = Now.instant
         expectThat(now.toFileTime()).isEqualTo(FileTime.from(now))
     }

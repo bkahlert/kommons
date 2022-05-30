@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.IdeaWorkaroundTest
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.tests
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.tracing.TestSpanScope
 import org.junit.jupiter.api.Nested

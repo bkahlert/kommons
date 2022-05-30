@@ -10,11 +10,11 @@ import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.CRLF
 import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.takeUnlessBlank
-import com.bkahlert.kommons.text.withSuffix
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
 import com.bkahlert.kommons.unit.milli
+import com.bkahlert.kommons.withSuffix
 import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.OutputStream

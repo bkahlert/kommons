@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text.styling
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.asCodePointSequence
 import com.bkahlert.kommons.text.codePointCount
@@ -92,11 +92,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  └────────┘
      * ```
      */
-    Light("""
+    Light(
+        """
         ┌─┐
         │ │
         └─┘
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -105,11 +107,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ┗━━━━━━━━┛
      * ```
      */
-    Heavy("""
+    Heavy(
+        """
         ┏━┓
         ┃ ┃
         ┗━┛
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -118,11 +122,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ██████████
      * ```
      */
-    Block("""
+    Block(
+        """
         ███
         █ █
         ███
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -131,11 +137,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ╚════════╝
      * ```
      */
-    Double("""
+    Double(
+        """
         ╔═╗
         ║ ║
         ╚═╝
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -144,11 +152,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ╰────────╯
      * ```
      */
-    Rounded("""
+    Rounded(
+        """
         ╭─╮
         │ │
         ╰─╯
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -157,11 +167,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  └┈┄┄┄┄┄┄┄┘
      * ```
      */
-    LightDotted("""
+    LightDotted(
+        """
         ┌┄┐
         ┊ ┊
         └┈┘
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -170,11 +182,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ┗╍╍╍╍╍╍╍╍┛
      * ```
      */
-    HeavyDotted("""
+    HeavyDotted(
+        """
         ┏╍┓
         ┇ ┇
         ┗╍┛
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -183,11 +197,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ▽▽▽▽▽▽▽▽
      * ```
      */
-    SpikedOutward("""
+    SpikedOutward(
+        """
          △ 
         ◁ ▷
          ▽ 
-    """.trimIndent()),
+    """.trimIndent()
+    ),
 
     /**
      * ```
@@ -196,11 +212,13 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ◺△△△△△△△△◿
      * ```
      */
-    SpikedInward("""
+    SpikedInward(
+        """
         ◸▽◹
         ▷ ◁
         ◺△◿
-    """.trimIndent()),
+    """.trimIndent()
+    ),
     ;
 
     init {

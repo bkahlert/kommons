@@ -12,6 +12,7 @@ public enum class Cases(
     public val splitter: (String) -> List<String>,
     public val joiner: ((List<String>) -> String),
 ) {
+    // TODO `sentence case`
     camelCase({
         buildList {
             add(0)

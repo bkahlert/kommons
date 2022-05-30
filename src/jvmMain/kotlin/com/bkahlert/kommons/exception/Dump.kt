@@ -1,15 +1,15 @@
 package com.bkahlert.kommons.exception
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.io.path.Locations
-import com.bkahlert.kommons.io.path.isSubPathOf
-import com.bkahlert.kommons.io.path.randomFile
+import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.io.path.withExtension
 import com.bkahlert.kommons.io.path.writeText
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
+import com.bkahlert.kommons.isSubPathOf
+import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.capitalize
-import com.bkahlert.kommons.text.withSuffix
+import com.bkahlert.kommons.withSuffix
 import java.io.IOException
 import java.nio.file.Path
 
@@ -79,7 +79,7 @@ public fun persistDump(
     data().run {
         mapOf(
             "unchanged" to path.withExtension("log").writeText(this),
-            "ANSI escape/control sequences removed" to path.withExtension("ansi-removed.log").writeText(ansiRemoved)
+            "ANSI escape/control sequences removed" to path.withExtension("ansi-removed.log").writeText(this.ansiRemoved)
         )
     }
 }.getOrElse {

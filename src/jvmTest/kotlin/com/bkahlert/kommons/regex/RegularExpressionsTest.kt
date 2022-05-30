@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.regex
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.debug
 import com.bkahlert.kommons.test.DynamicTestsWithSubjectBuilder
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -125,7 +125,8 @@ class RegularExpressionsTest {
                 "a ",
                 " a",
                 "a b",
-            )),
+            )
+        ),
         RegularExpressions.urlRegex to MatchExpectations(
             matchingInput = listOf(
                 "http://example.net",
@@ -136,7 +137,8 @@ class RegularExpressionsTest {
                 "mailto:someone@somewhere",
                 "abc://example.net",
                 "crap",
-            )),
+            )
+        ),
         RegularExpressions.uriRegex to MatchExpectations(
             matchingInput = listOf(
                 "http://example.net",
@@ -147,7 +149,8 @@ class RegularExpressionsTest {
                 "abc://example.net",
             ), nonMatchingInput = listOf(
                 "crap",
-            )),
+            )
+        ),
         RegularExpressions.versionRegex to MatchExpectations(
             matchingInput = listOf(
                 "1.0.0",
@@ -159,7 +162,8 @@ class RegularExpressionsTest {
                 "0..0",
                 "0.b.0",
                 "crap",
-            )),
+            )
+        ),
 
         RegularExpressions.classRegex("x") to MatchExpectations(
             matchingInput = listOf(
@@ -170,7 +174,8 @@ class RegularExpressionsTest {
                 ".ClassName",
                 "ClassName.",
                 "package..ClassName",
-            )),
+            )
+        ),
         RegularExpressions.lambdaRegex("x") to MatchExpectations(
             matchingInput = listOf(
                 "() -> Unit",
@@ -184,20 +189,23 @@ class RegularExpressionsTest {
                 "ClassName.",
                 "package..ClassName",
                 "package1.PACKAGE2.ClassName",
-            )),
+            )
+        ),
     ).map { (regex, expectations) ->
-        dynamicContainer("for ${regex.pattern}", listOf(
-            dynamicContainer("should match", expectations.matchingInput.map { matchingInput ->
-                dynamicTest("input: $matchingInput") {
-                    expectThat(matchingInput).matches(regex)
-                }
-            }),
-            dynamicContainer("should not match", expectations.nonMatchingInput.map { nonMatchingInput ->
-                dynamicTest("input: $nonMatchingInput") {
-                    expectThat(nonMatchingInput).not { matches(regex) }
-                }
-            }),
-        ))
+        dynamicContainer(
+            "for ${regex.pattern}", listOf(
+                dynamicContainer("should match", expectations.matchingInput.map { matchingInput ->
+                    dynamicTest("input: $matchingInput") {
+                        expectThat(matchingInput).matches(regex)
+                    }
+                }),
+                dynamicContainer("should not match", expectations.nonMatchingInput.map { nonMatchingInput ->
+                    dynamicTest("input: $nonMatchingInput") {
+                        expectThat(nonMatchingInput).not { matches(regex) }
+                    }
+                }),
+            )
+        )
     }
 
     @Nested
@@ -234,18 +242,30 @@ class RegularExpressionsTest {
                     "lambda arg" to "package.String.(package.Int) -> package.Float",
                 ).forEach { (name, argList) ->
                     group("… $name: ${argList.formattedAs.unit.ansiRemoved}") {
-                        testMatchesFields("($argList) -> Unit",
-                            null, null, argList, null, "Unit")
-                        testMatchesFields("($argList) -> package.Unit",
-                            null, null, argList, "package", "Unit")
-                        testMatchesFields("($argList) -> package1.PACKAGE2.Unit",
-                            null, null, argList, "package1.PACKAGE2", "Unit")
-                        testMatchesFields("ClassName.($argList) -> Unit",
-                            null, "ClassName", argList, null, "Unit")
-                        testMatchesFields("package.ClassName.($argList) -> package.Unit",
-                            "package", "ClassName", argList, "package", "Unit")
-                        testMatchesFields("package1.PACKAGE2.ClassName.($argList) -> package1.PACKAGE2.Unit",
-                            "package1.PACKAGE2", "ClassName", argList, "package1.PACKAGE2", "Unit")
+                        testMatchesFields(
+                            "($argList) -> Unit",
+                            null, null, argList, null, "Unit"
+                        )
+                        testMatchesFields(
+                            "($argList) -> package.Unit",
+                            null, null, argList, "package", "Unit"
+                        )
+                        testMatchesFields(
+                            "($argList) -> package1.PACKAGE2.Unit",
+                            null, null, argList, "package1.PACKAGE2", "Unit"
+                        )
+                        testMatchesFields(
+                            "ClassName.($argList) -> Unit",
+                            null, "ClassName", argList, null, "Unit"
+                        )
+                        testMatchesFields(
+                            "package.ClassName.($argList) -> package.Unit",
+                            "package", "ClassName", argList, "package", "Unit"
+                        )
+                        testMatchesFields(
+                            "package1.PACKAGE2.ClassName.($argList) -> package1.PACKAGE2.Unit",
+                            "package1.PACKAGE2", "ClassName", argList, "package1.PACKAGE2", "Unit"
+                        )
                     }
                 }
             }

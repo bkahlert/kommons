@@ -7,7 +7,7 @@ import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.LineSeparators.lineSequence
 import com.bkahlert.kommons.text.formatColumns
 import com.bkahlert.kommons.text.maxColumns
-import com.bkahlert.kommons.text.takeUnlessEmpty
+import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.toSimpleClassName
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId

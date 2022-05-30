@@ -6,6 +6,7 @@ import com.bkahlert.kommons.unit.Size
 import com.bkahlert.kommons.unit.bytes
 import com.bkahlert.kommons.unit.sumBy
 import com.bkahlert.kommons.unit.toSize
+import com.bkahlert.kommons.useDirectoryEntriesRecursively
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path

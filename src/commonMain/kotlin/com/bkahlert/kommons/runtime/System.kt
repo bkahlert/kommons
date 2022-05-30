@@ -25,6 +25,7 @@ public expect fun <T : () -> Unit> onExit(handler: T): T
  */
 public expect val ansiSupport: AnsiSupport
 
+// TODO migrate to kommons-debug
 /**
  * Representation of a single element of a (call) stack trace.
  */

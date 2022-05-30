@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.runtime.CallStackElement
-import com.bkahlert.kommons.text.withPrefix
+import com.bkahlert.kommons.withPrefix
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.platform.engine.UniqueId.Segment
 import org.junit.platform.engine.UniqueId.parse

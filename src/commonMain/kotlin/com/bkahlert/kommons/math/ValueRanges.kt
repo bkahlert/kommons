@@ -41,6 +41,7 @@ public sealed class ValueRange<T : Comparable<T>>(
  *
  * @throws IllegalArgumentException if this value is not in the specified [sourceRange]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.map(
     destinationRange: ClosedRange<Double>,
     sourceRange: ClosedRange<Double> = Normalized,
@@ -58,6 +59,7 @@ public inline fun Double.map(
  * starting with the specified [sourceRangeStart] and
  * ending with the specified [sourceRangeEndInclusive]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.map(
     destinationRangeEndInclusive: Double,
     destinationRangeStart: Double = Normalized.start,
@@ -70,6 +72,7 @@ public inline fun Double.map(
  *
  * @throws IllegalArgumentException if this value is not in the specified [sourceRange]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.map(
     destinationRange: ClosedRange<Int>,
     sourceRange: ClosedRange<Double> = Normalized,
@@ -84,6 +87,7 @@ public inline fun Double.map(
  * starting with the specified [sourceRangeStart] and
  * ending with the specified [sourceRangeEndInclusive]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.map(
     destinationRangeEndInclusive: Int,
     destinationRangeStart: Int = Normalized.Minimum.toInt(),
@@ -97,6 +101,7 @@ public inline fun Double.map(
  *
  * @throws IllegalArgumentException if this value is not in the specified [sourceRange]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.normalize(
     sourceRange: ClosedRange<Double>,
 ): Double = map(Normalized.Maximum, Normalized.Minimum, sourceRange.start, sourceRange.endInclusive)
@@ -109,6 +114,7 @@ public inline fun Double.normalize(
  * starting with the specified [sourceRangeStart] and
  * ending with the specified [sourceRangeEndInclusive]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.normalize(
     sourceRangeEndInclusive: Double,
     sourceRangeStart: Double = Normalized.start,
@@ -120,6 +126,7 @@ public inline fun Double.normalize(
  *
  * @throws IllegalArgumentException if this value is not in the specified [sourceRange]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Int.normalize(
     sourceRange: ClosedRange<Int>,
 ): Double = toDouble().map(
@@ -137,6 +144,7 @@ public inline fun Int.normalize(
  * starting with the specified [sourceRangeStart] and
  * ending with the specified [sourceRangeEndInclusive]
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Int.normalize(
     sourceRangeEndInclusive: Int,
     sourceRangeStart: Int = Normalized.Minimum.toInt(),
@@ -154,6 +162,7 @@ public inline fun Int.normalize(
  *
  * @throws IllegalArgumentException if this value is not in the specified [sourceRange] or [amount] is not in `[-1.0..+1.0]`
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.scale(
     amount: Double,
     sourceRange: ClosedRange<Double> = Normalized,
@@ -173,6 +182,7 @@ public inline fun Double.scale(
  * starting with the specified [sourceRangeStart] and
  * ending with the specified [sourceRangeEndInclusive] or [amount] is not in `[-1.0..+1.0]`
  */
+@Suppress("NOTHING_TO_INLINE")
 public inline fun Double.scale(
     amount: Double,
     sourceRangeEndInclusive: Double = Normalized.Maximum,

@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.math.floorDiv
 import com.bkahlert.kommons.runtime.currentThread
@@ -13,7 +14,6 @@ import com.bkahlert.kommons.test.storeForNamespaceAndTest
 import com.bkahlert.kommons.text.ANSI.Colors
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.joinLinesToString

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.debug
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.TextFixture
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.asCodePointSequence
 import org.junit.jupiter.api.Test

@@ -1,8 +1,9 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.withRandomSuffix
+import com.bkahlert.kommons.withRandomSuffix
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS

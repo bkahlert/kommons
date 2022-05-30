@@ -12,9 +12,9 @@ import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.resolveBetweenFileSystems
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.text.splitAndMap
-import com.bkahlert.kommons.text.takeUnlessBlank
-import com.bkahlert.kommons.text.withRandomSuffix
-import com.bkahlert.kommons.toBaseName
+import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.withRandomSuffix
+import com.bkahlert.kommons.toIdentifier
 import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
 
@@ -47,7 +47,7 @@ public class DockerRunCommandLine(
 
     override val name: CharSequence? = executable.name?.let { "$it 🐳 ${image.toString(includeSpecifier = false)}" }
 
-    private val fallbackName = executable.content.toBaseName().withRandomSuffix()
+    private val fallbackName = executable.content.toIdentifier(8).withRandomSuffix()
     public val options: Options = options.withFallbackName(fallbackName).withFixedEntryPoint(executable)
 
     override val content: CharSequence = toCommandLine().content

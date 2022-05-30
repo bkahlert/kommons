@@ -1,6 +1,5 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.selfCleaning
 import com.bkahlert.kommons.io.useRequiredClassPath
 import com.bkahlert.kommons.time.days

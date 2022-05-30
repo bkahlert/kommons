@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.runtime
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.delete
 import com.bkahlert.kommons.io.path.appendLine
-import com.bkahlert.kommons.io.path.delete
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import java.lang.reflect.AnnotatedElement
@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
+// TODO migrate
 /**
  * If a value [Optional.isPresent], returns the value. Otherwise, returns `null`.
  */

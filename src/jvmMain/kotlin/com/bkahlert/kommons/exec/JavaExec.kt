@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.synchronizedSetOf
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.exception.toCompactString
@@ -14,7 +15,6 @@ import com.bkahlert.kommons.io.TeeInputStream
 import com.bkahlert.kommons.io.TeeOutputStream
 import com.bkahlert.kommons.runtime.addShutDownHook
 import com.bkahlert.kommons.runtime.removeShutdownHook
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.Symbols.Computation
 import com.bkahlert.kommons.text.Semantics.formattedAs

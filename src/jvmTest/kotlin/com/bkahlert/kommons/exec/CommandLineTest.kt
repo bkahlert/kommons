@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.io.path.Locations
+import com.bkahlert.kommons.Locations
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.string
 import com.bkahlert.kommons.test.testEach

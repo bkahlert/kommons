@@ -4,7 +4,7 @@ import com.bkahlert.kommons.collections.head
 import com.bkahlert.kommons.collections.tail
 import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.joinToCamelCase
-import com.bkahlert.kommons.text.withSuffix
+import com.bkahlert.kommons.withSuffix
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.exists

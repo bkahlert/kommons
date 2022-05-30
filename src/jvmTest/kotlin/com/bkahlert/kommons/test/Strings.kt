@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.debug
 import com.bkahlert.kommons.regex.countMatches
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.CodePoint
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.quoted
@@ -59,8 +59,10 @@ fun <T : CharSequence> Builder<T>.isEqualToByteWise(other: CharSequence) =
         val otherString = other.toList()
         when (thisString.containsAll(otherString)) {
             true -> pass()
-            else -> fail("\nwas        ${otherString.debug}" +
-                "\ninstead of ${thisString.debug}.")
+            else -> fail(
+                "\nwas        ${otherString.debug}" +
+                    "\ninstead of ${thisString.debug}."
+            )
         }
     }
 

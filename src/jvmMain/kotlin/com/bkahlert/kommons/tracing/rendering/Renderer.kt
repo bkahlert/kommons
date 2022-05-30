@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import io.opentelemetry.api.trace.Span
-import com.bkahlert.kommons.toBaseName
+import com.bkahlert.kommons.toIdentifier
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId
@@ -71,7 +71,7 @@ public interface Renderer {
         public fun Renderer.log(
             description: CharSequence,
             vararg attributes: KeyValue<*, *>,
-        ): Unit = event(description.toBaseName(), description, *attributes)
+        ): Unit = event(description.toIdentifier(8), description, *attributes)
 
         public object NOOP : Renderer {
             override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence): Unit = Unit

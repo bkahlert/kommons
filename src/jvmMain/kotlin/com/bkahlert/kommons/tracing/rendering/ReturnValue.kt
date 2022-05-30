@@ -6,7 +6,7 @@ import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.Symbolizable
 import com.bkahlert.kommons.text.Semantics.Symbols
-import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.tracing.SpanScope
 
 /**

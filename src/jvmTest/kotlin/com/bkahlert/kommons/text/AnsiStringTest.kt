@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.debug
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEach
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.AnsiString.Companion.tokenize
 import com.bkahlert.kommons.text.LineSeparators.CRLF
@@ -115,7 +115,8 @@ class AnsiStringTest {
             val tokens = string.tokenize()
             val subSequence = tokens.subSequence(0, 26)
             expectThat(subSequence.toString()).isEqualTo(
-                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m")
+                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m"
+            )
         }
 
         @Test
@@ -378,31 +379,37 @@ class AnsiStringTest {
     inner class MapLines {
         @Test
         fun `should split non-ANSI string`() {
-            expectThat(ansiString.ansiRemoved.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
+            expectThat(ansiString.ansiRemoved.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo(
+                """
                 Important: This line has no ANSI control sequences.
                 This one's bold!
                 Last one is clean.
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
         fun `should split ANSI string`() {
             @Suppress("SpellCheckingInspection")
-            expectThat(ansiString.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
+            expectThat(ansiString.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo(
+                """
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m
                 $e[3;36mLast one is clean.$e[23;39m
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
         fun `should split character sequence casted ANSI string`() {
             @Suppress("SpellCheckingInspection")
-            expectThat((ansiString as CharSequence).mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo("""
+            expectThat((ansiString as CharSequence).mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo(
+                """
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m
                 $e[3;36mLast one is clean.$e[23;39m
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
@@ -437,8 +444,10 @@ class AnsiStringTest {
 
         @Test
         fun `should skip errors`() {
-            expectThat("$e[4;m ← missing second code $e[24m".lineSequence()
-                .toList()).containsExactly("$e[4;m ← missing second code $e[24m")
+            expectThat(
+                "$e[4;m ← missing second code $e[24m".lineSequence()
+                    .toList()
+            ).containsExactly("$e[4;m ← missing second code $e[24m")
         }
     }
 
@@ -451,11 +460,13 @@ class AnsiStringTest {
 
         @Test
         fun `should join split ANSI string`() {
-            expectThat(expectedAnsiFormattedLines.joinLinesToString { it }).isEqualTo("""
+            expectThat(expectedAnsiFormattedLines.joinLinesToString { it }).isEqualTo(
+                """
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m
                 $e[3;36mLast one is clean.$e[23;39m
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test

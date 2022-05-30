@@ -2,8 +2,8 @@ package com.bkahlert.kommons.exec.mock
 
 import com.bkahlert.kommons.debug.debug
 import com.bkahlert.kommons.io.ByteArrayOutputStream
+import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.takeUnlessEmpty
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
 import com.bkahlert.kommons.tracing.SpanScope

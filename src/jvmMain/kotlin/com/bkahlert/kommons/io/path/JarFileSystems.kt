@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.tempFile
 import java.net.URI
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems

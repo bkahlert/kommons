@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
-import com.bkahlert.kommons.text.ANSI.ansiRemoved
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout
 import com.bkahlert.kommons.tracing.rendering.CompactRenderer
@@ -82,7 +82,7 @@ internal data class RenderingSpanScope(
     override fun makeCurrent(): Scope = span.makeCurrent()
 
     override fun event(event: Event): SpanScope {
-        span.addEvent(event.name.ansiRemoved, event.attributes.toAttributes())
+        span.addEvent(event.name.toString().ansiRemoved, event.attributes.toAttributes())
         val attributes = RenderableAttributes.of(event.attributes)
         renderer.event(event.name, attributes)
         return this
@@ -151,7 +151,7 @@ internal data class RenderingSpanScope(
             val renderer = rendererProvider(parentSpan.linkedRenderer)
 
             val span = KommonsTracer
-                .spanBuilder(name.ansiRemoved)
+                .spanBuilder(name.toString().ansiRemoved)
                 .setParent(Context.current().with(parentSpan))
                 .setAllAttributes(attributes.toList().toAttributes())
                 .setAttribute(RenderingAttributes.RENDERER, (RenderingAttributes.RENDERER to renderer).value.ansiRemoved)
@@ -221,15 +221,17 @@ public fun <R> runSpanning(
 ): R = spanScope(recordException = false) {
     val renderingChildSpan = RenderingSpanScope.of(name, Span.current(), *attributes) {
         it.childRenderer { default ->
-            renderer(copy(
-                nameFormatter = nameFormatter ?: this.nameFormatter,
-                contentFormatter = contentFormatter ?: this.contentFormatter,
-                decorationFormatter = decorationFormatter ?: this.decorationFormatter,
-                returnValueTransform = returnValueTransform ?: this.returnValueTransform,
-                layout = layout ?: this.layout,
-                style = style ?: this.style,
-                printer = printer ?: this.printer,
-            ), default)
+            renderer(
+                copy(
+                    nameFormatter = nameFormatter ?: this.nameFormatter,
+                    contentFormatter = contentFormatter ?: this.contentFormatter,
+                    decorationFormatter = decorationFormatter ?: this.decorationFormatter,
+                    returnValueTransform = returnValueTransform ?: this.returnValueTransform,
+                    layout = layout ?: this.layout,
+                    style = style ?: this.style,
+                    printer = printer ?: this.printer,
+                ), default
+            )
         }
     }
     val scope = renderingChildSpan.makeCurrent()

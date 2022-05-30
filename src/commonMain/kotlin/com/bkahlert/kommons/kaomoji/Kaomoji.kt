@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.kaomoji
 
+import com.bkahlert.kommons.takeIfNotBlank
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.CodePoint
 import com.bkahlert.kommons.text.LineSeparators.LF
@@ -10,7 +11,6 @@ import com.bkahlert.kommons.text.codePointCount
 import com.bkahlert.kommons.text.columns
 import com.bkahlert.kommons.text.maxLength
 import com.bkahlert.kommons.text.padEnd
-import com.bkahlert.kommons.text.takeIfNotBlank
 import kotlin.random.Random
 
 /**

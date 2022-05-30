@@ -1,6 +1,5 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.io.path.Locations
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode.OnStart
 import com.bkahlert.kommons.io.path.selfCleaning
 import com.bkahlert.kommons.test.HtmlFixture

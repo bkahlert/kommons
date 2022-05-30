@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.delete
+import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.compress.Archiver.archive
 import com.bkahlert.kommons.io.compress.Compressor.compress
 import com.bkahlert.kommons.io.copyToDirectory
-import com.bkahlert.kommons.io.path.delete
-import com.bkahlert.kommons.io.path.deleteRecursively
-import com.bkahlert.kommons.io.path.randomDirectory
-import com.bkahlert.kommons.io.path.randomPath
 import com.bkahlert.kommons.io.path.renameTo
+import com.bkahlert.kommons.randomDirectory
+import com.bkahlert.kommons.randomPath
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 import java.nio.file.Files
