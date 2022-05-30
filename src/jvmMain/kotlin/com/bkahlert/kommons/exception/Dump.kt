@@ -14,13 +14,13 @@ import java.io.IOException
 import java.nio.file.Path
 
 private object Dump {
-    val dumpDir: Path = Kommons.execTemp
+    val dumpDir: Path = Kommons.ExecTemp
     const val dumpPrefix = "dump"
     const val dumpSuffix = ".log"
 }
 
 /**
- * Dumps whatever is returned by [data] to the specified [file] in `this` directory and
+ * Dumps whatever is returned by [data] to the specified [file] in this directory and
  * returns a description of the dump.
  *
  * If an error occurs in this process—so to as a last resort—the returned description
@@ -28,7 +28,7 @@ private object Dump {
  */
 public fun Path.dump(
     errorMessage: String?,
-    file: Path = (takeUnless { it.isSubPathOf(Locations.temp) } ?: Dump.dumpDir).randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    file: Path = (takeUnless { it.isSubPathOf(Locations.Default.Temp) } ?: Dump.dumpDir).randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
     data: () -> String,
 ): String = runCatching {
     var dumped: String? = null
@@ -77,8 +77,10 @@ public fun persistDump(
     data: () -> String,
 ): Map<String, Path> = runCatching {
     data().run {
-        mapOf("unchanged" to path.withExtension("log").writeText(this),
-            "ANSI escape/control sequences removed" to path.withExtension("ansi-removed.log").writeText(ansiRemoved))
+        mapOf(
+            "unchanged" to path.withExtension("log").writeText(this),
+            "ANSI escape/control sequences removed" to path.withExtension("ansi-removed.log").writeText(ansiRemoved)
+        )
     }
 }.getOrElse {
     if (it is IOException) throw it

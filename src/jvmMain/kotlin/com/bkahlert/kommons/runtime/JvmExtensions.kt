@@ -20,27 +20,27 @@ import kotlin.concurrent.withLock
 public inline fun <reified T> Optional<T>?.orNull(): T? = this?.orElse(null)
 
 /**
- * Enclosing class of `this` class, if any. `null` otherwise.
+ * Enclosing class of this class, if any. `null` otherwise.
  */
 public val Class<*>.ancestor: Class<*>? get() = enclosingClass
 
 /**
- * All ancestors of `this` class, **including this class itself** (≙ ancestor of zeroth degree).
+ * All ancestors of this class, **including this class itself** (≙ ancestor of zeroth degree).
  */
 public val Class<*>.ancestors: List<Class<*>> get() = generateSequence(this) { it.ancestor }.toList()
 
 /**
- * Declaring class of `this` method.
+ * Declaring class of this method.
  */
 public val Method.ancestor: Class<*> get() = declaringClass
 
 /**
- * All ancestors of `this` method, that is, this method itself (≙ ancestor of zeroth degree),
+ * All ancestors of this method, that is, this method itself (≙ ancestor of zeroth degree),
  * its declaring class and the declaring class's ancestors.
  */
 public val Method.ancestors: List<AnnotatedElement> get() = listOf(this, *ancestor.ancestors.toList().toTypedArray())
 
-
+// TODO migrate
 /**
  * Contains the context ClassLoader for the current [Thread].
  *
@@ -50,25 +50,32 @@ public val Method.ancestors: List<AnnotatedElement> get() = listOf(this, *ancest
 public val contextClassLoader: ClassLoader
     get() = currentThread.contextClassLoader
 
+// TODO remove
 /**
  * Contains the current [Thread].
  */
 public val currentThread: Thread
     get() = Thread.currentThread()
 
+// TODO migrate
 /**
  * Contains the current stacktrace with the caller of this property
  * as the first stacktrace element.
  */
 @Suppress("NOTHING_TO_INLINE") // = avoid impact on stack trace
 public inline val currentStackTrace: Array<java.lang.StackTraceElement>
-    get() = currentThread.stackTrace.dropWhile { it.className == Thread::class.qualifiedName }.toTypedArray()
+    get() = Thread.currentThread().stackTrace
+        .asSequence()
+        .dropWhile { it.className == Thread::class.qualifiedName }
+        .toList().toTypedArray()
 
+// TODO migrate
 /**
  * The class containing the execution point represented by this stack trace element.
  */
 public val java.lang.StackTraceElement.clazz: Class<*> get() = Class.forName(className)
 
+// TODO migrate
 /**
  * The method containing the execution point represented by this stack trace element.
  */
@@ -83,7 +90,7 @@ private fun <T : () -> Unit> T.toHook(): Thread {
             invoke()
         }.onFailure {
             onExitLogLock.withLock {
-                (onExitLog ?: Kommons.internalTemp.resolve(".onexit.log").apply { delete() }).let { path ->
+                (onExitLog ?: Kommons.InternalTemp.resolve(".onexit.log").apply { delete() }).let { path ->
                     onExitLog = path
                     path.appendLine(it.stackTraceToString())
                 }
@@ -92,7 +99,8 @@ private fun <T : () -> Unit> T.toHook(): Thread {
                 throw IllegalStateException(
                     "An exception occurred during shutdown.$LF" +
                         "The shutdown hook was registered by:$LF" +
-                        stackTrace.joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF), it)
+                        stackTrace.joinToString("$LF\t${"at".formattedAs.debug} ", postfix = LF), it
+                )
             }
         }
     }

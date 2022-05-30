@@ -14,7 +14,7 @@ public expect class BigDecimal : Number, Comparable<BigDecimal>
 public expect operator fun BigDecimal.plus(other: BigDecimal): BigDecimal
 
 /**
- * Returns `this` `+` [other] with the provided
+ * Returns this `+` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -26,7 +26,7 @@ public expect fun BigDecimal.plus(other: BigDecimal, precision: Int, roundingMod
 public expect operator fun BigDecimal.minus(other: BigDecimal): BigDecimal
 
 /**
- * Returns `this` `-` [other] with the provided
+ * Returns this `-` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -38,7 +38,7 @@ public expect fun BigDecimal.minus(other: BigDecimal, precision: Int, roundingMo
 public expect operator fun BigDecimal.times(other: BigDecimal): BigDecimal
 
 /**
- * Returns `this` `*` [other] with the provided
+ * Returns this `*` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -47,13 +47,13 @@ public expect fun BigDecimal.times(other: BigDecimal, precision: Int, roundingMo
 /**
  * Enables the use of the `/` operator for [BigDecimal] instances.
  *
- * The scale of the result is the same as the scale of `this` (divident), and for rounding the [RoundingMode.HALF_EVEN]
+ * The scale of the result is the same as the scale of this (divident), and for rounding the [RoundingMode.HALF_EVEN]
  * rounding mode is used.
  */
 public expect operator fun BigDecimal.div(other: BigDecimal): BigDecimal
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -63,7 +63,7 @@ public expect fun BigDecimal.div(other: BigDecimal, precision: Int, roundingMode
 public expect operator fun BigDecimal.div(other: Long): BigDecimal
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -73,7 +73,7 @@ public expect fun BigDecimal.div(other: Long, precision: Int, roundingMode: Roun
 public expect operator fun BigDecimal.div(other: Float): BigDecimal
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -83,7 +83,7 @@ public expect fun BigDecimal.div(other: Float, precision: Int, roundingMode: Rou
 public expect operator fun BigDecimal.div(other: Double): BigDecimal
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */

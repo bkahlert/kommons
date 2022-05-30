@@ -55,7 +55,7 @@ private fun targetCodePoints(maxCodePoints: Int, marker: String): Int {
 }
 
 /**
- * Returns `this` string truncated from the center to [maxCodePoints] including the [marker].
+ * Returns this string truncated from the center to [maxCodePoints] including the [marker].
  */
 public fun String.truncate(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): String {
     requirePositiveCodePoints(maxCodePoints)
@@ -70,13 +70,13 @@ public fun String.truncate(maxCodePoints: Int = 15, marker: String = Unicode.ELL
 }
 
 /**
- * Returns `this` character sequence truncated from the center to [maxCodePoints] including the [marker].
+ * Returns this character sequence truncated from the center to [maxCodePoints] including the [marker].
  */
 public fun CharSequence.truncate(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence =
     if (codePointCount > maxCodePoints) toString().truncate(maxCodePoints, marker) else this
 
 /**
- * Returns `this` string truncated from the start to [maxCodePoints] including the [marker].
+ * Returns this string truncated from the start to [maxCodePoints] including the [marker].
  */
 public fun String.truncateStart(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): String {
     requirePositiveCodePoints(maxCodePoints)
@@ -88,13 +88,13 @@ public fun String.truncateStart(maxCodePoints: Int = 15, marker: String = Unicod
 }
 
 /**
- * Returns `this` character sequence truncated from the start to [maxCodePoints] including the [marker].
+ * Returns this character sequence truncated from the start to [maxCodePoints] including the [marker].
  */
 public fun CharSequence.truncateStart(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence =
     if (codePointCount > maxCodePoints) toString().truncateStart(maxCodePoints, marker) else this
 
 /**
- * Returns `this` string truncated from the end to [maxCodePoints] including the [marker].
+ * Returns this string truncated from the end to [maxCodePoints] including the [marker].
  */
 public fun String.truncateEnd(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): String {
     requirePositiveCodePoints(maxCodePoints)
@@ -106,14 +106,14 @@ public fun String.truncateEnd(maxCodePoints: Int = 15, marker: String = Unicode.
 }
 
 /**
- * Returns `this` character sequence truncated from the end to [maxCodePoints] including the [marker].
+ * Returns this character sequence truncated from the end to [maxCodePoints] including the [marker].
  */
 public fun CharSequence.truncateEnd(maxCodePoints: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence =
     if (length > 2 * (maxCodePoints + 1) || length > maxCodePoints) toString().truncateEnd(maxCodePoints, marker) else this
 
 
 /**
- * Truncates `this` character sequence by [numberOfWhitespaces] by strategically removing whitespaces.
+ * Truncates this character sequence by [numberOfWhitespaces] by strategically removing whitespaces.
  *
  * The algorithm guarantees that word borders are respected, that is, two words never become one
  * (unless [minWhitespaceLength] is set to 0).
@@ -123,7 +123,7 @@ public fun CharSequence.truncateBy(numberOfWhitespaces: Int, startIndex: Int = 0
     toString().run { "${truncateTo(length - numberOfWhitespaces, startIndex, minWhitespaceLength)}" }
 
 /**
- * Truncates `this` string to [maxLength] by strategically removing whitespaces.
+ * Truncates this string to [maxLength] by strategically removing whitespaces.
  *
  * The algorithm guarantees that word borders are respected, that is, two words never become one
  * (unless [minWhitespaceLength] is set to 0).
@@ -146,7 +146,7 @@ public fun CharSequence.truncateTo(maxLength: Int, startIndex: Int = 0, minWhite
 }
 
 /**
- * Returns `this` character sequence truncated to [length] and if necessary padded from the start.
+ * Returns this character sequence truncated to [length] and if necessary padded from the start.
  */
 public fun CharSequence.padStartFixedLength(
     length: Int = 15,
@@ -155,7 +155,7 @@ public fun CharSequence.padStartFixedLength(
 ): String = toString().truncate(length, marker).padStart(length, padChar)
 
 /**
- * Returns `this` character sequence truncated to [length] and if necessary padded from the end.
+ * Returns this character sequence truncated to [length] and if necessary padded from the end.
  */
 public fun CharSequence.padEndFixedLength(
     length: Int = 15,

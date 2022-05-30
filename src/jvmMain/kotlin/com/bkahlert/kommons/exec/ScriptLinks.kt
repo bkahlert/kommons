@@ -6,7 +6,7 @@ import com.bkahlert.kommons.shell.ShellScript
 import java.net.URI
 import java.nio.file.Path
 
-private val shellScriptDir: Path = Kommons.execTemp
+private val shellScriptDir: Path = Kommons.ExecTemp
 private const val shellScriptExtension: String = ".sh"
 
 /**
@@ -35,7 +35,9 @@ public fun CommandLine.toLink(): URI =
  * that would execute this [ShellScript].
  */
 public fun ShellScript.toLink(): URI =
-    toFile(shellScriptDir.randomPath(
-        base = "",
-        extension = shellScriptExtension
-    )).toUri()
+    toFile(
+        shellScriptDir.randomPath(
+            base = "",
+            extension = shellScriptExtension
+        )
+    ).toUri()

@@ -25,7 +25,7 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readBytes
 
 /**
- * Copies `this` in-memory file to the specified [target].
+ * Copies this in-memory file to the specified [target].
  *
  * @see copyToDirectory
  * @see copyToTemp
@@ -34,7 +34,7 @@ public fun InMemoryFile.copyTo(target: Path): Path =
     target.createParentDirectories().writeBytes(data)
 
 /**
- * Copies `this` in-memory file to the specified [target] directory.
+ * Copies this in-memory file to the specified [target] directory.
  *
  * @see copyTo
  * @see copyToTemp
@@ -43,13 +43,13 @@ public fun InMemoryFile.copyToDirectory(target: Path): Path =
     target.resolve(name).createParentDirectories().writeBytes(data)
 
 /**
- * Copies `this` in-memory file to a temporary directory—the name based on the
+ * Copies this in-memory file to a temporary directory—the name based on the
  * optional [base] and [extension].
  */
 public fun InMemoryFile.copyToTemp(
     base: String = name.asPath().nameWithoutExtension,
     extension: String = name.asPath().extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(Kommons.filesTemp.tempFile(base, extension))
+): Path = copyTo(Kommons.FilesTemp.tempFile(base, extension))
 
 /**
  * Returns this image as a bitmap. The image is automatically rasterized if necessary.
@@ -72,7 +72,7 @@ public fun InMemoryImage.toAsciiArt(renderer: RendererProvider = { NOOP }): Stri
 }
 
 /**
- * Returns an [InMemoryImage] with `this` file loaded as its content.
+ * Returns an [InMemoryImage] with this file loaded as its content.
  */
 public fun Path.asImageOrNull(): InMemoryImage? {
     if (isRegularFile() && isReadable() && fileName.extensionOrNull in InMemoryImage.EXTENSIONS) {

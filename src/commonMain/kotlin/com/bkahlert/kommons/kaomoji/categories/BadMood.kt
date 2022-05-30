@@ -78,7 +78,7 @@ public object BadMood : Category() {
     /**
      * `(・ε・｀*)`
      */
-    @JsName("badMood11") public val `（・ε・｀＊）`: Kaomoji by auto("ε")
+    @JsName("badMood11") public val `（・ε・｀＊）`: Kaomoji by auto("(・ε・｀*)")
 
     /**
      * `(´･д･｀)`

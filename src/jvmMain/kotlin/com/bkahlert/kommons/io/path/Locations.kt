@@ -20,41 +20,47 @@ import kotlin.io.path.setPosixFilePermissions
 import kotlin.time.Duration
 
 /**
- * A couple of well known locations.
+ * Typical locations on a system.
  */
 public interface Locations {
 
     /**
      * Working directory, that is, the directory in which this binary is located.
      */
-    public val work: Path get() = Companion.work
+    public val Work: Path
 
     /**
-     * Home directory of the currently logged in user.
+     * Home directory of the currently logged-in user.
      */
-    public val home: Path get() = Companion.home
+    public val Home: Path
 
     /**
      * Directory in which temporary data can be stored.
      */
-    public val temp: Path get() = Companion.temp
+    public val Temp: Path
 
     public companion object {
 
         /**
-         * Working directory, that is, the directory in which this binary is located.
+         * Default locations on a system.
          */
-        public val work: Path = FileSystems.getDefault().getPath("").toAbsolutePath()
+        public val Default: Locations = object : Locations {
 
-        /**
-         * Home directory of the currently logged in user.
-         */
-        public val home: Path = Path.of(System.getProperty("user.home"))
+            /**
+             * Working directory, that is, the directory in which this binary is located.
+             */
+            override val Work: Path = FileSystems.getDefault().getPath("").toAbsolutePath()
 
-        /**
-         * Directory in which temporary data can be stored.
-         */
-        public val temp: Path = Paths.get("/tmp").takeIf { it.isWritable() } ?: Path.of(System.getProperty("java.io.tmpdir"))
+            /**
+             * Home directory of the currently logged-in user.
+             */
+            override val Home: Path = Path.of(System.getProperty("user.home"))
+
+            /**
+             * Directory in which temporary data can be stored.
+             */
+            override val Temp: Path = Paths.get("/tmp").takeIf { it.isWritable() } ?: Path.of(System.getProperty("java.io.tmpdir"))
+        }
     }
 }
 
@@ -121,27 +127,27 @@ public fun Path.randomFile(base: String = randomString(4), extension: String = "
  */
 
 /**
- * Creates a temporary directory inside of [Locations.temp].
+ * Creates a temporary directory inside of [Locations.Temp].
  *
  * The POSIX permissions are set to `700`.
  */
 public fun tempDir(base: String = "", extension: String = ""): Path =
-    Locations.temp.tempDir(base, extension)
+    Locations.Default.Temp.tempDir(base, extension)
 
 /**
- * Creates a temporary file inside of [Locations.temp].
+ * Creates a temporary file inside of [Locations.Temp].
  *
  * The POSIX permissions are set to `700`.
  */
 public fun tempFile(base: String = "", extension: String = ""): Path =
-    Locations.temp.tempFile(base, extension)
+    Locations.Default.Temp.tempFile(base, extension)
 
 /**
- * Creates a temporary directory inside `this` temporary directory.
+ * Creates a temporary directory inside this temporary directory.
  *
  * The POSIX permissions are set to `700`.
  *
- * Attempting to create a temporary directory outside of [Locations.temp] will
+ * Attempting to create a temporary directory outside of [Locations.Temp] will
  * throw an [IllegalArgumentException].
  */
 public fun Path.tempDir(base: String = "", extension: String = ""): Path =
@@ -150,11 +156,11 @@ public fun Path.tempDir(base: String = "", extension: String = ""): Path =
     }
 
 /**
- * Creates a temporary file inside `this` temporary directory.
+ * Creates a temporary file inside this temporary directory.
  *
  * The POSIX permissions are set to `700`.
  *
- * Attempting to create a temporary directory outside of [Locations.temp] will
+ * Attempting to create a temporary directory outside of [Locations.Temp] will
  * throw an [IllegalArgumentException].
  */
 public fun Path.tempFile(base: String = "", extension: String = ""): Path =
@@ -185,7 +191,7 @@ private val cleanUpLock = ReentrantLock()
  * are left.
  *
  * Because this process affects a potentially huge number of files,
- * this directory is required to be located somewhere inside of [Locations.temp]
+ * this directory is required to be located somewhere inside of [Locations.Temp]
  * if not explicitly specified otherwise.
  */
 public fun Path.cleanUp(keepAge: Duration, keepCount: Int, enforceTempContainment: Boolean = true): Path {

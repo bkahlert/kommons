@@ -31,24 +31,27 @@ import kotlin.time.Duration
 
 class LocationsKtTest {
 
-    @TestFactory
-    fun paths() = testEach(
-        Locations.work,
-        Locations.home,
-        Locations.temp,
-    ) { path ->
-        expecting { path.isAbsolute } that { isTrue() }
-        expecting { path.exists() } that { isTrue() }
-    }
+    @Nested
+    inner class DefaultLocations {
+        @TestFactory
+        fun paths() = testEach(
+            Locations.Default.Work,
+            Locations.Default.Home,
+            Locations.Default.Temp,
+        ) { path ->
+            expecting { path.isAbsolute } that { isTrue() }
+            expecting { path.exists() } that { isTrue() }
+        }
 
-    @Test
-    fun `should resolve HomeDirectory`() {
-        expectThat(Locations.home).exists()
-    }
+        @Test
+        fun `should resolve HomeDirectory`() {
+            expectThat(Locations.Default.Home).exists()
+        }
 
-    @Test
-    fun `should resolve Temp`() {
-        expectThat(Locations.temp).exists()
+        @Test
+        fun `should resolve Temp`() {
+            expectThat(Locations.Default.Temp).exists()
+        }
     }
 
     @Nested
@@ -76,7 +79,7 @@ class LocationsKtTest {
 
         @Test
         fun `should return false if not inside`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            expectThat(Locations.home).not { isSubPathOf(this@withTempDir) }
+            expectThat(Locations.Default.Home).not { isSubPathOf(this@withTempDir) }
         }
     }
 
@@ -151,7 +154,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside temp directory`() {
-            expectThat(tempDir().deleteOnExit()).isSubPathOf(Locations.temp)
+            expectThat(tempDir().deleteOnExit()).isSubPathOf(Locations.Default.Temp)
         }
 
         @Test
@@ -187,7 +190,7 @@ class LocationsKtTest {
 
         @Test
         fun `should create inside temp directory`() {
-            expectThat(tempFile().deleteOnExit()).isSubPathOf(Locations.temp)
+            expectThat(tempFile().deleteOnExit()).isSubPathOf(Locations.Default.Temp)
         }
 
         @Test
@@ -226,7 +229,7 @@ class LocationsKtTest {
             val tempDir: Path = runWithTempDir {
                 expectThat(this) {
                     isDirectory()
-                    isSubPathOf(Locations.temp)
+                    isSubPathOf(Locations.Default.Temp)
                 }
                 this
             }

@@ -13,6 +13,6 @@ jobs:
       - uses: dorny/test-reporter@v1
         with:
           artifact: test-reports
-          name: Bats tests
-          path: '*.xml'
+          name: Kotlin tests
+          path: '**/*.xml'
           reporter: java-junit

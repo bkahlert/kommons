@@ -49,11 +49,11 @@ public class PeekingIterator<T>(
 }
 
 /**
- * Returns an [PeekingIterator] that returns the values from `this` sequence.
+ * Returns an [PeekingIterator] that returns the values from this sequence.
  */
 public fun <T> Sequence<T>.peekingIterator(): PeekingIterator<T> = PeekingIterator(iterator())
 
 /**
- * Returns an [PeekingIterator] that returns the values from `this` iterable.
+ * Returns an [PeekingIterator] that returns the values from this iterable.
  */
 public fun <T> Iterable<T>.peekingIterator(): PeekingIterator<T> = PeekingIterator(iterator())

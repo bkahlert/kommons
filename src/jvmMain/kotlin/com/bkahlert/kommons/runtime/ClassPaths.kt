@@ -18,7 +18,7 @@ import kotlin.io.path.readText
 import kotlin.properties.ReadOnlyProperty
 
 /**
- * Attempts to load the [Class] with the given [name] using `this` [ClassLoader].
+ * Attempts to load the [Class] with the given [name] using this [ClassLoader].
  *
  * Returns `null` if the class can't be loaded.
  */

@@ -28,7 +28,7 @@ internal expect object TextWidth {
 }
 
 /**
- * Number of columns needed to represent `this` character.
+ * Number of columns needed to represent this character.
  */
 public val Char.columns: Int get() = codePoint.columns
 
@@ -38,7 +38,7 @@ public val Char.columns: Int get() = codePoint.columns
 public val CodePoint.columns: Int get() = string.columns
 
 /**
- * Number of columns needed to represent `this` grapheme cluster.
+ * Number of columns needed to represent this grapheme cluster.
  */
 public val GraphemeCluster.columns: Int
     get() {
@@ -59,7 +59,7 @@ public val GraphemeCluster.columns: Int
     }
 
 /**
- * Number of columns needed to represent `this` character sequence.
+ * Number of columns needed to represent this character sequence.
  */
 public val CharSequence.columns: Int
     get() = ansiRemoved.asGraphemeClusterSequence().sumOf { it.columns }
@@ -310,7 +310,7 @@ private fun targetColumns(maxColumns: Int, marker: String): Int {
 }
 
 /**
- * Returns `this` character sequence truncated from the center to [maxColumns] including the [marker].
+ * Returns this character sequence truncated from the center to [maxColumns] including the [marker].
  */
 public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(toAnsiString()) {
     requirePositiveColumns(maxColumns)
@@ -325,7 +325,7 @@ public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String =
 }
 
 /**
- * Returns `this` character sequence truncated from the start to [maxColumns] including the [marker].
+ * Returns this character sequence truncated from the start to [maxColumns] including the [marker].
  */
 public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(toAnsiString()) {
     requirePositiveColumns(maxColumns)
@@ -348,7 +348,7 @@ public fun CharSequence.truncateStartByColumns(maxColumns: Int = 15, marker: Str
 }
 
 /**
- * Returns `this` character sequence truncated from the end to [maxColumns] including the [marker].
+ * Returns this character sequence truncated from the end to [maxColumns] including the [marker].
  */
 public fun CharSequence.truncateEndByColumns(maxColumns: Int = 15, marker: String = Unicode.ELLIPSIS.spaced): CharSequence = with(toAnsiString()) {
     requirePositiveColumns(maxColumns)

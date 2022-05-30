@@ -156,7 +156,7 @@ public open class ShellScript(
      * @see toString
      */
     public fun toFile(
-        path: Path = Kommons.filesTemp.tempFile(this.name.toBaseName(), ".sh"),
+        path: Path = Kommons.FilesTemp.tempFile(this.name.toBaseName(), ".sh"),
         echoName: Boolean = false,
         name: CharSequence? = this.name,
     ): Path = path.apply {
@@ -243,7 +243,7 @@ public open class ShellScript(
         public fun changeDirectoryOrExit(directory: Path, errorCode: UByte = 1u): Line = changeDirectory(directory) or exit(errorCode)
 
         /**
-         * Adds `this` character sequence as a separate line to this script.
+         * Adds this character sequence as a separate line to this script.
          */
         public operator fun @receiver:Language("Shell Script") CharSequence.not(): Line = Line(toString())
 
@@ -281,7 +281,7 @@ public open class ShellScript(
         public fun command(command: CommandLine): Line = Line(command.shellCommand)
 
         /**
-         * Adds the [CommandLine] used by `this` [Executable] to this script.
+         * Adds the [CommandLine] used by this [Executable] to this script.
          */
         public operator fun Executable<*>.not(): Line = command(toCommandLine())
 

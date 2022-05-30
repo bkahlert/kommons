@@ -35,7 +35,7 @@ public val StackTraceElement.highlightedMethod: String
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` thread and highlighting its details.
+ * by printing this thread and highlighting its details.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val <T : Thread> T.trace: Thread
@@ -44,8 +44,8 @@ public val <T : Thread> T.trace: Thread
 /**
  * Helper function that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing `this` thread and `this` thread applied to the given [transform] to [println]
- * while still returning `this`.
+ * passing this thread and this thread applied to the given [transform] to [println]
+ * while still returning this.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun <T : Thread> T.trace(description: CharSequence? = null, transform: (T.() -> Any)? = null): T =
@@ -54,7 +54,7 @@ public fun <T : Thread> T.trace(description: CharSequence? = null, transform: (T
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` stacktrace and highlighting the method names.
+ * by printing this stacktrace and highlighting the method names.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Array<StackTraceElement>.trace: Array<StackTraceElement>
@@ -63,7 +63,7 @@ public val Array<StackTraceElement>.trace: Array<StackTraceElement>
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` stacktrace and highlighting the method names.
+ * by printing this stacktrace and highlighting the method names.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun Array<StackTraceElement>.trace(
@@ -82,7 +82,7 @@ public fun Array<StackTraceElement>.trace(
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` lock properly with details.
+ * by printing this lock properly with details.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val ReentrantLock.trace: ReentrantLock
@@ -97,7 +97,7 @@ public val ReentrantLock.trace: ReentrantLock
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` lock properly with details.
+ * by printing this lock properly with details.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val ReentrantReadWriteLock.trace: ReentrantReadWriteLock
@@ -115,7 +115,7 @@ public val ReentrantReadWriteLock.trace: ReentrantReadWriteLock
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` match result properly with details.
+ * by printing this match result properly with details.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val <T : MatchResult?> T.trace: T
@@ -129,7 +129,7 @@ public val <T : MatchResult?> T.trace: T
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` big decimal with details.
+ * by printing this big decimal with details.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val BigDecimal.trace: BigDecimal

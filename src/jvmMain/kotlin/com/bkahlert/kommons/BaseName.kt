@@ -9,7 +9,7 @@ import com.bkahlert.kommons.text.md5
 /**
  * Creates a base name suited to be used as an ID for various programs
  * or as a filename. In contrast to a random string the returned base name
- * will reflect `this` string as good as possible.
+ * will reflect this string as good as possible.
  *
  * The resulting string will:
  * - have at least [minLength] characters

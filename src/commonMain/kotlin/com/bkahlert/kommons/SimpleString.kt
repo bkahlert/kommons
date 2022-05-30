@@ -7,14 +7,14 @@ import com.bkahlert.kommons.text.Semantics.Symbols
 import kotlin.reflect.KClass
 
 /**
- * Returns a **simple** string representation of `this` [KClass].
+ * Returns a **simple** string representation of this [KClass].
  *
  * Examples are `ClassName` and `ClassName.InnerClassName`.
  */
 public fun KClass<*>.toSimpleString(): String = toString().simpleClassName
 
 /**
- * Returns a **simple** string representation of `this` object.
+ * Returns a **simple** string representation of this object.
  */
 public fun Any?.toSimpleString(): String =
     this?.let {
@@ -23,14 +23,14 @@ public fun Any?.toSimpleString(): String =
     } ?: Symbols.Null
 
 /**
- * Returns a **simple** string representation of `this` object's [KClass].
+ * Returns a **simple** string representation of this object's [KClass].
  *
  * Examples are `ClassName` and `ClassName.InnerClassName`.
  */
 public fun Any?.toSimpleClassName(): String = this?.let { it::class.toSimpleString() } ?: Symbols.Null
 
 /**
- * Returns a **simple** string representation of `this` [Function] / lambda.
+ * Returns a **simple** string representation of this [Function] / lambda.
  *
  * Examples are `() -> Int` and `Receiver.() -> Unit`.
  */

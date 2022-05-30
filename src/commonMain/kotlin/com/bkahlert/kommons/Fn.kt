@@ -10,21 +10,21 @@ import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.truncate
 
 /**
- * Returns a new identity function that composes `this` optional identity function
+ * Returns a new identity function that composes this optional identity function
  * with the given identity [functions] by chaining them.
  */
 public inline fun <reified T> ((T) -> T)?.compose(vararg functions: ((T) -> T)): ((T) -> T) =
     functions.reversed().foldRight(compose { it }, { acc, x -> x + acc })
 
 /**
- * Returns a new identity function that composes `this` optional identity function
+ * Returns a new identity function that composes this optional identity function
  * with the given mandatory identity [function] by chaining them.
  */
 public inline fun <reified T> ((T) -> T)?.compose(crossinline function: ((T) -> T)): ((T) -> T) =
     { function(this?.invoke(it) ?: it) }
 
 /**
- * Returns a new identity function that composes `this` optional identity function
+ * Returns a new identity function that composes this optional identity function
  * with the given mandatory identity [function] by chaining them.
  */
 public inline operator fun <reified T> ((T) -> T)?.plus(crossinline function: ((T) -> T)): ((T) -> T) =
@@ -67,7 +67,7 @@ public fun <U, R> runWrapping(before: () -> U, after: (U) -> Unit, block: (U) ->
 }
 
 /**
- * Wraps the specified function [block] with `this` value as its receiver by calling the specified functions [before] and [after]
+ * Wraps the specified function [block] with this value as its receiver by calling the specified functions [before] and [after]
  * the actual invocation.
  *
  * Then return value of [before] is passed as an argument to [after] which
@@ -84,7 +84,7 @@ public fun <T, U, R> T.runWrapping(before: T.() -> U, after: T.(U) -> Unit, bloc
 }
 
 /**
- * Runs the provided [block] `this` times with an increasing index passed
+ * Runs the provided [block] this times with an increasing index passed
  * on each call and returns a list of the returned results.
  */
 public operator fun <R> Int.times(block: (index: Int) -> R): List<R> {
@@ -96,7 +96,7 @@ public operator fun <R> Int.times(block: (index: Int) -> R): List<R> {
 }
 
 /**
- * Runs the provided [block] `this` times with an increasing index passed
+ * Runs the provided [block] this times with an increasing index passed
  * on each call and returns a list of the returned results.
  */
 public operator fun <R> BigInteger.times(block: (index: Int) -> R): List<R> {
@@ -113,22 +113,22 @@ public operator fun <R, T : (R) -> R> T?.invoke(arg: R): R = this?.invoke(arg) ?
 
 
 // @formatter:off
-/** Throws an [IllegalArgumentException] if `this` string [isEmpty]. */
+/** Throws an [IllegalArgumentException] if this string [isEmpty]. */
 public fun String.requireNotEmpty(): String = also{require(it.isNotEmpty())}
-/** Throws an [IllegalArgumentException] with the result of calling [lazyMessage] if `this` string [isEmpty]. */
+/** Throws an [IllegalArgumentException] with the result of calling [lazyMessage] if this string [isEmpty]. */
 public fun String.requireNotEmpty(lazyMessage: () -> Any): String = also{require(it.isNotEmpty(),lazyMessage)}
-/** Throws an [IllegalArgumentException] if `this` string [isBlank]. */
+/** Throws an [IllegalArgumentException] if this string [isBlank]. */
 public fun String.requireNotBlank(): String = also{require(isNotBlank())}
-/** Throws an [IllegalArgumentException] with the result of calling [lazyMessage] if `this` string [isBlank]. */
+/** Throws an [IllegalArgumentException] with the result of calling [lazyMessage] if this string [isBlank]. */
 public fun String.requireNotBlank(lazyMessage: () -> Any): String = also{require(it.isNotBlank(),lazyMessage)}
 
-/** Throws an [IllegalStateException] if `this` string [isEmpty]. */
+/** Throws an [IllegalStateException] if this string [isEmpty]. */
 public fun String.checkNotEmpty(): String = also{check(it.isNotEmpty())}
-/** Throws an [IllegalStateException] with the result of calling [lazyMessage] if `this` string [isEmpty]. */
+/** Throws an [IllegalStateException] with the result of calling [lazyMessage] if this string [isEmpty]. */
 public fun String.checkNotEmpty(lazyMessage: () -> Any): String = also{check(it.isNotEmpty(),lazyMessage)}
-/** Throws an [IllegalStateException] if `this` string [isBlank]. */
+/** Throws an [IllegalStateException] if this string [isBlank]. */
 public fun String.checkNotBlank(): String = also{check(it.isNotBlank())}
-/** Throws an [IllegalStateException] with the result of calling [lazyMessage] if `this` string [isBlank]. */
+/** Throws an [IllegalStateException] with the result of calling [lazyMessage] if this string [isBlank]. */
 public fun String.checkNotBlank(lazyMessage: () -> Any): String = also{check(it.isNotBlank(),lazyMessage)}
 // @formatter:on
 
@@ -159,11 +159,11 @@ public fun String.requireSaneInput() {
 }
 
 /**
- * Returns `this` object if this program runs in debug mode or `null`, if it's not.
+ * Returns this object if this program runs in debug mode or `null`, if it's not.
  */
 public fun <T> T.takeIfDebugging(): T? = takeIf { isDebugging }
 
 /**
- * Returns `this` object if this program does not run in debug mode or `null`, if it is.
+ * Returns this object if this program does not run in debug mode or `null`, if it is.
  */
 public fun <T> T.takeUnlessDebugging(): T? = takeIf { isDebugging }

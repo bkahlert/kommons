@@ -33,57 +33,57 @@ public object Semantics {
     public class SemanticText(private val text: String) {
 
         /**
-         * Formats `this` [text] as expressing something successful.
+         * Formats this [text] as expressing something successful.
          */
         public val success: String get() = text { green }
 
         /**
-         * Formats `this` [text] as expressing something ongoing.
+         * Formats this [text] as expressing something ongoing.
          */
         public val progress: String get() = text { blue }
 
         /**
-         * Formats `this` [text] as expressing a warning.
+         * Formats this [text] as expressing a warning.
          */
         public val warning: String get() = text { brightYellow }
 
         /**
-         * Formats `this` [text] as expressing something that failed.
+         * Formats this [text] as expressing something that failed.
          */
         public val failure: String get() = text { red }
 
         /**
-         * Formats `this` [text] as expressing something that failed.
+         * Formats this [text] as expressing something that failed.
          */
         public val error: String get() = text { red }
 
         /**
-         * Formats `this` [text] to ease temporary debugging.
+         * Formats this [text] to ease temporary debugging.
          */
         public val debug: String get() = text { brightCyan }
 
         /**
-         * Formats `this` [text] as expressing an input.
+         * Formats this [text] as expressing an input.
          */
         public val input: String get() = text { cyan }
 
         /**
-         * Formats `this` [text] as expressing a meta information.
+         * Formats this [text] as expressing a meta information.
          */
         public val meta: String get() = text { italic.gray }
 
         /**
-         * Formats `this` [text] as expressing a unit.
+         * Formats this [text] as expressing a unit.
          */
         public val unit: String get() = text { wrap(BlockDelimiters.UNIT.map { it.formattedAs.meta }) }
 
         /**
-         * Formats `this` [text] as expressing a named unit.
+         * Formats this [text] as expressing a named unit.
          */
         public fun unit(name: String): String = "${name.formattedAs.meta} $text".formattedAs.unit
 
         /**
-         * Formats `this` [text] as expressing a block.
+         * Formats this [text] as expressing a block.
          */
         public val block: String get() = text { wrap(BlockDelimiters.BLOCK.map { it.formattedAs.meta }) }
     }

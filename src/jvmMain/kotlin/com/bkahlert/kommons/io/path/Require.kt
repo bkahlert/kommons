@@ -67,7 +67,11 @@ public fun Path.requireNotEmpty(vararg options: LinkOption) {
 /**
  * Checks if this path is inside of one of the System's temporary directories.
  *
- * @throws IllegalArgumentException this path is not inside [Locations.temp]
+ * @throws IllegalArgumentException this path is not inside [Locations.Temp]
  */
 public fun Path.requireTempSubPath(): Path =
-    apply { require(!isDefaultFileSystem() || isSubPathOf(Locations.temp)) { "${this.normalize().toAbsolutePath()} is not inside ${Locations.temp}." } }
+    apply {
+        require(!isDefaultFileSystem() || isSubPathOf(Locations.Default.Temp)) {
+            "${normalize().toAbsolutePath()} is not inside ${Locations.Default.Temp}."
+        }
+    }

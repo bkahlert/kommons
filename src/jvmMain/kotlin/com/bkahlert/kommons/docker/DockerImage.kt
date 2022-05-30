@@ -137,22 +137,22 @@ public open class DockerImage(
             val page = 1
             val pageSize = 100
             val url = "https://registry.hub.docker.com/api/content/v1/repositories/public/library/$fullPath/tags?page=$page&page_size=$pageSize"
-            return Kommons.execTemp.curlJq("hub.docker.com tags") {
+            return Kommons.ExecTemp.curlJq("hub.docker.com tags") {
                 "curl '$url' 2>/dev/null | jq -r '.results[].name' | sort"
             }.io.output.ansiRemoved.lines()
         }
 
     /**
-     * Returns a [DockerRunCommandLine] that runs `this` [Executable]
-     * using `this` [DockerImage]
+     * Returns a [DockerRunCommandLine] that runs this [Executable]
+     * using this [DockerImage]
      * and default options [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [Executable.content].
      */
     public val Executable<Exec>.dockerized: DockerRunCommandLine
         get() = dockerized(this@DockerImage)
 
     /**
-     * Returns a [DockerRunCommandLine] that runs `this` [Executable]
-     * using `this` [DockerImage]
+     * Returns a [DockerRunCommandLine] that runs this [Executable]
+     * using this [DockerImage]
      * and the specified [options].
      */
     public fun Executable<Exec>.dockerized(options: Options): DockerRunCommandLine =
@@ -192,12 +192,12 @@ public open class DockerImage(
     public object ImageContext {
 
         /**
-         * Adds a [path] element to `this` repository.
+         * Adds a [path] element to this repository.
          */
         public infix operator fun String.div(path: String): RepositoryWithPath = RepositoryWithPath(this, path)
 
         /**
-         * Adds another [path] element to `this` [DockerImage].
+         * Adds another [path] element to this [DockerImage].
          */
         public infix operator fun RepositoryWithPath.div(path: String): RepositoryWithPath = RepositoryWithPath(repository, this.path + path)
 

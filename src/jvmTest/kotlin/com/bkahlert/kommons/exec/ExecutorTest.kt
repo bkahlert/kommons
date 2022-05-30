@@ -69,14 +69,14 @@ class ExecutorTest {
         @Test
         fun `should exec using specified environment`() {
             val random = randomString()
-            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(Locations.temp)
+            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(Locations.Default.Temp)
             expectThat(exec.io.output.ansiRemoved).isEqualTo(random)
         }
 
         @Test
         fun `should exec using specified working directory`() {
-            val exec = CommandLine("pwd").exec(Kommons.execTemp)
-            val tempPaths = setOf(Kommons.execTemp.pathString, Kommons.execTemp.toRealPath().pathString)
+            val exec = CommandLine("pwd").exec(Kommons.ExecTemp)
+            val tempPaths = setOf(Kommons.ExecTemp.pathString, Kommons.ExecTemp.toRealPath().pathString)
             expectThat(tempPaths).contains(exec.io.output.ansiRemoved)
         }
 
@@ -179,11 +179,13 @@ class ExecutorTest {
                 @Test
                 fun TestSpanScope.`should print executable content by default`() {
                     CommandLine("echo", "short").exec.logging(style = None)
-                    expectThatRendered().matchesCurlyPattern("""
+                    expectThatRendered().matchesCurlyPattern(
+                        """
                         echo short
                         short
                         ✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
 
                 @Test
@@ -198,14 +200,18 @@ class ExecutorTest {
                 fun TestSpanScope.`should print commandline containing URI if too long`() {
                     CommandLine("echo", "a very long argument that leads to a very long command line").exec.logging(style = None)
                     expectThatRendered {
-                        matchesCurlyPattern("""
+                        matchesCurlyPattern(
+                            """
                             file://{}
                             a very long argument that leads to a very long command line
                             ✔︎
-                        """.trimIndent())
-                        lines().first().asPath().textContent.contains("""
+                        """.trimIndent()
+                        )
+                        lines().first().asPath().textContent.contains(
+                            """
                             'echo' 'a very long argument that leads to a very long command line'
-                        """.trimIndent())
+                        """.trimIndent()
+                        )
                     }
                 }
             }
@@ -352,35 +358,43 @@ class ExecutorTest {
                 @Test
                 fun TestSpanScope.`should print executable content by default`() {
                     CommandLine("echo", "short").exec.async.logging(style = None).waitFor()
-                    expectThatRendered().matchesCurlyPattern("""
+                    expectThatRendered().matchesCurlyPattern(
+                        """
                         echo short
                         short
                         ✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
 
                 @Test
                 fun TestSpanScope.`should print name if specified`() {
                     CommandLine("echo", "short", name = "custom name").exec.async.logging(style = None).waitFor()
-                    expectThatRendered().matchesCurlyPattern("""
+                    expectThatRendered().matchesCurlyPattern(
+                        """
                         custom name: echo short
                         short
                         ✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
 
                 @Test
                 fun TestSpanScope.`should print commandline containing URI if too long`() {
                     CommandLine("echo", "a very long argument that leads to a very long command line").exec.async.logging(style = None).waitFor()
                     expectThatRendered {
-                        matchesCurlyPattern("""
+                        matchesCurlyPattern(
+                            """
                             file://{}
                             a very long argument that leads to a very long command line
                             ✔︎
-                        """.trimIndent())
-                        lines().first().asPath().textContent.contains("""
+                        """.trimIndent()
+                        )
+                        lines().first().asPath().textContent.contains(
+                            """
                             'echo' 'a very long argument that leads to a very long command line'
-                        """.trimIndent())
+                        """.trimIndent()
+                        )
                     }
                 }
             }

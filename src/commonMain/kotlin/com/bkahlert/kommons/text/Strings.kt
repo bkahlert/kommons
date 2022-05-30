@@ -61,7 +61,7 @@ public fun CharSequence.length(ansi: Boolean = true): Int =
  * @param length the desired string length.
  * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
  * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- * @return Returns a character sequence of length at least [length] consisting of `this` character sequence prepended with [padChar] as many times
+ * @return Returns a character sequence of length at least [length] consisting of this character sequence prepended with [padChar] as many times
  * as are necessary to reach that length.
  */
 public fun CharSequence.padStart(length: Int, padChar: Char = ' ', ansi: Boolean = true): CharSequence {
@@ -82,7 +82,7 @@ public fun CharSequence.padStart(length: Int, padChar: Char = ' ', ansi: Boolean
  * @param length the desired string length.
  * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
  * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- * @return Returns a string of length at least [length] consisting of `this` string prepended with [padChar] as many times
+ * @return Returns a string of length at least [length] consisting of this string prepended with [padChar] as many times
  * as are necessary to reach that length.
  */
 public fun String.padStart(length: Int, padChar: Char = ' ', ansi: Boolean = true): String =
@@ -95,7 +95,7 @@ public fun String.padStart(length: Int, padChar: Char = ' ', ansi: Boolean = tru
  * @param length the desired string length.
  * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
  * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- * @return Returns a character sequence of length at least [length] consisting of `this` character sequence appended with [padChar] as many times
+ * @return Returns a character sequence of length at least [length] consisting of this character sequence appended with [padChar] as many times
  * as are necessary to reach that length.
  */
 public fun CharSequence.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean = true): CharSequence {
@@ -115,7 +115,7 @@ public fun CharSequence.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean =
  * @param length the desired string length.
  * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
  * @param ansi whether to acknowledge [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- * @return Returns a string of length at least [length] consisting of `this` string appended with [padChar] as many times
+ * @return Returns a string of length at least [length] consisting of this string appended with [padChar] as many times
  * as are necessary to reach that length.
  */
 public fun String.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean = true): String =
@@ -130,45 +130,47 @@ public fun String.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean = true)
 public fun CharSequence.wrapMultiline(prefix: CharSequence, suffix: CharSequence): String =
     "${prefix.toString().trimIndent()}$LF$this$LF${suffix.toString().trimIndent()}"
 
+// TODO replaced by kommons-debug
+
 /**
- * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun CharSequence.takeIfNotEmpty(): CharSequence? = takeIf { it.isNotEmpty() }
 
 /**
- * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun String.takeIfNotEmpty(): String? = takeIf { it.isNotEmpty() }
 
 
 /**
- * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
+ * Returns this character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun CharSequence.takeIfNotBlank(): CharSequence? = takeIf { it.isNotBlank() }
 
 /**
- * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
+ * Returns this character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun String.takeIfNotBlank(): String? = takeIf { it.isNotBlank() }
 
 /**
- * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun CharSequence.takeUnlessEmpty(): CharSequence? = takeUnless { it.isEmpty() }
 
 /**
- * Returns `this` character sequence if it [isNotEmpty] or `null`, if it is.
+ * Returns this character sequence if it [isNotEmpty] or `null`, if it is.
  */
 public fun String.takeUnlessEmpty(): String? = takeUnless { it.isEmpty() }
 
 
 /**
- * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
+ * Returns this character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun CharSequence.takeUnlessBlank(): CharSequence? = takeUnless { it.isBlank() }
 
 /**
- * Returns `this` character sequence if it [isNotBlank] or `null`, if it is.
+ * Returns this character sequence if it [isNotBlank] or `null`, if it is.
  */
 public fun String.takeUnlessBlank(): String? = takeUnless { it.isBlank() }
 

@@ -87,22 +87,26 @@ public fun Path.copyTo(
                     if (!dstFile.exists(*options)) {
 
                         val createdDir =
-                            Files.copy(src, dstFile, *copyOptions(
-                                replaceExisting = overwrite,
-                                copyAttributes = preserve,
-                                copyOptions = options
-                            ))
+                            Files.copy(
+                                src, dstFile, *copyOptions(
+                                    replaceExisting = overwrite,
+                                    copyAttributes = preserve,
+                                    copyOptions = options
+                                )
+                            )
                         val isEmpty = createdDir.run { isDirectory(*options) && isEmpty(*options) }
                         if (!isEmpty && onError(src, dstFile.directoryNotEmpty()) == OnErrorAction.TERMINATE) {
                             return target
                         }
                     }
                 } else {
-                    val copiedFile = Files.copy(src, dstFile, *copyOptions(
-                        replaceExisting = overwrite,
-                        copyAttributes = preserve,
-                        copyOptions = options,
-                    ))
+                    val copiedFile = Files.copy(
+                        src, dstFile, *copyOptions(
+                            replaceExisting = overwrite,
+                            copyAttributes = preserve,
+                            copyOptions = options,
+                        )
+                    )
                     val copiedFileSize = copiedFile.getSize(*options)
                     val srcFileSize = src.getSize(*options)
                     if (copiedFileSize != srcFileSize &&
@@ -179,8 +183,10 @@ public fun Path.copyToDirectory(
 
     if (!targetDirectory.exists(*options)) targetDirectory.createDirectories()
     if (!targetDirectory.isDirectory(*options)) {
-        onError(this,
-            FileAlreadyExistsException(this.toString(), "$targetDirectory", "The destination must not exist or be a directory.")) != OnErrorAction.TERMINATE
+        onError(
+            this,
+            FileAlreadyExistsException(this.toString(), "$targetDirectory", "The destination must not exist or be a directory.")
+        ) != OnErrorAction.TERMINATE
         return targetDirectory
     }
 
@@ -194,7 +200,7 @@ public fun Path.copyToDirectory(
 public fun Path.copyToTemp(
     base: String = nameWithoutExtension,
     extension: String = extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(Kommons.filesTemp.tempFile(base, extension), overwrite = true)
+): Path = copyTo(Kommons.FilesTemp.tempFile(base, extension), overwrite = true)
 
 /**
  * Duplicates this file or directory by copying to the same path but with a random string to its name.

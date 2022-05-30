@@ -387,7 +387,7 @@ class CopyKtTest {
                 val srcFile = getTestFile()
                 expectThat(srcFile.copyToTemp())
                     .hasContent("test file")
-                    .parent.isEqualTo(Kommons.filesTemp)
+                    .parent.isEqualTo(Kommons.FilesTemp)
             }
         }
 
@@ -399,7 +399,7 @@ class CopyKtTest {
                 val srcDir = getTestDir()
                 expectThat(srcDir.copyToTemp())
                     .isCopyOf(srcDir)
-                    .parent.isEqualTo(Kommons.filesTemp)
+                    .parent.isEqualTo(Kommons.FilesTemp)
             }
         }
     }

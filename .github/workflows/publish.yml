@@ -24,9 +24,7 @@ jobs:
       - name: Publish
         uses: gradle/gradle-build-action@v1
         with:
-          distributions-cache-enabled: true
-          dependencies-cache-enabled: true
-          arguments: -Prelease.useLastTag=true final publish
+          arguments: release -Prelease.useLastTag=true publish
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}

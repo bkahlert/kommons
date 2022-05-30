@@ -171,7 +171,7 @@ public object LineSeparators : Collection<String> {
      * If this string does not end with one of the [LineSeparators] this string appended
      * with the given [lineSeparator] (default: [autoDetect]) is returned.
      *
-     * If [append] is set to false, `this` string is returned unchanged, which is handy
+     * If [append] is set to false, this string is returned unchanged, which is handy
      * if the needed behaviour is dynamic.
      */
     public fun CharSequence.withTrailingLineSeparator(lineSeparator: String = autoDetect(this), append: Boolean = true): String =

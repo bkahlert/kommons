@@ -37,10 +37,12 @@ class ProcessorsKtTest {
             @Test
             fun `should trace`() {
                 CommandLine("tee", "/dev/fd/2").toExec()
-                    .process(ProcessingMode(async = false, "Hello Cat!${LF}".byteInputStream()), Processors.spanningProcessor(
-                        ExecAttributes.NAME to "exec-name",
-                        ExecAttributes.EXECUTABLE to CommandLine("cat"),
-                    ))
+                    .process(
+                        ProcessingMode(async = false, "Hello Cat!${LF}".byteInputStream()), Processors.spanningProcessor(
+                            ExecAttributes.NAME to "exec-name",
+                            ExecAttributes.EXECUTABLE to CommandLine("cat"),
+                        )
+                    )
 
                 TraceId.current.expectTraced().hasElements(
                     {
@@ -104,10 +106,12 @@ class ProcessorsKtTest {
             @Test
             fun `should trace`() {
                 CommandLine("tee", "/dev/fd/2").toExec()
-                    .process(ProcessingMode(async = true, "Hello Cat!$LF".repeat(3).byteInputStream()), Processors.spanningProcessor(
-                        ExecAttributes.NAME to "exec-name",
-                        ExecAttributes.EXECUTABLE to CommandLine("cat"),
-                    )).waitFor()
+                    .process(
+                        ProcessingMode(async = true, "Hello Cat!$LF".repeat(3).byteInputStream()), Processors.spanningProcessor(
+                            ExecAttributes.NAME to "exec-name",
+                            ExecAttributes.EXECUTABLE to CommandLine("cat"),
+                        )
+                    ).waitFor()
 
                 TraceId.current.expectTraced().hasElements(
                     {
@@ -143,8 +147,12 @@ class ProcessorsKtTest {
             fun `should process input stream`() {
                 val log = synchronizedListOf<IO>()
                 CommandLine("cat").toExec()
-                    .process(ProcessingMode(async = true,
-                        "Hello Cat!$LF".byteInputStream())) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
+                    .process(
+                        ProcessingMode(
+                            async = true,
+                            "Hello Cat!$LF".byteInputStream()
+                        )
+                    ) { _: Exec, callback: ((IO) -> Unit) -> ExitState ->
                         callback { log.add(it) }
                     }.waitFor()
                 expectThat(log)
@@ -216,4 +224,4 @@ class ProcessorsKtTest {
     }
 }
 
-private fun CommandLine.toExec() = toExec(false, emptyMap(), Kommons.internalTemp, null)
+private fun CommandLine.toExec() = toExec(false, emptyMap(), Kommons.InternalTemp, null)

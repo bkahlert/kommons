@@ -52,13 +52,13 @@ public fun Duration.notPassedSince(instant: Long): Boolean = passedSince() < ins
  * Returns an object of the same type [T] as this object with the specified [duration] added.
  *
  * **Important:** This operation does not work for date types like [LocalDate], [YearMonth] or [Year]
- * as they they don't differ in [Duration] but in [Period].
+ * as they don't differ in [Duration] but in [Period].
  */
 public inline operator fun <reified T : Temporal> T.plus(duration: Duration): T =
     this.plus(duration.toJavaDuration()) as? T ?: error("broken contract of Temporal operations returning the same type")
 
 /**
- * Returns this file time with with the specified [duration] added.
+ * Returns this file time with the specified [duration] added.
  */
 public operator fun FileTime.plus(duration: Duration): FileTime =
     FileTime.from(toInstant().plus(duration))
@@ -68,12 +68,12 @@ public operator fun FileTime.plus(duration: Duration): FileTime =
  * Returns an object of the same type [T] as this object with the specified [duration] subtracted.
  *
  * **Important:** This operation does not work for date types like [LocalDate], [YearMonth] or [Year]
- * as they they don't differ in [Duration] but in [Period].
+ * as they don't differ in [Duration] but in [Period].
  */
 public inline operator fun <reified T : Temporal> T.minus(duration: Duration): T {
     return duration.toComponents { days, hours, minutes, seconds, nanoseconds ->
         sequenceOf(
-            java.time.Duration.ofDays(days.toLong()),
+            java.time.Duration.ofDays(days),
             java.time.Duration.ofHours(hours.toLong()),
             java.time.Duration.ofMinutes(minutes.toLong()),
             java.time.Duration.ofSeconds(seconds.toLong()),
@@ -87,7 +87,7 @@ public inline operator fun <reified T : Temporal> T.minus(duration: Duration): T
 
 
 /**
- * Returns this file time with with the specified [duration] subtracted.
+ * Returns this file time with the specified [duration] subtracted.
  */
 public operator fun FileTime.minus(duration: Duration): FileTime =
     FileTime.from(toInstant().minus(duration))

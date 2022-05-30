@@ -30,7 +30,7 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should throw on non-temp location`() {
-        expectThrows<IllegalArgumentException> { SelfCleaningDirectory(Locations.work.resolve("directory")) }
+        expectThrows<IllegalArgumentException> { SelfCleaningDirectory(Locations.Default.Work.resolve("directory")) }
     }
 
     @Test

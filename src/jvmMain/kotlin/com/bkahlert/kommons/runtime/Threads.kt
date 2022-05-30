@@ -97,7 +97,7 @@ public class BusyThread private constructor(
 private val cachedThreadPool = Executors.newCachedThreadPool()
 
 /**
- * Returns a [CompletableFuture] using `this` [Executor] which
+ * Returns a [CompletableFuture] using this [Executor] which
  * will return a [CompletionStage] with the result of the specified [block].
  *
  * Optionally the execution can have a [delay] and change the [name] of
@@ -131,7 +131,7 @@ public fun <T> completableFuture(
 
 /**
  * Returns a [CompletableFuture] which will return a [CompletionStage]
- * with the result of `this` lambda.
+ * with the result of this lambda.
  *
  * Optionally the execution can have a [delay] and change the [name] of
  * the executing [Thread]. If not specified a shared [ThreadPoolExecutor]

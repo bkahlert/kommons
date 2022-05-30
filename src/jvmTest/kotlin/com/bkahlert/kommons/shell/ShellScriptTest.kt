@@ -82,14 +82,16 @@ class ShellScriptTest {
 
     @Test
     fun `should build valid script`() {
-        expectThat(shellScript()).toStringIsEqualTo("""
+        expectThat(shellScript()).toStringIsEqualTo(
+            """
             #!/bin/sh
             'cd' '/some/where' || 'exit' '1'
             'echo' 'Hello World!'
             'echo' 'Bye!'
             'exit' '42'
 
-        """.trimIndent(), removeAnsi = false)
+        """.trimIndent(), removeAnsi = false
+        )
     }
 
     @Test
@@ -120,21 +122,23 @@ class ShellScriptTest {
         fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = shellScript().toFile()
             expectThat(file)
-                .hasContent("""
+                .hasContent(
+                    """
                     #!/bin/sh
                     'cd' '/some/where' || 'exit' '1'
                     'echo' 'Hello World!'
                     'echo' 'Bye!'
                     'exit' '42'
         
-                """.trimIndent())
+                """.trimIndent()
+                )
         }
 
         @Test
         fun `should use name for filename`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = shellScript("my script").toFile()
             expectThat(file)
-                .isSubPathOf(Locations.temp)
+                .isSubPathOf(Locations.Default.Temp)
                 .fileName.pathString.startsWith("my-script")
         }
 
@@ -204,21 +208,29 @@ class ShellScriptTest {
 
         @Test
         fun `should return shebang`() {
-            expectThat(ShellScript("""
+            expectThat(
+                ShellScript(
+                    """
                 #!/bin/bash
                 echo 'test'
-            """.trimIndent()))
+            """.trimIndent()
+                )
+            )
                 .get { shebang }
                 .isNotNull()
                 .isEqualTo(CommandLine("/bin/bash"))
         }
 
         @Test
-        fun `should return shebang with with arguments`() {
-            expectThat(ShellScript("""
+        fun `should return shebang with arguments`() {
+            expectThat(
+                ShellScript(
+                    """
                 #!/bin/bash arg1 '-arg2'
                 echo 'test'
-            """.trimIndent()))
+            """.trimIndent()
+                )
+            )
                 .get { shebang }
                 .isNotNull()
                 .isEqualTo(CommandLine("/bin/bash", "arg1", "-arg2"))
@@ -226,10 +238,14 @@ class ShellScriptTest {
 
         @Test
         fun `should return null on missing shebang in first line`() {
-            expectThat(ShellScript("""
+            expectThat(
+                ShellScript(
+                    """
                 echo 'test'
                 #!/bin/bash arg1 -arg2
-            """.trimIndent()))
+            """.trimIndent()
+                )
+            )
                 .get { shebang }
                 .isNull()
         }
@@ -252,20 +268,24 @@ class ShellScriptTest {
         @Test
         fun `should not echo name`() {
             val sh = ShellScript("test", "exit 0")
-            expectThat(sh.toString()).isEqualTo("""
+            expectThat(sh.toString()).isEqualTo(
+                """
                 exit 0
     
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
         fun `should echo name if specified`() {
             val sh = ShellScript("test", "exit 0")
-            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo(
+                """
                 echo '$testBanner'
                 exit 0
     
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
@@ -280,33 +300,39 @@ class ShellScriptTest {
         @Test
         fun `should echo name after shebang in first line`() {
             val sh = ShellScript("test", "#!/bin/sh\nexit 0")
-            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo(
+                """
                 #!/bin/sh
                 echo '$testBanner'
                 exit 0
     
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
         fun `should echo name in first line on missing shebang in first line`() {
             val sh = ShellScript("test", "exit 0\n#!/bin/sh")
-            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo(
+                """
                 echo '$testBanner'
                 exit 0
                 #!/bin/sh
     
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
         fun `should echo name in first line on empty script`() {
             val sh = ShellScript("test", null)
-            expectThat(sh.toString(echoName = true)).toStringIsEqualTo("""
+            expectThat(sh.toString(echoName = true)).toStringIsEqualTo(
+                """
                 echo '$testBanner'
     
     
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 
@@ -315,13 +341,15 @@ class ShellScriptTest {
 
         @Test
         fun `should provide content`() {
-            expectThat(shellScript(null).content).matchesCurlyPattern("""
+            expectThat(shellScript(null).content).matchesCurlyPattern(
+                """
                 #!/bin/sh
                 {{}}
                 'echo' 'Hello World!'
                 'echo' 'Bye!'
                 'exit' '42'
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 
@@ -547,12 +575,14 @@ class ShellScriptTest {
                     file("file.txt") {
                         appendLine("content")
                     }
-                }).toStringMatchesCurlyPattern("""
+                }).toStringMatchesCurlyPattern(
+                    """
                     cat <<HERE-{} >>"file.txt"
                     content
                     HERE-{}
     
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
@@ -561,12 +591,14 @@ class ShellScriptTest {
                     file("file.txt".asPath()) {
                         appendLine("content")
                     }
-                }).toStringMatchesCurlyPattern("""
+                }).toStringMatchesCurlyPattern(
+                    """
                     cat <<HERE-{} >>"file.txt"
                     content
                     HERE-{}
     
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
@@ -592,7 +624,8 @@ class ShellScriptTest {
 
             @Test
             fun `should embed shell script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(ShellScript { shellScript(false) }).toStringMatchesCurlyPattern("""
+                expectThat(ShellScript { shellScript(false) }).toStringMatchesCurlyPattern(
+                    """
                     #!/bin/sh
                     echo 'about to run embedded script'
                     '/bin/bash' '-c' 'mkdir '"'"'dir'"'"'
@@ -602,12 +635,14 @@ class ShellScriptTest {
                     '
                     echo 'finished to run embedded script'
                     echo $(pwd)
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
             fun `should embed shell script with name if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(ShellScript { shellScript(true) }).toStringMatchesCurlyPattern("""
+                expectThat(ShellScript { shellScript(true) }).toStringMatchesCurlyPattern(
+                    """
                     #!/bin/sh
                     echo 'about to run embedded script'
                     '/bin/bash' '-c' 'echo '"'"'${Banner.banner("embedded script 📝")}'"'"'
@@ -618,7 +653,8 @@ class ShellScriptTest {
                     '
                     echo 'finished to run embedded script'
                     echo $(pwd)
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Smoke @Test
@@ -631,12 +667,14 @@ class ShellScriptTest {
                 expect {
                     that(exec.exitCodeOrNull).isEqualTo(0)
                     that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
-                        .matchesCurlyPattern("""
+                        .matchesCurlyPattern(
+                            """
                         about to run embedded script
                         ▒▒▒▒▒▒▒ EMBEDDED SCRIPT 📝
                         finished to run embedded script
                         $pathString
-                    """.trimIndent())
+                    """.trimIndent()
+                        )
                     that(resolve("dir/file.txt")) {
                         exists()
                         hasContent("test$LF")
@@ -664,11 +702,13 @@ class ShellScriptTest {
                         ),
                         executable = CommandLine("-arg1", "--argument", "2"),
                     )
-                }).toStringIsEqualTo("""
+                }).toStringIsEqualTo(
+                    """
                     #!/bin/sh
                     'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
                     
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
@@ -676,11 +716,13 @@ class ShellScriptTest {
                 expectThat(ShellScript {
                     shebang
                     !DockerStopCommandLine("busybox", "guestfish", time = 42.seconds)
-                }).toStringIsEqualTo("""
+                }).toStringIsEqualTo(
+                    """
                     #!/bin/sh
                     'docker' 'stop' '--time' '42' 'busybox' 'guestfish'
         
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
@@ -736,10 +778,12 @@ class ShellScriptTest {
             fun `should build multi-line comments`() {
                 expectThat(ShellScript {
 
-                    comment("""
+                    comment(
+                        """
                 line 1
                 line 2
-            """.trimIndent())
+            """.trimIndent()
+                    )
                     "exit 0"
 
                 }).containsExactly("# line 1", "# line 2", "exit 0")

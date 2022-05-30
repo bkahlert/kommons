@@ -226,69 +226,69 @@ public fun CharSequence.parse(): Size {
     return value.bytes
 }
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val Byte.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val UByte.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val Short.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val UShort.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val Int.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val UInt.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val Long.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val ULong.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val Double.bytes: Size get() = if (isZero) Size.ZERO else Size(toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val BigDecimal.bytes: Size get() = if (isZero) Size.ZERO else Size(this)
 
-/** Returns a [Size] representing `this` number of bytes. */
+/** Returns a [Size] representing this number of bytes. */
 public val BigInteger.bytes: Size get() = if (isZero) Size.ZERO else Size(toString(10).toBigDecimal(10))
 
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val Byte.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val UByte.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val Short.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val UShort.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val Int.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val UInt.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val Long.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val ULong.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val Double.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val BigDecimal.bits: Size get() = if (isZero) Size.ZERO else Size(this / Byte.SIZE_BITS.toBigDecimal())
 
-/** Returns a [Size] representing `this` number of bits. */
+/** Returns a [Size] representing this number of bits. */
 public val BigInteger.bits: Size get() = if (isZero) Size.ZERO else toBigDecimal().bits

@@ -261,7 +261,7 @@ public value class CodePoint(
     }
 
     /**
-     * Returns a [CodePointRange] between `this` and [to].
+     * Returns a [CodePointRange] between this and [to].
      */
     public operator fun rangeTo(to: CodePoint): CodePointRange = CodePointRange(this, to)
 
@@ -398,7 +398,7 @@ public value class CodePoint(
 }
 
 /**
- * Attempts to read a code point from `this` byte array at the given [offset].
+ * Attempts to read a code point from this byte array at the given [offset].
  *
  * The byte array must be a UTF-8 encoded string.
  *
@@ -425,7 +425,7 @@ private fun ByteArray.readCodePoint(offset: Int): Pair<Int, Int>? {
 }
 
 /**
- * Attempts to read a code point from `this` character sequence at the given [offset].
+ * Attempts to read a code point from this character sequence at the given [offset].
  *
  * The characters are expected to be a UTF-18 encoded.
  *
@@ -452,7 +452,7 @@ private fun CharSequence.readCodePoint(offset: Int): Pair<Int, Int>? {
 }
 
 /**
- * Attempts to read the single code point from `this` UTF-8 encoded string.
+ * Attempts to read the single code point from this UTF-8 encoded string.
  *
  * Returns a [Pair] with [Pair.first] being the number of bytes
  * the code point contained in [Pair.second] consists of.
@@ -567,7 +567,7 @@ public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence
 }
 
 /**
- * Returns a [Regex] matching exactly `this` character sequence.
+ * Returns a [Regex] matching exactly this character sequence.
  *
  * Each char is matched using its hexadecimal encoding.
  */

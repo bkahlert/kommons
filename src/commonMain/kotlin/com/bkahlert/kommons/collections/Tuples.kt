@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.collections
 
 /**
- * Creates a tuple of type [Triple] from `this` [Pair] and [that].
+ * Creates a tuple of type [Triple] from this [Pair] and [that].
  *
  * @sample tripleFromTo
  */

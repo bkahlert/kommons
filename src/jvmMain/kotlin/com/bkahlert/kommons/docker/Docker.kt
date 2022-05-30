@@ -195,10 +195,12 @@ public object Docker {
         executableProvider: (ContainerPath) -> Executable<Exec>,
     ): DockerExec {
         val containerPath = "/work".asContainerPath()
-        return executableProvider(containerPath).dockerized(image, Options(
-            mounts = MountOptions { workingDirectory mountAt containerPath },
-            workingDirectory = containerPath,
-        )).run {
+        return executableProvider(containerPath).dockerized(
+            image, Options(
+                mounts = MountOptions { workingDirectory mountAt containerPath },
+                workingDirectory = containerPath,
+            )
+        ).run {
             val mode = ProcessingMode(async = false, inputStream)
             if (renderer != null) exec.mode(mode).logging(renderer = renderer)
             else exec.mode(mode).invoke()
@@ -295,7 +297,7 @@ public typealias ScriptInitWithWorkingDirectory = ScriptContext.(ContainerPath) 
  * Runs the given [command] and its [arguments] in
  * a [DockerContainer] with the [DockerImage] parsed from [image].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  *
@@ -316,7 +318,7 @@ public fun Path.docker(
  * Runs the given [command] and its [arguments] in
  * a [DockerContainer] with the [DockerImage] built using [imageInit].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  *
@@ -337,7 +339,7 @@ public fun Path.docker(
  * Runs the given [command] and its [arguments] in
  * a [DockerContainer] with the given [image].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  *
@@ -358,7 +360,7 @@ public fun Path.docker(
  * Builds a shell script using the given [scriptInit] and runs it in
  * a [DockerContainer] with the [DockerImage] parsed from [image].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  *
@@ -378,7 +380,7 @@ public fun Path.docker(
  * Builds a shell script using the given [scriptInit] and runs it in
  * a [DockerContainer] with the [DockerImage] built using [imageInit].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  *
@@ -398,7 +400,7 @@ public fun Path.docker(
  * Builds a shell script using the given [scriptInit] and runs it in
  * a [DockerContainer] with the given [image].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  *
@@ -423,7 +425,7 @@ public fun Path.docker(
  * Runs the given [command] and its [arguments] in
  * a [Ubuntu](https://hub.docker.com/_/ubuntu) based [DockerContainer].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  *
@@ -443,7 +445,7 @@ public fun Path.ubuntu(
  * Builds a shell script using the given [scriptInit] and runs it in
  * a [Ubuntu](https://hub.docker.com/_/ubuntu) based [DockerContainer].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  *
@@ -467,7 +469,7 @@ public fun Path.ubuntu(
  * Runs the given [command] and its [arguments] in
  * a [busybox](https://hub.docker.com/_/busybox) based [DockerContainer].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  *
@@ -487,7 +489,7 @@ public fun Path.busybox(
  * Builds a shell script using the given [scriptInit] and runs it in
  * a [busybox](https://hub.docker.com/_/busybox) based [DockerContainer].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  *
@@ -507,7 +509,7 @@ public fun Path.busybox(
  * Builds a shell script using the given [scriptInit] and runs it in
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container and also passed to [scriptInit] as the only argument.
  */
@@ -522,7 +524,7 @@ public fun Path.curlJq(
  * Runs a [curl](https://curl.se/docs/manpage.html) with the given [arguments] in
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  *
- * `this` [Path] is used as the working directory on this host and
+ * this [Path] is used as the working directory on this host and
  * is mapped to `/work`, which is configured as the working directory
  * inside of the container.
  */
@@ -534,7 +536,7 @@ public fun Path.curl(
     docker(CurlJq, "curl", *arguments, name = name, renderer = renderer)
 
 /**
- * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
+ * Downloads the given [uri] to [fileName] (automatically determined if not specified) in this directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
 public fun Path.download(
@@ -569,7 +571,7 @@ public fun Path.download(
 }
 
 /**
- * Downloads the given [uri] to [fileName] (automatically determined if not specified) in `this` directory using
+ * Downloads the given [uri] to [fileName] (automatically determined if not specified) in this directory using
  * a [alpine-curl-jq](https://hub.docker.com/dwdraju/alpine-curl-jq) based [DockerContainer].
  */
 public fun Path.download(

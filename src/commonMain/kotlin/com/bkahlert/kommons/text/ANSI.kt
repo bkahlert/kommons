@@ -38,7 +38,7 @@ public object ANSI {
     private val level by lazy { if (isDebugging && false) NONE else ansiSupport }
 
     /**
-     * Contains `this` character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
+     * Contains this character sequence with all [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) removed.
      */
     public val CharSequence.ansiRemoved: String
         get() = if (this is AnsiString) toString(removeAnsi = true) else REGEX.replace(this, "")
@@ -548,8 +548,10 @@ internal class AnsiRGBColorCode(r: Int, g: Int, b: Int) : AnsiColorCode(listOf(3
  */
 private data class Ansi16(val code: Int) : Color {
     init {
-        require(code in 30..37 || code in 40..47 ||
-            code in 90..97 || code in 100..107) {
+        require(
+            code in 30..37 || code in 40..47 ||
+                code in 90..97 || code in 100..107
+        ) {
             "code not valid: $code"
         }
     }
@@ -719,7 +721,8 @@ private data class RGB(val r: Int, val g: Int, val b: Int, val a: Float = 1f) : 
             r = (argb ushr 16) and 0xff,
             g = (argb ushr 8) and 0xff,
             b = (argb) and 0xff,
-            a = ((argb ushr 24) and 0xff) / 255f)
+            a = ((argb ushr 24) and 0xff) / 255f
+        )
     }
 
     init {
@@ -1088,7 +1091,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      *
      * @param length the desired string length.
      * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
-     * @return Returns an ANSI string of length at least [length] consisting of `this` ANSI string prepended with [padChar] as many times
+     * @return Returns an ANSI string of length at least [length] consisting of this ANSI string prepended with [padChar] as many times
      * as are necessary to reach that length.
      */
     public fun CharSequence.padStart(length: Int, padChar: Char = ' '): CharSequence {
@@ -1103,7 +1106,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      *
      * @param length the desired string length.
      * @param padChar the character to pad string with, if it has length less than the [length] specified. Space is used by default.
-     * @return Returns an ANSI string of length at least [length] consisting of `this` ANSI string appended with [padChar] as many times
+     * @return Returns an ANSI string of length at least [length] consisting of this ANSI string appended with [padChar] as many times
      * as are necessary to reach that length.
      */
     public fun padEnd(length: Int, padChar: Char = ' '): AnsiString {

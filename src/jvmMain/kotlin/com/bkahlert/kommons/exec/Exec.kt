@@ -168,7 +168,7 @@ public interface Exec : Process {
     public companion object {
 
         /**
-         * Returns an [ExitStateHandler] that interprets `this` [Exec]
+         * Returns an [ExitStateHandler] that interprets this [Exec]
          * once terminated as a [Succeeded] if it exits with code 0
          * and as a [Failed] otherwise.
          */
@@ -183,14 +183,14 @@ public interface Exec : Process {
         }
 
         /**
-         * Dumps the [IO] of `this` [Exec] individualized with the given [errorMessage]
+         * Dumps the [IO] of this [Exec] individualized with the given [errorMessage]
          * to the process's [workingDirectory] and returns the same dump as a string.
          *
          * The given error messages are concatenated with a line break.
          */
         public fun Exec.createDump(vararg errorMessage: String): String {
             metaStream.emit(Meta typed errorMessage.joinToString(DEFAULT))
-            return (workingDirectory ?: Locations.temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
+            return (workingDirectory ?: Locations.Default.Temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
         }
     }
 
@@ -256,7 +256,7 @@ public class MetaStream(vararg listeners: (Meta) -> Unit) {
 
 /**
  * Contains a columns-based parser that can be used to
- * map the output lines of `this` [Exec].
+ * map the output lines of this [Exec].
  */
 public val Exec.parse: ColumnParser get() = ColumnParser(this)
 
@@ -295,7 +295,8 @@ public value class ColumnParser(
                         kotlin.runCatching { lineParser(columns) }.recover {
                             throw IllegalStateException("Error parsing $columns", it)
                         }.getOrThrow()
-                    }.toList())
+                    }.toList()
+                )
             }
 
             else -> error("Unmapped ${E::class.simpleName} ${exitState::class.simpleName}: $exitState")

@@ -94,7 +94,8 @@ class ExecutionIntegrationTest {
             decorationFormatter = Colors.brightRed,
             style = Solid,
         ) check {
-            expectThatRendered().matchesCurlyPattern("""
+            expectThatRendered().matchesCurlyPattern(
+                """
                 ╭──╴file://{}.sh
                 │
                 │   -> Countdown!
@@ -112,7 +113,8 @@ class ExecutionIntegrationTest {
                 │   -> Take Off
                 │
                 ╰──╴✔︎
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 
@@ -129,7 +131,8 @@ class ExecutionIntegrationTest {
             state { isA<Failed>() }
 
             io.ansiRemoved {
-                matchesCurlyPattern("""
+                matchesCurlyPattern(
+                    """
                 Countdown!
                 10
                 9
@@ -148,7 +151,8 @@ class ExecutionIntegrationTest {
                   7
                   Boom!
                   Process $pid terminated with exit code $exitCode
-            """.trimIndent())
+            """.trimIndent()
+                )
             }
         }
     }
@@ -183,7 +187,7 @@ class ExecutionIntegrationTest {
     fun `should exec using docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         CommandLine("printenv", "HOME").exec() check {
-            io.output.ansiRemoved { isEqualTo(Locations.home.pathString) }
+            io.output.ansiRemoved { isEqualTo(Locations.Default.Home.pathString) }
         }
 
         CommandLine("printenv", "HOME").dockerized { "ubuntu" }.exec() check {
@@ -241,7 +245,8 @@ class ExecutionIntegrationTest {
             executable.exec.logging(decorationFormatter = { it.ansi.blue }, style = Dotted)
         }
 
-        expectThatRendered().matchesCurlyPattern("""
+        expectThatRendered().matchesCurlyPattern(
+            """
             ╭──╴existing logging context
             │
             │   ╭──╴echo test
@@ -283,7 +288,8 @@ class ExecutionIntegrationTest {
             · · test
             · ✔︎
             ✔︎
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 }
 

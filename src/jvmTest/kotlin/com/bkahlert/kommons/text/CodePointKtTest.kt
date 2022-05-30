@@ -208,6 +208,7 @@ class CodePointKtTest {
 
         @TestFactory
         fun `is not 0-9`() = "AzΑωष".asCodePointSequence().testEach {
+            Char.MAX_HIGH_SURROGATE
             expecting { is0to9 } that { isFalse() }
         }
 

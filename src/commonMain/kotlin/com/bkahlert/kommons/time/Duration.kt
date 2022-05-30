@@ -11,67 +11,67 @@ import kotlin.time.DurationUnit.MINUTES
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.toDuration
 
-/** Returns a [Duration] representing `this` number of seconds. */
+/** Returns a [Duration] representing this number of seconds. */
 public val Int.seconds: Duration get() = if (isZero) Duration.ZERO else toDuration(SECONDS)
 
-/** Returns a [Duration] representing `this` number of seconds. */
+/** Returns a [Duration] representing this number of seconds. */
 public val Long.seconds: Duration get() = if (isZero) Duration.ZERO else toDuration(SECONDS)
 
-/** Returns a [Duration] representing `this` number of seconds. */
+/** Returns a [Duration] representing this number of seconds. */
 public val Double.seconds: Duration get() = if (isZero) Duration.ZERO else toDuration(SECONDS)
 
-/** Returns a [Duration] representing `this` number of seconds. */
+/** Returns a [Duration] representing this number of seconds. */
 public val BigDecimal.seconds: Duration get() = if (isZero) Duration.ZERO else toDouble().toDuration(SECONDS)
 
-/** Returns a [Duration] representing `this` number of seconds. */
+/** Returns a [Duration] representing this number of seconds. */
 public val BigInteger.seconds: Duration get() = if (isZero) Duration.ZERO else toLong().toDuration(SECONDS)
 
 
-/** Returns a [Duration] representing `this` number of minutes. */
+/** Returns a [Duration] representing this number of minutes. */
 public val Int.minutes: Duration get() = if (isZero) Duration.ZERO else toDuration(MINUTES)
 
-/** Returns a [Duration] representing `this` number of minutes. */
+/** Returns a [Duration] representing this number of minutes. */
 public val Long.minutes: Duration get() = if (isZero) Duration.ZERO else toDuration(MINUTES)
 
-/** Returns a [Duration] representing `this` number of minutes. */
+/** Returns a [Duration] representing this number of minutes. */
 public val Double.minutes: Duration get() = if (isZero) Duration.ZERO else toDuration(MINUTES)
 
-/** Returns a [Duration] representing `this` number of minutes. */
+/** Returns a [Duration] representing this number of minutes. */
 public val BigDecimal.minutes: Duration get() = if (isZero) Duration.ZERO else toDouble().toDuration(MINUTES)
 
-/** Returns a [Duration] representing `this` number of minutes. */
+/** Returns a [Duration] representing this number of minutes. */
 public val BigInteger.minutes: Duration get() = if (isZero) Duration.ZERO else toDouble().toDuration(MINUTES)
 
 
-/** Returns a [Duration] representing `this` number of hours. */
+/** Returns a [Duration] representing this number of hours. */
 public val Int.hours: Duration get() = if (isZero) Duration.ZERO else toDuration(HOURS)
 
-/** Returns a [Duration] representing `this` number of hours. */
+/** Returns a [Duration] representing this number of hours. */
 public val Long.hours: Duration get() = if (isZero) Duration.ZERO else toDuration(HOURS)
 
-/** Returns a [Duration] representing `this` number of hours. */
+/** Returns a [Duration] representing this number of hours. */
 public val Double.hours: Duration get() = if (isZero) Duration.ZERO else toDuration(HOURS)
 
-/** Returns a [Duration] representing `this` number of hours. */
+/** Returns a [Duration] representing this number of hours. */
 public val BigDecimal.hours: Duration get() = if (isZero) Duration.ZERO else toDouble().toDuration(HOURS)
 
-/** Returns a [Duration] representing `this` number of hours. */
+/** Returns a [Duration] representing this number of hours. */
 public val BigInteger.hours: Duration get() = if (isZero) Duration.ZERO else toLong().toDuration(HOURS)
 
 
-/** Returns a [Duration] representing `this` number of days. */
+/** Returns a [Duration] representing this number of days. */
 public val Int.days: Duration get() = if (isZero) Duration.ZERO else toDuration(DAYS)
 
-/** Returns a [Duration] representing `this` number of days. */
+/** Returns a [Duration] representing this number of days. */
 public val Long.days: Duration get() = if (isZero) Duration.ZERO else toDuration(DAYS)
 
-/** Returns a [Duration] representing `this` number of days. */
+/** Returns a [Duration] representing this number of days. */
 public val Double.days: Duration get() = if (isZero) Duration.ZERO else toDuration(DAYS)
 
-/** Returns a [Duration] representing `this` number of days. */
+/** Returns a [Duration] representing this number of days. */
 public val BigDecimal.days: Duration get() = if (isZero) Duration.ZERO else toDouble().toDuration(DAYS)
 
-/** Returns a [Duration] representing `this` number of days. */
+/** Returns a [Duration] representing this number of days. */
 public val BigInteger.days: Duration get() = if (isZero) Duration.ZERO else toLong().toDuration(DAYS)
 
 

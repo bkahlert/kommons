@@ -1,6 +1,8 @@
 package com.bkahlert.kommons.math
 
 import kotlin.math.absoluteValue
+import kotlin.math.roundToInt as kotlinRoundToInt
+import kotlin.math.roundToLong as kotlinRoundToLong
 
 /**
  * Modes of a generalized "rounding" operation.
@@ -122,3 +124,13 @@ public fun Number.floor(resolution: Double = 1.0): Double = RoundingMode.FLOOR(t
  * @param resolution The resolution of this operation. `1` by default. Use `0.5` for example to round to halves.
  */
 public fun Number.round(resolution: Double = 1.0): Double = RoundingMode.HALF_EVEN(toDouble(), resolution)
+
+/**
+ * Rounds the [Double] value of this number. Ties are rounded towards the even neighbor.
+ */
+public fun Number.roundToInt(): Int = RoundingMode.HALF_EVEN(toDouble()).kotlinRoundToInt()
+
+/**
+ * Rounds the [Double] value of this number. Ties are rounded towards the even neighbor.
+ */
+public fun Number.roundToLong(): Long = RoundingMode.HALF_EVEN(toDouble()).kotlinRoundToLong()

@@ -345,7 +345,7 @@ public class DockerRunCommandLine(
 }
 
 /**
- * Returns a [DockerRunCommandLine] that runs `this` [Executable]
+ * Returns a [DockerRunCommandLine] that runs this [Executable]
  * using the [DockerImage] built by [image]
  * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.content]).
  */
@@ -353,7 +353,7 @@ public fun Executable<Exec>.dockerized(options: Options = Options(), image: Dock
     DockerRunCommandLine(DockerImage(image), options, this)
 
 /**
- * Returns a [DockerRunCommandLine] that runs `this` [Executable]
+ * Returns a [DockerRunCommandLine] that runs this [Executable]
  * using the specified [image]
  * and optional [options] (default: [Options.autoCleanup], [Options.interactive] and [Options.name] derived from [CommandLine.content]).
  */

@@ -256,7 +256,7 @@ class StdLibMissingKtTest {
         }
 
         @Test
-        fun `should throws on non-directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on non-directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = resolve("file").createFile()
             expectThrows<NotDirectoryException> { file.deleteDirectoryEntriesRecursively() }
         }
@@ -267,7 +267,7 @@ class StdLibMissingKtTest {
     inner class DeleteOnExit {
 
         private val name = "kommons.onexit.does-not-work.txt"
-        private val markerFile: Path = Locations.temp / name
+        private val markerFile: Path = Locations.Default.Temp / name
 
         @BeforeAll
         fun setUp() {
@@ -281,13 +281,15 @@ class StdLibMissingKtTest {
 
         @AfterAll
         fun tearDown() {
-            markerFile.writeText("""
+            markerFile.writeText(
+                """
             This file was created $Now.
             It used to be cleaned up by the Kommons library
             the moment the application in question shut down.
             
             The application was started by ${System.getProperty("sun.java.command")}.
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
     }
 }

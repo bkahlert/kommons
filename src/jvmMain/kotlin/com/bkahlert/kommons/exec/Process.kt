@@ -278,35 +278,35 @@ public interface Process {
 public val Process.runtime: Duration? get() = (state as? Exited)?.runtime
 
 /**
- * Returns whether `this` [Process] [isRunning].
+ * Returns whether this [Process] [isRunning].
  */
 public val Process.alive: Boolean get() = state is Running
 
 /**
- * Returns whether `this` [Process] is [Running].
+ * Returns whether this [Process] is [Running].
  */
 public val Process.isRunning: Boolean get() = state is Running
 
 /**
- * Returns `this` process's [ExitState.exitCode] if it terminated
+ * Returns this process's [ExitState.exitCode] if it terminated
  * or `null` otherwise.
  */
 public val Process.exitCodeOrNull: Int? get() = (state as? Exited)?.exitCode
 
 /**
- * Returns `this` process's [Exited.exitCode].
+ * Returns this process's [Exited.exitCode].
  *
  * Throws an [IllegalStateException] if the process has not [Exited].
  */
 public val Process.exitCode: Int get() = exitCodeOrNull ?: throw ISE("Process $pid has not terminated.")
 
 /**
- * Returns `this` process terminated successfully.
+ * Returns this process terminated successfully.
  */
 public val Process.successfulOrNull: Boolean? get() = (state as? Exited)?.successful
 
 /**
- * Returns `this` process terminated successfully.
+ * Returns this process terminated successfully.
  */
 public val Process.successful: Boolean get() = successfulOrNull ?: throw ISE("Process $pid has not terminated.")
 

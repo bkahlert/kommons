@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
 /**
- * Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between `this`
+ * Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between this
  * character sequence and the given [other] one.
  */
 public fun CharSequence.levenshteinDistance(other: CharSequence): Int {

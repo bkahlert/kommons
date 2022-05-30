@@ -136,84 +136,84 @@ public object BinaryPrefixes : AbstractList<BinaryPrefix>() {
 }
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Yobi], that is multiplied by 2⁸⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Yobi], that is multiplied by 2⁸⁰.
  */
 public val Number.Yobi: BigDecimal get() = BinaryPrefixes.Yobi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Zebi], that is multiplied by 2⁷⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Zebi], that is multiplied by 2⁷⁰.
  */
 public val Number.Zebi: BigDecimal get() = BinaryPrefixes.Zebi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Exbi], that is multiplied by 2⁶⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Exbi], that is multiplied by 2⁶⁰.
  */
 public val Number.Exbi: BigDecimal get() = BinaryPrefixes.Exbi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Pebi], that is multiplied by 2⁵⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Pebi], that is multiplied by 2⁵⁰.
  */
 public val Number.Pebi: BigDecimal get() = BinaryPrefixes.Pebi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Tebi], that is multiplied by 2⁴⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Tebi], that is multiplied by 2⁴⁰.
  */
 public val Number.Tebi: BigDecimal get() = BinaryPrefixes.Tebi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Gibi], that is multiplied by 2³⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Gibi], that is multiplied by 2³⁰.
  */
 public val Number.Gibi: BigDecimal get() = BinaryPrefixes.Gibi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Mebi], that is multiplied by 2²⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Mebi], that is multiplied by 2²⁰.
  */
 public val Number.Mebi: BigDecimal get() = BinaryPrefixes.Mebi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.Kibi], that is multiplied by 2¹⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.Kibi], that is multiplied by 2¹⁰.
  */
 public val Number.Kibi: BigDecimal get() = BinaryPrefixes.Kibi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.mibi], that is multiplied by 2⁻¹⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.mibi], that is multiplied by 2⁻¹⁰.
  */
 public val Number.mibi: BigDecimal get() = BinaryPrefixes.mibi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.mubi], that is multiplied by 2⁻²⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.mubi], that is multiplied by 2⁻²⁰.
  */
 public val Number.mubi: BigDecimal get() = BinaryPrefixes.mubi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.nabi], that is multiplied by 2⁻³⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.nabi], that is multiplied by 2⁻³⁰.
  */
 public val Number.nabi: BigDecimal get() = BinaryPrefixes.nabi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.pibi], that is multiplied by 2⁻⁴⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.pibi], that is multiplied by 2⁻⁴⁰.
  */
 public val Number.pibi: BigDecimal get() = BinaryPrefixes.pibi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.fembi], that is multiplied by 2⁻⁵⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.fembi], that is multiplied by 2⁻⁵⁰.
  */
 public val Number.fembi: BigDecimal get() = BinaryPrefixes.fembi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.abi], that is multiplied by 2⁻⁶⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.abi], that is multiplied by 2⁻⁶⁰.
  */
 public val Number.abi: BigDecimal get() = BinaryPrefixes.abi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.zebi], that is multiplied by 2⁻⁷⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.zebi], that is multiplied by 2⁻⁷⁰.
  */
 @get:JvmName("getzebi")
 public val Number.zebi: BigDecimal
     get() = BinaryPrefixes.zebi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [BinaryPrefixes.yobi], that is multiplied by 2⁻⁸⁰.
+ * Denotes this number as prefixed with [BinaryPrefixes.yobi], that is multiplied by 2⁻⁸⁰.
  */
 @get:JvmName("getyobi")
 public val Number.yobi: BigDecimal

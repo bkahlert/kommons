@@ -20,7 +20,7 @@ public actual class BigDecimal : Number(), Comparable<BigDecimal> {
 public actual operator fun BigDecimal.plus(other: BigDecimal): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `+` [other] with the provided
+ * Returns this `+` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -32,7 +32,7 @@ public actual fun BigDecimal.plus(other: BigDecimal, precision: Int, roundingMod
 public actual operator fun BigDecimal.minus(other: BigDecimal): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `-` [other] with the provided
+ * Returns this `-` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -44,7 +44,7 @@ public actual fun BigDecimal.minus(other: BigDecimal, precision: Int, roundingMo
 public actual operator fun BigDecimal.times(other: BigDecimal): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `*` [other] with the provided
+ * Returns this `*` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -53,13 +53,13 @@ public actual fun BigDecimal.times(other: BigDecimal, precision: Int, roundingMo
 /**
  * Enables the use of the `/` operator for [BigDecimal] instances.
  *
- * The scale of the result is the same as the scale of `this` (divident), and for rounding the [RoundingMode.HALF_EVEN]
+ * The scale of the result is the same as the scale of this (divident), and for rounding the [RoundingMode.HALF_EVEN]
  * rounding mode is used.
  */
 public actual operator fun BigDecimal.div(other: BigDecimal): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -69,7 +69,7 @@ public actual fun BigDecimal.div(other: BigDecimal, precision: Int, roundingMode
 public actual operator fun BigDecimal.div(other: Long): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -79,7 +79,7 @@ public actual fun BigDecimal.div(other: Long, precision: Int, roundingMode: Roun
 public actual operator fun BigDecimal.div(other: Float): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
@@ -89,7 +89,7 @@ public actual fun BigDecimal.div(other: Float, precision: Int, roundingMode: Rou
 public actual operator fun BigDecimal.div(other: Double): BigDecimal = BigDecimalConstants.ZERO
 
 /**
- * Returns `this` `/` [other] with the provided
+ * Returns this `/` [other] with the provided
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */

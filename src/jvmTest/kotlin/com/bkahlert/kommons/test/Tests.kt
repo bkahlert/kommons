@@ -91,7 +91,7 @@ typealias Assertion<T> = Builder<T>.() -> Unit
 object Tester {
 
     /**
-     * Calculates the display name for a test with `this` subject.
+     * Calculates the display name for a test with this subject.
      * and the optional [testNamePattern] which supports curly placeholders `{}` like [SLF4J] does.
      *
      * If no [testNamePattern] is specified a [displayNameFallback] is calculated heuristically.
@@ -395,7 +395,7 @@ inline fun <reified T> ExtensionContext.storeForNamespaceAndTest(
  */
 
 /**
- * Extracts the actual subject from `this` [Builder].
+ * Extracts the actual subject from this [Builder].
  *
  * ***Hint:** Consider refactoring your test instead making us of this extension.*
  */
@@ -474,7 +474,7 @@ class IllegalUsageCheck : AfterEachCallback {
 }
 
 /**
- * Expects `this` subject to fulfil the given [assertion].
+ * Expects this subject to fulfil the given [assertion].
  *
  * **Usage:** `<subject> asserting { <assertion> }`
  */
@@ -552,7 +552,7 @@ fun <T> test(subject: T, init: DynamicTestsWithSubjectBuilder<T>.(T) -> Unit): L
     DynamicTestsWithSubjectBuilder.build(subject, init)
 
 /**
- * Creates one [DynamicContainer] for each instance of `this` collection of subjects
+ * Creates one [DynamicContainer] for each instance of this collection of subjects
  * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
@@ -569,7 +569,7 @@ fun <T> Iterable<T>.testEach(
     }
 
 /**
- * Creates one [DynamicContainer] for each instance of `this` collection of subjects
+ * Creates one [DynamicContainer] for each instance of this collection of subjects
  * using the specified [DynamicTestsWithSubjectBuilder] based [init].
  *
  * The name for each container is heuristically derived but can also be explicitly specified using [containerNamePattern]
@@ -621,7 +621,7 @@ class DynamicTestsWithSubjectBuilder<T>(val subject: T, val callback: (DynamicNo
     }
 
     /**
-     * Expects `this` subject to fulfil the given [assertion].
+     * Expects this subject to fulfil the given [assertion].
      *
      * ***Note:** The surrounding test subject is ignored.*
      *
@@ -787,7 +787,7 @@ class DynamicTestsWithoutSubjectBuilder(val tests: MutableList<DynamicNode>) {
     }
 
     /**
-     * Expects `this` subject to fulfil the given [assertion].
+     * Expects this subject to fulfil the given [assertion].
      *
      * **Usage:** `<subject> asserting { <assertion> }`
      */
@@ -899,10 +899,13 @@ class DynamicTestBuilder<T>(val subject: T, private val buildErrors: MutableList
         val errorMessage = "expecting { … } call was not finished with that { … } at ${getCaller()}".also { buildErrors.add(it) }
         return InCompleteExpectationBuilder { assertion: Assertion<R> ->
             buildErrors.remove(errorMessage)
-            strikt.api.expectThat(subject).with(description?.takeUnlessBlank() ?: "with".property(action) + findCaller().expectingDisplayName(
-                action),
+            strikt.api.expectThat(subject).with(
+                description?.takeUnlessBlank() ?: "with".property(action) + findCaller().expectingDisplayName(
+                    action
+                ),
                 action,
-                assertion)
+                assertion
+            )
         }
     }
 
@@ -979,14 +982,14 @@ object TestFlattener {
 }
 
 /**
- * Runs all tests in `this` list of tests / test trees.
+ * Runs all tests in this list of tests / test trees.
  */
 fun List<DynamicNode>.execute() {
     flatten().forEach { test: DynamicTest -> test.execute() }
 }
 
 /**
- * Runs `this` test.
+ * Runs this test.
  */
 fun DynamicTest.execute() {
     executable.execute()
@@ -1017,29 +1020,31 @@ class TesterTest {
         fun `↓ ↓ ↓ ↓ ↓ tests with subject | compare here | in test runner output ↓ ↓ ↓ ↓ ↓`() = testsWithSubject
 
         @TestFactory
-        fun `should label test with subject automatically`(): Stream<DynamicTest> = testsWithSubject.flatten().map { it.displayName }.zip(sequenceOf(
-            !"""
+        fun `should label test with subject automatically`(): Stream<DynamicTest> = testsWithSubject.flatten().map { it.displayName }.zip(
+            sequenceOf(
+                !"""
                 ❕ ❮ other ❯ isEqualTo("other")
             """,
-            !"""
+                !"""
                 ❕ isEqualTo("subject")
             """,
-            !"""
+                !"""
                 ❔ length isGreaterThan(5)
             """,
-            !"""
+                !"""
                 ❔ length
             """,
-            !"""
+                !"""
                 ❓ length isSuccess()
             """,
-            !"""
+                !"""
                 ❗ RuntimeException
             """,
-            !"""
+                !"""
                 ❗ RuntimeException
             """,
-        )).map { (label, expected) -> dynamicTest("👆 $expected") { strikt.api.expectThat(label).isEqualTo(expected) } }.asStream()
+            )
+        ).map { (label, expected) -> dynamicTest("👆 $expected") { strikt.api.expectThat(label).isEqualTo(expected) } }.asStream()
 
 
         private val testsWithoutSubject = TestsSample().`testing without subject`()
@@ -1049,29 +1054,31 @@ class TesterTest {
         fun `↓ ↓ ↓ ↓ ↓ tests without subject | compare here | in test runner output ↓ ↓ ↓ ↓ ↓`() = testsWithoutSubject
 
         @TestFactory
-        fun `should label test without subject automatically`(): Stream<DynamicTest> = testsWithoutSubject.flatten().map { it.displayName }.zip(sequenceOf(
-            !"""
+        fun `should label test without subject automatically`(): Stream<DynamicTest> = testsWithoutSubject.flatten().map { it.displayName }.zip(
+            sequenceOf(
+                !"""
                 ❕ ❮ other ❯ isEqualTo("other")
             """,
-            !"""
+                !"""
                 ❕ isEqualTo("subject")
             """,
-            !"""
+                !"""
                 ❔ ❮ "subject".length ❯ isGreaterThan(5)
             """,
-            !"""
+                !"""
                 ❔ ❮ "subject".length ❯
             """,
-            !"""
+                !"""
                 ❓ ❮ "subject".length ❯ isSuccess()
             """,
-            !"""
+                !"""
                 ❗ RuntimeException
             """,
-            !"""
+                !"""
                 ❗ RuntimeException
             """,
-        )).map { (label, expected) -> dynamicTest("👆 $expected") { strikt.api.expectThat(label).isEqualTo(expected) } }.asStream()
+            )
+        ).map { (label, expected) -> dynamicTest("👆 $expected") { strikt.api.expectThat(label).isEqualTo(expected) } }.asStream()
     }
 
     @Nested

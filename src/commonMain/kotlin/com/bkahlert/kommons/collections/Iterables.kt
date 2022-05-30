@@ -34,7 +34,7 @@ public fun <T : Comparable<T>> Iterable<T>.minOrThrow(): T {
 
 
 /**
- * Returns a list of values built from the elements of `this` collection and the [other] collection with the same index
+ * Returns a list of values built from the elements of this collection and the [other] collection with the same index
  * using the provided [transform] function applied to each pair of elements.
  * The returned list has length of the longest collection—filling missing values with [default].
  */
@@ -49,7 +49,7 @@ public inline fun <T, R, V> Iterable<T>.zipWithDefault(other: Iterable<R>, defau
 }
 
 /**
- * Returns a sequence of values built from the elements of `this` sequence and the [other] sequence with the same index
+ * Returns a sequence of values built from the elements of this sequence and the [other] sequence with the same index
  * using the provided [transform] function applied to each pair of elements.
  * The resulting sequence ends as soon as the longest input sequence ends—filling missing values with [default].
  *

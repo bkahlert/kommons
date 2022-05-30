@@ -114,7 +114,7 @@ public operator fun Regex.plus(literal: String): Regex = this + Regex(literal)
  *
  * If a [name] is specified, a named group (e.g. `(?<name>abc)` is returned.
  *
- * If no [name] is specified **and** `this` regex is not already grouped,
+ * If no [name] is specified **and** this regex is not already grouped,
  * an anonymous/non-capturing group (e.g. `(?:abc)`) is returned.
  *
  * In other words: No unnecessary brackets are added.
@@ -173,7 +173,7 @@ public fun Regex.repeat(min: Int? = 0, max: Int? = null): Regex {
 }
 
 /**
- * Returns a [Regex] consisting of `this` and the [other] regex concatenated with `|`.
+ * Returns a [Regex] consisting of this and the [other] regex concatenated with `|`.
  */
 public infix fun Regex.or(other: Regex): Regex = Regex("$this|$other")
 

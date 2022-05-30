@@ -70,7 +70,7 @@ Example—Increase major version: `./gradlew <snapshot|devSnapshot|candidate|fin
 
 ### Last Tag
 
-Create a tag locally using `git tag v2.2.0` (leading `v`  is important) and `./gradlew -Prelease.useLastTag=true final` in a CI to make the latter use a
+Create a tag locally using `git tag v2.2.0` (leading `v`  is important) and `./gradlew release -Prelease.useLastTag=true` in a CI to make the latter use a
 pre-defined version, e.g.
 
 ```shell

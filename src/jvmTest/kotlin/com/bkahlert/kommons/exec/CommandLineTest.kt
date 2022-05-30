@@ -169,35 +169,42 @@ class CommandLineTest {
     inner class Formatting {
         @Test
         fun `should output formatted`() {
-            expectThat(CommandLine("command", "-a", "--bee", "c", "x y z".quoted)).toStringIsEqualTo("""
+            expectThat(CommandLine("command", "-a", "--bee", "c", "x y z".quoted)).toStringIsEqualTo(
+                """
             'command' \
             '-a' \
             '--bee' \
             'c' \
             '"x y z"'
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
 
         @Test
         fun `should handle whitespaces correctly command`() {
-            expectThat(CommandLine("command", " - a", "    ", "c c", "x y z".quoted)).toStringIsEqualTo("""
+            expectThat(CommandLine("command", " - a", "    ", "c c", "x y z".quoted)).toStringIsEqualTo(
+                """
             'command' \
             ' - a' \
             '    ' \
             'c c' \
             '"x y z"'
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
 
         @Test
         fun `should handle nesting`() {
-            expectThat(CommandLine(
-                "command",
-                "-a",
-                "--bee",
-                CommandLine("command", "-a", "--bee", "c", "x y z".quoted).toString(),
-                "x y z".quoted)
-            ).toStringIsEqualTo("""
+            expectThat(
+                CommandLine(
+                    "command",
+                    "-a",
+                    "--bee",
+                    CommandLine("command", "-a", "--bee", "c", "x y z".quoted).toString(),
+                    "x y z".quoted
+                )
+            ).toStringIsEqualTo(
+                """
             'command' \
             '-a' \
             '--bee' \
@@ -207,7 +214,8 @@ class CommandLineTest {
             '"'"'c'"'"' \
             '"'"'"x y z"'"'"'' \
             '"x y z"'
-        """.trimIndent())
+        """.trimIndent()
+            )
         }
     }
 
@@ -245,48 +253,58 @@ class CommandLineTest {
         val commandLine = CommandLine("echo", script.toString())
 
         expecting { commandLine.commandLineParts.toList() } that {
-            containsExactly("echo", """
+            containsExactly(
+                "echo", """
                     #!/bin/bash
                     echo "double quotes"
                     echo 'single quotes'
                     
-                    """.trimIndent())
+                    """.trimIndent()
+            )
         }
 
         expecting { commandLine.shellCommand } that {
-            isEqualTo("""
+            isEqualTo(
+                """
                     'echo' '#!/bin/bash
                     echo "double quotes"
                     echo '"'"'single quotes'"'"'
                     '
-                """.trimIndent())
+                """.trimIndent()
+            )
         }
 
         expecting { commandLine.multiLineShellCommand } that {
-            isEqualTo("""
+            isEqualTo(
+                """
                     'echo' \
                     '#!/bin/bash
                     echo "double quotes"
                     echo '"'"'single quotes'"'"'
                     '
-                """.trimIndent())
+                """.trimIndent()
+            )
         }
 
         val output = commandLine.exec().io.output.ansiRemoved
         expecting { output } that {
-            isEqualTo("""
+            isEqualTo(
+                """
                 #!/bin/bash
                 echo "double quotes"
                 echo 'single quotes'
                 
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         expecting { ShellScript { output }.exec() } that {
-            io.output.ansiRemoved.isEqualTo("""
+            io.output.ansiRemoved.isEqualTo(
+                """
                 double quotes
                 single quotes
-                """.trimIndent())
+                """.trimIndent()
+            )
         }
     }
 
@@ -295,10 +313,12 @@ class CommandLineTest {
 
         @Test
         fun `should provide content`() {
-            expectThat(CommandLine(
-                "!ls", "-lisa",
-                "!mkdir", "-p", "/shared",
-            ).content).matchesCurlyPattern("!ls -lisa !mkdir -p /shared")
+            expectThat(
+                CommandLine(
+                    "!ls", "-lisa",
+                    "!mkdir", "-p", "/shared",
+                ).content
+            ).matchesCurlyPattern("!ls -lisa !mkdir -p /shared")
         }
     }
 }
@@ -307,7 +327,7 @@ val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBu
     get() = get("continuation removed %s") { replace("\\s+\\\\.".toRegex(RegexOption.DOT_MATCHES_ALL), " ") }
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
-    get() = get("evaluated %s") { toExec(false, emptyMap(), Locations.temp, null).process() }
+    get() = get("evaluated %s") { toExec(false, emptyMap(), Locations.Default.Temp, null).process() }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =
     evaluated.block()

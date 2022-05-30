@@ -154,101 +154,101 @@ public object DecimalPrefixes : AbstractList<DecimalPrefix>() {
 }
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Yotta], that is multiplied by 10²⁴.
+ * Denotes this number as prefixed with [DecimalPrefixes.Yotta], that is multiplied by 10²⁴.
  */
 public val Number.Yotta: BigDecimal get() = DecimalPrefixes.Yotta.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Zetta], that is multiplied by 10²¹.
+ * Denotes this number as prefixed with [DecimalPrefixes.Zetta], that is multiplied by 10²¹.
  */
 public val Number.Zetta: BigDecimal get() = DecimalPrefixes.Zetta.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Exa], that is multiplied by 10¹⁸.
+ * Denotes this number as prefixed with [DecimalPrefixes.Exa], that is multiplied by 10¹⁸.
  */
 public val Number.Exa: BigDecimal get() = DecimalPrefixes.Exa.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Peta], that is multiplied by 10¹⁵.
+ * Denotes this number as prefixed with [DecimalPrefixes.Peta], that is multiplied by 10¹⁵.
  */
 public val Number.Peta: BigDecimal get() = DecimalPrefixes.Peta.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Tera], that is multiplied by 10¹².
+ * Denotes this number as prefixed with [DecimalPrefixes.Tera], that is multiplied by 10¹².
  */
 public val Number.Tera: BigDecimal get() = DecimalPrefixes.Tera.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Giga], that is multiplied by 10⁹.
+ * Denotes this number as prefixed with [DecimalPrefixes.Giga], that is multiplied by 10⁹.
  */
 public val Number.Giga: BigDecimal get() = DecimalPrefixes.Giga.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.Mega], that is multiplied by 10⁶.
+ * Denotes this number as prefixed with [DecimalPrefixes.Mega], that is multiplied by 10⁶.
  */
 public val Number.Mega: BigDecimal get() = DecimalPrefixes.Mega.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.kilo], that is multiplied by 10³.
+ * Denotes this number as prefixed with [DecimalPrefixes.kilo], that is multiplied by 10³.
  */
 public val Number.kilo: BigDecimal get() = DecimalPrefixes.kilo.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.hecto], that is multiplied by 10².
+ * Denotes this number as prefixed with [DecimalPrefixes.hecto], that is multiplied by 10².
  */
 public val Number.hecto: BigDecimal get() = DecimalPrefixes.hecto.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.deca], that is multiplied by 10¹.
+ * Denotes this number as prefixed with [DecimalPrefixes.deca], that is multiplied by 10¹.
  */
 public val Number.deca: BigDecimal get() = DecimalPrefixes.deca.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.deci], that is multiplied by 10⁻¹.
+ * Denotes this number as prefixed with [DecimalPrefixes.deci], that is multiplied by 10⁻¹.
  */
 public val Number.deci: BigDecimal get() = DecimalPrefixes.deci.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.centi], that is multiplied by 10⁻².
+ * Denotes this number as prefixed with [DecimalPrefixes.centi], that is multiplied by 10⁻².
  */
 public val Number.centi: BigDecimal get() = DecimalPrefixes.centi.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.milli], that is multiplied by 10⁻³.
+ * Denotes this number as prefixed with [DecimalPrefixes.milli], that is multiplied by 10⁻³.
  */
 public val Number.milli: BigDecimal get() = DecimalPrefixes.milli.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.micro], that is multiplied by 10⁻⁶.
+ * Denotes this number as prefixed with [DecimalPrefixes.micro], that is multiplied by 10⁻⁶.
  */
 public val Number.micro: BigDecimal get() = DecimalPrefixes.micro.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.nano], that is multiplied by 10⁻⁹.
+ * Denotes this number as prefixed with [DecimalPrefixes.nano], that is multiplied by 10⁻⁹.
  */
 public val Number.nano: BigDecimal get() = DecimalPrefixes.nano.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.pico], that is multiplied by 10⁻¹².
+ * Denotes this number as prefixed with [DecimalPrefixes.pico], that is multiplied by 10⁻¹².
  */
 public val Number.pico: BigDecimal get() = DecimalPrefixes.pico.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.femto], that is multiplied by 10⁻¹⁵.
+ * Denotes this number as prefixed with [DecimalPrefixes.femto], that is multiplied by 10⁻¹⁵.
  */
 public val Number.femto: BigDecimal get() = DecimalPrefixes.femto.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.atto], that is multiplied by 10⁻¹⁸.
+ * Denotes this number as prefixed with [DecimalPrefixes.atto], that is multiplied by 10⁻¹⁸.
  */
 public val Number.atto: BigDecimal get() = DecimalPrefixes.atto.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.zepto], that is multiplied by 10⁻²¹.
+ * Denotes this number as prefixed with [DecimalPrefixes.zepto], that is multiplied by 10⁻²¹.
  */
 public val Number.zepto: BigDecimal get() = DecimalPrefixes.zepto.of(this)
 
 /**
- * Denotes `this` number as prefixed with [DecimalPrefixes.yocto], that is multiplied by 10⁻²⁴.
+ * Denotes this number as prefixed with [DecimalPrefixes.yocto], that is multiplied by 10⁻²⁴.
  */
 public val Number.yocto: BigDecimal get() = DecimalPrefixes.yocto.of(this)

@@ -115,7 +115,7 @@ public class XRay<T>(
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing `this` to an instance of [XRay] while returning `this` on [XRay.print].
+ * passing this to an instance of [XRay] while returning this on [XRay.print].
  *
  * **Example**
  * ```kotlin
@@ -141,7 +141,7 @@ public val <T> T.xray: XRay<T> get() = XRay(null, this, stringifier = null, tran
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing `this` to an instance of [XRay] while returning `this` on [XRay.print].
+ * passing this to an instance of [XRay] while returning this on [XRay.print].
  *
  * **Example**
  * ```kotlin
@@ -172,7 +172,7 @@ public fun <T> T.xray(description: CharSequence? = null, stringifier: T.() -> St
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing `this` to [println] while still returning `this`.
+ * passing this to [println] while still returning this.
  *
  * **Example**
  * ```kotlin
@@ -200,8 +200,8 @@ public val <T> T.trace: T
 /**
  * Helper function that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * passing `this` and `this` applied to the given [transform] to [println]
- * while still returning `this`.
+ * passing this and this applied to the given [transform] to [println]
+ * while still returning this.
  *
  * **Example**
  * ```kotlin
@@ -238,7 +238,7 @@ public val CallStackElement.highlightedMethod: String
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` stacktrace and highlighting the method names.
+ * by printing this stacktrace and highlighting the method names.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Array<CallStackElement>.trace: Array<CallStackElement>
@@ -247,7 +247,7 @@ public val Array<CallStackElement>.trace: Array<CallStackElement>
 /**
  * Helper property that supports
  * [print debugging][https://en.wikipedia.org/wiki/Debugging#Print_debugging]
- * by printing `this` stacktrace and highlighting the method names.
+ * by printing this stacktrace and highlighting the method names.
  */
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public val Iterable<CallStackElement>.trace: Iterable<CallStackElement>

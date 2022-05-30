@@ -204,7 +204,7 @@ private fun Path.streamContentsRecursively(glob: String = "*", vararg options: L
 }
 
 /**
- * Returns a list of the entries in this directory and its sub directories
+ * Returns a list of the entries in this directory and its subdirectories
  * optionally filtered by matching against the specified [glob] pattern.
  *
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
@@ -220,7 +220,7 @@ public fun Path.listDirectoryEntriesRecursively(glob: String = "*", vararg optio
 
 /**
  * Calls the [block] callback with a sequence of all entries in this directory
- * and its sub directories optionally filtered by matching against the specified [glob] pattern.
+ * and its subdirectories optionally filtered by matching against the specified [glob] pattern.
  *
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
  *
@@ -235,7 +235,7 @@ public fun <T> Path.useDirectoryEntriesRecursively(glob: String = "*", vararg op
     streamContentsRecursively(glob, *options).use { block(it.asSequence()) }
 
 /**
- * Performs the given [action] on each entry in this directory and its sub directories
+ * Performs the given [action] on each entry in this directory and its subdirectories
  * optionally filtered by matching against the specified [glob] pattern.
  *
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
