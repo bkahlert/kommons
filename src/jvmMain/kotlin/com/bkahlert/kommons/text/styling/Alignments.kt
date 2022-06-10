@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.text.styling
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.math.ceilDiv
 import com.bkahlert.kommons.math.floorDiv
 import com.bkahlert.kommons.text.Unicode
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.maxLength
 import com.bkahlert.kommons.text.repeat
 
@@ -50,4 +50,4 @@ public fun <T : CharSequence> Iterable<T>.center(whitespace: Char = Unicode.NBSP
  * ```
  */
 public fun <T : CharSequence> T.center(whitespace: Char = Unicode.NBSP, minLength: Int = 0): String =
-    lines().center(whitespace, minLength).joinLinesToString()
+    lines().center(whitespace, minLength).joinToString(LineSeparators.Default)

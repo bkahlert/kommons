@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.builder
 
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -36,7 +36,7 @@ class BuilderTest {
     private val transformedMultiple: List<String> = listOf("39-b-c", "40-b-c", "41-b-c", "42-b-c")
 
     @TestFactory
-    fun should() = test(builder) {
+    fun should() = testOld(builder) {
         group("build") {
             expecting { invoke(init) } that { isEqualTo(built) }
             expecting { build(init) } that { isEqualTo(built) }

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.randomPath
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.shell.ShellScript
 import java.net.URI
 import java.nio.file.Path
@@ -36,8 +36,8 @@ public fun CommandLine.toLink(): URI =
  */
 public fun ShellScript.toLink(): URI =
     toFile(
-        shellScriptDir.randomPath(
-            base = "",
-            extension = shellScriptExtension
+        shellScriptDir.createTempFile(
+            prefix = "",
+            suffix = shellScriptExtension
         )
     ).toUri()

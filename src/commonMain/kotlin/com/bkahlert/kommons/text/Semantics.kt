@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.collections.map
+import com.bkahlert.kommons.map
 import com.bkahlert.kommons.text.ANSI.Text
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 

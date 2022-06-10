@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
@@ -17,7 +17,7 @@ import strikt.assertions.message
 class StringsKtTest {
 
     @AnsiRequiring @TestFactory
-    fun `should return length`() = tests {
+    fun `should return length`() = testsOld {
         expecting { "red".length() } that { isEqualTo(3) }
         expecting { "red".ansi.red.length() } that { isEqualTo(3) }
         expecting { "red".length(ansi = true) } that { isEqualTo(3) }
@@ -28,7 +28,7 @@ class StringsKtTest {
 
     @Suppress("SpellCheckingInspection")
     @AnsiRequiring @TestFactory
-    fun `should pad start`() = tests {
+    fun `should pad start`() = testsOld {
         expecting { "red".padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
         expecting { "red".ansi.red.padStart(15, 'X') } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
         expecting { "red".padStart(15, 'X', ansi = false) } that { toStringIsEqualTo("XXXXXXXXXXXXred") }
@@ -37,7 +37,7 @@ class StringsKtTest {
 
     @Suppress("SpellCheckingInspection")
     @AnsiRequiring @TestFactory
-    fun `should pad end`() = tests {
+    fun `should pad end`() = testsOld {
         expecting { "red".padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
         expecting { "red".ansi.red.padEnd(15, 'X') } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
         expecting { "red".padEnd(15, 'X', ansi = false) } that { toStringIsEqualTo("redXXXXXXXXXXXX") }
@@ -45,7 +45,7 @@ class StringsKtTest {
     }
 
     @TestFactory
-    fun `wrap multiline`() = test("foo".wrapMultiline("  bar 1\n    bar 2", "  \n    baz 1\n    baz 2\n        ")) {
+    fun `wrap multiline`() = testOld("foo".wrapMultiline("  bar 1\n    bar 2", "  \n    baz 1\n    baz 2\n        ")) {
         asserting {
             isEqualTo(
                 """
@@ -64,7 +64,7 @@ class StringsKtTest {
         private val Int.ansi get() = "column$this".ansi.red
 
         @AnsiRequiring @TestFactory
-        fun `should map two columns`() = tests {
+        fun `should map two columns`() = testsOld {
             val transform: (String, String) -> String = { c1, c2 -> "${c1.last()}-${c2.last()}" }
             expecting { "column1\tcolumn2".mapColumns(transform = transform) } that { isEqualTo("1-2") }
             expecting { "column1\ncolumn2".mapColumns(delimiter = "\n", transform = transform) } that { isEqualTo("1-2") }
@@ -81,7 +81,7 @@ class StringsKtTest {
         }
 
         @AnsiRequiring @TestFactory
-        fun `should map three columns`() = tests {
+        fun `should map three columns`() = testsOld {
             val transform: (String, String, String) -> String = { c1, c2, c3 -> "${c1.last()}-${c2.last()}-${c3.last()}" }
             expecting { "column1\tcolumn2\tcolumn3".mapColumns(transform = transform) } that { isEqualTo("1-2-3") }
             expecting { "column1\ncolumn2\ncolumn3".mapColumns(delimiter = "\n", transform = transform) } that { isEqualTo("1-2-3") }

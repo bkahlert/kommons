@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.net
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
 class IPSubnetTest {
 
     @TestFactory
-    fun `should be parsable`() = testEach(
+    fun `should be parsable`() = testEachOld(
         "0.0.0.0/0" to "0.0.0.0..255.255.255.255",
         "172.186.0.0/15" to "172.186.0.0..172.187.255.255",
         "172.186.0.0/16" to "172.186.0.0..172.186.255.255",

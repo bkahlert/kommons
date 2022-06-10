@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.unit
 
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.io.path.getSize
-import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ import kotlin.io.path.appendText
 class SizeTest {
 
     @TestFactory
-    fun `should return whole bytes`() = testEach(2.bytes, 1.1.bytes) { size ->
+    fun `should return whole bytes`() = testEachOld(2.bytes, 1.1.bytes) { size ->
         expecting { size.wholeBytes } that { isEqualTo(BigInteger.TWO) }
     }
 
@@ -29,7 +29,7 @@ class SizeTest {
     }
 
     @TestFactory
-    fun `max length of representation to base`() = testEach(
+    fun `max length of representation to base`() = testEachOld(
         1.bytes to listOf(2 to 8, 8 to 3, 10 to 3, 16 to 2, 32 to 2),
         2.bytes to listOf(2 to 16, 8 to 6, 10 to 5, 16 to 4, 32 to 4),
         4.bytes to listOf(2 to 32, 8 to 11, 10 to 10, 16 to 8, 32 to 7),
@@ -44,7 +44,7 @@ class SizeTest {
     inner class WithBinaryPrefix {
 
         @TestFactory
-        fun `should format integer binary form`() = testEach(
+        fun `should format integer binary form`() = testEachOld(
             4_200_000.Yobi.bytes to "4.20e+6 YiB",
             42.Yobi.bytes to "42 YiB",
             42.Zebi.bytes to "42 ZiB",
@@ -69,7 +69,7 @@ class SizeTest {
         }
 
         @TestFactory
-        fun `should format fraction binary form`() = testEach(
+        fun `should format fraction binary form`() = testEachOld(
             4_200_000.Gibi.bytes to "4.01 PiB",
             4_200.Gibi.bytes to "4.1 TiB",
             420.Gibi.bytes to "420 GiB",
@@ -94,7 +94,7 @@ class SizeTest {
         }
 
         @TestFactory
-        fun `should format 0 binary form`() = testEach(
+        fun `should format 0 binary form`() = testEachOld(
             0.Yobi.bytes to "0 B",
             0.Kibi.bytes to "0 B",
             0.bytes to "0 B",
@@ -103,7 +103,7 @@ class SizeTest {
         }
 
         @TestFactory
-        fun `should format to specific unit`() = testEach(
+        fun `should format to specific unit`() = testEachOld(
             4_200_000.Yobi.bytes to "5.99e+51 ZiB",
             42.Yobi.bytes to "5.99e+46 ZiB",
             42.Zebi.bytes to "5.85e+43 ZiB",
@@ -131,7 +131,7 @@ class SizeTest {
     inner class WithDecimalPrefix {
 
         @TestFactory
-        fun `should format integer decimal form`() = testEach(
+        fun `should format integer decimal form`() = testEachOld(
             4_200_000.Yotta.bytes to "4.20e+6 YB",
             42.Yotta.bytes to "42 YB",
             42.Zetta.bytes to "42 ZB",
@@ -160,7 +160,7 @@ class SizeTest {
         }
 
         @TestFactory
-        fun `should format fraction decimal form`() = testEach(
+        fun `should format fraction decimal form`() = testEachOld(
             4_200.Giga.bytes to "4.2 TB",
             420.Giga.bytes to "420 GB",
             42.Giga.bytes to "42 GB",
@@ -184,7 +184,7 @@ class SizeTest {
         }
 
         @TestFactory
-        fun `should format 0 decimal form`() = testEach(
+        fun `should format 0 decimal form`() = testEachOld(
             0.Yotta.bytes to "0 B",
             0.kilo.bytes to "0 B",
             0.bytes to "0 B",
@@ -193,7 +193,7 @@ class SizeTest {
         }
 
         @TestFactory
-        fun `should format to specific unit`() = testEach(
+        fun `should format to specific unit`() = testEachOld(
             4_200_000.Yotta.bytes to "4.20e+51 zB",
             42.Yotta.bytes to "4.20e+46 zB",
             42.Zetta.bytes to "4.20e+43 zB",
@@ -225,7 +225,7 @@ class SizeTest {
     @Nested
     inner class AsSize {
 
-        private fun Path.createFile(): Path = randomFile().apply { repeat(2500) { appendText("1234567890") } }
+        private fun Path.createFile(): Path = createTempFile().apply { repeat(2500) { appendText("1234567890") } }
 
         @Test
         fun `should format size human-readable (10^x)`(uniqueId: UniqueId) = withTempDir(uniqueId) {

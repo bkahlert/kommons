@@ -8,8 +8,8 @@ import com.bkahlert.kommons.regex.value
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.CR
 import com.bkahlert.kommons.text.LineSeparators.CRLF
@@ -66,7 +66,7 @@ class LineSeparatorsTest {
     inner class Multiline {
 
         @TestFactory
-        fun `should detect multi-lines`() = testEach(
+        fun `should detect multi-lines`() = testEachOld(
             LF,
             "a${CRLF}b",
             "b${CR}a${LF}c",
@@ -77,7 +77,7 @@ class LineSeparatorsTest {
         }
 
         @TestFactory
-        fun `should detect single-line`() = testEach(
+        fun `should detect single-line`() = testEachOld(
             "",
             "b",
             "bds sd sd sds dac",
@@ -108,7 +108,8 @@ class LineSeparatorsTest {
                     "(CARRIAGE RETURN) " +
                     "(NEXT LINE) " +
                     "(PARAGRAPH SEPARATOR) " +
-                    "(LINE SEPARATOR)")
+                    "(LINE SEPARATOR)"
+            )
         }
 
         @Test
@@ -118,14 +119,15 @@ class LineSeparatorsTest {
     }
 
     @TestFactory
-    fun lineOperations() = testEach(
+    fun lineOperations() = testEachOld(
         "lineSequence" to { input: CharSequence, keepDelimiters: Boolean ->
             input.lineSequence(keepDelimiters = keepDelimiters).toList()
         },
         "lines" to { input: CharSequence, keepDelimiters: Boolean ->
             input.lines(keepDelimiters = keepDelimiters).toList()
         },
-        containerNamePattern = "{}(…)") { (_: String, operation: (CharSequence, Boolean) -> Iterable<String>) ->
+        containerNamePattern = "{}(…)"
+    ) { (_: String, operation: (CharSequence, Boolean) -> Iterable<String>) ->
         val multiLineTrail = "1${CR}2${CRLF}3$PS"
         val multiLine = "1${CR}2${CRLF}3"
         val singleLine = "1"
@@ -148,7 +150,7 @@ class LineSeparatorsTest {
     }
 
     @Slow @TestFactory
-    fun `each line separator`() = LineSeparators.testEach { lineSeparator ->
+    fun `each line separator`() = LineSeparators.testEachOld { lineSeparator ->
         asserting { isEqualTo(lineSeparator) }
 
 
@@ -281,7 +283,7 @@ class LineSeparatorsTest {
         }
 
         @TestFactory
-        fun `should return line separator if only type`() = LineSeparators.testEach { sep ->
+        fun `should return line separator if only type`() = LineSeparators.testEachOld { sep ->
             expecting { autoDetect(documentWithLineSeparator(sep, sep, sep)) } that { isEqualTo(sep) }
         }
 
@@ -291,7 +293,7 @@ class LineSeparatorsTest {
         }
 
         @TestFactory
-        fun `should return line separator with higher precedence on tie`() = tests {
+        fun `should return line separator with higher precedence on tie`() = testsOld {
             expecting("leading " + LineSeparators.Names[CRLF]) { autoDetect(documentWithLineSeparator(CRLF, LF, CR, NEL, PS, LS)) } that { isEqualTo(CRLF) }
             expecting("trailing " + LineSeparators.Names[CRLF]) { autoDetect(documentWithLineSeparator(LS, PS, NEL, CR, LF, CRLF)) } that { isEqualTo(CRLF) }
 
@@ -312,12 +314,12 @@ class LineSeparatorsTest {
     }
 
     @TestFactory
-    fun `should unify each line separator using LF by default`() = LineSeparators.testEach { lineSeparator ->
+    fun `should unify each line separator using LF by default`() = LineSeparators.testEachOld { lineSeparator ->
         expecting { unify("abc${lineSeparator}def") } that { isEqualTo("abc${LF}def") }
     }
 
     @TestFactory
-    fun `should unify each line separator using specified line separator`() = LineSeparators.testEach { lineSeparator ->
+    fun `should unify each line separator using specified line separator`() = LineSeparators.testEachOld { lineSeparator ->
         expecting { unify("abc${lineSeparator}def", NEL) } that { isEqualTo("abc${NEL}def") }
     }
 
@@ -367,7 +369,7 @@ class LineSeparatorsTest {
     inner class LinesOfLengthKtTest {
 
         @TextWidthRequiring @TestFactory
-        fun `should be split with maximum line length`() = testEach<CharSequence.() -> List<CharSequence>>(
+        fun `should be split with maximum line length`() = testEachOld<CharSequence.() -> List<CharSequence>>(
             { linesOfLengthSequence(3).toList() },
             { linesOfLength(3) },
         ) { fn ->
@@ -387,7 +389,7 @@ class LineSeparatorsTest {
     inner class LinesOfColumnsKtTest {
 
         @TestFactory
-        fun `should be split into lines with columns`() = testEach<CharSequence.() -> List<CharSequence>>(
+        fun `should be split into lines with columns`() = testEachOld<CharSequence.() -> List<CharSequence>>(
             { linesOfColumnsSequence(3).toList() },
             { linesOfColumns(3) },
         ) { fn ->
@@ -415,12 +417,14 @@ class LineSeparatorsTest {
 
             @Test
             fun `should wrap non-ANSI lines`() {
-                expectThat(text.wrapLines(3)).isEqualTo("""
+                expectThat(text.wrapLines(3)).isEqualTo(
+                    """
                 123
                 45$space
                 😀7
                 890
-            """.trimIndent())
+            """.trimIndent()
+                )
             }
 
             @Test
@@ -436,12 +440,14 @@ class LineSeparatorsTest {
 
             @AnsiRequiring @Test
             fun `should wrap ANSI lines`() {
-                expectThat(text.wrapLines(3)).isEqualTo("""
+                expectThat(text.wrapLines(3)).isEqualTo(
+                    """
                 $e[1m$e[36m123$e[22;39m
                 $e[1;36m45$e[22;39m$space
                 $e[1;36m$e[39m😀7$e[22m
                 $e[1m890$e[22m
-            """.trimIndent())
+            """.trimIndent()
+                )
             }
 
             @Test

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.net
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
@@ -11,7 +11,7 @@ class IPv4RangeTest {
     private val range = ip1..ip2
 
     @TestFactory
-    fun `should be parsable`() = testEach(
+    fun `should be parsable`() = testEachOld(
         "172.186.78.250..192.168.0.1",
         "172.186.78.250 ..192.168.0.1",
         "172.186.78.250.. 192.168.0.1",
@@ -23,7 +23,7 @@ class IPv4RangeTest {
     }
 
     @TestFactory
-    fun `should have start`() = testEach(
+    fun `should have start`() = testEachOld(
         range,
         IPv4Range.from(ip1, ip2),
     ) {
@@ -31,7 +31,7 @@ class IPv4RangeTest {
     }
 
     @TestFactory
-    fun `should have inclusive end`() = testEach(
+    fun `should have inclusive end`() = testEachOld(
         range,
         IPv4Range.from(ip1, ip2),
     ) {
@@ -39,7 +39,7 @@ class IPv4RangeTest {
     }
 
     @TestFactory
-    fun `should be representable`() = testEach(
+    fun `should be representable`() = testEachOld(
         range,
         IPv4Range.from(ip1, ip2),
     ) {

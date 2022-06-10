@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.time
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.unit.nano
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -73,7 +73,7 @@ class TimeOperationsKtTest {
     inner class Plus {
 
         @TestFactory
-        fun `should add`() = testEach<Pair<Duration, JavaDuration>>(
+        fun `should add`() = testEachOld<Pair<Duration, JavaDuration>>(
             2.days to JavaDuration.ofDays(2),
             3.hours to JavaDuration.ofHours(3),
             4.minutes to JavaDuration.ofMinutes(4),
@@ -104,7 +104,7 @@ class TimeOperationsKtTest {
         }
 
         @TestFactory
-        fun `should throw if differ in conceptual days`() = testEach(
+        fun `should throw if differ in conceptual days`() = testEachOld(
             Now.localDate,
             Now.yearMonth,
             Now.year,
@@ -117,7 +117,7 @@ class TimeOperationsKtTest {
     inner class Minus {
 
         @TestFactory
-        fun `should subtract`() = testEach(
+        fun `should subtract`() = testEachOld(
             2.days to JavaDuration.ofDays(2),
             3.hours to JavaDuration.ofHours(3),
             4.minutes to JavaDuration.ofMinutes(4),
@@ -148,7 +148,7 @@ class TimeOperationsKtTest {
         }
 
         @TestFactory
-        fun `should throw if differ in conceptual days`() = testEach(
+        fun `should throw if differ in conceptual days`() = testEachOld(
             Now.localDate,
             Now.yearMonth,
             Now.year,

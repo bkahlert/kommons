@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.printTestExecutionStatus
-import com.bkahlert.kommons.test.junit.TestName.Companion.testName
+import com.bkahlert.kommons.test.junit.displayName
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled
 import org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled
@@ -27,7 +27,7 @@ annotation class TextWidthRequiring
 class WideUnicodeGlyphsCondition : ExecutionCondition {
 
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
-        context.testName.let { testName ->
+        context.displayName().composedDisplayName.let { testName ->
             if (wideUnicodeGlyphs) enabled("Test ${testName.quoted} enabled because wide Unicode glyphs can be measured correctly.")
             else disabled("Test ${testName.quoted} disabled because wide Unicode characters cannot be measured correctly.")
         }

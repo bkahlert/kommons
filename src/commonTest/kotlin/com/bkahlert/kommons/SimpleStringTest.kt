@@ -6,6 +6,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+// TODO delete
 class SimpleStringTest {
 
     @Test

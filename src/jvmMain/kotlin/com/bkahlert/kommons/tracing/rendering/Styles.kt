@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.prefixWith
 import com.bkahlert.kommons.text.repeat
-import com.bkahlert.kommons.takeUnlessBlank
 
 public object Styles {
 
@@ -144,7 +144,7 @@ public object Styles {
             .toAnsiString()
             .lines()
             .mapNotNull { contentFormatter(it) }
-            .run { takeIf { it.isNotEmpty() }?.joinLinesToString() }
+            .run { takeIf { it.isNotEmpty() }?.joinToString(LineSeparators.Default) }
 
         override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = element.takeUnlessBlank()
         override fun parent(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? =

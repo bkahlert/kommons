@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.net
 
+import com.bkahlert.kommons.bigIntegerOfDecimalString
 import com.bkahlert.kommons.math.BigIntegerConstants
-import com.bkahlert.kommons.math.bigIntegerOfDecimalString
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
@@ -13,7 +13,7 @@ class NotationTest {
     inner class IPv4Notation {
 
         @TestFactory
-        fun `should format as conventional representation`() = testEach(
+        fun `should format as conventional representation`() = testEachOld(
             IPv4Address.parse("192.168.16.1") to "192.168.16.1",
             IPv4Address.LOOPBACK to "127.0.0.1",
             IPv4Address.RANGE.start to "0.0.0.0",
@@ -28,7 +28,7 @@ class NotationTest {
     inner class IPv6Notation {
 
         @TestFactory
-        fun `should format as full representation`() = testEach(
+        fun `should format as full representation`() = testEachOld(
             IPv6Address.parse("::ffff:c0a8:1001") to "0000:0000:0000:0000:0000:ffff:c0a8:1001",
             IPv6Address.LOOPBACK to "0000:0000:0000:0000:0000:0000:0000:0001",
             IPv6Address.RANGE.start to "0000:0000:0000:0000:0000:0000:0000:0000",
@@ -38,7 +38,7 @@ class NotationTest {
         }
 
         @TestFactory
-        fun `should format as conventional representation`() = testEach(
+        fun `should format as conventional representation`() = testEachOld(
             IPv6Address.parse("::ffff:c0a8:1001") to "0:0:0:0:0:ffff:c0a8:1001",
             IPv6Address.LOOPBACK to "0:0:0:0:0:0:0:1",
             IPv6Address.RANGE.start to "0:0:0:0:0:0:0:0",
@@ -48,7 +48,7 @@ class NotationTest {
         }
 
         @TestFactory
-        fun `should format as compressed representation`() = testEach(
+        fun `should format as compressed representation`() = testEachOld(
             IPv6Address.parse("::ffff:c0a8:1001") to "::ffff:c0a8:1001",
             IPv6Address.LOOPBACK to "::1",
             IPv6Address.RANGE.start to "::",
@@ -73,7 +73,7 @@ class NotationTest {
         }
 
         @TestFactory
-        fun `should format as conventional representation`() = testEach(
+        fun `should format as conventional representation`() = testEachOld(
             bigIntegerOfDecimalString("3232239617") to "⌁⌁60⌁ag401",
             BigIntegerConstants.ONE to "⌁⌁1",
             BigIntegerConstants.ZERO to "⌁⌁",

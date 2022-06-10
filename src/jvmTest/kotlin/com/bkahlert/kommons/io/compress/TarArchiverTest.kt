@@ -9,14 +9,14 @@ import com.bkahlert.kommons.io.path.removeExtensions
 import com.bkahlert.kommons.io.path.renameTo
 import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
-import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.Fixtures.archiveWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectThat
 import strikt.assertions.isGreaterThan
 import strikt.java.exists
@@ -24,21 +24,20 @@ import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import kotlin.io.path.copyTo
+import kotlin.io.path.div
 
 class TarArchiverTest {
 
     @TestFactory
-    fun `should throw on missing source`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
-        { randomPath().tar() },
-        { randomPath(extension = ".tar").untar() },
+    fun `should throw on missing source`(@TempDir tempDir: Path) = testEachOld<(Path) -> Path>(
+        { (it / "missing").tar() },
+        { (it / "missing.tar").untar() },
     ) { call ->
-        withTempDir(uniqueId) {
-            expectThrows<NoSuchFileException> { call() }
-        }
+        expectThrows<NoSuchFileException> { call(tempDir) }
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar() },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar() },
     ) { call ->
@@ -48,7 +47,7 @@ class TarArchiverTest {
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar(overwrite = true) },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar(overwrite = true) },
     ) { call ->

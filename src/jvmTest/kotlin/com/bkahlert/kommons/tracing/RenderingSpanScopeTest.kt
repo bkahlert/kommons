@@ -1,19 +1,10 @@
 package com.bkahlert.kommons.tracing
 
-import io.opentelemetry.api.common.AttributeKey
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.Span
-import io.opentelemetry.api.trace.StatusCode
-import io.opentelemetry.api.trace.StatusCode.ERROR
-import io.opentelemetry.api.trace.StatusCode.OK
-import io.opentelemetry.sdk.trace.data.EventData
-import io.opentelemetry.sdk.trace.data.SpanData
-import io.opentelemetry.sdk.trace.data.StatusData
 import com.bkahlert.kommons.exec.IOAttributes
 import com.bkahlert.kommons.getOrException
-import com.bkahlert.kommons.test.junit.TestName
 import com.bkahlert.kommons.test.hasElements
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.junit.DisplayName
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
@@ -24,7 +15,15 @@ import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes
 import com.bkahlert.kommons.tracing.rendering.Settings
 import com.bkahlert.kommons.unit.nano
-import org.junit.jupiter.api.Tag
+import io.opentelemetry.api.common.AttributeKey
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.api.trace.StatusCode
+import io.opentelemetry.api.trace.StatusCode.ERROR
+import io.opentelemetry.api.trace.StatusCode.OK
+import io.opentelemetry.sdk.trace.data.EventData
+import io.opentelemetry.sdk.trace.data.SpanData
+import io.opentelemetry.sdk.trace.data.StatusData
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -36,16 +35,15 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
 import kotlin.time.Duration
 
-@Tag("xxx")
 @NoTestSpan
 class RenderingSpanScopeTest {
 
     @TestFactory
-    fun event(testName: TestName) = testEach<RenderingSpanScope.(String) -> Unit>(
+    fun event(displayName: DisplayName) = testEachOld<RenderingSpanScope.(String) -> Unit>(
         { event(Event.of(it)) },
         { event(it) },
     ) { op ->
-        val (traceId, rendered) = withRenderingSpanScope(testName) { op("event name") }
+        val (traceId, rendered) = withRenderingSpanScope(displayName) { op("event name") }
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
@@ -65,10 +63,10 @@ class RenderingSpanScopeTest {
     }
 
     @TestFactory
-    fun exception(testName: TestName) = testEach<RenderingSpanScope.(Throwable) -> Unit>(
+    fun exception(displayName: DisplayName) = testEachOld<RenderingSpanScope.(Throwable) -> Unit>(
         { exception(it) },
     ) { op ->
-        val (traceId, rendered) = withRenderingSpanScope(testName) { op(RuntimeException("exception message")) }
+        val (traceId, rendered) = withRenderingSpanScope(displayName) { op(RuntimeException("exception message")) }
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
@@ -86,11 +84,11 @@ class RenderingSpanScopeTest {
     }
 
     @TestFactory
-    fun end(testName: TestName) = testEach<RenderingSpanScope.() -> Unit>(
+    fun end(displayName: DisplayName) = testEachOld<RenderingSpanScope.() -> Unit>(
         { end() },
         { end(Result.success(Unit)) },
     ) { op ->
-        val (traceId, rendered) = withRenderingSpanScope(testName, invokeEnd = false) { op() }
+        val (traceId, rendered) = withRenderingSpanScope(displayName, invokeEnd = false) { op() }
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
@@ -108,10 +106,10 @@ class RenderingSpanScopeTest {
     }
 
     @TestFactory
-    fun fail(testName: TestName) = testEach<RenderingSpanScope.() -> Unit>(
+    fun fail(displayName: DisplayName) = testEachOld<RenderingSpanScope.() -> Unit>(
         { end(Result.failure<Unit>(RuntimeException("test"))) },
     ) { op ->
-        val (traceId, rendered) = withRenderingSpanScope(testName, invokeEnd = false) { op() }
+        val (traceId, rendered) = withRenderingSpanScope(displayName, invokeEnd = false) { op() }
 
         expecting("should record") { TestTelemetry[traceId] } that {
             all { isValid() }
@@ -133,17 +131,17 @@ class RenderingSpanScopeTest {
         expectThat(RenderingSpanScope(Span.getInvalid(), NOOP)).toStringMatchesCurlyPattern("RenderingSpanScope(span={}, renderer={})")
     }
 
-    private fun withRenderingSpanScope(testName: TestName, invokeEnd: Boolean = true, block: RenderingSpanScope.() -> Unit): Pair<TraceId, List<String>> {
+    private fun withRenderingSpanScope(displayName: DisplayName, invokeEnd: Boolean = true, block: RenderingSpanScope.() -> Unit): Pair<TraceId, List<String>> {
         val captured = mutableListOf<String>()
-        val traceId = withRootSpanScope(testName, invokeEnd) {
+        val traceId = withRootSpanScope(displayName, invokeEnd) {
             RenderingSpanScope(Span.current(), CapturingRenderer(Settings(contentFormatter = { it.toString() }), captured)).block()
             TraceId.current
         }
         return traceId to captured
     }
 
-    private fun <R> withRootSpanScope(testName: TestName, invokeEnd: Boolean = true, block: () -> R): R {
-        val parentSpanScope = RenderingSpanScope.of(testName) { it }
+    private fun <R> withRootSpanScope(displayName: DisplayName, invokeEnd: Boolean = true, block: () -> R): R {
+        val parentSpanScope = RenderingSpanScope.of(displayName.composedDisplayName) { it }
         val scope = parentSpanScope.makeCurrent()
         parentSpanScope.registerAsTestSpan()
         val result = runCatching(block)

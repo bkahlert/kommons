@@ -3,7 +3,7 @@ package com.bkahlert.kommons.exec
 import com.bkahlert.kommons.Either
 import com.bkahlert.kommons.Either.Left
 import com.bkahlert.kommons.Either.Right
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.exception.dump
 import com.bkahlert.kommons.exec.IO.Meta
@@ -190,7 +190,7 @@ public interface Exec : Process {
          */
         public fun Exec.createDump(vararg errorMessage: String): String {
             metaStream.emit(Meta typed errorMessage.joinToString(DEFAULT))
-            return (workingDirectory ?: Locations.Default.Temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
+            return (workingDirectory ?: SystemLocations.Temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
         }
     }
 

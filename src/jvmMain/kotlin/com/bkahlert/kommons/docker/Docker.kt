@@ -1,6 +1,7 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Exceptions
+import com.bkahlert.kommons.createTempDirectory
 import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.docker.Docker.BusyBox
 import com.bkahlert.kommons.docker.Docker.CurlJq
@@ -25,7 +26,6 @@ import com.bkahlert.kommons.io.path.uriString
 import com.bkahlert.kommons.leftOrNull
 import com.bkahlert.kommons.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.mapLeft
-import com.bkahlert.kommons.randomDirectory
 import com.bkahlert.kommons.regex.RegularExpressions
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
@@ -37,6 +37,7 @@ import java.io.FileNotFoundException
 import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.Locale
 import kotlin.io.path.isExecutable
 
@@ -51,7 +52,7 @@ public object Docker {
     public val isInstalled: Boolean by lazy {
         val commandLine = CommandLine("which", "docker", name = "check docker")
         val exec = commandLine.exec.processing(processor = processingProcessor(errorsOnly()))
-        val bin = Path.of(exec.output)
+        val bin = Paths.get(exec.output)
         exec.successful && bin.isExecutable()
     }
 
@@ -550,7 +551,7 @@ public fun Path.download(
             curl("--location", uri, "-o", fileName, renderer = renderer)
         }
     } else {
-        val downloadDir = randomDirectory()
+        val downloadDir = createTempDirectory()
         downloadDir.run {
             log("Using temporary directory $uriString")
             curl("--location", "--remote-name", "--remote-header-name", "--compressed", uri, renderer = renderer)

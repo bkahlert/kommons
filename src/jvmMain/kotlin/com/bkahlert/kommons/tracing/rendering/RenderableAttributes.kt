@@ -41,7 +41,7 @@ public interface RenderableAttributes : Map<AttributeKey<*>, Renderable> {
             .map { (key, value) -> SimpleEntry(key, Renderable.of(value)) }
             .toSet()
 
-        override fun toString(): String = asString("RenderableAttributes") {
+        override fun toString(): String = asString {
             this@RenderingKeyPreferringAttributes.forEach { (key, value) -> put(key, value.render(null, null)) }
         }
     }

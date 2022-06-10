@@ -5,9 +5,9 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.regex.RegularExpressions.camelCaseRegex
 import com.bkahlert.kommons.regex.RegularExpressions.kebabCaseRegex
 import com.bkahlert.kommons.regex.RegularExpressions.screamingSnakeCaseRegex
-import com.bkahlert.kommons.regex.namedGroups
 import kotlin.js.JsName
 
+// TODO migrate
 public enum class Cases(
     public val splitter: (String) -> List<String>,
     public val joiner: ((List<String>) -> String),
@@ -78,15 +78,16 @@ public fun List<String>.joinToKebabCase(): String = this joinToCase Cases.`kebab
  */
 public fun String.convertKebabCaseToCamelCase(): String {
     val hyphenMerger = { previousEnd: Int, hyphenMatch: MatchResult ->
-        substring(previousEnd,
-            hyphenMatch.range.first) + hyphenMatch.namedGroups["leftChar"]?.value + hyphenMatch.namedGroups["rightChar"]?.value?.uppercase()
+        substring(previousEnd, hyphenMatch.range.first) + hyphenMatch.groupValues[1] + hyphenMatch.groupValues[2].uppercase()
     }
-    return Regex("(?<leftChar>[a-z\\d]?)-(?<rightChar>[a-z\\d])").findAll(this).let { matches ->
-        matches.zipWithNext { previousMatch, currentMatch -> hyphenMerger.invoke(previousMatch.range.last + 1, currentMatch) }.joinLinesToString(
-            prefix = matches.firstOrNull()?.let { hyphenMerger.invoke(0, matches.first()) } ?: this,
-            postfix = matches.lastOrNull()?.let { subSequence(it.range.last + 1, length) } ?: "",
-            separator = "", transform = { it })
-    }
+    val regex = Regex("(?<leftChar>[a-z\\d]?)-(?<rightChar>[a-z\\d])")
+    val matches = regex.findAll(this)
+    val words = matches.zipWithNext { previousMatch, currentMatch -> hyphenMerger(previousMatch.range.last + 1, currentMatch) }
+    return words.joinToString(
+        separator = "",
+        prefix = matches.firstOrNull()?.let { hyphenMerger(0, matches.first()) } ?: this,
+        postfix = matches.lastOrNull()?.let { subSequence(it.range.last + 1, length) } ?: "",
+        truncated = Unicode.ELLIPSIS.toString())
 }
 
 private fun String.convertCamelCase(separator: Char, transform: (String) -> String): String =
@@ -116,7 +117,8 @@ public fun String.convertKebabCaseToScreamingSnakeCase(): String = uppercase().r
  */
 public fun Enum<*>.kebabCaseName(): String {
     val screamingSnakeCaseName =
-        name.takeUnless { it.asSequence().any { char -> char.isLowerCase() } } ?: name.convertCamelCase('_'
+        name.takeUnless { it.asSequence().any { char -> char.isLowerCase() } } ?: name.convertCamelCase(
+            '_'
         ) { it.uppercase() }
     return screamingSnakeCaseName.convertScreamingSnakeCaseToKebabCase()
 }

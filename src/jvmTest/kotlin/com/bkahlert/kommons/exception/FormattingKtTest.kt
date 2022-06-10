@@ -14,21 +14,24 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.matches
-import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Instant
 
+// TODO delete
 class FormattingKtTest {
 
     private val emptyException = RuntimeException()
 
-    private val runtimeException = RuntimeException("Something happened$LF" +
-        " ➜ A dump has been written to:$LF" +
-        "   - file:///var/folders/…/file.log (unchanged)$LF" +
-        "   - file:///var/folders/…/file.ansi-removed.log (ANSI escape/control sequences removed)$LF" +
-        " ➜ The last lines are:$LF" +
-        "    raspberry$LF" +
-        "    Login incorrect$LF" +
-        "    raspberrypi login:")
+    private val runtimeException = RuntimeException(
+        "Something happened$LF" +
+            " ➜ A dump has been written to:$LF" +
+            "   - file:///var/folders/…/file.log (unchanged)$LF" +
+            "   - file:///var/folders/…/file.ansi-removed.log (ANSI escape/control sequences removed)$LF" +
+            " ➜ The last lines are:$LF" +
+            "    raspberry$LF" +
+            "    Login incorrect$LF" +
+            "    raspberrypi login:"
+    )
 
     @Nested
     inner class AThrowable {
@@ -86,7 +89,7 @@ class FormattingKtTest {
 
             @Test
             fun `should format Path instances as URI`() {
-                expectThat(Result.success(Path.of("/path")).toCompactString()) {
+                expectThat(Result.success(Paths.get("/path")).toCompactString()) {
                     ansiRemoved.isEqualTo("file:///path")
                     isSingleLine()
                 }

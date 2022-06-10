@@ -3,7 +3,7 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.ansiContained
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Style
 import com.bkahlert.kommons.text.ANSI.Style.bold
@@ -38,7 +38,7 @@ class ANSITest {
     inner class AnsiRemoved {
 
         @TestFactory
-        fun `should remove escape sequences`() = testEach(
+        fun `should remove escape sequences`() = testEachOld(
             italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.") to
                 "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.",
 

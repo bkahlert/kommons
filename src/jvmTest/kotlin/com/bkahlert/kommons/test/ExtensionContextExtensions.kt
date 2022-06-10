@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ExtensionContext.Store
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
 import java.util.Optional
-import kotlin.reflect.KClass
+
+// TODO migrate
 
 /**
  * Checks if the test class, method, test template, etc. of the current scope fulfills the requirements implemented by the provided [tester].
@@ -73,16 +73,3 @@ val Optional<Method>?.isTest get() = this?.orElse(null).isTest
  * Whether this [Method] is a [Test].
  */
 val Method?.isTest get() = isA<Test>() || isA<TestFactory>() || isA<TestTemplate>()
-
-
-/**
- * Puts the given [obj] in this [Store] using the objects [KClass] as its key.
- */
-inline fun <reified T> Store.put(obj: T): Unit = put(T::class.java, obj)
-
-/**
- * Gets the previously [put] instance of type [T] from this [Store].
- *
- * ***Important:** [T] must be the exact same type as used in [put].*
- */
-inline fun <reified T> Store.get(): T? = get(T::class.java, T::class.java)

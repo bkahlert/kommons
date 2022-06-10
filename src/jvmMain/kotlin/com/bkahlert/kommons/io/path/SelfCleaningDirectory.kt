@@ -4,6 +4,7 @@ import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.cleanUp
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode
+import com.bkahlert.kommons.requireTempSubPath
 import com.bkahlert.kommons.runtime.onExit
 import com.bkahlert.kommons.time.hours
 import java.nio.file.Path
@@ -84,7 +85,7 @@ public data class SelfCleaningDirectory(
     }
 
     init {
-        path.requireTempSubPath()
+        requireTempSubPath(path)
         if (cleanUpMode.onStart) cleanUp()
 
         if (path.exists()) {

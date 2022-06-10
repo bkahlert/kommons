@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.regex.RegularExpressions.uriRegex
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.LineSeparators.isMultiline
 import com.bkahlert.kommons.text.LineSeparators.wrapLines
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.truncateByColumns
 
 /**
@@ -51,7 +51,7 @@ public interface Renderable : CharSequence {
                                     else line.truncateByColumns(columns)
                                 } else it
                             }
-                            .joinLinesToString { it.toString() }
+                            .joinToString(LineSeparators.Default) { it.toString() }
                     } else {
                         if (uriRegex.containsMatchIn(this)) this.toString()
                         else if (columns != null && rows != null) truncateByColumns(columns).toString()

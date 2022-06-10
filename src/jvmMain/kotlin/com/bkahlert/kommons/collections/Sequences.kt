@@ -3,6 +3,7 @@ package com.bkahlert.kommons.collections
 import java.util.stream.Stream
 import kotlin.streams.asStream
 
+// TODO delete
 /**
  * Creates a [Stream] instance that wraps this array returning its elements when being iterated.
  */

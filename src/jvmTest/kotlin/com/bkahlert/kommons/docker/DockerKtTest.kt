@@ -16,13 +16,12 @@ import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.SvgFixture
 import com.bkahlert.kommons.test.asserting
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.containsAnsi
 import com.bkahlert.kommons.unit.bytes
 import com.bkahlert.kommons.unit.hasSize
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
@@ -34,7 +33,6 @@ import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
 
-@Tag("xxx")
 class DockerKtTest {
 
     /**
@@ -50,7 +48,7 @@ class DockerKtTest {
     }
 
     @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-    fun `should run using well-known images`(uniqueId: UniqueId) = testEach<Path.(String) -> Exec>(
+    fun `should run using well-known images`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Exec>(
         { fileName -> ubuntu("cat", fileName) },
         { fileName -> ubuntu { "cat $fileName" } },
         { fileName -> busybox("cat", fileName) },
@@ -62,7 +60,7 @@ class DockerKtTest {
     }
 
     @DockerRequiring([Ubuntu::class]) @TestFactory
-    fun `should run command line`(uniqueId: UniqueId) = testEach<Path.(String, String) -> Exec>(
+    fun `should run command line`(uniqueId: UniqueId) = testEachOld<Path.(String, String) -> Exec>(
         { command, args -> docker("ubuntu", command, args) },
         { command, args -> docker({ "ubuntu" }, command, args) },
         { command, args -> docker(Ubuntu, command, args) },
@@ -74,7 +72,7 @@ class DockerKtTest {
     }
 
     @DockerRequiring([Ubuntu::class]) @TestFactory
-    fun `should run shell script`(uniqueId: UniqueId) = testEach<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
+    fun `should run shell script`(uniqueId: UniqueId) = testEachOld<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
         { scriptInit -> docker("busybox") { wd -> scriptInit(wd) } },
         { scriptInit -> docker({ "busybox" }) { wd -> scriptInit(wd) } },
         { scriptInit -> docker(BusyBox) { wd -> scriptInit(wd) } },
@@ -86,7 +84,7 @@ class DockerKtTest {
     }
 
     @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-    fun `should pass input stream`(uniqueId: UniqueId) = testEach<Path.(InputStream) -> Exec>(
+    fun `should pass input stream`(uniqueId: UniqueId) = testEachOld<Path.(InputStream) -> Exec>(
         { fileName -> ubuntu("cat", inputStream = fileName) },
         { fileName -> ubuntu(inputStream = fileName) { "cat" } },
         { fileName -> busybox("cat", inputStream = fileName) },
@@ -105,25 +103,25 @@ class DockerKtTest {
         private val uri = "https://github.com/NicolasCARPi/example-files/raw/master/example.png"
 
         @DockerRequiring @TestFactory
-        fun `should download`(uniqueId: UniqueId) = testEach<Path.(String) -> Path>(
+        fun `should download`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Path>(
             { download(it) },
             { download(URI.create(it)) },
         ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { hasSize(40959.bytes) } } }
 
         @DockerRequiring @TestFactory
-        fun `should download use given name`(uniqueId: UniqueId) = testEach<Path.(String, String) -> Path>(
+        fun `should download use given name`(uniqueId: UniqueId) = testEachOld<Path.(String, String) -> Path>(
             { uri, name -> download(uri, name) },
             { uri, name -> download(URI.create(uri), name) },
         ) { download -> withTempDir(uniqueId) { expecting { download(uri, "custom.png") } that { fileName.isEqualTo("custom.png".asPath()) } } }
 
         @DockerRequiring @TestFactory
-        fun `should download use remote name`(uniqueId: UniqueId) = testEach<Path.(String) -> Path>(
+        fun `should download use remote name`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Path>(
             { download(it) },
             { download(URI.create(it)) },
         ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { fileName.isEqualTo("example.png".asPath()) } } }
 
         @DockerRequiring @TestFactory
-        fun `should download clean remote name`(uniqueId: UniqueId) = testEach<Path.(String) -> Path>(
+        fun `should download clean remote name`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Path>(
             { download(it) },
             { download(URI.create(it)) },
         ) { download -> withTempDir(uniqueId) { expecting { download("$uri?a=b#c") } that { fileName.isEqualTo("example.png".asPath()) } } }

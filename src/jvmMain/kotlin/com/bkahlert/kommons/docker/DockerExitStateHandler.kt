@@ -1,7 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.collections.head
-import com.bkahlert.kommons.collections.tail
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
@@ -16,7 +14,10 @@ import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.error
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.outputAndError
-import com.bkahlert.kommons.lowerSentenceCaseName
+import com.bkahlert.kommons.head
+import com.bkahlert.kommons.simpleTitleCasedName
+import com.bkahlert.kommons.tail
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -25,7 +26,6 @@ import com.bkahlert.kommons.text.containsAll
 import com.bkahlert.kommons.text.rightSpaced
 import com.bkahlert.kommons.text.spaced
 import com.bkahlert.kommons.text.splitPascalCase
-import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.time.Now
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -104,7 +104,9 @@ public object DockerExitStateHandler : ExitStateHandler {
             errorMessage: String,
         ) : DockerExitStateHandler.Failed(start, end, pid, exitCode, io, null, errorMessage.substringAfterLast(".").trim().formattedAs.warning) {
             override val symbol: String = Symbols.Negative
-            override val textRepresentation: String get() = this::class.lowerSentenceCaseName.formattedAs.error + Semantics.FieldDelimiters.FIELD.spaced + status
+            override val textRepresentation: String
+                get() = (this::class.simpleTitleCasedName?.lowercase() ?: "<object>").formattedAs.error + Semantics.FieldDelimiters.FIELD.spaced + status
+
             override fun format(): String = textRepresentation
             override fun toString(): String = textRepresentation
         }
@@ -120,7 +122,7 @@ public object DockerExitStateHandler : ExitStateHandler {
         ) : DockerExitStateHandler.Failed(start, end, pid, exitCode, io, null, status) {
 
             override val symbol: String = Symbols.Negative
-            override val textRepresentation: String? get() = this::class.lowerSentenceCaseName.formattedAs.error
+            override val textRepresentation: String? get() = (this::class.simpleTitleCasedName?.lowercase() ?: "<object>").formattedAs.error
             override fun format(): String = symbol.rightSpaced + textRepresentation
             override fun toString(): String = format()
 

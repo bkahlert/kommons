@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -15,7 +15,7 @@ class SemanticsTest {
     inner class WithSymbols {
 
         @TestFactory
-        fun `should provide symbols`() = test(Semantics) {
+        fun `should provide symbols`() = testOld(Semantics) {
             expecting { Symbols.OK } that { isEqualTo("✔$VARIATION_SELECTOR_15".ansi.green.done) }
             expecting { Symbols.Negative } that { isEqualTo("━".ansi.red.done) }
             expecting { Symbols.Error } that { isEqualTo("ϟ".ansi.bold.red.done) }
@@ -26,7 +26,7 @@ class SemanticsTest {
         }
 
         @TestFactory
-        fun `should format`() = test("test") {
+        fun `should format`() = testOld("test") {
             expecting { formattedAs.success } that { isEqualTo("test".ansi.green.done) }
             expecting { formattedAs.warning } that { isEqualTo("test".ansi.brightYellow.done) }
             expecting { formattedAs.failure } that { isEqualTo("test".ansi.red.done) }

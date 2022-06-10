@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.math
 
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testsOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
 class ParityKtTest {
 
     @TestFactory
-    fun isOdd() = tests {
+    fun isOdd() = testsOld {
         expecting("-1 byte") { ((-1).toByte().isOdd) } that { isEqualTo(true) }
         expecting(" 0 byte") { (0.toByte().isOdd) } that { isEqualTo(false) }
         expecting(" 5 byte") { (5.toByte().isOdd) } that { isEqualTo(true) }
@@ -23,7 +23,7 @@ class ParityKtTest {
     }
 
     @TestFactory
-    fun isEvening() = tests {
+    fun isEvening() = testsOld {
         expecting("-1 byte") { ((-1).toByte().isEven) } that { isEqualTo(false) }
         expecting(" 0 byte") { (0.toByte().isEven) } that { isEqualTo(true) }
         expecting(" 5 byte") { (5.toByte().isEven) } that { isEqualTo(false) }

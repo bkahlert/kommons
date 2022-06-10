@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
@@ -8,7 +8,7 @@ class OverlapKtTest {
 
     @Suppress("SpellCheckingInspection")
     @TestFactory
-    fun `should calculate right-wise overlap`() = testEach(
+    fun `should calculate right-wise overlap`() = testEachOld(
         "overlap" to 7,
         "verlap" to 6,
         "erlap" to 5,
@@ -34,7 +34,7 @@ class OverlapKtTest {
 
     @Suppress("SpellCheckingInspection")
     @TestFactory
-    fun `should calculate left-wise overlap`() = testEach(
+    fun `should calculate left-wise overlap`() = testEachOld(
         "overlap" to 7,
         "overla" to 6,
         "overl" to 5,

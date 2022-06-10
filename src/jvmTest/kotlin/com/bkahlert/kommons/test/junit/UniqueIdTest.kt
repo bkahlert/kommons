@@ -2,7 +2,7 @@ package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.runtime.CallStackElement
 import com.bkahlert.kommons.test.TesterTest.PlainAssertionsTest
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
@@ -38,7 +38,7 @@ class UniqueIdTest {
         ))
 
     @TestFactory
-    fun `should instantiate unique id`() = testEach(
+    fun `should instantiate unique id`() = testEachOld(
         UniqueId.from(parse("[engine:junit-jupiter]/[class:com.bkahlert.kommons.test.TesterTest]/[nested-class:PlainAssertionsTest]/[method:method name()]")),
         UniqueId.from(CallStackElement.from(PlainAssertionsTest::class.java.name, "method name", "Tests.kt", 1135)),
     ) {

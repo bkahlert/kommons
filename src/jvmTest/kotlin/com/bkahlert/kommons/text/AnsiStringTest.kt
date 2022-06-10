@@ -1,9 +1,8 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.debug.debug
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.AnsiString.Companion.tokenize
@@ -227,7 +226,7 @@ class AnsiStringTest {
         val ansiString get() = "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m".tokenize()
 
         @TestFactory
-        fun `should product right substring`() = testEach(
+        fun `should product right substring`() = testEachOld(
             41 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m".tokenize(),
             40 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m".tokenize(),
             25 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m".tokenize(),
@@ -260,7 +259,7 @@ class AnsiStringTest {
         }
 
         @TestFactory
-        fun `should product right non zero start substring`() = testEach(
+        fun `should product right non zero start substring`() = testEachOld(
             0 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m".tokenize(),
             1 to "$e[3;36;4mmportant:$e[24m This line has $e[23;39m".tokenize(),
             9 to "$e[3;36;4m:$e[24m This line has $e[23;39m".tokenize(),
@@ -292,7 +291,7 @@ class AnsiStringTest {
         fun `should subsequence true color foreground`() {
             val string = "$e[38;2;200;10;10m-ark red-$e[39m"
             val ansiString = string.tokenize()
-            val subSequence = ansiString.subSequence(1, 8).also { it.debug }
+            val subSequence = ansiString.subSequence(1, 8)
             expectThat(subSequence.toString()).isEqualTo("$e[38;2;200;10;10mark red$e[39m")
         }
 
@@ -315,7 +314,7 @@ class AnsiStringTest {
 
         @Suppress("SpellCheckingInspection", "LongLine")
         @TestFactory
-        fun `should strip ANSI escape sequences off`() = testEach(
+        fun `should strip ANSI escape sequences off`() = testEachOld(
             ansiString to ansiString.ansiRemoved,
             "[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m.".tokenize() to
                 "[  OK  ] Listening on udev Control Socket.",
@@ -460,7 +459,7 @@ class AnsiStringTest {
 
         @Test
         fun `should join split ANSI string`() {
-            expectThat(expectedAnsiFormattedLines.joinLinesToString { it }).isEqualTo(
+            expectThat(expectedAnsiFormattedLines.joinToString(LineSeparators.DEFAULT) { it }).isEqualTo(
                 """
                 $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m
                 $e[3;36mThis one's $e[1mbold!$e[23;39;22m

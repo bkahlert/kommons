@@ -1,16 +1,15 @@
 package com.bkahlert.kommons.regex
 
 import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.debug.debug
-import com.bkahlert.kommons.test.DynamicTestsWithSubjectBuilder
-import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.debug.render
+import com.bkahlert.kommons.test.OldDynamicTestsWithSubjectBuilder
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
@@ -23,7 +22,6 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.matches
 
-@Tag("xxx")
 class RegularExpressionsTest {
 
     @Nested
@@ -33,7 +31,7 @@ class RegularExpressionsTest {
         inner class IsGrouped {
 
             @TestFactory
-            fun `should return false if blank`() = testEach(
+            fun `should return false if blank`() = testEachOld(
                 "",
                 " ",
                 "   "
@@ -42,7 +40,7 @@ class RegularExpressionsTest {
             }
 
             @TestFactory
-            fun `should return false if not all is grouped`() = testEach(
+            fun `should return false if not all is grouped`() = testEachOld(
                 "^[0-9]*a()$",
                 "()b"
             ) {
@@ -50,7 +48,7 @@ class RegularExpressionsTest {
             }
 
             @TestFactory
-            fun `should return false if multiple groups`() = testEach(
+            fun `should return false if multiple groups`() = testEachOld(
                 "()()",
                 "(a)(b)",
                 "(())()",
@@ -60,7 +58,7 @@ class RegularExpressionsTest {
             }
 
             @TestFactory
-            fun `should return true if single outer group`() = testEach(
+            fun `should return true if single outer group`() = testEachOld(
                 "()",
                 "(a)",
                 "(())",
@@ -71,7 +69,7 @@ class RegularExpressionsTest {
             }
 
             @TestFactory
-            fun `should ignore escaped brackets`() = testEach(
+            fun `should ignore escaped brackets`() = testEachOld(
                 "(\\()" to true,
                 "(\\(a)" to true,
                 "(\\)\\(\\))" to true,
@@ -97,7 +95,7 @@ class RegularExpressionsTest {
             }
 
             @TestFactory
-            fun `should not add anonymous group if grouped`() = testEach(
+            fun `should not add anonymous group if grouped`() = testEachOld(
                 Regex("(abc)"),
                 Regex("(?:abc)"),
                 Regex("(?<name>abc)"),
@@ -214,7 +212,7 @@ class RegularExpressionsTest {
         @Nested
         inner class IgnoreArgs {
 
-            fun DynamicTestsWithSubjectBuilder<Regex>.testMatchesFields(
+            fun OldDynamicTestsWithSubjectBuilder<Regex>.testMatchesFields(
                 text: String,
                 receiverPackage: String?,
                 receiverClass: String?,
@@ -234,7 +232,7 @@ class RegularExpressionsTest {
             }
 
             @TestFactory
-            fun `should match lambda with …`() = test(RegularExpressions.lambdaRegex("lambda")) {
+            fun `should match lambda with …`() = testOld(RegularExpressions.lambdaRegex("lambda")) {
                 listOf(
                     "no arg" to "",
                     "one arg" to "Int",
@@ -337,10 +335,10 @@ fun <T : CharSequence> Assertion.Builder<T>.entirelyMatchedBy(regex: Regex) =
     get("entirely matched by $regex") { regex.matchEntire(this) }.isNotNull()
 
 fun Assertion.Builder<Regex>.matchEntire(input: CharSequence): Assertion.Builder<MatchResult> =
-    get("match entirely ${input.debug}") { matchEntire(input) }.isNotNull()
+    get("match entirely ${input.render()}") { matchEntire(input) }.isNotNull()
 
 fun Assertion.Builder<Regex>.matchEntire(input: CharSequence, expected: Boolean = true): Assertion.Builder<out MatchResult?> =
-    get("match entirely ${input.debug}") { matchEntire(input) }.run { if (expected) not { isNull() } else isNull() }
+    get("match entirely ${input.render()}") { matchEntire(input) }.run { if (expected) not { isNull() } else isNull() }
 
 fun Assertion.Builder<MatchResult>.group(groupName: String) =
     get("group with name $groupName: %s") { namedGroups[groupName] }

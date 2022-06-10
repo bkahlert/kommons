@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.randomFile
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.unit.bytes
@@ -12,9 +12,9 @@ import java.nio.file.Path
 
 class FileSizeKtTest {
 
-    private fun Path.getSmall() = randomFile("small").writeText("123")
-    private fun Path.getMedium() = randomFile("medium").writeText("123456")
-    private fun Path.getLarge() = randomFile("large").appendBytes(ByteArray(3_123_456))
+    private fun Path.getSmall() = createTempFile("small").writeText("123")
+    private fun Path.getMedium() = createTempFile("medium").writeText("123456")
+    private fun Path.getLarge() = createTempFile("large").appendBytes(ByteArray(3_123_456))
 
     @Test
     fun `should compare files by size`(uniqueId: UniqueId) = withTempDir(uniqueId) {

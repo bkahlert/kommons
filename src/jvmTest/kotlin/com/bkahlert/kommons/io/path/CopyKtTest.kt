@@ -2,15 +2,13 @@ package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.age
+import com.bkahlert.kommons.createTempDirectory
+import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.createTempTextFile
 import com.bkahlert.kommons.io.compress.TarArchiver.tar
 import com.bkahlert.kommons.lastModified
 import com.bkahlert.kommons.listDirectoryEntriesRecursively
-import com.bkahlert.kommons.randomDirectory
-import com.bkahlert.kommons.randomFile
-import com.bkahlert.kommons.randomPath
-import com.bkahlert.kommons.tempFile
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
-import com.bkahlert.kommons.test.Fixtures.singleFile
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.time.days
@@ -34,6 +32,8 @@ import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createDirectory
+import kotlin.io.path.createTempFile
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
@@ -44,13 +44,13 @@ class CopyKtTest {
     @Nested
     inner class CopyTo {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
+        private fun Path.getTestFile() = createTempFile(suffix = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
 
 
         @Test
         fun `should throw on missing src`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val src = randomPath(extension = ".txt")
+            val src = resolve("path.txt")
             expectCatching { src.copyTo(getTestFile()) }.isFailure().isA<NoSuchFileException>()
         }
 
@@ -59,7 +59,7 @@ class CopyKtTest {
 
             @Test
             fun `should copy file if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath(extension = ".txt")
+                val dest = resolve("path.txt")
                 expectThat(getTestFile().copyTo(dest))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -67,7 +67,7 @@ class CopyKtTest {
 
             @Test
             fun `should create missing directories on missing destination parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath("missing").randomPath()
+                val dest = resolve("missing").resolve("path")
                 expectThat(getTestFile().copyTo(dest))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -75,7 +75,7 @@ class CopyKtTest {
 
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").writeText("old")
+                val dest = createTempFile(suffix = ".txt").writeText("old")
                 expect {
                     catching { getTestFile().copyTo(dest) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -84,7 +84,7 @@ class CopyKtTest {
 
             @Test
             fun `should throw on existing directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomDirectory().apply { randomFile().writeText("old") }
+                val dest = createTempDirectory().apply { createTempFile().writeText("old") }
                 expect {
                     catching { getTestFile().copyTo(dest) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest.listDirectoryEntries().single()).hasContent("old")
@@ -93,7 +93,7 @@ class CopyKtTest {
 
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").writeText("old")
+                val dest = createTempFile(suffix = ".txt").writeText("old")
                 expectThat(getTestFile().copyTo(dest, overwrite = true))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -101,7 +101,7 @@ class CopyKtTest {
 
             @Test
             fun `should override existing directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomDirectory().apply { tempFile().writeText("old") }
+                val dest = createTempDirectory().apply { createTempFile().writeText("old") }
                 expectThat(getTestFile().copyTo(dest, overwrite = true))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -109,13 +109,13 @@ class CopyKtTest {
 
             @Test
             fun `should not copy attributes by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath(extension = ".txt")
+                val dest = resolve("path.txt")
                 expectThat(getTestFile().copyTo(dest)).get { age }.isLessThan(10.seconds)
             }
 
             @Test
             fun `should copy attributes if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath(extension = ".txt")
+                val dest = resolve("path.txt")
                 expectThat(getTestFile().copyTo(dest, preserve = true)).get { age }.isGreaterThan(6.9.days).isLessThan(7.1.days)
             }
         }
@@ -125,7 +125,7 @@ class CopyKtTest {
 
             @Test
             fun `should copy directory if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath(extension = ".txt")
+                val dest = resolve("path.txt")
                 expectThat(getTestDir().copyTo(dest))
                     .isCopyOf(getTestDir())
                     .isEqualTo(dest)
@@ -133,7 +133,7 @@ class CopyKtTest {
 
             @Test
             fun `should create missing directories on missing destination parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath().randomPath()
+                val dest = resolve("path").resolve("path")
                 expectThat(getTestDir().copyTo(dest))
                     .isCopyOf(getTestDir())
                     .isEqualTo(dest)
@@ -141,7 +141,7 @@ class CopyKtTest {
 
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").writeText("old")
+                val dest = createTempFile(suffix = ".txt").writeText("old")
                 expect {
                     catching { getTestDir().copyTo(dest) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -150,7 +150,7 @@ class CopyKtTest {
 
             @Test
             fun `should merge on existing directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomDirectory().apply { randomFile().writeText("old") }
+                val dest = createTempDirectory().apply { createTempFile().writeText("old") }
                 val alreadyExistingFile = dest.listDirectoryEntries().single()
                 expectThat(getTestDir().copyTo(dest))
                     .containsAllFiles(getTestDir())
@@ -160,7 +160,7 @@ class CopyKtTest {
 
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomFile(extension = ".txt").writeText("old")
+                val dest = createTempFile(suffix = ".txt").writeText("old")
                 expectThat(getTestDir().copyTo(dest, overwrite = true))
                     .isCopyOf(getTestDir())
                     .isEqualTo(dest)
@@ -168,7 +168,7 @@ class CopyKtTest {
 
             @Test
             fun `should merge on overwriting non-empty directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomDirectory().apply { randomFile().writeText("old") }
+                val dest = createTempDirectory().apply { createTempFile().writeText("old") }
                 val alreadyExistingFile = dest.listDirectoryEntries().single()
                 expectThat(getTestDir().copyTo(dest, overwrite = true))
                     .containsAllFiles(getTestDir())
@@ -178,7 +178,7 @@ class CopyKtTest {
 
             @Test
             fun `should not copy attributes by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath(extension = ".txt")
+                val dest = resolve("path.txt")
                 expectThat(getTestDir().copyTo(dest)) {
                     get { listDirectoryEntriesRecursively() }.all {
                         get { age }.isLessThan(10.seconds)
@@ -188,7 +188,7 @@ class CopyKtTest {
 
             @Test
             fun `should copy attributes if specified for all but not-empty directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val dest = randomPath(extension = ".txt")
+                val dest = resolve("path.txt")
                 expectThat(getTestDir().copyTo(dest, preserve = true)) {
                     get { listDirectoryEntriesRecursively().filter { !it.isDirectory() || it.isEmpty() } }.all {
                         get { age }.isGreaterThan(6.9.days).isLessThan(7.1.days)
@@ -202,12 +202,12 @@ class CopyKtTest {
     @Nested
     inner class CopyToDirectory {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
+        private fun Path.getTestFile() = createTempFile(suffix = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
 
         @Test
         fun `should throw on missing src`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val src = randomPath(extension = ".txt")
+            val src = resolve("path.txt")
             expectCatching { src.copyToDirectory(getTestFile()) }.isFailure().isA<NoSuchFileException>()
         }
 
@@ -217,7 +217,7 @@ class CopyKtTest {
             @Test
             fun `should copy file if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName)
+                val dest = createTempDirectory().resolve(srcFile.fileName)
                 expectThat(srcFile.copyToDirectory(dest.parent))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -226,7 +226,7 @@ class CopyKtTest {
             @Test
             fun `should create missing directories on missing destination parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomPath("missing").resolve(srcFile.fileName)
+                val dest = resolve("missing").resolve(srcFile.fileName)
                 expectThat(srcFile.copyToDirectory(dest.parent))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -235,7 +235,7 @@ class CopyKtTest {
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName).writeText("old")
+                val dest = createTempDirectory().resolve(srcFile.fileName).writeText("old")
                 expect {
                     catching { srcFile.copyToDirectory(dest.parent) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -245,7 +245,7 @@ class CopyKtTest {
             @Test
             fun `should throw on existing directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName).createDirectories().apply { randomFile().writeText("old") }
+                val dest = createTempDirectory().resolve(srcFile.fileName).createDirectories().apply { createTempFile().writeText("old") }
                 expect {
                     catching { srcFile.copyToDirectory(dest.parent) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest.listDirectoryEntries().single()).hasContent("old")
@@ -255,7 +255,7 @@ class CopyKtTest {
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName).writeText("old")
+                val dest = createTempDirectory().resolve(srcFile.fileName).writeText("old")
                 expectThat(srcFile.copyToDirectory(dest.parent, overwrite = true))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -264,7 +264,7 @@ class CopyKtTest {
             @Test
             fun `should override existing directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName).createDirectories().apply { randomFile().writeText("old") }
+                val dest = createTempDirectory().resolve(srcFile.fileName).createDirectories().apply { createTempFile().writeText("old") }
                 expectThat(srcFile.copyToDirectory(dest.parent, overwrite = true))
                     .hasContent("test file")
                     .isEqualTo(dest)
@@ -273,7 +273,7 @@ class CopyKtTest {
             @Test
             fun `should not copy attributes by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName)
+                val dest = createTempDirectory().resolve(srcFile.fileName)
                 expectThat(srcFile.copyToDirectory(dest.parent))
                     .get { age }.isLessThan(10.seconds)
             }
@@ -281,7 +281,7 @@ class CopyKtTest {
             @Test
             fun `should copy attributes if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcFile = getTestFile()
-                val dest = randomDirectory().resolve(srcFile.fileName)
+                val dest = createTempDirectory().resolve(srcFile.fileName)
                 expectThat(srcFile.copyToDirectory(dest.parent, preserve = true))
                     .get { age }.isGreaterThan(6.9.days).isLessThan(7.1.days)
             }
@@ -293,7 +293,7 @@ class CopyKtTest {
             @Test
             fun `should copy directory if destination not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName)
+                val dest = createTempDirectory().resolve(srcDir.fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent))
                     .isCopyOf(srcDir)
                     .isEqualTo(dest)
@@ -302,7 +302,7 @@ class CopyKtTest {
             @Test
             fun `should create missing directories on missing destination parent`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomPath().resolve(srcDir.fileName)
+                val dest = resolve("path").resolve(srcDir.fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent))
                     .isCopyOf(srcDir)
                     .isEqualTo(dest)
@@ -311,7 +311,7 @@ class CopyKtTest {
             @Test
             fun `should throw on existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName).writeText("old")
+                val dest = createTempDirectory().resolve(srcDir.fileName).writeText("old")
                 expect {
                     catching { srcDir.copyToDirectory(dest.parent) }.isFailure().isA<FileAlreadyExistsException>()
                     that(dest).hasContent("old")
@@ -321,7 +321,7 @@ class CopyKtTest {
             @Test
             fun `should merge on existing directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName).apply { randomFile().writeText("old") }
+                val dest = createTempDirectory().resolve(srcDir.fileName).createDirectory().apply { createTempFile().writeText("old") }
                 val alreadyExistingFile = dest.listDirectoryEntries().single()
                 expectThat(srcDir.copyToDirectory(dest.parent))
                     .containsAllFiles(srcDir)
@@ -332,7 +332,7 @@ class CopyKtTest {
             @Test
             fun `should override existing file destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName).writeText("old")
+                val dest = createTempDirectory().resolve(srcDir.fileName).writeText("old")
                 expectThat(srcDir.copyToDirectory(dest.parent, overwrite = true))
                     .isCopyOf(srcDir)
                     .isEqualTo(dest)
@@ -341,7 +341,7 @@ class CopyKtTest {
             @Test
             fun `should merge on overwriting non-empty directory destination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(srcDir.fileName).apply { randomFile().writeText("old") }
+                val dest = createTempDirectory("dest").resolve(srcDir.fileName).createDirectory().apply { createTempTextFile("old") }
                 val alreadyExistingFile = dest.listDirectoryEntries().single()
                 expectThat(srcDir.copyToDirectory(dest.parent, overwrite = true))
                     .containsAllFiles(srcDir)
@@ -352,7 +352,7 @@ class CopyKtTest {
             @Test
             fun `should not copy attributes by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(fileName)
+                val dest = createTempDirectory().resolve(fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent)) {
                     get { listDirectoryEntriesRecursively() }.all {
                         get { age }.isLessThan(10.seconds)
@@ -363,7 +363,7 @@ class CopyKtTest {
             @Test
             fun `should copy attributes if specified for all but not-empty directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val srcDir = getTestDir()
-                val dest = randomDirectory().resolve(fileName)
+                val dest = createTempDirectory().resolve(fileName)
                 expectThat(srcDir.copyToDirectory(dest.parent, preserve = true)) {
                     get { listDirectoryEntriesRecursively().filter { !it.isDirectory() || it.isEmpty() } }.all {
                         get { age }.isGreaterThan(6.9.days).isLessThan(7.1.days)
@@ -377,12 +377,12 @@ class CopyKtTest {
     @Nested
     inner class CopyToTemp {
 
-        private fun Path.getTestFile() = randomFile(extension = ".txt").writeText("test file").apply { lastModified -= 7.days }
+        private fun Path.getTestFile() = createTempFile(suffix = ".txt").writeText("test file").apply { lastModified -= 7.days }
         private fun Path.getTestDir() = directoryWithTwoFiles().apply { listDirectoryEntriesRecursively().forEach { it.lastModified -= 7.days } }
 
         @Test
         fun `should throw on missing src`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val src = randomPath(extension = ".txt")
+            val src = resolve("path.txt")
             expectCatching { src.copyToTemp() }.isFailure().isA<NoSuchFileException>()
         }
 
@@ -410,40 +410,13 @@ class CopyKtTest {
             }
         }
     }
-
-
-    @Nested
-    inner class Duplicate {
-
-        @Test
-        fun `should duplicate file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = resolve("file-dir").singleFile().renameTo("file.ext")
-            val copy = file.duplicate()
-            expectThat(copy) {
-                isCopyOf(file)
-                fileName.isEqualTo(file.fileName)
-                isSiblingOf(file)
-            }
-        }
-
-        @Test
-        fun `should duplicate directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dir = resolve("dir-dir").directoryWithTwoFiles().renameTo("dir")
-            val copy = dir.duplicate()
-            expectThat(copy) {
-                isCopyOf(dir)
-                fileName.isEqualTo(dir.fileName)
-                isSiblingOf(dir)
-            }
-        }
-    }
 }
 
 
 fun <T : Path> Assertion.Builder<T>.createsEqualTar(other: Path) =
     assert("is copy of $other") { self ->
-        val selfTar = self.tar(tempFile()).deleteOnExit(true)
-        val otherTar = other.tar(tempFile()).deleteOnExit(true)
+        val selfTar = self.tar(createTempFile()).deleteOnExit(true)
+        val otherTar = other.tar(createTempFile()).deleteOnExit(true)
 
         val selfBytes = selfTar.readBytes()
         val otherBytes = otherTar.readBytes()

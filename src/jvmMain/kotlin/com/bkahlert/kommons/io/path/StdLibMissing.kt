@@ -26,6 +26,7 @@ import kotlin.io.path.writeText
 import kotlin.io.path.appendBytes as kotlinAppendBytes
 import kotlin.io.path.writeBytes as kotlinWriteBytes
 
+// TODO migrate
 /*
  * Opinionated list of missing StdLib extension functions.
  */

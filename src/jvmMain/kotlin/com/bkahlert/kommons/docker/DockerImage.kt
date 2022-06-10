@@ -2,8 +2,6 @@ package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.builder.StatelessBuilder
-import com.bkahlert.kommons.collections.head
-import com.bkahlert.kommons.collections.tail
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
 import com.bkahlert.kommons.docker.DockerImage.Companion.parse
 import com.bkahlert.kommons.docker.DockerImage.ImageContext
@@ -14,11 +12,13 @@ import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.parse
-import com.bkahlert.kommons.leftOrElse
+import com.bkahlert.kommons.fold
+import com.bkahlert.kommons.head
 import com.bkahlert.kommons.requireSaneInput
+import com.bkahlert.kommons.tail
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.takeUnlessBlank
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],
@@ -92,7 +92,7 @@ public open class DockerImage(
      */
     public fun list(
         ignoreIntermediateImages: Boolean = true,
-    ): List<DockerImage> =
+    ): Set<DockerImage> =
         DockerImageListCommandLine(this, !ignoreIntermediateImages)
             .exec.logging(renderer = noDetails())
             .parseImages()
@@ -181,7 +181,6 @@ public open class DockerImage(
     override fun hashCode(): Int {
         var result = repository.hashCode()
         result = 31 * result + path.hashCode()
-        result = 31 * result + specifier.hashCode()
         return result
     }
 
@@ -264,7 +263,7 @@ public open class DockerImage(
          */
         public fun list(
             ignoreIntermediateImages: Boolean = true,
-        ): List<DockerImage> =
+        ): Set<DockerImage> =
             DockerImageListCommandLine(all = !ignoreIntermediateImages)
                 .exec.logging(renderer = noDetails())
                 .parseImages()
@@ -278,11 +277,11 @@ public open class DockerImage(
  */
 public typealias DockerImageInit = ImageContext.() -> CharSequence
 
-private fun Exec.parseImages(): List<DockerImage> {
+private fun Exec.parseImages(): Set<DockerImage> {
     return parse.columns<DockerImage, Failed>(3) { (repoAndPath, tag, digest) ->
         val (repository, path) = repoAndPath.split("/").let { it.head to it.tail }
         repository.takeUnlessBlank()?.let { repo ->
             DockerImage(repo, path, tag.takeUnlessBlank(), digest.takeUnlessBlank())
         }
-    } leftOrElse { emptyList() }
+    }.fold({ it.toSet() }, { emptySet() })
 }

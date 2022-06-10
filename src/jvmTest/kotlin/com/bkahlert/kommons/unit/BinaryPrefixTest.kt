@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.unit
 
 import com.bkahlert.kommons.math.BigDecimal
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
 class BinaryPrefixTest {
 
     @TestFactory
-    fun `should format integer binary form`() = testEach(
+    fun `should format integer binary form`() = testEachOld(
         4_200_000.Yobi to "5077488442381442533765939200000",
         4_200.Yobi to "5077488442381442533765939200",
         42.Yobi to "50774884423814425337659392",
@@ -32,7 +32,7 @@ class BinaryPrefixTest {
     }
 
     @TestFactory
-    fun `should format fraction binary form`() = testEach(
+    fun `should format fraction binary form`() = testEachOld(
         4_200_000.Gibi to "4509715660800000",
         4_200.Gibi to "4509715660800",
         420.Gibi to "450971566080",

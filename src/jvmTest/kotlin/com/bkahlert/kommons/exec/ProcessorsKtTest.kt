@@ -16,7 +16,6 @@ import com.bkahlert.kommons.tracing.expectTraced
 import com.bkahlert.kommons.tracing.hasSpanAttribute
 import com.bkahlert.kommons.tracing.spanName
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -25,7 +24,6 @@ import strikt.assertions.isLessThan
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
-@Tag("xxx")
 class ProcessorsKtTest {
 
     @Nested

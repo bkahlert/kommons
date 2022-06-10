@@ -10,15 +10,15 @@ import com.bkahlert.kommons.io.path.hasSameFiles
 import com.bkahlert.kommons.io.path.removeExtensions
 import com.bkahlert.kommons.io.path.renameTo
 import com.bkahlert.kommons.io.path.touch
-import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.Fixtures.archiveWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.unit.bytes
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isLessThan
@@ -26,22 +26,21 @@ import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import kotlin.io.path.div
 import kotlin.io.path.writeText
 
 class TarArchiveGzCompressorTest {
 
     @TestFactory
-    fun `should throw on missing source`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
-        { randomPath().tarGzip() },
-        { randomPath(extension = ".tar.gz").tarGunzip() },
+    fun `should throw on missing source`(@TempDir tempDir: Path) = testEachOld<(Path) -> Path>(
+        { (it / "missing").tarGzip() },
+        { (it / "missing.tar.gz").tarGunzip() },
     ) { call ->
-        withTempDir(uniqueId) {
-            expectThrows<NoSuchFileException> { call() }
-        }
+        expectThrows<NoSuchFileException> { call(tempDir) }
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar.gz").touch().writeText("content") }.tarGzip() },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("tar.gz")) }.tarGunzip() },
     ) { call ->
@@ -51,7 +50,7 @@ class TarArchiveGzCompressorTest {
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar.gz").touch().writeText("content") }.tarGzip(overwrite = true) },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("tar.gz")) }.tarGunzip(overwrite = true) },
     ) { call ->

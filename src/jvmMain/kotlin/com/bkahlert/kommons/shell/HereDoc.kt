@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.shell
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.builder.Builder
 import com.bkahlert.kommons.builder.Init
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.shell.HereDoc.Companion.HereDocContext
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.singleQuoted
 
 /**
@@ -43,7 +43,7 @@ public class HereDoc(
         "<<${delimiter.takeIf { substituteParameters } ?: delimiter.singleQuoted}",
         *commands,
         delimiter,
-    ).joinLinesToString()
+    ).joinToString(LineSeparators.Default)
 
     override val length: Int = rendered.length
     override fun get(index: Int): Char = rendered[index]

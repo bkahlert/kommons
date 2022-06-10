@@ -1,11 +1,10 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.LineSeparators.CR
 import com.bkahlert.kommons.text.LineSeparators.CRLF
 import com.bkahlert.kommons.text.LineSeparators.LF
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
 import strikt.assertions.first
@@ -15,14 +14,13 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.last
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
-@Tag("xxx")
 class GraphemeClusterTest {
 
     @Nested
     inner class AsGraphemeClusterSequence {
 
         @TestFactory
-        fun `should handle empty string`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
+        fun `should handle empty string`() = testEachOld<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
@@ -30,7 +28,7 @@ class GraphemeClusterTest {
         }
 
         @TestFactory
-        fun `should handle control characters`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
+        fun `should handle control characters`() = testEachOld<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
@@ -63,7 +61,7 @@ class GraphemeClusterTest {
         }
 
         @TextWidthRequiring @TestFactory
-        fun `should handle multi-codepoint clusters`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
+        fun `should handle multi-codepoint clusters`() = testEachOld<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
@@ -76,7 +74,7 @@ class GraphemeClusterTest {
         }
 
         @TestFactory
-        fun `should handle multi-chars codepoints`() = testEach<CharSequence.() -> List<GraphemeCluster>>(
+        fun `should handle multi-chars codepoints`() = testEachOld<CharSequence.() -> List<GraphemeCluster>>(
             { asGraphemeClusterSequence().toList() },
             { toGraphemeClusterList() },
         ) { fn ->
@@ -89,7 +87,7 @@ class GraphemeClusterTest {
     }
 
     @TestFactory
-    fun `should return input string`() = testEach(
+    fun `should return input string`() = testEachOld(
         "A",
         "曲",
         "🟥",
@@ -103,7 +101,7 @@ class GraphemeClusterTest {
     }
 
     @TestFactory
-    fun `should return grapheme cluster count`() = testEach(
+    fun `should return grapheme cluster count`() = testEachOld(
         "" to 0,
         "$e" to 1,
         "${e}M" to 2,
@@ -116,14 +114,14 @@ class GraphemeClusterTest {
     }
 
     @TextWidthRequiring @TestFactory
-    fun `should return grapheme cluster count for combining characters`() = testEach(
+    fun `should return grapheme cluster count for combining characters`() = testEachOld(
         "a̳o" to 2,
     ) { (string, expectedCount) ->
         expecting { string.graphemeClusterCount } that { isEqualTo(expectedCount) }
     }
 
     @TestFactory
-    fun `should map grapheme clusters`() = testEach(
+    fun `should map grapheme clusters`() = testEachOld(
         "" to emptyList(),
         "$e" to listOf(1),
         "${e}M" to listOf(1, 1),
@@ -137,7 +135,7 @@ class GraphemeClusterTest {
     }
 
     @TextWidthRequiring @TestFactory
-    fun `should map grapheme clusters for combining characters`() = testEach(
+    fun `should map grapheme clusters for combining characters`() = testEachOld(
         "a̳o" to listOf(2, 1),
     ) { (string, expectedCount) ->
         expecting { string.mapGraphemeClusters { it.codePoints.size } } that {

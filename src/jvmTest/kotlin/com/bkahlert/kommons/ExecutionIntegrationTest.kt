@@ -30,7 +30,6 @@ import com.bkahlert.kommons.tracing.rendering.Styles.Dotted
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
 import com.bkahlert.kommons.tracing.runSpanning
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.Assertion
@@ -47,7 +46,6 @@ import strikt.java.exists
 import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 
-@Tag("xxx")
 @Smoke @Isolated
 class ExecutionIntegrationTest {
 
@@ -156,7 +154,7 @@ class ExecutionIntegrationTest {
 
     @Test
     fun `should be simple`() {
-        tempDir().apply {
+        withTempDirectory {
 
             ShellScript { "cat sample.html" }.exec(this) check {
                 io.error.ansiRemoved { contains("cat: sample.html: No such file or directory") }
@@ -184,7 +182,7 @@ class ExecutionIntegrationTest {
     fun `should exec using docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
 
         CommandLine("printenv", "HOME").exec() check {
-            io.output.ansiRemoved { isEqualTo(Locations.Default.Home.pathString) }
+            io.output.ansiRemoved { isEqualTo(SystemLocations.Home.pathString) }
         }
 
         CommandLine("printenv", "HOME").dockerized { "ubuntu" }.exec() check {

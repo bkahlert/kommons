@@ -1,15 +1,15 @@
 package com.bkahlert.kommons.net
 
-import com.bkahlert.kommons.debug.FF
-import com.bkahlert.kommons.debug.OO
+import com.bkahlert.kommons.FF
+import com.bkahlert.kommons.OO
+import com.bkahlert.kommons.bigIntegerOf
 import com.bkahlert.kommons.math.BigInteger
-import com.bkahlert.kommons.math.bigIntegerOf
 import com.bkahlert.kommons.math.minus
 import com.bkahlert.kommons.math.plus
 import com.bkahlert.kommons.math.shl
 import com.bkahlert.kommons.math.toUByteArray
-import com.bkahlert.kommons.math.trim
 import com.bkahlert.kommons.ranges.map
+import com.bkahlert.kommons.trim
 
 /**
  * Implementations of this interface provide means to map

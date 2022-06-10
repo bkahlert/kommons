@@ -1,6 +1,8 @@
 package com.bkahlert.kommons.shell
 
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.SystemLocations
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.docker.DockerContainer
 import com.bkahlert.kommons.docker.DockerImage
 import com.bkahlert.kommons.docker.DockerRunCommandLine
@@ -18,7 +20,6 @@ import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.io.path.isSubPathOf
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.writeBytes
-import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.shell.ShellScript.Companion.isScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.test.Slow
@@ -26,21 +27,19 @@ import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.string
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.Banner
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.lines
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -54,6 +53,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
@@ -63,18 +63,18 @@ import strikt.java.fileName
 import strikt.java.isExecutable
 import java.net.URI
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.concurrent.thread
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.time.measureTime
 import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
-@Tag("xxx")
 class ShellScriptTest {
 
     private fun shellScript(name: String? = "Test") = ShellScript(name) {
         shebang
-        changeDirectoryOrExit(Path.of("/some/where"))
+        changeDirectoryOrExit(Paths.get("/some/where"))
         echo("Hello World!")
         echo("Bye!")
         exit(42u)
@@ -138,20 +138,20 @@ class ShellScriptTest {
         fun `should use name for filename`(uniqueId: UniqueId) = withTempDir(uniqueId) {
             val file = shellScript("my script").toFile()
             expectThat(file)
-                .isSubPathOf(Locations.Default.Temp)
+                .isSubPathOf(SystemLocations.Temp)
                 .fileName.pathString.startsWith("my-script")
         }
 
         @Test
         fun `should write executable script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = randomFile(extension = ".sh")
+            val file = createTempFile(suffix = ".sh")
             val returnedScript = shellScript().toFile(file)
             expectThat(returnedScript).isExecutable()
         }
 
         @Test
         fun `should return same file as saved to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = randomFile(extension = ".sh")
+            val file = createTempFile(suffix = ".sh")
             val returnedScript = shellScript().toFile(file)
             expectThat(returnedScript).isEqualTo(file)
         }
@@ -421,7 +421,7 @@ class ShellScriptTest {
         inner class WithLine {
 
             @TestFactory
-            fun `should or`() = testEach(
+            fun `should or`() = testEachOld(
                 ShellScript { echo("A") or echo("B"); echo("C") },
                 ShellScript { echo("A") or "'echo' 'B'"; echo("C") },
             ) {
@@ -429,7 +429,7 @@ class ShellScriptTest {
             }
 
             @TestFactory
-            fun `should or at end`() = testEach(
+            fun `should or at end`() = testEachOld(
                 ShellScript { echo("A"); echo("B") or echo("C") },
                 ShellScript { echo("A"); echo("B") or "'echo' 'C'" },
             ) {
@@ -437,7 +437,7 @@ class ShellScriptTest {
             }
 
             @TestFactory
-            fun `should and`() = testEach(
+            fun `should and`() = testEachOld(
                 ShellScript { echo("A") and echo("B"); echo("C") },
                 ShellScript { echo("A") and "'echo' 'B'"; echo("C") },
             ) {
@@ -445,7 +445,7 @@ class ShellScriptTest {
             }
 
             @TestFactory
-            fun `should and at end`() = testEach(
+            fun `should and at end`() = testEachOld(
                 ShellScript { echo("A"); echo("B") and echo("C") },
                 ShellScript { echo("A"); echo("B") and "'echo' 'C'" },
             ) {
@@ -480,7 +480,7 @@ class ShellScriptTest {
         }
 
         @TestFactory
-        fun `should echo`() = testEach<Pair<String, ScriptInit>>(
+        fun `should echo`() = testEachOld<Pair<String, ScriptInit>>(
             "'echo'" to { echo() },
             "'echo' 'Hello!'" to { echo("Hello!") },
             "'echo' 'Hello World!'" to { echo("Hello World!") },
@@ -543,11 +543,11 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should exit with 124 on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should exit with non zero on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
                 val exec = ShellScript {
                     poll(URI("http://localhost:8905"), timeout = 1.seconds)
                 }.exec.logging()
-                expectThat(exec.exitCode).isEqualTo(124)
+                expectThat(exec.exitCode).isNotEqualTo(0)
             }
 
             @Test
@@ -666,7 +666,7 @@ class ShellScriptTest {
 
                 expect {
                     that(exec.exitCodeOrNull).isEqualTo(0)
-                    that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinLinesToString())
+                    that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinToString(LineSeparators.Default))
                         .matchesCurlyPattern(
                             """
                         about to run embedded script
@@ -696,8 +696,8 @@ class ShellScriptTest {
                         options = Options(
                             name = DockerContainer.from("container-name"),
                             mounts = MountOptions {
-                                Path.of("/a/b") mountAt "/c/d"
-                                Path.of("/e/f/../g") mountAt "//h"
+                                Paths.get("/a/b") mountAt "/c/d"
+                                Paths.get("/e/f/../g") mountAt "//h"
                             },
                         ),
                         executable = CommandLine("-arg1", "--argument", "2"),
@@ -833,7 +833,7 @@ class ShellScriptTest {
     inner class CompanionObject {
 
         @TestFactory
-        fun `should check if is script`(uniqueId: UniqueId) = tests {
+        fun `should check if is script`(uniqueId: UniqueId) = testsOld {
             withTempDir(uniqueId) {
                 expecting { "#!".toByteArray() } that { isScript() }
                 expecting { "#".toByteArray() } that { not { isScript() } }
@@ -843,9 +843,9 @@ class ShellScriptTest {
                 expecting { "#" } that { not { isScript() } }
                 expecting { "foo" } that { not { isScript() } }
 
-                expecting { randomFile().writeBytes("#!".toByteArray()) } that { isScript() }
-                expecting { randomFile().writeBytes("#".toByteArray()) } that { not { isScript() } }
-                expecting { randomFile().writeBytes("foo".toByteArray()) } that { not { isScript() } }
+                expecting { createTempFile().writeBytes("#!".toByteArray()) } that { isScript() }
+                expecting { createTempFile().writeBytes("#".toByteArray()) } that { not { isScript() } }
+                expecting { createTempFile().writeBytes("foo".toByteArray()) } that { not { isScript() } }
                 expecting { resolve("does-not-exist") } that { not { isScript() } }
             }
         }

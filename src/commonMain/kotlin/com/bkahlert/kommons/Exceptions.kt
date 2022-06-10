@@ -1,12 +1,10 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.text.joinLinesToString
-
 private fun <T : Throwable> Array<out String>.letMessage(init: (String) -> T): T? =
-    if (isNotEmpty()) init(joinLinesToString()) else null
+    if (isNotEmpty()) init(joinToString(LineSeparators.Default)) else null
 
 private fun <T : Throwable> Collection<String>.letMessage(init: (String) -> T): T? =
-    if (isNotEmpty()) init(joinLinesToString()) else null
+    if (isNotEmpty()) init(joinToString(LineSeparators.Default)) else null
 
 /**
  * Collection of [Throwable] factories.

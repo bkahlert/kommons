@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.SystemIOExclusive
-import com.bkahlert.kommons.test.junit.TestName
+import com.bkahlert.kommons.test.junit.DisplayName
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
@@ -17,7 +17,6 @@ import com.bkahlert.kommons.tracing.rendering.ReturnValue
 import com.bkahlert.kommons.tracing.rendering.Styles
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
@@ -26,7 +25,6 @@ import strikt.assertions.first
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
-@Tag("xxx")
 @Isolated
 @SystemIOExclusive
 @NoTestSpan
@@ -86,28 +84,35 @@ class RenderingSpanScopeKtTest {
             inner class NestedSpanning {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = spanScope { runSpanning(testName) { registerAsTestSpan(); SpanId.current } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = spanScope { runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = spanScope { runSpanning(testName) { registerAsTestSpan(); TraceId.current } }
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = spanScope { runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); TraceId.current } }
                     expectThat(traceId).isValid()
                     traceId.expectTraced().spanNames.containsExactly("RenderingSpanScopeKtTest ➜ Tracing ➜ WithNoSpanScope ➜ NestedSpanning ➜ should trace")
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    spanScope { runSpanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); log("event α") } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴$testName
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    spanScope {
+                        runSpanning(
+                            displayName.composedDisplayName,
+                            layout = ColumnsLayout(DESCRIPTION columns 200)
+                        ) { registerAsTestSpan(); log("event α") }
+                    }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
+                        ╭──╴${displayName.composedDisplayName}
                         │
                         │   event α                                                                         
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
         }
@@ -119,20 +124,20 @@ class RenderingSpanScopeKtTest {
             inner class TopLevel {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = withRootSpan(testName) { spanScope { SpanId.current } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = withRootSpan(displayName) { spanScope { SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = withRootSpan(testName) { spanScope { TraceId.current } }
-                    traceId.expectTraced().spanNames.containsExactly(testName.value)
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = withRootSpan(displayName) { spanScope { TraceId.current } }
+                    traceId.expectTraced().spanNames.containsExactly(displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should not render`(testName: TestName, output: CapturedOutput) {
-                    withRootSpan(testName) { spanScope { log("event α") } }
+                fun `should not render`(displayName: DisplayName, output: CapturedOutput) {
+                    withRootSpan(displayName) { spanScope { log("event α") } }
                     expectThat(output.all).isEmpty()
                 }
             }
@@ -141,20 +146,20 @@ class RenderingSpanScopeKtTest {
             inner class NestedTracing {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = withRootSpan(testName) { spanScope { spanScope { SpanId.current } } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = withRootSpan(displayName) { spanScope { spanScope { SpanId.current } } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = withRootSpan(testName) { spanScope { spanScope { TraceId.current } } }
-                    traceId.expectTraced().spanNames.containsExactly(testName.value)
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = withRootSpan(displayName) { spanScope { spanScope { TraceId.current } } }
+                    traceId.expectTraced().spanNames.containsExactly(displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should not render`(testName: TestName, output: CapturedOutput) {
-                    withRootSpan(testName) { spanScope { spanScope { log("event α") } } }
+                fun `should not render`(displayName: DisplayName, output: CapturedOutput) {
+                    withRootSpan(displayName) { spanScope { spanScope { log("event α") } } }
                     expectThat(output.all).isEmpty()
                 }
             }
@@ -163,28 +168,30 @@ class RenderingSpanScopeKtTest {
             inner class NestedSpanning {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = withRootSpan(testName) { spanScope { runSpanning("child") { SpanId.current } } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = withRootSpan(displayName) { spanScope { runSpanning("child") { SpanId.current } } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = withRootSpan(testName) { spanScope { runSpanning("child") { TraceId.current } } }
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = withRootSpan(displayName) { spanScope { runSpanning("child") { TraceId.current } } }
                     expectThat(traceId).isValid()
-                    traceId.expectTraced().spanNames.containsExactly("child", testName.value)
+                    traceId.expectTraced().spanNames.containsExactly("child", displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    withRootSpan(testName) { spanScope { runSpanning("child") { log("event α") } } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    withRootSpan(displayName) { spanScope { runSpanning("child") { log("event α") } } }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
                         ╭──╴child
                         │
                         │   event α                                                                         
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
         }
@@ -200,27 +207,29 @@ class RenderingSpanScopeKtTest {
             inner class TopLevel {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = runSpanning(testName) { registerAsTestSpan(); SpanId.current }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); SpanId.current }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = runSpanning(testName) { registerAsTestSpan(); TraceId.current }
-                    traceId.expectTraced().spanNames.containsExactly(testName.value)
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); TraceId.current }
+                    traceId.expectTraced().spanNames.containsExactly(displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    runSpanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); log("event α") }
-                    expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴$testName
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    runSpanning(displayName.composedDisplayName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); log("event α") }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
+                        ╭──╴${displayName.composedDisplayName}
                         │
                         │   event α                                                                         
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
 
@@ -228,27 +237,32 @@ class RenderingSpanScopeKtTest {
             inner class NestedTracing {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = runSpanning(testName) { registerAsTestSpan(); spanScope { SpanId.current } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); spanScope { SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = runSpanning(testName) { registerAsTestSpan(); spanScope { TraceId.current } }
-                    traceId.expectTraced().spanNames.containsExactly(testName.value)
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); spanScope { TraceId.current } }
+                    traceId.expectTraced().spanNames.containsExactly(displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    runSpanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); spanScope { log("event α") } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴$testName
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    runSpanning(
+                        displayName.composedDisplayName,
+                        layout = ColumnsLayout(DESCRIPTION columns 200)
+                    ) { registerAsTestSpan(); spanScope { log("event α") } }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
+                        ╭──╴${displayName.composedDisplayName}
                         │
                         │   event α                                                                         
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
 
@@ -256,23 +270,27 @@ class RenderingSpanScopeKtTest {
             inner class NestedSpanning {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = runSpanning(testName) { registerAsTestSpan(); runSpanning("child") { SpanId.current } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); runSpanning("child") { SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = runSpanning(testName) { registerAsTestSpan(); runSpanning("child") { TraceId.current } }
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); runSpanning("child") { TraceId.current } }
                     expectThat(traceId).isValid()
-                    traceId.expectTraced().spanNames.containsExactly("child", testName.value)
+                    traceId.expectTraced().spanNames.containsExactly("child", displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    runSpanning(testName, layout = ColumnsLayout(DESCRIPTION columns 200)) { registerAsTestSpan(); runSpanning("child") { log("event α") } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
-                        ╭──╴$testName
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    runSpanning(
+                        displayName.composedDisplayName,
+                        layout = ColumnsLayout(DESCRIPTION columns 200)
+                    ) { registerAsTestSpan(); runSpanning("child") { log("event α") } }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
+                        ╭──╴${displayName.composedDisplayName}
                         │
                         │   ╭──╴child
                         │   │
@@ -281,7 +299,8 @@ class RenderingSpanScopeKtTest {
                         │   ╰──╴✔︎
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
         }
@@ -293,27 +312,29 @@ class RenderingSpanScopeKtTest {
             inner class TopLevel {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = withRootSpan(testName) { runSpanning("parent") { SpanId.current } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = withRootSpan(displayName) { runSpanning("parent") { SpanId.current } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = withRootSpan(testName) { runSpanning("parent") { TraceId.current } }
-                    traceId.expectTraced().spanNames.containsExactly("parent", testName.value)
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = withRootSpan(displayName) { runSpanning("parent") { TraceId.current } }
+                    traceId.expectTraced().spanNames.containsExactly("parent", displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    withRootSpan(testName) { runSpanning("parent") { log("event α") } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    withRootSpan(displayName) { runSpanning("parent") { log("event α") } }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
                         ╭──╴parent
                         │
                         │   event α                                                                         
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
 
@@ -321,27 +342,29 @@ class RenderingSpanScopeKtTest {
             inner class NestedTracing {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = withRootSpan(testName) { runSpanning("parent") { spanScope { SpanId.current } } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = withRootSpan(displayName) { runSpanning("parent") { spanScope { SpanId.current } } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = withRootSpan(testName) { runSpanning("parent") { spanScope { TraceId.current } } }
-                    traceId.expectTraced().spanNames.containsExactly("parent", testName.value)
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = withRootSpan(displayName) { runSpanning("parent") { spanScope { TraceId.current } } }
+                    traceId.expectTraced().spanNames.containsExactly("parent", displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    withRootSpan(testName) { runSpanning("parent") { spanScope { log("event α") } } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    withRootSpan(displayName) { runSpanning("parent") { spanScope { log("event α") } } }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
                         ╭──╴parent
                         │
                         │   event α                                                                         
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
 
@@ -349,22 +372,23 @@ class RenderingSpanScopeKtTest {
             inner class NestedSpanning {
 
                 @Test
-                fun `should have valid span`(testName: TestName) {
-                    val spanId = withRootSpan(testName) { runSpanning("parent") { runSpanning("child") { SpanId.current } } }
+                fun `should have valid span`(displayName: DisplayName) {
+                    val spanId = withRootSpan(displayName) { runSpanning("parent") { runSpanning("child") { SpanId.current } } }
                     expectThat(spanId).isValid()
                 }
 
                 @Test
-                fun `should trace`(testName: TestName) {
-                    val traceId = withRootSpan(testName) { runSpanning("parent") { runSpanning("child") { TraceId.current } } }
+                fun `should trace`(displayName: DisplayName) {
+                    val traceId = withRootSpan(displayName) { runSpanning("parent") { runSpanning("child") { TraceId.current } } }
                     expectThat(traceId).isValid()
-                    traceId.expectTraced().spanNames.containsExactly("child", "parent", testName.value)
+                    traceId.expectTraced().spanNames.containsExactly("child", "parent", displayName.composedDisplayName)
                 }
 
                 @Test
-                fun `should render`(testName: TestName, output: CapturedOutput) {
-                    withRootSpan(testName) { runSpanning("parent") { runSpanning("child") { log("event α") } } }
-                    expectThat(output).toStringMatchesCurlyPattern("""
+                fun `should render`(displayName: DisplayName, output: CapturedOutput) {
+                    withRootSpan(displayName) { runSpanning("parent") { runSpanning("child") { log("event α") } } }
+                    expectThat(output).toStringMatchesCurlyPattern(
+                        """
                         ╭──╴parent
                         │
                         │   ╭──╴child
@@ -374,7 +398,8 @@ class RenderingSpanScopeKtTest {
                         │   ╰──╴✔︎
                         │
                         ╰──╴✔︎
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
             }
         }
@@ -385,15 +410,15 @@ class RenderingSpanScopeKtTest {
             private val renderableName = Renderable { columns, rows -> "$columns x $rows" }
 
             @Test
-            fun `should use render with null args as recorded name`(testName: TestName) {
-                val traceId = withRootSpan(testName) { runSpanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { TraceId.current } }
+            fun `should use render with null args as recorded name`(displayName: DisplayName) {
+                val traceId = withRootSpan(displayName) { runSpanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { TraceId.current } }
                 traceId.expectTraced().spanNames.first()
                     .isEqualTo("null x null")
             }
 
             @Test
-            fun `should use render as rendered name`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { runSpanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { } }
+            fun `should use render as rendered name`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) { runSpanning(renderableName, nameFormatter = FilteringFormatter.ToCharSequence) { } }
                 expectThat(output).toStringMatchesCurlyPattern("╶──╴null x null ✔︎")
             }
         }
@@ -402,106 +427,122 @@ class RenderingSpanScopeKtTest {
         inner class CustomSettings {
 
             @Test
-            fun `should update name formatter`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { runSpanning("name", nameFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).toStringMatchesCurlyPattern("""
+            fun `should update name formatter`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) { runSpanning("name", nameFormatter = { "!$it!" }) { log("message") } }
+                expectThat(output).toStringMatchesCurlyPattern(
+                    """
                     ╭──╴!name!
                     │
                     │   message                                                                         
                     │
                     ╰──╴✔︎
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
-            fun `should update content formatter`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { runSpanning("name", contentFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).toStringMatchesCurlyPattern("""
+            fun `should update content formatter`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) { runSpanning("name", contentFormatter = { "!$it!" }) { log("message") } }
+                expectThat(output).toStringMatchesCurlyPattern(
+                    """
                     ╭──╴name
                     │
                     │   !message!                                                                       
                     │
                     ╰──╴✔︎
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
-            fun `should update decoration formatter`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { runSpanning("name", decorationFormatter = { "!$it!" }) { log("message") } }
-                expectThat(output).toStringMatchesCurlyPattern("""
+            fun `should update decoration formatter`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) { runSpanning("name", decorationFormatter = { "!$it!" }) { log("message") } }
+                expectThat(output).toStringMatchesCurlyPattern(
+                    """
                     !╭──╴!name
                     !│!
                     !│!   message                                                                         
                     !│!
                     !╰──╴!✔︎
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
-            fun `should update return value transform`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) {
+            fun `should update return value transform`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) {
                     runSpanning("name", returnValueTransform = {
                         object : ReturnValue by it {
                             override fun format(): String = "✌️"
                         }
                     }) { log("message") }
                 }
-                expectThat(output).toStringMatchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern(
+                    """
                     ╭──╴name
                     │
                     │   message                                                                         
                     │
                     ╰──╴✌️
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
-            fun `should update layout`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) {
-                    runSpanning("${"1234567".ansi.blue}     ${"12345".ansi.brightBlue}",
+            fun `should update layout`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) {
+                    runSpanning(
+                        "${"1234567".ansi.blue}     ${"12345".ansi.brightBlue}",
                         style = None,
-                        layout = ColumnsLayout(DESCRIPTION columns 7, EXTRA columns 5)) {
+                        layout = ColumnsLayout(DESCRIPTION columns 7, EXTRA columns 5)
+                    ) {
                         @Suppress("SpellCheckingInspection")
                         log("messagegoes      here", EXTRA to "worksgreat-----")
                     }
                 }
-                expectThat(output).toStringMatchesCurlyPattern("""
+                expectThat(output).toStringMatchesCurlyPattern(
+                    """
                     1234567     12345
                     message     works
                     goes        great
                        here     -----
                     ✔︎
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
-            fun `should update block style`(testName: TestName, output: CapturedOutput) {
-                withRootSpan(testName) { runSpanning("name", style = Styles.Dotted) { log("message") } }
-                expectThat(output).toStringMatchesCurlyPattern("""
+            fun `should update block style`(displayName: DisplayName, output: CapturedOutput) {
+                withRootSpan(displayName) { runSpanning("name", style = Styles.Dotted) { log("message") } }
+                expectThat(output).toStringMatchesCurlyPattern(
+                    """
                     ▶ name
                     · message                                                                         
                     ✔︎
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             @Test
-            fun `should update printer`(testName: TestName, output: CapturedOutput) {
+            fun `should update printer`(displayName: DisplayName, output: CapturedOutput) {
                 val rendered = mutableListOf<CharSequence>()
-                withRootSpan(testName) { runSpanning("name", printer = { rendered.add(it) }) { log("message") } }
+                withRootSpan(displayName) { runSpanning("name", printer = { rendered.add(it) }) { log("message") } }
                 expectThat(output.all).isEmpty()
-                expectThat(rendered.joinLinesToString()).matchesCurlyPattern("""
+                expectThat(rendered.joinToString(LineSeparators.Default)).matchesCurlyPattern(
+                    """
                     ╭──╴name
                     │
                     │   message
                     │
                     ╰──╴✔︎
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
     }
 
-    private fun <R> withRootSpan(testName: TestName, block: () -> R): R {
-        val parentSpan = KommonsTracer.spanBuilder(testName.value).startSpan().registerAsTestSpan()
+    private fun <R> withRootSpan(displayName: DisplayName, block: () -> R): R {
+        val parentSpan = KommonsTracer.spanBuilder(displayName.composedDisplayName).startSpan().registerAsTestSpan()
         val scope = parentSpan.makeCurrent()
         val result = runCatching(block)
         scope.close()

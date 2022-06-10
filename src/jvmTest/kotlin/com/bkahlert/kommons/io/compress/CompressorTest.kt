@@ -11,15 +11,15 @@ import com.bkahlert.kommons.io.path.renameTo
 import com.bkahlert.kommons.io.path.requireNotEmpty
 import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
-import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.Fixtures.archiveWithSingleFile
 import com.bkahlert.kommons.test.Fixtures.singleFile
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.withRandomSuffix
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThan
@@ -27,21 +27,20 @@ import strikt.java.exists
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import kotlin.io.path.div
 
 class CompressorTest {
 
     @TestFactory
-    fun `should throw on missing source`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
-        { randomPath().compress() },
-        { randomPath(extension = ".bzip2").decompress() },
+    fun `should throw on missing source`(@TempDir tempDir: Path) = testEachOld<(Path) -> Path>(
+        { (it / "missing").compress() },
+        { (it / "missing.bzip2").decompress() },
     ) { call ->
-        withTempDir(uniqueId) {
-            expectThrows<NoSuchFileException> { call() }
-        }
+        expectThrows<NoSuchFileException> { call(tempDir) }
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
+    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
         { singleFile().apply { addExtensions("bzip2").touch().writeText("content") }.compress("bzip2") },
         { archiveWithSingleFile("bzip2").apply { copyTo(removeExtensions("bzip2")) }.decompress() },
     ) { call ->
@@ -51,7 +50,7 @@ class CompressorTest {
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEach<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
         { singleFile().apply { addExtensions("bzip2").touch().writeText("content") }.compress("bzip2", overwrite = true) },
         { archiveWithSingleFile("bzip2").apply { copyTo(removeExtensions("bzip2")) }.decompress(overwrite = true) },
     ) { call ->

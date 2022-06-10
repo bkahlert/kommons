@@ -15,7 +15,7 @@ class KommonsTest {
     fun `should resolve InternalTemp`() {
         expectThat(Kommons.InternalTemp) {
             toStringContains("kommons")
-            isSubPathOf(Locations.Default.Temp)
+            isSubPathOf(SystemLocations.Temp)
         }
     }
 
@@ -23,7 +23,7 @@ class KommonsTest {
     fun `should resolve ExecTemp`() {
         expectThat(Kommons.ExecTemp) {
             last().pathString.isEqualTo("exec")
-            isSubPathOf(Locations.Default.Temp)
+            isSubPathOf(SystemLocations.Temp)
         }
     }
 
@@ -31,7 +31,7 @@ class KommonsTest {
     fun `should resolve FilesTemp`() {
         expectThat(Kommons.FilesTemp) {
             last().pathString.isEqualTo("files")
-            isSubPathOf(Locations.Default.Temp)
+            isSubPathOf(SystemLocations.Temp)
         }
     }
 

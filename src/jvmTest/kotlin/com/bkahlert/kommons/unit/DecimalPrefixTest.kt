@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.unit
 
 import com.bkahlert.kommons.math.BigDecimal
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
 class DecimalPrefixTest {
 
     @TestFactory
-    fun `should format integer decimal form`() = testEach(
+    fun `should format integer decimal form`() = testEachOld(
         4_200_000.Yotta to "4200000000000000000000000000000",
         4_200.Yotta to "4200000000000000000000000000",
         42.Yotta to "42000000000000000000000000",
@@ -36,7 +36,7 @@ class DecimalPrefixTest {
     }
 
     @TestFactory
-    fun `should format fraction decimal form`() = testEach(
+    fun `should format fraction decimal form`() = testEachOld(
         4_200_000.Giga to "4200000000000000",
         4_200.Giga to "4200000000000",
         420.Giga to "420000000000",

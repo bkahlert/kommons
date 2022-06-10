@@ -27,7 +27,7 @@ public enum class RoundingMode(private val calc: (Double, Double) -> Double) {
      * prior to a discarded fraction (i.e., truncates).  Note that this
      * rounding mode never increases the magnitude of the calculated value.
      */
-    DOWN({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.truncate(passedNumber / roundTo) * roundTo) }),
+    DOWN({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.truncate(passedNumber / roundTo) / (1.0 / roundTo)) }),
 
     /**
      * Rounding mode to round towards positive infinity.  If the
@@ -35,7 +35,7 @@ public enum class RoundingMode(private val calc: (Double, Double) -> Double) {
      * if negative, behaves as for [DOWN].  Note
      * that this rounding mode never decreases the calculated value.
      */
-    CEILING({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.ceil(passedNumber / roundTo) * roundTo) }),
+    CEILING({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.ceil(passedNumber / roundTo) / (1.0 / roundTo)) }),
 
     /**
      * Rounding mode to round towards negative infinity.  If the
@@ -43,7 +43,7 @@ public enum class RoundingMode(private val calc: (Double, Double) -> Double) {
      * if negative, behave as for [UP].  Note that
      * this rounding mode never increases the calculated value.
      */
-    FLOOR({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.floor(passedNumber / roundTo) * roundTo) }),
+    FLOOR({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.floor(passedNumber / roundTo) / (1.0 / roundTo)) }),
 
     /**
      * Rounding mode to round towards &quot;nearest neighbor&quot;
@@ -88,7 +88,10 @@ public enum class RoundingMode(private val calc: (Double, Double) -> Double) {
      * the rounding policy used for [Float] and [Double]
      * arithmetic in Java.
      */
-    HALF_EVEN({ passedNumber, roundTo -> if (roundTo == 0.0) passedNumber else (kotlin.math.round(passedNumber / roundTo) * roundTo) }),
+    HALF_EVEN({ passedNumber, roundTo ->
+        if (roundTo == 0.0) passedNumber
+        else (kotlin.math.round(passedNumber / roundTo) / (1.0 / roundTo))
+    }),
 
     /**
      * Rounding mode to assert that the requested operation has an exact

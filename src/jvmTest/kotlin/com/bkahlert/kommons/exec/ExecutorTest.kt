@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
@@ -12,11 +12,11 @@ import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.textContent
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.test.DynamicTestsWithSubjectBuilder
+import com.bkahlert.kommons.test.OldDynamicTestsWithSubjectBuilder
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.hasElements
-import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.mapLines
 import com.bkahlert.kommons.text.lines
@@ -29,7 +29,6 @@ import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.capturing
 import com.bkahlert.kommons.tracing.spanName
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -42,7 +41,6 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
-@Tag("xxx")
 class ExecutorTest {
 
     private val executable = CommandLine("printenv", "TEST_PROP")
@@ -69,7 +67,7 @@ class ExecutorTest {
         @Test
         fun `should exec using specified environment`() {
             val random = randomString()
-            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(Locations.Default.Temp)
+            val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(SystemLocations.Temp)
             expectThat(exec.io.output.ansiRemoved).isEqualTo(random)
         }
 
@@ -104,7 +102,7 @@ class ExecutorTest {
         inner class ExecOnly {
 
             @TestFactory
-            fun `succeeding command line`() = test({
+            fun `succeeding command line`() = testOld({
                 executable.exec.testProp.logging()
             }) {
                 expectThatProcess { starts() }
@@ -115,7 +113,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `failing command line`() = test({
+            fun `failing command line`() = testOld({
                 executable.exec()
             }) {
                 expectThatProcess { starts() }
@@ -130,7 +128,7 @@ class ExecutorTest {
         inner class ExecLogging {
 
             @TestFactory
-            fun `succeeding command line`() = test({
+            fun `succeeding command line`() = testOld({
                 executable.exec.testProp.logging()
             }) {
                 expectThatProcess { starts() }
@@ -141,7 +139,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `failing command line`() = test({
+            fun `failing command line`() = testOld({
                 executable.exec.logging()
             }) {
                 expectThatProcess { starts() }
@@ -152,7 +150,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun TestSpanScope.`should log to specified printer if specified`() = tests {
+            fun TestSpanScope.`should log to specified printer if specified`() = testsOld {
                 capturing { capture ->
                     executable.exec.testProp.logging { it.create(copy(style = None, printer = capture)) }
                 } asserting { logsSuccessfulIO() }
@@ -221,7 +219,7 @@ class ExecutorTest {
         inner class ExecProcessing {
 
             @TestFactory
-            fun `succeeding command line`() = test({
+            fun `succeeding command line`() = testOld({
                 executable.exec.testProp.processing { _, process -> process {} }
             }) {
                 expectThatProcess { starts() }
@@ -236,7 +234,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `failing command line`() = test({
+            fun `failing command line`() = testOld({
                 executable.exec.processing { _, process -> process {} }
             }) {
                 expectThatProcess { starts() }
@@ -279,7 +277,7 @@ class ExecutorTest {
         inner class ExecOnly {
 
             @TestFactory
-            fun `succeeding command line`() = test({
+            fun `succeeding command line`() = testOld({
                 executable.exec.testProp.async()
             }) {
                 expectThatProcess { joined.starts() }
@@ -290,7 +288,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `failing command line`() = test({
+            fun `failing command line`() = testOld({
                 executable.exec.async()
             }) {
                 expectThatProcess { joined.starts() }
@@ -305,7 +303,7 @@ class ExecutorTest {
         inner class ExecLogging {
 
             @TestFactory
-            fun `succeeding command line`() = test({
+            fun `succeeding command line`() = testOld({
                 executable.exec.async.testProp.logging()
             }) {
                 expectThatProcess { joined.starts() }
@@ -318,7 +316,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `failing command line`() = test({
+            fun `failing command line`() = testOld({
                 executable.exec.async.logging()
             }) {
                 expectThatProcess { joined.starts() }
@@ -331,7 +329,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun TestSpanScope.`should log to specified printer if specified`() = tests {
+            fun TestSpanScope.`should log to specified printer if specified`() = testsOld {
                 capturing { capture ->
                     executable.exec.testProp.async.logging { it.create(copy(style = None, printer = capture)) }.apply { waitFor() }
                 } asserting { logsSuccessfulIO() }
@@ -404,7 +402,7 @@ class ExecutorTest {
         inner class ExecProcessing {
 
             @TestFactory
-            fun `succeeding command line`() = test({
+            fun `succeeding command line`() = testOld({
                 executable.exec.testProp.async.processing { _, process -> process {} }
             }) {
                 expectThatProcess { joined.starts() }
@@ -417,7 +415,7 @@ class ExecutorTest {
             }
 
             @TestFactory
-            fun `failing command line`() = test({
+            fun `failing command line`() = testOld({
                 executable.exec.processing { _, process -> process {} }
             }) {
                 expectThatProcess { joined.starts() }
@@ -472,7 +470,7 @@ private class ExecTerminationTestCallback : ExecTerminationCallback {
     }
 
     companion object {
-        fun DynamicTestsWithSubjectBuilder<*>.expectThatProcessAppliesTerminationCallback(
+        fun OldDynamicTestsWithSubjectBuilder<*>.expectThatProcessAppliesTerminationCallback(
             expectedException: Throwable?,
             exec: (ExecTerminationCallback) -> Exec,
         ) {
@@ -485,7 +483,7 @@ private class ExecTerminationTestCallback : ExecTerminationCallback {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun DynamicTestsWithSubjectBuilder<() -> Exec>.expectThatProcess(noinline assertions: Builder<Exec>.() -> Unit) =
+private inline fun OldDynamicTestsWithSubjectBuilder<() -> Exec>.expectThatProcess(noinline assertions: Builder<Exec>.() -> Unit) =
     expecting { invoke() }.that(assertions)
 
 

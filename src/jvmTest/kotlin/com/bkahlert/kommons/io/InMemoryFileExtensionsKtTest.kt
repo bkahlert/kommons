@@ -1,6 +1,7 @@
 package com.bkahlert.kommons.io
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.docker.DockerRequiring
 import com.bkahlert.kommons.io.path.deleteOnExit
 import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.io.path.pathString
@@ -10,7 +11,6 @@ import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.containsAnsi
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.assertions.endsWith
@@ -24,7 +24,6 @@ import strikt.java.fileName
 import strikt.java.parent
 import kotlin.io.path.createDirectory
 
-@Tag("xxx")
 class InMemoryFileExtensionsKtTest {
 
     @Test
@@ -72,7 +71,7 @@ class InMemoryFileExtensionsKtTest {
         expecting { dir.asImageOrNull() } that { isNull() }
     }
 
-    @Slow @Test
+    @Slow @DockerRequiring @Test
     fun `should create ASCII art`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val asciiArt = SvgFixture.toAsciiArt()
         expecting { asciiArt } that {

@@ -3,6 +3,7 @@ package com.bkahlert.kommons.tracing.rendering
 import java.text.MessageFormat
 import java.util.regex.Pattern
 
+// TODO migrate
 public object SLF4J {
 
     private const val SLF4J_ANCHOR = "{}"

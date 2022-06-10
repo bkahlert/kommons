@@ -1,14 +1,15 @@
 package com.bkahlert.kommons
 
+import com.bkahlert.kommons.test.tests
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class ResultsKtTest {
 
     @Test
-    fun get_or_exception() {
-        assertEquals(42 to null, kotlin.runCatching { 42 }.getOrException())
+    fun get_or_exception() = tests {
+        kotlin.runCatching { 42 }.getOrException() shouldBe (42 to null)
         val ex = IllegalStateException()
-        assertEquals(null to ex, kotlin.runCatching { throw ex }.getOrException<Nothing?>())
+        kotlin.runCatching { throw ex }.getOrException<Nothing?>() shouldBe (null to ex)
     }
 }

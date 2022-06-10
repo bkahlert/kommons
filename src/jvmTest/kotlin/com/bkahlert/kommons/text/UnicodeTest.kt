@@ -3,7 +3,7 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.math.RoundingMode.CEILING
 import com.bkahlert.kommons.math.RoundingMode.FLOOR
 import com.bkahlert.kommons.math.RoundingMode.HALF_UP
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.Unicode.Emojis.Emoji
 import com.bkahlert.kommons.text.Unicode.NEXT_LINE
@@ -22,16 +22,17 @@ class UnicodeTest {
     inner class Get {
 
         @TestFactory
-        fun `should return code point`() = testEach(
+        fun `should return code point`() = testEachOld(
             133 to NEXT_LINE.toString(),
             119594 to Unicode.DivinationSymbols.Tetragrams.Purity.toString(),
-            containerNamePattern = "\"{}\" ？⃔ \"{}\"") { (codePoint, expected) ->
+            containerNamePattern = "\"{}\" ？⃔ \"{}\""
+        ) { (codePoint, expected) ->
             expecting { Unicode[codePoint] } that { toStringIsEqualTo(expected) }
         }
     }
 
     @TestFactory
-    fun `should have valid unicode blocks`() = testEach(
+    fun `should have valid unicode blocks`() = testEachOld(
         Unicode.BoxDrawings to ("╿" to """
             ─${TAB}BOX DRAWINGS LIGHT HORIZONTAL
             ━${TAB}BOX DRAWINGS HEAVY HORIZONTAL
@@ -61,7 +62,7 @@ class UnicodeTest {
     inner class Emojis {
 
         @TestFactory
-        fun `maps hours`() = testEach(
+        fun `maps hours`() = testEachOld(
             listOf(-12, 0, 12, 24) to listOf(Emoji("🕛"), Emoji("🕧")),
             listOf(-8, 4, 16) to listOf(Emoji("🕓"), Emoji("🕟")),
         ) { (hours, expectations) ->
@@ -72,7 +73,7 @@ class UnicodeTest {
         }
 
         @TestFactory
-        fun `maps instants`() = testEach(
+        fun `maps instants`() = testEachOld(
             Instant.parse("2020-02-02T02:02:02Z") to listOf(Emoji("🕝"), Emoji("🕑"), Emoji("🕑")),
             Instant.parse("2020-02-02T22:32:02Z") to listOf(Emoji("🕚"), Emoji("🕥"), Emoji("🕥")),
         ) { (instant, expectations) ->

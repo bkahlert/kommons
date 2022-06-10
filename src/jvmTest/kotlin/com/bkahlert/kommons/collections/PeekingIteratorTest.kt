@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.collections
 
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThrows
@@ -20,12 +20,12 @@ class PeekingIteratorTest {
     }
 
     @TestFactory
-    fun `should return peeked on valid index`() = testEach(0 to 100, 1 to 200, 2 to 300) { (index, expected) ->
+    fun `should return peeked on valid index`() = testEachOld(0 to 100, 1 to 200, 2 to 300) { (index, expected) ->
         expecting { list.peekingIterator().peekOrNull(index) } that { isEqualTo(expected) }
     }
 
     @TestFactory
-    fun `should peek index 0 by default`() = tests {
+    fun `should peek index 0 by default`() = testsOld {
         expecting { list.peekingIterator().peekOrNull() } that { isEqualTo(100) }
         expecting { list.peekingIterator().peek() } that { isEqualTo(100) }
     }
@@ -41,7 +41,7 @@ class PeekingIteratorTest {
     }
 
     @TestFactory
-    fun `should iterate after peek`() = testEach(0, 1, 2, 3) { index ->
+    fun `should iterate after peek`() = testEachOld(0, 1, 2, 3) { index ->
         expecting {
             val iter = list.peekingIterator()
             iter.peekOrNull(index)

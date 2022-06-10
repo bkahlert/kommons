@@ -1,14 +1,13 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.EOF
 import com.bkahlert.kommons.io.directoryNotEmpty
 import com.bkahlert.kommons.io.fileAlreadyExists
 import com.bkahlert.kommons.io.fileSystemException
 import com.bkahlert.kommons.io.noSuchFile
-import com.bkahlert.kommons.tempFile
-import com.bkahlert.kommons.withRandomSuffix
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
@@ -34,8 +33,8 @@ import kotlin.io.path.notExists
  *
  * Yet, there are two differences:
  * 1. [Java's non-blocking I/O](https://en.wikipedia.org/wiki/Non-blocking_I/O_(Java)) is used for this purpose which
- *    extends the use case too all implementations of [FileSystem]
- * 2. File attributes can be copied as well using the [preserve] flag *(default: off)*.
+ *    extends the use case to all implementations of [FileSystem]
+ * 2. File attributes can be copied as well using the [preserve] flag (default: off).
  *    (Since files are copied top-down, the [lastModified] attribute might be—although preserved—again be updated.
  *
  * Should `target` already exist and be a directory, an exception is thrown to avoid serious data loss.
@@ -202,25 +201,7 @@ public fun Path.copyToDirectory(
 public fun Path.copyToTemp(
     base: String = nameWithoutExtension,
     extension: String = extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(Kommons.FilesTemp.tempFile(base, extension), overwrite = true)
-
-/**
- * Duplicates this file or directory by copying to the same path but with a random string to its name.
- *
- * In contrast to [copyTo] this method allows to specify the [order], that is, by how many ancestors should
- * the path segments differ from this path.
- *
- * - A order of `0` is identical to a making a copy with [copyTo].
- * - `1` (*default*) appends the suffix to parent's [Path.getFileName] instead.
- * - `2` to parent's parent
- * - …  and so on
- *
- * E.g. `/a/b/c`'s 2 order duplication can be found at `/a/b-random/c`.
- */
-public fun Path.duplicate(order: Int = 1, suffix: String = "".withRandomSuffix(), vararg options: LinkOption): Path {
-    val sibling = resolveSibling(order) { resolveSibling(fileName.pathString + suffix) }
-    return copyTo(sibling, options = options)
-}
+): Path = copyTo(Kommons.FilesTemp.createTempFile(base, extension), overwrite = true)
 
 
 public class TerminateException(path: Path) : FileSystemException(path.toString())

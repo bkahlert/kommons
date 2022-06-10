@@ -10,7 +10,7 @@
 
 ### Changed
 
-- updated to Kotlin 1.6.20
+- updated to Kotlin 1.7.0
 
 ### Deprecated
 
@@ -374,7 +374,7 @@ if (path.notExists()) path.createParentDirectories().createFile()
 ##### File and Directory Size
 
 ```kotlin
-Path.of("/tmp").getSize() // 1.9 TB
+Paths.get("/tmp").getSize() // 1.9 TB
 listOf(largeFile, smallFile, mediumFile).sortedBy { it.getSize() }
 ```
 

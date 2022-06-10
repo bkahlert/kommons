@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes.Keys.rendering
 import io.opentelemetry.api.common.Attributes
@@ -21,7 +21,7 @@ class RenderingAttributesTest {
     ).rendering
 
     @TestFactory
-    fun `should read attributes`() = test(renderingAttributes) {
+    fun `should read attributes`() = testOld(renderingAttributes) {
         expecting { description } that { isEqualTo("custom description") }
         expecting { renderer } that { isEqualTo("custom renderer") }
     }
@@ -38,9 +38,9 @@ class RenderingAttributesTest {
         @Test
         fun `should contain all attributes`() {
             expectThat(renderingAttributes.toString())
-                .contains("description = custom description")
-                .contains("kommons.renderer = custom renderer")
-                .contains("irrelevant-key = irrelevant value")
+                .contains("""description: "custom description"""")
+                .contains("""kommons.renderer: "custom renderer"""")
+                .contains("""irrelevant-key: "irrelevant value"""")
         }
     }
 }

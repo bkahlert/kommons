@@ -1,8 +1,9 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.AnsiSupport.NONE
+import com.bkahlert.kommons.Platform
 import com.bkahlert.kommons.printTestExecutionStatus
-import com.bkahlert.kommons.runtime.AnsiSupport.NONE
-import com.bkahlert.kommons.test.junit.TestName.Companion.testName
+import com.bkahlert.kommons.test.junit.displayName
 import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.quoted
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
@@ -27,7 +28,7 @@ annotation class AnsiRequiring
 class AnsiCondition : ExecutionCondition {
 
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
-        context.testName.let { testName ->
+        context.displayName().composedDisplayName.let { testName ->
             if (ansiSupported) ConditionEvaluationResult.enabled("Test ${testName.quoted} enabled because ANSI is supported.")
             else ConditionEvaluationResult.disabled("Test ${testName.quoted} disabled because ANSI is NOT supported.")
         }
@@ -35,7 +36,7 @@ class AnsiCondition : ExecutionCondition {
     companion object {
 
         private val ansiSupported: Boolean by lazy {
-            val support = com.bkahlert.kommons.runtime.ansiSupport
+            val support = Platform.Current.ansiSupport
             (support != NONE).also {
                 printTestExecutionStatus("ANSI support: $support") { if (it) green else yellow }
             }

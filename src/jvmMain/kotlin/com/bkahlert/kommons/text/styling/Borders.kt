@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.text.styling
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.asCodePointSequence
 import com.bkahlert.kommons.text.codePointCount
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.repeat
 import com.bkahlert.kommons.text.styling.Borders.Block
 import com.bkahlert.kommons.text.styling.Borders.Double
@@ -274,7 +274,7 @@ public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     padding: Int = 2,
     margin: Int = 1,
     formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence,
-): String = joinLinesToString().wrapWithBorder(border, padding, margin, formatter)
+): String = joinToString(LineSeparators.Default).wrapWithBorder(border, padding, margin, formatter)
 
 public class Draw(public val text: CharSequence) {
     public val border: Border get() = Border()

@@ -1,9 +1,8 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.math.mod
-import com.bkahlert.kommons.math.toHexadecimalString
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.CodePoint.Companion.isUsableCodePoint
+import com.bkahlert.kommons.toHexadecimalString
 import kotlin.Char.Companion.MAX_SURROGATE
 import kotlin.Char.Companion.MAX_VALUE
 import kotlin.Char.Companion.MIN_SURROGATE
@@ -12,7 +11,7 @@ import kotlin.jvm.JvmInline
 import kotlin.random.Random
 import kotlin.text.padStart as kotlinPadStart
 
-private fun String.escape() = "\\u$this"
+private fun String.escape() = "\\x{$this}"
 // TODO replace with kommons-debug
 /**
  * Representation of a [Unicode code point](https://unicode.org/glossary/#code_point)
@@ -36,7 +35,7 @@ public value class CodePoint(
      * e.g. `0A` for [NEW LINE](https://codepoints.net/U+000A)
      * or `200B` for [ZERO WIDTH SPACE](https://codepoints.net/U+200B).
      */
-    public val hexCode: String get() = codePoint.toHexadecimalString(pad = true).uppercase()
+    public val hexCode: String get() = codePoint.toHexadecimalString().uppercase()
 
     /**
      * Returns this code point as string that can be used to match exactly this code point using a regular expression.
@@ -549,7 +548,7 @@ public fun CharSequence.mapCharacters(transform: (String) -> CharSequence): Stri
             offset += length
             transform(CodePoint(codePoint).string)
         }
-    }.joinLinesToString("")
+    }.joinToString("")
 }
 
 /**
@@ -563,7 +562,7 @@ public fun CharSequence.formatCharacters(transform: ANSI.Text.() -> CharSequence
             offset += length
             CodePoint(codePoint).string.ansi.transform()
         }
-    }.joinLinesToString("")
+    }.joinToString("")
 }
 
 /**
@@ -579,7 +578,7 @@ public fun CharSequence.toLiteralRegex(): Regex {
             offset += length
             CodePoint(codePoint).toLiteralRegex()
         }
-    }.joinLinesToString("").toRegex()
+    }.joinToString("").toRegex()
 }
 
 /**

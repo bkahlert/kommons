@@ -2,6 +2,7 @@ package com.bkahlert.kommons.io
 
 import com.bkahlert.kommons.Kommons
 import com.bkahlert.kommons.createParentDirectories
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.docker.Docker.AwesomeCliBinaries
 import com.bkahlert.kommons.docker.Docker.LibRSvg
 import com.bkahlert.kommons.docker.docker
@@ -12,12 +13,11 @@ import com.bkahlert.kommons.io.path.copyToDirectory
 import com.bkahlert.kommons.io.path.extensionOrNull
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.writeBytes
-import com.bkahlert.kommons.runWithTempDir
-import com.bkahlert.kommons.tempFile
 import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.ANSI.resetLines
 import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.NOOP
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
+import com.bkahlert.kommons.withTempDirectory
 import java.nio.file.Path
 import kotlin.io.path.isReadable
 import kotlin.io.path.isRegularFile
@@ -49,14 +49,14 @@ public fun InMemoryFile.copyToDirectory(target: Path): Path =
 public fun InMemoryFile.copyToTemp(
     base: String = name.asPath().nameWithoutExtension,
     extension: String = name.asPath().extensionOrNull?.let { ".$it" } ?: "",
-): Path = copyTo(Kommons.FilesTemp.tempFile(base, extension))
+): Path = copyTo(Kommons.FilesTemp.createTempFile(base, extension))
 
 /**
  * Returns this image as a bitmap. The image is automatically rasterized if necessary.
  */
 public fun InMemoryImage.rasterize(renderer: RendererProvider = { NOOP }): ByteArray =
     if (isBitmap) data
-    else runWithTempDir {
+    else withTempDirectory {
         val rasterized = "image.png"
         docker(LibRSvg, "-z", 5, "--output", rasterized, name = "rasterize vector", renderer = renderer, inputStream = data.inputStream())
         resolve(rasterized).readBytes()
@@ -65,7 +65,7 @@ public fun InMemoryImage.rasterize(renderer: RendererProvider = { NOOP }): ByteA
 /**
  * Renders this image to a sequence of [ANSI] escape codes.
  */
-public fun InMemoryImage.toAsciiArt(renderer: RendererProvider = { NOOP }): String = runWithTempDir {
+public fun InMemoryImage.toAsciiArt(renderer: RendererProvider = { NOOP }): String = withTempDirectory {
     val fileName = resolve(this@toAsciiArt.baseName).writeBytes(rasterize(renderer)).fileName
     docker(AwesomeCliBinaries, name = "convert to ascii art", renderer = renderer) { "/opt/bin/chafa -c full -w 9 $fileName" }
         .io.output.ansiKept.resetLines()

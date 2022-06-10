@@ -1,22 +1,21 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.math.floorDiv
 import com.bkahlert.kommons.runtime.currentThread
 import com.bkahlert.kommons.runtime.orNull
-import com.bkahlert.kommons.test.get
 import com.bkahlert.kommons.test.isAnnotated
-import com.bkahlert.kommons.test.junit.TestName.Companion.testName
 import com.bkahlert.kommons.test.junit.Verbosity
-import com.bkahlert.kommons.test.put
-import com.bkahlert.kommons.test.storeForNamespaceAndTest
+import com.bkahlert.kommons.test.junit.displayName
+import com.bkahlert.kommons.test.junit.getTestStore
+import com.bkahlert.kommons.test.junit.getTyped
 import com.bkahlert.kommons.text.ANSI.Colors
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.padStartFixedLength
 import com.bkahlert.kommons.time.Now
 import com.bkahlert.kommons.time.minutes
@@ -58,7 +57,9 @@ import kotlin.time.Duration
 class TestSpanScope(
     span: SpanScope,
     private val rendered: (ignoreAnsi: Boolean) -> String,
-) : SpanScope by span {
+) : SpanScope by span, CharSequence by rendered(false) {
+
+    fun rendered(ignoreAnsi: Boolean = true): String = rendered.invoke(ignoreAnsi)
 
     /**
      * Returns a [Builder] to run assertions on what was rendered.
@@ -85,37 +86,37 @@ annotation class NoTestSpan
  * @see TestTelemetry
  */
 class TestSpanParameterResolver : TypeBasedParameterResolver<TestSpanScope>(), BeforeEachCallback, AfterEachCallback {
-    private val store: ExtensionContext.() -> Store by storeForNamespaceAndTest()
+    private val ExtensionContext.store: Store get() = getTestStore<TestSpanParameterResolver>()
 
     private data class CleanUp(val job: () -> Unit)
 
     override fun beforeEach(extensionContext: ExtensionContext) {
         if (extensionContext.isAnnotated<NoTestSpan>()) return
-        val name = extensionContext.testName
+        val name = extensionContext.displayName().composedDisplayName
         val printToConsole = Verbosity.isVerbose
         val rendered = InMemoryPrinter()
         val spanScope: RenderingSpanScope = RenderingSpanScope.of(name) { TestRenderer(rendered, printToConsole) }
         val scope = spanScope.makeCurrent()
         spanScope.registerAsTestSpan()
-        extensionContext.store().put(CleanUp {
+        extensionContext.store.put(CleanUp::class, CleanUp {
             scope.close()
             spanScope.end(extensionContext.executionException.orNull()?.let { Result.failure(it) } ?: Result.success(Unit))
         })
-        extensionContext.store().put(TestSpanScope(spanScope) { ignoreAnsi: Boolean ->
+        extensionContext.store.put(TestSpanScope::class, TestSpanScope(spanScope) { ignoreAnsi: Boolean ->
             rendered.toString().lineSequence()
                 .filterNot { it.startsWith(IO.ERASE_MARKER) }
-                .joinLinesToString()
+                .joinToString(LineSeparators.Default)
                 .let { if (ignoreAnsi) it.ansiRemoved else it }
         })
     }
 
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): TestSpanScope {
-        return extensionContext.store().get<TestSpanScope>()
+        return extensionContext.store.getTyped<TestSpanScope>(TestSpanScope::class)
             ?: if (extensionContext.isAnnotated<NoTestSpan>()) error("Unable to resolve $TestSpanScopeString due to existing $NoSpanString") else error("Failed to load $TestSpanScopeString")
     }
 
     override fun afterEach(extensionContext: ExtensionContext) {
-        extensionContext.store().get<CleanUp>()?.run { job() }
+        extensionContext.store.getTyped<CleanUp>(CleanUp::class)?.run { job() }
     }
 
     companion object {

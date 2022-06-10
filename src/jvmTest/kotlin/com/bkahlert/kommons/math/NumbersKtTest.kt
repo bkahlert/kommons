@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.math
 
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testsOld
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isFalse
@@ -12,7 +12,7 @@ class NumbersKtTest {
     inner class ZeroEquality {
 
         @TestFactory
-        fun `should be zero`() = tests {
+        fun `should be zero`() = testsOld {
             expecting("byte") { 0.toByte().isZero } that { isTrue() }
             expecting("unsigned byte") { 0.toUByte().isZero } that { isTrue() }
             expecting("short") { 0.toShort().isZero } that { isTrue() }
@@ -31,7 +31,7 @@ class NumbersKtTest {
         }
 
         @TestFactory
-        fun `should not be zero`() = tests {
+        fun `should not be zero`() = testsOld {
             expecting("byte") { 2.toByte().isZero } that { isFalse() }
             expecting("unsigned byte") { 2.toUByte().isZero } that { isFalse() }
             expecting("short") { 2.toShort().isZero } that { isFalse() }

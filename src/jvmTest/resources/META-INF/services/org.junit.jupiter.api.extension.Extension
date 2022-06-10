@@ -1,4 +1,2 @@
 com.bkahlert.kommons.tracing.TestSpanParameterResolver
-com.bkahlert.kommons.test.junit.TestNameResolver
 com.bkahlert.kommons.test.junit.UniqueIdResolver
-com.bkahlert.kommons.test.IllegalUsageCheck

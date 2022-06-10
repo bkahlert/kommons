@@ -1,15 +1,13 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.test.expectThrows
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-@Tag("xxx")
 class TruncationKtTest {
 
     private val longText = "1234567890".repeat(1000)
@@ -213,7 +211,7 @@ class TruncationKtTest {
 
         @Suppress("NonAsciiCharacters")
         @TestFactory
-        fun `should truncate to 10 chars using ··· and _`() = testEach(
+        fun `should truncate to 10 chars using ··· and _`() = testEachOld(
             "SomeClassName and a couple of words" to "Some···rds",
             "Short" to "_____Short",
         ) { (input, expected) ->
@@ -226,7 +224,7 @@ class TruncationKtTest {
 
         @Suppress("NonAsciiCharacters")
         @TestFactory
-        fun `should truncate to 10 chars using ··· and _`() = testEach(
+        fun `should truncate to 10 chars using ··· and _`() = testEachOld(
             "SomeClassName and a couple of words" to "Some···rds",
             "Short" to "Short_____",
         ) { (input, expected) ->

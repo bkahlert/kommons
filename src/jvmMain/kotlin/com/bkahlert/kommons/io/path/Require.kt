@@ -1,10 +1,8 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.Locations
 import com.bkahlert.kommons.io.directoryNotEmpty
 import com.bkahlert.kommons.io.fileAlreadyExists
 import com.bkahlert.kommons.io.noSuchFile
-import com.bkahlert.kommons.isSubPathOf
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.LinkOption
 import java.nio.file.NotDirectoryException
@@ -65,15 +63,3 @@ public fun Path.requireNotEmpty(vararg options: LinkOption) {
         throw noSuchFile(this, "File must not be empty but has zero size.")
     }
 }
-
-/**
- * Checks if this path is inside of one of the System's temporary directories.
- *
- * @throws IllegalArgumentException this path is not inside [Locations.Temp]
- */
-public fun Path.requireTempSubPath(): Path =
-    apply {
-        require(!isDefaultFileSystem() || isSubPathOf(Locations.Default.Temp)) {
-            "${normalize().toAbsolutePath()} is not inside ${Locations.Default.Temp}."
-        }
-    }

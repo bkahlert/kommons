@@ -2,10 +2,8 @@ package com.bkahlert.kommons
 
 import com.bkahlert.kommons.math.BigIntegerConstants
 import com.bkahlert.kommons.math.toBigInteger
-import com.bkahlert.kommons.test.tests
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -183,38 +181,6 @@ class FnKtTest {
         fun `should throw on too large index`() {
             expectCatching { (Int.MAX_VALUE.toBigInteger() + BigIntegerConstants.ONE) * { println("test failed") } }.isFailure().isA<IllegalArgumentException>()
         }
-    }
-
-    @TestFactory
-    fun `should require not empty`() = tests {
-        expecting { "abc".requireNotEmpty() } that { isEqualTo("abc") }
-        expecting { "abc".requireNotEmpty { "error" } } that { isEqualTo("abc") }
-        expectThrows<IllegalArgumentException> { "".requireNotEmpty() }
-        expectThrows<IllegalArgumentException> { "".requireNotEmpty { "error" } } that { message.isEqualTo("error") }
-    }
-
-    @TestFactory
-    fun `should require not blank`() = tests {
-        expecting { "abc".requireNotBlank() } that { isEqualTo("abc") }
-        expecting { "abc".requireNotBlank { "error" } } that { isEqualTo("abc") }
-        expectThrows<IllegalArgumentException> { "   ".requireNotBlank() }
-        expectThrows<IllegalArgumentException> { "   ".requireNotBlank { "error" } } that { message.isEqualTo("error") }
-    }
-
-    @TestFactory
-    fun `should check not empty`() = tests {
-        expecting { "abc".checkNotEmpty() } that { isEqualTo("abc") }
-        expecting { "abc".checkNotEmpty { "error" } } that { isEqualTo("abc") }
-        expectThrows<IllegalStateException> { "".checkNotEmpty() }
-        expectThrows<IllegalStateException> { "".checkNotEmpty { "error" } } that { message.isEqualTo("error") }
-    }
-
-    @TestFactory
-    fun `should check not blank`() = tests {
-        expecting { "abc".checkNotBlank() } that { isEqualTo("abc") }
-        expecting { "abc".checkNotBlank { "error" } } that { isEqualTo("abc") }
-        expectThrows<IllegalStateException> { "   ".checkNotBlank() }
-        expectThrows<IllegalStateException> { "   ".checkNotBlank { "error" } } that { message.isEqualTo("error") }
     }
 
     @Nested

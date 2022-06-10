@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -26,7 +26,9 @@ class RenderableKtTest {
 
         @Test
         fun `should render using toString and truncation`() {
-            expectThat(Renderable.of("""
+            expectThat(
+                Renderable.of(
+                    """
                 123456789012345678901234567890
                 1234567890123456789012345
                 12345678901234567890
@@ -40,7 +42,10 @@ class RenderableKtTest {
                 12345678901234567890
                 1234567890123456789012345
                 123456789012345678901234567890
-            """.trimIndent()).render(20, 10)).isEqualTo("""
+            """.trimIndent()
+                ).render(20, 10)
+            ).isEqualTo(
+                """
                 123456789 … 34567890
                 123456789 … 89012345
                 12345678901234567890
@@ -51,7 +56,8 @@ class RenderableKtTest {
                 12345
                 1234567890
                 123456789012345
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test
@@ -60,7 +66,7 @@ class RenderableKtTest {
         }
 
         @AnsiRequiring @TestFactory
-        fun `should support ANSI`() = test(Renderable.of("blue-blue".ansi.blue)) {
+        fun `should support ANSI`() = testOld(Renderable.of("blue-blue".ansi.blue)) {
             expecting { render(7, 1) } that { isEqualTo("${"bl".ansi.blue} … ${"ue".ansi.blue}") }
             expecting { render(100, 1) } that { isEqualTo("blue-blue".ansi.blue.done) }
             expecting { render(null, 1) } that { isEqualTo("blue-blue".ansi.blue.done) }

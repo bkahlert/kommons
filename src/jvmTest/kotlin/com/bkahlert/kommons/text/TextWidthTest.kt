@@ -2,15 +2,14 @@
 
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.collections.too
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.too
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.platform.launcher.TestExecutionListener
@@ -22,7 +21,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 
-@Tag("xxx")
 class TextWidthKtTest {
 
     class AwtInitializer : TestExecutionListener {
@@ -42,7 +40,7 @@ class TextWidthKtTest {
     }
 
     @TextWidthRequiring @TestFactory
-    fun `should calc smaller width for one-column string than two-column string`() = testEach("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
+    fun `should calc smaller width for one-column string than two-column string`() = testEachOld("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
         expecting { TextWidth.calculateWidth("X") } that { isLessThan(TextWidth.calculateWidth(it)) }
         expecting { TextWidth.calculateWidth("—") } that { isLessThan(TextWidth.calculateWidth(it)) }
     }
@@ -56,27 +54,27 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should calc one column for basic letters and digits`() = testEach("A", "a", "Ö", "ß", "4") {
+        fun `should calc one column for basic letters and digits`() = testEachOld("A", "a", "Ö", "ß", "4") {
             expecting { it.columns } that { isEqualTo(1) }
         }
 
         @TextWidthRequiring @TestFactory
-        fun `should calc one for combined letter`() = testEach("a̳") {
+        fun `should calc one for combined letter`() = testEachOld("a̳") {
             expecting { it.columns } that { isEqualTo(1) }
         }
 
         @TestFactory
-        fun `should calc one column for small width code points`() = testEach(Whitespaces.HAIR_SPACE, Whitespaces.THIN_SPACE) {
+        fun `should calc one column for small width code points`() = testEachOld(Whitespaces.HAIR_SPACE, Whitespaces.THIN_SPACE) {
             expecting { it.columns } that { isEqualTo(1) }
         }
 
         @TextWidthRequiring @TestFactory
-        fun `should calc two columns for wide characters`() = testEach("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
+        fun `should calc two columns for wide characters`() = testEachOld("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
             expecting { it.columns } that { isEqualTo(2) }
         }
 
         @TestFactory
-        fun `should calc zero columns for no-space characters`() = testEach(
+        fun `should calc zero columns for no-space characters`() = testEachOld(
             Unicode.ZERO_WIDTH_SPACE,
             Unicode.ZERO_WIDTH_JOINER,
 // TODO            Unicode.ZERO_WIDTH_NO_BREAK_SPACE,
@@ -85,14 +83,14 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should calc 0 columns for line separators`() = testEach(*LineSeparators.toTypedArray()) {
+        fun `should calc 0 columns for line separators`() = testEachOld(*LineSeparators.toTypedArray()) {
             expecting { it.first().columns } that { isEqualTo(0) }
             expecting { it.columns } that { isEqualTo(0) }
             expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
         }
 
         @TextWidthRequiring @TestFactory
-        fun `should calc columns for complex text`() = tests {
+        fun `should calc columns for complex text`() = testsOld {
             expecting { "a̳o".columns } that { isEqualTo(2) }
             expecting { "text        ".columns } that { isEqualTo(12) }
             expecting { "🟥🟧🟨🟩🟦🟪".columns } that { isEqualTo(12) }
@@ -107,13 +105,13 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should provide columns for code points`() = tests {
+        fun `should provide columns for code points`() = testsOld {
             expecting { "A".asCodePoint()!!.columns } that { isEqualTo(1) }
             expecting { "😀".asCodePoint()!!.columns } that { isEqualTo(2) }
         }
 
         @TextWidthRequiring @TestFactory
-        fun `should provide columns for grapheme cluster`() = tests {
+        fun `should provide columns for grapheme cluster`() = testsOld {
             expecting { "A".asGraphemeCluster()!!.columns } that { isEqualTo(1) }
             expecting { "👩‍👩‍👧‍👧".asGraphemeCluster()!!.columns } that { isEqualTo(2) }
         }
@@ -123,7 +121,7 @@ class TextWidthKtTest {
     inner class FindIndex {
 
         @TestFactory
-        fun `should find index by index`() = testEach(
+        fun `should find index by index`() = testEachOld(
             0 to 0, // ""
             1 to 0, // ""
             2 to 2, // "😀"
@@ -142,7 +140,7 @@ class TextWidthKtTest {
     inner class ColumnsSubSequence {
 
         @TestFactory
-        fun `should return columns sub sequence ⧸ substring`() = testEach(
+        fun `should return columns sub sequence ⧸ substring`() = testEachOld(
             0 to 0 too "",
             0 to 1 too "",
             0 to 2 too "😀",
@@ -158,13 +156,13 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on out of bounds column`() = tests {
+        fun `should throw on out of bounds column`() = testsOld {
             expectThrows<IllegalArgumentException> { "😀o".subSequenceByColumns(3, 5) }
             expectThrows<IllegalArgumentException> { "😀o".substringByColumns(3, 5) }
         }
 
         @TestFactory
-        fun `should throw on negative column`() = tests {
+        fun `should throw on negative column`() = testsOld {
             expectThrows<IllegalArgumentException> { "😀o".subSequenceByColumns(-1, 3) }
             expectThrows<IllegalArgumentException> { "😀o".substringByColumns(-1) }
         }
@@ -174,7 +172,7 @@ class TextWidthKtTest {
     inner class DropColumns {
 
         @TestFactory
-        fun `should drop columns`() = testEach(
+        fun `should drop columns`() = testEachOld(
             0 to "😀o",
             1 to "😀o",
             2 to "o",
@@ -185,7 +183,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on negative column`() = tests {
+        fun `should throw on negative column`() = testsOld {
             expectThrows<IllegalArgumentException> { ("😀o" as CharSequence).dropColumns(-1) }
             expectThrows<IllegalArgumentException> { "😀o".dropColumns(-1) }
         }
@@ -195,7 +193,7 @@ class TextWidthKtTest {
     inner class DropLastColumns {
 
         @TestFactory
-        fun `should drop last columns`() = testEach(
+        fun `should drop last columns`() = testEachOld(
             0 to "😀o",
             1 to "😀",
             2 to "",
@@ -206,7 +204,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on negative column`() = tests {
+        fun `should throw on negative column`() = testsOld {
             expectThrows<IllegalArgumentException> { ("😀o" as CharSequence).dropLastColumns(-1) }
             expectThrows<IllegalArgumentException> { "😀o".dropLastColumns(-1) }
         }
@@ -216,7 +214,7 @@ class TextWidthKtTest {
     inner class TakeColumns {
 
         @TestFactory
-        fun `should take columns`() = testEach(
+        fun `should take columns`() = testEachOld(
             0 to "",
             1 to "",
             2 to "😀",
@@ -227,7 +225,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on negative column`() = tests {
+        fun `should throw on negative column`() = testsOld {
             expectThrows<IllegalArgumentException> { ("😀o" as CharSequence).takeColumns(-1) }
             expectThrows<IllegalArgumentException> { "😀o".takeColumns(-1) }
         }
@@ -237,7 +235,7 @@ class TextWidthKtTest {
     inner class TakeLastColumns {
 
         @TestFactory
-        fun `should take last columns`() = testEach(
+        fun `should take last columns`() = testEachOld(
             0 to "",
             1 to "o",
             2 to "😀o",
@@ -248,7 +246,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on negative column`() = tests {
+        fun `should throw on negative column`() = testsOld {
             expectThrows<IllegalArgumentException> { ("😀o" as CharSequence).takeLastColumns(-1) }
             expectThrows<IllegalArgumentException> { "😀o".takeLastColumns(-1) }
         }
@@ -258,7 +256,7 @@ class TextWidthKtTest {
     inner class ChunkedByColumns {
 
         @TestFactory
-        fun `should return chunked`() = testEach<CharSequence.(Int) -> List<String>>(
+        fun `should return chunked`() = testEachOld<CharSequence.(Int) -> List<String>>(
             { chunkedByColumns(it) },
             { chunkedByColumnsSequence(it).toList() },
         ) { chunkFn ->
@@ -268,7 +266,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should return transformed`() = testEach<CharSequence.(Int, (CharSequence) -> String) -> List<String>>(
+        fun `should return transformed`() = testEachOld<CharSequence.(Int, (CharSequence) -> String) -> List<String>>(
             { columns, transform -> chunkedByColumns(columns, transform) },
             { columns, transform -> chunkedByColumnsSequence(columns, transform).toList() },
         ) { chunkFn ->
@@ -282,7 +280,7 @@ class TextWidthKtTest {
     inner class PadStartByColumns {
 
         @TestFactory
-        fun `should pad`() = testEach<CharSequence.(Int) -> CharSequence>(
+        fun `should pad`() = testEachOld<CharSequence.(Int) -> CharSequence>(
             { padStartByColumns(it) },
             { toString().padStartByColumns(it) },
         ) { fn ->
@@ -293,14 +291,14 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should pad control characters`() = tests {
+        fun `should pad control characters`() = testsOld {
             val string = "a\u0003b".repeat(5)
             expecting { string.padStartByColumns(1) } that { isEqualTo(string) }
             expecting { string.padStartByColumns(11) } that { isEqualTo(" $string") }
         }
 
         @TestFactory
-        fun `should pad with custom pad char`() = testEach<CharSequence.(Int, String) -> CharSequence>(
+        fun `should pad with custom pad char`() = testEachOld<CharSequence.(Int, String) -> CharSequence>(
             { columns, padChar -> padStartByColumns(columns, padChar) },
             { columns, padChar -> toString().padStartByColumns(columns, padChar) },
         ) { fn ->
@@ -319,7 +317,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should not pad if wide enough already`() = testEach<CharSequence.(Int) -> CharSequence>(
+        fun `should not pad if wide enough already`() = testEachOld<CharSequence.(Int) -> CharSequence>(
             { padStartByColumns(it) },
             { toString().padStartByColumns(it) },
         ) { fn ->
@@ -329,7 +327,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on negative columns`() = testEach<CharSequence.(Int) -> CharSequence>(
+        fun `should throw on negative columns`() = testEachOld<CharSequence.(Int) -> CharSequence>(
             { padStartByColumns(it) },
             { toString().padStartByColumns(it) },
         ) { fn ->
@@ -337,7 +335,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on pad character with zero columns`() = testEach<CharSequence.(Char) -> CharSequence>(
+        fun `should throw on pad character with zero columns`() = testEachOld<CharSequence.(Char) -> CharSequence>(
             { padStartByColumns(10, it.toString()) },
             { toString().padStartByColumns(10, it.toString()) },
         ) { fn ->
@@ -351,7 +349,7 @@ class TextWidthKtTest {
     inner class PadEndByColumns {
 
         @TestFactory
-        fun `should pad`() = testEach<CharSequence.(Int) -> CharSequence>(
+        fun `should pad`() = testEachOld<CharSequence.(Int) -> CharSequence>(
             { padEndByColumns(it) },
             { toString().padEndByColumns(it) },
         ) { fn ->
@@ -362,14 +360,14 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should pad control characters`() = tests {
+        fun `should pad control characters`() = testsOld {
             val string = "a\u0003b".repeat(5)
             expecting { string.padEndByColumns(1) } that { isEqualTo(string) }
             expecting { string.padEndByColumns(11) } that { isEqualTo("$string ") }
         }
 
         @TestFactory
-        fun `should pad with custom pad char`() = testEach<CharSequence.(Int, String) -> CharSequence>(
+        fun `should pad with custom pad char`() = testEachOld<CharSequence.(Int, String) -> CharSequence>(
             { columns, padChar -> padEndByColumns(columns, padChar) },
             { columns, padChar -> toString().padEndByColumns(columns, padChar) },
         ) { fn ->
@@ -388,7 +386,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should not pad if wide enough already`() = testEach<CharSequence.(Int) -> CharSequence>(
+        fun `should not pad if wide enough already`() = testEachOld<CharSequence.(Int) -> CharSequence>(
             { padEndByColumns(it) },
             { toString().padEndByColumns(it) },
         ) { fn ->
@@ -398,7 +396,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on negative columns`() = testEach<CharSequence.(Int) -> CharSequence>(
+        fun `should throw on negative columns`() = testEachOld<CharSequence.(Int) -> CharSequence>(
             { padEndByColumns(it) },
             { toString().padEndByColumns(it) },
         ) { fn ->
@@ -406,7 +404,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should throw on pad character with zero columns`() = testEach<CharSequence.(Char) -> CharSequence>(
+        fun `should throw on pad character with zero columns`() = testEachOld<CharSequence.(Char) -> CharSequence>(
             { padEndByColumns(10, it.toString()) },
             { toString().padEndByColumns(10, it.toString()) },
         ) { fn ->

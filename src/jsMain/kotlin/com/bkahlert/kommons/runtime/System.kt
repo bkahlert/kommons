@@ -1,32 +1,11 @@
 package com.bkahlert.kommons.runtime
 
-import com.bkahlert.kommons.runtime.AnsiSupport.NONE
 import com.bkahlert.kommons.text.Semantics.Symbols
-
-/**
- * Whether this program is running an integrated development environment.
- */
-public actual val isDeveloping: Boolean = false
-
-/**
- * Whether this program is running in debug mode.
- */
-public actual val isDebugging: Boolean = false
-
-/**
- * Whether this program is running in test mode.
- */
-public actual val isTesting: Boolean by lazy { isDebugging }
 
 /**
  * Registers [handler] as to be called when this program is about to stop.
  */
 public actual fun <T : () -> Unit> onExit(handler: T): T = handler
-
-/**
- * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- */
-public actual val ansiSupport: AnsiSupport = NONE
 
 /**
  * Returns a [CharSequence] that represents the current caller.

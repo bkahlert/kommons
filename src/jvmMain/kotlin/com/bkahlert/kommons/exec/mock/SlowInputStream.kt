@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.exec.mock
 
-import com.bkahlert.kommons.debug.debug
+import com.bkahlert.kommons.debug.render
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -70,7 +70,7 @@ public class SlowInputStream(
         if (inputs.isNotEmpty()) {
             if (blockedByPrompt) {
                 val input = inputs.first()
-                log(input.debug)
+                log(input.render())
                 if (echoInput) unread[0] = Duration.ZERO to input.map { it.code.toByte() }.toMutableList()
                 else unread.removeFirst()
                 log("unblocked prompt")
@@ -155,9 +155,9 @@ public class SlowInputStream(
             }
             currentLine.second
         }
-        log("available:${currentWord.debug.formattedAs.debug}")
+        log("available:${currentWord.render().formattedAs.debug}")
         val currentByte = currentWord.removeFirst()
-        log("current:${currentByte.debug.formattedAs.debug}")
+        log("current:${currentByte.render().formattedAs.debug}")
 
         if (currentWord.isEmpty()) {
             unread.removeFirst()

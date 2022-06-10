@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.createTempDirectory
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.delete
 import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.compress.Archiver.archive
 import com.bkahlert.kommons.io.compress.Compressor.compress
 import com.bkahlert.kommons.io.copyToDirectory
 import com.bkahlert.kommons.io.path.renameTo
-import com.bkahlert.kommons.randomDirectory
-import com.bkahlert.kommons.randomPath
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 import java.nio.file.Files
@@ -18,8 +18,9 @@ import kotlin.io.path.listDirectoryEntries
 
 public object Fixtures {
 
-    public fun Path.symbolicLink(): Path = randomPath()
-        .also { link -> Files.createSymbolicLink(link, randomPath()) }
+    public fun Path.symbolicLink(): Path = createTempFile()
+        .also { it.delete() }
+        .also { link -> Files.createSymbolicLink(link, createTempFile().also { it.delete() }) }
         .apply { check(exists(NOFOLLOW_LINKS)) { "Failed to create symbolic link $this." } }
 
     public fun Path.singleFile(): Path = HtmlFixture.copyToDirectory(this)
@@ -32,7 +33,7 @@ public object Fixtures {
             archive
         }.apply { check(exists()) { "Failed to provide archive with single file." } }
 
-    public fun Path.directoryWithTwoFiles(): Path = randomDirectory().also {
+    public fun Path.directoryWithTwoFiles(): Path = createTempDirectory().also {
         HtmlFixture.copyToDirectory(it)
         TextFixture.copyToDirectory(it.resolve("sub-dir")).renameTo("config.txt")
     }.apply { check(listDirectoryEntries().size == 2) { "Failed to provide directory with two files." } }

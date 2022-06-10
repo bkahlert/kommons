@@ -24,13 +24,12 @@ import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.runtime.onExit
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.tempDir
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringContains
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.matchesCurlyPattern
@@ -40,7 +39,6 @@ import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.TeePrinter
 import com.bkahlert.kommons.tracing.rendering.capturing
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -54,9 +52,9 @@ import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isTrue
 import java.nio.file.Path
+import kotlin.io.path.createTempDirectory
 import kotlin.time.measureTime
 
-@Tag("xxx")
 @Slow
 class DockerRunCommandLineTest {
 
@@ -174,7 +172,7 @@ class DockerRunCommandLineTest {
     inner class DockerizedExecutor {
 
         @Smoke @TestFactory
-        fun `should exec dockerized`() = testEach(
+        fun `should exec dockerized`() = testEachOld(
             CommandLine("printenv", "HOME"),
             ShellScript {
                 shebang
@@ -187,7 +185,7 @@ class DockerRunCommandLineTest {
         }
 
         @TestFactory
-        fun `should have success state on exit code 0`() = testEach(
+        fun `should have success state on exit code 0`() = testEachOld(
             CommandLine("ls", "/root"),
             ShellScript {
                 shebang
@@ -200,7 +198,7 @@ class DockerRunCommandLineTest {
         }
 
         @TestFactory
-        fun `should have failed state on exit code other than 0`() = testEach(
+        fun `should have failed state on exit code other than 0`() = testEachOld(
             CommandLine("ls", "invalid"),
             ShellScript {
                 shebang
@@ -213,7 +211,7 @@ class DockerRunCommandLineTest {
         }
 
         @TestFactory
-        fun `should apply env`() = testEach(
+        fun `should apply env`() = testEachOld(
             CommandLine("printenv", "TEST_PROP"),
             ShellScript {
                 shebang
@@ -232,14 +230,14 @@ class DockerRunCommandLineTest {
         @Nested
         inner class WorkingDirectoryMapping {
 
-            private val tempDir = tempDir().also { onExit { it.deleteRecursively() } }
+            private val tempDir = createTempDirectory().also { onExit { it.deleteRecursively() } }
             private val workDir = tempDir.resolve("work")
             private val htmlFile = workDir.resolve("files/sample.html").also { HtmlFixture.copyTo(it) }
 
             private val commandLine = CommandLine("cat", htmlFile.pathString)
 
             @DockerRequiring @TestFactory
-            fun `should apply working directory`() = testEach(
+            fun `should apply working directory`() = testEachOld(
                 commandLine,
                 ShellScript {
                     shebang
@@ -326,7 +324,7 @@ class DockerRunCommandLineTest {
         @Nested
         inner class DockerizingCommandLine {
 
-            @Test
+            @DockerRequiring @Test
             fun `should use entrypoint if set`() {
                 val commandLine = CommandLine("printenv", "HOME")
                 expecting { commandLine.dockerized(Ubuntu, Options(entryPoint = "echo")).exec.logging() } that {
@@ -334,7 +332,7 @@ class DockerRunCommandLineTest {
                 }
             }
 
-            @Test
+            @DockerRequiring @Test
             fun `should use command if not set`() {
                 val commandLine = CommandLine("printenv", "HOME")
                 expecting { commandLine.dockerized(Ubuntu).exec.logging() } that {
@@ -346,9 +344,9 @@ class DockerRunCommandLineTest {
         @Nested
         inner class DockerizingShellScript {
 
-            @TestFactory
+            @DockerRequiring @TestFactory
             @Suppress("NonAsciiCharacters")
-            fun `should always use ⧸bin⧸sh`() = tests {
+            fun `should always use ⧸bin⧸sh`() = testsOld {
                 val script = object : ShellScript(null, "printenv HOME") {
                     override fun toCommandLine(environment: Map<String, String>, workingDirectory: Path?, transform: (String) -> String): CommandLine {
                         val originalCommandLine = super.toCommandLine(environment, workingDirectory, transform)
@@ -362,7 +360,7 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun `should exec using specified image`() = testEach<Executable<Exec>.() -> DockerExec>(
+    fun `should exec using specified image`() = testEachOld<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec() },
         { dockerized { "ubuntu" }.exec() },
         { with(Ubuntu) { dockerized.exec() } },
@@ -375,7 +373,7 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun TestSpanScope.`should exec logging using specified image`() = testEach<Executable<Exec>.(RendererProvider) -> DockerExec>(
+    fun TestSpanScope.`should exec logging using specified image`() = testEachOld<Executable<Exec>.(RendererProvider) -> DockerExec>(
         { dockerized(Ubuntu).exec.logging(renderer = it) },
         { dockerized { "ubuntu" }.exec.logging(renderer = it) },
         { with(Ubuntu) { dockerized.exec.logging(renderer = it) } },
@@ -400,7 +398,7 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun `should exec processing using specified image`() = testEach<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
+    fun `should exec processing using specified image`() = testEachOld<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
         { dockerized(Ubuntu).exec.processing { _, process -> process { io -> it.add(io) } } },
         { dockerized { "ubuntu" }.exec.processing { _, process -> process { io -> it.add(io) } } },
         { with(Ubuntu) { dockerized.exec.processing { _, process -> process { io -> it.add(io) } } } },
@@ -415,7 +413,7 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun `should exec synchronously`() = testEach<Executable<Exec>.() -> DockerExec>(
+    fun `should exec synchronously`() = testEachOld<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec() },
         { dockerized { "ubuntu" }.exec() },
         { with(Ubuntu) { dockerized.exec() } },
@@ -426,7 +424,7 @@ class DockerRunCommandLineTest {
     }
 
     @TestFactory
-    fun `should exec asynchronously`() = testEach<Executable<Exec>.() -> DockerExec>(
+    fun `should exec asynchronously`() = testEachOld<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec.async() },
         { dockerized { "ubuntu" }.exec.async() },
         { with(Ubuntu) { dockerized.exec.async() } },
@@ -437,7 +435,7 @@ class DockerRunCommandLineTest {
     @Nested
     inner class WithOptions {
 
-        private val tempDir = tempDir()
+        private val tempDir = createTempDirectory()
             .also { HtmlFixture.copyToDirectory(it) }
             .also { onExit { it.deleteRecursively() } }
 
@@ -449,7 +447,7 @@ class DockerRunCommandLineTest {
         )
 
         @DockerRequiring @TestFactory
-        fun `should exec using specified options`() = testEach<Executable<Exec>.() -> DockerExec>(
+        fun `should exec using specified options`() = testEachOld<Executable<Exec>.() -> DockerExec>(
             { dockerized(Ubuntu, options).exec() },
             { dockerized(options) { "ubuntu" }.exec() },
             { with(Ubuntu) { dockerized(options).exec() } },

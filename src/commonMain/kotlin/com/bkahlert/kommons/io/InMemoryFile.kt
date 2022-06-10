@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.io
 
+// TODO delete if possible
 /**
  * A file stored purely in-memory.
  */

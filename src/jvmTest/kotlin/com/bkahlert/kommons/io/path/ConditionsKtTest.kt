@@ -1,14 +1,13 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.createTempDirectory
+import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.delete
 import com.bkahlert.kommons.io.copyToDirectory
-import com.bkahlert.kommons.randomDirectory
-import com.bkahlert.kommons.randomFile
-import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.test.HtmlFixture
-import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -26,41 +25,41 @@ class ConditionsKtTest {
         @Nested
         inner class WithFile {
             @Test
-            fun `should return true on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(randomFile()).isEmpty()
+            fun `should return true on empty`(@TempDir tempDir: Path) {
+                expectThat(tempDir.createTempFile()).isEmpty()
             }
 
             @Test
-            fun `should return false on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(HtmlFixture.copyToDirectory(this)).not { isEmpty() }
+            fun `should return false on non-empty`(@TempDir tempDir: Path) {
+                expectThat(HtmlFixture.copyToDirectory(tempDir)).not { isEmpty() }
             }
         }
 
         @Nested
         inner class WithDirectory {
             @Test
-            fun `should return true on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(randomDirectory()).isEmpty()
+            fun `should return true on empty`(@TempDir tempDir: Path) {
+                expectThat(tempDir.createTempDirectory()).isEmpty()
             }
 
             @Test
-            fun `should return false on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(randomDirectory().parent).not { isEmpty() }
+            fun `should return false on non-empty`(@TempDir tempDir: Path) {
+                expectThat(tempDir.createTempDirectory().parent).not { isEmpty() }
             }
         }
 
         @Test
-        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on missing`(@TempDir tempDir: Path) {
             expectCatching {
-                randomPath().isEmpty()
+                tempDir.createTempFile().apply { delete() }.isEmpty()
             }.isFailure().isA<NoSuchFileException>()
         }
 
         @Test
-        fun `should throw in different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw in different type`(@TempDir tempDir: Path) {
             @Suppress("BlockingMethodInNonBlockingContext")
             (expectCatching {
-                Files.createSymbolicLink(randomPath(), randomFile()).isEmpty()
+                Files.createSymbolicLink(tempDir.createTempFile().apply { delete() }, tempDir.createTempFile()).isEmpty()
             })
         }
     }
@@ -72,41 +71,41 @@ class ConditionsKtTest {
         @Nested
         inner class WithFile {
             @Test
-            fun `should return true on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(HtmlFixture.copyToDirectory(this)).isNotEmpty()
+            fun `should return true on non-empty`(@TempDir tempDir: Path) {
+                expectThat(HtmlFixture.copyToDirectory(tempDir)).isNotEmpty()
             }
 
             @Test
-            fun `should return false on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(this).not { isNotEmpty() }
+            fun `should return false on empty`(@TempDir tempDir: Path) {
+                expectThat(tempDir).not { isNotEmpty() }
             }
         }
 
         @Nested
         inner class WithDirectory {
             @Test
-            fun `should return true on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(randomDirectory().parent).isNotEmpty()
+            fun `should return true on non-empty`(@TempDir tempDir: Path) {
+                expectThat(tempDir.createTempDirectory().parent).isNotEmpty()
             }
 
             @Test
-            fun `should return false on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(randomDirectory()).not { isNotEmpty() }
+            fun `should return false on empty`(@TempDir tempDir: Path) {
+                expectThat(tempDir.createTempDirectory()).not { isNotEmpty() }
             }
         }
 
         @Test
-        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on missing`(@TempDir tempDir: Path) {
             expectCatching {
-                randomPath().isNotEmpty()
+                tempDir.createTempFile().apply { delete() }.isNotEmpty()
             }.isFailure().isA<NoSuchFileException>()
         }
 
         @Test
-        fun `should throw on different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on different type`(@TempDir tempDir: Path) {
             @Suppress("BlockingMethodInNonBlockingContext")
             expectCatching {
-                Files.createSymbolicLink(randomPath(), randomFile()).isNotEmpty()
+                Files.createSymbolicLink(tempDir.createTempFile().apply { delete() }, tempDir.createTempFile()).isNotEmpty()
             }
         }
     }

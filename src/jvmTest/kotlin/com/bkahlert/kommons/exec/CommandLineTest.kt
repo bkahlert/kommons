@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.string
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.quoted
@@ -44,7 +44,7 @@ class CommandLineTest {
     inner class CompanionObject {
 
         @TestFactory
-        fun `should parse single line`() = testEach(
+        fun `should parse single line`() = testEachOld(
             "echo Hello",
             "'echo' 'Hello'",
         ) {
@@ -54,7 +54,7 @@ class CommandLineTest {
         }
 
         @TestFactory
-        fun `should parse multi line`() = testEach(
+        fun `should parse multi line`() = testEachOld(
             """
                 echo \
                 Hello
@@ -70,7 +70,7 @@ class CommandLineTest {
         }
 
         @TestFactory
-        fun `should ignore trailing new line`() = testEach(
+        fun `should ignore trailing new line`() = testEachOld(
             """
                 echo Hello
                 
@@ -97,7 +97,7 @@ class CommandLineTest {
         }
 
         @TestFactory
-        fun `should parse empty line`() = testEach(
+        fun `should parse empty line`() = testEachOld(
             """
                 echo \
                 \
@@ -240,7 +240,7 @@ class CommandLineTest {
     }
 
     @TestFactory
-    fun `should quote quotes correctly`() = tests {
+    fun `should quote quotes correctly`() = testsOld {
         val script = ShellScript {
             shebang("/bin/bash")
             """
@@ -327,7 +327,7 @@ val <T : CharSequence> Assertion.Builder<T>.continuationsRemoved: DescribeableBu
     get() = get("continuation removed %s") { replace("\\s+\\\\.".toRegex(RegexOption.DOT_MATCHES_ALL), " ") }
 
 val Assertion.Builder<CommandLine>.evaluated: Assertion.Builder<Exec>
-    get() = get("evaluated %s") { toExec(false, emptyMap(), Locations.Default.Temp, null).process() }
+    get() = get("evaluated %s") { toExec(false, emptyMap(), SystemLocations.Temp, null).process() }
 
 fun Assertion.Builder<CommandLine>.evaluated(block: Assertion.Builder<Exec>.() -> Unit) =
     evaluated.block()

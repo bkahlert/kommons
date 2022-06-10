@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.net
 
-import com.bkahlert.kommons.collections.too
-import com.bkahlert.kommons.math.bigIntegerOfDecimalString
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.bigIntegerOfDecimalString
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
+import com.bkahlert.kommons.too
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
@@ -12,7 +12,7 @@ class IPv6SubnetTest {
     private val ip = IPv6Address.parse("abba:4efa:abba:4efa:abba:4efa:abba:4efa")
 
     @TestFactory
-    fun `should be parsable`() = testEach(
+    fun `should be parsable`() = testEachOld(
         "::/0" to "::..ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
         "abba:4efa:abba:4efa::/63" to "abba:4efa:abba:4efa::..abba:4efa:abba:4efb:ffff:ffff:ffff:ffff",
         "abba:4efa:abba:4efa::/64" to "abba:4efa:abba:4efa::..abba:4efa:abba:4efa:ffff:ffff:ffff:ffff",
@@ -24,7 +24,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should have mask`() = testEach(
+    fun `should have mask`() = testEachOld(
         0 to "0",
         63 to "fffffffffffffffe0000000000000000",
         64 to "ffffffffffffffff0000000000000000",
@@ -37,7 +37,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should have start matching network address`() = testEach(
+    fun `should have start matching network address`() = testEachOld(
         0 to "::",
         63 to "abba:4efa:abba:4efa::",
         64 to "abba:4efa:abba:4efa::",
@@ -51,7 +51,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should have inclusive end matching broadcast address`() = testEach(
+    fun `should have inclusive end matching broadcast address`() = testEachOld(
         0 to "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
         63 to "abba:4efa:abba:4efb:ffff:ffff:ffff:ffff",
         64 to "abba:4efa:abba:4efa:ffff:ffff:ffff:ffff",
@@ -65,7 +65,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should have usable host count`() = testEach(
+    fun `should have usable host count`() = testEachOld(
         0 to "340282366920938463463374607431768211456" too "340282366920938463463374607431768211454",
         63 to "36893488147419103232" too "36893488147419103230",
         64 to "18446744073709551616" too "18446744073709551614",
@@ -81,7 +81,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should have first and usable host`() = testEach(
+    fun `should have first and usable host`() = testEachOld(
         0 to "::1" too "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe",
         63 to "abba:4efa:abba:4efa:::1" too "abba:4efa:abba:4efb:ffff:ffff:ffff:fffe",
         64 to "abba:4efa:abba:4efa:::1" too "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
@@ -95,7 +95,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should be representable`() = testEach(
+    fun `should be representable`() = testEachOld(
         0 to "::/0",
         63 to "abba:4efa:abba:4efa::/63",
         64 to "abba:4efa:abba:4efa::/64",
@@ -106,7 +106,7 @@ class IPv6SubnetTest {
     }
 
     @TestFactory
-    fun `should be instantiatable by div`() = testEach(
+    fun `should be instantiatable by div`() = testEachOld(
         0 to "::/0",
         63 to "abba:4efa:abba:4efa::/63",
         64 to "abba:4efa:abba:4efa::/64",

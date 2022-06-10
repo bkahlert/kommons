@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.test.string
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.text.Whitespaces.EM_QUAD
 import com.bkahlert.kommons.text.Whitespaces.EM_SPACE
 import com.bkahlert.kommons.text.Whitespaces.EN_QUAD
@@ -62,7 +62,8 @@ class WhitespacesTest {
                     "(HAIR SPACE) " +
                     "(NARROW NO BREAK SPACE FO) " +
                     "(MEDIUM MATHEMATICAL SPACE) " +
-                    "(IDEOGRAPHIC SPACE)")
+                    "(IDEOGRAPHIC SPACE)"
+            )
         }
 
         @Test
@@ -72,7 +73,7 @@ class WhitespacesTest {
     }
 
     @TestFactory
-    fun `each whitespace`() = tests {
+    fun `each whitespace`() = testsOld {
         Whitespaces.Dict.forEach { (whitespace, name) ->
             name all {
                 expecting("has length") { whitespace.length } that { isEqualTo(1) }

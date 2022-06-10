@@ -1,13 +1,9 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.AnsiSupport
+import com.bkahlert.kommons.Platform
 import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.math.mod
 import com.bkahlert.kommons.regex.namedGroups
-import com.bkahlert.kommons.runtime.AnsiSupport
-import com.bkahlert.kommons.runtime.AnsiSupport.ANSI4
-import com.bkahlert.kommons.runtime.AnsiSupport.NONE
-import com.bkahlert.kommons.runtime.ansiSupport
-import com.bkahlert.kommons.runtime.isDebugging
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.ColoredText
@@ -35,7 +31,7 @@ import kotlin.text.contains as containsNonAnsiAware
  */
 public object ANSI {
 
-    private val level by lazy { if (isDebugging && false) NONE else ansiSupport }
+    private val level by lazy { if (Platform.Current.isDebugging && false) AnsiSupport.NONE else Platform.Current.ansiSupport }
 
     /**
      * Returns this character sequence as a string with all lines terminated with
@@ -64,7 +60,7 @@ public object ANSI {
      */
     @Suppress("SpellCheckingInspection")
     public fun CharSequence.resetLines(): String {
-        val reset = reset(ANSI4)
+        val reset = reset(AnsiSupport.ANSI4)
         return toString().mapLines { "$it$reset" }
     }
 
@@ -130,7 +126,7 @@ public object ANSI {
         override fun on(backgroundColorizer: Colorizer): Formatter<CharSequence> = this + (backgroundColorizer.bg)
     }
 
-    private fun reset(level: AnsiSupport) = if (level == NONE) DisabledAnsiCode else AnsiCode(0, 0)
+    private fun reset(level: AnsiSupport) = if (level == AnsiSupport.NONE) DisabledAnsiCode else AnsiCode(0, 0)
     private val RESET: AnsiCode by lazy { reset(level) }
 
     public object Colors {
@@ -249,7 +245,7 @@ public object ANSI {
         private fun hsv(h: Int, s: Int, v: Int): AnsiColorCode = color(HSV(h, s, v))
 
         private fun ansi16(code: Int): AnsiColorCode =
-            if (level == NONE) DisabledAnsiColorCode else Ansi16ColorCode(code)
+            if (level == AnsiSupport.NONE) DisabledAnsiColorCode else Ansi16ColorCode(code)
 
         /**
          * Create a color from an existing [Color].
@@ -257,8 +253,8 @@ public object ANSI {
          * It's usually easier to use a function like [rgb] or [hsv] instead.
          */
         private fun color(color: Color): AnsiColorCode = when (level) {
-            NONE -> DisabledAnsiColorCode
-            ANSI4 -> Ansi16ColorCode(color.toAnsi16().code)
+            AnsiSupport.NONE -> DisabledAnsiColorCode
+            AnsiSupport.ANSI4 -> Ansi16ColorCode(color.toAnsi16().code)
             AnsiSupport.ANSI8 ->
                 if (color is Ansi16) Ansi16ColorCode(color.code)
                 else Ansi256ColorCode(color.toAnsi256().code)
@@ -285,7 +281,7 @@ public object ANSI {
         public fun CharSequence.italic(): CharSequence = italic(this)
 
         private fun ansi(open: Int, close: Int) =
-            if (level == NONE) DisabledAnsiCode else AnsiCode(open, close)
+            if (level == AnsiSupport.NONE) DisabledAnsiCode else AnsiCode(open, close)
     }
 
     public open class Preview(
@@ -406,17 +402,17 @@ public object ANSI {
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        public val hideCursor: String get() = if (level == NONE) "" else "$c?25l"
+        public val hideCursor: String get() = if (level == AnsiSupport.NONE) "" else "$c?25l"
 
         /**
          * Create an ANSI code to show the cursor.
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        public val showCursor: String get() = if (level == NONE) "" else "$c?25h"
+        public val showCursor: String get() = if (level == AnsiSupport.NONE) "" else "$c?25h"
 
         private fun moveCursor(dir: String, count: Int): String {
-            return if (count == 0 || level == NONE) ""
+            return if (count == 0 || level == AnsiSupport.NONE) ""
             else "$c$count$dir"
         }
     }

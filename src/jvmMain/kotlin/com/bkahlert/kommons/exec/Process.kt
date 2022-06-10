@@ -6,11 +6,11 @@ import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Excepted
 import com.bkahlert.kommons.exec.Process.State.Exited
 import com.bkahlert.kommons.exec.Process.State.Running
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.CRLF
 import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
 import com.bkahlert.kommons.unit.milli
@@ -161,7 +161,8 @@ public interface Process {
                 override val successful: Boolean = false
                 override val textRepresentation: String? get() = toString()
                 override fun toString(): String =
-                    StringBuilder(status).apply {
+                    buildString {
+                        append(status)
                         relevantFiles.forEach {
                             append(LineSeparators.LF)
                             append(it)
@@ -170,7 +171,7 @@ public interface Process {
                             append(LineSeparators.LF)
                             append(dump)
                         }
-                    }.toString()
+                    }
             }
         }
 

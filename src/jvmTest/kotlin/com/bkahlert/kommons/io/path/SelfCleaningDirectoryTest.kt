@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.io.permissions
 import com.bkahlert.kommons.test.junit.UniqueId
@@ -31,7 +31,7 @@ class SelfCleaningDirectoryTest {
 
     @Test
     fun `should throw on non-temp location`() {
-        expectThrows<IllegalArgumentException> { SelfCleaningDirectory(Locations.Default.Work.resolve("directory")) }
+        expectThrows<IllegalArgumentException> { SelfCleaningDirectory(SystemLocations.Work.resolve("directory")) }
     }
 
     @Test

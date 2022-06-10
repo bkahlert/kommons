@@ -2,6 +2,7 @@ package com.bkahlert.kommons.io
 
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.debug.asEmoji
+import com.bkahlert.kommons.debug.renderType
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.locks.ReentrantLock
@@ -39,7 +40,7 @@ public open class TeeInputStream @JvmOverloads constructor(
     }
 
     override fun toString(): String = asString {
-        put(::input, input)
+        put(::input, input?.renderType())
         put(::branches, branches.toList())
         put(::closeBranches, closeBranches.asEmoji)
     }

@@ -3,7 +3,7 @@ package com.bkahlert.kommons.test.output
 import com.bkahlert.kommons.runWrapping
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.isAnnotated
-import com.bkahlert.kommons.test.storeForNamespace
+import com.bkahlert.kommons.test.junit.getStore
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.InvocationInterceptor
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver
 
+// TODO port
 class OutputCaptureExtension : TypeBasedParameterResolver<CapturedOutput>(),
     BeforeAllCallback, AfterAllCallback,
     BeforeEachCallback, AfterEachCallback,
@@ -51,12 +52,13 @@ class OutputCaptureExtension : TypeBasedParameterResolver<CapturedOutput>(),
     annotation class Silent
 
     companion object {
-        private val store by storeForNamespace()
+        private val ExtensionContext.store get() = getStore<OutputCaptureExtension>()
         private fun ExtensionContext.getOutputCapture(print: Boolean): OutputCapture =
-            store().getOrComputeIfAbsent(
+            store.getOrComputeIfAbsent(
                 OutputCapture::class.java,
                 { OutputCapture(print) },
-                OutputCapture::class.java)
+                OutputCapture::class.java
+            )
 
         private fun ExtensionContext.pushCapture(print: Boolean): Unit = getOutputCapture(print).push()
         private fun ExtensionContext.popCapture(print: Boolean): Unit = getOutputCapture(print).pop()

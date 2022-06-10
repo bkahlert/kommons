@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.collections.head
+import com.bkahlert.kommons.head
 import com.bkahlert.kommons.takeUnlessBlank
 import java.nio.file.Path
 import java.util.Locale
@@ -118,7 +118,7 @@ public fun Path.fileNameWithExtension(extension: String): String = "$baseName.$e
 /**
  * Removes [extensionOrNull] from this [Path].
  *
- * Example: `Path.of("/path/file.foo.bar").removeExtension("bar")` returns path `/path/file.foo`.
+ * Example: `Paths.get("/path/file.foo.bar").removeExtension("bar")` returns path `/path/file.foo`.
  *
  * @throws IllegalArgumentException if the [extensionOrNull] to be removed is not present
  */

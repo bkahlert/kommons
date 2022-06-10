@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.exception
 
+// TODO migrate
+
 /**
  * The root cause of this [Throwable], that is,
  * the throwable that was thrown the first.

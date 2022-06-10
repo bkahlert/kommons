@@ -5,7 +5,7 @@ import com.bkahlert.kommons.docker.DockerRunCommandLine
 import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.textContent
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.matchesCurlyPattern
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
@@ -20,7 +20,7 @@ class ScriptLinksKtTest {
         private val dockerRunCommandLine = DockerRunCommandLine(DockerImage { "repo" / "name" tag "tag" }, commandLine)
 
         @TestFactory
-        fun `should provide URI pointing to valid script`() = testEach<Pair<Executable<*>, String>>(
+        fun `should provide URI pointing to valid script`() = testEachOld<Pair<Executable<*>, String>>(
             commandLine to """
                 #!/bin/sh
                 'printenv' 'TEST_PROP'

@@ -14,7 +14,6 @@ import java.net.URL
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import kotlin.streams.toList
 
 private object UnicodeDict : Dictionary<Long, String> by
 dictOf("unicode.dict.tsv".asSystemResourceUrl().loadTabSeparatedValues(skipLines = 1), { "\\u${it.toString(16)}!!${it.toInt().toChar().category.name}" })
@@ -38,6 +37,12 @@ public fun <T> UnicodeBlockMeta<T>.asTable(): String where T : Unicode.UnicodeBl
     "$table"
 }
 
-private fun URL.loadTabSeparatedValues(skipLines: Long) = openStream().bufferedReader().lines().skip(skipLines).map { row ->
-    row.split("\t").let { java.lang.Long.parseLong(it.first(), 16) to it.last() }
-}.toList().toMap()
+private fun URL.loadTabSeparatedValues(skipLines: Int) =
+    openStream()
+        .bufferedReader()
+        .lineSequence()
+        .drop(skipLines)
+        .map { row ->
+            row.split("\t").let { it.first().toLong(16) to it.last() }
+        }
+        .toMap()

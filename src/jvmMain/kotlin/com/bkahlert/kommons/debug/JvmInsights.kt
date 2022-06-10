@@ -12,7 +12,6 @@ import com.bkahlert.kommons.math.toScientificString
 import com.bkahlert.kommons.regex.groupValue
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.joinLinesToString
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -122,7 +121,7 @@ public val <T : MatchResult?> T.trace: T
     get() = this?.apply {
         val matchedGroups = groups.filterNotNull()
         println("Regular Expression Matched ${matchedGroups.size.toString().formattedAs.debug} group(s)")
-        println(matchedGroups.joinLinesToString { "${it.range}: ".padStart(8) + it.value.formattedAs.debug })
+        println(matchedGroups.joinToString(LineSeparators.DEFAULT) { "${it.range}: ".padStart(8) + it.value.formattedAs.debug })
     } ?: apply { println("Regular Expression Did Not Match".formattedAs.warning) }
 
 

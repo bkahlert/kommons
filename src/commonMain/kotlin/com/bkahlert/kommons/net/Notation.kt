@@ -1,19 +1,19 @@
 package com.bkahlert.kommons.net
 
+import com.bkahlert.kommons.bigIntegerOf
 import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.BigIntegerConstants
-import com.bkahlert.kommons.math.bigIntegerOf
-import com.bkahlert.kommons.math.padStart
 import com.bkahlert.kommons.math.shl
 import com.bkahlert.kommons.math.toString
 import com.bkahlert.kommons.math.toUByteArray
-import com.bkahlert.kommons.math.trim
 import com.bkahlert.kommons.net.Notation.Verbosity
 import com.bkahlert.kommons.net.Notation.Verbosity.Compressed
 import com.bkahlert.kommons.net.Notation.Verbosity.Conventional
 import com.bkahlert.kommons.net.Notation.Verbosity.Full
+import com.bkahlert.kommons.padStart
 import com.bkahlert.kommons.ranges.size
 import com.bkahlert.kommons.regex.countMatches
+import com.bkahlert.kommons.trim
 import com.bkahlert.kommons.unit.bytes
 import kotlin.math.ceil
 

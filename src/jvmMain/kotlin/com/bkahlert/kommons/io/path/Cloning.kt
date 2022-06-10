@@ -1,16 +1,16 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.delete
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.io.fileAlreadyExists
-import com.bkahlert.kommons.tempFile
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 
 public val cloneFileSupport: Boolean by lazy {
-    val file: Path = Kommons.FilesTemp.tempFile().writeText("cloneFile test")
+    val file: Path = Kommons.FilesTemp.createTempFile().writeText("cloneFile test")
     val clone = file.resolveSibling("${file.fileName}-cloned")
     val exitCode = CommandLine("cp", "-c", file.pathString, clone.pathString).exec().waitFor().exitCode
     file.delete()

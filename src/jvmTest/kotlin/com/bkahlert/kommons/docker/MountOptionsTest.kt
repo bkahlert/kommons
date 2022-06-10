@@ -3,9 +3,9 @@ package com.bkahlert.kommons.docker
 import com.bkahlert.kommons.builder.Init
 import com.bkahlert.kommons.docker.MountOptionContext.Type.tmpfs
 import com.bkahlert.kommons.docker.MountOptionContext.Type.volume
-import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.SystemIOExclusive
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -147,7 +147,7 @@ class MountOptionsTest {
         }
 
         @TestFactory
-        fun `should throw on relative target`() = testEach<Init<MountOptionContext<Unit>>>(
+        fun `should throw on relative target`() = testEachOld<Init<MountOptionContext<Unit>>>(
             { "host-source".asHostPath() mountAt "string-target" },
             { "host-source".asHostPath() mountAt "container-target".asContainerPath() },
             { "string-source" mountAs "string-type" at "string-target" },
@@ -162,7 +162,7 @@ class MountOptionsTest {
 
             @SystemIOExclusive
             @TestFactory
-            fun `should throw on incomplete mounts`() = testEach<Init<MountOptionContext<Unit>>>(
+            fun `should throw on incomplete mounts`() = testEachOld<Init<MountOptionContext<Unit>>>(
                 { "string-source" mountAs "string-type" },
                 { "host-source".asHostPath() mountAs "string-type" },
                 { "string-source" mountAs volume },

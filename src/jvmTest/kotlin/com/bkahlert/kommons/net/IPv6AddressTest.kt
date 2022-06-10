@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.net
 
-import com.bkahlert.kommons.collections.too
-import com.bkahlert.kommons.math.ubyteArrayOfDecimalString
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
+import com.bkahlert.kommons.too
+import com.bkahlert.kommons.ubyteArrayOfDecimalString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -24,7 +24,7 @@ class IPv6AddressTest {
             IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001"),
             IPv6Address.parse("0:0:0:0:0:ffff:192.168.16.1"),
             IPv6Address(ubyteArrayOfDecimalString("281473913982977")),
-        ).testEach { ip ->
+        ).testEachOld { ip ->
             expecting { ip } that { toStringIsEqualTo("::ffff:c0a8:1001") }
         }
 
@@ -36,7 +36,7 @@ class IPv6AddressTest {
             { ipOf("0:0:0::ffffffff:c0a8:1001") },
             { IPv6Address.parse("0:0:0:0:0:ffff:c0a8:1001:0:0:0") },
             { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
-        ).testEach { ip ->
+        ).testEachOld { ip ->
             expectThrows<IllegalArgumentException> { ip() }
         }
 
@@ -119,7 +119,7 @@ class IPv6AddressTest {
         IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE.inc() too IPv6Address.RANGE.start),
         DefaultIPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount too IPv6Address.parse("::ffff:0:0")),
         Nat64IPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount too IPv6Address.parse("64:ff9b::")),
-    ).testEach { (range, expected) ->
+    ).testEachOld { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {
             expecting { range.smallestCommonSubnet.prefixLength } that { isEqualTo(bitCount) }

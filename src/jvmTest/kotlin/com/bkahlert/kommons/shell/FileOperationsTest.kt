@@ -3,7 +3,7 @@ package com.bkahlert.kommons.shell
 import com.bkahlert.kommons.io.path.appendText
 import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.LF
@@ -29,7 +29,7 @@ class FileOperationsTest {
             }
 
         @TestFactory
-        fun `should remove intermediary line`(uniqueId: UniqueId): List<Any> = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
+        fun `should remove intermediary line`(uniqueId: UniqueId): List<Any> = testEachOld(*LineSeparators.toTypedArray()) { lineSeparator ->
             withTempDir(uniqueId) {
                 val fixture = file(lineSeparator)
                 ShellScript { file(fixture) { removeLine("line 2") } }.exec.logging()
@@ -40,7 +40,7 @@ class FileOperationsTest {
         }
 
         @TestFactory
-        fun `should remove last line`(uniqueId: UniqueId): List<Any> = testEach(*LineSeparators.toTypedArray()) { lineSeparator ->
+        fun `should remove last line`(uniqueId: UniqueId): List<Any> = testEachOld(*LineSeparators.toTypedArray()) { lineSeparator ->
             withTempDir(uniqueId) {
                 val fixture = file(lineSeparator)
                 ShellScript { file(fixture) { removeLine("last line") } }.exec.logging()

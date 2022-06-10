@@ -15,10 +15,10 @@ import strikt.assertions.isSuccess
 import strikt.assertions.message
 import strikt.assertions.startsWith
 
-class TestsSample {
+class JvmTestsSample {
 
     @TestFactory
-    fun `testing with subject`() = test("subject") {
+    fun `testing with subject`() = testOld("subject") {
 
         "other" asserting { isEqualTo("other") }
         asserting { isEqualTo("subject") }
@@ -31,7 +31,7 @@ class TestsSample {
     }
 
     @TestFactory
-    fun `testing without subject`() = tests {
+    fun `testing without subject`() = testsOld {
 
         "other" asserting { isEqualTo("other") }
         asserting("subject") { isEqualTo("subject") }
@@ -48,7 +48,7 @@ class TestsSample {
     inner class TestingSingleSubject {
 
         @TestFactory
-        fun `as parameter`() = test("subject") {
+        fun `as parameter`() = testOld("subject") {
 
             "other" asserting { isEqualTo("other") }
             asserting { isEqualTo("subject") }
@@ -79,12 +79,12 @@ class TestsSample {
         }
 
         @TestFactory
-        fun `string subject`() = test("foo") {
+        fun `string subject`() = testOld("foo") {
             asserting { isEqualTo("foo") }
         }
 
         @TestFactory
-        fun `list subject`() = test(listOf("foo", "bar")) {
+        fun `list subject`() = testOld(listOf("foo", "bar")) {
             expecting { joinToString("+") } that { isEqualTo("foo+bar").get { length }.isEqualTo(7) }
         }
     }
@@ -93,7 +93,7 @@ class TestsSample {
     inner class TestingMultipleSubjects {
 
         @TestFactory
-        fun `as parameters`() = testEach("subject 1", "subject 2", "subject 3") {
+        fun `as parameters`() = testEachOld("subject 1", "subject 2", "subject 3") {
 
             expecting { length } that { isGreaterThan(0) }
 
@@ -130,12 +130,12 @@ class TestsSample {
         }
 
         @TestFactory
-        fun `string subjects`() = testEach("foo", "bar") {
+        fun `string subjects`() = testEachOld("foo", "bar") {
             asserting { hasLength(3) }
         }
 
         @TestFactory
-        fun `list subjects`() = testEach(listOf("foo", "bar"), listOf("bar", "baz")) {
+        fun `list subjects`() = testEachOld(listOf("foo", "bar"), listOf("bar", "baz")) {
             expecting { joinToString("+") } that { hasLength(7).get { this[3] }.isEqualTo('+') }
         }
     }

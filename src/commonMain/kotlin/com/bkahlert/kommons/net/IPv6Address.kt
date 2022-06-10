@@ -1,18 +1,18 @@
 package com.bkahlert.kommons.net
 
+import com.bkahlert.kommons.bigIntegerOf
+import com.bkahlert.kommons.bigIntegerOfHexadecimalString
 import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.BigIntegerConstants
 import com.bkahlert.kommons.math.plus
 import com.bkahlert.kommons.math.toBigInteger
 import com.bkahlert.kommons.math.toUByteArray
 import com.bkahlert.kommons.net.IPv6Notation.format
-import com.bkahlert.kommons.math.bigIntegerOf
-import com.bkahlert.kommons.math.bigIntegerOfHexadecimalString
-import com.bkahlert.kommons.math.padStart
-import com.bkahlert.kommons.math.toHexadecimalString
-import com.bkahlert.kommons.math.toUBytes
-import com.bkahlert.kommons.math.trim
+import com.bkahlert.kommons.padStart
 import com.bkahlert.kommons.regex.countMatches
+import com.bkahlert.kommons.toHexadecimalString
+import com.bkahlert.kommons.toUBytes
+import com.bkahlert.kommons.trim
 import com.bkahlert.kommons.unit.bits
 
 /**

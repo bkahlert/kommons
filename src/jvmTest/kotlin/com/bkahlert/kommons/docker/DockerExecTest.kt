@@ -17,17 +17,16 @@ import com.bkahlert.kommons.exec.alive
 import com.bkahlert.kommons.exec.enter
 import com.bkahlert.kommons.exec.exitCode
 import com.bkahlert.kommons.exec.hasState
-import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
+import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.times
 import com.bkahlert.kommons.unit.milli
+import io.kotest.matchers.string.shouldMatch
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import strikt.api.expectThat
@@ -41,13 +40,17 @@ import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
-@Tag("xxx")
 class DockerExecTest {
 
     @DockerRequiring([BusyBox::class]) @Test
     fun `should override toString`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         val dockerExec = createExec(uniqueId, "echo", "test")
-        expectThat(dockerExec).toStringMatchesCurlyPattern("DockerExec { container = {} exec = {} }")
+        dockerExec.toString() shouldMatch """
+            DockerExec \{
+             {4}container: DockerContainer \{ name: "DockerExecTest.should_override_toString" },
+             {4}exec: JavaExec\(.*\)
+            }
+        """.trimIndent().toRegex()
     }
 
     @DockerRequiring([BusyBox::class]) @Test
@@ -55,7 +58,8 @@ class DockerExecTest {
         val dockerExec = createExec(uniqueId, "echo", "test")
         dockerExec.waitForOutputOrFail(
             "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
-            "Did not log \"test\" output within 8 seconds.") {
+            "Did not log \"test\" output within 8 seconds."
+        ) {
             any { it is Output && it.ansiRemoved == "test" }
         }
     }
@@ -68,7 +72,8 @@ class DockerExecTest {
             val dockerExec = createExec(uniqueId, "echo", "test")
             dockerExec.waitForOutputOrFail(
                 "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
-                "Did not log \"test\" output within 8 seconds.") {
+                "Did not log \"test\" output within 8 seconds."
+            ) {
                 any { it is Output && it.ansiRemoved == "test" }
             }
         }
@@ -204,12 +209,14 @@ class DockerExecTest {
     fun `should not produce incorrect empty lines`(uniqueId: UniqueId) = withTempDir(uniqueId) {
         var killed = false
         val output = synchronizedListOf<IO>()
-        createExec(uniqueId, "/bin/sh", "-c", """
+        createExec(
+            uniqueId, "/bin/sh", "-c", """
                 while true; do
                 ${20.times { "echo \"looping\"" }.joinToString("; ")}
                 sleep 1
                 done
-            """.trimIndent()) { exec, callback ->
+            """.trimIndent()
+        ) { exec, callback ->
             callback { io ->
                 if (io !is IO.Meta) {
                     output.add(io)

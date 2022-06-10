@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.collections.withNegativeIndices
 import com.bkahlert.kommons.text.LineSeparators.lines
+import com.bkahlert.kommons.withNegativeIndices
 
 /**
  * Captured output providing access to the [out], [err]

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.math.mod
 import com.bkahlert.kommons.text.CodePoint.CodePointRange
 import com.bkahlert.kommons.text.Unicode.UnicodeBlockMeta.Companion.metaFor
 
@@ -420,7 +419,7 @@ public object Unicode {
         /**
          * A dictionary that maps integers to a clock emoji that shows the corresponding full hour, e.g. `3` will return a "3 o'clock"/🕒 emoji.
          *
-         * The dictionary applies the [mod] operation. Consequently all multiples of 12 of a certain hour (e.g. `15` will return a "3 o'clock"/🕒 emoji)
+         * The dictionary applies the [mod] operation. Consequently, all multiples of 12 of a certain hour (e.g. `15` will return a "3 o'clock"/🕒 emoji)
          * will also return the corresponding hour.
          */
         public object FullHoursDictionary {

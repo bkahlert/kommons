@@ -18,11 +18,11 @@ import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.leftOrElse
-import com.bkahlert.kommons.lowerSentenceCaseName
 import com.bkahlert.kommons.mapLeft
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.requireSaneInput
+import com.bkahlert.kommons.simpleTitleCasedName
 import com.bkahlert.kommons.text.CharRanges.Alphanumeric
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -90,7 +90,7 @@ public class DockerContainer(public val name: String) {
 
         public data class Error(val code: Int, val message: String) : State(false, Symbols.Error)
 
-        override val textRepresentation: String = this::class.lowerSentenceCaseName
+        override val textRepresentation: String = this::class.simpleTitleCasedName?.lowercase() ?: "<object>"
         override fun toString(): String = textRepresentation
     }
 
@@ -145,7 +145,7 @@ public class DockerContainer(public val name: String) {
             .exec.logging(renderer = noDetails()).waitFor()
 
     override fun toString(): String = asString {
-        put(::name.name, name)
+        put(::name, name)
         put("state", cachedState)
     }
 

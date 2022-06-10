@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.exec
 
-import io.opentelemetry.api.common.Attributes
 import com.bkahlert.kommons.exec.ExecAttributes.Companion.exec
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.tracing.Key
+import io.kotest.matchers.shouldBe
+import io.opentelemetry.api.common.Attributes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.startsWith
 
@@ -21,7 +21,7 @@ class ExecAttributesTest {
     ).exec
 
     @TestFactory
-    fun `should read attributes`() = test(execAttributes) {
+    fun `should read attributes`() = testOld(execAttributes) {
         expecting { name } that { isEqualTo("print environment variable HOME") }
         expecting { executable } that { isEqualTo("printenv HOME") }
     }
@@ -37,10 +37,13 @@ class ExecAttributesTest {
 
         @Test
         fun `should contain all attributes`() {
-            expectThat(execAttributes.toString())
-                .contains("kommons.exec.name = print environment variable HOME")
-                .contains("kommons.exec.executable = printenv HOME")
-                .contains("irrelevant-key = irrelevant value")
+            execAttributes.toString() shouldBe """
+                ExecAttributes {
+                    irrelevant-key: "irrelevant value",
+                    kommons.exec.executable: "printenv HOME",
+                    kommons.exec.name: "print environment variable HOME"
+                }
+            """.trimIndent()
         }
     }
 }

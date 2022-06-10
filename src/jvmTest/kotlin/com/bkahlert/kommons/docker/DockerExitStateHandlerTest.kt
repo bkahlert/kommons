@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.collections.too
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.CannotKillContainer
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.CannotRemoveRunningContainer
@@ -20,9 +19,9 @@ import com.bkahlert.kommons.exec.IOSequence
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.mock.ExecMock
 import com.bkahlert.kommons.exec.status
-import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.formattedAs
@@ -30,6 +29,7 @@ import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.rightSpaced
 import com.bkahlert.kommons.text.spaced
 import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
+import com.bkahlert.kommons.too
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -49,7 +49,7 @@ class DockerExitStateHandlerTest {
     private fun handleTermination(vararg messages: IO) = with(DockerExitStateHandler) { exec.handle(12345L, 42, IOSequence(*messages)) }
 
     @TestFactory
-    fun `should match docker engine not running error message`() = tests {
+    fun `should match docker engine not running error message`() = testsOld {
         val connectivityProblemState = handleTermination("Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?")
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
@@ -82,7 +82,7 @@ class DockerExitStateHandlerTest {
         PathDoesNotExistInsideTheContainer::class to "Error: Path does not exist inside the container: AFFECTED" too "path does not exist inside the container",
         NameAlreadyInUse::class to "Error: Name already in use: AFFECTED" too "name already in use",
         Conflict::class to "Error: Conflict: AFFECTED" too "conflict"
-    ).testEach { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
+    ).testEachOld { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
         val badRequestState = handleTermination(errorMessage)
 
         expecting("matches ${clazz.simpleName}") { badRequestState::class } that { isEqualTo(clazz) }
@@ -92,7 +92,7 @@ class DockerExitStateHandlerTest {
     }
 
     @TestFactory
-    fun `should match cannot remove running container error messages`() = test(
+    fun `should match cannot remove running container error messages`() = testOld(
         "Error response from daemon: You cannot remove a running container 2c5e082a462134. " +
             "Stop the container before attempting removal or force remove"
     ) { errorMessage ->
@@ -107,7 +107,7 @@ class DockerExitStateHandlerTest {
     }
 
     @TestFactory
-    fun `should match cannot kill container`() = testEach(
+    fun `should match cannot kill container`() = testEachOld(
         "Error response from daemon: Cannot kill container: AFFECTED: No such container: AFFECTED" to "no such container",
         "Error response from daemon: Cannot kill container: AFFECTED: Container AFFECTED is not running" to "container is not running",
     ) { (errorMessage, status) ->

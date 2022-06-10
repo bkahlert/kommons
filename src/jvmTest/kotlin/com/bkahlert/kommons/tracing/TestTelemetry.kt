@@ -47,10 +47,14 @@ class TestTelemetry : TestExecutionListener {
                 .let { if (TEST_SPAN_CHECK_ENABLED) it.addSpanProcessor(TestSpanCheckSpanProcessor) else it }
                 .addSpanProcessor(InMemoryStoringSpanProcessor)
                 .addSpanProcessor(batchExporter)
-                .setResource(Resource.create(Attributes.of(
-                    AttributeKey.stringKey("service.name"), "${Kommons.name}-test",
-                    AttributeKey.stringKey("service.version"), Kommons.version.toString(),
-                )))
+                .setResource(
+                    Resource.create(
+                        Attributes.of(
+                            AttributeKey.stringKey("service.name"), "${Kommons.name}-test",
+                            AttributeKey.stringKey("service.version"), Kommons.version.toString(),
+                        )
+                    )
+                )
                 .setSpanLimits { SpanLimits.builder().setMaxNumberOfEvents(2500).build() }
                 .build()
 
@@ -73,7 +77,7 @@ class TestTelemetry : TestExecutionListener {
     companion object {
 
         /** Whether [TestTelemetry] is enabled. */
-        const val ENABLED: Boolean = false
+        const val ENABLED: Boolean = true
 
         /** Whether span should be checked if they were only created by [TestSpanScope] / [TestSpanParameterResolver]. */
         const val TEST_SPAN_CHECK_ENABLED: Boolean = true

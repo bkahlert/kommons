@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.delete
-import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators.LF
 import org.junit.jupiter.api.TestFactory
@@ -19,10 +19,10 @@ import kotlin.io.path.readText
 
 class ReadyOnlyKtTest {
 
-    private fun Path.readOnlyFile() = randomFile().writeText("line #1\nline #2$LF").asReadOnly()
+    private fun Path.readOnlyFile() = createTempFile().writeText("line #1\nline #2$LF").asReadOnly()
 
     @TestFactory
-    fun `should allow`(uniqueId: UniqueId) = tests {
+    fun `should allow`(uniqueId: UniqueId) = testsOld {
         withTempDir(uniqueId) {
             readOnlyFile() asserting { isReadable() }
             readOnlyFile() asserting { not { isWritable() } }
@@ -34,7 +34,7 @@ class ReadyOnlyKtTest {
     }
 
     @TestFactory
-    fun `should disallow`(uniqueId: UniqueId) = tests {
+    fun `should disallow`(uniqueId: UniqueId) = testsOld {
         withTempDir(uniqueId) {
             expectThrows<ReadOnlyFileSystemException> { readOnlyFile().moveTo(resolveSibling("moved-$fileName")) }
             expectThrows<ReadOnlyFileSystemException> { readOnlyFile().outputStream() }

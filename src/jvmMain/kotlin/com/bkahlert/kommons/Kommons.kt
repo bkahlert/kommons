@@ -1,23 +1,21 @@
 package com.bkahlert.kommons
 
 import com.bkahlert.kommons.io.path.selfCleaning
-import com.bkahlert.kommons.io.useRequiredClassPath
 import com.bkahlert.kommons.time.days
 import com.bkahlert.kommons.time.hours
 import com.bkahlert.kommons.time.minutes
 import java.nio.file.Path
 import java.util.Properties
-import kotlin.io.path.inputStream
 
 /**
  * Entrypoint for library-internal functionality.
  */
-public object Kommons : Locations by Locations.Default {
+public object Kommons {
 
     /**
      * Directory in which library-specific data can be stored.
      */
-    internal val InternalTemp: Path by Temp.resolve("kommons").selfCleaning(30.days, 1000)
+    internal val InternalTemp: Path by SystemLocations.Temp.resolve("kommons").selfCleaning(30.days, 1000)
 
     /**
      * Directory in which Exec-specific data can be stored.
@@ -30,7 +28,7 @@ public object Kommons : Locations by Locations.Default {
     internal val FilesTemp: Path by InternalTemp.resolve("files").selfCleaning(10.minutes, 20)
 
     private val buildProperties: Properties by lazy {
-        useRequiredClassPath("build.properties") { Properties().apply { load(it.inputStream()) } }
+        ClassPath("build.properties").useInputStream { Properties().apply { load(it) } } // use ClassPath
     }
 
     /**

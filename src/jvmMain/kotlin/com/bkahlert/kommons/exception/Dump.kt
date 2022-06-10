@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.exception
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.io.path.withExtension
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.isSubPathOf
-import com.bkahlert.kommons.randomFile
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.capitalize
 import com.bkahlert.kommons.withSuffix
@@ -15,7 +15,7 @@ import java.nio.file.Path
 
 private object Dump {
     val dumpDir: Path = Kommons.ExecTemp
-    const val dumpPrefix = "dump"
+    const val dumpPrefix = "dump--"
     const val dumpSuffix = ".log"
 }
 
@@ -28,7 +28,7 @@ private object Dump {
  */
 public fun Path.dump(
     errorMessage: String?,
-    file: Path = (takeUnless { it.isSubPathOf(Locations.Default.Temp) } ?: Dump.dumpDir).randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    file: Path = (takeUnless { it.isSubPathOf(SystemLocations.Temp) } ?: Dump.dumpDir).createTempFile(Dump.dumpPrefix, Dump.dumpSuffix),
     data: () -> String,
 ): String = runCatching {
     var dumped: String? = null
@@ -60,7 +60,7 @@ public fun Path.dump(
  */
 public fun Path.dump(
     errorMessage: String?,
-    path: Path = randomFile(Dump.dumpPrefix, Dump.dumpSuffix),
+    path: Path = createTempFile(Dump.dumpPrefix, Dump.dumpSuffix),
     data: String,
 ): String =
     dump(errorMessage, path) { data }

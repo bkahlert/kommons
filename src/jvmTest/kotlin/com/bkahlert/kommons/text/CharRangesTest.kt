@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -11,7 +11,7 @@ import strikt.assertions.isTrue
 class CharRangesTest {
 
     @TestFactory
-    fun `alphanumeric contains`() = testEach(
+    fun `alphanumeric contains`() = testEachOld(
         CharRanges.LowerCaseAtoZ to
             (listOf('a', 'b', 'c') to
                 listOf('A', '1', '$')),

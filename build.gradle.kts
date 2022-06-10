@@ -1,11 +1,15 @@
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 
 val baseUrl: String get() = "https://github.com/bkahlert/kommons"
 
 plugins {
-    kotlin("multiplatform") version "1.6.20"
-    id("org.jetbrains.dokka") version "1.6.20"
+    kotlin("multiplatform") version "1.7.0"
+    id("org.jetbrains.dokka") version "1.7.0"
     id("maven-publish")
     signing
     id("nebula.release") version "15.3.1"
@@ -56,8 +60,8 @@ kotlin {
 
         tasks.withType<Test>().configureEach {
             testLogging {
-                events = setOf(TestLogEvent.SKIPPED, TestLogEvent.FAILED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR)
-                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                events = setOf(SKIPPED, FAILED, STANDARD_OUT, STANDARD_ERROR)
+                exceptionFormat = FULL
                 showExceptions = true
                 showCauses = true
                 showStackTraces = true
@@ -76,12 +80,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("com.bkahlert.kommons:kommons-debug:0.3.0-SNAPSHOT")
+                api("com.bkahlert.kommons:kommons-debug:0.8.0-SNAPSHOT")
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                implementation("com.bkahlert.kommons:kommons-test:0.4.0-SNAPSHOT")
             }
         }
         val jvmMain by getting {
@@ -112,9 +116,7 @@ kotlin {
                     because("suppress failed to load class StaticLoggerBinder")
                 }
 
-                implementation(kotlin("test-junit5"))
-                implementation(project.dependencies.platform("org.junit:junit-bom:5.8.0-RC1"))
-                listOf("api", "params", "engine").forEach { implementation("org.junit.jupiter:junit-jupiter-$it") }
+                implementation(project.dependencies.platform("org.junit:junit-bom:5.9.0-M1"))
                 listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
                 runtimeOnly("org.junit.platform:junit-platform-console:1.8.0-RC1") {
                     because("needed to launch the JUnit Platform Console program")
@@ -129,9 +131,6 @@ kotlin {
 
         all {
             languageSettings.apply {
-//                languageVersion = "1.5"
-//                apiVersion = "1.5"
-                optIn("kotlin.RequiresOptIn")
                 optIn("kotlin.ExperimentalUnsignedTypes")
                 optIn("kotlin.time.ExperimentalTime")
                 optIn("kotlin.contracts.ExperimentalContracts")

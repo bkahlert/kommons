@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.Locations
+import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.io.copyToDirectory
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.junit.UniqueId
@@ -65,7 +65,7 @@ class StdLibMissingKtTest {
     inner class DeleteOnExit {
 
         private val name = "kommons.onexit.does-not-work.txt"
-        private val markerFile: Path = Locations.Default.Temp / name
+        private val markerFile: Path = SystemLocations.Temp / name
 
         @BeforeAll
         fun setUp() {

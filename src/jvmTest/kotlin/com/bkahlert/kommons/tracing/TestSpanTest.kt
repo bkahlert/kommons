@@ -3,7 +3,6 @@ package com.bkahlert.kommons.tracing
 import com.bkahlert.kommons.test.actual
 import com.bkahlert.kommons.test.hasElements
 import com.bkahlert.kommons.text.matchesCurlyPattern
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import strikt.assertions.all
 import strikt.assertions.contains
@@ -11,7 +10,6 @@ import strikt.assertions.get
 import strikt.assertions.isEqualTo
 import strikt.assertions.size
 
-@Tag("xxx")
 class TestSpanTest {
 
     @Test
@@ -56,7 +54,8 @@ class TestSpanTest {
         log("event -1")
         runSpanning("SPAN A") { log("event α") }
         log("event n+1")
-        expectThatRendered().matchesCurlyPattern("""
+        expectThatRendered().matchesCurlyPattern(
+            """
             event -1
             ╭──╴SPAN A
             │
@@ -64,6 +63,7 @@ class TestSpanTest {
             │
             ╰──╴✔︎
             event n+1
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 }

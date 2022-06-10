@@ -5,7 +5,6 @@ import com.bkahlert.kommons.io.path.selfCleaning
 import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Text
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.styling.draw
 import io.ktor.application.call
 import io.ktor.response.respondText
@@ -19,12 +18,12 @@ import kotlin.time.Duration
 /**
  * Entrypoint for library-internal functionality.
  */
-object TestKommons : Locations by Locations.Default {
+object TestKommons {
 
     /**
      * Directory in which all artifacts of a test run are stored.
      */
-    val TestRoot: Path by Temp.resolve("kommons-test").selfCleaning(Duration.ZERO, 0, cleanUpMode = OnStart)
+    val TestRoot: Path by SystemLocations.Temp.resolve("kommons-test").selfCleaning(Duration.ZERO, 0, cleanUpMode = OnStart)
 }
 
 /**
@@ -32,7 +31,7 @@ object TestKommons : Locations by Locations.Default {
  */
 fun printTestExecutionStatus(vararg lines: CharSequence, formatBorder: Text.() -> CharSequence?) {
     lines
-        .joinLinesToString()
+        .joinToString(LineSeparators.Default)
         .draw.border.rounded(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch(formatBorder))
         .also { println(it) }
 }

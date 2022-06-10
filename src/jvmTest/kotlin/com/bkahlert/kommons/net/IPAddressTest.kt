@@ -2,7 +2,7 @@ package com.bkahlert.kommons.net
 
 import com.bkahlert.kommons.net.DefaultIPv4toIPv6Mapping.toIPv6Address
 import com.bkahlert.kommons.net.IPv6Subnet.Companion.getSmallestCommonSubnet
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -29,7 +29,7 @@ class IPAddressTest {
                 "192.168.16.1",
                 "192.168.016.1",
                 "192.168.016.001",
-            ).testEach { ip ->
+            ).testEachOld { ip ->
                 expecting { ip.toIP() } that { isEqualTo(IPv4Address.parse("192.168.16.1")) }
             }
 
@@ -39,7 +39,7 @@ class IPAddressTest {
                 "::ffff:c0a8:1001",
                 "0:0::ffff:192.168.016.001",
                 "0:0:0:0:0:ffff:c0a8:1001",
-            ).testEach { ip ->
+            ).testEachOld { ip ->
                 expecting { ip.toIP() } that { isEqualTo(IPv6Address.parse("::ffff:c0a8:1001")) }
             }
 
@@ -50,7 +50,7 @@ class IPAddressTest {
                 { IPv4Address.parse("192.168.16.x") },
                 { "-0:0:0::ffff:c0a8:1001".toIP() },
                 { IPv6Address.parse("0:0:0::xxxx:c0a8:1001") },
-            ).testEach { ip ->
+            ).testEachOld { ip ->
                 expectThrows<IllegalArgumentException> { ip() }
             }
     }

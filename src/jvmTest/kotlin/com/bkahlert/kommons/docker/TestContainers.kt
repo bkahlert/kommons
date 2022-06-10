@@ -12,11 +12,10 @@ import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.Slow
-import com.bkahlert.kommons.test.get
 import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.test.junit.UniqueId.Companion.id
-import com.bkahlert.kommons.test.put
-import com.bkahlert.kommons.test.storeForNamespaceAndTest
+import com.bkahlert.kommons.test.junit.getTestStore
+import com.bkahlert.kommons.test.junit.getTyped
 import com.bkahlert.kommons.test.withAnnotation
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.seconds
@@ -86,24 +85,6 @@ object TestImages {
 }
 
 /**
- * A [TestFactory] that is provided with an instance of [TestContainers].
- *
- * @see TestContainers
- * @see TestContainersProvider
- */
-@Slow
-@DockerRequiring @TestFactory
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@Extensions(
-    ExtendWith(DockerRunningCondition::class),
-    ExtendWith(ContainersTestExtension::class)
-)
-annotation class ContainersTestFactory(
-    val provider: KClass<out TestContainersProvider> = Ubuntu::class,
-)
-
-/**
  * A [Test] that is provided with an instance of [TestContainers].
  *
  * @see TestContainers
@@ -126,18 +107,17 @@ annotation class ContainersTest(
  * to create containers with a specific state.
  */
 class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), AfterEachCallback {
-    private val store: ExtensionContext.() -> Store by storeForNamespaceAndTest()
+    private val ExtensionContext.store: Store get() = getTestStore<ContainersTestExtension>()
 
     private val ExtensionContext.provider: TestContainersProvider
-        get() = (withAnnotation<ContainersTestFactory, KClass<out TestContainersProvider>> { provider }
-            ?: withAnnotation<ContainersTest, KClass<out TestContainersProvider>> { provider })
+        get() = withAnnotation<ContainersTest, KClass<out TestContainersProvider>> { provider }
             ?.objectInstance
             ?: error("Currently only ${TestContainersProvider::class.simpleName} singletons are supported, that is, implemented as an object.")
 
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): TestContainers =
-        context.provider.testContainersFor(context.id).also { context.store().put(it) }
+        context.provider.testContainersFor(context.id).also { context.store.put(TestContainers::class, it) }
 
-    override fun afterEach(context: ExtensionContext) = context.store().get<TestContainers>()?.release() ?: Unit
+    override fun afterEach(context: ExtensionContext) = context.store.getTyped<TestContainers>(TestContainers::class)?.release() ?: Unit
 }
 
 /**

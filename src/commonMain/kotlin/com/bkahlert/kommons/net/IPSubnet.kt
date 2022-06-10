@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.net
 
+import com.bkahlert.kommons.bigIntegerOfBinaryString
 import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.BigIntegerConstants
 import com.bkahlert.kommons.math.and
@@ -7,7 +8,6 @@ import com.bkahlert.kommons.math.dec
 import com.bkahlert.kommons.math.inc
 import com.bkahlert.kommons.math.plus
 import com.bkahlert.kommons.math.shl
-import com.bkahlert.kommons.math.bigIntegerOfBinaryString
 
 public interface IPSubnet<IP : IPAddress> : ClosedRange<IP> {
 

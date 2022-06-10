@@ -4,10 +4,8 @@ import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.runSpanning
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
-@Tag("xxx")
 class OneLineRendererKtTest {
 
     @Nested
@@ -21,14 +19,16 @@ class OneLineRendererKtTest {
                     log("one-line event")
                 }
             }
-            expectThatRendered().matchesCurlyPattern("""
+            expectThatRendered().matchesCurlyPattern(
+                """
                 ╭──╴block
                 │
                 │   block event                         
                 │   ╶──╴one-line╶─╴one-line event ✔︎
                 │
                 ╰──╴✔︎
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         @Test

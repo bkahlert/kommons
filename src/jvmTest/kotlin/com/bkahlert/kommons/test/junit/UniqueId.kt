@@ -79,7 +79,7 @@ class UniqueId private constructor(
                 "test-factory" -> formatMethod(value)
                 "dynamic-container" -> value.removePrefix("#").withPrefix("container-")
                 "dynamic-test" -> value.removePrefix("#").withPrefix("test-")
-                else -> value.replace(" ", "_")
+                else -> value
             }
         }
 

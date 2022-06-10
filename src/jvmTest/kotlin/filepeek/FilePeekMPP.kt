@@ -1,16 +1,18 @@
 package filepeek
 
-import com.bkahlert.kommons.collections.head
-import com.bkahlert.kommons.collections.tail
-import com.bkahlert.kommons.text.joinLinesToString
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.head
+import com.bkahlert.kommons.tail
 import com.bkahlert.kommons.text.joinToCamelCase
 import com.bkahlert.kommons.withSuffix
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.io.path.readLines
 
+// TODO migrate
 data class FileInfo(
     val lineNumber: Int,
     val sourceFileName: String,
@@ -26,9 +28,9 @@ private fun Path.contains(other: Path): Boolean =
 class FilePeekMPP(
     private val stackTraceElement: StackTraceElement,
     private val classesToSourceMappings: List<Path> = listOf(
-        Path.of("out", "classes"), // IDEA
-        Path.of("build", "classes"), // Gradle
-        Path.of("target", "classes"), // Maven
+        Paths.get("out", "classes"), // IDEA
+        Paths.get("build", "classes"), // Gradle
+        Paths.get("target", "classes"), // Maven
     ),
 ) {
 
@@ -39,13 +41,13 @@ class FilePeekMPP(
         val classesDirectory: Path = stackTraceElement.run {
             val baseClassName = className.substringBefore('$')
             val baseClass = classLoader.loadClass(baseClassName) ?: error("Error loading base class $baseClassName of $className")
-            Path.of(baseClass.protectionDomain.codeSource.location.toURI())
+            Paths.get(baseClass.protectionDomain.codeSource.location.toURI())
         }
 
         val buildDir: Path = classesToSourceMappings.firstOrNull { classesDirectory.contains(it) } ?: error("Unknown build directory structure")
         val sourceDir = classesDirectory.pathString.split(buildDir.pathString, limit = 2).run {
-            val sourceRoot = Path.of(first()) / "src"
-            val suffix = Path.of(last())
+            val sourceRoot = Paths.get(first()) / "src"
+            val suffix = Paths.get(last())
             val lang = suffix.head.pathString
             val sourceDir = suffix.map { it.pathString }.tail.joinToCamelCase()
             sourceRoot
@@ -57,7 +59,7 @@ class FilePeekMPP(
         val pkg = stackTraceElement.className.split(".").dropLast(1)
         val fileName = stackTraceElement.fileName ?: error("Unknown filename in $stackTraceElement")
         val fileNames: List<String> = listOf(fileName, fileName.removeSuffix(".kt").withSuffix("Kt.kt"))
-        val sourceFileDir = sourceDir.resolve(Path.of(pkg.head, *pkg.tail.toTypedArray()))
+        val sourceFileDir = sourceDir.resolve(Paths.get(pkg.head, *pkg.tail.toTypedArray()))
         val sourceFile: Path = fileNames
             .map { sourceFileDir.resolve(it) }
             .firstOrNull { it.exists() }
@@ -76,8 +78,8 @@ class FilePeekMPP(
                         .findBlock()
                         .takeUnless { it.isEmpty() } ?: remainingLines
                 }.dropWhile { !it.contains('{') }
-                val fullText = lines.joinLinesToString()
-                val relevantFullText = relevantLines.joinLinesToString()
+                val fullText = lines.joinToString(LineSeparators.Default)
+                val relevantFullText = relevantLines.joinToString(LineSeparators.Default)
                 relevantLines to fullText.substringBefore(relevantFullText).lines().size
             }
         }

@@ -1,4 +1,4 @@
 com.bkahlert.kommons.tracing.TestTelemetry
-com.bkahlert.kommons.test.junit.TestExecutionReporter
+com.bkahlert.kommons.test.junit.SkippedDockerTestsReporter
 com.bkahlert.kommons.test.junit.Verbosity
 com.bkahlert.kommons.text.TextWidthKtTest$AwtInitializer

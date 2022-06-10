@@ -2,9 +2,9 @@ package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.collections.synchronizedListOf
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
-import com.bkahlert.kommons.test.junit.UniqueId
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
@@ -21,7 +21,7 @@ class ExecutableTest {
         "echo \"test output ${'$'}TEST\"; sleep 1; >&2 echo \"test error 1\"; sleep 1; echo \"test output 2\"; >&2 echo \"test error 2\"; sleep 1"
 
     private fun testProcesses(uniqueId: UniqueId, command: String = echoingCommands, block: (Exec) -> Unit): List<DynamicNode> =
-        tests {
+        testsOld {
             test {
                 withTempDir(uniqueId) {
                     val commandLine = CommandLine("/bin/sh", "-c", command)

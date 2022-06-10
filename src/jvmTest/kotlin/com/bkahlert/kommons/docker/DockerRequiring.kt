@@ -5,11 +5,12 @@ import com.bkahlert.kommons.docker.CleanUpMode.ThanksForCleaningUp
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Running
 import com.bkahlert.kommons.printTestExecutionStatus
 import com.bkahlert.kommons.test.Slow
-import com.bkahlert.kommons.test.junit.TestName.Companion.testName
 import com.bkahlert.kommons.test.junit.UniqueId.Companion.simplifiedId
+import com.bkahlert.kommons.test.junit.displayName
 import com.bkahlert.kommons.test.withAnnotation
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.quoted
+import com.bkahlert.kommons.toIdentifier
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.runSpanningLine
@@ -104,7 +105,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): DockerContainer =
         extensionContext.uniqueContainer()
 
-    private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId)
+    private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId.toIdentifier())
 
     private fun ExtensionContext.pullRequiredImages() =
         runSpanningLine("Pulling required images") {
@@ -124,7 +125,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
 class DockerRunningCondition : ExecutionCondition {
 
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult =
-        context.testName.let { testName ->
+        context.displayName().composedDisplayName.let { testName ->
             if (dockerUpAndRunning) enabled("Test ${testName.quoted} enabled because Docker is found running.")
             else disabled("Test ${testName.quoted} disabled because Docker was NOT found running.")
         }

@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.exec.mock
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
@@ -31,10 +32,9 @@ import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.isEqualToByteWise
-import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
@@ -65,7 +65,7 @@ class JavaExecMockTest {
         inner class ProcessMocks {
 
             @TestFactory
-            fun `should run`() = test({ RUNNING_PROCESS }) {
+            fun `should run`() = testOld({ RUNNING_PROCESS }) {
                 expecting { it().isAlive } that { isTrue() }
                 expecting("stays running for 5s") {
                     val p = it(); poll { !p.isAlive }.every(0.5.seconds).forAtMost(5.seconds)
@@ -73,13 +73,13 @@ class JavaExecMockTest {
             }
 
             @TestFactory
-            fun `should have completed successfully`() = test({ SUCCEEDING_PROCESS }) {
+            fun `should have completed successfully`() = testOld({ SUCCEEDING_PROCESS }) {
                 expecting { it().isAlive } that { isFalse() }
                 expecting { it().exitValue() } that { isEqualTo(0) }
             }
 
             @TestFactory
-            fun `should have failed`() = test({ FAILING_PROCESS }) {
+            fun `should have failed`() = testOld({ FAILING_PROCESS }) {
                 expecting { it().isAlive } that { isFalse() }
                 expecting { it().exitValue() } that { isEqualTo(42) }
             }
@@ -89,7 +89,7 @@ class JavaExecMockTest {
         inner class ExecMocks {
 
             @Slow @TestFactory
-            fun `should run`() = test({ RUNNING_EXEC }) {
+            fun `should run`() = testOld({ RUNNING_EXEC }) {
                 expecting { it() } that { starts() }
                 expecting { it() } that { hasState<Running> { status.contains("running") } }
                 expecting("stays running for 5s") {
@@ -98,13 +98,13 @@ class JavaExecMockTest {
             }
 
             @TestFactory
-            fun `should succeed`() = test({ SUCCEEDED_EXEC }) {
+            fun `should succeed`() = testOld({ SUCCEEDED_EXEC }) {
                 expecting { it() } that { succeeds() }
                 expecting { it() } that { hasState<Succeeded> { status.contains("terminated successfully") } }
             }
 
             @TestFactory
-            fun `should fail`() = test({ FAILED_EXEC }) {
+            fun `should fail`() = testOld({ FAILED_EXEC }) {
                 expecting { it() } that { fails() }
                 expecting { it() } that { hasState<Failed> { status.contains("terminated with exit code") } }
             }
@@ -138,7 +138,7 @@ class JavaExecMockTest {
         fun `should provide 'block on prompt' behavior`() = listOf(
             "with echoed input" to true,
             "without echoed input" to false,
-        ).testEach("{}") { (_, echoOption) ->
+        ).testEachOld("{}") { (_, echoOption) ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
@@ -184,7 +184,7 @@ class JavaExecMockTest {
             listOf(
                 slowInputStream(5.seconds, input, echoInput = true),
                 slowInputStream(5.seconds, Duration.ZERO to input, echoInput = true),
-            ).testEach("{}") { inputStream ->
+            ).testEachOld("{}") { inputStream ->
                 val duration = measureTime {
                     @Suppress("ControlFlowWithEmptyBody")
                     while (inputStream.read() > -1) {
@@ -312,13 +312,15 @@ class JavaExecMockTest {
             p.outputStream.enter("password1234")
         }
 
-        expectThat(reader.readLines().joinLinesToString()).isEqualToByteWise("""
+        expectThat(reader.readLines().joinToString(LineSeparators.Default)).isEqualToByteWise(
+            """
             Welcome!
             Password? password1234
             
             Correct!
         
-            """.trimIndent())
+            """.trimIndent()
+        )
         expectThat(p.isAlive).isFalse()
     }
 

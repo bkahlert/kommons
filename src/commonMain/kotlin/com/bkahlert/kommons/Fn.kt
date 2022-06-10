@@ -4,7 +4,6 @@ import com.bkahlert.kommons.debug.xray
 import com.bkahlert.kommons.math.BigInteger
 import com.bkahlert.kommons.math.BigIntegerConstants
 import com.bkahlert.kommons.math.toBigInteger
-import com.bkahlert.kommons.runtime.isDebugging
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.truncate
 
@@ -135,13 +134,3 @@ public fun String.requireSaneInput() {
         }
     }
 }
-
-/**
- * Returns this object if this program runs in debug mode or `null`, if it's not.
- */
-public fun <T> T.takeIfDebugging(): T? = takeIf { isDebugging }
-
-/**
- * Returns this object if this program does not run in debug mode or `null`, if it is.
- */
-public fun <T> T.takeUnlessDebugging(): T? = takeIf { isDebugging }

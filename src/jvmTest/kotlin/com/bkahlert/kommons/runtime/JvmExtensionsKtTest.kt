@@ -1,7 +1,5 @@
 package com.bkahlert.kommons.runtime
 
-import com.bkahlert.kommons.debug.asEmoji
-import com.bkahlert.kommons.tracing.TestSpanScope
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -100,15 +98,6 @@ class JvmExtensionsKtTest {
                 Ancestors::class.java,
                 JvmExtensionsKtTest::class.java,
             )
-        }
-    }
-
-    @Nested
-    inner class IsDebugging {
-
-        @Test
-        fun TestSpanScope.`should not throw`() {
-            log("Debugging: ${isDebugging.asEmoji}")
         }
     }
 }

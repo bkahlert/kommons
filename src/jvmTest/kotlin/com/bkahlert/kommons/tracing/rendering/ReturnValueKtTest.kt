@@ -5,7 +5,7 @@ import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.mock.ExecMock
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.matchesCurlyPattern
@@ -50,7 +50,7 @@ class ReturnValueKtTest {
     private val expectations = successfulExpectations + failedExpectations
 
     @AnsiRequiring @TestFactory
-    fun `should format as return value`() = testEach(
+    fun `should format as return value`() = testEachOld(
         null to Symbols.Null,
         Unit to "✔︎",
         "string" to "✔︎",
@@ -145,7 +145,8 @@ class ReturnValueKtTest {
         inner class SingleFailedReturnValue {
             private val singleUnsuccessfulReturnValues = ReturnValues(
                 failedExpectations.first().first,
-                *successfulExpectations.map { (subject, _) -> subject }.toTypedArray())
+                *successfulExpectations.map { (subject, _) -> subject }.toTypedArray()
+            )
 
             @Test
             fun `should be unsuccessful`() {
@@ -170,14 +171,16 @@ class ReturnValueKtTest {
 
             @Test
             fun `should render only unsuccessful`() {
-                expectThat(partlyUnsuccessfulReturnValues.format()).matchesCurlyPattern("""
+                expectThat(partlyUnsuccessfulReturnValues.format()).matchesCurlyPattern(
+                    """
                       ϟ Multiple problems encountered: 
                           ϟ return value
                           ϟ RuntimeException: exception at.({})
                           ϟ return value
                           ϟ RuntimeException: exception at.({})
                           ϟ Process 12345 terminated with exit code 42
-                  """.trimIndent())
+                  """.trimIndent()
+                )
             }
         }
     }

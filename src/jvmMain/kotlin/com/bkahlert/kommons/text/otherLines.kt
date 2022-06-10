@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.collections.tail
+import com.bkahlert.kommons.tail
 import com.bkahlert.kommons.text.LineSeparators.lines
 
 /**

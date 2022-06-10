@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.math.toHexadecimalString
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.Unicode
 import com.bkahlert.kommons.text.Unicode.replacementSymbol
 import com.bkahlert.kommons.text.Whitespaces
 import com.bkahlert.kommons.text.mapCodePoints
 import com.bkahlert.kommons.text.unicodeName
+import com.bkahlert.kommons.toHexadecimalString
 
 /**
  * Replaces control (e.g. [Unicode.ESCAPE], surrogate (e.g. `\ubd00`) and whitespace (e.g. [Unicode.LINE_FEED]) characters
@@ -25,8 +25,8 @@ public fun String.replaceNonPrintableCharacters(): String {
                 LineSeparators.LS -> "ₛᷞ"
                 else -> "⏎"
             }
-            codePoint.isHighSurrogate -> codePoint.codePoint.toHexadecimalString(pad = true) + "▌﹍"
-            codePoint.isLowSurrogate -> "﹍▐" + codePoint.codePoint.toHexadecimalString(pad = true)
+            codePoint.isHighSurrogate -> codePoint.codePoint.toHexadecimalString() + "▌﹍"
+            codePoint.isLowSurrogate -> "﹍▐" + codePoint.codePoint.toHexadecimalString()
             codePoint.isWhitespace -> "❲${codePoint.unicodeName}❳"
             codePoint.isZeroWidthWhitespace -> "❲${Whitespaces.ZeroWidthWhitespaces[codePoint.string]}❳"
             codePoint.isDefined -> codePoint.string

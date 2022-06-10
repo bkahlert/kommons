@@ -7,7 +7,7 @@ import com.bkahlert.kommons.exec.ExecAttributes
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.expectThrows
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.LF
@@ -53,7 +53,7 @@ class BlockRendererTest {
     private val settings = Settings(style = None)
 
     @Smoke @TestFactory
-    fun TestSpanScope.`should render using styles`() = testEach(
+    fun TestSpanScope.`should render using styles`() = testEachOld(
         Solid to """
             ╭──╴One Two Three
             │

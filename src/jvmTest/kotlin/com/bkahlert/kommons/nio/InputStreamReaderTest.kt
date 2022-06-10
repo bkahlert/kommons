@@ -11,7 +11,6 @@ import com.bkahlert.kommons.test.notContainsLineSeparator
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.fuzzyLevenshteinDistance
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.times
 import com.bkahlert.kommons.unit.Mebi
@@ -67,10 +66,12 @@ class InputStreamReaderTest {
 
     @Test
     fun `should never have trailing line separators`() {
-        val slowInputStream = slowInputStream(1.seconds,
+        val slowInputStream = slowInputStream(
+            1.seconds,
             "Hel",
             "lo${LineSeparators.LF}${LineSeparators.LF}${LineSeparators.LF}${LineSeparators.LF}${LineSeparators.LF}",
-            "World!${LineSeparators.LF}")
+            "World!${LineSeparators.LF}"
+        )
         val reader = InputStreamReader(slowInputStream)
 
         val read = reader.readLines()
@@ -104,7 +105,7 @@ class InputStreamReaderTest {
 
             kotlin.runCatching {
                 val readLines = reader.readLines()
-                expectThat(readLines.joinLinesToString()).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+                expectThat(readLines.joinToString(LineSeparators.DEFAULT)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
             }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
         }
     }

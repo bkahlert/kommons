@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.collections.too
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.too
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -9,7 +9,7 @@ import strikt.assertions.isEqualTo
 class CasesKtTest {
 
     @TestFactory
-    fun camelCase() = testEach(
+    fun camelCase() = testEachOld(
         "" to "" too listOf(""),
         "foo" to "foo" too listOf("foo"),
         "foo-bar" to "fooBar" too listOf("foo", "bar"),
@@ -40,7 +40,7 @@ class CasesKtTest {
         "foo-bar-baz" to "FOO_BAR_BAZ" too listOf("foo", "bar", "baz"),
         "a-foo-bar-baz" to "A_FOO_BAR_BAZ" too listOf("a", "foo", "bar", "baz"),
         "test%123" to "TEST%123" too listOf("test%123"),
-    ).testEach { (kebabCase, screamingSnakeCase, parts) ->
+    ).testEachOld { (kebabCase, screamingSnakeCase, parts) ->
         expecting("should convert \"$kebabCase\" to \"$screamingSnakeCase\"") { kebabCase.convertKebabCaseToScreamingSnakeCase() } that {
             isEqualTo(screamingSnakeCase)
         }
@@ -62,7 +62,7 @@ class CasesKtTest {
      * Tests if [Enum.kebabCaseName] returns an actual kebab-case name.
      */
     @TestFactory
-    fun kebabCaseEnumNames() = testEach(
+    fun kebabCaseEnumNames() = testEachOld(
         TestEnum.ENUM_CONSTANT to "enum-constant",
         TestEnum.EnumConstant to "enum-constant",
         TestEnum.enumConstant to "enum-constant",
@@ -72,7 +72,7 @@ class CasesKtTest {
     }
 
     @TestFactory
-    fun simpleCases() = testEach(
+    fun simpleCases() = testEachOld(
         "aa" contains TestCases.ofType(TestCases.Lower),
         "aA" contains TestCases.ofType(TestCases.Mixed, TestCases.Upper, TestCases.Lower),
         "a_" contains TestCases.ofType(TestCases.Lower),
@@ -84,27 +84,33 @@ class CasesKtTest {
         "__" contains TestCases.ofType()
     ) { (letters, caseExpectations) ->
 
-        expecting("\"$letters\" is" + (if (caseExpectations.first) {
-            ""
-        } else {
-            " NOT"
-        }) + " mixed case  ") {
+        expecting(
+            "\"$letters\" is" + (if (caseExpectations.first) {
+                ""
+            } else {
+                " NOT"
+            }) + " mixed case  "
+        ) {
             letters.isMixedCase()
         } that { isEqualTo(caseExpectations.first) }
 
-        expecting("\"$letters\" contains" + (if (caseExpectations.second) {
-            ""
-        } else {
-            " NO"
-        }) + " upper case  ") {
+        expecting(
+            "\"$letters\" contains" + (if (caseExpectations.second) {
+                ""
+            } else {
+                " NO"
+            }) + " upper case  "
+        ) {
             letters.containsUpperCase()
         } that { isEqualTo(caseExpectations.second) }
 
-        expecting("\"$letters\" contains" + (if (caseExpectations.third) {
-            ""
-        } else {
-            " NO"
-        }) + " lower case  ") {
+        expecting(
+            "\"$letters\" contains" + (if (caseExpectations.third) {
+                ""
+            } else {
+                " NO"
+            }) + " lower case  "
+        ) {
             letters.containsLowerCase()
         } that { isEqualTo(caseExpectations.third) }
     }

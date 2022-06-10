@@ -1,73 +1,9 @@
 package com.bkahlert.kommons.runtime
 
-import com.bkahlert.kommons.io.loadClassOrNull
-import com.bkahlert.kommons.runtime.AnsiSupport.ANSI24
-import com.bkahlert.kommons.runtime.AnsiSupport.ANSI4
-import com.bkahlert.kommons.runtime.AnsiSupport.ANSI8
-import com.bkahlert.kommons.text.anyContainsAny
-import java.util.Locale
-
-private val jvmArgs: List<String>
-    get() = contextClassLoader.loadClassOrNull("java.lang.management.ManagementFactory")?.let {
-        val runtimeMxBean: Any = it.getMethod("getRuntimeMXBean").invoke(null)
-        val runtimeMxBeanClass: Class<*> = contextClassLoader.loadClass("java.lang.management.RuntimeMXBean")
-        val inputArgs: Any = runtimeMxBeanClass.getMethod("getInputArguments").invoke(runtimeMxBean)
-        (inputArgs as? List<*>)?.map { arg -> arg.toString() }
-    } ?: emptyList()
-
-private val jvmJavaAgents: List<String>
-    get() = jvmArgs.filter { it.startsWith("-javaagent") }
-
-private val intellijTraits: List<String> = listOf("jetbrains", "intellij", "idea", "idea_rt.jar")
-
-public val isIntelliJ: Boolean
-    get() = runCatching { jvmJavaAgents.anyContainsAny(intellijTraits) }.getOrElse { false }
-
-/**
- * Whether this program is running an integrated development environment.
- */
-public actual val isDeveloping: Boolean get() = isIntelliJ
-
-/**
- * Whether this program is running in debug mode.
- */
-public actual val isDebugging: Boolean
-    get() = jvmArgs.any { it.startsWith("-agentlib:jdwp") } || jvmJavaAgents.any { it.contains("debugger") }
-
-/**
- * Whether this program is running in test mode.
- */
-public actual val isTesting: Boolean
-    get() = isIntelliJ || isDebugging
-
 /**
  * Registers [handler] as to be called when this program is about to stop.
  */
 public actual fun <T : () -> Unit> onExit(handler: T): T = addShutDownHook(handler)
-
-/**
- * Supported level for [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
- */
-@Suppress("LocalVariableName")
-public actual val ansiSupport: AnsiSupport
-    get() {
-        val TERM_PROGRAM = System.getenv("TERM_PROGRAM")?.lowercase(Locale.getDefault())
-        val TERM = System.getenv("TERM")?.lowercase(Locale.getDefault())
-        return when {
-            isIntelliJ -> ANSI24
-            TERM_PROGRAM == "vscode" -> ANSI8
-            System.getenv("COLORTERM")?.lowercase(Locale.getDefault()) in listOf("24bit", "truecolor") -> ANSI24
-            System.console() == null -> AnsiSupport.NONE
-            TERM_PROGRAM == "hyper" -> ANSI24 // stackoverflow.com/q/7052683
-            TERM_PROGRAM == "apple_terminal" -> ANSI8
-            TERM_PROGRAM == "iterm.app" -> System.getenv("TERM_PROGRAM_VERSION")?.toIntOrNull()?.takeIf { it > 3 }?.let { ANSI24 } ?: ANSI8
-            TERM?.let { it.endsWith("-256color") || it.endsWith("-256") } == true -> ANSI8
-            TERM == "cygwin" -> ANSI24.takeIf { System.getProperty("os.name")?.startsWith("Windows") == true } ?: ANSI8
-            TERM in listOf("xterm", "vt100", "screen", "ansi") -> ANSI4
-            TERM == "dumb" -> AnsiSupport.NONE
-            else -> AnsiSupport.NONE
-        }
-    }
 
 /**
  * Representation of a single element of a (call) stack trace.

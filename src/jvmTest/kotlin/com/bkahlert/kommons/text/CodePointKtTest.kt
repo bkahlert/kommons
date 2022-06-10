@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.collections.too
 import com.bkahlert.kommons.regex.groupValues
 import com.bkahlert.kommons.regex.matchEntire
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.CodePoint.Companion.isUsableCodePoint
+import com.bkahlert.kommons.too
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ import strikt.assertions.isTrue
 class CodePointKtTest {
 
     @TestFactory
-    fun `should read code points`() = testEach(
+    fun `should read code points`() = testEachOld(
         "a" to 0x61 too ubyteArrayOf(0x61u),
         "¶" to 0xB6 too ubyteArrayOf(0xC2u, 0xB6u),
         "☰" to 0x2630 too ubyteArrayOf(0xE2u, 0x98u, 0xB0u),
@@ -74,7 +74,7 @@ class CodePointKtTest {
     }
 
     @TestFactory
-    fun columns() = testEach(
+    fun columns() = testEachOld(
         CodePoint(Unicode.ACKNOWLEDGE) to 0,
         CodePoint("${Unicode.ZERO_WIDTH_JOINER}") to 0,
         CodePoint(" ") to 1,
@@ -135,7 +135,7 @@ class CodePointKtTest {
     }
 
     @TestFactory
-    fun `should format as hex string`() = testEach(
+    fun `should format as hex string`() = testEachOld(
         Unicode.LINE_FEED to "0A",
         Unicode.ZERO_WIDTH_SPACE to "200B",
         "👽" to "01F47D",
@@ -164,7 +164,7 @@ class CodePointKtTest {
     inner class PropertyValidation {
 
         @TestFactory
-        fun `is whitespace`() = testEach(
+        fun `is whitespace`() = testEachOld(
             '\u0020'.codePoint,
             '\u00A0'.codePoint,
             '\u1680'.codePoint,
@@ -187,7 +187,7 @@ class CodePointKtTest {
         }
 
         @TestFactory
-        fun `is zero-width whitespace`() = testEach(
+        fun `is zero-width whitespace`() = testEachOld(
             '\u180E'.codePoint,//            MONGOLIAN_VOWEL_SEPARATO
             '\u200B'.codePoint,//            ZERO_WIDTH_SPACE to "ZER
             '\uFEFF'.codePoint,//            ZERO_WIDTH_NO_BREAK_SPAC
@@ -196,74 +196,74 @@ class CodePointKtTest {
         }
 
         @TestFactory
-        fun `is not whitespace`() = "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".asCodePointSequence().testEach {
+        fun `is not whitespace`() = "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".asCodePointSequence().testEachOld {
             expecting { isWhitespace } that { isFalse() }
         }
 
 
         @TestFactory
-        fun `is 0-9`() = "0123456789".asCodePointSequence().testEach {
+        fun `is 0-9`() = "0123456789".asCodePointSequence().testEachOld {
             expecting { is0to9 } that { isTrue() }
         }
 
         @TestFactory
-        fun `is not 0-9`() = "AzΑωष".asCodePointSequence().testEach {
+        fun `is not 0-9`() = "AzΑωष".asCodePointSequence().testEachOld {
             Char.MAX_HIGH_SURROGATE
             expecting { is0to9 } that { isFalse() }
         }
 
 
         @TestFactory
-        fun `is A-Z_`() = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".asCodePointSequence().testEach {
+        fun `is A-Z_`() = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".asCodePointSequence().testEachOld {
             expecting { isAtoZ } that { isTrue() }
         }
 
         @TestFactory
-        fun `is not A-Z_`() = "abc123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+        fun `is not A-Z_`() = "abc123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEachOld {
             expecting { isAtoZ } that { isFalse() }
         }
 
 
         @TestFactory
-        fun `is a-z`() = "abcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEach {
+        fun `is a-z`() = "abcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEachOld {
             expecting { isatoz } that { isTrue() }
         }
 
         @TestFactory
-        fun `is not a-z`() = "ABC123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+        fun `is not a-z`() = "ABC123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEachOld {
             expecting { isatoz } that { isFalse() }
         }
 
         @Suppress("SpellCheckingInspection")
         @TestFactory
-        fun `is A-z `() = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEach {
+        fun `is A-z `() = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".asCodePointSequence().testEachOld {
             expecting { isAtoz } that { isTrue() }
         }
 
         @TestFactory
-        fun `is not A-z `() = "123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+        fun `is not A-z `() = "123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEachOld {
             expecting { isAtoz } that { isFalse() }
         }
 
 
         @TestFactory
-        fun `is ASCII alphanumeric`() = "Az09".asCodePointSequence().testEach {
+        fun `is ASCII alphanumeric`() = "Az09".asCodePointSequence().testEachOld {
             expecting { isAsciiAlphanumeric } that { isTrue() }
         }
 
         @TestFactory
-        fun `is not ASCII alphanumeric`() = "Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+        fun `is not ASCII alphanumeric`() = "Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEachOld {
             expecting { isAsciiAlphanumeric } that { isFalse() }
         }
 
 
         @TestFactory
-        fun `is alphanumeric`() = "Az09Αωष".asCodePointSequence().testEach {
+        fun `is alphanumeric`() = "Az09Αωष".asCodePointSequence().testEachOld {
             expecting { isAlphanumeric } that { isTrue() }
         }
 
         @TestFactory
-        fun `is not alphanumeric`() = "🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEach {
+        fun `is not alphanumeric`() = "🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().testEachOld {
             expecting { isAlphanumeric } that { isFalse() }
         }
 //
@@ -288,7 +288,7 @@ class CodePointKtTest {
 
         @Test
         fun `should contain all unicode points`() {
-            expectThat("Az09Αω𝌀𝍖षि\n\t\r".asCodePointSequence()).get { map { it.string }.joinLinesToString("") }.isEqualTo("Az09Αω𝌀𝍖षि\n\t\r")
+            expectThat("Az09Αω𝌀𝍖षि\n\t\r".asCodePointSequence()).get { map { it.string }.joinToString("") }.isEqualTo("Az09Αω𝌀𝍖षि\n\t\r")
         }
     }
 
@@ -325,7 +325,7 @@ class CodePointKtTest {
         @Test
         fun `should convert each code point to its hexadecimal form`() {
             expectThat("Az09Αω𝌀𝍖षि\n\t\r".toLiteralRegex().pattern)
-                .isEqualTo("\\x{41}\\x{7A}\\x{30}\\x{39}\\x{0391}\\x{03C9}\\x{01D300}\\x{01D356}\\x{0937}\\x{093F}\\x{0A}\\x{09}\\x{0D}")
+                .isEqualTo("\\x{0041}\\x{007A}\\x{0030}\\x{0039}\\x{0391}\\x{03C9}\\x{01D300}\\x{01D356}\\x{0937}\\x{093F}\\x{000A}\\x{0009}\\x{000D}")
         }
 
         @Test

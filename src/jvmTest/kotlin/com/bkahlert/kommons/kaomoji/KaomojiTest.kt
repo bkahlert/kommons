@@ -2,15 +2,13 @@ package com.bkahlert.kommons.kaomoji
 
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.columns
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Isolated
@@ -47,81 +45,91 @@ class KaomojiTest {
         private val blank = " ".repeat(kaomoji.toString().columns)
 
         @TestFactory
-        fun `should render empty`() = testEach(null, "", "   ") {
+        fun `should render empty`() = testEachOld(null, "", "   ") {
             expecting { kaomoji.thinking(it) } that {
-                isEqualTo("""
+                isEqualTo(
+                    """
                     $blank  ̣ ˱ ❨ ( … )
                     ・㉨・
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
         @Test
         fun `should render single line`() {
             expecting { kaomoji.thinking("oh no") } that {
-                isEqualTo("""
+                isEqualTo(
+                    """
                     $blank  ̣ ˱ ❨ ( oh no )
                     ・㉨・
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
         @Test
         fun `should render two lines`() {
             expecting { kaomoji.thinking("oh no 1${LF}oh no 2") } that {
-                isEqualTo("""
+                isEqualTo(
+                    """
                     $blank       ⎛ oh no 1 ⎞
                     $blank  ̣ ˱ ❨ ⎝ oh no 2 ⎠
                     ・㉨・
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
         @Test
         fun `should render multi line`() {
             expecting { kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3") } that {
-                isEqualTo("""
+                isEqualTo(
+                    """
                     $blank       ⎛ oh no 1 ⎞
                     $blank       ⎜ oh no 2 ⎟
                     $blank  ̣ ˱ ❨ ⎝ oh no 3 ⎠
                     ・㉨・
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
         @Test
         fun `should render lines of different length`() {
             expecting { kaomoji.thinking("123${LF}${LF}1234567890${LF}1234") } that {
-                isEqualTo("""
+                isEqualTo(
+                    """
                     $blank       ⎛ 123        ⎞
                     $blank       ⎜            ⎟
                     $blank       ⎜ 1234567890 ⎟
                     $blank  ̣ ˱ ❨ ⎝ 1234       ⎠
                     ・㉨・
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
 
-        @Tag("xxx")
         @AnsiRequiring @Test
         fun `should render ANSI`() {
             expecting {
                 kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done)
             } that {
-                isEqualTo("""
+                isEqualTo(
+                    """
                                 ⎛ [4m[94m123[24;39m        ⎞
                                 ⎜ [4m[24m           ⎟
                                 ⎜ [4m1234567890[24m ⎟
                            ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
                     ・㉨・
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
     }
 
-    @Disabled
     @TestFactory
-    fun `should have categories`() = testEach(
+    fun `should have categories`() = testEachOld(
         Kaomoji.Angry,
         Kaomoji.Babies, Kaomoji.BadMood, Kaomoji.Bears, Kaomoji.Begging, Kaomoji.Blushing,
         Kaomoji.Cats, Kaomoji.Celebrities, Kaomoji.Chasing, Kaomoji.Confused, Kaomoji.Crying, Kaomoji.Cute,
@@ -163,7 +171,7 @@ class KaomojiTest {
         }
 
         @TestFactory
-        fun `should create random Kaomoji`() = testEach(
+        fun `should create random Kaomoji`() = testEachOld(
             Kaomoji.random(),
             Kaomoji.random(),
             Kaomoji.random(),
@@ -172,7 +180,7 @@ class KaomojiTest {
         }
 
         @TestFactory
-        fun `should create random Kaomoji from Generator category`(): List<DynamicContainer> = testEach(*Generator.values()) { category ->
+        fun `should create random Kaomoji from Generator category`(): List<DynamicContainer> = testEachOld(*Generator.values()) { category ->
             expecting { category.random() } that { isA<Kaomoji>().isNotEmpty() }
         }
 

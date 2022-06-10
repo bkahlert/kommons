@@ -3,12 +3,12 @@ package com.bkahlert.kommons.io
 import com.bkahlert.kommons.test.Assertion
 import com.bkahlert.kommons.test.TextFixture
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.all
-import strikt.assertions.contains
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -27,7 +27,7 @@ class TeeInputStreamTest {
     private fun withStream(block: TeeInputStream.(ByteArray) -> Unit) = block
 
     @TestFactory
-    fun `should tee all operations`() = testEach<Pair<TeeInputStream.(ByteArray) -> Unit, Assertion<TestStream>>>(
+    fun `should tee all operations`() = testEachOld<Pair<TeeInputStream.(ByteArray) -> Unit, Assertion<TestStream>>>(
         withStream { read(it) } to { toStringIsEqualTo(text) },
         withStream { read(it, 0, 1) } to { toStringIsEqualTo("a") },
         withStream { read().apply { it[0] = toByte() } } to { toStringIsEqualTo("a") },
@@ -49,11 +49,16 @@ class TeeInputStreamTest {
 
     @Test
     fun `should contain input and branches in toString`() {
-        expecting { TeeInputStream(text.byteInputStream(), *streams().toTypedArray()).also { it.read() }.toString() } that {
-            contains("TeeInputStream")
-            contains("input =")
-            contains("branches = [a, a, a]")
-            contains("closeBranches = ❌")
-        }
+        TeeInputStream(text.byteInputStream(), *streams().toTypedArray()).also { it.read() }.toString() shouldBe """
+            TeeInputStream {
+                input: "ByteArrayInputStream",
+                branches: [
+                              a,
+                              a,
+                              a
+                          ],
+                closeBranches: "❌"
+            }
+        """.trimIndent()
     }
 }

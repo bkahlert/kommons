@@ -4,7 +4,7 @@ import com.bkahlert.kommons.test.elements
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.hasEqualElements
 import com.bkahlert.kommons.test.isEmpty
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -14,11 +14,11 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import java.nio.file.Path
+import java.nio.file.Paths
 
 class AncestorKtTest {
 
-    private val path = Path.of("a/b/c")
+    private val path = Paths.get("a/b/c")
 
     @Nested
     inner class Ancestor {
@@ -35,7 +35,7 @@ class AncestorKtTest {
 
         @TestFactory
         fun `should return ancestor's parent for order n+1`() =
-            (0 until path.nameCount).testEach { n ->
+            (0 until path.nameCount).testEachOld { n ->
                 expecting { path.ancestor(n + 1) } that { isEqualTo((path.ancestor(n) ?: fail("missing parent")).parent) }
             }
 
@@ -55,7 +55,7 @@ class AncestorKtTest {
 
         @Test
         fun `should return ancestors starting at specified order`() {
-            expectThat(path.ancestors(1)).containsExactly(Path.of("a/b"), Path.of("a"))
+            expectThat(path.ancestors(1)).containsExactly(Paths.get("a/b"), Paths.get("a"))
         }
 
         @Test
@@ -74,7 +74,7 @@ class AncestorKtTest {
 
         @Test
         fun `should return ancestors starting at specified order`() {
-            expectThat(path.ancestorSequence(1)).elements.containsExactly(Path.of("a/b"), Path.of("a"))
+            expectThat(path.ancestorSequence(1)).elements.containsExactly(Paths.get("a/b"), Paths.get("a"))
         }
 
         @Test
@@ -98,7 +98,7 @@ class AncestorKtTest {
 
         @TestFactory
         fun `should return ancestor's parent for order n+1`() =
-            (0 until path.nameCount - 1).testEach { n ->
+            (0 until path.nameCount - 1).testEachOld { n ->
                 expecting { path.requireAncestor(n + 1) } that { isEqualTo((path.ancestor(n) ?: fail("missing parent")).parent) }
             }
 
@@ -113,12 +113,12 @@ class AncestorKtTest {
 
         @Test
         fun `should return sub path`() {
-            expectThat(Path.of("/a/b/c").subpath(2)).isEqualTo(Path.of("b/c"))
+            expectThat(Paths.get("/a/b/c").subpath(2)).isEqualTo(Paths.get("b/c"))
         }
 
         @Test
         fun `should throw on invalid order`() {
-            expectThrows<IllegalArgumentException> { Path.of("/a/b/c/d").subpath(0) }
+            expectThrows<IllegalArgumentException> { Paths.get("/a/b/c/d").subpath(0) }
         }
     }
 }

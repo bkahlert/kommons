@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.delete
 import com.bkahlert.kommons.exception.rootCause
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
@@ -13,13 +15,12 @@ import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.randomPath
 import com.bkahlert.kommons.runtime.wait
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators.LF
@@ -76,7 +77,7 @@ class JavaExecTest {
         }
 
         @TestFactory
-        fun `should process`(uniqueId: UniqueId) = testEach<Exec.() -> Exec>(
+        fun `should process`(uniqueId: UniqueId) = testEachOld<Exec.() -> Exec>(
             { processSilently().apply { waitFor() } },
             { processSynchronously() },
             { processAsynchronously().apply { waitFor() } },
@@ -258,7 +259,7 @@ class JavaExecTest {
         }
 
         @TestFactory
-        fun `by destroying using`(uniqueId: UniqueId) = testEach(
+        fun `by destroying using`(uniqueId: UniqueId) = testEachOld(
             Builder<Exec>::stopped,
             Builder<Exec>::killed,
         ) { destroyOperation ->
@@ -549,7 +550,7 @@ fun Path.createCompletingExec(
 )
 
 fun Path.createLazyFileCreatingExec(): Pair<Exec, Path> {
-    val nonExistingFile = randomPath(extension = ".txt")
+    val nonExistingFile = createTempFile(suffix = ".txt").apply { delete() }
     val fileCreatingCommandLine = CommandLine("touch", nonExistingFile.pathString)
     return fileCreatingCommandLine.toExec(false, emptyMap(), this, null) to nonExistingFile
 }

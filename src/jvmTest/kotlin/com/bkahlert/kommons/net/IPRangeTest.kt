@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.net
 
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
@@ -15,7 +15,7 @@ class IPRangeTest {
     private val range6 = IPv6Range.from(ip61, ip62)
 
     @TestFactory
-    fun `should be parsable`() = testEach(
+    fun `should be parsable`() = testEachOld(
         listOf(
             "172.186.78.250..192.168.0.1",
             "172.186.78.250 ..192.168.0.1",

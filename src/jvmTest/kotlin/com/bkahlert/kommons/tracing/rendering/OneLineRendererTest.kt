@@ -2,8 +2,8 @@ package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.exec.ExecAttributes
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.testEach
-import com.bkahlert.kommons.test.tests
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.isSingleLine
@@ -34,7 +34,7 @@ class OneLineRendererTest {
     private val settings: Settings = Settings()
 
     @Smoke @TestFactory
-    fun TestSpanScope.`should render using styles`() = testEach(
+    fun TestSpanScope.`should render using styles`() = testEachOld(
         Solid to """
             ╶──╴One Two Three╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
         """.trimIndent(),
@@ -46,14 +46,16 @@ class OneLineRendererTest {
         """.trimIndent(),
     ) { (style, expected) ->
         val rendered = capturing { printer ->
-            OneLineRenderer(Settings(
-                style = style,
-                layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
-                contentFormatter = { it.toString().uppercase().ansi.random },
-                decorationFormatter = { it.ansi.brightRed },
-                returnValueTransform = { it },
-                printer = printer,
-            )).apply {
+            OneLineRenderer(
+                Settings(
+                    style = style,
+                    layout = ColumnsLayout(RenderingAttributes.DESCRIPTION columns 40, EXTRA columns 20, maxColumns = 80),
+                    contentFormatter = { it.toString().uppercase().ansi.random },
+                    decorationFormatter = { it.ansi.brightRed },
+                    returnValueTransform = { it },
+                    printer = printer,
+                )
+            ).apply {
 
                 start("One Two Three")
                 log(ansi11, EXTRA to plain11)
@@ -75,7 +77,7 @@ class OneLineRendererTest {
     }
 
     @TestFactory
-    fun TestSpanScope.`should only render on end`() = tests {
+    fun TestSpanScope.`should only render on end`() = testsOld {
         expecting { capturing { OneLineRenderer(settings.copy(printer = it)).start("name") } } that { isEmpty() }
         expecting { capturing { OneLineRenderer(settings.copy(printer = it)).log("event") } } that { isEmpty() }
         expecting { capturing { OneLineRenderer(settings.copy(printer = it)).exception(RuntimeException("exception"), EMPTY) } } that { isEmpty() }

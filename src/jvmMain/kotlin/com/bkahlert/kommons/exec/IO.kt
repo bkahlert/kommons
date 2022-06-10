@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.exec.IO.Companion.ERASE_MARKER
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
@@ -8,7 +9,6 @@ import com.bkahlert.kommons.exec.IO.Output
 import com.bkahlert.kommons.text.AnsiString
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.tracing.Event
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes
 
@@ -135,7 +135,7 @@ public sealed class IO(
         private fun filter(text: CharSequence): CharSequence =
             text.lines().mapNotNull { line ->
                 line.takeUnless<CharSequence> { it.startsWith(ERASE_MARKER) }
-            }.joinLinesToString()
+            }.joinToString(LineSeparators.Default)
     }
 }
 
@@ -228,7 +228,7 @@ public class IOSequence<out T : IO>(seq: Sequence<T>) : Sequence<T> by seq {
  * Set [removeAnsi] to `false` to keep escapes codes.
  */
 public inline fun <reified T : IO> Sequence<IO>.merge(removeAnsi: Boolean = true): String =
-    filterIsInstance<T>().joinLinesToString { if (removeAnsi) it.ansiRemoved else it.toString() }
+    filterIsInstance<T>().joinToString(LineSeparators.Default) { if (removeAnsi) it.ansiRemoved else it.toString() }
 
 /**
  * Contains a filtered copy only consisting of [Meta].

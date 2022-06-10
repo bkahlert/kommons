@@ -3,10 +3,10 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.compositionOf
 import com.bkahlert.kommons.debug.asEmoji
-import com.bkahlert.kommons.debug.debug
+import com.bkahlert.kommons.debug.render
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.test
-import com.bkahlert.kommons.test.testEach
+import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.isMultiline
@@ -33,7 +33,7 @@ class CurlyPatternKtTest {
     }
 
     @TestFactory
-    fun `should match matching multi line string`() = LineSeparators.testEach { lineSeparator ->
+    fun `should match matching multi line string`() = LineSeparators.testEachOld { lineSeparator ->
 
         val block = listOf(
             """Executing [sh, -c, >&1 echo "test output"""",
@@ -104,7 +104,7 @@ class CurlyPatternKtTest {
     }
 
     @TestFactory
-    fun `should match line breaks`() = test(
+    fun `should match line breaks`() = testOld(
         """
             ▶{}commandLine{{}}
             · Executing {}
@@ -185,7 +185,7 @@ class CurlyPatternKtTest {
     }
 
     @TestFactory
-    fun `should match leading line breaks with multi-line placeholder`() = test(
+    fun `should match leading line breaks with multi-line placeholder`() = testOld(
         """
             a
             b
@@ -216,7 +216,7 @@ class CurlyPatternKtTest {
     }
 
     @TestFactory
-    fun `should match trailing line breaks with multi-line placeholder`() = test(
+    fun `should match trailing line breaks with multi-line placeholder`() = testOld(
         """
             a
             b
@@ -286,7 +286,7 @@ fun <T : CharSequence> Assertion.Builder<T>.matchesCurlyPattern(
         if (processedActual.lines().size == processedPattern.lines().size) {
             val analysis = processedActual.lines().zip(processedPattern.lines()).joinToString("\n$LF") { (actualLine, patternLine) ->
                 val lineMatches = actualLine.matchesCurlyPattern(patternLine)
-                lineMatches.asEmoji + "   <-\t${actualLine.debug}\nmatch?\t${patternLine.debug}"
+                lineMatches.asEmoji + "   <-\t${actualLine.render()}\nmatch?\t${patternLine.render()}"
             }
             fail(description = "\nbut was: ${if (curlyPattern.isMultiline) "\n$processedActual" else processedActual}\nAnalysis:\n$analysis")
         } else {

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.exec.IOAttributes
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.tracing.Key
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -24,14 +24,14 @@ class RenderableAttributesTest {
     )
 
     @TestFactory
-    fun `should check for attributes`() = test(renderableAttributes) {
+    fun `should check for attributes`() = testOld(renderableAttributes) {
         expecting("resolving match") { contains(RenderingAttributes.DESCRIPTION.renderingKey) } that { isTrue() }
         expecting("resolving rendering only") { contains(RenderingAttributes.DESCRIPTION) } that { isTrue() }
         expecting("not resolving not-existent rendering only") { contains(IOAttributes.TEXT.renderingKey) } that { isFalse() }
     }
 
     @TestFactory
-    fun `should get attributes`() = test(renderableAttributes) {
+    fun `should get attributes`() = testOld(renderableAttributes) {
         expecting("resolving match") { get(RenderingAttributes.DESCRIPTION.renderingKey) } that {
             isNotNull().get { render(null, null) }.isEqualTo("rendering only description")
         }
@@ -47,15 +47,15 @@ class RenderableAttributesTest {
         @Test
         fun `should start with class name`() {
             expectThat(renderableAttributes.toString())
-                .startsWith("RenderableAttributes")
+                .startsWith("RenderingKeyPreferringAttributes")
         }
 
         @Test
         fun `should contain all attributes`() {
             expectThat(renderableAttributes.toString())
-                .contains("description.render = rendering only description")
-                .contains("kommons.exec.io.text = /root")
-                .contains("irrelevant-key = irrelevant value")
+                .contains("""description.render: "rendering only description"""")
+                .contains("""kommons.exec.io.text: "/root"""")
+                .contains("""irrelevant-key: "irrelevant value"""")
         }
     }
 }

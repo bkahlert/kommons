@@ -2,7 +2,7 @@
 
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.collections.map
+import com.bkahlert.kommons.map
 import com.bkahlert.kommons.runtime.getCaller
 import com.bkahlert.kommons.text.CodePoint
 import com.bkahlert.kommons.text.LineSeparators
@@ -85,8 +85,8 @@ public class XRay<T>(
         private fun <T> defaultStringify(subject: T): String {
             return when (subject) {
                 is Array<*> -> defaultStringify(subject.toList())
-                is ByteArray -> defaultStringify(subject.toHexadecimalString())
-                is UByteArray -> defaultStringify(subject.toHexadecimalString())
+                is ByteArray -> defaultStringify(subject.render())
+                is UByteArray -> defaultStringify(subject.render())
                 else -> subject.toString()
             }
         }

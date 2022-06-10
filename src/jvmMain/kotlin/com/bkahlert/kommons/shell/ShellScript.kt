@@ -1,14 +1,15 @@
 package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.createParentDirectories
+import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.ExecTerminationCallback
 import com.bkahlert.kommons.exec.Executable
-import com.bkahlert.kommons.createParentDirectories
 import com.bkahlert.kommons.io.path.executable
 import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.tempFile
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext.Line
@@ -16,7 +17,6 @@ import com.bkahlert.kommons.text.Banner.banner
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.LineSeparators.prefixLinesWith
-import com.bkahlert.kommons.text.joinLinesToString
 import com.bkahlert.kommons.text.quoted
 import com.bkahlert.kommons.text.singleQuoted
 import com.bkahlert.kommons.time.minutes
@@ -96,7 +96,7 @@ public open class ShellScript(
             ?.run { CommandLine(command, *arguments.toTypedArray(), "-c") }
             ?: Commandline().shell.run { CommandLine(shellCommand, listOf(*shellArgsList.toTypedArray())) }
 
-        val scriptWithoutShebang: String = if (hasShebang) ShellScript(name, lines.drop(1).joinLinesToString()).toString() else toString()
+        val scriptWithoutShebang: String = if (hasShebang) ShellScript(name, lines.drop(1).joinToString(LineSeparators.Default)).toString() else toString()
         val transformedScriptWithoutShebang: String = transform(scriptWithoutShebang)
         return CommandLine(interpreter.command, *interpreter.arguments.toTypedArray(), transformedScriptWithoutShebang, name = name)
     }
@@ -156,7 +156,7 @@ public open class ShellScript(
      * @see toString
      */
     public fun toFile(
-        path: Path = Kommons.FilesTemp.tempFile(this.name.toIdentifier(8), ".sh"),
+        path: Path = Kommons.FilesTemp.createTempFile(this.name.toIdentifier(8), ".sh"),
         echoName: Boolean = false,
         name: CharSequence? = this.name,
     ): Path = path.apply {
@@ -308,7 +308,7 @@ public open class ShellScript(
             require(attemptTimeout >= 1.seconds) { "attempt timeout must be greater or equal to 1 second" }
             require(timeout >= 1.seconds) { "timeout must be greater or equal to 1 second" }
             return command(
-                "timeout", "${timeout.inWholeSeconds}s", "sh", "-c",
+                "perl", "-e", "alarm ${timeout.inWholeSeconds}; exec @ARGV", "sh", "-c",
                 buildString {
                     appendLine("while true; do")
                     if (verbose) appendLine("    echo 'Polling $uri...'")
@@ -317,7 +317,7 @@ public open class ShellScript(
                     appendLine(" && break")
                     appendLine("    sleep ${interval.inWholeSeconds}")
                     appendLine("done")
-                }.toString(),
+                },
             )
         }
 
@@ -392,7 +392,7 @@ public open class ShellScript(
         public operator fun invoke(name: CharSequence?, init: ScriptInit): ShellScript {
             val lines = mutableListOf<CharSequence>()
             val trailingContent: String = ScriptContext(lines).init().takeUnless { it is Line }?.toString() ?: ""
-            return ShellScript(name, (lines.filterNot { it is Line && it.isEmpty() } + trailingContent).joinLinesToString())
+            return ShellScript(name, (lines.filterNot { it is Line && it.isEmpty() } + trailingContent).joinToString(LineSeparators.Default))
         }
 
         /**
