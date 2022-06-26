@@ -1,9 +1,14 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.AnsiSupport
+import com.bkahlert.kommons.LineSeparators.mapLines
 import com.bkahlert.kommons.Platform
+import com.bkahlert.kommons.Program
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.regex.namedGroups
+import com.bkahlert.kommons.asCodePointSequence
+import com.bkahlert.kommons.groupValue
+import com.bkahlert.kommons.string
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.ColoredText
@@ -14,7 +19,6 @@ import com.bkahlert.kommons.text.AnsiCodeHelper.controlSequence
 import com.bkahlert.kommons.text.AnsiCodeHelper.parseAnsiCodes
 import com.bkahlert.kommons.text.AnsiCodeHelper.unclosedCodes
 import com.bkahlert.kommons.text.AnsiString.Companion.tokenize
-import com.bkahlert.kommons.text.LineSeparators.mapLines
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import kotlin.jvm.JvmInline
 import kotlin.math.PI
@@ -22,8 +26,6 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.random.Random.Default.nextDouble
-import com.bkahlert.kommons.text.Unicode.CONTROL_SEQUENCE_INTRODUCER as c
-import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 import kotlin.text.contains as containsNonAnsiAware
 
 /**
@@ -31,7 +33,7 @@ import kotlin.text.contains as containsNonAnsiAware
  */
 public object ANSI {
 
-    private val level by lazy { if (Platform.Current.isDebugging && false) AnsiSupport.NONE else Platform.Current.ansiSupport }
+    private val level by lazy { if (Program.isDebugging && false) AnsiSupport.NONE else Platform.Current.ansiSupport }
 
     /**
      * Returns this character sequence as a string with all lines terminated with
@@ -61,7 +63,7 @@ public object ANSI {
     @Suppress("SpellCheckingInspection")
     public fun CharSequence.resetLines(): String {
         val reset = reset(AnsiSupport.ANSI4)
-        return toString().mapLines { "$it$reset" }
+        return mapLines { "$it$reset" }
     }
 
     public fun interface FilteringFormatter<in T> {
@@ -105,7 +107,7 @@ public object ANSI {
         }
     }
 
-    public fun CharSequence.colorize(): String = mapCharacters { Colors.random()(it) }
+    public fun CharSequence.colorize(): String = safeString.asCodePointSequence().map { Colors.random()(it.string) }.joinToString("")
 
     public interface Colorizer : Formatter<CharSequence> {
         public val bg: Formatter<CharSequence>
@@ -402,23 +404,23 @@ public object ANSI {
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        public val hideCursor: String get() = if (level == AnsiSupport.NONE) "" else "$c?25l"
+        public val hideCursor: String get() = if (level == AnsiSupport.NONE) "" else "${Unicode.CONTROL_SEQUENCE_INTRODUCER}?25l"
 
         /**
          * Create an ANSI code to show the cursor.
          *
          * If ANSI codes are not supported, an empty string is returned.
          */
-        public val showCursor: String get() = if (level == AnsiSupport.NONE) "" else "$c?25h"
+        public val showCursor: String get() = if (level == AnsiSupport.NONE) "" else "${Unicode.CONTROL_SEQUENCE_INTRODUCER}?25h"
 
         private fun moveCursor(dir: String, count: Int): String {
             return if (count == 0 || level == AnsiSupport.NONE) ""
-            else "$c$count$dir"
+            else "${Unicode.CONTROL_SEQUENCE_INTRODUCER}$count$dir"
         }
     }
 }
 
-private val ansiCloseRe = Regex("""$e\[((?:\d{1,3};?)+)m""")
+private val ansiCloseRe = Regex("""${Unicode.ESCAPE}\[((?:\d{1,3};?)+)m""")
 
 /**
  * A class representing one or more numeric ANSI codes.
@@ -455,7 +457,7 @@ internal open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
         tag(codes.toList())
     }
 
-    private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "$e[${c.joinToString(";")}m"
+    private fun tag(c: List<Int>) = if (c.isEmpty()) "" else "${Unicode.ESCAPE}[${c.joinToString(";")}m"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -470,7 +472,8 @@ internal open class AnsiCode(val codes: List<Pair<List<Int>, Int>>) {
         /**
          * [Regex] that matches an [AnsiCode].
          */
-        val REGEX: Regex = Regex("(?<CSI>$c\\[|$e\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
+        val REGEX: Regex =
+            Regex("(?<CSI>${Unicode.CONTROL_SEQUENCE_INTRODUCER}\\[|${Unicode.ESCAPE}\\[)(?<parameterBytes>[0-?]*)(?<intermediateBytes>[ -/]*)(?<finalByte>[@-~])")
     }
 }
 
@@ -990,7 +993,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
     public val ansiLength: Int get():Int = tokens.sumOf { it.logicalLength }
 
     /**
-     * Contains this [string] with all ANSI escape sequences removed.
+     * Contains this [safeString] with all ANSI escape sequences removed.
      */
     @Suppress("SpellCheckingInspection")
     public val ansiRemoved: String by lazy { tokens.filter { !it.isEscapeSequence }.joinToString("") { it.content } }
@@ -1325,11 +1328,10 @@ private object AnsiCodeHelper {
      * ***Note:** This method makes no difference between opening and closing codes.*
      */
     fun parseAnsiCode(matchResult: MatchResult): List<IntArray> {
-        val intermediateBytes: String? = matchResult.namedGroups["intermediateBytes"]?.value
-        val lastByte = matchResult.namedGroups["finalByte"]?.value
+        val intermediateBytes: String? = matchResult.groupValue("intermediateBytes")
+        val lastByte = matchResult.groupValue("finalByte")
         return if (intermediateBytes.isNullOrBlank() && lastByte == "m") {
-            matchResult.namedGroups["parameterBytes"]
-                ?.value
+            matchResult.groupValue("parameterBytes")
                 ?.split(";")
                 ?.mapNotNull { it.toIntOrNull() }
                 ?.group() ?: emptyList()

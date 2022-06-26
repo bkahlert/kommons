@@ -3,7 +3,6 @@ package com.bkahlert.kommons.net
 import com.bkahlert.kommons.bigIntegerOfDecimalString
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.too
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
@@ -66,11 +65,11 @@ class IPv4SubnetTest {
 
     @TestFactory
     fun `should have usable host count`() = testEachOld(
-        0 to "4294967296" too "4294967294",
-        15 to "131072" too "131070",
-        16 to "65536" too "65534",
-        17 to "32768" too "32766",
-        32 to "1" too "1",
+        Triple(0, "4294967296", "4294967294"),
+        Triple(15, "131072", "131070"),
+        Triple(16, "65536", "65534"),
+        Triple(17, "32768", "32766"),
+        Triple(32, "1", "1"),
     ) { (length, hostCountString, usableHostCountString) ->
         val hostCount = bigIntegerOfDecimalString(hostCountString)
         val usableHostCount = bigIntegerOfDecimalString(usableHostCountString)
@@ -82,11 +81,11 @@ class IPv4SubnetTest {
 
     @TestFactory
     fun `should have first and usable host`() = testEachOld(
-        0 to "0.0.0.1" too "255.255.255.254",
-        15 to "172.186.0.1" too "172.187.255.254",
-        16 to "172.186.0.1" too "172.186.255.254",
-        17 to "172.186.0.1" too "172.186.127.254",
-        32 to "172.186.78.250" too "172.186.78.250",
+        Triple(0, "0.0.0.1", "255.255.255.254"),
+        Triple(15, "172.186.0.1", "172.187.255.254"),
+        Triple(16, "172.186.0.1", "172.186.255.254"),
+        Triple(17, "172.186.0.1", "172.186.127.254"),
+        Triple(32, "172.186.78.250", "172.186.78.250"),
     ) { (length, firstUsableHost, lastUsableHost) ->
         with { IPv4Subnet.from(ip, length) }.then {
             expecting { this.firstUsableHost } that { toStringIsEqualTo(firstUsableHost) }

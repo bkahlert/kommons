@@ -3,6 +3,8 @@ package com.bkahlert.kommons.exec
 import com.bkahlert.kommons.Either
 import com.bkahlert.kommons.Either.Left
 import com.bkahlert.kommons.Either.Right
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.exception.dump
@@ -15,9 +17,7 @@ import com.bkahlert.kommons.exec.Process.State
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.text.LineSeparators.DEFAULT
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.time.Now
 import com.bkahlert.kommons.tracing.KommonsTelemetry
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
@@ -124,8 +124,8 @@ import kotlin.concurrent.withLock
  * ```
  *      Process {PID} terminated with exit code {exit code}
  *      ➜ A dump has been written to:
- *      - {TempDir}/kommons/exec/dump.{}.log
- *      - {TempDir}/kommons/exec/dump.{}.ansi-removed.log
+ *      - {TempDir}/kommons/exec/dump.*.log
+ *      - {TempDir}/kommons/exec/dump.*.ansi-removed.log
  *      ➜ The last 10 lines are:
  *      {…}
  *      3
@@ -174,11 +174,11 @@ public interface Exec : Process {
          */
         public fun fallbackExitStateHandler(): ExitStateHandler = ExitStateHandler { pid, exitCode, io ->
             if (exitCode == 0) {
-                Succeeded(start, Now.instant, pid, io)
+                Succeeded(start, Now, pid, io)
             } else {
                 val relevantFiles = commandLine.includedFiles
                 val dump = createDump("Process ${pid.formattedAs.input} terminated with exit code ${exitCode.formattedAs.input}")
-                Failed(start, Now.instant, pid, exitCode, io, relevantFiles.map { it.toUri() }, dump)
+                Failed(start, Now, pid, exitCode, io, relevantFiles.map { it.toUri() }, dump)
             }
         }
 
@@ -189,7 +189,7 @@ public interface Exec : Process {
          * The given error messages are concatenated with a line break.
          */
         public fun Exec.createDump(vararg errorMessage: String): String {
-            metaStream.emit(Meta typed errorMessage.joinToString(DEFAULT))
+            metaStream.emit(Meta typed errorMessage.joinToString(LF))
             return (workingDirectory ?: SystemLocations.Temp).dump(null) { io.ansiKept }.also { dump -> metaStream.emit(Dump(dump)) }
         }
     }

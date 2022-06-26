@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import io.opentelemetry.api.trace.Span
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.exception.toCompactString
-import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.Symbolizable
 import com.bkahlert.kommons.text.Semantics.Symbols
-import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.tracing.SpanScope
+import io.opentelemetry.api.trace.Span
 
 /**
  * Implementors of this interface gain control on
@@ -83,7 +83,7 @@ public class ReturnValues<E>(vararg elements: E) : MutableList<E> by mutableList
         get() = when (unsuccessful.size) {
             0 -> null
             1 -> unsuccessful.single().textRepresentation
-            else -> "Multiple problems encountered: " + unsuccessful.joinToString("") { returnValue ->
+            else -> "Multiple problems encountered:" + unsuccessful.joinToString("") { returnValue ->
                 (returnValue.textRepresentation ?: "").lines()
                     .mapNotNull { line -> line.takeUnlessBlank() }
                     .joinToString(prefix = "$LF    ${returnValue.symbol} ", separator = " ${FieldDelimiters.FIELD} ")

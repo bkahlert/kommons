@@ -6,7 +6,7 @@ import com.bkahlert.kommons.math.toBigInteger
 import com.bkahlert.kommons.math.toUByteArray
 import com.bkahlert.kommons.net.IPv4Notation.format
 import com.bkahlert.kommons.padStart
-import com.bkahlert.kommons.toUBytes
+import com.bkahlert.kommons.toUByteArray
 import com.bkahlert.kommons.trim
 import com.bkahlert.kommons.unit.bits
 
@@ -15,7 +15,7 @@ import com.bkahlert.kommons.unit.bits
  */
 public class IPv4Address private constructor(override val value: BigInteger, override val bytes: UByteArray) : IPAddress {
     public constructor(value: BigInteger) : this(value, value.toUByteArray().trim().padStart(IPv4Address.byteCount))
-    public constructor(value: UInt) : this(value.toBigInteger(), value.toUBytes().trim().padStart(IPv4Address.byteCount))
+    public constructor(value: UInt) : this(value.toBigInteger(), value.toUByteArray().trim().padStart(IPv4Address.byteCount))
     public constructor(bytes: UByteArray) : this(bigIntegerOf(bytes), bytes.trim().padStart(IPv4Address.byteCount))
 
     init {

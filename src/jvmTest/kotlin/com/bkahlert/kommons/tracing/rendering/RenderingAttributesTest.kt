@@ -1,15 +1,14 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes.Keys.rendering
+import io.kotest.matchers.shouldBe
 import io.opentelemetry.api.common.Attributes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isEqualTo
 import strikt.assertions.startsWith
 
 class RenderingAttributesTest {
@@ -20,10 +19,10 @@ class RenderingAttributesTest {
         Key.stringKey("irrelevant-key"), "irrelevant value",
     ).rendering
 
-    @TestFactory
-    fun `should read attributes`() = testOld(renderingAttributes) {
-        expecting { description } that { isEqualTo("custom description") }
-        expecting { renderer } that { isEqualTo("custom renderer") }
+    @Test
+    fun `should read attributes`() = test {
+        renderingAttributes.description shouldBe "custom description"
+        renderingAttributes.renderer shouldBe "custom renderer"
     }
 
     @Nested

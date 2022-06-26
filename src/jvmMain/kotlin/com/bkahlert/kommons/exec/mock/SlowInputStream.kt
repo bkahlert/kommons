@@ -4,18 +4,17 @@ import com.bkahlert.kommons.debug.render
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
 import com.bkahlert.kommons.tracing.SpanScope
 import com.bkahlert.kommons.tracing.rendering.runSpanningLine
 import com.bkahlert.kommons.tracing.runSpanning
 import com.bkahlert.kommons.tracing.spanId
 import com.bkahlert.kommons.unit.bytes
-import com.bkahlert.kommons.unit.milli
 import io.opentelemetry.api.trace.Span
 import java.io.IOException
 import java.io.InputStream
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 public class SlowInputStream(
     public val baseDelayPerInput: Duration,
@@ -25,7 +24,7 @@ public class SlowInputStream(
 ) : InputStream() {
 
     public companion object {
-        private val fiftyMillis = 50.milli.seconds
+        private val fiftyMillis = 50.milliseconds
 
         public fun prompt(): Pair<Duration, String> = Duration.INFINITE to ""
         public fun slowInputStream(
@@ -99,7 +98,7 @@ public class SlowInputStream(
         }
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            val delay = yetBlocked.milli.seconds
+            val delay = yetBlocked.milliseconds
             log("$delay to wait for next chunk")
             ((delay / 2).takeIf { it > fiftyMillis } ?: fiftyMillis).sleep()
             return@spanningWithDisabledPrinterOnIllegalSpan 0
@@ -141,8 +140,8 @@ public class SlowInputStream(
 
         val yetBlocked = blockUntil - System.currentTimeMillis()
         if (yetBlocked > 0) {
-            log("blocking for the remaining ${yetBlocked.milli.seconds}…")
-            yetBlocked.milli.seconds.sleep()
+            log("blocking for the remaining ${yetBlocked.milliseconds}…")
+            yetBlocked.milliseconds.sleep()
         }
 
         val currentWord: MutableList<Byte> = unread.let {

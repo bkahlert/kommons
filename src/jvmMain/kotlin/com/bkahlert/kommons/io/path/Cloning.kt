@@ -7,6 +7,7 @@ import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.io.fileAlreadyExists
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.pathString
 import kotlin.io.path.readText
 
 public val cloneFileSupport: Boolean by lazy {

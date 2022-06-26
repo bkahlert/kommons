@@ -1,5 +1,9 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.Now
+import com.bkahlert.kommons.Program
+import com.bkahlert.kommons.TextLength.Companion.graphemes
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.synchronizedSetOf
 import com.bkahlert.kommons.debug.asEmoji
@@ -13,13 +17,9 @@ import com.bkahlert.kommons.exec.Process.State.Excepted
 import com.bkahlert.kommons.exec.Process.State.Running
 import com.bkahlert.kommons.io.TeeInputStream
 import com.bkahlert.kommons.io.TeeOutputStream
-import com.bkahlert.kommons.runtime.addShutDownHook
-import com.bkahlert.kommons.runtime.removeShutdownHook
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.Symbols.Computation
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.truncate
-import com.bkahlert.kommons.time.Now
+import com.bkahlert.kommons.truncate
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
@@ -64,7 +64,7 @@ public class JavaExec(
 ) : Exec {
     public companion object;
 
-    override val start: Instant = Now.instant
+    override val start: Instant = Now
     override val end: Instant? get() = (state as? ExitState)?.end
     override val pid: Long = process.pid()
     override fun waitFor(): ExitState = (_state as? ExitState) ?: onExit.join()
@@ -73,7 +73,7 @@ public class JavaExec(
 
     private var _state: State = Running(start, pid)
 
-    // onExit needs to be triggered at some point so it updates the state
+    // onExit needs to be triggered at some point, so it updates the state
     // consequently callbacks registered after that moment will likely not be triggered
     override val state: State
         get() {
@@ -110,7 +110,7 @@ public class JavaExec(
             val exitState: ExitState = if (throwable != null) {
                 val cause: Throwable = (throwable as? CompletionException)?.cause ?: throwable
                 val dump = createDump("Process ${pid.formattedAs.input} terminated with ${cause.toCompactString()}.")
-                Excepted(start, Now.instant, pid, exitValue, io, cause, dump.ansiRemoved)
+                Excepted(start, Now, pid, exitValue, io, cause, dump.ansiRemoved)
             } else {
                 kotlin.runCatching {
                     with(exitStateHandler ?: fallbackExitStateHandler()) { handle(pid, exitValue, io) }
@@ -118,8 +118,9 @@ public class JavaExec(
                     val formattedPid = pid.formattedAs.input
                     val formattedExitCode = exitValue.formattedAs.input
                     val formattedException = exception.message.formattedAs.error
-                    val message = "Unexpected error terminating process $formattedPid with exit code $formattedExitCode:$LF\t$formattedException"
-                    Excepted(start, Now.instant, pid, exitValue, io, exception, createDump(message), message)
+                    val message =
+                        "Unexpected error terminating process $formattedPid with exit code $formattedExitCode:$LF\t$formattedException"
+                    Excepted(start, Now, pid, exitValue, io, exception, createDump(message), message)
                 }
             }
 
@@ -135,20 +136,20 @@ public class JavaExec(
     override val onExit: CompletableFuture<out ExitState> get() = (_state as? ExitState)?.let { CompletableFuture.completedFuture(it) } ?: cachedOnExit
 
     override fun toString(): String {
-        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji ?: Computation}"
+        val delegateString = "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji() ?: Computation}"
         return "${this::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")") +
-            ", commandLine=${commandLine.shellCommand.toCompactString().truncate(50, " … ")}" +
-            ", execTerminationCallback=${(execTerminationCallback != null).asEmoji}" +
-            ", destroyOnShutdown=${destroyOnShutdown.asEmoji})"
+            ", commandLine=${commandLine.shellCommand.toCompactString().truncate(50.graphemes)}" +
+            ", execTerminationCallback=${(execTerminationCallback != null).asEmoji()}" +
+            ", destroyOnShutdown=${destroyOnShutdown.asEmoji()})"
     }
 
     init {
         try {
             if (destroyOnShutdown) {
                 val shutdownHook = thread(start = false, name = "shutdown hook for $pid", contextClassLoader = null) { process.destroy() }
-                addShutDownHook(shutdownHook)
+                Program.addShutDownHook(shutdownHook)
 
-                process.onExit().handle { _, _ -> removeShutdownHook(shutdownHook) }
+                process.onExit().handle { _, _ -> Program.removeShutdownHook(shutdownHook) }
             }
 
             execTerminationCallback?.let { callback ->

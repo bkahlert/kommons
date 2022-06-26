@@ -1,52 +1,50 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.io.path.isSubPathOf
-import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.test.toStringContains
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotEqualTo
-import strikt.assertions.last
+import kotlin.io.path.pathString
 
 class KommonsTest {
 
     @Test
     fun `should resolve InternalTemp`() {
-        expectThat(Kommons.InternalTemp) {
-            toStringContains("kommons")
-            isSubPathOf(SystemLocations.Temp)
+        Kommons.InternalTemp should {
+            it.toString() shouldContain "kommons"
+            it.isSubPathOf(SystemLocations.Temp) shouldBe true
         }
     }
 
     @Test
     fun `should resolve ExecTemp`() {
-        expectThat(Kommons.ExecTemp) {
-            last().pathString.isEqualTo("exec")
-            isSubPathOf(SystemLocations.Temp)
+        Kommons.ExecTemp should {
+            it.last().pathString shouldBe "exec"
+            it.isSubPathOf(SystemLocations.Temp) shouldBe true
         }
     }
 
     @Test
     fun `should resolve FilesTemp`() {
-        expectThat(Kommons.FilesTemp) {
-            last().pathString.isEqualTo("files")
-            isSubPathOf(SystemLocations.Temp)
+        Kommons.FilesTemp should {
+            it.last().pathString shouldBe "files"
+            it.isSubPathOf(SystemLocations.Temp) shouldBe true
         }
     }
 
     @Test
     fun `should return name`() {
-        expectThat(Kommons.name).isEqualTo("kommons")
+        Kommons.name shouldBe "kommons"
     }
 
     @Test
     fun `should return group`() {
-        expectThat(Kommons.group).isEqualTo("com.bkahlert.kommons")
+        Kommons.group shouldBe "com.bkahlert.kommons"
     }
 
     @Test
     fun `should return version`() {
-        expectThat(Kommons.version).isNotEqualTo(SemVer(0, 0, 1))
+        Kommons.version shouldNotBe SemanticVersion(0, 0, 1)
     }
 }

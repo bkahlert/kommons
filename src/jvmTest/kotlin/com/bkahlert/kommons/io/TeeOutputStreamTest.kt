@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io
 
 import com.bkahlert.kommons.test.Assertion
-import com.bkahlert.kommons.test.TextFixture
+import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import io.kotest.matchers.shouldBe
@@ -26,7 +26,7 @@ class TeeOutputStreamTest {
         }
     }
 
-    private val text = TextFixture.text
+    private val text = UnicodeTextDocumentFixture.contents
     private fun streams() = listOf(TestStream(), TestStream(), TestStream())
     private fun withStream(block: TeeOutputStream.() -> Unit) = block
 

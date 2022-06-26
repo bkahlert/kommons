@@ -1,6 +1,7 @@
 package com.bkahlert.kommons.exec.mock
 
 import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
@@ -34,11 +35,8 @@ import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.isEqualToByteWise
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testOld
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.time.poll
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
-import com.bkahlert.kommons.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -54,6 +52,8 @@ import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isTrue
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 class JavaExecMockTest {
@@ -138,7 +138,7 @@ class JavaExecMockTest {
         fun `should provide 'block on prompt' behavior`() = listOf(
             "with echoed input" to true,
             "without echoed input" to false,
-        ).testEachOld("{}") { (_, echoOption) ->
+        ).testEachOld("*") { (_, echoOption) ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             val slowInputStream = slowInputStream(
                 Duration.ZERO,
@@ -154,7 +154,7 @@ class JavaExecMockTest {
             val output = StringBuilder()
             val start = System.currentTimeMillis()
             while (!slowInputStream.terminated) {
-                if ((System.currentTimeMillis() - start).milli.seconds > 0.8.seconds) {
+                if ((System.currentTimeMillis() - start).milliseconds > 0.8.seconds) {
                     byteArrayOutputStream.write("password1234\r".toByteArray())
                     byteArrayOutputStream.flush()
                 }
@@ -184,7 +184,7 @@ class JavaExecMockTest {
             listOf(
                 slowInputStream(5.seconds, input, echoInput = true),
                 slowInputStream(5.seconds, Duration.ZERO to input, echoInput = true),
-            ).testEachOld("{}") { inputStream ->
+            ).testEachOld("*") { inputStream ->
                 val duration = measureTime {
                     @Suppress("ControlFlowWithEmptyBody")
                     while (inputStream.read() > -1) {
@@ -218,20 +218,20 @@ class JavaExecMockTest {
 
         @Test
         fun `should delay exit`() {
-            expecting { measureTime { processMock(exitDelay = 50.milli.seconds).waitFor() } } that {
-                isGreaterThan(40.milli.seconds)
-                isLessThan(80.milli.seconds)
+            expecting { measureTime { processMock(exitDelay = 50.milliseconds).waitFor() } } that {
+                isGreaterThan(40.milliseconds)
+                isLessThan(80.milliseconds)
             }
         }
 
         @Test
         fun `should return true if process exits in time`() {
-            expecting { processMock(exitDelay = 50.milli.seconds).waitFor(100, TimeUnit.MILLISECONDS) } that { isTrue() }
+            expecting { processMock(exitDelay = 50.milliseconds).waitFor(100, TimeUnit.MILLISECONDS) } that { isTrue() }
         }
 
         @Test
         fun `should return false if process not exits in time`() {
-            expecting { processMock(exitDelay = 50.milli.seconds).waitFor(25, TimeUnit.MILLISECONDS) } that { isFalse() }
+            expecting { processMock(exitDelay = 50.milliseconds).waitFor(25, TimeUnit.MILLISECONDS) } that { isFalse() }
         }
 
         @Nested
@@ -247,7 +247,7 @@ class JavaExecMockTest {
 
                 @Test
                 fun `should be alive if too little time has passed`() {
-                    expectThat(processMock(exitDelay = 100.milli.seconds).isAlive).isTrue()
+                    expectThat(processMock(exitDelay = 100.milliseconds).isAlive).isTrue()
                 }
             }
 
@@ -316,9 +316,9 @@ class JavaExecMockTest {
             """
             Welcome!
             Password? password1234
-            
+
             Correct!
-        
+
             """.trimIndent()
         )
         expectThat(p.isAlive).isFalse()
@@ -345,12 +345,12 @@ class JavaExecMockTest {
         val exec: Exec = withIndividuallySlowInput(
             Duration.ZERO to "[  OK  ] Started Update UTMP about System Runlevel Changes.$LF",
             prompt(),
-            100.milli.seconds to "Shutting down",
-            baseDelayPerInput = 100.milli.seconds,
+            100.milliseconds to "Shutting down",
+            baseDelayPerInput = 100.milliseconds,
             echoInput = true,
             exitCode = {
                 while (!outputStream.toString().contains("shutdown")) {
-                    100.milli.seconds.sleep()
+                    100.milliseconds.sleep()
                 }
 
                 0

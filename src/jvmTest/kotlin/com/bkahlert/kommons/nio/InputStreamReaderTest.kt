@@ -1,18 +1,16 @@
 package com.bkahlert.kommons.nio
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.exception.dump
 import com.bkahlert.kommons.exec.mock.SlowInputStream.Companion.slowInputStream
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.io.TeeInputStream
-import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.notContainsLineSeparator
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.fuzzyLevenshteinDistance
-import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.times
 import com.bkahlert.kommons.unit.Mebi
 import com.bkahlert.kommons.unit.bytes
 import org.junit.jupiter.api.Nested
@@ -25,6 +23,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThanOrEqualTo
 import java.io.Reader
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class InputStreamReaderTest {
 
@@ -94,18 +93,18 @@ class InputStreamReaderTest {
     @Nested
     inner class Benchmark {
         private val size = 1.Mebi.bytes
-        private val input = HtmlFixture.text
+        private val input = HtmlDocumentFixture.contents
         private val expected: String =
-            buildString { (size / input.length).wholeBytes.toInt() * { append(input);append(LineSeparators.LF) } }
+            buildString { repeat((size / input.length).wholeBytes.toInt()) { appendLine(input) } }
 
         @Test
-        fun `should quickly read`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should quickly read`(simpleId: SimpleId) = withTempDir(simpleId) {
             val read = ByteArrayOutputStream()
             val reader = InputStreamReader(TeeInputStream(expected.byteInputStream(), read))
 
             kotlin.runCatching {
                 val readLines = reader.readLines()
-                expectThat(readLines.joinToString(LineSeparators.DEFAULT)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
+                expectThat(readLines.joinToString(LineSeparators.Default)).fuzzyLevenshteinDistance(expected).isLessThanOrEqualTo(0.05)
             }.onFailure { dump("Test failed.") { read.toString(Charsets.UTF_8) } }
         }
     }

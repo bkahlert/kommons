@@ -3,7 +3,6 @@ package com.bkahlert.kommons.net
 import com.bkahlert.kommons.bigIntegerOfDecimalString
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.too
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo
 
@@ -66,11 +65,11 @@ class IPv6SubnetTest {
 
     @TestFactory
     fun `should have usable host count`() = testEachOld(
-        0 to "340282366920938463463374607431768211456" too "340282366920938463463374607431768211454",
-        63 to "36893488147419103232" too "36893488147419103230",
-        64 to "18446744073709551616" too "18446744073709551614",
-        65 to "9223372036854775808" too "9223372036854775806",
-        128 to "1" too "1",
+        Triple(0, "340282366920938463463374607431768211456", "340282366920938463463374607431768211454"),
+        Triple(63, "36893488147419103232", "36893488147419103230"),
+        Triple(64, "18446744073709551616", "18446744073709551614"),
+        Triple(65, "9223372036854775808", "9223372036854775806"),
+        Triple(128, "1", "1"),
     ) { (length, hostCountString, usableHostCountString) ->
         val hostCount = bigIntegerOfDecimalString(hostCountString)
         val usableHostCount = bigIntegerOfDecimalString(usableHostCountString)
@@ -82,11 +81,11 @@ class IPv6SubnetTest {
 
     @TestFactory
     fun `should have first and usable host`() = testEachOld(
-        0 to "::1" too "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe",
-        63 to "abba:4efa:abba:4efa:::1" too "abba:4efa:abba:4efb:ffff:ffff:ffff:fffe",
-        64 to "abba:4efa:abba:4efa:::1" too "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
-        65 to "abba:4efa:abba:4efa:8000:::1" too "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe",
-        128 to "abba:4efa:abba:4efa:abba:4efa:abba:4efa" too "abba:4efa:abba:4efa:abba:4efa:abba:4efa",
+        Triple(0, "::1", "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe"),
+        Triple(63, "abba:4efa:abba:4efa:::1", "abba:4efa:abba:4efb:ffff:ffff:ffff:fffe"),
+        Triple(64, "abba:4efa:abba:4efa:::1", "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe"),
+        Triple(65, "abba:4efa:abba:4efa:8000:::1", "abba:4efa:abba:4efa:ffff:ffff:ffff:fffe"),
+        Triple(128, "abba:4efa:abba:4efa:abba:4efa:abba:4efa", "abba:4efa:abba:4efa:abba:4efa:abba:4efa"),
     ) { (length, firstUsableHost, lastUsableHost) ->
         with { IPv6Subnet.from(ip, length) }.then {
             expecting { this.firstUsableHost } that { toStringIsEqualTo(firstUsableHost) }

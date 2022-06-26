@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.text.styling
 
-import com.bkahlert.kommons.math.isEven
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.lineSequence
-import com.bkahlert.kommons.text.LineSeparators.mapLines
-import com.bkahlert.kommons.text.Unicode
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.lineSequence
+import com.bkahlert.kommons.LineSeparators.mapLines
+import com.bkahlert.kommons.Unicode
+import com.bkahlert.kommons.isEven
 import com.bkahlert.kommons.text.maxLength
 import com.bkahlert.kommons.text.repeat
 import com.bkahlert.kommons.text.styling.Boxes.FAIL

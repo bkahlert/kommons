@@ -1,36 +1,39 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.Unicode
-import com.bkahlert.kommons.text.Unicode.replacementSymbol
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.asCodePointSequence
+import com.bkahlert.kommons.string
+import com.bkahlert.kommons.text.UnicodeOld
+import com.bkahlert.kommons.text.UnicodeOld.replacementSymbol
 import com.bkahlert.kommons.text.Whitespaces
-import com.bkahlert.kommons.text.mapCodePoints
-import com.bkahlert.kommons.text.unicodeName
 import com.bkahlert.kommons.toHexadecimalString
 
 /**
- * Replaces control (e.g. [Unicode.ESCAPE], surrogate (e.g. `\ubd00`) and whitespace (e.g. [Unicode.LINE_FEED]) characters
+ * Replaces control (e.g. [UnicodeOld.ESCAPE], surrogate (e.g. `\ubd00`) and whitespace (e.g. [UnicodeOld.LINE_FEED]) characters
  * with a visual representation or, if unavailable, with their written Unicode name.
  */
-public fun String.replaceNonPrintableCharacters(): String {
-    return mapCodePoints { codePoint ->
-        val prefix = if (codePoint.string in LineSeparators) "⏎" else ""
-        val suffix = if (codePoint.char in Unicode.controlCharacters.values) "ꜝ" else ""
-        prefix + when {
-            codePoint.char == ' ' -> " "
+public fun String.replaceNonPrintableCharacters(): String =
+    asCodePointSequence().map { codePoint ->
+        val codePointIndex = codePoint.index
+        val codePointChar: Char? = codePoint.char
+        val codePointString = codePoint.string
+
+        val prefix = if (codePointString in LineSeparators.Unicode) "⏎" else ""
+        val suffix = if (codePointChar in UnicodeOld.controlCharacters.values) "ꜝ" else ""
+        val infix = when {
+            codePointChar == ' ' -> " "
             codePoint.replacementSymbol != null -> codePoint.replacementSymbol.toString()
-            codePoint.isLineSeparator -> when (codePoint.string) {
+            LineSeparators.Unicode.any { it == codePointString } -> when (codePointString) {
                 LineSeparators.NEL -> "␤"
                 LineSeparators.PS -> "ₛᷮ"
                 LineSeparators.LS -> "ₛᷞ"
                 else -> "⏎"
             }
-            codePoint.isHighSurrogate -> codePoint.codePoint.toHexadecimalString() + "▌﹍"
-            codePoint.isLowSurrogate -> "﹍▐" + codePoint.codePoint.toHexadecimalString()
-            codePoint.isWhitespace -> "❲${codePoint.unicodeName}❳"
-            codePoint.isZeroWidthWhitespace -> "❲${Whitespaces.ZeroWidthWhitespaces[codePoint.string]}❳"
-            codePoint.isDefined -> codePoint.string
-            else -> codePoint.string
-        } + suffix
+            codePointChar in Char.MIN_HIGH_SURROGATE..Char.MAX_HIGH_SURROGATE -> codePointIndex.toHexadecimalString() + "▌﹍"
+            codePointChar in Char.MIN_LOW_SURROGATE..Char.MAX_LOW_SURROGATE -> "﹍▐" + codePointIndex.toHexadecimalString()
+            Whitespaces.ZeroWidthWhitespaces.keys.any { it == codePointString } -> "❲${Whitespaces.ZeroWidthWhitespaces[codePointString]}❳"
+            Whitespaces.contains(codePointString) -> "❲${Whitespaces.Dict[codePointString]}❳"
+            else -> codePointString
+        }
+        prefix + infix + suffix
     }.joinToString("")
-}

@@ -12,13 +12,12 @@ import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.Slow
-import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.junit.UniqueId.Companion.id
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.junit.SimpleIdResolver.Companion.simpleId
 import com.bkahlert.kommons.test.junit.getTestStore
 import com.bkahlert.kommons.test.junit.getTyped
 import com.bkahlert.kommons.test.withAnnotation
 import com.bkahlert.kommons.time.poll
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.ReturnValues
 import com.bkahlert.kommons.tracing.rendering.Styles.None
@@ -40,6 +39,7 @@ import kotlin.concurrent.withLock
 import kotlin.math.ceil
 import kotlin.reflect.KClass
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
 /**
@@ -54,11 +54,11 @@ object TestImages {
         override val image: DockerImage get() = this
         private val testContainersProvider: TestContainersProvider by lazy { TestContainersProvider.of(this) }
 
-        override fun testContainersFor(uniqueId: UniqueId): TestContainers =
-            testContainersProvider.testContainersFor(uniqueId)
+        override fun testContainersFor(simpleId: SimpleId): TestContainers =
+            testContainersProvider.testContainersFor(simpleId)
 
-        override fun release(uniqueId: UniqueId) =
-            testContainersProvider.release(uniqueId)
+        override fun release(simpleId: SimpleId) =
+            testContainersProvider.release(simpleId)
     }
 
     /**
@@ -68,11 +68,11 @@ object TestImages {
         override val image: DockerImage get() = this
         private val testContainersProvider: TestContainersProvider by lazy { TestContainersProvider.of(this) }
 
-        override fun testContainersFor(uniqueId: UniqueId): TestContainers =
-            testContainersFor(uniqueId)
+        override fun testContainersFor(simpleId: SimpleId): TestContainers =
+            testContainersFor(simpleId)
 
-        override fun release(uniqueId: UniqueId) =
-            testContainersProvider.release(uniqueId)
+        override fun release(simpleId: SimpleId) =
+            testContainersProvider.release(simpleId)
     }
 
     /**
@@ -115,7 +115,7 @@ class ContainersTestExtension : TypeBasedParameterResolver<TestContainers>(), Af
             ?: error("Currently only ${TestContainersProvider::class.simpleName} singletons are supported, that is, implemented as an object.")
 
     override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): TestContainers =
-        context.provider.testContainersFor(context.id).also { context.store.put(TestContainers::class, it) }
+        context.provider.testContainersFor(context.simpleId).also { context.store.put(TestContainers::class, it) }
 
     override fun afterEach(context: ExtensionContext) = context.store.getTyped<TestContainers>(TestContainers::class)?.release() ?: Unit
 }
@@ -130,31 +130,31 @@ interface TestContainersProvider {
     val image: DockerImage
 
     /**
-     * Provides a new [TestContainers] instance for the given [uniqueId].
+     * Provides a new [TestContainers] instance for the given [simpleId].
      *
      * If one already exists, an exception is thrown.
      */
-    fun testContainersFor(uniqueId: UniqueId): TestContainers
+    fun testContainersFor(simpleId: SimpleId): TestContainers
 
     /**
-     * Kills and removes all provisioned test containers for the [uniqueId]
+     * Kills and removes all provisioned test containers for the [simpleId]
      */
-    fun release(uniqueId: UniqueId)
+    fun release(simpleId: SimpleId)
 
     companion object {
         fun of(image: DockerImage) = object : TestContainersProvider {
             override val image: DockerImage = image
-            private val sessions = synchronizedMapOf<UniqueId, TestContainers>()
+            private val sessions = synchronizedMapOf<SimpleId, TestContainers>()
 
-            override fun testContainersFor(uniqueId: UniqueId) =
-                TestContainers(image, uniqueId)
+            override fun testContainersFor(simpleId: SimpleId) =
+                TestContainers(image, simpleId)
                     .also {
-                        check(!sessions.containsKey(uniqueId)) { "A session for $uniqueId is already provided!" }
-                        sessions[uniqueId] = it
+                        check(!sessions.containsKey(simpleId)) { "A session for $simpleId is already provided!" }
+                        sessions[simpleId] = it
                     }
 
-            override fun release(uniqueId: UniqueId) {
-                sessions.remove(uniqueId)?.apply { release() }
+            override fun release(simpleId: SimpleId) {
+                sessions.remove(simpleId)?.apply { release() }
             }
         }
     }
@@ -166,7 +166,7 @@ interface TestContainersProvider {
  */
 class TestContainers(
     private val image: DockerImage,
-    private val uniqueId: UniqueId,
+    private val simpleId: SimpleId,
 ) {
     private val provisioned: MutableList<DockerContainer> = synchronizedListOf()
 
@@ -183,7 +183,7 @@ class TestContainers(
     private fun startContainerWithCommandLine(
         commandLine: CommandLine,
     ): DockerContainer {
-        val container = DockerContainer.from(name = "$uniqueId", randomSuffix = true).also { provisioned.add(it) }
+        val container = DockerContainer.from(name = "$simpleId", randomSuffix = true).also { provisioned.add(it) }
         commandLine.dockerized(
             this@TestContainers.image, Options(
                 name = container,

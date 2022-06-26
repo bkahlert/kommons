@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.Exceptions
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.takeIfNotBlank
-import com.bkahlert.kommons.text.LineSeparators.LF
 
 public object CharRanges {
     public val Numeric: CharRange = '0'..'9'

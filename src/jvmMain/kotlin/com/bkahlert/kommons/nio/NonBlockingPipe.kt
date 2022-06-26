@@ -64,8 +64,8 @@ public open class NonBlockingPipe(
 
     override fun toString(): String = asString {
         put(::readBuffer.name, readBuffer)
-        put(::readChannel.name, with(readChannel) { asString { put("open", isOpen.asEmoji) } })
-        put(::writeChannel.name, with(writeChannel) { asString { put("open", isOpen.asEmoji) } })
+        put(::readChannel.name, with(readChannel) { asString { put("open", isOpen.asEmoji()) } })
+        put(::writeChannel.name, with(writeChannel) { asString { put("open", isOpen.asEmoji()) } })
     }
 
     override fun close() {

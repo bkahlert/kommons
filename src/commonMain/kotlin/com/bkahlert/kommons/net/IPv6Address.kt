@@ -9,9 +9,8 @@ import com.bkahlert.kommons.math.toBigInteger
 import com.bkahlert.kommons.math.toUByteArray
 import com.bkahlert.kommons.net.IPv6Notation.format
 import com.bkahlert.kommons.padStart
-import com.bkahlert.kommons.regex.countMatches
 import com.bkahlert.kommons.toHexadecimalString
-import com.bkahlert.kommons.toUBytes
+import com.bkahlert.kommons.toUByteArray
 import com.bkahlert.kommons.trim
 import com.bkahlert.kommons.unit.bits
 
@@ -20,7 +19,7 @@ import com.bkahlert.kommons.unit.bits
  */
 public class IPv6Address private constructor(override val value: BigInteger, override val bytes: UByteArray) : IPAddress {
     public constructor(value: BigInteger) : this(value, value.toUByteArray().trim().padStart(IPv6Address.byteCount))
-    public constructor(value: UInt) : this(value.toBigInteger(), value.toUBytes().trim().padStart(IPv6Address.byteCount))
+    public constructor(value: UInt) : this(value.toBigInteger(), value.toUByteArray().trim().padStart(IPv6Address.byteCount))
     public constructor(bytes: UByteArray) : this(bigIntegerOf(bytes), bytes.trim().padStart(IPv6Address.byteCount))
 
     init {
@@ -58,7 +57,7 @@ public class IPv6Address private constructor(override val value: BigInteger, ove
             val hextetStrings = mixedStrings.takeUnless { it.last().contains(".") }
                 ?: mixedStrings.take(mixedStrings.size - 1) + IPv4Address.parse(mixedStrings.last())
                     .bytes.toHexadecimalString().padStart(8, '0').chunkedSequence(4).toList()
-            val compressions = Regex.fromLiteral("::").countMatches(ipAddress)
+            val compressions = Regex.fromLiteral("::").findAll(ipAddress).count()
 
             require(compressions < 2) { "$ipAddress must not use more than 1 compression (::) but $compressions were found." }
             require(compressions == 1 || hextetStrings.size == sizeHextets) { "$ipAddress must consist of $sizeHextets hextets but ${hextetStrings.size} were provided." }
@@ -76,7 +75,7 @@ public class IPv6Address private constructor(override val value: BigInteger, ove
             val bytes = eightHextetStrings.flatMap { hextetString ->
                 hextetString.toUInt(16)
                     .also { require(it in 0u..65535u) { "$it must be between 0 and FFFF." } }
-                    .toUBytes(trim = false).takeLast(2)
+                    .toUByteArray().takeLast(2)
             }
             return IPv6Address(bytes.toUByteArray())
         }

@@ -1,8 +1,16 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.CodePoint
+import com.bkahlert.kommons.Grapheme
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.asGraphemeSequence
+import com.bkahlert.kommons.codePoint
 import com.bkahlert.kommons.math.ceilDiv
 import com.bkahlert.kommons.math.floorDiv
+import com.bkahlert.kommons.spaced
+import com.bkahlert.kommons.string
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.Semantics.formattedAs
 
@@ -40,11 +48,11 @@ public val CodePoint.columns: Int get() = string.columns
 /**
  * Number of columns needed to represent this grapheme cluster.
  */
-public val GraphemeCluster.columns: Int
+public val Grapheme.columns: Int
     get() {
         val string = toString()
         return if (string in LineSeparators) 0
-        else when (codePoints.singleOrNull()?.codePoint) {
+        else when (codePoints.singleOrNull()?.index) {
             in 0..31 -> 0
             in 0x7f..0x9f -> 0
             else -> {
@@ -58,11 +66,13 @@ public val GraphemeCluster.columns: Int
         }
     }
 
+internal val CharSequence.safeString: String get() = buildString { for (element in this@safeString) append(element) }
+
 /**
  * Number of columns needed to represent this character sequence.
  */
 public val CharSequence.columns: Int
-    get() = this.ansiRemoved.asGraphemeClusterSequence().sumOf { it.columns }
+    get() = ansiRemoved.safeString.asGraphemeSequence().sumOf { it.columns }
 
 /**
  * Returns the index where the given [column] starts.
@@ -72,7 +82,7 @@ public fun CharSequence.findIndexByColumns(column: Int): Int? {
     if (column == 0) return 0
     if (column == columns) return length
     var len = 0
-    asGraphemeClusterSequence().forEach {
+    ansiRemoved.safeString.asGraphemeSequence().forEach {
         len += it.toString().length
         val currentColumns = subSequence(0, len).columns
         if (currentColumns == column) {

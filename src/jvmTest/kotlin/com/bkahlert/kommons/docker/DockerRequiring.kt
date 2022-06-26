@@ -4,12 +4,12 @@ import com.bkahlert.kommons.docker.CleanUpMode.FailAndKill
 import com.bkahlert.kommons.docker.CleanUpMode.ThanksForCleaningUp
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Running
 import com.bkahlert.kommons.printTestExecutionStatus
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.Slow
-import com.bkahlert.kommons.test.junit.UniqueId.Companion.simplifiedId
+import com.bkahlert.kommons.test.junit.SimpleIdResolver.Companion.simpleId
 import com.bkahlert.kommons.test.junit.displayName
 import com.bkahlert.kommons.test.withAnnotation
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.quoted
 import com.bkahlert.kommons.toIdentifier
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.Styles.None
@@ -105,7 +105,7 @@ class TestContainerCheck : BeforeEachCallback, AfterEachCallback, TypeBasedParam
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): DockerContainer =
         extensionContext.uniqueContainer()
 
-    private fun ExtensionContext.uniqueContainer() = DockerContainer(simplifiedId.toIdentifier())
+    private fun ExtensionContext.uniqueContainer() = DockerContainer(simpleId.toIdentifier())
 
     private fun ExtensionContext.pullRequiredImages() =
         runSpanningLine("Pulling required images") {

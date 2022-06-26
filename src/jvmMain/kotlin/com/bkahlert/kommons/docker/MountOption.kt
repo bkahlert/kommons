@@ -1,17 +1,17 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.isSubPathOf
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.styling.Borders.Rounded
 import com.bkahlert.kommons.text.styling.wrapWithBorder
 import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 
 public data class MountOption(val source: HostPath, val target: ContainerPath, val type: String = "bind") :
     AbstractList<String>() {
-    private val list = listOf("--mount", "type=$type,source=${source.pathString},target=${target.asString()}")
+    private val list = listOf("--mount", "type=$type,source=${source.pathString},target=${target.pathString}")
 
     override val size: Int = list.size
     override fun get(index: Int): String = list[index]
@@ -70,6 +70,7 @@ public abstract class MountOptionContext<T>(
 
 @JvmInline
 public value class ContainerPath(private val containerPath: Path) {
+    public constructor(containerPath: String) : this(Paths.get(containerPath))
 
     init {
         require(containerPath.isAbsolute) { "$containerPath must be absolute." }
@@ -90,12 +91,12 @@ public value class ContainerPath(private val containerPath: Path) {
     public fun mapToHostPath(mountOptions: MountOptions): HostPath /* = java.nio.file.Path */ =
         mountOptions.mapToHostPath(this)
 
-    public fun asString(): String = containerPath.pathString
+    public val pathString: String get() = containerPath.pathString
 
-    override fun toString(): String = asString()
+    override fun toString(): String = pathString
 }
 
-public fun String.asContainerPath(): ContainerPath = ContainerPath(asPath())
+public fun String.asContainerPath(): ContainerPath = ContainerPath(this)
 public fun Path.asContainerPath(): ContainerPath = ContainerPath(this)
 
 public typealias HostPath = Path
@@ -103,4 +104,4 @@ public typealias HostPath = Path
 public fun HostPath.mapToContainerPath(mountOptions: MountOptions): ContainerPath =
     mountOptions.mapToContainerPath(this)
 
-public fun String.asHostPath(): HostPath = asPath()
+public fun String.asHostPath(): HostPath = Paths.get(this)

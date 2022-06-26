@@ -1,10 +1,12 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.CodePoint
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.collections.Dictionary
 import com.bkahlert.kommons.collections.dictOf
 import com.bkahlert.kommons.takeUnlessEmpty
-import com.bkahlert.kommons.text.Unicode.ZERO_WIDTH_NO_BREAK_SPACE
-import com.bkahlert.kommons.text.Unicode.ZERO_WIDTH_SPACE
+import com.bkahlert.kommons.text.UnicodeOld.ZERO_WIDTH_NO_BREAK_SPACE
+import com.bkahlert.kommons.toCodePointList
 
 /**
  * A collection of all whitespaces described in
@@ -43,7 +45,7 @@ public object Whitespaces : Collection<String> {
     public const val SIX_PER_EM_SPACE: String = "\u2006"
 
     /** FIGURE SPACE: “Tabular width”, the width of digits */
-    public const val FIGURE_SPACE_FO: String = "\u2007"
+    public const val FIGURE_SPACE: String = "\u2007"
 
     /** PUNCTUATION SPACE: The width of a period “.” */
     public const val PUNCTUATION_SPACE: String = "\u2008"
@@ -55,7 +57,7 @@ public object Whitespaces : Collection<String> {
     public const val HAIR_SPACE: String = "\u200A"
 
     /** NARROW NO-BREAK SPACE: Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space” */
-    public const val NARROW_NO_BREAK_SPACE_FO: String = "\u202F"
+    public const val NARROW_NO_BREAK_SPACE: String = "\u202F"
 
     /** MEDIUM MATHEMATICAL SPACE: 4/18 em */
     public const val MEDIUM_MATHEMATICAL_SPACE: String = "\u205F"
@@ -65,20 +67,20 @@ public object Whitespaces : Collection<String> {
 
     public val Dict: Dictionary<String, String> = dictOf(
         SPACE to "SPACE",
-        NO_BREAK_SPACE to "NO BREAK SPACE",
+        NO_BREAK_SPACE to "NO-BREAK SPACE",
         OGHAM_SPACE_MARK to "OGHAM SPACE MARK",
         EN_QUAD to "EN QUAD",
         EM_QUAD to "EM QUAD",
         EN_SPACE to "EN SPACE",
         EM_SPACE to "EM SPACE",
-        THREE_PER_EM_SPACE to "THREE PER EM SPACE",
-        FOUR_PER_EM_SPACE to "FOUR PER EM SPACE",
-        SIX_PER_EM_SPACE to "SIX PER EM SPACE",
-        FIGURE_SPACE_FO to "FIGURE SPACE FO",
+        THREE_PER_EM_SPACE to "THREE-PER-EM SPACE",
+        FOUR_PER_EM_SPACE to "FOUR-PER-EM SPACE",
+        SIX_PER_EM_SPACE to "SIX-PER-EM SPACE",
+        FIGURE_SPACE to "FIGURE SPACE",
         PUNCTUATION_SPACE to "PUNCTUATION SPACE",
         THIN_SPACE to "THIN SPACE",
         HAIR_SPACE to "HAIR SPACE",
-        NARROW_NO_BREAK_SPACE_FO to "NARROW NO BREAK SPACE FO",
+        NARROW_NO_BREAK_SPACE to "NARROW NO-BREAK SPACE",
         MEDIUM_MATHEMATICAL_SPACE to "MEDIUM MATHEMATICAL SPACE",
         IDEOGRAPHIC_SPACE to "IDEOGRAPHIC SPACE",
         default = { "UNKNOWN" })
@@ -96,13 +98,13 @@ public object Whitespaces : Collection<String> {
      */
     public val ZeroWidthWhitespaces: Dictionary<String, String> = dictOf(
         "\u180E" to "MONGOLIAN VOWEL SEPARATOR",
-        ZERO_WIDTH_SPACE.toString() to "ZERO WIDTH SPACE",
-        ZERO_WIDTH_NO_BREAK_SPACE.toString() to "ZERO WIDTH NO BREAK SPACE",
+        Unicode.ZERO_WIDTH_SPACE.toString() to "ZERO WIDTH SPACE",
+        ZERO_WIDTH_NO_BREAK_SPACE.toString() to "ZERO WIDTH NO-BREAK SPACE",
         default = { "UNKNOWN" })
 
     private val ALL = Dict.keys.toTypedArray()
 
-    public val asCodePoints: List<CodePoint> = ALL.map { it.asCodePoint() ?: error("Failed to convert whitespace ${it.toUByte()}") }
+    public val asCodePoints: List<CodePoint> = ALL.map { it.toCodePointList().singleOrNull() ?: error("Failed to convert whitespace ${it.toUByte()}") }
 
     public val asChars: List<Char> = ALL.map { it[0] }
 
@@ -140,5 +142,5 @@ public object Whitespaces : Collection<String> {
 }
 
 @Suppress("SpellCheckingInspection")
-public val @receiver:Suppress("unused") Unicode.whitespaces: List<Char>
+public val @receiver:Suppress("unused") UnicodeOld.whitespaces: List<Char>
     get() = Whitespaces.asChars

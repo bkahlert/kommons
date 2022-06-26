@@ -1,65 +1,46 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.createTempDirectory
-import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.io.path.hasContent
-import com.bkahlert.kommons.io.path.writeText
-import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testsOld
-import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.LineSeparators.CRLF
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.NEL
-import org.junit.jupiter.api.Nested
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.isSingleLine
+import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.test.testAll
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
-import strikt.assertions.isSameInstanceAs
-import java.io.IOException
+import strikt.api.Assertion.Builder
 
 class LineSeparatorExtensionsKtTest {
 
-    @Nested
-    inner class AppendTrailingLineSeparatorIfMissing {
+    @Test fun last_line_regex() = testAll(*LineSeparators.Common) { sep ->
+        LAST_LINE_REGEX.matchEntire("") shouldBe null
+        LAST_LINE_REGEX.matchEntire("line")?.groupValues.shouldContainExactly("line")
+        LAST_LINE_REGEX.matchEntire("line${sep}") shouldBe null
+        LAST_LINE_REGEX.matchEntire("line${sep}line") shouldBe null
+    }
 
-        @Test
-        fun `should return same path`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = createTempFile()
-            expecting { file.appendTrailingLineSeparatorIfMissing() } that { isSameInstanceAs(file) }
-        }
+    @Test fun intermediary_line_pattern() = testAll(*LineSeparators.Common) { sep ->
+        INTERMEDIARY_LINE_PATTERN.matchEntire("") shouldBe null
+        INTERMEDIARY_LINE_PATTERN.matchEntire(sep)?.groupValues?.shouldContainExactly(sep, sep)
+        INTERMEDIARY_LINE_PATTERN.matchEntire("line") shouldBe null
+        INTERMEDIARY_LINE_PATTERN.matchEntire("line${sep}")?.groupValues?.get(1) shouldBe sep
+        INTERMEDIARY_LINE_PATTERN.matchEntire("line${sep}line") shouldBe null
+    }
 
-        @Test
-        fun `should append line separator if missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = createTempFile().writeText("line")
-            expecting { file.appendTrailingLineSeparatorIfMissing() } that { hasContent("line$LF") }
-        }
-
-        @Test
-        fun `should auto-detect line separator`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = createTempFile().writeText("line${NEL}line")
-            expecting { file.appendTrailingLineSeparatorIfMissing() } that { hasContent("line${NEL}line$NEL") }
-        }
-
-        @Test
-        fun `should use specified line separator`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = createTempFile().writeText("line${NEL}line")
-            expecting { file.appendTrailingLineSeparatorIfMissing(CRLF) } that { hasContent("line${NEL}line$CRLF") }
-        }
-
-        @Test
-        fun `should not append line separator if already present`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val file = createTempFile().writeText("line${NEL}line$NEL")
-            expecting { file.appendTrailingLineSeparatorIfMissing(CRLF) } that { hasContent("line${NEL}line$NEL") }
-        }
-
-        @TestFactory
-        fun `should throw on error`(uniqueId: UniqueId) = testsOld {
-            withTempDir(uniqueId) {
-                expectThrows<IOException> { resolve("path").appendTrailingLineSeparatorIfMissing() }
-                expectThrows<IOException> { createTempFile().apply { toFile().setReadable(false) }.appendTrailingLineSeparatorIfMissing() }
-                expectThrows<IOException> { createTempFile().apply { toFile().setWritable(false) }.appendTrailingLineSeparatorIfMissing() }
-                expectThrows<IOException> { createTempDirectory().appendTrailingLineSeparatorIfMissing() }
-            }
-        }
+    @Test fun line_pattern() = testAll(*LineSeparators.Common) { sep ->
+        LINE_PATTERN.matchEntire("") shouldBe null
+        LINE_PATTERN.matchEntire(sep)?.groupValues?.shouldContainExactly(sep, sep)
+        LINE_PATTERN.matchEntire("line")?.groupValues?.get(0) shouldBe "line"
+        LINE_PATTERN.matchEntire("line${sep}")?.groupValues?.get(1) shouldBe sep
+        LINE_PATTERN.matchEntire("line${sep}line") shouldBe null
     }
 }
+
+fun <T : CharSequence> Builder<T>.isSingleLine() =
+    assert("is single line") {
+        if (it.isSingleLine()) pass()
+        else fail("has ${it.lines().size} lines")
+    }
+
+fun <T : CharSequence> Builder<T>.lines(
+    keepDelimiters: Boolean = false,
+): Builder<List<String>> = get("lines %s") { lines(keepDelimiters = keepDelimiters).toList() }

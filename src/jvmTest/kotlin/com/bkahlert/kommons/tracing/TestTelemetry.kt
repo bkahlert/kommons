@@ -136,6 +136,9 @@ val TraceId.Companion.NOOP: TraceId get() = TraceId(io.opentelemetry.api.trace.T
 /** Contains the invalid / non-operation span ID consists only of zeros. */
 val SpanId.Companion.NOOP: SpanId get() = SpanId(io.opentelemetry.api.trace.SpanId.getInvalid())
 
+/** The recorded [SpanData]. */
+val TraceId.spans get() = TestTelemetry[this]
+
 /** Returns a [Builder] to run assertions on the recorded [SpanData]. */
 fun TraceId.expectTraced(): DescribeableBuilder<List<SpanData>> = expectThat(TestTelemetry[this])
 

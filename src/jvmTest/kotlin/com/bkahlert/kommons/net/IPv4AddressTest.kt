@@ -5,8 +5,7 @@ import com.bkahlert.kommons.net.IPv4Address.Companion.RFC1918_20block
 import com.bkahlert.kommons.net.IPv4Address.Companion.RFC1918_24block
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.toUBytes
-import com.bkahlert.kommons.too
+import com.bkahlert.kommons.toUByteArray
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -26,7 +25,7 @@ class IPv4AddressTest {
             ipOf("192.168.16.1"),
             IPv4Address.parse("192.168.16.1"),
             IPv4Address(ubyteArrayOf(192.toUByte(), 168.toUByte(), 16.toUByte(), 1.toUByte())),
-            IPv4Address(3232239617u.toUBytes()),
+            IPv4Address(3232239617u.toUByteArray()),
         ).testEachOld { ip ->
             expecting { ip } that { toStringIsEqualTo("192.168.16.1") }
         }
@@ -107,9 +106,9 @@ class IPv4AddressTest {
 
     @TestFactory
     fun `should contain RFC1918 blocks`() = listOf(
-        RFC1918_24block to (8 to "16777216".toBigInteger(10) too IPv4Address.parse("10.0.0.0")),
-        RFC1918_20block to (12 to "1048576".toBigInteger(10) too IPv4Address.parse("172.16.0.0")),
-        RFC1918_16block to (16 to "65536".toBigInteger(10) too IPv4Address.parse("192.168.0.0")),
+        RFC1918_24block to Triple(8, "16777216".toBigInteger(10), IPv4Address.parse("10.0.0.0")),
+        RFC1918_20block to Triple(12, "1048576".toBigInteger(10), IPv4Address.parse("172.16.0.0")),
+        RFC1918_16block to Triple(16, "65536".toBigInteger(10), IPv4Address.parse("192.168.0.0")),
     ).testEachOld { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {

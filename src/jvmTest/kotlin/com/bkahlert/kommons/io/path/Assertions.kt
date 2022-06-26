@@ -1,13 +1,10 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.debug.replaceNonPrintableCharacters
-import com.bkahlert.kommons.lastModified
 import com.bkahlert.kommons.listDirectoryEntriesRecursively
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.quoted
-import com.bkahlert.kommons.text.truncate
-import com.bkahlert.kommons.time.Now
-import com.bkahlert.kommons.time.minus
+import com.bkahlert.kommons.quoted
+import com.bkahlert.kommons.resolveBetweenFileSystems
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contentEquals
@@ -17,24 +14,15 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.pathString
 import kotlin.io.path.readBytes
 import kotlin.io.path.readText
-import kotlin.time.Duration
 
 fun Builder<File>.exists() =
     assert("exists") {
         when (it.exists()) {
             true -> pass()
             else -> fail()
-        }
-    }
-
-fun <T : CharSequence> Builder<T>.containsOnlyCharacters(chars: CharArray) =
-    assert("contains only the characters " + chars.toString().truncate(20)) {
-        val unexpectedCharacters = it.filter { char: Char -> !chars.contains(char) }
-        when (unexpectedCharacters.isEmpty()) {
-            true -> pass()
-            else -> fail("contained unexpected characters: " + unexpectedCharacters.toString().truncate(20))
         }
     }
 
@@ -105,33 +93,6 @@ fun <T : Path> Builder<T>.containsAllFiles(other: Path) =
             }
         }
         pass()
-    }
-
-fun <T : Path> Builder<T>.absolutePathMatches(regex: Regex) =
-    assert("matches ${regex.pattern}") {
-        when (it.toAbsolutePath().toString().matches(regex)) {
-            true -> pass()
-            else -> fail()
-        }
-    }
-
-fun <T : Path> Builder<T>.isEmptyDirectory() =
-    assert("is empty directory") { self ->
-        val files = self.listDirectoryEntriesRecursively().filter { current -> current != self }
-        when (files.isEmpty()) {
-            true -> pass()
-            else -> fail("contained $files")
-        }
-    }
-
-fun <T : Path> Builder<T>.lastModified(duration: Duration) =
-    assert("was last modified at most $duration ago") {
-        val now = Now.fileTime
-        val recent = now - duration
-        when (it.lastModified) {
-            in (recent..now) -> pass()
-            else -> fail()
-        }
     }
 
 val <T : Path> Builder<T>.pathString

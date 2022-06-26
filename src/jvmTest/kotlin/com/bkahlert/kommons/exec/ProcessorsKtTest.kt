@@ -1,14 +1,13 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.collections.synchronizedListOf
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.test.hasElements
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.TraceId
 import com.bkahlert.kommons.tracing.eventText
 import com.bkahlert.kommons.tracing.events
@@ -17,11 +16,13 @@ import com.bkahlert.kommons.tracing.hasSpanAttribute
 import com.bkahlert.kommons.tracing.spanName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Isolated
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThan
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 class ProcessorsKtTest {
@@ -81,7 +82,7 @@ class ProcessorsKtTest {
         }
 
         @Test
-        fun `should interact`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should interact`(simpleId: SimpleId) = withTempDir(simpleId) {
             val log = mutableListOf<IO>()
             CommandLine("/bin/sh", "-c", "read input; echo \"\$input you, too\"").toExec()
                 .also { it.enter("Hello Back!", delay = Duration.ZERO) }
@@ -173,6 +174,7 @@ class ProcessorsKtTest {
             }
         }
 
+        @Isolated
         @Nested
         inner class NotWaitingForTermination {
 

@@ -1,18 +1,18 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.exec.IOAttributes
-import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.tracing.Key
+import io.kotest.assertions.withClue
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.maps.shouldNotContainKey
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
-import strikt.assertions.isTrue
 import strikt.assertions.startsWith
 
 class RenderableAttributesTest {
@@ -23,22 +23,24 @@ class RenderableAttributesTest {
         Key.stringKey("irrelevant-key") to "irrelevant value",
     )
 
-    @TestFactory
-    fun `should check for attributes`() = testOld(renderableAttributes) {
-        expecting("resolving match") { contains(RenderingAttributes.DESCRIPTION.renderingKey) } that { isTrue() }
-        expecting("resolving rendering only") { contains(RenderingAttributes.DESCRIPTION) } that { isTrue() }
-        expecting("not resolving not-existent rendering only") { contains(IOAttributes.TEXT.renderingKey) } that { isFalse() }
+    @Test fun `should check for attributes`() = test {
+        withClue("resolving match") { renderableAttributes.shouldContainKey(RenderingAttributes.DESCRIPTION.renderingKey) }
+        withClue("resolving rendering only") { renderableAttributes.shouldContainKey(RenderingAttributes.DESCRIPTION) }
+        withClue("not resolving not-existent rendering only") { renderableAttributes.shouldNotContainKey(IOAttributes.TEXT.renderingKey) }
     }
 
-    @TestFactory
-    fun `should get attributes`() = testOld(renderableAttributes) {
-        expecting("resolving match") { get(RenderingAttributes.DESCRIPTION.renderingKey) } that {
-            isNotNull().get { render(null, null) }.isEqualTo("rendering only description")
+    @Test fun `should get attributes`() = test {
+        withClue("resolving match") {
+            renderableAttributes.get(RenderingAttributes.DESCRIPTION.renderingKey).shouldNotBeNull()
+                .render(null, null) shouldBe "rendering only description"
         }
-        expecting("resolving rendering only") { get(RenderingAttributes.DESCRIPTION) } that {
-            isNotNull().get { render(null, null) }.isEqualTo("rendering only description")
+        withClue("resolving rendering only") {
+            renderableAttributes.get(RenderingAttributes.DESCRIPTION).shouldNotBeNull()
+                .render(null, null) shouldBe "rendering only description"
         }
-        expecting("not resolving not-existent rendering only") { get(IOAttributes.TEXT.renderingKey) } that { isNull() }
+        withClue("not resolving not-existent rendering only") {
+            renderableAttributes.get(IOAttributes.TEXT.renderingKey).shouldBeNull()
+        }
     }
 
     @Nested

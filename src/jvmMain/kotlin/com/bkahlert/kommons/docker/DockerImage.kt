@@ -1,6 +1,7 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.builder.StatelessBuilder
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
 import com.bkahlert.kommons.docker.DockerImage.Companion.parse
@@ -14,10 +15,8 @@ import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.fold
 import com.bkahlert.kommons.head
-import com.bkahlert.kommons.requireSaneInput
 import com.bkahlert.kommons.tail
 import com.bkahlert.kommons.takeUnlessBlank
-import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
 
 /**
@@ -64,18 +63,19 @@ public open class DockerImage(
 
     init {
         repoAndPath.forEach {
-            it.requireSaneInput()
             require(PATH_REGEX.matches(it)) {
-                "Specified path ${it.formattedAs.input} is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)"
+                "Specified path ${it.formattedAs.input} is not valid (only a-z, 0-9, period, underscore and hyphen; start with letter)."
             }
         }
         tag?.also {
-            it.requireSaneInput()
-            require(it.isNotBlank()) { "Specified tag must not be blank." }
+            require(TAG_REGEX.matches(it)) {
+                "Specified tag ${it.formattedAs.input} is not valid (only a-z, A-Z, 0-9, period, underscore and hyphen; not start with period or hyphen)."
+            }
         }
         digest?.also {
-            it.requireSaneInput()
-            require(it.isNotBlank()) { "Specified digest must not be blank." }
+            require(DIGEST_REGEX.matches(it)) {
+                "Specified digest ${it.formattedAs.input} is not valid."
+            }
         }
     }
 
@@ -236,10 +236,14 @@ public open class DockerImage(
         else parse(toString())
     }) {
 
-        /**
-         * Pattern that the [repository] and all [path] elements match.
-         */
-        public val PATH_REGEX: Regex = Regex("[a-z0-9]+(?:[._-][a-z0-9]+)*")
+        /** Pattern that the [repository] and all [path] elements match. */
+        public val PATH_REGEX: Regex = Regex("[a-z\\d][a-z\\d._-]*")
+
+        /** Pattern that the [tag]. */
+        public val TAG_REGEX: Regex = Regex("\\w[\\w.-]{0,127}")
+
+        /** Pattern that the [digest]. */
+        public val DIGEST_REGEX: Regex = Regex("\\w+:[a-z\\d]+")
 
         /**
          * Parses any valid [DockerImage] identifier and returns it.

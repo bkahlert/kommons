@@ -1,13 +1,12 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.RenderableAttributes.Companion.EMPTY
 import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.log
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
 
 class CompactRendererTest {
 
@@ -19,11 +18,13 @@ class CompactRendererTest {
     @Test
     fun TestSpanScope.`should render`() {
         val rendered = capturing {
-            CompactRenderer(settings.copy(
-                contentFormatter = { it.ansi.underline },
-                decorationFormatter = { it.ansi.brightMagenta },
-                printer = it,
-            )).run {
+            CompactRenderer(
+                settings.copy(
+                    contentFormatter = { it.ansi.underline },
+                    decorationFormatter = { it.ansi.brightMagenta },
+                    printer = it,
+                )
+            ).run {
                 start("One Two Three")
 
                 log(ansi11)
@@ -40,19 +41,19 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴One Two Three
             │
-            │   123 abc                                                                         
-            │   ╶──╴one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:{})
+            │   123 abc
+            │   ╶──╴one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:*)
             │   ╭──╴block
             │   │
-            │   │   123 abc                                                                     
+            │   │   123 abc
             │   ϟ
-            │   ╰──╴RuntimeException: message at.(CompactRendererTest.kt:{})
+            │   ╰──╴RuntimeException: message at.(CompactRendererTest.kt:*)
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -63,9 +64,9 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╶──╴name ✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -80,9 +81,9 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╶──╴parent ╶──╴child ✔︎ ✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -97,7 +98,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
@@ -107,7 +108,7 @@ class CompactRendererTest {
             │   ╰──╴✔︎
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -123,17 +124,17 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
             │   │
-            │   │   delay                                    
+            │   │   delay
             │   │
             │   ╰──╴✔︎
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -151,7 +152,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
@@ -161,7 +162,7 @@ class CompactRendererTest {
             │   line2
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -180,18 +181,18 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
             │   │
-            │   │   delay                                                                      
+            │   │   delay
             │   ϟ
             │   ╰──╴line 1
             │   line2
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -203,13 +204,13 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴name
             │
             │   event
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -221,13 +222,13 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴name
             │
             │   java.lang.RuntimeException: exception
-            {{}}
+            **
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 
     @Test
@@ -242,12 +243,12 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("""
+        rendered shouldMatchGlob """
             ╭──╴parent
             │
             │   ╶──╴child ✔︎
             │
             ╰──╴✔︎
-        """.trimIndent())
+        """.trimIndent()
     }
 }

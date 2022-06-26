@@ -4,7 +4,7 @@ import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.Unicode.Emojis.VARIATION_SELECTOR_15
+import com.bkahlert.kommons.text.UnicodeOld.Emojis.VARIATION_SELECTOR_15
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.assertions.isEqualTo

@@ -1,14 +1,17 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.CRLF
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.mapLines
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.AnsiString.Companion.tokenize
-import com.bkahlert.kommons.text.LineSeparators.CRLF
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.mapLines
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -24,7 +27,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotBlank
 import strikt.assertions.isSameInstanceAs
-import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
 @AnsiRequiring
 class AnsiStringTest {
@@ -34,14 +36,14 @@ class AnsiStringTest {
         val ansiString
             get() =
                 italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.").tokenize()
-        val blankAnsiString get() = "$e[3;36m$e[4m$e[24m$e[9m$e[29m$e[23;39m".tokenize()
+        val blankAnsiString get() = "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4m${Unicode.ESCAPE}[24m${Unicode.ESCAPE}[9m${Unicode.ESCAPE}[29m${Unicode.ESCAPE}[23;39m".tokenize()
     }
 
     @Suppress("SpellCheckingInspection")
     val expectedAnsiFormattedLines = listOf(
-        "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m",
-        "$e[3;36mThis one's $e[1mbold!$e[23;39;22m",
-        "$e[3;36mLast one is clean.$e[23;39m",
+        "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes.${Unicode.ESCAPE}[23;39m",
+        "${Unicode.ESCAPE}[3;36mThis one's ${Unicode.ESCAPE}[1mbold!${Unicode.ESCAPE}[23;39;22m",
+        "${Unicode.ESCAPE}[3;36mLast one is clean.${Unicode.ESCAPE}[23;39m",
     )
     val expectedLines = listOf(
         "Important: This line has no ANSI escapes.",
@@ -90,20 +92,20 @@ class AnsiStringTest {
         fun `should tokenize string`() {
             val tokens = string.tokenize()
             expectThat(tokens.tokens.toList()).containsExactly(
-                Token.escapeSequence("$e[3;36m"),
-                Token.escapeSequence("$e[4m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[3;36m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[4m"),
                 Token.text("Important:"),
-                Token.escapeSequence("$e[24m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[24m"),
                 Token.text(" This line has "),
-                Token.escapeSequence("$e[9m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[9m"),
                 Token.text("no"),
-                Token.escapeSequence("$e[29m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[29m"),
                 Token.text(" ANSI escapes.\nThis one's "),
-                Token.escapeSequence("$e[1m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[1m"),
                 Token.text("bold!"),
-                Token.escapeSequence("$e[22m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[22m"),
                 Token.text("${CRLF}Last one is clean."),
-                Token.escapeSequence("$e[23;39m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[23;39m"),
             )
             expectThat(tokens.tokens.sumOf { it.logicalLength }).isEqualTo(78)
             expectThat(string.length).isEqualTo(120)
@@ -114,14 +116,14 @@ class AnsiStringTest {
             val tokens = string.tokenize()
             val subSequence = tokens.subSequence(0, 26)
             expectThat(subSequence.toString()).isEqualTo(
-                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m"
+                "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mn${Unicode.ESCAPE}[23;39;29m"
             )
         }
 
         @Test
         fun `should create ansi string from subSequence`() {
             val tokens = string.tokenize()
-            expectThat(tokens.subSequence(11, 25).toString()).isEqualTo("$e[3;36mThis line has $e[23;39m")
+            expectThat(tokens.subSequence(11, 25).toString()).isEqualTo("${Unicode.ESCAPE}[3;36mThis line has ${Unicode.ESCAPE}[23;39m")
         }
 
         @Test
@@ -149,24 +151,24 @@ class AnsiStringTest {
 
         @Test
         fun `should tokenize true color foreground`() {
-            val string = "$e[38;2;200;10;10m-dark red-$e[39m"
+            val string = "${Unicode.ESCAPE}[38;2;200;10;10m-dark red-${Unicode.ESCAPE}[39m"
             val ansiString = string.tokenize()
             expectThat(ansiString.tokens.toList()).containsExactly(
-                Token.escapeSequence("$e[38;2;200;10;10m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[38;2;200;10;10m"),
                 Token.text("-dark red-"),
-                Token.escapeSequence("$e[39m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[39m"),
             )
             expectThat(ansiString.toString()).isEqualTo(string)
         }
 
         @Test
         fun `should tokenize true color background`() {
-            val string = "$e[48;2;200;10;10m-dark red-$e[49m"
+            val string = "${Unicode.ESCAPE}[48;2;200;10;10m-dark red-${Unicode.ESCAPE}[49m"
             val ansiString = string.tokenize()
             expectThat(ansiString.tokens.toList()).containsExactly(
-                Token.escapeSequence("$e[48;2;200;10;10m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[48;2;200;10;10m"),
                 Token.text("-dark red-"),
-                Token.escapeSequence("$e[49m"),
+                Token.escapeSequence("${Unicode.ESCAPE}[49m"),
             )
             expectThat(ansiString.toString()).isEqualTo(string)
         }
@@ -178,12 +180,12 @@ class AnsiStringTest {
         @TestFactory
         fun `should return length`(): List<DynamicTest> {
             return listOf(
-                41 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m".tokenize(),
-                40 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m".tokenize(),
-                26 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;29;39m".tokenize(),
-                11 to "$e[3;36m$e[4mImportant:$e[24m $e[23;39m".tokenize(),
-                10 to "$e[3;36m$e[4mImportant:$e[23;24;39m".tokenize(),
-                9 to "$e[3;36m$e[4mImportant$e[23;24;39m".tokenize(),
+                41 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes.${Unicode.ESCAPE}[23;39m".tokenize(),
+                40 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes${Unicode.ESCAPE}[23;39m".tokenize(),
+                26 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mn${Unicode.ESCAPE}[23;29;39m".tokenize(),
+                11 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m ${Unicode.ESCAPE}[23;39m".tokenize(),
+                10 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[23;24;39m".tokenize(),
+                9 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant${Unicode.ESCAPE}[23;24;39m".tokenize(),
                 0 to "".tokenize(),
             ).map { (expected, ansiString) ->
                 dynamicTest("${ansiString.quoted}.length should be $expected") {
@@ -223,16 +225,16 @@ class AnsiStringTest {
 
     @Nested
     inner class SubSequence {
-        val ansiString get() = "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[0m".tokenize()
+        val ansiString get() = "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes.${Unicode.ESCAPE}[0m".tokenize()
 
         @TestFactory
         fun `should product right substring`() = testEachOld(
-            41 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m".tokenize(),
-            40 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes$e[23;39m".tokenize(),
-            25 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m".tokenize(),
-            11 to "$e[3;36m$e[4mImportant:$e[24m $e[23;39m".tokenize(),
-            10 to "$e[3;36m$e[4mImportant:$e[23;39;24m".tokenize(),
-            9 to "$e[3;36m$e[4mImportant$e[23;39;24m".tokenize(),
+            41 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes.${Unicode.ESCAPE}[23;39m".tokenize(),
+            40 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes${Unicode.ESCAPE}[23;39m".tokenize(),
+            25 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[23;39m".tokenize(),
+            11 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m ${Unicode.ESCAPE}[23;39m".tokenize(),
+            10 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[23;39;24m".tokenize(),
+            9 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant${Unicode.ESCAPE}[23;39;24m".tokenize(),
             0 to "".tokenize(),
         ) { (length, expected) ->
             group("$expected …") {
@@ -260,12 +262,12 @@ class AnsiStringTest {
 
         @TestFactory
         fun `should product right non zero start substring`() = testEachOld(
-            0 to "$e[3;36m$e[4mImportant:$e[24m This line has $e[23;39m".tokenize(),
-            1 to "$e[3;36;4mmportant:$e[24m This line has $e[23;39m".tokenize(),
-            9 to "$e[3;36;4m:$e[24m This line has $e[23;39m".tokenize(),
-            10 to "$e[3;36;4m$e[24m This line has $e[23;39m".tokenize(),
-            11 to "$e[3;36mThis line has $e[23;39m".tokenize(),
-            25 to "$e[3;36m$e[23;39m".tokenize(),
+            0 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[23;39m".tokenize(),
+            1 to "${Unicode.ESCAPE}[3;36;4mmportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[23;39m".tokenize(),
+            9 to "${Unicode.ESCAPE}[3;36;4m:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[23;39m".tokenize(),
+            10 to "${Unicode.ESCAPE}[3;36;4m${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[23;39m".tokenize(),
+            11 to "${Unicode.ESCAPE}[3;36mThis line has ${Unicode.ESCAPE}[23;39m".tokenize(),
+            25 to "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[23;39m".tokenize(),
         ) { (startIndex, expected) ->
             group("$expected …") {
 
@@ -289,18 +291,18 @@ class AnsiStringTest {
 
         @Test
         fun `should subsequence true color foreground`() {
-            val string = "$e[38;2;200;10;10m-ark red-$e[39m"
+            val string = "${Unicode.ESCAPE}[38;2;200;10;10m-ark red-${Unicode.ESCAPE}[39m"
             val ansiString = string.tokenize()
             val subSequence = ansiString.subSequence(1, 8)
-            expectThat(subSequence.toString()).isEqualTo("$e[38;2;200;10;10mark red$e[39m")
+            expectThat(subSequence.toString()).isEqualTo("${Unicode.ESCAPE}[38;2;200;10;10mark red${Unicode.ESCAPE}[39m")
         }
 
         @Test
         fun `should subsequence true color background`() {
-            val string = "$e[48;2;200;10;10m-ark red-$e[49m"
+            val string = "${Unicode.ESCAPE}[48;2;200;10;10m-ark red-${Unicode.ESCAPE}[49m"
             val ansiString = string.tokenize()
             val subSequence = ansiString.subSequence(1, 8)
-            expectThat(subSequence.toString()).isEqualTo("$e[48;2;200;10;10mark red$e[49m")
+            expectThat(subSequence.toString()).isEqualTo("${Unicode.ESCAPE}[48;2;200;10;10mark red${Unicode.ESCAPE}[49m")
         }
 
         @Test
@@ -316,7 +318,7 @@ class AnsiStringTest {
         @TestFactory
         fun `should strip ANSI escape sequences off`() = testEachOld(
             ansiString to ansiString.ansiRemoved,
-            "[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m.".tokenize() to
+            "[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m] Listening on ${Unicode.ESCAPE}[0;1;39mudev Control Socket${Unicode.ESCAPE}[0m.".tokenize() to
                 "[  OK  ] Listening on udev Control Socket.",
             "Text".tokenize() to "Text",
             "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___".tokenize() to "__̴ı̴̴̡̡̡ ̡͌l̡̡̡ ̡͌l̡*̡̡ ̴̡ı̴̴̡ ̡̡͡|̲̲̲͡͡͡ ̲▫̲͡ ̲̲̲͡͡π̲̲͡͡ ̲̲͡▫̲̲͡͡ ̲|̡̡̡ ̡ ̴̡ı̴̡̡ ̡͌l̡̡̡̡.___"
@@ -392,9 +394,9 @@ class AnsiStringTest {
             @Suppress("SpellCheckingInspection")
             expectThat(ansiString.mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo(
                 """
-                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m
+                ${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI control sequences.${Unicode.ESCAPE}[23;39m
+                ${Unicode.ESCAPE}[3;36mThis one's ${Unicode.ESCAPE}[1mbold!${Unicode.ESCAPE}[23;39;22m
+                ${Unicode.ESCAPE}[3;36mLast one is clean.${Unicode.ESCAPE}[23;39m
             """.trimIndent()
             )
         }
@@ -404,21 +406,22 @@ class AnsiStringTest {
             @Suppress("SpellCheckingInspection")
             expectThat((ansiString as CharSequence).mapLines { it.replace("escapes".toRegex(), "control sequences") }).isEqualTo(
                 """
-                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI control sequences.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m
+                ${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI control sequences.${Unicode.ESCAPE}[23;39m
+                ${Unicode.ESCAPE}[3;36mThis one's ${Unicode.ESCAPE}[1mbold!${Unicode.ESCAPE}[23;39;22m
+                ${Unicode.ESCAPE}[3;36mLast one is clean.${Unicode.ESCAPE}[23;39m
             """.trimIndent()
             )
         }
 
         @Test
         fun `should not throw on errors`() {
-            val subject = "$e[4;m ← missing second code $e[24m".tokenize().mapLines {
+            val subject = "${Unicode.ESCAPE}[4;m ← missing second code ${Unicode.ESCAPE}[24m".tokenize().mapLines {
                 it.ansi.black
             }.mapLines {
                 "$it".replace("second", "second".ansi.magenta.toString())
             }
-            val expected = "$e[30m$e[4m ← missing $e[35msecond$e[39m code $e[24m$e[39m"
+            val expected =
+                "${Unicode.ESCAPE}[30m${Unicode.ESCAPE}[4m ← missing ${Unicode.ESCAPE}[35msecond${Unicode.ESCAPE}[39m code ${Unicode.ESCAPE}[24m${Unicode.ESCAPE}[39m"
             expectThat(subject).isEqualTo(expected)
         }
     }
@@ -444,9 +447,9 @@ class AnsiStringTest {
         @Test
         fun `should skip errors`() {
             expectThat(
-                "$e[4;m ← missing second code $e[24m".lineSequence()
+                "${Unicode.ESCAPE}[4;m ← missing second code ${Unicode.ESCAPE}[24m".lineSequence()
                     .toList()
-            ).containsExactly("$e[4;m ← missing second code $e[24m")
+            ).containsExactly("${Unicode.ESCAPE}[4;m ← missing second code ${Unicode.ESCAPE}[24m")
         }
     }
 
@@ -459,11 +462,11 @@ class AnsiStringTest {
 
         @Test
         fun `should join split ANSI string`() {
-            expectThat(expectedAnsiFormattedLines.joinToString(LineSeparators.DEFAULT) { it }).isEqualTo(
+            expectThat(expectedAnsiFormattedLines.joinToString(LineSeparators.Default) { it }).isEqualTo(
                 """
-                $e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.$e[23;39m
-                $e[3;36mThis one's $e[1mbold!$e[23;39;22m
-                $e[3;36mLast one is clean.$e[23;39m
+                ${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes.${Unicode.ESCAPE}[23;39m
+                ${Unicode.ESCAPE}[3;36mThis one's ${Unicode.ESCAPE}[1mbold!${Unicode.ESCAPE}[23;39;22m
+                ${Unicode.ESCAPE}[3;36mLast one is clean.${Unicode.ESCAPE}[23;39m
             """.trimIndent()
             )
         }
@@ -480,7 +483,7 @@ class AnsiStringTest {
 
         @Test
         fun `should skip errors`() {
-            expectThat("$e[4;m ← missing second code $e[24m".lines()).containsExactly("$e[4;m ← missing second code $e[24m")
+            expectThat("${Unicode.ESCAPE}[4;m ← missing second code ${Unicode.ESCAPE}[24m".lines()).containsExactly("${Unicode.ESCAPE}[4;m ← missing second code ${Unicode.ESCAPE}[24m")
         }
     }
 
@@ -498,9 +501,9 @@ class AnsiStringTest {
         @Test
         fun `should chunk ANSI string`() {
             expectThat(ansiString.chunkedSequence(26).toList()).containsExactly(
-                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mn$e[23;39;29m".toAnsiString(),
-                "$e[3;36;9mo$e[29m ANSI escapes.\nThis one's$e[23;39m".toAnsiString(),
-                "$e[3;36m $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39m".toAnsiString(),
+                "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mn${Unicode.ESCAPE}[23;39;29m".toAnsiString(),
+                "${Unicode.ESCAPE}[3;36;9mo${Unicode.ESCAPE}[29m ANSI escapes.\nThis one's${Unicode.ESCAPE}[23;39m".toAnsiString(),
+                "${Unicode.ESCAPE}[3;36m ${Unicode.ESCAPE}[1mbold!${Unicode.ESCAPE}[22m${CRLF}Last one is clean.${Unicode.ESCAPE}[23;39m".toAnsiString(),
             )
         }
     }
@@ -517,7 +520,7 @@ class AnsiStringTest {
         @Test
         fun `should create ANSI string from existing plus added string`() {
             expectThat(ansiString + "plus").isEqualTo(
-                "$e[3;36m$e[4mImportant:$e[24m This line has $e[9mno$e[29m ANSI escapes.\nThis one's $e[1mbold!$e[22m${CRLF}Last one is clean.$e[23;39mplus".toAnsiString(),
+                "${Unicode.ESCAPE}[3;36m${Unicode.ESCAPE}[4mImportant:${Unicode.ESCAPE}[24m This line has ${Unicode.ESCAPE}[9mno${Unicode.ESCAPE}[29m ANSI escapes.\nThis one's ${Unicode.ESCAPE}[1mbold!${Unicode.ESCAPE}[22m${CRLF}Last one is clean.${Unicode.ESCAPE}[23;39mplus".toAnsiString(),
             )
         }
     }
@@ -528,10 +531,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `NOT ignoring case AND NOT ignoring ANSI`() = listOf(
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to false,
-            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to false,
-            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  OK") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  ok") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  OK") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
                 dynamicTest("$input > $expected") {
@@ -551,10 +554,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `NOT ignoring case AND ignoring ANSI`() = listOf(
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to false,
-            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  OK") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  ok") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  OK") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
                 dynamicTest("$input > $expected") {
@@ -568,10 +571,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `ignoring case AND NOT ignoring ANSI`() = listOf(
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to false,
-            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  OK") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  ok") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  OK") to false,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  ok") to false,
         ).flatMap { (input, expected) ->
             listOf(
                 dynamicTest("$input > $expected") {
@@ -585,10 +588,10 @@ class AnsiStringTest {
 
         @TestFactory
         fun `ignoring case AND ignoring ANSI`() = listOf(
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  OK") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[$e[0;32m  ok") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[  OK") to true,
-            ("[$e[0;32m  OK  $e[0m]" to "[  ok") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  OK") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[${Unicode.ESCAPE}[0;32m  ok") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  OK") to true,
+            ("[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m]" to "[  ok") to true,
         ).flatMap { (input, expected) ->
             listOf(
                 dynamicTest("$input > $expected") {

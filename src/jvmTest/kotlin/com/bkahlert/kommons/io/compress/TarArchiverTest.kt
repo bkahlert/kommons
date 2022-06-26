@@ -11,7 +11,7 @@ import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.test.Fixtures.archiveWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Test
@@ -37,27 +37,27 @@ class TarArchiverTest {
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should throw on non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar() },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar() },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThrows<FileAlreadyExistsException> { call() }
         }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").touch().writeText("content") }.tar(overwrite = true) },
         { archiveWithTwoFiles("tar").apply { copyTo(removeExtensions("tar")) }.untar(overwrite = true) },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThat(call()).exists()
         }
     }
 
     @Test
-    fun `should tar and untar`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should tar and untar`(simpleId: SimpleId) = withTempDir(simpleId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tar()

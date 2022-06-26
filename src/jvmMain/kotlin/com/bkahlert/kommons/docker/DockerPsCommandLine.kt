@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.startSpaced
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.leftSpaced
 
 /**
  * [DockerCommandLine] that lists locally available instances of [DockerContainer].
@@ -25,7 +25,7 @@ public open class DockerPsCommandLine(
         add("{{.Names}}\t{{.State}}\t{{.Status}}")
     },
     name = kotlin.run {
-        val allString = if (all) "all".formattedAs.warning.leftSpaced else ""
+        val allString = if (all) "all".formattedAs.warning.startSpaced else ""
         val filterString = if (filters.isNotEmpty()) " matching ${filters.toMap()}" else ""
         "Listing$allString containers$filterString"
     },

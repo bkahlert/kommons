@@ -1,17 +1,18 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.lastModified
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.minus
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.time.Now
-import com.bkahlert.kommons.time.days
-import com.bkahlert.kommons.time.minus
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isLessThan
 import strikt.java.exists
 import kotlin.io.path.createFile
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 
 class TimeKtTest {
 
@@ -19,7 +20,7 @@ class TimeKtTest {
     inner class Touch {
 
         @Test
-        fun `should update last modified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should update last modified`(simpleId: SimpleId) = withTempDir(simpleId) {
             val file = resolve("file").apply {
                 createFile()
                 lastModified -= 1.days
@@ -27,11 +28,11 @@ class TimeKtTest {
 
             file.touch()
 
-            expectThat(Now.fileTime.toMillis() - file.lastModified.toMillis()).isLessThan(5000)
+            expectThat(Now.minus(file.lastModified.toInstant())).isLessThan(5.seconds)
         }
 
         @Test
-        fun `should create file if missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should create file if missing`(simpleId: SimpleId) = withTempDir(simpleId) {
             val file = resolve("file")
             file.touch()
             expectThat(file).exists()

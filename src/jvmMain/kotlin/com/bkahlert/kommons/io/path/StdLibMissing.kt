@@ -1,10 +1,7 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.delete
-import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.io.path.StandardOpenOptions.DEFAULT_APPEND_OPTIONS
 import com.bkahlert.kommons.io.path.StandardOpenOptions.DEFAULT_WRITE_OPTIONS
-import com.bkahlert.kommons.runtime.onExit
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.BufferedWriter
@@ -12,14 +9,13 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.URI
 import java.nio.charset.Charset
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.bufferedWriter
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
+import kotlin.io.path.pathString
 import kotlin.io.path.useLines
 import kotlin.io.path.writeLines
 import kotlin.io.path.writeText
@@ -158,11 +154,6 @@ public fun Path.appendLines(lines: Sequence<CharSequence>, charset: Charset = Ch
     Files.write(this, lines.asIterable(), charset, *DEFAULT_APPEND_OPTIONS)
 
 /**
- * String representation of this path that does **not** rely on [toString].
- */
-public val Path.pathString: String get() = "${resolve("")}"
-
-/**
  * String representation of this path's [Path.getFileName] that does **not** rely on [toString].
  */
 public val Path.fileNameString: String get() = fileName.pathString
@@ -171,25 +162,3 @@ public val Path.fileNameString: String get() = fileName.pathString
  * String representation of this path's [URI].
  */
 public val Path.uriString: String get() = toUri().toString()
-
-
-/**
- * Registers this file for deletion the moment this program exits.
- *
- * For safety reasons, [recursively] must be explicitly set to `true`
- * if not-empty directories are to be deleted.
- */
-@Suppress("NOTHING_TO_INLINE")
-public inline fun Path.deleteOnExit(recursively: Boolean = false): Path = apply {
-    onExit {
-        if (recursively) deleteRecursively()
-        else delete()
-    }
-}
-
-/**
- * Contains whether this path belongs to the default [FileSystem].
- *
- * @see [FileSystems.getDefault]
- */
-public fun Path.isDefaultFileSystem(): Boolean = fileSystem == FileSystems.getDefault()

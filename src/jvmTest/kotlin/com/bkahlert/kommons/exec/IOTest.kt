@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Meta
@@ -7,12 +9,10 @@ import com.bkahlert.kommons.exec.IO.Meta.Dump
 import com.bkahlert.kommons.exec.IO.Meta.Text
 import com.bkahlert.kommons.exec.IO.Output
 import com.bkahlert.kommons.test.AnsiRequiring
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.Unicode.TAB
 import com.bkahlert.kommons.text.containsAnsi
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -92,11 +92,11 @@ class IOTest {
 
         @Test
         fun `should have stacktrace`() {
-            expectThat(err.text).toStringMatchesCurlyPattern("""
-                {}.RuntimeException: err
-                ${TAB}at com.bkahlert.kommons.{}
-                {{}}
-            """.trimIndent())
+            err.text.toString() shouldMatchGlob """
+                *.RuntimeException: err
+                ${Unicode.TAB}at com.bkahlert.kommons.*
+                **
+            """.trimIndent()
         }
     }
 

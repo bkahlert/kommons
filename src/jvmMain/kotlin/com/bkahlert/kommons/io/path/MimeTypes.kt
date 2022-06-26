@@ -3,6 +3,7 @@ package com.bkahlert.kommons.io.path
 import java.net.URLConnection
 import java.nio.file.Path
 import java.util.Base64
+import kotlin.io.path.pathString
 import kotlin.io.path.readBytes
 
 /**

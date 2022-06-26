@@ -1,19 +1,18 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Exceptions.ISE
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.CRLF
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.exception.toCompactString
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Excepted
 import com.bkahlert.kommons.exec.Process.State.Exited
 import com.bkahlert.kommons.exec.Process.State.Running
 import com.bkahlert.kommons.takeUnlessBlank
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.CRLF
-import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
-import com.bkahlert.kommons.unit.milli
 import com.bkahlert.kommons.withSuffix
 import java.io.BufferedWriter
 import java.io.InputStream
@@ -164,11 +163,11 @@ public interface Process {
                     buildString {
                         append(status)
                         relevantFiles.forEach {
-                            append(LineSeparators.LF)
+                            append(LF)
                             append(it)
                         }
                         dump?.takeUnlessBlank()?.let {
-                            append(LineSeparators.LF)
+                            append(LF)
                             append(dump)
                         }
                     }
@@ -315,25 +314,25 @@ public val Process.successful: Boolean get() = successfulOrNull ?: throw ISE("Pr
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun Process.enter(vararg input: String, delay: Duration = 10.milli.seconds): Unit =
+public fun Process.enter(vararg input: String, delay: Duration = 10.milliseconds): Unit =
     inputStream.enter(*input, delay = delay)
 
 /**
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun Process.input(vararg input: String, delay: Duration = 10.milli.seconds): Unit =
+public fun Process.input(vararg input: String, delay: Duration = 10.milliseconds): Unit =
     inputStream.enter(*input, delay = delay)
 
 /**
  * Writes the given [input] strings with a slight delay between
  * each input on the [Process]'s [InputStream].
  */
-public fun OutputStream.enter(vararg input: String, delay: Duration = 10.milli.seconds) {
+public fun OutputStream.enter(vararg input: String, delay: Duration = 10.milliseconds) {
     val stdin = BufferedWriter(OutputStreamWriter(this))
     input.forEach {
         TimeUnit.MILLISECONDS.sleep(delay.inWholeMilliseconds)
-        stdin.write(it.trailingLineSeparatorRemoved.withSuffix(CRLF))
+        stdin.write(it.removeTrailingLineSeparator().withSuffix(CRLF))
         stdin.flush()
     }
 }

@@ -42,12 +42,12 @@ public open class Category : AbstractList<Kaomoji>() {
      * Creates a new Kaomoji property based on the given [leftArm], [leftEye],[mouth],[rightEye],[rightArm] and [accessory].
      */
     public fun parts(
-        leftArm: CharSequence,
-        leftEye: CharSequence,
-        mouth: CharSequence,
-        rightEye: CharSequence,
-        rightArm: CharSequence,
-        accessory: CharSequence = "",
+        leftArm: String,
+        leftEye: String,
+        mouth: String,
+        rightEye: String,
+        rightArm: String,
+        accessory: String = "",
     ): PropertyDelegateProvider<Category, KaomojiDelegate> = PropertyDelegateProvider { category, _ ->
         KaomojiDelegate(Kaomoji(leftArm, leftEye, mouth, rightEye, rightArm, accessory).also { category._list.add(it) })
     }

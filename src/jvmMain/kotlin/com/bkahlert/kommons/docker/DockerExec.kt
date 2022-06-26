@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.docker.DockerContainer.State.Error
@@ -16,9 +17,8 @@ import com.bkahlert.kommons.exec.Exec.Companion.createDump
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State
 import com.bkahlert.kommons.exec.Process.State.Excepted
-import com.bkahlert.kommons.time.Now
-import com.bkahlert.kommons.time.seconds
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * An [Exec] representing a running a [Docker] container.
@@ -36,7 +36,7 @@ public open class DockerExec(
                 is Exited, is Dead, is Error -> run {
                     val message = "Backed Docker exec no more running but no exit state is known."
                     val dump = createDump(message)
-                    Excepted(start, Now.instant, pid, -1, io, IllegalStateException(dump.ansiRemoved), dump, message).also { finalState = it }
+                    Excepted(start, Now, pid, -1, io, IllegalStateException(dump.ansiRemoved), dump, message).also { finalState = it }
                 }
             }
         }

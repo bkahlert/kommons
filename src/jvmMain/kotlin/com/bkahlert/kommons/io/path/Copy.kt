@@ -8,6 +8,7 @@ import com.bkahlert.kommons.io.directoryNotEmpty
 import com.bkahlert.kommons.io.fileAlreadyExists
 import com.bkahlert.kommons.io.fileSystemException
 import com.bkahlert.kommons.io.noSuchFile
+import com.bkahlert.kommons.resolveBetweenFileSystems
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream

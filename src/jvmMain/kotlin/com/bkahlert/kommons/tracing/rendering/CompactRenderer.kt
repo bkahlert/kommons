@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.text.LineSeparators.isMultiline
+import com.bkahlert.kommons.LineSeparators.isMultiline
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId
 
@@ -26,7 +26,7 @@ public class CompactRenderer(
     }
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
-        if (name.isMultiline) blockRenderer()
+        if (name.isMultiline()) blockRenderer()
         super.start(traceId, spanId, name)
     }
 
@@ -41,20 +41,22 @@ public class CompactRenderer(
     }
 
     override fun <R> end(result: Result<R>) {
-        if (ReturnValue.of(result).format().isMultiline) blockRenderer()
+        if (ReturnValue.of(result).format().isMultiline()) blockRenderer()
         else oneLineRenderer()
         super.end(result)
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer {
         lateinit var child: Renderer
-        child = renderer(settings.copy(
-            indent = settings.indent + settings.style(settings.layout, settings.indent).indent,
-            printer = {
-                if ((child as? CompactRenderer)?.isOneLine != true) blockRenderer()
-                printChild(it)
-            },
-        )) { CompactRenderer(it) }
+        child = renderer(
+            settings.copy(
+                indent = settings.indent + settings.style(settings.layout, settings.indent).indent,
+                printer = {
+                    if ((child as? CompactRenderer)?.isOneLine != true) blockRenderer()
+                    printChild(it)
+                },
+            )
+        ) { CompactRenderer(it) }
         return child
     }
 

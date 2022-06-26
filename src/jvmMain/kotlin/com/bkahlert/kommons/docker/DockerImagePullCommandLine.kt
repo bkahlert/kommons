@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.startSpaced
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.leftSpaced
 
 /**
  * [DockerCommandLine] that pulls the specified [image].
@@ -22,7 +22,7 @@ public open class DockerImagePullCommandLine(
         add(image.toString())
     },
     name = run {
-        val allString = if (allTags) "all".formattedAs.warning.leftSpaced else ""
+        val allString = if (allTags) "all".formattedAs.warning.startSpaced else ""
         val pluralString = if (allTags) "s" else ""
         "Pulling$allString ${image.formattedAs.input} image$pluralString"
     }

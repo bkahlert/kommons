@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.exception.persistDump
 import com.bkahlert.kommons.exec.IO.Error
@@ -7,10 +9,8 @@ import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Output
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.text.INTERMEDIARY_LINE_PATTERN
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.Symbols
-import com.bkahlert.kommons.text.truncate
+import com.bkahlert.kommons.text.truncateOld
 import com.bkahlert.kommons.unit.Size
 import com.bkahlert.kommons.unit.bytes
 import java.nio.file.Path
@@ -96,7 +96,7 @@ public class IOLog : Sequence<IO> {
     public fun dump(directory: Path, pid: Int): Map<String, Path> = persistDump(directory.resolve("kommons.exec.$pid.log")) { dump() }
 
     override fun toString(): String = asString {
-        put(Symbols.OK, joinToString { it.truncate() })
+        put(Symbols.OK, joinToString { it.truncateOld() })
         put("OUT", output.incompleteBytes)
         put("ERR", error.incompleteBytes)
     }
@@ -105,7 +105,7 @@ public class IOLog : Sequence<IO> {
 /**
  * Utility that assembles [IO] by continuously accumulating bytes
  * and that calls the specified [lineCompletedCallback] every time
- * a string terminated by a [LineSeparators] was re-constructed.
+ * a string terminated by one of the [LineSeparators] was re-constructed.
  *
  * Bytes are provided using [plus].
  */
@@ -143,7 +143,7 @@ public class IOAssembler(private val lineCompletedCallback: (List<String>) -> Un
     }
 
     private fun ByteArrayOutputStream.hasCompletedLines(): String? =
-        toString(Charsets.UTF_8).takeIf { it.matches(LineSeparators.INTERMEDIARY_LINE_PATTERN) }
+        toString(Charsets.UTF_8).takeIf { it.matches(INTERMEDIARY_LINE_PATTERN) }
 
     private fun ByteArrayOutputStream.removeCompletedLines(): List<String> {
         val readLines = toString(Charsets.UTF_8).lines()

@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.test.output
 
+import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Output
@@ -27,11 +28,11 @@ class OutputCapture(private val print: Boolean) : CapturedOutput {
 
     private inline fun <reified T : IO> getFilteredCapture(): String = lock.withLock {
         check(systemCaptures.isNotEmpty()) { "No system captures found. Please check your output capture registration." }
-        val builder = StringBuilder()
-        systemCaptures.forEach { systemCapture ->
-            systemCapture.useCapturedStrings { io -> if (io is T) builder.append(io) }
-        }
-        builder.toString()
+        buildString {
+            systemCaptures.forEach { systemCapture ->
+                systemCapture.useCapturedStrings { io -> if (io is T) append(io) }
+            }
+        }.removeTrailingLineSeparator()
     }
 
     override fun hashCode(): Int = all.hashCode()

@@ -2,11 +2,10 @@ package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.junit.testEach
-import com.bkahlert.kommons.test.junit.testing
-import com.bkahlert.kommons.test.junit.testingAll
 import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.tracing.TestSpanScope
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.should
@@ -18,11 +17,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
-import strikt.api.Assertion
-import strikt.api.expectThat
-import strikt.assertions.contains
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
 
 @Execution(CONCURRENT)
 class DockerImageTest {
@@ -54,35 +48,35 @@ class DockerImageTest {
     }
 
     @TestFactory
-    fun `should accept valid repositories and paths`() = testingAll(
+    fun `should accept valid repositories and paths`() = testEach(
         "repo",
         "repo123",
         "repo.123",
         "repo_123",
         "repo-123",
     ) {
-        expecting { DockerImage { subject / subject } } it { toString() shouldBe "$subject/$subject" }
-        expecting { DockerImage { subject } } it { toString() shouldBe subject }
+        DockerImage { it / it }.toString() shouldBe "$it/$it"
+        DockerImage { it }.toString() shouldBe it
     }
 
     @TestFactory
-    fun `should throw on illegal repository`() = testingAll("", "REPO", "r'e'p'o") {
-        expectThrows<IllegalArgumentException> { DockerImage { subject / "path" } }
-        expectThrows<IllegalArgumentException> { DockerImage { "$subject/path" } }
+    fun `should throw on illegal repository`() = testEach("", "REPO", "r'e'p'o") {
+        shouldThrow<IllegalArgumentException> { DockerImage { it / "path" } }
+        shouldThrow<IllegalArgumentException> { DockerImage { "$it/path" } }
     }
 
     @TestFactory
-    fun `should throw on illegal path`() = testingAll("", "PATH", "p'a't'h") {
-        expectThrows<IllegalArgumentException> { DockerImage { "repo" / subject } }
-        expectThrows<IllegalArgumentException> { DockerImage { "repo/$subject" } }
+    fun `should throw on illegal path`() = testEach("", "PATH", "p'a't'h") {
+        shouldThrow<IllegalArgumentException> { DockerImage { "repo" / it } }
+        shouldThrow<IllegalArgumentException> { DockerImage { "repo/$it" } }
     }
 
-    @TestFactory
-    fun `should throw on illegal specifier`() = testing {
-        expectThrows<IllegalArgumentException> { DockerImage { "repo" / "path" tag "" } }
-        expectThrows<IllegalArgumentException> { DockerImage { "repo" / "path" digest "" } }
-        expectThrows<IllegalArgumentException> { DockerImage { "repo/path:" } }
-        expectThrows<IllegalArgumentException> { DockerImage { "repo/path@" } }
+    @Test
+    fun `should throw on illegal specifier`() = test {
+        shouldThrow<IllegalArgumentException> { DockerImage { "repo" / "path" tag "" } }
+        shouldThrow<IllegalArgumentException> { DockerImage { "repo" / "path" digest "" } }
+        shouldThrow<IllegalArgumentException> { DockerImage { "repo/path:" } }
+        shouldThrow<IllegalArgumentException> { DockerImage { "repo/path@" } }
     }
 
     @Test
@@ -91,8 +85,8 @@ class DockerImageTest {
             it shouldBe DockerImage.parse("repo/path")
             it shouldBe DockerImage("repo", listOf("path"), null, null)
             it shouldBe DockerImage("repo", listOf("path"), "tag", null)
-            it shouldBe DockerImage("repo", listOf("path"), null, "digest")
-            it shouldBe DockerImage("repo", listOf("path"), "tag", "digest")
+            it shouldBe DockerImage("repo", listOf("path"), null, "alg:hash")
+            it shouldBe DockerImage("repo", listOf("path"), "tag", "alg:hash")
 
             it shouldNotBe DockerImage("repo", listOf("other-path"), null, null)
             it shouldNotBe DockerImage("other-repo", listOf("path"), null, null)
@@ -101,19 +95,19 @@ class DockerImageTest {
             it shouldBe DockerImage.parse("repo/path:tag")
             it shouldBe DockerImage("repo", listOf("path"), null, null)
             it shouldBe DockerImage("repo", listOf("path"), "tag", null)
-            it shouldBe DockerImage("repo", listOf("path"), null, "digest")
-            it shouldBe DockerImage("repo", listOf("path"), "tag", "digest")
+            it shouldBe DockerImage("repo", listOf("path"), null, "alg:hash")
+            it shouldBe DockerImage("repo", listOf("path"), "tag", "alg:hash")
 
             it shouldNotBe DockerImage("repo", listOf("path"), "other-tag", null)
         }
-        DockerImage { "repo/path@digest" } should {
-            it shouldBe DockerImage.parse("repo/path@digest")
+        DockerImage { "repo/path@alg:hash" } should {
+            it shouldBe DockerImage.parse("repo/path@alg:hash")
             it shouldBe DockerImage("repo", listOf("path"), null, null)
             it shouldBe DockerImage("repo", listOf("path"), "tag", null)
-            it shouldBe DockerImage("repo", listOf("path"), null, "digest")
-            it shouldBe DockerImage("repo", listOf("path"), "tag", "digest")
+            it shouldBe DockerImage("repo", listOf("path"), null, "alg:hash")
+            it shouldBe DockerImage("repo", listOf("path"), "tag", "alg:hash")
 
-            it shouldNotBe DockerImage("repo", listOf("path"), null, "other-digest")
+            it shouldNotBe DockerImage("repo", listOf("path"), null, "other:hash")
         }
     }
 
@@ -142,48 +136,40 @@ class DockerImageTest {
 
         @ImageTest
         fun TestImage.`should provide tags on Docker Hub`() {
-            expectThat(tagsOnDockerHub) {
-                contains("latest")
-                contains("linux")
+            tagsOnDockerHub should {
+                it shouldContain "latest"
+                it shouldContain "linux"
             }
         }
 
         @ImageTest
         fun TestImage.`should check if is pulled and log`(testSpanScope: TestSpanScope) = whilePulled { testImage ->
-            expectThat(testImage).isPulled()
-            testSpanScope.expectThatRendered().contains("Listing $testImage images ✔︎")
+            testImage.isPulled shouldBe true
+            testSpanScope.rendered() shouldContain "Listing $testImage images ✔︎"
 
             testImage.remove()
-            expectThat(testImage).not { isPulled() }
-            testSpanScope.expectThatRendered().contains("Listing $testImage images ✔︎")
+            testImage.isPulled shouldBe false
+            testSpanScope.rendered() shouldContain "Listing $testImage images ✔︎"
         }
 
         @ImageTest
         fun TestImage.`should pull image and log`(testSpanScope: TestSpanScope) = whileRemoved { testImage ->
-            expectThat(testImage.pull()).isSuccessful()
-            testSpanScope.expectThatRendered().contains("Pulling $testImage image ✔︎")
-            expectThat(testImage.isPulled).isTrue()
+            testImage.pull().successful shouldBe true
+            testSpanScope.rendered() shouldContain "Pulling $testImage image ✔︎"
+            testImage.isPulled shouldBe true
 
-            expectThat(testImage.pull()).isSuccessful()
-            testSpanScope.expectThatRendered().contains("Pulling $testImage image ✔︎")
+            testImage.pull().successful shouldBe true
+            testSpanScope.rendered() shouldContain "Pulling $testImage image ✔︎"
         }
 
         @ImageTest
         fun TestImage.`should remove image and log`(testSpanScope: TestSpanScope) = whilePulled { testImage ->
-            expectThat(testImage.remove()).isSuccessful()
-            testSpanScope.expectThatRendered().contains("Removing $testImage ✔︎")
-            expectThat(testImage.isPulled).isFalse()
+            testImage.remove().successful shouldBe true
+            testSpanScope.rendered() shouldContain "Removing $testImage ✔︎"
+            testImage.isPulled shouldBe false
 
-            expectThat(testImage.remove()).isFailed()
-            testSpanScope.expectThatRendered().contains("Removing $testImage ${Symbols.Negative.ansiRemoved} no such image")
+            testImage.remove().successful shouldBe false
+            testSpanScope.rendered() shouldContain "Removing $testImage ${Symbols.Negative.ansiRemoved} no such image"
         }
     }
 }
-
-fun Assertion.Builder<DockerImage>.isPulled() =
-    assert("is pulled") {
-        when (it.isPulled) {
-            true -> pass()
-            else -> fail("$it is not pulled")
-        }
-    }

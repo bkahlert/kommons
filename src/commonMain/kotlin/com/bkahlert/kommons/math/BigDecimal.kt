@@ -1,7 +1,8 @@
 package com.bkahlert.kommons.math
 
-import com.bkahlert.kommons.math.RoundingMode.HALF_DOWN
-import com.bkahlert.kommons.math.RoundingMode.HALF_EVEN
+import com.bkahlert.kommons.RoundingMode
+import com.bkahlert.kommons.RoundingMode.HalfDown
+import com.bkahlert.kommons.RoundingMode.HalfEven
 
 /**
  * Immutable, arbitrary-precision signed decimal numbers.
@@ -18,7 +19,7 @@ public expect operator fun BigDecimal.plus(other: BigDecimal): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.plus(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.plus(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /**
  * Enables the use of the `-` operator for [BigDecimal] instances.
@@ -30,7 +31,7 @@ public expect operator fun BigDecimal.minus(other: BigDecimal): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.minus(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.minus(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /**
  * Enables the use of the `*` operator for [BigDecimal] instances.
@@ -42,12 +43,12 @@ public expect operator fun BigDecimal.times(other: BigDecimal): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.times(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.times(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /**
  * Enables the use of the `/` operator for [BigDecimal] instances.
  *
- * The scale of the result is the same as the scale of this (divident), and for rounding the [RoundingMode.HALF_EVEN]
+ * The scale of the result is the same as the scale of this (divident), and for rounding the [RoundingMode.HalfEven]
  * rounding mode is used.
  */
 public expect operator fun BigDecimal.div(other: BigDecimal): BigDecimal
@@ -57,7 +58,7 @@ public expect operator fun BigDecimal.div(other: BigDecimal): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.div(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.div(other: BigDecimal, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /** Divides this value by the other value. */
 public expect operator fun BigDecimal.div(other: Long): BigDecimal
@@ -67,7 +68,7 @@ public expect operator fun BigDecimal.div(other: Long): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.div(other: Long, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.div(other: Long, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /** Divides this value by the other value. */
 public expect operator fun BigDecimal.div(other: Float): BigDecimal
@@ -77,7 +78,7 @@ public expect operator fun BigDecimal.div(other: Float): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.div(other: Float, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.div(other: Float, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /** Divides this value by the other value. */
 public expect operator fun BigDecimal.div(other: Double): BigDecimal
@@ -87,7 +88,7 @@ public expect operator fun BigDecimal.div(other: Double): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.div(other: Double, precision: Int, roundingMode: RoundingMode = HALF_DOWN): BigDecimal
+public expect fun BigDecimal.div(other: Double, precision: Int, roundingMode: RoundingMode = HalfDown): BigDecimal
 
 /**
  * Enables the use of the `%` operator for [BigDecimal] instances.
@@ -230,11 +231,11 @@ public expect fun BigDecimal.pow(n: Int): BigDecimal
  * [precision] (number of digits to be used) and
  * [roundingMode] (specifies the algorithm to be used for rounding).
  */
-public expect fun BigDecimal.pow(n: Int, precision: Int, roundingMode: RoundingMode = HALF_EVEN): BigDecimal
+public expect fun BigDecimal.pow(n: Int, precision: Int, roundingMode: RoundingMode = HalfEven): BigDecimal
 
 public expect val BigDecimal.scale: Int
 
-public expect fun BigDecimal.scale(scale: Int, roundingMode: RoundingMode = HALF_EVEN): BigDecimal
+public expect fun BigDecimal.scale(scale: Int, roundingMode: RoundingMode = HalfEven): BigDecimal
 
 public expect val BigDecimal.precision: Int
 

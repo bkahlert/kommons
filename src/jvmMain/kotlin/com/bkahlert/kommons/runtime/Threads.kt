@@ -1,13 +1,10 @@
 package com.bkahlert.kommons.runtime
 
-import io.opentelemetry.api.trace.Span
-import com.bkahlert.kommons.runWrapping
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes.Keys.DESCRIPTION
 import com.bkahlert.kommons.tracing.runSpanning
-import com.bkahlert.kommons.unit.milli
+import io.opentelemetry.api.trace.Span
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
@@ -16,9 +13,18 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
-public fun <T> withThreadName(temporaryName: String, block: () -> T): T =
-    currentThread.runWrapping({ name.also { name = temporaryName } }, { oldName -> name = oldName }, { block() })
+public fun <T> withThreadName(temporaryName: String, block: () -> T): T {
+    val currentThread = Thread.currentThread()
+    val originalName = currentThread.name
+    try {
+        currentThread.name = temporaryName
+        return block()
+    } finally {
+        currentThread.name = originalName
+    }
+}
 
 public fun thread(
     start: Boolean = true,
@@ -57,7 +63,7 @@ public fun daemon(
 public class BusyThread private constructor(
     private var stopped: AtomicBoolean,
     private val span: Span,
-    private val sleepInterval: Duration = 50.milli.seconds,
+    private val sleepInterval: Duration = 50.milliseconds,
 ) : Thread({
     span.makeCurrent().use {
         runSpanning("busy waiting") {

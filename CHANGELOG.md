@@ -156,8 +156,8 @@ CommandLine("…") // ShellScript { … }
   ```text
   Process {PID} terminated with exit code {…}
   ➜ A dump has been written to:
-  - {TempDir}/kommons/exec/dump.{}.log
-  - {TempDir}/kommons/exec/dump.{}.ansi-removed.log
+  - {TempDir}/kommons/exec/dump.*.log
+  - {TempDir}/kommons/exec/dump.*.ansi-removed.log
     ➜ The last 10 lines are:
     {…}
     3
@@ -345,18 +345,6 @@ if (path.notExists()) path.createParentDirectories().createFile()
 ```
 
 #### Units
-
-##### Kotlin 1.5 Duration Extensions
-
-```kotlin
-42.days
-42.hours
-42.minutes
-42.seconds
-42.milli.seconds
-42.micro.seconds
-42.nano.seconds
-```
 
 ##### Decimal and Binary Bytes
 

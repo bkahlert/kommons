@@ -1,41 +1,33 @@
 package com.bkahlert.kommons.kaomoji
 
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.test.testEachOld
-import com.bkahlert.kommons.test.toStringIsEqualTo
+import com.bkahlert.kommons.test.junit.testEach
+import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.columns
-import org.junit.jupiter.api.DynamicContainer
+import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEmpty
+import io.kotest.matchers.string.shouldEndWith
+import io.kotest.matchers.string.shouldNotBeEmpty
+import io.kotest.matchers.string.shouldStartWith
+import io.kotest.matchers.types.shouldBeInstanceOf
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.parallel.Isolated
-import strikt.api.expectThat
-import strikt.assertions.endsWith
-import strikt.assertions.isA
-import strikt.assertions.isContainedIn
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotEmpty
-import strikt.assertions.startsWith
+import java.util.stream.Stream
 
-//@Disabled // blocking during initialization
 @Isolated
 class KaomojiTest {
 
-    @Nested
-    inner class Fishing {
-
-        @Test
-        fun `should be created with random fisher and specified fish`() {
-            expecting { Kaomoji.random().fishing(Kaomoji.Fish.`❮°«⠶＞˝`) } that { endsWith("o/￣￣￣❮°«⠶＞˝") }
-        }
-
-        @Test
-        fun `should be created with specified fisher and random fish`() {
-            expecting { Kaomoji.Shrugging.first().fishing() } that { startsWith("┐(´д｀)o/￣￣￣") }
-        }
+    @Test fun fishing() = test {
+        Kaomoji.random().fishing(Kaomoji.Fish.`❮°«⠶＞˝`) shouldEndWith "o/￣￣￣❮°«⠶＞˝"
+        Kaomoji.Shrugging.first().fishing() shouldStartWith "┐(´д｀)o/￣￣￣"
     }
 
     @Nested
@@ -44,92 +36,60 @@ class KaomojiTest {
         private val kaomoji = Kaomoji.Bears.first()
         private val blank = " ".repeat(kaomoji.toString().columns)
 
-        @TestFactory
-        fun `should render empty`() = testEachOld(null, "", "   ") {
-            expecting { kaomoji.thinking(it) } that {
-                isEqualTo(
-                    """
+        @TestFactory fun `should render empty`() = testEach(null, "", "   ") {
+            kaomoji.thinking(it) shouldBe """
                     $blank  ̣ ˱ ❨ ( … )
                     ・㉨・
                 """.trimIndent()
-                )
-            }
         }
 
-        @Test
-        fun `should render single line`() {
-            expecting { kaomoji.thinking("oh no") } that {
-                isEqualTo(
-                    """
+        @Test fun `should render single line`() = test {
+            kaomoji.thinking("oh no") shouldBe """
                     $blank  ̣ ˱ ❨ ( oh no )
                     ・㉨・
                 """.trimIndent()
-                )
-            }
         }
 
-        @Test
-        fun `should render two lines`() {
-            expecting { kaomoji.thinking("oh no 1${LF}oh no 2") } that {
-                isEqualTo(
-                    """
+        @Test fun `should render two lines`() = test {
+            kaomoji.thinking("oh no 1${LF}oh no 2") shouldBe """
                     $blank       ⎛ oh no 1 ⎞
                     $blank  ̣ ˱ ❨ ⎝ oh no 2 ⎠
                     ・㉨・
                 """.trimIndent()
-                )
-            }
         }
 
-        @Test
-        fun `should render multi line`() {
-            expecting { kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3") } that {
-                isEqualTo(
-                    """
+        @Test fun `should render multi line`() = test {
+            kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3") shouldBe """
                     $blank       ⎛ oh no 1 ⎞
                     $blank       ⎜ oh no 2 ⎟
                     $blank  ̣ ˱ ❨ ⎝ oh no 3 ⎠
                     ・㉨・
                 """.trimIndent()
-                )
-            }
         }
 
-        @Test
-        fun `should render lines of different length`() {
-            expecting { kaomoji.thinking("123${LF}${LF}1234567890${LF}1234") } that {
-                isEqualTo(
-                    """
+        @Test fun `should render lines of different length`() = test {
+            kaomoji.thinking("123${LF}${LF}1234567890${LF}1234") shouldBe """
                     $blank       ⎛ 123        ⎞
                     $blank       ⎜            ⎟
                     $blank       ⎜ 1234567890 ⎟
                     $blank  ̣ ˱ ❨ ⎝ 1234       ⎠
                     ・㉨・
                 """.trimIndent()
-                )
-            }
         }
 
         @AnsiRequiring @Test
-        fun `should render ANSI`() {
-            expecting {
-                kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done)
-            } that {
-                isEqualTo(
-                    """
+        fun `should render ANSI`() = test {
+            kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done) shouldBe """
                                 ⎛ [4m[94m123[24;39m        ⎞
                                 ⎜ [4m[24m           ⎟
                                 ⎜ [4m1234567890[24m ⎟
                            ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
                     ・㉨・
                 """.trimIndent()
-                )
-            }
         }
     }
 
-    @TestFactory
-    fun `should have categories`() = testEachOld(
+    @TestFactory fun `should have categories`() = testEach(
         Kaomoji.Angry,
         Kaomoji.Babies, Kaomoji.BadMood, Kaomoji.Bears, Kaomoji.Begging, Kaomoji.Blushing,
         Kaomoji.Cats, Kaomoji.Celebrities, Kaomoji.Chasing, Kaomoji.Confused, Kaomoji.Crying, Kaomoji.Cute,
@@ -151,37 +111,24 @@ class KaomojiTest {
         Kaomoji.Vomitting,
         Kaomoji.Weapons, Kaomoji.Weird, Kaomoji.Whales, Kaomoji.Why, Kaomoji.Winking, Kaomoji.Wizards, Kaomoji.Writing,
     ) { category ->
-        expecting { category.random() } that { isA<Kaomoji>() }
+        category.random().shouldBeInstanceOf<Kaomoji>()
     }
 
     @Nested
     inner class CompanionObject {
 
-        @Nested
-        inner class EmptyKaomoji {
-            @Test
-            fun `should have empty kaomoji`() {
-                expectThat(Kaomoji.EMPTY).toStringIsEqualTo("")
-            }
+        @Test fun empty() = test {
+            Kaomoji.EMPTY.toString().shouldBeEmpty()
+            Kaomoji.Shrugging.first().fishing(Kaomoji.EMPTY).toString() shouldBe "┐(´д｀)o/￣￣￣"
+        }
 
-            @Test
-            fun `should have render as empty string`() {
-                expectThat(Kaomoji.Shrugging.first().fishing(Kaomoji.EMPTY)).toStringIsEqualTo("┐(´д｀)o/￣￣￣")
-            }
+        @Test fun random() = test {
+            Kaomoji.random().toString().shouldNotBeEmpty()
         }
 
         @TestFactory
-        fun `should create random Kaomoji`() = testEachOld(
-            Kaomoji.random(),
-            Kaomoji.random(),
-            Kaomoji.random(),
-        ) { kaomoji ->
-            kaomoji asserting { isA<Kaomoji>().isNotEmpty() }
-        }
-
-        @TestFactory
-        fun `should create random Kaomoji from Generator category`(): List<DynamicContainer> = testEachOld(*Generator.values()) { category ->
-            expecting { category.random() } that { isA<Kaomoji>().isNotEmpty() }
+        fun `should create random Kaomoji from Generator category`(): Stream<DynamicTest> = testEach(*Generator.values()) { category ->
+            category.random().toString().shouldNotBeEmpty()
         }
 
         @Nested
@@ -189,41 +136,41 @@ class KaomojiTest {
 
             @Test
             fun `should use manually specified form`() {
-                expecting { Kaomoji.Angry.`-`д´-` } that { toStringIsEqualTo("-`д´-") }
+                Kaomoji.Angry.`-`д´-`.toString() shouldBe "-`д´-"
             }
 
             @Test
             fun `should parse automatically`() {
-                expecting { Kaomoji.Angry.`-`д´-` } that {
-                    get("left arm") { leftArm }.isEqualTo("-")
-                    get("right arm") { rightArm }.isEqualTo("-")
-                    get("left eye") { leftEye }.isEqualTo("`")
-                    get("right eye") { rightEye }.isEqualTo("´")
-                    get("mouth") { mouth }.isEqualTo("д")
+                Kaomoji.Angry.`-`д´-` should {
+                    withClue("left arm") { it.leftArm shouldBe "-" }
+                    withClue("right arm") { it.rightArm shouldBe "-" }
+                    withClue("left eye") { it.leftEye shouldBe "`" }
+                    withClue("right eye") { it.rightEye shouldBe "´" }
+                    withClue("mouth") { it.mouth shouldBe "д" }
                 }
             }
 
             @Test
             fun `should be enumerable`() {
-                expecting { Kaomoji.Angry.subList(2, 5).joinToString { "$it" } } that { isEqualTo("눈_눈, ಠ⌣ಠ, ಠ▃ಠ") }
+                Kaomoji.Angry.subList(2, 5).joinToString { "$it" } shouldBe "눈_눈, ಠ⌣ಠ, ಠ▃ಠ"
             }
 
             @Test
             fun `should pick random from specified kaomoji`() {
-                expecting { Kaomoji.random(Kaomoji.Chasing.first(), Kaomoji.Screaming.first()) } that {
-                    isContainedIn(listOf(Kaomoji.Chasing.first(), Kaomoji.Screaming.first()))
+                Kaomoji.random(Kaomoji.Chasing.first(), Kaomoji.Screaming.first()) should {
+                    listOf(Kaomoji.Chasing.first(), Kaomoji.Screaming.first()).shouldContain(it)
                 }
             }
 
             @Test
             fun `should pick random from specified category`() {
-                expecting { Kaomoji.Angry.random() } that { isA<Kaomoji>().isNotEmpty() }
+                Kaomoji.Angry.random().toString().shouldNotBeEmpty()
             }
 
             @Test
             fun `should pick random from specified categories`() {
-                expecting { Kaomoji.random(Kaomoji.Chasing, Kaomoji.Screaming) } that {
-                    isContainedIn(listOf(*Kaomoji.Chasing.toTypedArray(), *Kaomoji.Screaming.toTypedArray()))
+                Kaomoji.random(Kaomoji.Chasing, Kaomoji.Screaming) should {
+                    listOf(*Kaomoji.Chasing.toTypedArray(), *Kaomoji.Screaming.toTypedArray()).shouldContain(it)
                 }
             }
         }

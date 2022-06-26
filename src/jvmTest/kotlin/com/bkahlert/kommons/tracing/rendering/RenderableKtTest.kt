@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.test.test
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
@@ -65,11 +65,11 @@ class RenderableKtTest {
             expectThat(Renderable.of("😀😀😀😀").render(7, 1)).isEqualTo("😀 … 😀")
         }
 
-        @AnsiRequiring @TestFactory
-        fun `should support ANSI`() = testOld(Renderable.of("blue-blue".ansi.blue)) {
-            expecting { render(7, 1) } that { isEqualTo("${"bl".ansi.blue} … ${"ue".ansi.blue}") }
-            expecting { render(100, 1) } that { isEqualTo("blue-blue".ansi.blue.done) }
-            expecting { render(null, 1) } that { isEqualTo("blue-blue".ansi.blue.done) }
+        @AnsiRequiring @Test
+        fun `should support ANSI`() = test {
+            Renderable.of("blue-blue".ansi.blue).render(7, 1) shouldBe "${"bl".ansi.blue} … ${"ue".ansi.blue}"
+            Renderable.of("blue-blue".ansi.blue).render(100, 1) shouldBe "blue-blue".ansi.blue.done
+            Renderable.of("blue-blue".ansi.blue).render(null, 1) shouldBe "blue-blue".ansi.blue.done
         }
 
         @Test

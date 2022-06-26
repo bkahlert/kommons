@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.lineSequence
 import com.bkahlert.kommons.collections.zipWithDefault
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.lineSequence
-import com.bkahlert.kommons.text.LineSeparators.wrapLines as lineSepWrapLines
+import com.bkahlert.kommons.text.wrapLines as lineSepWrapLines
 
 /**
  * Splits this character sequence into its lines and returns the columns

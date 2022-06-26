@@ -1,8 +1,9 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.synchronizedListOf
-import com.bkahlert.kommons.math.isEven
+import com.bkahlert.kommons.isEven
 import java.awt.Canvas
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -13,7 +14,6 @@ import java.awt.Label
 import java.awt.Panel
 import javax.swing.JFrame
 import javax.swing.JLabel
-
 
 /**
  * Text width calculation.
@@ -46,7 +46,7 @@ internal actual object TextWidth {
      */
     actual fun calculateWidth(text: CharSequence): Int {
         if (text.isEmpty()) return 0
-        val sanitized: String = text.replace(LineSeparators.REGEX, "").ansiRemoved
+        val sanitized: String = text.replace(LineSeparators.UnicodeRegex, "").ansiRemoved
         if (preview) preview(sanitized)
         return MONOSPACED_METRICS.stringWidth(sanitized)
     }

@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.spaced
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.spaced
 
 /**
  * [DockerImageCommandLine] that removes the specified [images].

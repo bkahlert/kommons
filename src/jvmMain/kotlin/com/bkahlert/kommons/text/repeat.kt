@@ -8,4 +8,7 @@ public fun Char.repeat(count: Int): String = String(CharArray(count) { this })
 /**
  * Repeats this [CharSequence] [count] times.
  */
-public fun <T : CharSequence> T.repeat(count: Int): String = buildString { repeat(count) { append(this@repeat) } }
+public fun CharSequence.repeat(count: Int): String {
+    val string = toString()
+    return buildString { repeat(count) { append(string) } }
+}

@@ -1,9 +1,13 @@
 package com.bkahlert.kommons.time
 
+import com.bkahlert.kommons.Now
+import com.bkahlert.kommons.minus
+import com.bkahlert.kommons.plus
 import com.bkahlert.kommons.time.IntervalPolling.Polling
-import com.bkahlert.kommons.unit.milli
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Checks once per [interval][Duration] if the [targetState] evaluates to `true`
@@ -78,8 +82,8 @@ public value class IntervalPolling(private val targetState: () -> Boolean) {
          * Returns whether the [targetState] was reached in time.
          */
         public fun forAtMost(timeout: Duration, callback: (Duration) -> Unit = {}): Boolean {
-            val failAfter = Now.instant + timeout
-            condition = { Now.instant <= failAfter }
+            val failAfter = Now + timeout
+            condition = { Now <= failAfter }
             this.callback = callback
             return poll()
         }
@@ -104,19 +108,19 @@ public value class IntervalPolling(private val targetState: () -> Boolean) {
          * Returns whether the [targetState] was reached in time and held invariant.
          */
         public fun noLongerThan(invariant: () -> Boolean, timeout: Duration, callback: (Duration) -> Unit = {}): Boolean {
-            val failAfter = Now.instant + timeout
-            condition = { Now.instant <= failAfter && invariant() }
+            val failAfter = Now.plus(timeout)
+            condition = { Now <= failAfter && invariant() }
             this.callback = callback
             return poll()
         }
 
         private fun poll(): Boolean {
-            val startTime = System.currentTimeMillis()
+            val startTime = Now
             while (!targetState() && condition()) {
                 pollInterval.sleep()
             }
             return if (!targetState()) {
-                callback(Now.passedSince(startTime))
+                callback(Now.minus(startTime))
                 false
             } else {
                 true
@@ -131,7 +135,7 @@ private class PollSample {
         // for at most 1 second
         val condition: () -> Boolean = { listOf(true, false).random() }
 
-        100.milli.seconds.poll { condition() }.forAtMost(1.seconds) { passed ->
+        100.milliseconds.poll { condition() }.forAtMost(1.seconds) { passed ->
             throw TimeoutException("Condition did not become true within $passed")
         }
     }
@@ -141,7 +145,7 @@ private class PollSample {
         // for at most 1 second
         val condition: () -> Boolean = { listOf(true, false).random() }
 
-        poll { condition() }.every(100.milli.seconds).forAtMost(1.seconds) { passed ->
+        poll { condition() }.every(100.milliseconds).forAtMost(1.seconds) { passed ->
             throw TimeoutException("Condition did not become true within $passed")
         }
     }

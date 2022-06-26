@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.test.testsOld
+import com.bkahlert.kommons.test.junit.testing
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter.Companion.fromScratch
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.Printer
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
@@ -15,6 +15,7 @@ import com.bkahlert.kommons.tracing.rendering.capturing
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
+import java.util.stream.Stream
 
 class RendererProvidersTest {
 
@@ -22,9 +23,9 @@ class RendererProvidersTest {
         expectedCurlyPattern: String,
         executable: Executable<Exec>,
         invocation: Executor<out Exec>.(Printer) -> Exec,
-    ): List<DynamicNode> = testsOld {
-        expecting { capturing { executable.exec.invocation(it) } } that { matchesCurlyPattern(expectedCurlyPattern) }
-        expecting { capturing { executable.exec.async.invocation(it).waitFor() } } that { matchesCurlyPattern(expectedCurlyPattern) }
+    ): Stream<DynamicNode> = testing {
+        expecting { capturing { executable.exec.invocation(it) } } that { it shouldMatchGlob expectedCurlyPattern }
+        expecting { capturing { executable.exec.async.invocation(it).waitFor() } } that { it shouldMatchGlob expectedCurlyPattern }
     }
 
     @Nested
@@ -33,7 +34,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
-                ╭──╴{}
+                ╭──╴*
                 │
                 │   Countdown!
                 │   10
@@ -65,7 +66,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
-                ╭──╴{}
+                ╭──╴*
                 │
                 │   Take Off
                 │
@@ -91,7 +92,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should compact log`() = testLogOfSyncAndAsyncExec(
             """
-                ╶──╴{}╶─╴Countdown!╶─╴10╶─╴9╶─╴8╶─╴7╶─╴6╶─╴5╶─╴4╶─╴3╶─╴2╶─╴1╶─╴0╶─╴Take Off ✔︎
+                ╶──╴*╶─╴Countdown!╶─╴10╶─╴9╶─╴8╶─╴7╶─╴6╶─╴5╶─╴4╶─╴3╶─╴2╶─╴1╶─╴0╶─╴Take Off ✔︎
             """.trimIndent(), countDownAndStart()
         ) {
             logging(renderer = RendererProviders.oneLine {
@@ -105,7 +106,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
-                ╶──╴{}╶─╴Take Off ✔︎
+                ╶──╴*╶─╴Take Off ✔︎
             """.trimIndent(), justStart()
         ) {
             logging(renderer = RendererProviders.oneLine {
@@ -124,7 +125,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
-                ╭──╴{}
+                ╭──╴*
                 │
                 │   Countdown!
                 │   10
@@ -156,7 +157,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
-                ╭──╴{}
+                ╭──╴*
                 │
                 │   Take Off
                 │
@@ -180,7 +181,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
-                ╶──╴{}╶─╴Countdown!╶─╴10╶─╴9╶─╴8╶─╴7╶─╴6╶─╴5╶─╴4╶─╴3╶─╴2╶─╴1╶─╴0╶─╴Take Off ✔︎
+                ╶──╴*╶─╴Countdown!╶─╴10╶─╴9╶─╴8╶─╴7╶─╴6╶─╴5╶─╴4╶─╴3╶─╴2╶─╴1╶─╴0╶─╴Take Off ✔︎
                 """.trimIndent(), countDownAndStart()
         ) {
             logging(renderer = RendererProviders.summary {
@@ -191,7 +192,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
-                ╶──╴{}╶─╴Take Off ✔︎
+                ╶──╴*╶─╴Take Off ✔︎
             """.trimIndent(), justStart()
         ) {
             logging(renderer = RendererProviders.summary {
@@ -206,7 +207,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
-                {} ✔︎
+                * ✔︎
             """.trimIndent(), countDownAndStart()
         ) {
             logging(renderer = RendererProviders.noDetails {
@@ -217,7 +218,7 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
-                {} ✔︎
+                * ✔︎
             """.trimIndent(), justStart()
         ) {
             logging(renderer = RendererProviders.noDetails {
@@ -239,12 +240,12 @@ class RendererProvidersTest {
         @TestFactory
         fun TestSpanScope.`should display ERR`() = testLogOfSyncAndAsyncExec(
             """
-                ϟ Process {} terminated with exit code {}
+                ϟ Process * terminated with exit code *
                 ➜ A dump has been written to:
-                  - file://{}
-                  - file://{}
+                  - file://*
+                  - file://*
                 ➜ The last 10 lines are:
-                {{}}
+                **
             """.trimIndent(), countDownAndBoom()
         ) {
             logging(renderer = RendererProviders.errorsOnly {

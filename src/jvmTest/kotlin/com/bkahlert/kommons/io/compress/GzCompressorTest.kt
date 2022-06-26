@@ -13,7 +13,7 @@ import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.test.Fixtures.archiveWithSingleFile
 import com.bkahlert.kommons.test.Fixtures.singleFile
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.withRandomSuffix
@@ -40,27 +40,27 @@ class GzCompressorTest {
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should throw on non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { singleFile().apply { addExtensions("gz").touch().writeText("content") }.gzip() },
         { archiveWithSingleFile("gz").apply { copyTo(removeExtensions("gz")) }.gunzip() },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThrows<FileAlreadyExistsException> { call() }
         }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { singleFile().apply { addExtensions("gz").touch().writeText("content") }.gzip(overwrite = true) },
         { archiveWithSingleFile("gz").apply { copyTo(removeExtensions("gz")) }.gunzip(overwrite = true) },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThat(call()).exists()
         }
     }
 
     @Test
-    fun `should gzip and gunzip`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should gzip and gunzip`(simpleId: SimpleId) = withTempDir(simpleId) {
         val file: Path = singleFile()
         file.requireNotEmpty()
 

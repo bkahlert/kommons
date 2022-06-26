@@ -1,11 +1,8 @@
 package com.bkahlert.kommons.text.styling
 
-import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.asCodePointSequence
-import com.bkahlert.kommons.text.codePointCount
 import com.bkahlert.kommons.text.repeat
 import com.bkahlert.kommons.text.styling.Borders.Block
 import com.bkahlert.kommons.text.styling.Borders.Double
@@ -83,7 +80,24 @@ import com.bkahlert.kommons.text.styling.Borders.SpikedOutward
  *  ◺△△△△△△△△◿
  * ```
  */
-public enum class Borders(private val matrix: String) : CharSequence by matrix {
+public enum class Borders(
+    /** Top left corner string */
+    public val tl: String,
+    /** Top center string */
+    public val tc: String,
+    /** Top right corner string */
+    public val tr: String,
+    /** Center left string */
+    public val cl: String,
+    /** Center right string */
+    public val cr: String,
+    /** Bottom left corner string */
+    public val bl: String,
+    /** Bottom center string */
+    public val bc: String,
+    /** Bottom right corner string */
+    public val br: String,
+) : CharSequence by "$tl$tc$tr$LF$cl $cr$LF$bl$bc$br" {
 
     /**
      * ```
@@ -92,13 +106,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  └────────┘
      * ```
      */
-    Light(
-        """
-        ┌─┐
-        │ │
-        └─┘
-    """.trimIndent()
-    ),
+    Light("┌", "─", "┐", "│", "│", "└", "─", "┘"),
 
     /**
      * ```
@@ -107,13 +115,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ┗━━━━━━━━┛
      * ```
      */
-    Heavy(
-        """
-        ┏━┓
-        ┃ ┃
-        ┗━┛
-    """.trimIndent()
-    ),
+    Heavy("┏", "━", "┓", "┃", "┃", "┗", "━", "┛"),
 
     /**
      * ```
@@ -122,13 +124,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ██████████
      * ```
      */
-    Block(
-        """
-        ███
-        █ █
-        ███
-    """.trimIndent()
-    ),
+    Block("█", "█", "█", "█", "█", "█", "█", "█"),
 
     /**
      * ```
@@ -137,13 +133,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ╚════════╝
      * ```
      */
-    Double(
-        """
-        ╔═╗
-        ║ ║
-        ╚═╝
-    """.trimIndent()
-    ),
+    Double("╔", "═", "╗", "║", "║", "╚", "═", "╝"),
 
     /**
      * ```
@@ -152,13 +142,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ╰────────╯
      * ```
      */
-    Rounded(
-        """
-        ╭─╮
-        │ │
-        ╰─╯
-    """.trimIndent()
-    ),
+    Rounded("╭", "─", "╮", "│", "│", "╰", "─", "╯"),
 
     /**
      * ```
@@ -167,13 +151,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  └┈┄┄┄┄┄┄┄┘
      * ```
      */
-    LightDotted(
-        """
-        ┌┄┐
-        ┊ ┊
-        └┈┘
-    """.trimIndent()
-    ),
+    LightDotted("┌", "┄", "┐", "┊", "┊", "└", "┈", "┘"),
 
     /**
      * ```
@@ -182,13 +160,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ┗╍╍╍╍╍╍╍╍┛
      * ```
      */
-    HeavyDotted(
-        """
-        ┏╍┓
-        ┇ ┇
-        ┗╍┛
-    """.trimIndent()
-    ),
+    HeavyDotted("┏", "╍", "┓", "┇", "┇", "┗", "╍", "┛"),
 
     /**
      * ```
@@ -197,13 +169,7 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ▽▽▽▽▽▽▽▽
      * ```
      */
-    SpikedOutward(
-        """
-         △ 
-        ◁ ▷
-         ▽ 
-    """.trimIndent()
-    ),
+    SpikedOutward(" ", "△", " ", "◁", "▷", " ", "▽", " "),
 
     /**
      * ```
@@ -212,32 +178,14 @@ public enum class Borders(private val matrix: String) : CharSequence by matrix {
      *  ◺△△△△△△△△◿
      * ```
      */
-    SpikedInward(
-        """
-        ◸▽◹
-        ▷ ◁
-        ◺△◿
-    """.trimIndent()
-    ),
+    SpikedInward("◸", "▽", "◹", "▷", "◁", "◺", "△", "◿"),
     ;
-
-    init {
-        val lines = matrix.lines()
-        check(lines.size == 3) { "Matrix must have exactly 3 lines. Only ${lines.size} found." }
-        lines.onEach { line ->
-            check(line.codePointCount == 3) {
-                "Each line of the matrix must consist of exactly 3 characters. Instead " +
-                    line.asCodePointSequence().map { "$it" + ":" + it.string }.toList() +
-                    " found in $line."
-            }
-        }
-    }
 }
 
 
 /**
  * Centers this [CharSequence] and the specified [padding] and puts a [formatter] styled [border] (see [Borders] for predefined one) around it.
- * Furthermore a [margin] can be set to distance the bordered text.
+ * Furthermore, a [margin] can be set to distance the bordered text.
  */
 public fun <T : CharSequence> T.wrapWithBorder(
     border: CharSequence = Rounded,
@@ -274,7 +222,7 @@ public fun <T : CharSequence> Iterable<T>.wrapWithBorder(
     padding: Int = 2,
     margin: Int = 1,
     formatter: FilteringFormatter<CharSequence> = FilteringFormatter.ToCharSequence,
-): String = joinToString(LineSeparators.Default).wrapWithBorder(border, padding, margin, formatter)
+): String = joinToString(LF).wrapWithBorder(border, padding, margin, formatter)
 
 public class Draw(public val text: CharSequence) {
     public val border: Border get() = Border()

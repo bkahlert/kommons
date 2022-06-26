@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.test.TextFixture
+import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -10,7 +10,7 @@ class RedirectingOutputStreamTest {
 
     @Test
     fun `should redirect`() {
-        val text = TextFixture.text
+        val text = UnicodeTextDocumentFixture.contents
         val captured = mutableListOf<ByteArray>()
         text.byteInputStream().copyTo(RedirectingOutputStream { captured.add(it) })
         expectThat(captured.joinToString("") { it.decodeToString() }).isEqualTo(text)
@@ -18,7 +18,7 @@ class RedirectingOutputStreamTest {
 
     @Test
     fun `should redirect non latin`() {
-        val text = TextFixture.text
+        val text = UnicodeTextDocumentFixture.contents
         val captured = mutableListOf<ByteArray>()
         text.byteInputStream().copyTo(RedirectingOutputStream { captured.add(it) })
         expectThat(captured.joinToString("") { it.decodeToString() }).isEqualTo(text)

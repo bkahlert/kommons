@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Formatter.Companion.ToCharSequence
-import com.bkahlert.kommons.text.LineSeparators
 
 /**
  * A style is a simple generalization attempt
@@ -75,5 +75,5 @@ public interface Style {
         apply { text.forEach { if (it != null) append(it) } }
 
     public fun StringBuilder.appendLine(vararg text: CharSequence?): StringBuilder =
-        apply { append(*text, LineSeparators.DEFAULT) }
+        apply { append(*text, LineSeparators.Default) }
 }

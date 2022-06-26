@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.LF
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEmpty
@@ -10,7 +10,7 @@ class IndentKtTest {
 
     @Test
     fun `should return indent`() {
-        val whitespaces = Unicode.whitespaces.filter { it.isWhitespace() }.joinToString("")
+        val whitespaces = UnicodeOld.whitespaces.filter { it.isWhitespace() }.joinToString("")
         expectThat("${whitespaces}X".indent).isEqualTo(whitespaces)
     }
 

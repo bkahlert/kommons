@@ -3,8 +3,8 @@ package com.bkahlert.kommons.io.path
 import com.bkahlert.kommons.createTempDirectory
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.delete
-import com.bkahlert.kommons.io.copyToDirectory
-import com.bkahlert.kommons.test.HtmlFixture
+import com.bkahlert.kommons.test.copyToDirectory
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -31,7 +31,7 @@ class ConditionsKtTest {
 
             @Test
             fun `should return false on non-empty`(@TempDir tempDir: Path) {
-                expectThat(HtmlFixture.copyToDirectory(tempDir)).not { isEmpty() }
+                expectThat(HtmlDocumentFixture.copyToDirectory(tempDir)).not { isEmpty() }
             }
         }
 
@@ -72,7 +72,7 @@ class ConditionsKtTest {
         inner class WithFile {
             @Test
             fun `should return true on non-empty`(@TempDir tempDir: Path) {
-                expectThat(HtmlFixture.copyToDirectory(tempDir)).isNotEmpty()
+                expectThat(HtmlDocumentFixture.copyToDirectory(tempDir)).isNotEmpty()
             }
 
             @Test

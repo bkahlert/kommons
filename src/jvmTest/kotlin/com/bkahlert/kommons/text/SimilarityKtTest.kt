@@ -1,11 +1,10 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.randomString
-import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Slow
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testOld
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.unit.bytes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
@@ -15,6 +14,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
 import strikt.assertions.isLessThanOrEqualTo
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 class SimilarityKtTest {
@@ -61,7 +61,7 @@ class SimilarityKtTest {
 
         @TestFactory @Slow
         fun `should calculate fuzzy distance between similar strings`() = testOld(
-            (HtmlFixture.text.repeat(200) + "abc") to ("xyz" + HtmlFixture.text.repeat(200))
+            (HtmlDocumentFixture.contents.repeat(200) + "abc") to ("xyz" + HtmlDocumentFixture.contents.repeat(200))
         ) { (a, b) ->
             a asserting { fuzzyLevenshteinDistance(b).isLessThan(0.05) }
             expecting { measureTime { expectThat(a).fuzzyLevenshteinDistance(b) } } that { isLessThanOrEqualTo(8.seconds) }

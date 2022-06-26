@@ -2,21 +2,16 @@
 
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.ExecAttributes
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.expectThrows
-import com.bkahlert.kommons.test.testEachOld
-import com.bkahlert.kommons.test.toStringIsEqualTo
+import com.bkahlert.kommons.test.junit.testEach
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.prefixLinesWith
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.TextWidthRequiring
-import com.bkahlert.kommons.text.lines
-import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.NOOP
 import com.bkahlert.kommons.tracing.SpanId
@@ -29,17 +24,18 @@ import com.bkahlert.kommons.tracing.rendering.RenderingAttributes.Keys.DESCRIPTI
 import com.bkahlert.kommons.tracing.rendering.Styles.Dotted
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.inspectors.forAny
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEmpty
+import io.kotest.matchers.string.shouldStartWith
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expectThat
-import strikt.assertions.any
-import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
-import strikt.assertions.isGreaterThan
-import strikt.assertions.length
-import strikt.assertions.startsWith
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class BlockRendererTest {
 
@@ -53,30 +49,30 @@ class BlockRendererTest {
     private val settings = Settings(style = None)
 
     @Smoke @TestFactory
-    fun TestSpanScope.`should render using styles`() = testEachOld(
+    fun TestSpanScope.`should render using styles`() = testEach(
         Solid to """
             ╭──╴One Two Three
             │
             │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR SADIPSC     LOREM IPSUM DOLOR SIT AME
-            │   ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING 
+            │   ING ELITR, SED DIAM NONUMY EIRMOD.                 T, CONSETETUR SADIPSCING
             │                                                      ELITR, SED DIAM NONUMY EI
-            │                                                      RMOD.                    
+            │                                                      RMOD.
             │   ╭──╴child-span
             │   │
             │   │   LOREM IPSUM DOLOR SIT AMET, CONSETETUR SAD     LOREM IPSUM DOLOR SIT AME
-            │   │   IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING 
+            │   │   IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING
             │   │                                                  ELITR, SED DIAM NONUMY EI
-            │   │                                                  RMOD.                    
+            │   │                                                  RMOD.
             │   │   ╭──╴child-span
             │   │   │
             │   │   │   LOREM IPSUM DOLOR SIT AMET, CONSETETU     LOREM IPSUM DOLOR SIT AMET
             │   │   │   R SADIPSCING ELITR, SED DIAM NONUMY E     , CONSETETUR SADIPSCING EL
             │   │   │   IRMOD.                                    ITR, SED DIAM NONUMY EIRMO
-            │   │   │                                             D.                        
+            │   │   │                                             D.
             │   │   ϟ
-            │   │   ╰──╴RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
+            │   │   ╰──╴RuntimeException: Now Panic! at.(BlockRendererTest.kt:*)
             │   ϟ
-            │   ╰──╴RuntimeException: message at.(BlockRendererTest.kt:{})
+            │   ╰──╴RuntimeException: message at.(BlockRendererTest.kt:*)
             │
             ╰──╴✔︎
         """.trimIndent(),
@@ -96,8 +92,8 @@ class BlockRendererTest {
             · · · SCING ELITR, SED DIAM NONUMY EIRMOD.             T, CONSETETUR SADIPSCING
             · · ·                                                  ELITR, SED DIAM NONUMY EI
             · · ·                                                  RMOD.
-            · · ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
-            · ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
+            · · ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:*)
+            · ϟ RuntimeException: message at.(BlockRendererTest.kt:*)
             ✔︎
         """.trimIndent(),
         None to """
@@ -116,8 +112,8 @@ class BlockRendererTest {
                     IPSCING ELITR, SED DIAM NONUMY EIRMOD.         T, CONSETETUR SADIPSCING
                                                                    ELITR, SED DIAM NONUMY EI
                                                                    RMOD.
-                    ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:{})
-                ϟ RuntimeException: message at.(BlockRendererTest.kt:{})
+                    ϟ RuntimeException: Now Panic! at.(BlockRendererTest.kt:*)
+                ϟ RuntimeException: message at.(BlockRendererTest.kt:*)
             ✔︎
         """.trimIndent(),
     ) { (style, expected) ->
@@ -149,7 +145,7 @@ class BlockRendererTest {
                 end(Result.success(true))
             }
         }
-        expecting { rendered } that { matchesCurlyPattern(expected) }
+        rendered shouldMatchGlob expected
     }
 
     @Nested
@@ -158,18 +154,16 @@ class BlockRendererTest {
         @Test
         fun TestSpanScope.`should render name`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).start("name") }
-            expectThat(rendered).matchesCurlyPattern("name")
+            rendered shouldMatchGlob "name"
         }
 
         @Test
         fun TestSpanScope.`should render multi-line name`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).start("line #1\nline #2") }
-            expectThat(rendered.ansiRemoved).isEqualTo(
-                """
+            rendered.ansiRemoved shouldBe """
                 line #1
                 line #2
             """.trimIndent()
-            )
         }
     }
 
@@ -182,41 +176,37 @@ class BlockRendererTest {
             @Test
             fun TestSpanScope.`should render one plain event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(printer = it)).log(plain80) }
-                expectThat(rendered).isEqualTo(plain80)
+                rendered shouldBe plain80
             }
 
             @AnsiRequiring @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(printer = it)).log(ansi80) }
-                expectThat(rendered).isEqualTo(ansi80)
+                rendered shouldBe ansi80
             }
 
             @Test
             fun TestSpanScope.`should not render event without matching column`() {
                 val rendered = capturing { BlockRenderer(settings.copy(printer = it)).event("unknown", RenderableAttributes.EMPTY) }
-                expectThat(rendered).isEmpty()
+                rendered.shouldBeEmpty()
             }
 
             @Test
             fun TestSpanScope.`should wrap too long plain event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(plain80) }
-                expectThat(rendered).isEqualTo(
-                    """
-                        Lorem ipsum dolor sit amet, consetetur s
-                        adipscing elitr, sed diam nonumy eirmod.
-                    """.trimIndent()
-                )
+                rendered shouldBe """
+                    Lorem ipsum dolor sit amet, consetetur s
+                    adipscing elitr, sed diam nonumy eirmod.
+                """.trimIndent()
             }
 
             @AnsiRequiring @Test
             fun TestSpanScope.`should wrap too long ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it)).log(ansi80) }
-                expectThat(rendered).isEqualTo(
-                    """
-                        [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m amet, [94mconsetetur s[39m
-                        [94madipscing[39m elitr, sed diam nonumy eirmod.
-                    """.trimIndent()
-                )
+                rendered shouldBe """
+                    [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m amet, [94mconsetetur s[39m
+                    [94madipscing[39m elitr, sed diam nonumy eirmod.
+                """.trimIndent()
             }
 
             @Test
@@ -225,7 +215,7 @@ class BlockRendererTest {
                     BlockRenderer(settings.copy(layout = ColumnsLayout(totalWidth = 40), printer = it))
                         .log("https://1234567890.1234567890.1234567890.1234567890")
                 }
-                expectThat(rendered).isEqualTo("https://1234567890.1234567890.1234567890.1234567890")
+                rendered shouldBe "https://1234567890.1234567890.1234567890.1234567890"
             }
 
             @Test
@@ -234,7 +224,7 @@ class BlockRendererTest {
                 val rendered = capturing {
                     BlockRenderer(settings.copy(layout = ColumnsLayout(DESCRIPTION columns 5), printer = it)).log(rendereable)
                 }
-                expectThat(rendered).matchesCurlyPattern("! 5 x$LF null")
+                rendered shouldMatchGlob "! 5 x$LF null"
             }
         }
 
@@ -247,35 +237,31 @@ class BlockRendererTest {
             fun TestSpanScope.`should render one plain event`() {
                 val rendered =
                     capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(plain80, EXTRA to plain80) }
-                expectThat(rendered).isEqualTo(
-                    """
+                rendered shouldMatchGlob """
                         Lorem ipsu     Lorem ipsum dolor sit ame
-                        m dolor si     t, consetetur sadipscing 
+                        m dolor si     t, consetetur sadipscing
                         t amet, co     elitr, sed diam nonumy ei
-                        nsetetur s     rmod.                    
-                        adipscing      
-                        elitr, sed     
-                         diam nonu     
-                        my eirmod.     
+                        nsetetur s     rmod.
+                        adipscing
+                        elitr, sed
+                         diam nonu
+                        my eirmod.
                     """.trimIndent()
-                )
             }
 
             @AnsiRequiring @Smoke @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, EXTRA to ansi80) }
-                expectThat(rendered).isEqualTo(
-                    """
-                        [4m[3mLorem ipsu[24;23m     [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m ame
-                        [4;3mm [36mdolor[39m si[24;23m     t, [94mconsetetur sadipscing[39m 
+                rendered shouldMatchGlob """
+                [4m[3mLorem ipsu[24;23m     [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m ame
+                        [4;3mm [36mdolor[39m si[24;23m     t, [94mconsetetur sadipscing[39m
                         [4;3mt[23m[24m amet, [94mco[39m     elitr, sed diam nonumy ei
-                        [94mnsetetur s[39m     rmod.                    
-                        [94madipscing[39m      
-                        elitr, sed     
-                         diam nonu     
-                        my eirmod.     
+                        [94mnsetetur s[39m     rmod.
+                        [94madipscing[39m
+                        elitr, sed
+                         diam nonu
+                        my eirmod.
                     """.trimIndent()
-                )
             }
 
             @Test
@@ -286,20 +272,18 @@ class BlockRendererTest {
                         RenderableAttributes.of(ExecAttributes.NAME to "?")
                     )
                 }
-                expectThat(rendered).isEmpty()
+                rendered.shouldBeEmpty()
             }
 
             @AnsiRequiring @Test
             fun TestSpanScope.`should leave column empty on missing attribute`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80) }
-                expectThat(rendered).isEqualTo(
-                    """
+                rendered shouldBe """
                        [4m[3mLorem ipsum [36mdolor[39m sit[23m[24m ame
-                       t, [94mconsetetur sadipscing[39m 
+                       t, [94mconsetetur sadipscing[39m
                        elitr, sed diam nonumy ei
-                       rmod.                    
-                   """.trimIndent().prefixLinesWith("               ")
-                )
+                       rmod.
+                   """.trimIndent().prependIndent("               ")
             }
 
             @Test
@@ -310,14 +294,12 @@ class BlockRendererTest {
                         EXTRA to "https://1234567890.1234567890.1234567890.1234567890"
                     )
                 }
-                expectThat(rendered).isEqualTo(
-                    """
+                rendered shouldBe """
                         https://1234567890.1234567890.1234567890.1234567890Lorem ipsum dolor sit ame
-                                       t, consetetur sadipscing 
+                                       t, consetetur sadipscing
                                        elitr, sed diam nonumy ei
-                                       rmod.                    
+                                       rmod.
                     """.trimIndent()
-                )
             }
 
             @Test
@@ -327,7 +309,7 @@ class BlockRendererTest {
                     BlockRenderer(settings.copy(layout = ColumnsLayout(DESCRIPTION columns 5, EXTRA columns 4), printer = it))
                         .log(rendereable, EXTRA to rendereable)
                 }
-                expectThat(rendered).isEqualTo("! 5 x null! 4 x null")
+                rendered shouldBe "! 5 x null! 4 x null"
             }
 
             @Test
@@ -338,13 +320,11 @@ class BlockRendererTest {
                     BlockRenderer(settings.copy(layout = format, printer = it))
                         .log(plain80, EXTRA to "foo-bar", durationKey to 2.seconds)
                 }
-                expectThat(rendered).isEqualTo(
-                    """
+                rendered shouldBe """
                         foo-bar       2s           Lorem ipsum dolor sit amet, conse
-                                                   tetur sadipscing elitr, sed diam 
-                                                   nonumy eirmod.                   
+                                                   tetur sadipscing elitr, sed diam
+                                                   nonumy eirmod.
                     """.trimIndent()
-                )
             }
 
 
@@ -355,14 +335,12 @@ class BlockRendererTest {
                         BlockRenderer(settings.copy(layout = twoColsLayout, printer = it))
                             .exception(RuntimeException("ex"), RenderableAttributes.of(EXTRA to plain80))
                     }
-                expectThat(rendered).matchesCurlyPattern(
-                    """
+                rendered shouldMatchGlob """
                         Lorem ipsu     java.lang.RuntimeException: ex
-                        m dolor si     	at com.bkahlert.kommons.tracing.rendering.BlockRendererTest{}
-                        t amet, co     	at com.bkahlert.kommons.tracing.rendering.BlockRendererTest{}
-                        {{}}
+                        m dolor si     	at com.bkahlert.kommons.tracing.rendering.BlockRendererTest*
+                        t amet, co     	at com.bkahlert.kommons.tracing.rendering.BlockRendererTest*
+                        **
                     """.trimIndent()
-                )
             }
 
             @Test
@@ -370,9 +348,9 @@ class BlockRendererTest {
                 val rendered = capturing {
                     BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).exception(RuntimeException("ex"), RenderableAttributes.EMPTY)
                 }
-                expectThat(rendered) {
-                    startsWith("java.lang.RuntimeException: ex".ansi.red)
-                    lines().any { length.isGreaterThan(40) }
+                rendered should {
+                    it shouldStartWith "java.lang.RuntimeException: ex".ansi.red
+                    it.lines().forAny { it.length shouldBeGreaterThan 40 }
                 }
             }
 
@@ -384,15 +362,13 @@ class BlockRendererTest {
                         log("1234567890".repeat(7))
                     }
                 }
-                expectThat(rendered).isEqualTo(
-                    """
+                rendered shouldBe """
                         🟥🟧🟨🟩🟦     🔴🟠🟡🟢🔵🟣
-                        🟪             
+                        🟪
                                        1234567890123456789012345
                                        6789012345678901234567890
-                                       12345678901234567890     
+                                       12345678901234567890
                     """.trimIndent()
-                )
             }
         }
     }
@@ -403,13 +379,13 @@ class BlockRendererTest {
         @Test
         fun TestSpanScope.`should render success`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).end(Result.success(true)) }
-            expectThat(rendered.ansiRemoved).isEqualTo("✔︎")
+            rendered.ansiRemoved shouldBe "✔︎"
         }
 
         @Test
         fun TestSpanScope.`should render exception`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).end(Result.failure<Unit>(RuntimeException("failed"))) }
-            expectThat(rendered.ansiRemoved).matchesCurlyPattern("ϟ RuntimeException: failed at.(BlockRendererTest.kt:{})")
+            rendered shouldMatchGlob "ϟ RuntimeException: failed at.(BlockRendererTest.kt:*)"
         }
     }
 
@@ -430,23 +406,21 @@ class BlockRendererTest {
                     log("1234567890".repeat(10))
                 }
             }
-            expectThat(rendered).toStringIsEqualTo(
-                """
+            rendered shouldBe """
                 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-                12345678901234567890                                                            
+                12345678901234567890
                         123456789012345678901234567890123456789012345678901234567890123456789012
-                        3456789012345678901234567890                                            
+                        3456789012345678901234567890
                     1234567890123456789012345678901234567890123456789012345678901234567890123456
-                    789012345678901234567890                                                    
+                    789012345678901234567890
                 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-                12345678901234567890                                                            
+                12345678901234567890
             """.trimIndent()
-            )
         }
 
         @Test
         fun TestSpanScope.`should throw if left column has no more space`() {
-            expectThrows<IllegalArgumentException> {
+            shouldThrow<IllegalArgumentException> {
                 capturing {
                     BlockRenderer(
                         settings.copy(
@@ -477,13 +451,11 @@ class BlockRendererTest {
                     log("baz")
                 }
             }
-            expectThat(rendered).matchesCurlyPattern(
-                """
+            rendered shouldMatchGlob """
                 foo
                     !bar!
                 baz
             """.trimIndent()
-            )
         }
 
         @AnsiRequiring @Test
@@ -493,10 +465,8 @@ class BlockRendererTest {
                     .childRenderer()
                     .end(Result.success(ReturnValue.successful("line 1${LF}line2") { formattedAs.debug }))
             }
-            expectThat(rendered).isEqualTo(
-                "    \u001B[32m✔︎\u001B[39m \u001B[96mline 1\u001B[39m\n" +
-                    "    \u001B[96mline2\u001B[39m"
-            )
+            rendered shouldBe "    \u001B[32m✔︎\u001B[39m \u001B[96mline 1\u001B[39m\n" +
+                "    \u001B[96mline2\u001B[39m"
         }
     }
 }

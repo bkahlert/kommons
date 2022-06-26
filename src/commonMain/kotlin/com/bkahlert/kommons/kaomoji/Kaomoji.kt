@@ -1,13 +1,12 @@
 package com.bkahlert.kommons.kaomoji
 
+import com.bkahlert.kommons.CodePoint
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.asCodePointSequence
+import com.bkahlert.kommons.codePointCount
 import com.bkahlert.kommons.takeIfNotBlank
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.CodePoint
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.lines
-import com.bkahlert.kommons.text.asCodePointSequence
-import com.bkahlert.kommons.text.charCount
-import com.bkahlert.kommons.text.codePointCount
 import com.bkahlert.kommons.text.columns
 import com.bkahlert.kommons.text.maxLength
 import com.bkahlert.kommons.text.padEnd
@@ -27,12 +26,12 @@ public data class Kaomoji(
 ) : CharSequence {
 
     private constructor(
-        leftArm: Pair<CharSequence, Int>,
-        leftEye: Pair<CharSequence, Int>,
-        mouth: Pair<CharSequence, Int>,
-        rightEye: Pair<CharSequence, Int>,
-        rightArm: Pair<CharSequence, Int>,
-        accessory: Pair<CharSequence, Int>,
+        leftArm: Pair<String, Int>,
+        leftEye: Pair<String, Int>,
+        mouth: Pair<String, Int>,
+        rightEye: Pair<String, Int>,
+        rightArm: Pair<String, Int>,
+        accessory: Pair<String, Int>,
     ) : this(
         "${leftArm.first}${leftEye.first}${mouth.first}${rightEye.first}${rightArm.first}${accessory.first}",
         0 until leftArm.second,
@@ -44,27 +43,27 @@ public data class Kaomoji(
     )
 
     public constructor(
-        leftArm: CharSequence,
-        leftEye: CharSequence,
-        mouth: CharSequence,
-        rightEye: CharSequence,
-        rightArm: CharSequence,
-        accessory: CharSequence = "",
+        leftArm: String,
+        leftEye: String,
+        mouth: String,
+        rightEye: String,
+        rightArm: String,
+        accessory: String = "",
     ) : this(
-        leftArm to leftArm.codePointCount,
-        leftEye to leftEye.codePointCount,
-        mouth to mouth.codePointCount,
-        rightEye to rightEye.codePointCount,
-        rightArm to rightArm.codePointCount,
-        accessory to accessory.codePointCount,
+        leftArm to leftArm.codePointCount(),
+        leftEye to leftEye.codePointCount(),
+        mouth to mouth.codePointCount(),
+        rightEye to rightEye.codePointCount(),
+        rightArm to rightArm.codePointCount(),
+        accessory to accessory.codePointCount(),
     )
 
-    public val leftArm: CharSequence get() = leftArmRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
-    public val leftEye: CharSequence get() = leftEyeRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
-    public val mouth: CharSequence get() = mouthRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
-    public val rightEye: CharSequence get() = rightEyeRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
-    public val rightArm: CharSequence get() = rightArmRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
-    public val accessory: CharSequence get() = accessoryRange.takeUnless { it.isEmpty() }?.let { kaomojiString.subSequence(it) } ?: ""
+    public val leftArm: String get() = leftArmRange.takeUnless { it.isEmpty() }?.let { kaomojiString.substring(it) } ?: ""
+    public val leftEye: String get() = leftEyeRange.takeUnless { it.isEmpty() }?.let { kaomojiString.substring(it) } ?: ""
+    public val mouth: String get() = mouthRange.takeUnless { it.isEmpty() }?.let { kaomojiString.substring(it) } ?: ""
+    public val rightEye: String get() = rightEyeRange.takeUnless { it.isEmpty() }?.let { kaomojiString.substring(it) } ?: ""
+    public val rightArm: String get() = rightArmRange.takeUnless { it.isEmpty() }?.let { kaomojiString.substring(it) } ?: ""
+    public val accessory: String get() = accessoryRange.takeUnless { it.isEmpty() }?.let { kaomojiString.substring(it) } ?: ""
     private val string = "$leftArm$leftEye$mouth$rightEye$rightArm$accessory"
 
     public fun random(): Kaomoji = Generator.random(

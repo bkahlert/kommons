@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.text.Unicode
+import com.bkahlert.kommons.CodePoint
 import com.bkahlert.kommons.text.Whitespaces
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -16,7 +16,7 @@ class NonPrintableKtTest {
 
     @Test
     fun `should replace control characters`() {
-        expectThat((0 until 32).map { i -> Unicode[i] }.joinToString(" ").replaceNonPrintableCharacters())
+        expectThat((0 until 32).map { i -> CodePoint(i) }.joinToString(" ").replaceNonPrintableCharacters())
             .isEqualTo("␀ ␁ ␂ ␃ ␄ ␅ ␆ ␇ ␈ ␉ ⏎␊ ␋ ␌ ⏎␍ ␎ ␏ ␐ ␑ ␒ ␓ ␔ ␕ ␖ ␗ ␘ ␙ ␚ ␛ ␜ ␝ ␞ ␟")
     }
 
@@ -29,7 +29,7 @@ class NonPrintableKtTest {
     @Test
     fun `should replace zero width white spaces`() {
         expectThat(Whitespaces.ZeroWidthWhitespaces.keys.joinToString(" ").replaceNonPrintableCharacters())
-            .isEqualTo("❲MONGOLIAN VOWEL SEPARATOR❳ ❲ZERO WIDTH SPACE❳ ❲ZERO WIDTH NO BREAK SPACE❳")
+            .isEqualTo("❲MONGOLIAN VOWEL SEPARATOR❳ ❲ZERO WIDTH SPACE❳ ❲ZERO WIDTH NO-BREAK SPACE❳")
     }
 
     @Test

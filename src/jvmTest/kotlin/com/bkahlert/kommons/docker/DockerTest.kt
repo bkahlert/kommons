@@ -1,19 +1,14 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.docker.TestImages.BusyBox
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.inspectors.forAny
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import strikt.api.expectCatching
-import strikt.api.expectThat
-import strikt.assertions.any
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isNull
-import strikt.assertions.isSuccess
-import strikt.assertions.isTrue
 
 class DockerTest {
 
@@ -22,13 +17,13 @@ class DockerTest {
 
         @Test
         fun `should not throw`() {
-            expectCatching { Docker.isInstalled }.isSuccess()
+            shouldNotThrowAny { Docker.isInstalled }
         }
     }
 
     @DockerRequiring @Test
     fun `should return true if engine is running`() {
-        expectThat(Docker.engineRunning).isTrue()
+        Docker.engineRunning shouldBe true
     }
 
     @Nested
@@ -36,12 +31,12 @@ class DockerTest {
 
         @DockerRequiring @Test
         fun `should return info for existing key`() {
-            expectThat(Docker.info["server.server-version"]).toStringMatchesCurlyPattern("{}.{}.{}")
+            Docker.info["server.server-version"].toString() shouldMatchGlob "*.*.*"
         }
 
         @DockerRequiring @Test
         fun `should return null for unknown key`() {
-            expectThat(Docker.info["unknown.key"]).isNull()
+            Docker.info["unknown.key"] shouldBe null
         }
     }
 
@@ -50,12 +45,12 @@ class DockerTest {
 
         @Test
         fun `should build instances`() {
-            expectThat(Docker.images { "hello-world" }).isEqualTo(TestImages.HelloWorld)
+            Docker.images { "hello-world" } shouldBe TestImages.HelloWorld
         }
 
         @Test
         fun `should provide commands`() {
-            expectCatching { Docker.images.list() }.isSuccess()
+            shouldNotThrowAny { Docker.images.list() }
         }
     }
 
@@ -64,12 +59,12 @@ class DockerTest {
 
         @Test
         fun `should build instances`() {
-            expectThat(Docker.containers { "docker-container".sanitized }).isEqualTo(DockerContainer("docker-container"))
+            Docker.containers { "docker-container".sanitized } shouldBe DockerContainer("docker-container")
         }
 
         @DockerRequiring @Test
         fun `should provide commands`() {
-            expectCatching { Docker.containers.list() }.isSuccess()
+            shouldNotThrowAny { Docker.containers.list() }
         }
     }
 
@@ -79,24 +74,24 @@ class DockerTest {
         @ContainersTest
         fun `should return true if container is running`(testContainers: TestContainers) {
             val container = testContainers.newRunningTestContainer()
-            expectThat(Docker(container.name).isRunning).isTrue()
+            Docker(container.name).isRunning shouldBe true
         }
 
         @ContainersTest
         fun `should return false if container exited`(testContainers: TestContainers) {
             val container = testContainers.newExitedTestContainer()
-            expectThat(Docker(container.name).isRunning).isFalse()
+            Docker(container.name).isRunning shouldBe false
         }
 
         @ContainersTest
         fun `should return false if container does not exist`(testContainers: TestContainers) {
             val container = testContainers.newNotExistentContainer()
-            expectThat(Docker(container.name).isRunning).isFalse()
+            Docker(container.name).isRunning shouldBe false
         }
     }
 
     @DockerRequiring @Test
-    fun `should search`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(Docker.search("busybox")).any { image.isEqualTo(BusyBox) }
+    fun `should search`(simpleId: SimpleId) = withTempDir(simpleId) {
+        Docker.search("busybox").forAny { it.image shouldBe BusyBox }
     }
 }

@@ -2,7 +2,7 @@ package com.bkahlert.kommons
 
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode.OnStart
 import com.bkahlert.kommons.io.path.selfCleaning
-import com.bkahlert.kommons.test.HtmlFixture
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Text
 import com.bkahlert.kommons.text.styling.draw
@@ -42,7 +42,7 @@ fun printTestExecutionStatus(vararg lines: CharSequence, formatBorder: Text.() -
  */
 fun <R> http(
     port: Int = 8000,
-    responseText: String = HtmlFixture.text,
+    responseText: String = HtmlDocumentFixture.contents,
     block: () -> R,
 ): R {
     val engine = embeddedServer(Netty, port = port) {

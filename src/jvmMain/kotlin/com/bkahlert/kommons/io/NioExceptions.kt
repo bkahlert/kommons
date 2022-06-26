@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.io.path.pathString
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystemException
 import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
+import kotlin.io.path.pathString
 
 /**
  * Constructs an instance of [NotDirectoryException]

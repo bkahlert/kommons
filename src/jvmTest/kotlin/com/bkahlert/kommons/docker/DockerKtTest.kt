@@ -1,99 +1,95 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.ansiContained
 import com.bkahlert.kommons.docker.Docker.AwesomeCliBinaries
 import com.bkahlert.kommons.docker.Docker.LibRSvg
 import com.bkahlert.kommons.docker.TestImages.BusyBox
 import com.bkahlert.kommons.docker.TestImages.Ubuntu
 import com.bkahlert.kommons.exec.Exec
-import com.bkahlert.kommons.exec.ansiKept
-import com.bkahlert.kommons.exec.ansiRemoved
-import com.bkahlert.kommons.exec.io
 import com.bkahlert.kommons.exec.output
-import com.bkahlert.kommons.io.copyTo
-import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.test.HtmlFixture
+import com.bkahlert.kommons.io.path.getSize
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.SvgFixture
-import com.bkahlert.kommons.test.asserting
-import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.testEachOld
+import com.bkahlert.kommons.test.copyTo
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.test.fixtures.SvgImageFixture
+import com.bkahlert.kommons.test.inputStream
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.junit.testEach
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.containsAnsi
 import com.bkahlert.kommons.unit.bytes
-import com.bkahlert.kommons.unit.hasSize
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.paths.shouldExist
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.assertions.isEqualTo
-import strikt.assertions.isGreaterThan
-import strikt.assertions.length
-import strikt.java.exists
-import strikt.java.fileName
 import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
+import kotlin.io.path.pathString
 
 class DockerKtTest {
 
     /**
      * Creates a temporary directory with an HTML file inside.
-     * @param uniqueId used to make guarantee an isolated directory
+     * @param simpleId used to make guarantee an isolated directory
      * @param block run with the temporary directory as the receiver and the name of the HTML file as its argument
      */
-    private fun withHtmlFile(uniqueId: UniqueId, block: Path.(String) -> Unit) {
-        withTempDir(uniqueId) {
-            HtmlFixture.copyTo(resolve("index.html"))
+    private fun withHtmlFile(simpleId: SimpleId, block: Path.(String) -> Unit) {
+        withTempDir(simpleId) {
+            HtmlDocumentFixture.copyTo(resolve("index.html"), overwrite = true)
             block("index.html")
         }
     }
 
     @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-    fun `should run using well-known images`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Exec>(
+    fun `should run using well-known images`(simpleId: SimpleId) = testEach(
         { fileName -> ubuntu("cat", fileName) },
         { fileName -> ubuntu { "cat $fileName" } },
         { fileName -> busybox("cat", fileName) },
         { fileName -> busybox { "cat $fileName" } },
-    ) { exec ->
-        withHtmlFile(uniqueId) { name ->
-            expecting { exec(name) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
+    ) { exec: Path.(String) -> Exec ->
+        withHtmlFile(simpleId) { name ->
+            exec(name).io.output.ansiRemoved shouldBe HtmlDocumentFixture.contents
         }
     }
 
     @DockerRequiring([Ubuntu::class]) @TestFactory
-    fun `should run command line`(uniqueId: UniqueId) = testEachOld<Path.(String, String) -> Exec>(
+    fun `should run command line`(simpleId: SimpleId) = testEach(
         { command, args -> docker("ubuntu", command, args) },
         { command, args -> docker({ "ubuntu" }, command, args) },
         { command, args -> docker(Ubuntu, command, args) },
-    ) { exec ->
-        withHtmlFile(uniqueId) { name ->
-            HtmlFixture.copyTo(resolve(name))
-            expecting { exec("cat", name) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
+    ) { exec: Path.(String, String) -> Exec ->
+        withHtmlFile(simpleId) { name ->
+            HtmlDocumentFixture.copyTo(resolve(name), overwrite = true)
+            exec("cat", name).io.output.ansiRemoved shouldBe HtmlDocumentFixture.contents
         }
     }
 
     @DockerRequiring([Ubuntu::class]) @TestFactory
-    fun `should run shell script`(uniqueId: UniqueId) = testEachOld<Path.(ScriptInitWithWorkingDirectory) -> Exec>(
+    fun `should run shell script`(simpleId: SimpleId) = testEach(
         { scriptInit -> docker("busybox") { wd -> scriptInit(wd) } },
         { scriptInit -> docker({ "busybox" }) { wd -> scriptInit(wd) } },
         { scriptInit -> docker(BusyBox) { wd -> scriptInit(wd) } },
-    ) { exec ->
-        withHtmlFile(uniqueId) { name ->
-            HtmlFixture.copyTo(resolve(name))
-            expecting { exec { "cat $name" } } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
+    ) { exec: Path.(ScriptInitWithWorkingDirectory) -> Exec ->
+        withHtmlFile(simpleId) { name ->
+            HtmlDocumentFixture.copyTo(resolve(name), overwrite = true)
+            exec { "cat $name" }.io.output.ansiRemoved shouldBe HtmlDocumentFixture.contents
         }
     }
 
     @DockerRequiring([Ubuntu::class, BusyBox::class]) @TestFactory
-    fun `should pass input stream`(uniqueId: UniqueId) = testEachOld<Path.(InputStream) -> Exec>(
+    fun `should pass input stream`(simpleId: SimpleId) = testEach(
         { fileName -> ubuntu("cat", inputStream = fileName) },
         { fileName -> ubuntu(inputStream = fileName) { "cat" } },
         { fileName -> busybox("cat", inputStream = fileName) },
         { fileName -> busybox(inputStream = fileName) { "cat" } },
         { fileName -> docker(BusyBox, "cat", inputStream = fileName) },
         { fileName -> docker(BusyBox, inputStream = fileName) { "cat" } },
-    ) { exec ->
-        withTempDir(uniqueId) {
-            expecting { exec(HtmlFixture.data.inputStream()) } that { io.output.ansiRemoved.isEqualTo(HtmlFixture.text) }
+    ) { exec: Path.(InputStream) -> Exec ->
+        withTempDir(simpleId) {
+            exec(HtmlDocumentFixture.inputStream()).io.output.ansiRemoved shouldBe HtmlDocumentFixture.contents
         }
     }
 
@@ -103,46 +99,53 @@ class DockerKtTest {
         private val uri = "https://github.com/NicolasCARPi/example-files/raw/master/example.png"
 
         @DockerRequiring @TestFactory
-        fun `should download`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Path>(
+        fun `should download`(simpleId: SimpleId) = testEach(
             { download(it) },
             { download(URI.create(it)) },
-        ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { hasSize(40959.bytes) } } }
+        ) { download: Path.(String) -> Path ->
+            withTempDir(simpleId) { download(uri).getSize() shouldBe 40959.bytes }
+        }
 
         @DockerRequiring @TestFactory
-        fun `should download use given name`(uniqueId: UniqueId) = testEachOld<Path.(String, String) -> Path>(
+        fun `should download use given name`(simpleId: SimpleId) = testEach(
             { uri, name -> download(uri, name) },
             { uri, name -> download(URI.create(uri), name) },
-        ) { download -> withTempDir(uniqueId) { expecting { download(uri, "custom.png") } that { fileName.isEqualTo("custom.png".asPath()) } } }
+        ) { download: Path.(String, String) -> Path ->
+            withTempDir(simpleId) { download(uri, "custom.png").fileName.pathString shouldBe "custom.png" }
+        }
 
         @DockerRequiring @TestFactory
-        fun `should download use remote name`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Path>(
+        fun `should download use remote name`(simpleId: SimpleId) = testEach(
             { download(it) },
             { download(URI.create(it)) },
-        ) { download -> withTempDir(uniqueId) { expecting { download(uri) } that { fileName.isEqualTo("example.png".asPath()) } } }
+        ) { download: Path.(String) -> Path ->
+            withTempDir(simpleId) { download(uri).fileName.pathString shouldBe "example.png" }
+        }
 
         @DockerRequiring @TestFactory
-        fun `should download clean remote name`(uniqueId: UniqueId) = testEachOld<Path.(String) -> Path>(
+        fun `should download clean remote name`(simpleId: SimpleId) = testEach(
             { download(it) },
             { download(URI.create(it)) },
-        ) { download -> withTempDir(uniqueId) { expecting { download("$uri?a=b#c") } that { fileName.isEqualTo("example.png".asPath()) } } }
+        ) { download: Path.(String) -> Path ->
+            withTempDir(simpleId) { download("$uri?a=b#c").fileName.pathString shouldBe "example.png" }
+        }
     }
 
     @Suppress("SpellCheckingInspection")
     @DockerRequiring([LibRSvg::class, AwesomeCliBinaries::class]) @Smoke @Test
-    fun `should run multiple containers`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        SvgFixture.copyTo(resolve("kommons.svg"))
+    fun `should run multiple containers`(simpleId: SimpleId) = withTempDir(simpleId) {
+        SvgImageFixture.copyTo(resolve("kommons.svg"))
 
         docker(LibRSvg, "-z", 10, "--output", "kommons.png", "kommons.svg")
-        resolve("kommons.png") asserting { exists() }
+        resolve("kommons.png").shouldExist()
 
         docker(AwesomeCliBinaries) {
             """
                /opt/bin/chafa kommons.png 
                 """
-        } asserting {
-            io.output.ansiKept
-                .containsAnsi()
-                .length.isGreaterThan(1000)
+        }.io.output.ansiKept should {
+            it.ansiContained shouldBe true
+            it.length shouldBeGreaterThan 1000
         }
     }
 }

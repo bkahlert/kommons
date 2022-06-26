@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.capitalize
 import com.bkahlert.kommons.text.ANSI.Colors
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 

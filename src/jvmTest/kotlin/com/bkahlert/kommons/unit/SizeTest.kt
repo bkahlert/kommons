@@ -3,7 +3,7 @@ package com.bkahlert.kommons.unit
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.io.path.getSize
 import com.bkahlert.kommons.test.expectThrows
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Nested
@@ -228,12 +228,12 @@ class SizeTest {
         private fun Path.createFile(): Path = createTempFile().apply { repeat(2500) { appendText("1234567890") } }
 
         @Test
-        fun `should format size human-readable (10^x)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should format size human-readable (10^x)`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectThat(createFile().getSize().toString(DecimalPrefixes)).isEqualTo("25 KB")
         }
 
         @Test
-        fun `should format size human-readable (2^y)`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should format size human-readable (2^y)`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectThat(createFile().getSize().toString(BinaryPrefixes)).isEqualTo("24.4 KiB")
         }
     }

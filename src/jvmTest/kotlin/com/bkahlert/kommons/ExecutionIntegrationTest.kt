@@ -12,39 +12,36 @@ import com.bkahlert.kommons.exec.error
 import com.bkahlert.kommons.exec.exitCode
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.successful
-import com.bkahlert.kommons.io.copyTo
-import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.SvgFixture
-import com.bkahlert.kommons.test.asserting
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.copyTo
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.test.fixtures.SvgImageFixture
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.ANSI.Colors
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.Styles.Dotted
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
 import com.bkahlert.kommons.tracing.runSpanning
+import io.kotest.inspectors.forAny
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.paths.shouldExist
+import io.kotest.matchers.paths.shouldNotExist
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldHaveLength
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
-import strikt.api.Assertion
-import strikt.api.expectThat
-import strikt.assertions.any
-import strikt.assertions.contains
-import strikt.assertions.containsExactly
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
-import strikt.assertions.length
-import strikt.java.exists
-import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.pathString
 
 @Smoke @Isolated
 class ExecutionIntegrationTest {
@@ -52,12 +49,12 @@ class ExecutionIntegrationTest {
     @Test
     fun `should exec command line`() {
 
-        CommandLine("echo", "Hello World!").exec() check {
+        CommandLine("echo", "Hello World!").exec() should {
 
-            io.output.ansiRemoved { isEqualTo("Hello World!") }
+            it.io.output.ansiRemoved shouldBe "Hello World!"
 
-            exitCode { isEqualTo(0) }
-            successful { isTrue() }
+            it.exitCode shouldBe 0
+            it.successful shouldBe true
         }
     }
 
@@ -72,8 +69,8 @@ class ExecutionIntegrationTest {
         val output = mutableListOf<String>()
         shellScript.exec.processing { _, callback ->
             callback { io -> output.add(io.toString()) }
-        } check {
-            output { containsExactly("Hello, World!", "Hello, Back!") }
+        } should {
+            it.output.lines().shouldContainExactly("Hello, World!", "Hello, Back!")
         }
     }
 
@@ -88,10 +85,9 @@ class ExecutionIntegrationTest {
             contentFormatter = { "${"->".ansi.red} $it" },
             decorationFormatter = Colors.brightRed,
             style = Solid,
-        ) check {
-            expectThatRendered().matchesCurlyPattern(
-                """
-                ╭──╴file://{}.sh
+        ) should {
+            rendered() shouldMatchGlob """
+                ╭──╴file://*.sh
                 │
                 │   -> Countdown!
                 │   -> 10
@@ -109,7 +105,6 @@ class ExecutionIntegrationTest {
                 │
                 ╰──╴✔︎
             """.trimIndent()
-            )
         }
     }
 
@@ -121,23 +116,21 @@ class ExecutionIntegrationTest {
             (10 downTo 7).forEach { echo(it) }
             !"1>&2 echo 'Boom!'"
             !"exit 1"
-        }.exec.logging(renderer = RendererProviders.noDetails { copy(style = None) }) check {
+        }.exec.logging(renderer = RendererProviders.noDetails { copy(style = None) }) should {
 
-            state { isA<Failed>() }
+            it.state.shouldBeInstanceOf<Failed>()
 
-            io.ansiRemoved {
-                matchesCurlyPattern(
-                    """
+            it.io.ansiRemoved shouldMatchGlob """
                 Countdown!
                 10
                 9
                 8
                 7
                 Boom!
-                Process $pid terminated with exit code $exitCode
+                Process ${it.pid} terminated with exit code ${it.exitCode}
                 ➜ A dump has been written to:
-                  - {}kommons/exec/dump--{}.log (unchanged)
-                  - {}kommons/exec/dump--{}.ansi-removed.log (ANSI escape/control sequences removed)
+                  - *kommons/exec/dump--*.log (unchanged)
+                  - *kommons/exec/dump--*.ansi-removed.log (ANSI escape/control sequences removed)
                 ➜ The last 7 lines are:
                   Countdown!
                   10
@@ -145,10 +138,9 @@ class ExecutionIntegrationTest {
                   8
                   7
                   Boom!
-                  Process $pid terminated with exit code $exitCode
+                  Process ${it.pid} terminated with exit code ${it.exitCode}
+
             """.trimIndent()
-                )
-            }
         }
     }
 
@@ -156,51 +148,49 @@ class ExecutionIntegrationTest {
     fun `should be simple`() {
         withTempDirectory {
 
-            ShellScript { "cat sample.html" }.exec(this) check {
-                io.error.ansiRemoved { contains("cat: sample.html: No such file or directory") }
+            ShellScript { "cat sample.html" }.exec(this) should {
+                it.io.error.ansiRemoved shouldContain "cat: sample.html: No such file or directory"
             }
 
-            HtmlFixture.copyTo(resolve("sample.html"))
-            ShellScript { "cat sample.html" }.exec(this) check {
-                io.output.ansiRemoved { length.isEqualTo(HtmlFixture.text.length) }
+            HtmlDocumentFixture.copyTo(resolve("sample.html"))
+            ShellScript { "cat sample.html" }.exec(this) should {
+                it.io.output.ansiRemoved shouldHaveLength HtmlDocumentFixture.contents.length
             }
 
-            listDirectoryEntries().map { it.fileName } check {
-                size { isEqualTo(1) }
-                this {
-                    any { toStringMatchesCurlyPattern("sample.html") }
-                }
+            listDirectoryEntries().map { it.fileName } should {
+                it shouldHaveSize 1
+                it.forAny { it.shouldNotBeNull().pathString shouldBe "sample.html" }
             }
 
             deleteRecursively()
-        } check {
-            (exists()) { isFalse() }
+        } should {
+            it.shouldNotExist()
         }
     }
 
     @DockerRequiring @Test
-    fun `should exec using docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should exec using docker`(simpleId: SimpleId) = withTempDir(simpleId) {
 
-        CommandLine("printenv", "HOME").exec() check {
-            io.output.ansiRemoved { isEqualTo(SystemLocations.Home.pathString) }
+        CommandLine("printenv", "HOME").exec() should {
+            it.io.output.ansiRemoved shouldBe SystemLocations.Home.pathString
         }
 
-        CommandLine("printenv", "HOME").dockerized { "ubuntu" }.exec() check {
-            io.output.ansiRemoved { isEqualTo("/root") }
+        CommandLine("printenv", "HOME").dockerized { "ubuntu" }.exec() should {
+            it.io.output.ansiRemoved shouldBe "/root"
         }
 
-        ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }.dockerized { "ubuntu" }.exec() check {
-            io.output.ansiRemoved { isEqualTo("/root") }
+        ShellScript { "printenv | grep HOME | perl -pe 's/.*?HOME=//'" }.dockerized { "ubuntu" }.exec() should {
+            it.io.output.ansiRemoved shouldBe "/root"
         }
     }
 
     @DockerRequiring @Test
     @Suppress("SpellCheckingInspection")
-    fun `should exec composed`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        SvgFixture.copyTo(resolve("kommons.svg"))
+    fun `should exec composed`(simpleId: SimpleId) = withTempDir(simpleId) {
+        SvgImageFixture.copyTo(resolve("kommons.svg"))
 
         docker("minidocks/librsvg", "-z", 5, "--output", "kommons.png", "kommons.svg", name = "rasterize vector")
-        resolve("kommons.png") asserting { exists() }
+        resolve("kommons.png").shouldExist()
 
         // run a shell script
         docker("rafib/awesome-cli-binaries", name = "convert to ascii art", renderer = null) {
@@ -211,7 +201,7 @@ class ExecutionIntegrationTest {
     }
 
     @Test
-    fun TestSpanScope.`should execute using existing renderer`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun TestSpanScope.`should execute using existing renderer`(simpleId: SimpleId) = withTempDir(simpleId) {
 
         val executable: Executable<Exec> = CommandLine("echo", "test")
 
@@ -240,8 +230,7 @@ class ExecutionIntegrationTest {
             executable.exec.logging(decorationFormatter = { it.ansi.blue }, style = Dotted)
         }
 
-        expectThatRendered().matchesCurlyPattern(
-            """
+        rendered() shouldMatchGlob """
             ╭──╴existing logging context
             │
             │   ╭──╴echo test
@@ -284,13 +273,5 @@ class ExecutionIntegrationTest {
             · ✔︎
             ✔︎
         """.trimIndent()
-        )
     }
 }
-
-
-private operator fun <T> T.invoke(block: Assertion.Builder<T>.() -> Unit): T =
-    also { expectThat(this, block) }
-
-private infix fun <T> T?.check(block: T.() -> Unit): T =
-    checkNotNull(this).also { it.block() }

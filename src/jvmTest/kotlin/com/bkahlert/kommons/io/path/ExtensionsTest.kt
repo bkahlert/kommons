@@ -1,11 +1,12 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.test.testEachOld
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -13,7 +14,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
-import java.nio.file.Path
 import java.nio.file.Paths
 
 class ExtensionsTest {
@@ -21,31 +21,34 @@ class ExtensionsTest {
     @Nested
     inner class HasExtensions {
 
-        private val path = "path/file.something.ext".asPath()
+        private val path = Paths.get("path/file.something.ext")
 
         @Test
         fun `should match extension with ignoring case and leading period`() {
-            expectThat(path)
-                .hasExtension(".EXT")
-                .hasExtension(".ext")
-                .hasExtension("EXT")
-                .hasExtension("ext")
+            path should {
+                it.hasExtensions(".EXT") shouldBe true
+                it.hasExtensions(".ext") shouldBe true
+                it.hasExtensions("EXT") shouldBe true
+                it.hasExtensions("ext") shouldBe true
+            }
         }
 
         @Test
         fun `should match multiple extensions`() {
-            expectThat(path)
-                .hasExtension("something", ".EXT")
-                .hasExtension(".something", "ext")
-                .hasExtension("something.EXT")
-                .hasExtension(".something.ext")
+            path should {
+                it.hasExtensions("something.EXT") shouldBe true
+                it.hasExtensions(".something", "ext") shouldBe true
+                it.hasExtensions("something.EXT") shouldBe true
+                it.hasExtensions(".something.ext") shouldBe true
+            }
         }
 
         @Test
         fun `should not match non extension`() {
-            expectThat(path)
-                .not { hasExtension("something") }
-                .not { hasExtension(".something") }
+            path should {
+                it.hasExtensions("something") shouldBe false
+                it.hasExtensions(".something") shouldBe false
+            }
         }
     }
 
@@ -133,7 +136,7 @@ class ExtensionsTest {
             "filename" to "filename.test",
             "my/path/filename" to "my/path/filename.test",
             "/my/path/filename" to "/my/path/filename.test",
-        ).testEachOld("{} should be {}") { (path, expected) ->
+        ).testEachOld("* should be *") { (path, expected) ->
             expecting { Paths.get(path).withExtension("test") } that { isEqualTo(Paths.get(expected)) }
         }
 
@@ -142,7 +145,7 @@ class ExtensionsTest {
             "filename.pdf" to "filename.test",
             "my/path/filename.pdf" to "my/path/filename.test",
             "/my/path/filename.pdf" to "/my/path/filename.test",
-        ).testEachOld("{} should be {}") { (path, expected) ->
+        ).testEachOld("* should be *") { (path, expected) ->
             expecting { Paths.get(path).withExtension("test") } that { isEqualTo(Paths.get(expected)) }
         }
     }
@@ -156,7 +159,7 @@ class ExtensionsTest {
             "my/path/filename", "my/path/filename.test",
             "/my/path/filename", "/my/path/filename.test",
             "/my/path/filename.pdf", "/my/path/filename.test",
-        ).testEachOld("{} should be filename.test") {
+        ).testEachOld("* should be filename.test") {
             expecting { Paths.get(it).fileNameWithExtension("test") } that { isEqualTo("filename.test") }
         }
 
@@ -165,7 +168,7 @@ class ExtensionsTest {
             "filename.pdf", "filename.test",
             "my/path/filename.pdf", "my/path/filename.test",
             "/my/path/filename.pdf", "/my/path/filename.test",
-        ).testEachOld("{} should be filename.test") {
+        ).testEachOld("* should be filename.test") {
             expecting { Paths.get(it).fileNameWithExtension("test") } that { isEqualTo("filename.test") }
         }
     }
@@ -253,12 +256,3 @@ class ExtensionsTest {
         }
     }
 }
-
-
-fun <T : Path> Assertion.Builder<T>.hasExtension(extension: String, vararg more: String) =
-    assert("has extension(s) %s") {
-        when (it.extensions.hasExtension(extension, *more)) {
-            true -> pass()
-            else -> fail("has extension ${it.extensionOrNull}")
-        }
-    }

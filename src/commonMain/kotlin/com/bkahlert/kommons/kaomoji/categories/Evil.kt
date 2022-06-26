@@ -16,7 +16,7 @@ import com.bkahlert.kommons.kaomoji.Kaomoji
 import kotlin.js.JsName
 
 public object Evil : Category() {
-    public val `ಠﭛಠ`: Kaomoji by auto()
+    @JsName("evil00") public val `ಠﭛಠ`: Kaomoji by auto()
     @JsName("evil01") public val `（｀ε´）`: Kaomoji by auto("(｀ε´)")
     @JsName("evil02") public val `（｀ー´）`: Kaomoji by auto("（｀ー´）")
     @JsName("evil03") public val `` ͜ʖ´`: Kaomoji by auto("` ͜ʖ´")

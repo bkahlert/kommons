@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.exec.IO.Companion.ERASE_MARKER
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Meta
 import com.bkahlert.kommons.exec.IO.Output
 import com.bkahlert.kommons.text.AnsiString
-import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.tracing.Event
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes

@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.shell
 
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
-import com.bkahlert.kommons.text.quoted
 
 public class FileOperations(private val script: ScriptContext, private val path: String) {
 
@@ -21,7 +21,7 @@ public class FileOperations(private val script: ScriptContext, private val path:
      */
     public fun appendLine(content: String): FileOperations {
         val delimiter = HereDoc.randomDelimiter()
-        script.line("cat <<$delimiter >>${path.quoted}\n${content.trailingLineSeparatorRemoved}\n$delimiter")
+        script.line("cat <<$delimiter >>${path.quoted}\n${content.removeTrailingLineSeparator()}\n$delimiter")
         return this
     }
 }

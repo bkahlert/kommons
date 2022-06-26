@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.LineSeparators.CRLF
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.ansiContained
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.AnsiRequiring
@@ -9,7 +11,6 @@ import com.bkahlert.kommons.text.ANSI.Style
 import com.bkahlert.kommons.text.ANSI.Style.bold
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.ANSI.colorize
-import com.bkahlert.kommons.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -18,7 +19,6 @@ import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
 @AnsiRequiring
 class ANSITest {
@@ -42,7 +42,7 @@ class ANSITest {
             italicCyan("${"Important:".ansi.underline} This line has ${"no".ansi.strikethrough} ANSI escapes.\nThis one's ${"bold!".ansi.bold}${CRLF}Last one is clean.") to
                 "Important: This line has no ANSI escapes.\nThis one's bold!${CRLF}Last one is clean.",
 
-            "[$e[0;32m  OK  $e[0m] Listening on $e[0;1;39mudev Control Socket$e[0m." to
+            "[${Unicode.ESCAPE}[0;32m  OK  ${Unicode.ESCAPE}[0m] Listening on ${Unicode.ESCAPE}[0;1;39mudev Control Socket${Unicode.ESCAPE}[0m." to
                 "[  OK  ] Listening on udev Control Socket.",
 
             "Text" to "Text",

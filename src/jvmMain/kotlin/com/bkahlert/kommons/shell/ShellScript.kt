@@ -1,26 +1,20 @@
 package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.LineSeparators.mapLines
 import com.bkahlert.kommons.createParentDirectories
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.ExecTerminationCallback
 import com.bkahlert.kommons.exec.Executable
-import com.bkahlert.kommons.io.path.executable
-import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.writeText
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext.Line
 import com.bkahlert.kommons.text.Banner.banner
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.lines
-import com.bkahlert.kommons.text.LineSeparators.prefixLinesWith
-import com.bkahlert.kommons.text.quoted
-import com.bkahlert.kommons.text.singleQuoted
-import com.bkahlert.kommons.time.minutes
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.toIdentifier
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
@@ -30,7 +24,10 @@ import kotlin.io.path.createFile
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
+import kotlin.io.path.pathString
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A shell script.
@@ -96,7 +93,7 @@ public open class ShellScript(
             ?.run { CommandLine(command, *arguments.toTypedArray(), "-c") }
             ?: Commandline().shell.run { CommandLine(shellCommand, listOf(*shellArgsList.toTypedArray())) }
 
-        val scriptWithoutShebang: String = if (hasShebang) ShellScript(name, lines.drop(1).joinToString(LineSeparators.Default)).toString() else toString()
+        val scriptWithoutShebang: String = if (hasShebang) ShellScript(name, lines.drop(1).joinToString(LF)).toString() else toString()
         val transformedScriptWithoutShebang: String = transform(scriptWithoutShebang)
         return CommandLine(interpreter.command, *interpreter.arguments.toTypedArray(), transformedScriptWithoutShebang, name = name)
     }
@@ -162,7 +159,7 @@ public open class ShellScript(
     ): Path = path.apply {
         if (notExists()) createParentDirectories().createFile()
         writeText(this@ShellScript.toString(echoName, name))
-        executable = true
+        toFile().setExecutable(true)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -209,7 +206,7 @@ public open class ShellScript(
             }
 
             public infix fun redirectTo(file: CharSequence): Line {
-                line += " > ${file.singleQuoted}"
+                line += " > '$file'"
                 return this
             }
 
@@ -367,7 +364,7 @@ public open class ShellScript(
         /**
          * Adds the given [text] as a comment to this script.
          */
-        public fun comment(text: String): Line = Line(text.prefixLinesWith("# "))
+        public fun comment(text: String): Line = Line(text.mapLines { "# $it" })
 
         /**
          * Adds `echo "[password]" | sudo -S [command]` to this script.
@@ -392,7 +389,7 @@ public open class ShellScript(
         public operator fun invoke(name: CharSequence?, init: ScriptInit): ShellScript {
             val lines = mutableListOf<CharSequence>()
             val trailingContent: String = ScriptContext(lines).init().takeUnless { it is Line }?.toString() ?: ""
-            return ShellScript(name, (lines.filterNot { it is Line && it.isEmpty() } + trailingContent).joinToString(LineSeparators.Default))
+            return ShellScript(name, (lines.filterNot { it is Line && it.isEmpty() } + trailingContent).joinToString(LF))
         }
 
         /**

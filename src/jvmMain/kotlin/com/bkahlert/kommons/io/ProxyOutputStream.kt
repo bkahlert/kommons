@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.runWrapping
 import java.io.FilterOutputStream
 import java.io.IOException
 import java.io.OutputStream
@@ -15,21 +14,42 @@ public open class ProxyOutputStream(private val proxy: OutputStream) : FilterOut
      * passes an eventually thrown [IOException] to [handleIOException].
      */
     override fun write(byte: Int): Unit =
-        out.runExceptionHandling { runWrapping({ beforeWrite(1) }, { afterWrite(1) }) { write(byte) } }
+        out.runExceptionHandling {
+            try {
+                beforeWrite(1)
+                write(byte)
+            } finally {
+                afterWrite(1)
+            }
+        }
 
     /**
      * Writes [bytes] to the proxied [out] and
      * passes an eventually thrown [IOException] to [handleIOException].
      */
     override fun write(bytes: ByteArray): Unit =
-        out.runExceptionHandling { runWrapping({ beforeWrite(bytes.size) }, { afterWrite(bytes.size) }) { write(bytes) } }
+        out.runExceptionHandling {
+            try {
+                beforeWrite(bytes.size)
+                write(bytes)
+            } finally {
+                afterWrite(bytes.size)
+            }
+        }
 
     /**
      * Writes [length] [bytes] starting at [offset] to the proxied [out] and
      * passes an eventually thrown [IOException] to [handleIOException].
      */
     override fun write(bytes: ByteArray, offset: Int, length: Int): Unit =
-        out.runExceptionHandling { runWrapping({ beforeWrite(length) }, { afterWrite(length) }) { write(bytes, offset, length) } }
+        out.runExceptionHandling {
+            try {
+                beforeWrite(length)
+                write(bytes, offset, length)
+            } finally {
+                afterWrite(length)
+            }
+        }
 
     /**
      * Flushes the proxied [out] and passes an eventually thrown [IOException]

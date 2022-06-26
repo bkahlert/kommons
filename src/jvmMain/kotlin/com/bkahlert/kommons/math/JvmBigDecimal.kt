@@ -1,13 +1,14 @@
 package com.bkahlert.kommons.math
 
-import com.bkahlert.kommons.math.RoundingMode.CEILING
-import com.bkahlert.kommons.math.RoundingMode.DOWN
-import com.bkahlert.kommons.math.RoundingMode.FLOOR
-import com.bkahlert.kommons.math.RoundingMode.HALF_DOWN
-import com.bkahlert.kommons.math.RoundingMode.HALF_EVEN
-import com.bkahlert.kommons.math.RoundingMode.HALF_UP
-import com.bkahlert.kommons.math.RoundingMode.UNNECESSARY
-import com.bkahlert.kommons.math.RoundingMode.UP
+import com.bkahlert.kommons.RoundingMode
+import com.bkahlert.kommons.RoundingMode.Ceiling
+import com.bkahlert.kommons.RoundingMode.Down
+import com.bkahlert.kommons.RoundingMode.Floor
+import com.bkahlert.kommons.RoundingMode.HalfDown
+import com.bkahlert.kommons.RoundingMode.HalfEven
+import com.bkahlert.kommons.RoundingMode.HalfUp
+import com.bkahlert.kommons.RoundingMode.Unnecessary
+import com.bkahlert.kommons.RoundingMode.Up
 import java.math.MathContext
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -60,7 +61,7 @@ public actual fun BigDecimal.times(other: BigDecimal, precision: Int, roundingMo
 /**
  * Enables the use of the `/` operator for [BigDecimal] instances.
  *
- * The scale of the result is the same as the scale of this (dividend), and for rounding the [RoundingMode.HALF_EVEN]
+ * The scale of the result is the same as the scale of this (dividend), and for rounding the [RoundingMode.HalfEven]
  * rounding mode is used.
  */
 public actual operator fun BigDecimal.div(other: BigDecimal): BigDecimal = divide(other, java.math.RoundingMode.HALF_EVEN)
@@ -253,14 +254,14 @@ public actual val BigDecimal.precision: Int
     get() = precision()
 
 private fun RoundingMode.toJavaMathRoundMode() = when (this) {
-    UP -> java.math.RoundingMode.UP
-    DOWN -> java.math.RoundingMode.DOWN
-    CEILING -> java.math.RoundingMode.CEILING
-    FLOOR -> java.math.RoundingMode.FLOOR
-    HALF_UP -> java.math.RoundingMode.HALF_UP
-    HALF_DOWN -> java.math.RoundingMode.HALF_DOWN
-    HALF_EVEN -> java.math.RoundingMode.HALF_EVEN
-    UNNECESSARY -> java.math.RoundingMode.UNNECESSARY
+    Up -> java.math.RoundingMode.UP
+    Down -> java.math.RoundingMode.DOWN
+    Ceiling -> java.math.RoundingMode.CEILING
+    Floor -> java.math.RoundingMode.FLOOR
+    HalfUp -> java.math.RoundingMode.HALF_UP
+    HalfDown -> java.math.RoundingMode.HALF_DOWN
+    HalfEven -> java.math.RoundingMode.HALF_EVEN
+    Unnecessary -> java.math.RoundingMode.UNNECESSARY
 }
 
 private val Double.scientificFormat: String get() = privateFormatScientific(this)

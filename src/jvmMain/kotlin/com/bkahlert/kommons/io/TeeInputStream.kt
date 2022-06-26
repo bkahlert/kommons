@@ -42,6 +42,6 @@ public open class TeeInputStream @JvmOverloads constructor(
     override fun toString(): String = asString {
         put(::input, input?.renderType())
         put(::branches, branches.toList())
-        put(::closeBranches, closeBranches.asEmoji)
+        put(::closeBranches, closeBranches.asEmoji())
     }
 }

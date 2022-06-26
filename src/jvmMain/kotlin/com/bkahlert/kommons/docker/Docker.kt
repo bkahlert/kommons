@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.CaseStyle
 import com.bkahlert.kommons.Exceptions
 import com.bkahlert.kommons.createTempDirectory
 import com.bkahlert.kommons.deleteRecursively
@@ -20,16 +21,13 @@ import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.exec.successful
+import com.bkahlert.kommons.getLeftOrNull
 import com.bkahlert.kommons.io.path.moveTo
-import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.uriString
-import com.bkahlert.kommons.leftOrNull
 import com.bkahlert.kommons.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.mapLeft
-import com.bkahlert.kommons.regex.RegularExpressions
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
-import com.bkahlert.kommons.text.joinToKebabCase
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.runSpanning
@@ -40,6 +38,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Locale
 import kotlin.io.path.isExecutable
+import kotlin.io.path.pathString
 
 /**
  * Entrypoint to ease discovery of Docker related features.
@@ -97,10 +96,10 @@ public object Docker {
                         } else {
                             null
                         }
-                    }.mapLeft { it.singleOrNull() }.leftOrNull()
+                    }.mapLeft { it.singleOrNull() }.getLeftOrNull()
             }
 
-        private fun String.unify() = lowercase(Locale.getDefault()).split(RegularExpressions.SPACES).filterNot { it.isEmpty() }.joinToKebabCase()
+        private fun String.unify() = CaseStyle.`kebab-case`.join(lowercase(Locale.getDefault()).split(Regex("\\s+")).filterNot { it.isEmpty() })
     }
 
     /**

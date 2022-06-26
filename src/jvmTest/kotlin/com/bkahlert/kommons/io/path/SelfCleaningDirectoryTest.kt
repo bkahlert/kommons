@@ -3,10 +3,9 @@ package com.bkahlert.kommons.io.path
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.io.permissions
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.toStringContains
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.time.hours
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
@@ -18,11 +17,12 @@ import strikt.java.exists
 import strikt.java.isDirectory
 import java.nio.file.Path
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 class SelfCleaningDirectoryTest {
 
     @Test
-    fun `should create missing directories`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should create missing directories`(simpleId: SimpleId) = withTempDir(simpleId) {
         expectThat(resolve("kommons/a/b/c").selfCleaning()) {
             isEqualTo(SelfCleaningDirectory(resolve("kommons/a/b/c")))
             toStringContains("kommons/a/b/c")
@@ -35,33 +35,33 @@ class SelfCleaningDirectoryTest {
     }
 
     @Test
-    fun `should throw if already exists but no directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should throw if already exists but no directory`(simpleId: SimpleId) = withTempDir(simpleId) {
         val path = resolve("file").also { it.touch() }
         expectThrows<IllegalArgumentException> { SelfCleaningDirectory(path) }
     }
 
     @Test
-    fun `should create if not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(resolve(uniqueId.value).selfCleaning()) {
+    fun `should create if not exists`(simpleId: SimpleId) = withTempDir(simpleId) {
+        expectThat(resolve("dir").selfCleaning()) {
             path.exists()
             path.isDirectory()
         }
     }
 
     @Test
-    fun `should set POSIX permissions to 700`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(resolve(uniqueId.value).selfCleaning().path) {
+    fun `should set POSIX permissions to 700`(simpleId: SimpleId) = withTempDir(simpleId) {
+        expectThat(resolve("dir").selfCleaning().path) {
             permissions.containsExactlyInAnyOrder(OWNER_ALL_PERMISSIONS)
         }
     }
 
     @Test
-    fun `should not delete files younger than 1h by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should not delete files younger than 1h by default`(simpleId: SimpleId) = withTempDir(simpleId) {
         expectThat(selfCleaning()) { keepAge.isEqualTo(1.hours) }
     }
 
     @Test
-    fun `should keep at most 100 files by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should keep at most 100 files by default`(simpleId: SimpleId) = withTempDir(simpleId) {
         expectThat(selfCleaning()) { keepCount.isEqualTo(100) }
     }
 }

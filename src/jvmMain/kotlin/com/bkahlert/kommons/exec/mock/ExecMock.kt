@@ -18,7 +18,7 @@ public open class ExecMock(
 
     override fun toString(): String {
         val delegateString =
-            "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji ?: Symbols.Computation})"
+            "${process.toString().replaceFirst('[', '(').dropLast(1) + ")"}, successful=${successfulOrNull?.asEmoji() ?: Symbols.Computation})"
         val string = "${ExecMock::class.simpleName ?: "object"}(process=$delegateString)".substringBeforeLast(")")
         return string.takeUnless { name != null } ?: (string.substringBeforeLast(")") + ", name=$name)")
     }

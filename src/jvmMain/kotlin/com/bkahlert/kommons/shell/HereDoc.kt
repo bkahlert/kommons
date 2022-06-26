@@ -3,10 +3,9 @@ package com.bkahlert.kommons.shell
 import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.builder.Builder
 import com.bkahlert.kommons.builder.Init
+import com.bkahlert.kommons.groupValue
 import com.bkahlert.kommons.randomString
-import com.bkahlert.kommons.regex.get
 import com.bkahlert.kommons.shell.HereDoc.Companion.HereDocContext
-import com.bkahlert.kommons.text.singleQuoted
 
 /**
  * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands] and a customizable [delimiter].
@@ -40,7 +39,7 @@ public class HereDoc(
         this(*commands.map { it.toString() }.toTypedArray<String>(), delimiter = delimiter, substituteParameters = substituteParameters)
 
     private val rendered = sequenceOf(
-        "<<${delimiter.takeIf { substituteParameters } ?: delimiter.singleQuoted}",
+        "<<${delimiter.takeIf { substituteParameters } ?: "'$delimiter'"}",
         *commands,
         delimiter,
     ).joinToString(LineSeparators.Default)
@@ -94,7 +93,7 @@ public class HereDoc(
          */
         private val hereDocDelimiterRegex: Regex = Regex("<<(?<name>\\w[-\\w]*)\\s*")
 
-        public fun findAllDelimiters(text: String): List<String> = hereDocDelimiterRegex.findAll(text).mapNotNull { it["name"] }.toList()
+        public fun findAllDelimiters(text: String): List<String> = hereDocDelimiterRegex.findAll(text).mapNotNull { it.groupValue("name") }.toList()
 
         /**
          * Returns a random—most likely unique—label to be used for a [HereDoc].

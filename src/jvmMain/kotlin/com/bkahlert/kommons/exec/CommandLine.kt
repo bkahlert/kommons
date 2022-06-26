@@ -1,16 +1,15 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.ExitState.ExitStateHandler
-import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.executable
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.lines
-import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
-import com.bkahlert.kommons.text.unquoted
 import org.codehaus.plexus.util.cli.shell.FormattingShell
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.exists
+import kotlin.io.path.isExecutable
 import org.codehaus.plexus.util.cli.Commandline as PlexusCommandline
 
 /*
@@ -89,7 +88,7 @@ public open class CommandLine(
      *
      * ***Warning:** The content is not guaranteed to work due to simplified quoting. Use [shellCommand] for an always working command.*
      */
-    override val content: CharSequence get() = commandLineParts.joinToString(" ").trailingLineSeparatorRemoved
+    override val content: CharSequence get() = commandLineParts.joinToString(" ").removeTrailingLineSeparator()
 
     override fun toCommandLine(
         environment: Map<String, String>,
@@ -103,7 +102,6 @@ public open class CommandLine(
         workingDirectory: Path?,
         execTerminationCallback: ExecTerminationCallback?,
     ): Exec {
-
         val process = ProcessBuilder(*commandLineParts).let { pb ->
             pb.redirectErrorStream = redirectErrorStream
             pb.environment.putAll(environment)
@@ -117,10 +115,10 @@ public open class CommandLine(
      * Contains all accessible files contained in this command line.
      */
     public open val includedFiles: List<Path>
-        get() = commandLineParts.map { it.unquoted.asPath() }
+        get() = commandLineParts.map { Paths.get(it.removeSurrounding("\"").removeSurrounding("'")) }
             .filter { it != it.root }
             .filter { it.exists() }
-            .filterNot { it.executable }
+            .filterNot { it.isExecutable() }
 
     /**
      * Returns this command line as it can be used in a shell,
@@ -164,7 +162,7 @@ public open class CommandLine(
          * that would generate the same string again.
          */
         public fun parseOrNull(commandLine: CharSequence): CommandLine? {
-            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").trailingLineSeparatorRemoved)
+            val plexusCommandLine = PlexusCommandline(commandLine.toString().replace("\\$LF", "").removeTrailingLineSeparator())
             val rawCommandline = plexusCommandLine.rawCommandline
             return rawCommandline.takeIf { it.isNotEmpty() }
                 ?.let { CommandLine(it.first(), it.drop(1)) }

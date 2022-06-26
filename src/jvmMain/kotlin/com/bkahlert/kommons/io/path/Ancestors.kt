@@ -13,9 +13,11 @@ import java.nio.file.Path
  * @see [subpath]
  */
 @Suppress("SpellCheckingInspection")
-public tailrec fun Path.ancestor(order: Int): Path? =
-    if (order == 0) this
+public tailrec fun Path.ancestor(order: Int): Path? {
+    require(order >= 0) { "order $order must not be negative" }
+    return if (order == 0) this
     else parent?.ancestor(order - 1)
+}
 
 /**
  * Returns a list of all ancestors starting with [order].

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.unit.bytes
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ class FileSizeKtTest {
     private fun Path.getLarge() = createTempFile("large").appendBytes(ByteArray(3_123_456))
 
     @Test
-    fun `should compare files by size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should compare files by size`(simpleId: SimpleId) = withTempDir(simpleId) {
         val largeFile = getLarge()
         val smallFile = getSmall()
         val mediumFile = getMedium()
@@ -25,12 +25,12 @@ class FileSizeKtTest {
     }
 
     @Test
-    fun `should have size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should have size`(simpleId: SimpleId) = withTempDir(simpleId) {
         expectThat(getLarge().getSize()).isEqualTo(3_123_456.bytes)
     }
 
     @Test
-    fun `should have rounded size`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should have rounded size`(simpleId: SimpleId) = withTempDir(simpleId) {
         expectThat(getLarge().getRoundedSize()).isEqualTo(3_000_000.bytes)
     }
 }

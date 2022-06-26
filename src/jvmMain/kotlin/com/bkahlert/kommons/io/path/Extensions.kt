@@ -5,6 +5,7 @@ import com.bkahlert.kommons.takeUnlessBlank
 import java.nio.file.Path
 import java.util.Locale
 import kotlin.io.path.extension
+import kotlin.io.path.pathString
 
 public class Extensions(private val path: Path) : List<String> by path.fileNameParts.drop(1) {
 

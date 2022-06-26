@@ -12,6 +12,7 @@ import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.Path
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.UnknownError
 import com.bkahlert.kommons.docker.DockerExitStateHandler.ParseException
+import com.bkahlert.kommons.endSpaced
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Output
@@ -19,6 +20,8 @@ import com.bkahlert.kommons.exec.IOSequence
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.mock.ExecMock
 import com.bkahlert.kommons.exec.status
+import com.bkahlert.kommons.spaced
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.test.testsOld
@@ -26,10 +29,6 @@ import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.ansiRemoved
-import com.bkahlert.kommons.text.rightSpaced
-import com.bkahlert.kommons.text.spaced
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
-import com.bkahlert.kommons.too
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -58,7 +57,7 @@ class DockerExitStateHandlerTest {
         expecting { connectivityProblemState.status.ansiRemoved } that { isEqualTo("Is the docker daemon running?") }
         expecting { connectivityProblemState.textRepresentation!!.ansiRemoved } that { isEqualTo("connectivity problem${delimiter}Is the docker daemon running?") }
         expecting { connectivityProblemState.format().ansiRemoved } that { isEqualTo("connectivity problem${delimiter}Is the docker daemon running?") }
-        expecting { connectivityProblemState } that { toStringMatchesCurlyPattern("connectivity problem${delimiter}Is the docker daemon running?") }
+        expecting { connectivityProblemState } that { get { toString() shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?" } }
     }
 
     @Test
@@ -72,23 +71,27 @@ class DockerExitStateHandlerTest {
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
 
-        expectThat(exitState).toStringMatchesCurlyPattern("connectivity problem${delimiter}Is the docker daemon running?")
+        exitState.toString() shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?"
     }
 
     @TestFactory
     fun `should match bad request error message`() = listOf(
-        NoSuchContainer::class to "Error: No such container: AFFECTED" too "no such container",
-        NoSuchImage::class to "Error: No such image: AFFECTED" too "no such image",
-        PathDoesNotExistInsideTheContainer::class to "Error: Path does not exist inside the container: AFFECTED" too "path does not exist inside the container",
-        NameAlreadyInUse::class to "Error: Name already in use: AFFECTED" too "name already in use",
-        Conflict::class to "Error: Conflict: AFFECTED" too "conflict"
+        Triple(NoSuchContainer::class, "Error: No such container: AFFECTED", "no such container"),
+        Triple(NoSuchImage::class, "Error: No such image: AFFECTED", "no such image"),
+        Triple(
+            PathDoesNotExistInsideTheContainer::class,
+            "Error: Path does not exist inside the container: AFFECTED",
+            "path does not exist inside the container"
+        ),
+        Triple(NameAlreadyInUse::class, "Error: Name already in use: AFFECTED", "name already in use"),
+        Triple(Conflict::class, "Error: Conflict: AFFECTED", "conflict"),
     ).testEachOld { (clazz: KClass<out BadRequest>, errorMessage: String, status: String) ->
         val badRequestState = handleTermination(errorMessage)
 
         expecting("matches ${clazz.simpleName}") { badRequestState::class } that { isEqualTo(clazz) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
         expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.ansiRemoved} $status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.ansiRemoved} ${status.formattedAs.error}") }
+        expecting("toString() is ${toString()}") { badRequestState } that { get { toString() shouldMatchGlob "${Negative.ansiRemoved} ${status.formattedAs.error}" } }
     }
 
     @TestFactory
@@ -102,8 +105,8 @@ class DockerExitStateHandlerTest {
         val status = "You cannot remove a running container. Stop the container before attempting removal or force remove."
         expecting("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class } that { isEqualTo(CannotRemoveRunningContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo(status) }
-        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.rightSpaced.ansiRemoved}$status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.ansiRemoved} $status") }
+        expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.endSpaced.ansiRemoved}$status") }
+        expecting("toString() is ${toString()}") { badRequestState } that { get { toString() shouldMatchGlob "${Negative.ansiRemoved} $status" } }
     }
 
     @TestFactory
@@ -117,7 +120,7 @@ class DockerExitStateHandlerTest {
         expecting("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class } that { isEqualTo(CannotKillContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
         expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.ansiRemoved} $status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { toStringMatchesCurlyPattern("${Negative.ansiRemoved} ${status.formattedAs.error}") }
+        expecting("toString() is ${toString()}") { badRequestState } that { get { toString() shouldMatchGlob "${Negative.ansiRemoved} ${status.formattedAs.error}" } }
     }
 
     @Test
@@ -126,7 +129,7 @@ class DockerExitStateHandlerTest {
         expectThat(unknownError).isA<UnknownError>().and {
             status.ansiRemoved.isEqualTo("Unknown error from Docker daemon: Nothing I know of: status")
             get { format() }.ansiRemoved.isEqualTo("ϟ Unknown error from Docker daemon: Nothing I know of: status")
-            toStringMatchesCurlyPattern("Unknown error from Docker daemon: Nothing I know of: status")
+            get { toString() shouldMatchGlob "Unknown error from Docker daemon: Nothing I know of: status" }
         }
     }
 

@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.nio
 
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.endsWithLineSeparator
+import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.io.ByteArrayOutputStream
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.hasTrailingLineSeparator
-import com.bkahlert.kommons.text.LineSeparators.lines
-import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
 import java.io.InputStream
 
 /**
@@ -26,10 +26,10 @@ public open class NonBlockingLineReader(
 
         read.lines(keepDelimiters = true)
             .let { if (it.isNotEmpty() && it.last().isEmpty()) it.dropLast(1) else it }
-            .filter { line -> line.hasTrailingLineSeparator || done }
+            .filter { line -> line.endsWithLineSeparator() || done }
             .forEach { line ->
                 fullyRead.append(line)
-                lineProcessor(line.trailingLineSeparatorRemoved)
+                lineProcessor(line.removeTrailingLineSeparator())
             }
         lineBuffer.toByteArray().apply {
             lineBuffer.reset()

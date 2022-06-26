@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.LineSeparators.lineSequence
 import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.text.LineSeparators.lineSequence
 
 /**
  * Splits this character sequence into its lines and returns the length

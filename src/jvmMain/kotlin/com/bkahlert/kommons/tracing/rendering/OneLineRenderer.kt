@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators.unifyLineSeparators
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.exception.toCompactString
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.SpanScope
@@ -59,7 +59,7 @@ public class OneLineRenderer(
             .let { settings.returnValueTransform(it)?.format() }
 
         (messages.takeUnless { it.isEmpty() }
-            ?.joinToString("") { LineSeparators.unify(it, "⏎") }
+            ?.joinToString("") { it.unifyLineSeparators("⏎") }
             ?.let { "$it $formattedResult" } ?: formattedResult)
             ?.let(settings.printer)
     }

@@ -12,7 +12,7 @@ import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.test.Fixtures.archiveWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Test
@@ -38,32 +38,32 @@ class ArchiverTest {
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should throw on non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("zip").touch().writeText("content") }.archive("zip") },
         { archiveWithTwoFiles("zip").apply { copyTo(removeExtensions("zip")) }.unarchive() },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThrows<FileAlreadyExistsException> { call() }
         }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("zip").touch().writeText("content") }.archive("zip", overwrite = true) },
         { archiveWithTwoFiles("zip").apply { copyTo(removeExtensions("zip")) }.unarchive(overwrite = true) },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThat(call()).exists()
         }
     }
 
     @Test
-    fun `should archive and unarchive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should archive and unarchive`(simpleId: SimpleId) = withTempDir(simpleId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.archive()
 
-        expectThat(archivedDir.listArchive().map { it.name }).containsExactlyInAnyOrder("example.html", "sub-dir/", "sub-dir/config.txt")
+        expectThat(archivedDir.listArchive().map { it.name }).containsExactlyInAnyOrder("hello-world.html", "sub-dir/", "sub-dir/config.txt")
 
         val renamedDir = dir.renameTo("${dir.fileName}-renamed")
 

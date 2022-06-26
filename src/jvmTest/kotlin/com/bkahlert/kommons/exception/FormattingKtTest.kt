@@ -1,19 +1,19 @@
 package com.bkahlert.kommons.exception
 
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.isSingleLine
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IOSequence
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.ansiRemoved
-import com.bkahlert.kommons.text.isSingleLine
-import com.bkahlert.kommons.text.matchesCurlyPattern
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldMatch
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.matches
 import java.nio.file.Paths
 import java.time.Instant
 
@@ -38,17 +38,17 @@ class FormattingKtTest {
 
         @Test
         fun `should format compact`() {
-            expectThat(runtimeException.toCompactString()) {
-                matchesCurlyPattern("RuntimeException: Something happened at.(FormattingKtTest.kt:{})")
-                isSingleLine()
+            runtimeException.toCompactString() should {
+                it shouldMatchGlob "RuntimeException: Something happened at.(FormattingKtTest.kt:*)"
+                it.isSingleLine() shouldBe true
             }
         }
 
         @Test
         fun `should format empty message`() {
-            expectThat(emptyException.toCompactString()) {
-                matchesCurlyPattern("RuntimeException at.(FormattingKtTest.kt:{})")
-                isSingleLine()
+            emptyException.toCompactString() should {
+                it shouldMatchGlob "RuntimeException at.(FormattingKtTest.kt:*)"
+                it.isSingleLine() shouldBe true
             }
         }
     }
@@ -58,17 +58,17 @@ class FormattingKtTest {
 
         @Test
         fun `should format compact`() {
-            expectThat(Result.failure<String>(runtimeException).toCompactString()) {
-                matchesCurlyPattern("RuntimeException: Something happened at.(FormattingKtTest.kt:{})")
-                isSingleLine()
+            Result.failure<String>(runtimeException).toCompactString() should {
+                it shouldMatchGlob "RuntimeException: Something happened at.(FormattingKtTest.kt:*)"
+                it.isSingleLine() shouldBe true
             }
         }
 
         @Test
         fun `should format empty message`() {
-            expectThat(Result.failure<String>(emptyException).toCompactString()) {
-                matchesCurlyPattern("RuntimeException at.(FormattingKtTest.kt:{})")
-                isSingleLine()
+            Result.failure<String>(emptyException).toCompactString() should {
+                it shouldMatchGlob "RuntimeException at.(FormattingKtTest.kt:*)"
+                it.isSingleLine() shouldBe true
             }
         }
     }
@@ -81,47 +81,47 @@ class FormattingKtTest {
 
             @Test
             fun `should format compact`() {
-                expectThat(Result.success("good").toCompactString()) {
-                    ansiRemoved.isEqualTo("good")
-                    isSingleLine()
+                Result.success("good").toCompactString() should {
+                    it.ansiRemoved shouldBe "\"good\""
+                    it.isSingleLine() shouldBe true
                 }
             }
 
             @Test
             fun `should format Path instances as URI`() {
-                expectThat(Result.success(Paths.get("/path")).toCompactString()) {
-                    ansiRemoved.isEqualTo("file:///path")
-                    isSingleLine()
+                Result.success(Paths.get("/path")).toCompactString() should {
+                    it.ansiRemoved shouldBe "file:///path"
+                    it.isSingleLine() shouldBe true
                 }
             }
 
             @Test
-            fun `should format process status`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(Result.success(Succeeded(Instant.MIN, Instant.MAX, 12345L, IOSequence.EMPTY)).toCompactString()) {
-                    ansiRemoved.matches("Process.*\\d+.*Z".toRegex())
-                    isSingleLine()
+            fun `should format process status`(simpleId: SimpleId) = withTempDir(simpleId) {
+                Result.success(Succeeded(Instant.MIN, Instant.MAX, 12345L, IOSequence.EMPTY)).toCompactString() should {
+                    it.ansiRemoved.shouldMatch("Process.*\\d+.*Z".toRegex())
+                    it.isSingleLine() shouldBe true
                 }
             }
 
             @Test
             fun `should format empty collection as empty brackets`() {
-                expectThat(Result.success(emptyList<Any>()).toCompactString()) {
-                    ansiRemoved.isEqualTo("[]")
-                    isSingleLine()
+                Result.success(emptyList<Any>()).toCompactString() should {
+                    it.ansiRemoved shouldBe "[]"
+                    it.isSingleLine() shouldBe true
                 }
             }
 
             @Test
             fun `should format array like a list`() {
-                expectThat(Result.success(arrayOf("a", "b")).toCompactString()) {
-                    isEqualTo(Result.success(listOf("a", "b")).toCompactString())
+                Result.success(arrayOf("a", "b")).toCompactString() should {
+                    it shouldBe Result.success(listOf("a", "b")).toCompactString()
                 }
             }
 
             @Test
             fun `should format replace line breaks like a list`() {
-                expectThat(LineSeparators.joinToString("") { "line$it" }.toCompactString())
-                    .isEqualTo("line⏎line⏎line⏎line⏎line⏎line")
+                LineSeparators.Unicode.joinToString("") { "line$it" }.toCompactString()
+                    .shouldBe("\"line\\r\\nline\\nline\\rline\u0085line\u2029line\u2028\"")
             }
         }
     }

@@ -1,11 +1,11 @@
 package com.bkahlert.kommons
 
 import com.bkahlert.kommons.io.path.selfCleaning
-import com.bkahlert.kommons.time.days
-import com.bkahlert.kommons.time.hours
-import com.bkahlert.kommons.time.minutes
 import java.nio.file.Path
 import java.util.Properties
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Entrypoint for library-internal functionality.
@@ -28,7 +28,7 @@ public object Kommons {
     internal val FilesTemp: Path by InternalTemp.resolve("files").selfCleaning(10.minutes, 20)
 
     private val buildProperties: Properties by lazy {
-        ClassPath("build.properties").useInputStream { Properties().apply { load(it) } } // use ClassPath
+        ClassPath("build.properties").useInputStream { Properties().apply { load(it) } }
     }
 
     /**
@@ -46,6 +46,6 @@ public object Kommons {
     /**
      * Version of this library.
      */
-    public val version: SemVer
-        get() = SemVer.parse(buildProperties["version"]?.toString() ?: error("Cannot find version in build properties"))
+    public val version: SemanticVersion
+        get() = SemanticVersion.parse(buildProperties["version"]?.toString() ?: error("Cannot find version in build properties"))
 }

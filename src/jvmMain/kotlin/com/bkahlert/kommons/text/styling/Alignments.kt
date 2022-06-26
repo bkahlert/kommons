@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.text.styling
 
 import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.math.ceilDiv
 import com.bkahlert.kommons.math.floorDiv
-import com.bkahlert.kommons.text.Unicode
 import com.bkahlert.kommons.text.maxLength
 import com.bkahlert.kommons.text.repeat
 

@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.math
 
+import com.bkahlert.kommons.RoundingMode
+
 /**
  * Immutable, arbitrary-precision signed decimal numbers.
  */
@@ -53,7 +55,7 @@ public actual fun BigDecimal.times(other: BigDecimal, precision: Int, roundingMo
 /**
  * Enables the use of the `/` operator for [BigDecimal] instances.
  *
- * The scale of the result is the same as the scale of this (divident), and for rounding the [RoundingMode.HALF_EVEN]
+ * The scale of the result is the same as the scale of this (divident), and for rounding the [RoundingMode.HalfEven]
  * rounding mode is used.
  */
 public actual operator fun BigDecimal.div(other: BigDecimal): BigDecimal = BigDecimalConstants.ZERO

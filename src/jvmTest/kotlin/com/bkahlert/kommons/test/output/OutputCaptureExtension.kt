@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.test.output
 
-import com.bkahlert.kommons.runWrapping
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.isAnnotated
 import com.bkahlert.kommons.test.junit.getStore
@@ -42,11 +41,12 @@ class OutputCaptureExtension : TypeBasedParameterResolver<CapturedOutput>(),
         invocation: InvocationInterceptor.Invocation<Void>,
         context: ExtensionContext,
     ) {
-        invocation.runWrapping(
-            before = { context.pushCapture(!context.isAnnotated<Silent>()) },
-            block = { proceed() },
-            after = { context.popCapture(!context.isAnnotated<Silent>()) },
-        )
+        try {
+            context.pushCapture(!context.isAnnotated<Silent>())
+            invocation.proceed()
+        } finally {
+            context.popCapture(!context.isAnnotated<Silent>())
+        }
     }
 
     annotation class Silent

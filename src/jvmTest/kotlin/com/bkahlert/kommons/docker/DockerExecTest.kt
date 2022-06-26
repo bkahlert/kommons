@@ -19,16 +19,13 @@ import com.bkahlert.kommons.exec.exitCode
 import com.bkahlert.kommons.exec.hasState
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.junit.UniqueId
-import com.bkahlert.kommons.test.withTempDir
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.time.poll
-import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.times
-import com.bkahlert.kommons.unit.milli
 import io.kotest.matchers.string.shouldMatch
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
@@ -38,24 +35,26 @@ import strikt.assertions.isTrue
 import strikt.assertions.size
 import java.nio.file.Path
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 class DockerExecTest {
 
     @DockerRequiring([BusyBox::class]) @Test
-    fun `should override toString`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dockerExec = createExec(uniqueId, "echo", "test")
+    fun `should override toString`(@TempDir tempDir: Path, simpleId: SimpleId) {
+        val dockerExec = tempDir.createExec(simpleId, "echo", "test")
         dockerExec.toString() shouldMatch """
             DockerExec \{
-             {4}container: DockerContainer \{ name: "DockerExecTest.should_override_toString" },
+             {4}container: DockerContainer \{ name: "DockerExecTest.should_override_toString-Path" },
              {4}exec: JavaExec\(.*\)
             }
         """.trimIndent().toRegex()
     }
 
     @DockerRequiring([BusyBox::class]) @Test
-    fun `should start docker`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        val dockerExec = createExec(uniqueId, "echo", "test")
+    fun `should start docker`(@TempDir tempDir: Path, simpleId: SimpleId) {
+        val dockerExec = tempDir.createExec(simpleId, "echo", "test")
         dockerExec.waitForOutputOrFail(
             "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
             "Did not log \"test\" output within 8 seconds."
@@ -68,8 +67,8 @@ class DockerExecTest {
     inner class Lifecycle {
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should start docker and pass arguments`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerExec = createExec(uniqueId, "echo", "test")
+        fun `should start docker and pass arguments`(@TempDir tempDir: Path, simpleId: SimpleId) {
+            val dockerExec = tempDir.createExec(simpleId, "echo", "test")
             dockerExec.waitForOutputOrFail(
                 "Process terminated without logging: ${dockerExec.io.ansiRemoved}.",
                 "Did not log \"test\" output within 8 seconds."
@@ -79,9 +78,9 @@ class DockerExecTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should start docker and process input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should start docker and process input`(@TempDir tempDir: Path, simpleId: SimpleId) {
             var entered = false
-            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") { exec, callback ->
+            val dockerExec = tempDir.createExec(simpleId, "/bin/sh", "-c", "echo 'test 1' && cat") { exec, callback ->
                 callback { io ->
                     if (io !is IO.Meta) {
                         if (!entered) {
@@ -99,8 +98,8 @@ class DockerExecTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should start docker and process output`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerExec = createExec(uniqueId, "echo", "Hello\nWorld")
+        fun `should start docker and process output`(@TempDir tempDir: Path, simpleId: SimpleId) {
+            val dockerExec = tempDir.createExec(simpleId, "echo", "Hello\nWorld")
 
             dockerExec.waitForOutputOrFail("Did not log any output within 8 seconds.") {
                 filterIsInstance<Output>().contains(Output typed "Hello") and contains(Output typed "World")
@@ -108,9 +107,9 @@ class DockerExecTest {
         }
 
         @DockerRequiring([BusyBox::class]) @Smoke @Test
-        fun `should start docker and process output produced by own input`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should start docker and process output produced by own input`(@TempDir tempDir: Path, simpleId: SimpleId) {
             var times = 0
-            val dockerExec = createExec(uniqueId, "/bin/sh", "-c", "echo 'test 1' && cat") { exec, callback ->
+            val dockerExec = tempDir.createExec(simpleId, "/bin/sh", "-c", "echo 'test 1' && cat") { exec, callback ->
                 callback { io ->
                     if (io !is IO.Meta) {
                         if (times < 3) {
@@ -136,24 +135,24 @@ class DockerExecTest {
         inner class IsRunning {
 
             private fun Path.unprocessedProcess(
-                uniqueId: UniqueId,
+                simpleId: SimpleId,
                 command: String,
                 vararg args: String,
                 callback: ExecTerminationCallback? = null,
             ): DockerExec = CommandLine(command, *args)
-                .dockerized(BusyBox, Options(name = DockerContainer("$uniqueId")))
+                .dockerized(BusyBox, Options(name = DockerContainer("$simpleId")))
                 .toExec(false, emptyMap(), this, callback)
 
             @DockerRequiring([BusyBox::class], mode = ThanksForCleaningUp) @Test
-            fun `should return true on running container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
+            fun `should return true on running container`(@TempDir tempDir: Path, simpleId: SimpleId) {
+                val runningProcess = tempDir.unprocessedProcess(simpleId, "sleep", "10")
                 runningProcess.waitForCondition("Did not start in time.") { state is Running }
                 expectThat(runningProcess.alive).isTrue()
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should return false on completed container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val completedProcess = unprocessedProcess(uniqueId, "sleep", "1")
+            fun `should return false on completed container`(@TempDir tempDir: Path, simpleId: SimpleId) {
+                val completedProcess = tempDir.unprocessedProcess(simpleId, "sleep", "1")
                 completedProcess.apply {
                     waitForCondition("Did not start in time.") { state is Running }
                     waitForCondition("Did not complete in time.") { state is Exited }
@@ -161,8 +160,8 @@ class DockerExecTest {
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should stop running container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
+            fun `should stop running container`(@TempDir tempDir: Path, simpleId: SimpleId) {
+                val runningProcess = tempDir.unprocessedProcess(simpleId, "sleep", "10")
                 runningProcess.waitForCondition("Did not start in time.") { state is Running }
 
                 val passed = measureTime { runningProcess.stop(1.seconds) }
@@ -170,8 +169,8 @@ class DockerExecTest {
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should kill running container`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                val runningProcess = unprocessedProcess(uniqueId, "sleep", "10")
+            fun `should kill running container`(@TempDir tempDir: Path, simpleId: SimpleId) {
+                val runningProcess = tempDir.unprocessedProcess(simpleId, "sleep", "10")
                 runningProcess.apply {
                     waitForCondition("Did not start in time.") { state is Running }
                 }
@@ -181,22 +180,22 @@ class DockerExecTest {
             }
 
             @DockerRequiring([BusyBox::class]) @Test
-            fun `should call callback on termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should call callback on termination`(@TempDir tempDir: Path, simpleId: SimpleId) {
                 var calledBack = false
-                val runningProcess = unprocessedProcess(uniqueId, "exit", "0") { calledBack = true }
+                val runningProcess = tempDir.unprocessedProcess(simpleId, "exit", "0") { calledBack = true }
                 runningProcess.waitForCondition("Did not call back.", 8.seconds) { calledBack }
             }
         }
 
         @DockerRequiring([BusyBox::class]) @Test
-        fun `should have failed state on non 0 exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerExec = createExec(uniqueId, "invalid")
+        fun `should have failed state on non 0 exit code`(@TempDir tempDir: Path, simpleId: SimpleId) {
+            val dockerExec = tempDir.createExec(simpleId, "invalid")
             expectThat(dockerExec).hasState<Exited.Failed> { exitCode.isEqualTo(127) }
         }
 
         @Slow @DockerRequiring([BusyBox::class]) @Test
-        fun `should remove docker container after completion`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val dockerExec = createExec(uniqueId, "echo", "was alive")
+        fun `should remove docker container after completion`(@TempDir tempDir: Path, simpleId: SimpleId) {
+            val dockerExec = tempDir.createExec(simpleId, "echo", "was alive")
 
             dockerExec.apply {
                 expectThat(io.ansiRemoved).contains("was alive")
@@ -206,13 +205,32 @@ class DockerExecTest {
     }
 
     @Slow @DockerRequiring([BusyBox::class]) @Test
-    fun `should not produce incorrect empty lines`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should not produce incorrect empty lines`(@TempDir tempDir: Path, simpleId: SimpleId) {
         var killed = false
         val output = synchronizedListOf<IO>()
-        createExec(
-            uniqueId, "/bin/sh", "-c", """
+        tempDir.createExec(
+            simpleId, "/bin/sh", "-c", """
                 while true; do
-                ${20.times { "echo \"looping\"" }.joinToString("; ")}
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
+                    echo "looping"
                 sleep 1
                 done
             """.trimIndent()
@@ -234,13 +252,13 @@ class DockerExecTest {
 
 
 private fun Path.createExec(
-    uniqueId: UniqueId,
+    simpleId: SimpleId,
     command: String,
     vararg args: String,
     processor: Processor<DockerExec> = spanningProcessor(),
 ): DockerExec =
     CommandLine(command, *args)
-        .dockerized(Ubuntu, Options(name = DockerContainer.from("$uniqueId")))
+        .dockerized(Ubuntu, Options(name = DockerContainer.from("$simpleId")))
         .exec.processing(workingDirectory = this, processor = processor)
 
 private fun DockerExec.waitForCondition(
@@ -250,7 +268,7 @@ private fun DockerExec.waitForCondition(
 ) {
     poll {
         test()
-    }.every(100.milli.seconds).forAtMost(atMost) {
+    }.every(100.milliseconds).forAtMost(atMost) {
         fail(errorMessage)
     }
 }
@@ -262,7 +280,7 @@ private fun DockerExec.waitForOutputOrFail(
 ) {
     poll {
         io.toList().test()
-    }.every(100.milli.seconds).forAtMost(8.seconds) {
+    }.every(100.milliseconds).forAtMost(8.seconds) {
         if (alive) fail(stillRunningErrorMessage)
         fail(errorMessage)
     }

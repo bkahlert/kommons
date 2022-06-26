@@ -8,15 +8,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 val baseUrl: String get() = "https://github.com/bkahlert/kommons"
 
 plugins {
-    kotlin("multiplatform") version "1.7.0"
+    kotlin("multiplatform") version "1.7.10"
     id("org.jetbrains.dokka") version "1.7.0"
     id("maven-publish")
     signing
-    id("nebula.release") version "15.3.1"
-}
-
-allprojects {
-    apply { plugin("maven-publish") }
+    id("nebula.release") version "16.0.0"
 }
 
 description = "Kommons is a Kotlin Multiplatform Library, with a minimal set" +
@@ -80,12 +76,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("com.bkahlert.kommons:kommons-debug:0.8.0-SNAPSHOT")
+                api("com.bkahlert.kommons:kommons-debug:0.12.0-SNAPSHOT") { because("require, string, and time functions; trace") }
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation("com.bkahlert.kommons:kommons-test:0.4.0-SNAPSHOT")
+                implementation("com.bkahlert.kommons:kommons-test:0.5.0-SNAPSHOT") { because("JUnit defaults, testEach") }
             }
         }
         val jvmMain by getting {
@@ -141,54 +137,27 @@ kotlin {
     }
 }
 
-tasks.withType<ProcessResources> {
-    filesMatching("build.properties") {
-        expand(project.properties)
-    }
-}
-
-tasks.register<Copy>("assembleReadme") {
-    from(projectDir)
-    into(projectDir)
-    setIncludes(listOf("README.template.md"))
-    rename { "README.md" }
-    expand("project" to project)
-    shouldRunAfter(tasks.final)
-}
-
-val dokkaOutputDir = buildDir.resolve("dokka")
-
-tasks.dokkaHtml {
-    outputDirectory.set(file(dokkaOutputDir))
-    dokkaSourceSets {
-        configureEach {
-            displayName.set(
-                when (platform.get()) {
-                    org.jetbrains.dokka.Platform.jvm -> "jvm"
-                    org.jetbrains.dokka.Platform.js -> "js"
-                    org.jetbrains.dokka.Platform.native -> "native"
-                    org.jetbrains.dokka.Platform.common -> "common"
-                }
-            )
+tasks {
+    @Suppress("UnstableApiUsage")
+    withType<ProcessResources> {
+        filesMatching("build.properties") {
+            expand(project.properties)
         }
     }
 }
 
-val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
-    delete(dokkaOutputDir)
-}
-
-val javadocJar = tasks.register<Jar>("javadocJar") {
+val javadocJar by tasks.registering(Jar::class) {
+    description = "Generates a JavaDoc JAR using Dokka"
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
     archiveClassifier.set("javadoc")
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    dependsOn(deleteDokkaOutputDir) // TODO add jsGenerateExternalsIntegrated
-    from(tasks.dokkaHtml.map { it.outputs })
+    tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml").also {
+        dependsOn(it)
+        from(it.get().outputDirectory)
+    }
 }
 
 publishing {
-
     repositories {
-
         maven {
             name = "OSSRH"
             url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -261,11 +230,6 @@ signing {
 }
 
 // getting rid of missing dependency declarations
-val signingTasks = tasks.filter { it.name.startsWith("sign") }
-listOf(
-    tasks.getByName("publishKotlinMultiplatformPublicationToMavenLocal"),
-    tasks.getByName("publishJsPublicationToMavenLocal"),
-    tasks.getByName("publishJvmPublicationToMavenLocal"),
-).forEach {
-    it.dependsOn(signingTasks)
+tasks.filter { it.name.startsWith("sign") }.also { signingTasks ->
+    tasks.filter { it.name.startsWith("publish") && it.name.contains("Publication") }.forEach { it.dependsOn(signingTasks) }
 }

@@ -7,11 +7,9 @@ import com.bkahlert.kommons.docker.Docker.AwesomeCliBinaries
 import com.bkahlert.kommons.docker.Docker.LibRSvg
 import com.bkahlert.kommons.docker.docker
 import com.bkahlert.kommons.exec.output
-import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.copyTo
 import com.bkahlert.kommons.io.path.copyToDirectory
 import com.bkahlert.kommons.io.path.extensionOrNull
-import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.writeBytes
 import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.ANSI.resetLines
@@ -19,9 +17,11 @@ import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.NOOP
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.withTempDirectory
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.isReadable
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.pathString
 import kotlin.io.path.readBytes
 
 /**
@@ -47,8 +47,8 @@ public fun InMemoryFile.copyToDirectory(target: Path): Path =
  * optional [base] and [extension].
  */
 public fun InMemoryFile.copyToTemp(
-    base: String = name.asPath().nameWithoutExtension,
-    extension: String = name.asPath().extensionOrNull?.let { ".$it" } ?: "",
+    base: String = Paths.get(name).nameWithoutExtension,
+    extension: String = Paths.get(name).extensionOrNull?.let { ".$it" } ?: "",
 ): Path = copyTo(Kommons.FilesTemp.createTempFile(base, extension))
 
 /**

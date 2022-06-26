@@ -1,7 +1,10 @@
 package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.SystemLocations
+import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.docker.DockerContainer
 import com.bkahlert.kommons.docker.DockerImage
@@ -15,35 +18,32 @@ import com.bkahlert.kommons.exec.exitCode
 import com.bkahlert.kommons.exec.exitCodeOrNull
 import com.bkahlert.kommons.exec.io
 import com.bkahlert.kommons.http
-import com.bkahlert.kommons.io.path.asPath
 import com.bkahlert.kommons.io.path.hasContent
-import com.bkahlert.kommons.io.path.isSubPathOf
-import com.bkahlert.kommons.io.path.pathString
 import com.bkahlert.kommons.io.path.writeBytes
+import com.bkahlert.kommons.isSubPathOf
 import com.bkahlert.kommons.shell.ShellScript.Companion.isScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.expectThrows
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.string
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.Banner
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.lines
-import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
+import io.kotest.matchers.paths.shouldExist
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
@@ -57,9 +57,7 @@ import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
-import strikt.assertions.startsWith
 import strikt.java.exists
-import strikt.java.fileName
 import strikt.java.isExecutable
 import java.net.URI
 import java.nio.file.Path
@@ -67,8 +65,10 @@ import java.nio.file.Paths
 import kotlin.concurrent.thread
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
+import kotlin.io.path.pathString
+import kotlin.io.path.readText
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
-import com.bkahlert.kommons.text.Unicode.ESCAPE as e
 
 class ShellScriptTest {
 
@@ -119,7 +119,7 @@ class ShellScriptTest {
     inner class ToFile {
 
         @Test
-        fun `should write valid script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should write valid script`(simpleId: SimpleId) = withTempDir(simpleId) {
             val file = shellScript().toFile()
             expectThat(file)
                 .hasContent(
@@ -129,28 +129,29 @@ class ShellScriptTest {
                     'echo' 'Hello World!'
                     'echo' 'Bye!'
                     'exit' '42'
-        
+
                 """.trimIndent()
                 )
         }
 
         @Test
-        fun `should use name for filename`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should use name for filename`(simpleId: SimpleId) = withTempDir(simpleId) {
             val file = shellScript("my script").toFile()
-            expectThat(file)
-                .isSubPathOf(SystemLocations.Temp)
-                .fileName.pathString.startsWith("my-script")
+            file should {
+                it.isSubPathOf(SystemLocations.Temp) shouldBe true
+                it.fileName.pathString shouldStartWith "my-script"
+            }
         }
 
         @Test
-        fun `should write executable script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should write executable script`(simpleId: SimpleId) = withTempDir(simpleId) {
             val file = createTempFile(suffix = ".sh")
             val returnedScript = shellScript().toFile(file)
             expectThat(returnedScript).isExecutable()
         }
 
         @Test
-        fun `should return same file as saved to file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should return same file as saved to file`(simpleId: SimpleId) = withTempDir(simpleId) {
             val file = createTempFile(suffix = ".sh")
             val returnedScript = shellScript().toFile(file)
             expectThat(returnedScript).isEqualTo(file)
@@ -255,15 +256,15 @@ class ShellScriptTest {
     @Nested
     inner class Name {
 
-        private val testBanner = "$e[90;40m▒$e[39;49m$e[96;46m▒$e[39;49m" +
-            "$e[94;44m▒$e[39;49m$e[92;42m▒$e[39;49m$e[93;43m▒" +
-            "$e[39;49m$e[95;45m▒$e[39;49m$e[91;41m▒$e[39;49m " +
-            "$e[96mTEST$e[39m"
+        private val testBanner = "${Unicode.ESCAPE}[90;40m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[96;46m▒${Unicode.ESCAPE}[39;49m" +
+            "${Unicode.ESCAPE}[94;44m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[92;42m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[93;43m▒" +
+            "${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[95;45m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[91;41m▒${Unicode.ESCAPE}[39;49m " +
+            "${Unicode.ESCAPE}[96mTEST${Unicode.ESCAPE}[39m"
 
-        private val differentBanner = "$e[90;40m▒$e[39;49m$e[96;46m▒$e[39;49m" +
-            "$e[94;44m▒$e[39;49m$e[92;42m▒$e[39;49m$e[93;43m▒" +
-            "$e[39;49m$e[95;45m▒$e[39;49m$e[91;41m▒$e[39;49m " +
-            "$e[96mDIFFERENT$e[39m"
+        private val differentBanner = "${Unicode.ESCAPE}[90;40m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[96;46m▒${Unicode.ESCAPE}[39;49m" +
+            "${Unicode.ESCAPE}[94;44m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[92;42m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[93;43m▒" +
+            "${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[95;45m▒${Unicode.ESCAPE}[39;49m${Unicode.ESCAPE}[91;41m▒${Unicode.ESCAPE}[39;49m " +
+            "${Unicode.ESCAPE}[96mDIFFERENT${Unicode.ESCAPE}[39m"
 
         @Test
         fun `should not echo name`() {
@@ -271,7 +272,7 @@ class ShellScriptTest {
             expectThat(sh.toString()).isEqualTo(
                 """
                 exit 0
-    
+
             """.trimIndent()
             )
         }
@@ -283,7 +284,7 @@ class ShellScriptTest {
                 """
                 echo '$testBanner'
                 exit 0
-    
+
             """.trimIndent()
             )
         }
@@ -305,7 +306,7 @@ class ShellScriptTest {
                 #!/bin/sh
                 echo '$testBanner'
                 exit 0
-    
+
             """.trimIndent()
             )
         }
@@ -318,7 +319,7 @@ class ShellScriptTest {
                 echo '$testBanner'
                 exit 0
                 #!/bin/sh
-    
+
             """.trimIndent()
             )
         }
@@ -329,8 +330,8 @@ class ShellScriptTest {
             expectThat(sh.toString(echoName = true)).toStringIsEqualTo(
                 """
                 echo '$testBanner'
-    
-    
+
+
             """.trimIndent()
             )
         }
@@ -341,15 +342,13 @@ class ShellScriptTest {
 
         @Test
         fun `should provide content`() {
-            expectThat(shellScript(null).content).matchesCurlyPattern(
-                """
+            shellScript(null).content shouldMatchGlob """
                 #!/bin/sh
-                {{}}
+                **
                 'echo' 'Hello World!'
                 'echo' 'Bye!'
                 'exit' '42'
             """.trimIndent()
-            )
         }
     }
 
@@ -386,7 +385,7 @@ class ShellScriptTest {
             @Test
             fun `should add custom path interpreter`() {
                 expectThat(ShellScript {
-                    shebang("/bin/bash".asPath())
+                    shebang(Paths.get("/bin/bash"))
                     echo("shebang")
                 }).containsExactly("#!/bin/bash", "'echo' 'shebang'")
             }
@@ -402,7 +401,7 @@ class ShellScriptTest {
             @Test
             fun `should add custom path interpreter with arguments`() {
                 expectThat(ShellScript {
-                    shebang("/bin/bash".asPath(), "arg1", "-arg2")
+                    shebang(Paths.get("/bin/bash"), "arg1", "-arg2")
                     echo("shebang")
                 }).containsExactly("#!/bin/bash arg1 -arg2", "'echo' 'shebang'")
             }
@@ -454,13 +453,13 @@ class ShellScriptTest {
 
             @Test
             fun `should redirect to file`() {
-                expectThat(ShellScript { echo("A") redirectTo "file".asPath(); echo("B") })
+                expectThat(ShellScript { echo("A") redirectTo Paths.get("file"); echo("B") })
                     .containsExactly("'echo' 'A' > 'file'", "'echo' 'B'")
             }
 
             @Test
             fun `should redirect to file at end`() {
-                expectThat(ShellScript { echo("A"); echo("B") redirectTo "file".asPath() })
+                expectThat(ShellScript { echo("A"); echo("B") redirectTo Paths.get("file") })
                     .containsExactly("'echo' 'A'", "'echo' 'B' > 'file'")
             }
         }
@@ -470,12 +469,12 @@ class ShellScriptTest {
 
             @Test
             fun `should build change directory command`() {
-                expectThat(ShellScript { changeDirectory("a/b/c".asPath()) }).containsExactly("'cd' 'a/b/c'")
+                expectThat(ShellScript { changeDirectory(Paths.get("a/b/c")) }).containsExactly("'cd' 'a/b/c'")
             }
 
             @Test
             fun `should build change directory command or exit`() {
-                expectThat(ShellScript { changeDirectoryOrExit("a/b/c".asPath()) }).containsExactly("'cd' 'a/b/c' || 'exit' '1'")
+                expectThat(ShellScript { changeDirectoryOrExit(Paths.get("a/b/c")) }).containsExactly("'cd' 'a/b/c' || 'exit' '1'")
             }
         }
 
@@ -493,7 +492,7 @@ class ShellScriptTest {
         inner class Poll {
 
             @Test
-            fun `should proceed if connection succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should proceed if connection succeeds`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val passedTime = http(8900) {
                     measureTime {
                         ShellScript { poll(URI("http://localhost:8900")) }.exec.logging()
@@ -503,7 +502,7 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should retry until succeeds`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should retry until succeeds`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val passedTime = measureTime {
                     thread {
                         2.seconds.sleep()
@@ -515,7 +514,7 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should not print`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should not print`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = http(8902) {
                     ShellScript { poll(URI("http://localhost:8902"), interval = 1.seconds) }.exec.logging()
                 }
@@ -523,7 +522,7 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should print if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should print if specified`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = http(8903) {
                     ShellScript { poll(URI("http://localhost:8903"), interval = 3.seconds, verbose = true) }.exec.logging()
                 }
@@ -533,7 +532,7 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should exit on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should exit on timeout`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val passedTime = measureTime {
                     ShellScript {
                         poll(URI("http://localhost:8904"), timeout = 1.seconds)
@@ -543,7 +542,7 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should exit with non zero on timeout`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should exit with non zero on timeout`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = ShellScript {
                     poll(URI("http://localhost:8905"), timeout = 1.seconds)
                 }.exec.logging()
@@ -571,34 +570,30 @@ class ShellScriptTest {
 
             @Test
             fun `should provide file operations by string`() {
-                expectThat(ShellScript {
+                ShellScript {
                     file("file.txt") {
                         appendLine("content")
                     }
-                }).toStringMatchesCurlyPattern(
-                    """
-                    cat <<HERE-{} >>"file.txt"
+                }.toString() shouldMatchGlob """
+                    cat <<HERE-* >>"file.txt"
                     content
-                    HERE-{}
-    
+                    HERE-*
+
                 """.trimIndent()
-                )
             }
 
             @Test
             fun `should provide file operations by path`() {
-                expectThat(ShellScript {
-                    file("file.txt".asPath()) {
+                ShellScript {
+                    file(Paths.get("file.txt")) {
                         appendLine("content")
                     }
-                }).toStringMatchesCurlyPattern(
-                    """
-                    cat <<HERE-{} >>"file.txt"
+                }.toString() shouldMatchGlob """
+                    cat <<HERE-* >>"file.txt"
                     content
-                    HERE-{}
-    
+                    HERE-*
+
                 """.trimIndent()
-                )
             }
         }
 
@@ -623,9 +618,8 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should embed shell script`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(ShellScript { shellScript(false) }).toStringMatchesCurlyPattern(
-                    """
+            fun `should embed shell script`(simpleId: SimpleId) = withTempDir(simpleId) {
+                ShellScript { shellScript(false) }.toString() shouldMatchGlob """
                     #!/bin/sh
                     echo 'about to run embedded script'
                     '/bin/bash' '-c' 'mkdir '"'"'dir'"'"'
@@ -635,14 +629,13 @@ class ShellScriptTest {
                     '
                     echo 'finished to run embedded script'
                     echo $(pwd)
+
                 """.trimIndent()
-                )
             }
 
             @Test
-            fun `should embed shell script with name if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectThat(ShellScript { shellScript(true) }).toStringMatchesCurlyPattern(
-                    """
+            fun `should embed shell script with name if specified`(simpleId: SimpleId) = withTempDir(simpleId) {
+                ShellScript { shellScript(true) }.toString() shouldMatchGlob """
                     #!/bin/sh
                     echo 'about to run embedded script'
                     '/bin/bash' '-c' 'echo '"'"'${Banner.banner("embedded script 📝")}'"'"'
@@ -653,31 +646,29 @@ class ShellScriptTest {
                     '
                     echo 'finished to run embedded script'
                     echo $(pwd)
+
                 """.trimIndent()
-                )
             }
 
             @Smoke @Test
-            fun `should preserve functionality`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should preserve functionality`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = ShellScript {
                     changeDirectoryOrExit(this@withTempDir)
                     shellScript(true)
                 }.exec.logging()
 
-                expect {
-                    that(exec.exitCodeOrNull).isEqualTo(0)
-                    that(exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }.joinToString(LineSeparators.Default))
-                        .matchesCurlyPattern(
-                            """
+                exec should {
+                    it.exitCodeOrNull shouldBe 0
+                    exec.io.ansiRemoved.lines().filter { "terminated successfully at" !in it }
+                        .joinToString(LineSeparators.Default) shouldMatchGlob """
                         about to run embedded script
                         ▒▒▒▒▒▒▒ EMBEDDED SCRIPT 📝
                         finished to run embedded script
                         $pathString
                     """.trimIndent()
-                        )
-                    that(resolve("dir/file.txt")) {
-                        exists()
-                        hasContent("test$LF")
+                    resolve("dir/file.txt") should {
+                        it.shouldExist()
+                        it.readText() shouldBe "test$LF"
                     }
                 }
             }
@@ -706,7 +697,7 @@ class ShellScriptTest {
                     """
                     #!/bin/sh
                     'docker' 'run' '--name' 'container-name' '--rm' '--interactive' '--mount' 'type=bind,source=/a/b,target=/c/d' '--mount' 'type=bind,source=/e/f/../g,target=/h' 'image/name' '-arg1' '--argument' '2'
-                    
+
                 """.trimIndent()
                 )
             }
@@ -720,7 +711,7 @@ class ShellScriptTest {
                     """
                     #!/bin/sh
                     'docker' 'stop' '--time' '42' 'busybox' 'guestfish'
-        
+
                 """.trimIndent()
                 )
             }
@@ -794,7 +785,7 @@ class ShellScriptTest {
         inner class Sudo {
 
             @Test
-            fun `should create sudo line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should create sudo line`(simpleId: SimpleId) = withTempDir(simpleId) {
                 expectThat(ShellScript {
                     sudo("a password", "a command")
                 }).get { last() }
@@ -806,7 +797,7 @@ class ShellScriptTest {
         inner class DeleteOnCompletion {
 
             @Test
-            fun `should create rm line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should create rm line`(simpleId: SimpleId) = withTempDir(simpleId) {
                 expectThat(ShellScript {
                     deleteSelf()
                 }).get { last() }
@@ -814,14 +805,14 @@ class ShellScriptTest {
             }
 
             @Test
-            fun `should not remove itself by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should not remove itself by default`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val script = ShellScript().toFile(resolve("script.sh"))
                 ShellScript { !script.pathString }.exec.logging()
                 expectThat(resolve("script.sh")).exists()
             }
 
             @Test
-            fun `should remove itself`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should remove itself`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val script = ShellScript { deleteSelf() }.toFile(resolve("script.sh"))
                 ShellScript { !script.pathString }.exec.logging()
                 expectThat(resolve("script.sh")).not { exists() }
@@ -833,8 +824,8 @@ class ShellScriptTest {
     inner class CompanionObject {
 
         @TestFactory
-        fun `should check if is script`(uniqueId: UniqueId) = testsOld {
-            withTempDir(uniqueId) {
+        fun `should check if is script`(simpleId: SimpleId) = testsOld {
+            withTempDir(simpleId) {
                 expecting { "#!".toByteArray() } that { isScript() }
                 expecting { "#".toByteArray() } that { not { isScript() } }
                 expecting { "foo".toByteArray() } that { not { isScript() } }

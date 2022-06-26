@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators.lineSequence
+import com.bkahlert.kommons.UriRegex
 import com.bkahlert.kommons.asString
-import com.bkahlert.kommons.regex.RegularExpressions
+import com.bkahlert.kommons.debug.renderType
+import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.LineSeparators.lineSequence
 import com.bkahlert.kommons.text.formatColumns
 import com.bkahlert.kommons.text.maxColumns
-import com.bkahlert.kommons.takeUnlessEmpty
-import com.bkahlert.kommons.toSimpleClassName
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId
 
@@ -24,7 +24,9 @@ public class BlockRenderer(
 
     override fun start(traceId: TraceId, spanId: SpanId, name: CharSequence) {
         style.start(name, settings.nameFormatter, settings.decorationFormatter)
-            ?.let(settings.printer)
+            ?.lineSequence()
+            ?.map { it.trimEnd() }
+            ?.forEach(settings.printer)
     }
 
     override fun event(name: CharSequence, attributes: RenderableAttributes) {
@@ -35,6 +37,7 @@ public class BlockRenderer(
             .takeIf { it.any { (text, _) -> text != null } }
             ?.let { formatColumns(*it.toTypedArray(), paddingColumns = style.layout.gap, wrapLines = ::wrapNonUriLines) }
             ?.lineSequence()
+            ?.map { it.trimEnd() }
             ?.mapNotNull { style.content(it, settings.decorationFormatter) }
             ?.forEach(settings.printer)
     }
@@ -44,12 +47,13 @@ public class BlockRenderer(
         if (attributes.isEmpty()) {
             (if (formatted.maxColumns() > style.layout.totalWidth) wrapNonUriLines(formatted, style.layout.totalWidth) else formatted)
                 .lineSequence()
+                .map { it.trimEnd() }
                 .mapNotNull { style.content(it, settings.decorationFormatter) }
                 .map { it.ansi.red }
                 .forEach(settings.printer)
         } else {
             event(
-                exception::class.toSimpleClassName(),
+                exception.renderType(),
                 RenderableAttributes.of(*attributes.toList().toTypedArray(), style.layout.primaryKey to formatted)
             )
         }
@@ -60,7 +64,9 @@ public class BlockRenderer(
         val formatted = style.end(returnValue, settings.returnValueTransform, settings.decorationFormatter)
         formatted?.takeUnlessEmpty()
             ?.let { if (it.maxColumns() > style.layout.totalWidth) wrapNonUriLines(it, style.layout.totalWidth) else formatted }
-            ?.let(settings.printer)
+            ?.lineSequence()
+            ?.map { it.trimEnd() }
+            ?.forEach(settings.printer)
     }
 
     override fun childRenderer(renderer: RendererProvider): Renderer =
@@ -86,7 +92,7 @@ public class BlockRenderer(
         private fun wrapNonUriLines(text: CharSequence?, maxColumns: Int): CharSequence =
             when {
                 text == null -> ""
-                RegularExpressions.uriRegex.containsMatchIn(text) -> text
+                Regex.UriRegex.containsMatchIn(text) -> text
                 else -> Renderable.of(text).render(maxColumns, null)
             }
     }

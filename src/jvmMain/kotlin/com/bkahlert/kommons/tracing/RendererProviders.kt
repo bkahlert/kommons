@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.TextLength.Companion.chars
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Meta
-import com.bkahlert.kommons.text.truncate
 import com.bkahlert.kommons.tracing.rendering.BlockRenderer
 import com.bkahlert.kommons.tracing.rendering.CompactRenderer
 import com.bkahlert.kommons.tracing.rendering.OneLineRenderer
@@ -12,6 +12,7 @@ import com.bkahlert.kommons.tracing.rendering.RendererFactory
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.Settings
 import com.bkahlert.kommons.tracing.rendering.Styles.None
+import com.bkahlert.kommons.truncate
 
 public object RendererProviders {
 
@@ -56,7 +57,7 @@ public object RendererProviders {
                     if (it is Meta) ""
                     else it.toString().run {
                         substringAfter(":").trim().run {
-                            takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength)
+                            takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength.chars)
                         }
                     })
             }
@@ -71,11 +72,13 @@ public object RendererProviders {
     public fun noDetails(
         customize: Settings.() -> Settings = { this },
     ): RendererProvider = {
-        OneLineRenderer(customize().copy(
-            nameFormatter = { it },
-            contentFormatter = { null },
-            style = None,
-        ))
+        OneLineRenderer(
+            customize().copy(
+                nameFormatter = { it },
+                contentFormatter = { null },
+                style = None,
+            )
+        )
     }
 
     /**
@@ -88,24 +91,26 @@ public object RendererProviders {
         customize: Settings.() -> Settings = { this },
     ): RendererProvider = {
         val customized = customize()
-        CompactRenderer(customize().copy(
-            nameFormatter = {
-                if (maxNameLength > 0) {
-                    val originallyFormattedName = customized.nameFormatter(it)
-                    originallyFormattedName?.let(Renderable::of)?.render(maxNameLength, 1)
-                } else {
-                    null
-                }
-            },
-            contentFormatter = {
-                if (it is Error) customized.contentFormatter(it)
-                else null
-            },
-            decorationFormatter = { "" },
-            returnValueTransform = {
-                it.takeUnless { it.successful }?.let(customized.returnValueTransform)
-            },
-            style = None,
-        ))
+        CompactRenderer(
+            customize().copy(
+                nameFormatter = {
+                    if (maxNameLength > 0) {
+                        val originallyFormattedName = customized.nameFormatter(it)
+                        originallyFormattedName?.let(Renderable::of)?.render(maxNameLength, 1)
+                    } else {
+                        null
+                    }
+                },
+                contentFormatter = {
+                    if (it is Error) customized.contentFormatter(it)
+                    else null
+                },
+                decorationFormatter = { "" },
+                returnValueTransform = {
+                    it.takeUnless { it.successful }?.let(customized.returnValueTransform)
+                },
+                style = None,
+            )
+        )
     }
 }

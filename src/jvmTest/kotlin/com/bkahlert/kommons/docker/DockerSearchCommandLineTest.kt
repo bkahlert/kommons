@@ -2,7 +2,7 @@ package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.docker.DockerSearchCommandLine.DockerSearchResult
 import com.bkahlert.kommons.docker.TestImages.BusyBox
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
@@ -16,14 +16,16 @@ import strikt.assertions.isGreaterThan
 class DockerSearchCommandLineTest {
 
     @DockerRequiring @Test
-    fun `should search`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-        expectThat(DockerSearchCommandLine.search(
-            "busybox",
-            stars = 4,
-            automated = false,
-            official = true,
-            limit = 2
-        )).any {
+    fun `should search`(simpleId: SimpleId) = withTempDir(simpleId) {
+        expectThat(
+            DockerSearchCommandLine.search(
+                "busybox",
+                stars = 4,
+                automated = false,
+                official = true,
+                limit = 2
+            )
+        ).any {
             image.isEqualTo(BusyBox)
             description.contains("Busybox").contains("base").contains("image")
             stars.isGreaterThan(1000)

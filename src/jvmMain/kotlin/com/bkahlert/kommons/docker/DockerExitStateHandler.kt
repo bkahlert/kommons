@@ -1,9 +1,13 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.CaseStyle
+import com.bkahlert.kommons.Now
+import com.bkahlert.kommons.capitalize
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.UnknownError
+import com.bkahlert.kommons.endSpaced
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.IOSequence
@@ -16,17 +20,13 @@ import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.outputAndError
 import com.bkahlert.kommons.head
 import com.bkahlert.kommons.simpleTitleCasedName
+import com.bkahlert.kommons.spaced
 import com.bkahlert.kommons.tail
 import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.capitalize
 import com.bkahlert.kommons.text.containsAll
-import com.bkahlert.kommons.text.rightSpaced
-import com.bkahlert.kommons.text.spaced
-import com.bkahlert.kommons.text.splitPascalCase
-import com.bkahlert.kommons.time.Now
 import java.time.Instant
 import kotlin.reflect.KClass
 import kotlin.text.RegexOption.IGNORE_CASE
@@ -37,11 +37,11 @@ import kotlin.text.RegexOption.IGNORE_CASE
 public object DockerExitStateHandler : ExitStateHandler {
 
     override fun Exec.handle(pid: Long, exitCode: Int, io: IOSequence<IO>): ExitState = kotlin.runCatching {
-        if (exitCode == 0) handleSuccess(start, Now.instant, pid, io)
-        else handleFailure(start, Now.instant, pid, exitCode, io)
+        if (exitCode == 0) handleSuccess(start, Now, pid, io)
+        else handleFailure(start, Now, pid, exitCode, io)
     }.getOrElse { cause -> throw ParseException(io.outputAndError.ansiKept, cause) }
 
-    private fun handleSuccess(start: Instant, end: Instant, pid: Long, io: IOSequence<IO>) = Succeeded(start, end, pid, io, "🐳 💭 ${true.asEmoji}")
+    private fun handleSuccess(start: Instant, end: Instant, pid: Long, io: IOSequence<IO>) = Succeeded(start, end, pid, io, "🐳 💭 ${true.asEmoji()}")
 
     private val messageSplitRegex = Regex(": ")
     private val errorPrologue = Regex("Error(?:\\s+.*?\\s+daemon)?", IGNORE_CASE)
@@ -123,7 +123,7 @@ public object DockerExitStateHandler : ExitStateHandler {
 
             override val symbol: String = Symbols.Negative
             override val textRepresentation: String? get() = (this::class.simpleTitleCasedName?.lowercase() ?: "<object>").formattedAs.error
-            override fun format(): String = symbol.rightSpaced + textRepresentation
+            override fun format(): String = symbol.endSpaced + textRepresentation
             override fun toString(): String = format()
 
             public class NoSuchContainer(
@@ -229,7 +229,7 @@ public object DockerExitStateHandler : ExitStateHandler {
             public companion object {
                 // ThisIsAClassName -> This is a class name
                 protected inline val <reified T : KClass<*>> T.expectedErrorMessage: String?
-                    get() = simpleName?.splitPascalCase()?.joinToString(" ")
+                    get() = simpleName?.let { CaseStyle.PascalCase.split(it) }?.joinToString(" ")
                         ?.capitalize()
 
                 private inline fun <reified T : Any> String.matches() = equals(T::class.expectedErrorMessage, ignoreCase = true)

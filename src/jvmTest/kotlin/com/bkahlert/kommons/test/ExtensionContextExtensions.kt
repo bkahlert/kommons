@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.orNull
 import com.bkahlert.kommons.runtime.ancestor
 import com.bkahlert.kommons.runtime.ancestors
-import com.bkahlert.kommons.runtime.orNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestTemplate

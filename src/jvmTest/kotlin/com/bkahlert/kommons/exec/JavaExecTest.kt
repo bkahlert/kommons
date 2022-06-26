@@ -1,8 +1,9 @@
 package com.bkahlert.kommons.exec
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.delete
-import com.bkahlert.kommons.exception.rootCause
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Meta
@@ -14,25 +15,23 @@ import com.bkahlert.kommons.exec.Process.State.Exited
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
-import com.bkahlert.kommons.io.path.pathString
+import com.bkahlert.kommons.matchesCurly
+import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.runtime.wait
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
+import com.bkahlert.kommons.test.rootCause
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.lines
-import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.text.styling.wrapWithBorder
-import com.bkahlert.kommons.time.Now
 import com.bkahlert.kommons.time.poll
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
-import com.bkahlert.kommons.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -60,7 +59,10 @@ import strikt.assertions.message
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.exists
+import kotlin.io.path.pathString
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
@@ -70,35 +72,35 @@ class JavaExecTest {
     inner class Startup {
 
         @TestFactory
-        fun `should be running`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should be running`(simpleId: SimpleId) = withTempDir(simpleId) {
             val (exec, file) = createLazyFileCreatingExec()
             expectThat(exec).hasState<Running>()
-            expectThat(poll { file.exists() }.every(100.milli.seconds).forAtMost(8.seconds)).isTrue()
+            expectThat(poll { file.exists() }.every(100.milliseconds).forAtMost(8.seconds)).isTrue()
         }
 
         @TestFactory
-        fun `should process`(uniqueId: UniqueId) = testEachOld<Exec.() -> Exec>(
+        fun `should process`(simpleId: SimpleId) = testEachOld<Exec.() -> Exec>(
             { processSilently().apply { waitFor() } },
             { processSynchronously() },
             { processAsynchronously().apply { waitFor() } },
         ) { operation ->
-            withTempDir(uniqueId) {
+            withTempDir(simpleId) {
                 val exec = createCompletingExec().operation()
                 expecting { exec.state } that { isA<Exited>() }
                 expecting { exec } that { completesWithIO() }
-                expecting { poll { exec.successful }.every(100.milli.seconds).forAtMost(8.seconds) } that { isTrue() }
+                expecting { poll { exec.successful }.every(100.milliseconds).forAtMost(8.seconds) } that { isTrue() }
             }
         }
 
         @Test
-        fun `should be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should be alive`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(sleep = 5.seconds)
             expectThat(exec).alive
             exec.kill()
         }
 
         @Test
-        fun `should have start`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should have start`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(sleep = 5.seconds)
             expectThat(exec).hasState<Running> {
                 start.timePassed.isLessThan(2.seconds)
@@ -107,7 +109,7 @@ class JavaExecTest {
         }
 
         @Test
-        fun `should have running state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should have running state`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(sleep = 5.seconds)
             expectThat(exec).hasState<Running> {
                 status.isEqualTo("Process ${exec.pid} is running.")
@@ -117,19 +119,19 @@ class JavaExecTest {
         }
 
         @Test
-        fun `should provide PID`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide PID`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(42)
             expectThat(exec).get { pid }.isGreaterThan(0)
         }
 
         @Test
-        fun `should provide working directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide working directory`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec()
             expectThat(exec).workingDirectory.isEqualTo(this)
         }
 
         @Test
-        fun `should provide command line`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide command line`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec()
             expectThat(exec).commandLine.toStringContainsAll(
                 ">&1 echo \"test out\"",
@@ -139,13 +141,13 @@ class JavaExecTest {
         }
 
         @Test
-        fun `should provide IO`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide IO`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec().processSilently().also { it.waitFor() }
             expectThat(exec).log.logs(Output typed "test out", Error typed "test err")
         }
 
         @Test
-        fun `should redirect err if specified`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should redirect err if specified`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(redirectErrorStream = true).processSilently().also { it.waitFor() }
             expectThat(exec).log.logs(Output typed "test out", Output typed "test err")
         }
@@ -154,18 +156,18 @@ class JavaExecTest {
     @Nested
     inner class ToString {
 
-        private val shared = "commandLine={}, execTerminationCallback=❌, destroyOnShutdown=✅"
+        private val shared = "commandLine=*, execTerminationCallback=❌, destroyOnShutdown=✅"
 
         @Test
-        fun `should format running exec`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should format running exec`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec: Exec = createCompletingExec()
-            expectThat("$exec").matchesCurlyPattern("JavaExec(process=Process(pid={}, exitValue={}), successful=⏳️, $shared)")
+            "$exec" shouldMatchGlob "JavaExec(process=Process(pid=*, exitValue=*), successful=⏳️, $shared)"
         }
 
         @Test
-        fun `should format terminated exec`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should format terminated exec`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec: Exec = createCompletingExec().also { it.waitFor() }
-            expectThat("$exec").matchesCurlyPattern("JavaExec(process=Process(pid={}, exitValue={}), successful=✅, $shared)")
+            "$exec" shouldMatchGlob "JavaExec(process=Process(pid=*, exitValue=*), successful=✅, $shared)"
         }
     }
 
@@ -173,7 +175,7 @@ class JavaExecTest {
     inner class Interaction {
 
         @Slow @Test
-        fun `should provide output processor access to own running exec`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide output processor access to own running exec`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec: Exec = process(ShellScript {
                 !"""
                  while true; do
@@ -197,7 +199,7 @@ class JavaExecTest {
                     }
                 }
 
-                poll { exec.io.toList().size >= 7 }.every(100.milli.seconds)
+                poll { exec.io.toList().size >= 7 }.every(100.milliseconds)
                     .forAtMost(15.seconds) { fail("Less than 6x I/O logged within 8 seconds.") }
                 exec.stop()
                 exec.waitFor()
@@ -225,24 +227,24 @@ class JavaExecTest {
     inner class Termination {
 
         @Test
-        fun `by polling state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `by polling state`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(0)
             poll { exec.state is Exited }.every(0.5.seconds).forAtMost(8.seconds) { fail { "Did not terminate." } }
             expectThat(exec).hasState<Exited>()
         }
 
         @Test
-        fun `by waiting for`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `by waiting for`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(0)
             expectThat(exec.waitFor()).isA<Succeeded>()
         }
 
         @Test
-        fun `by waiting for termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `by waiting for termination`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(0)
             expectThat(exec.waitFor()) {
                 isA<ExitState>() and {
-                    status.matchesCurlyPattern("Process ${exec.pid} terminated {}")
+                    status.get { this shouldMatchGlob "Process ${exec.pid} terminated *" }
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
                     io.isEmpty() // because exec was not processed
@@ -251,7 +253,7 @@ class JavaExecTest {
         }
 
         @Test
-        fun `should return same termination on multiple calls`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should return same termination on multiple calls`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(0)
             expectThat(exec.waitFor()) {
                 isSameInstanceAs(exec.state)
@@ -259,13 +261,13 @@ class JavaExecTest {
         }
 
         @TestFactory
-        fun `by destroying using`(uniqueId: UniqueId) = testEachOld(
+        fun `by destroying using`(simpleId: SimpleId) = testEachOld(
             Builder<Exec>::stopped,
             Builder<Exec>::killed,
         ) { destroyOperation ->
             expecting {
                 measureTime {
-                    withTempDir(uniqueId) {
+                    withTempDir(simpleId) {
                         val exec = createLoopingExec()
                         expectThat(exec) {
                             destroyOperation.invoke(this).joined.hasState<Failed> {
@@ -282,19 +284,19 @@ class JavaExecTest {
         }
 
         @Test
-        fun `should provide exit code`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should provide exit code`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(exitValue = 42)
             expectThat(exec).exited.exitCode.isEqualTo(42)
         }
 
         @Test
-        fun `should have runtime`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should have runtime`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = CommandLine("sleep", "1").exec()
             expectThat(exec).exited.get { runtime }.isGreaterThan(Duration.ZERO)
         }
 
         @Test
-        fun `should not be alive`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should not be alive`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec = createCompletingExec(0)
             expectThat(exec).exited.not { get { exec }.alive }
         }
@@ -303,19 +305,19 @@ class JavaExecTest {
         inner class PreTerminationCallback {
 
             @Test
-            fun `should be called`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should be called`(simpleId: SimpleId) = withTempDir(simpleId) {
                 var callbackExec: Exec? = null
                 expect {
                     that(createCompletingExec().addPreTerminationCallback {
                         callbackExec = this
                     }).succeeds()
-                    100.milli.seconds.sleep()
+                    100.milliseconds.sleep()
                     expectThat(callbackExec).isNotNull()
                 }
             }
 
             @Test
-            fun `should be propagate exceptions`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should be propagate exceptions`(simpleId: SimpleId) = withTempDir(simpleId) {
                 expectThat(createCompletingExec().addPreTerminationCallback {
                     throw RuntimeException("test")
                 }.onExit).wait().isSuccess()
@@ -327,13 +329,13 @@ class JavaExecTest {
         inner class OfSuccessfulExec {
 
             @Test
-            fun `should succeed on 0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should succeed on 0 exit code by default`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(0)
                 expectThat(exec.waitFor()).isA<Succeeded>()
             }
 
             @Test
-            fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should call callback`(simpleId: SimpleId) = withTempDir(simpleId) {
                 var callbackCalled = false
                 val exec = createCompletingExec(exitValue = 0, execTerminationCallback = {
                     callbackCalled = true
@@ -345,26 +347,26 @@ class JavaExecTest {
             }
 
             @Test
-            fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should call post-termination callback`(simpleId: SimpleId) = withTempDir(simpleId) {
                 var callbackExec: Exec? = null
                 expect {
                     that(createCompletingExec(exitValue = 0).addPostTerminationCallback {
                         callbackExec = this
                     }).succeeds()
-                    100.milli.seconds.sleep()
+                    100.milliseconds.sleep()
                     expectThat(callbackExec).isNotNull()
                 }
             }
 
             @Smoke @Test
-            fun `should exit with Successful termination`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should exit with Successful termination`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(0)
                 expectThat(exec).succeeds() and {
                     start.timePassed.isLessThan(2.seconds)
                     end.timePassed.isLessThan(2.seconds)
                     runtime.isLessThan(2.seconds)
-                    toString().matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}")
-                    status.matchesCurlyPattern("Process ${exec.pid} terminated successfully at {}")
+                    toString().matchesCurly("Process ${exec.pid} terminated successfully at *")
+                    status.get { this shouldMatchGlob "Process ${exec.pid} terminated successfully at *" }
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
                     io.isEmpty() // because exec was not processed
@@ -376,38 +378,38 @@ class JavaExecTest {
         inner class FailedExec {
 
             @Test
-            fun `should fail on non-0 exit code by default`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should fail on non-0 exit code by default`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.waitFor()).isA<Failed>().io.any { ansiRemoved.contains("terminated with exit code 42") }
             }
 
             @Test
-            fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should meta log on exit`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.waitFor()).isA<Failed>().io.any { ansiRemoved.contains("terminated with exit code 42") }
             }
 
             @Test
-            fun `should meta log dump`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should meta log dump`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.waitFor()).isA<Failed>()
                     .io().containsDump()
             }
 
             @Test
-            fun `should return exit state on waitFor`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should return exit state on waitFor`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.waitFor()).isA<ExitState>()
             }
 
             @Test
-            fun `should fail on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should fail on exit`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.waitFor()).isA<Failed>()
             }
 
             @Test
-            fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should call callback`(simpleId: SimpleId) = withTempDir(simpleId) {
                 var callbackCalled = false
                 val exec = createCompletingExec(exitValue = 42, execTerminationCallback = {
                     callbackCalled = true
@@ -419,7 +421,7 @@ class JavaExecTest {
             }
 
             @Test
-            fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should call post-termination callback`(simpleId: SimpleId) = withTempDir(simpleId) {
                 var callbackEx: Any? = null
                 val exec = createCompletingExec(42).addPostTerminationCallback { ex -> callbackEx = ex }
                 expect {
@@ -428,14 +430,14 @@ class JavaExecTest {
             }
 
             @Smoke @Test
-            fun `should exit with failed exit state`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should exit with failed exit state`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
                 expectThat(exec.onExit).wait().isSuccess()
                     .isA<Failed>() and {
                     start.timePassed.isLessThan(2.seconds)
                     end.timePassed.isLessThan(2.seconds)
                     runtime.isLessThan(2.seconds)
-                    status.lines().first().matchesCurlyPattern("Process ${exec.pid} terminated with exit code ${exec.exitCode}")
+                    status.lines().first().get { this shouldMatchGlob "Process ${exec.pid} terminated with exit code ${exec.exitCode}" }
                     containsDump()
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(42)
@@ -460,7 +462,7 @@ class JavaExecTest {
                     )
 
                 @Test
-                fun `should exit fatally on exit handler exception`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                fun `should exit fatally on exit handler exception`(simpleId: SimpleId) = withTempDir(simpleId) {
                     val exec = fatallyFailingExec()
                     expectThat(exec.waitFor()).isA<Excepted>() and {
                         start.timePassed.isLessThan(2.seconds)
@@ -473,13 +475,13 @@ class JavaExecTest {
                 }
 
                 @Test
-                fun `should meta log on exit`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                fun `should meta log on exit`(simpleId: SimpleId) = withTempDir(simpleId) {
                     val exec = fatallyFailingExec()
                     expectThat(exec.waitFor()).isA<Excepted>().containsDump()
                 }
 
                 @Test
-                fun `should call callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                fun `should call callback`(simpleId: SimpleId) = withTempDir(simpleId) {
                     var callbackCalled = false
                     val exec = fatallyFailingExec { callbackCalled = true }
                     expectThat(exec.onExit).wait().isSuccess().isA<Excepted>()
@@ -489,7 +491,7 @@ class JavaExecTest {
                 }
 
                 @Smoke @Test
-                fun `should call post-termination callback`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+                fun `should call post-termination callback`(simpleId: SimpleId) = withTempDir(simpleId) {
                     var termination: Any? = null
                     val exec = fatallyFailingExec().addPostTerminationCallback { termination = it }
                     expectThat(exec.onExit).wait()
@@ -603,13 +605,12 @@ fun Builder<String>.containsDump() {
 
 fun Builder<List<IO>>.logs(vararg io: IO) = logs(io.toList())
 fun Builder<List<IO>>.logs(io: Collection<IO>) = logsWithin(io = io)
-fun Builder<List<IO>>.logs(predicate: List<IO>.() -> Boolean) = logsWithin(predicate = predicate)
 
 fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection<IO>) =
     assert("logs $io within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().containsAll(io)
-        }.every(100.milli.seconds).forAtMost(5.seconds)) {
+        }.every(100.milliseconds).forAtMost(5.seconds)) {
             true -> pass()
             else -> fail("logged ${ioLog.toList()} instead")
         }
@@ -619,7 +620,7 @@ fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate: Lis
     assert("logs within $timeFrame") { ioLog ->
         when (poll {
             ioLog.toList().predicate()
-        }.every(100.milli.seconds).forAtMost(5.seconds)) {
+        }.every(100.milliseconds).forAtMost(5.seconds)) {
             true -> pass()
             else -> fail("did not log within $timeFrame")
         }
@@ -681,4 +682,4 @@ fun Builder<out ExitState>.io() =
 
 
 val Builder<Instant>.timePassed
-    get() = get("time passed since now") { Now.passedSince(toEpochMilli()) }
+    get() = get("time passed since now") { Now.minus(this) }

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io
 
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.test.expecting
-import com.bkahlert.kommons.text.LineSeparators
 import org.junit.jupiter.api.Test
 import strikt.assertions.isEqualTo
 

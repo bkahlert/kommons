@@ -1,12 +1,11 @@
 package com.bkahlert.kommons.io.path
 
+import com.bkahlert.kommons.Program
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.cleanUp
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode
 import com.bkahlert.kommons.requireTempSubPath
-import com.bkahlert.kommons.runtime.onExit
-import com.bkahlert.kommons.time.hours
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -14,6 +13,7 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.setPosixFilePermissions
 import kotlin.reflect.KProperty
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 /**
  * A directory that is cleaned when the program exits
@@ -95,7 +95,7 @@ public data class SelfCleaningDirectory(
         }
         path.setPosixFilePermissions(OWNER_ALL_PERMISSIONS)
 
-        if (cleanUpMode.onShutdown) onExit { cleanUp() }
+        if (cleanUpMode.onShutdown) Program.onExit { cleanUp() }
     }
 }
 

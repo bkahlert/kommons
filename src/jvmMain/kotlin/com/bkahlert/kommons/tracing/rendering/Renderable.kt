@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.regex.RegularExpressions.uriRegex
+import com.bkahlert.kommons.LineSeparators.isMultiline
+import com.bkahlert.kommons.UriRegex
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.LineSeparators.isMultiline
-import com.bkahlert.kommons.text.LineSeparators.wrapLines
 import com.bkahlert.kommons.text.truncateByColumns
+import com.bkahlert.kommons.text.wrapLines
 
 /**
  * Implementors of this interface gain control on
@@ -42,18 +42,18 @@ public interface Renderable : CharSequence {
             when (value) {
                 is Renderable -> value
                 is Any -> of(value.toAnsiString()) { columns, rows ->
-                    if (isMultiline) {
+                    if (isMultiline()) {
                         lineSequence()
                             .let { if (rows != null) it.take(rows) else it }
                             .let {
                                 if (columns != null) it.map { line ->
-                                    if (uriRegex.containsMatchIn(line)) line
+                                    if (Regex.UriRegex.containsMatchIn(line)) line
                                     else line.truncateByColumns(columns)
                                 } else it
                             }
                             .joinToString(LineSeparators.Default) { it.toString() }
                     } else {
-                        if (uriRegex.containsMatchIn(this)) this.toString()
+                        if (Regex.UriRegex.containsMatchIn(this)) this.toString()
                         else if (columns != null && rows != null) truncateByColumns(columns).toString()
                         else if (columns != null && rows == null) wrapLines(columns).toString()
                         else this.toString()

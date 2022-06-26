@@ -2,10 +2,9 @@ package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.SystemIOExclusive
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
 
 @SystemIOExclusive
 class BackgroundPrinterTest {
@@ -16,6 +15,6 @@ class BackgroundPrinterTest {
         BackgroundPrinter("But it shows on the actual console.".ansi.italic)
         println("This message is captured.")
 
-        expectThat(output).toStringMatchesCurlyPattern("This message is captured.")
+        output.toString() shouldMatchGlob "This message is captured."
     }
 }

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.exec.mock
 
-import com.bkahlert.kommons.time.Now
+import com.bkahlert.kommons.Now
 import java.lang.ProcessHandle.Info
 import java.time.Duration
 import java.time.Instant
@@ -11,7 +11,7 @@ import kotlin.time.toJavaDuration
 
 public class ProcessHandleMock(
     private val processMock: JavaProcessMock,
-    private val start: Instant = Now.instant,
+    private val start: Instant = Now,
 ) : ProcessHandle {
     override fun compareTo(other: ProcessHandle?): Int = other?.compareTo(this) ?: 0
     override fun pid(): Long = processMock.pid()

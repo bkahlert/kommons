@@ -2,11 +2,9 @@ package com.bkahlert.kommons.tracing
 
 import com.bkahlert.kommons.exec.IOAttributes
 import com.bkahlert.kommons.getOrException
-import com.bkahlert.kommons.test.hasElements
 import com.bkahlert.kommons.test.junit.DisplayName
-import com.bkahlert.kommons.test.testEachOld
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
-import com.bkahlert.kommons.time.seconds
+import com.bkahlert.kommons.test.junit.testEach
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import com.bkahlert.kommons.tracing.rendering.RenderableAttributes
 import com.bkahlert.kommons.tracing.rendering.Renderer
@@ -14,7 +12,13 @@ import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.NOOP
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes
 import com.bkahlert.kommons.tracing.rendering.Settings
-import com.bkahlert.kommons.unit.nano
+import io.kotest.inspectors.forAll
+import io.kotest.inspectors.forAny
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Span
@@ -27,108 +31,107 @@ import io.opentelemetry.sdk.trace.data.StatusData
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
-import strikt.api.expectThat
-import strikt.assertions.all
-import strikt.assertions.contains
-import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
 
 @NoTestSpan
 class RenderingSpanScopeTest {
 
     @TestFactory
-    fun event(displayName: DisplayName) = testEachOld<RenderingSpanScope.(String) -> Unit>(
+    fun event(displayName: DisplayName) = testEach<RenderingSpanScope.(String) -> Unit>(
         { event(Event.of(it)) },
         { event(it) },
     ) { op ->
         val (traceId, rendered) = withRenderingSpanScope(displayName) { op("event name") }
 
-        expecting("should record") { TestTelemetry[traceId] } that {
-            all { isValid() }
-            hasElements(
-                {
-                    spanName.contains("RenderingSpanScopeTest ➜ event")
-                    events.hasElements(
-                        { eventName.isEqualTo("event name") }
-                    )
-                }
-            )
+        TestTelemetry[traceId] should {
+            it.forAll {
+                TraceId(it.traceId).valid shouldBe true
+                SpanId(it.spanId).valid shouldBe true
+                it.duration.isPositive() shouldBe true
+            }
+            it.forAny {
+                it.name shouldContain "RenderingSpanScopeTest ➜ event"
+                it.events.forAny { it.name shouldBe "event name" }
+
+            }
         }
 
-        expecting("should render") { rendered } that {
-            containsExactly("EVENT: event name; 0")
-        }
+        rendered shouldContain "EVENT: event name; 0"
     }
 
     @TestFactory
-    fun exception(displayName: DisplayName) = testEachOld<RenderingSpanScope.(Throwable) -> Unit>(
+    fun exception(displayName: DisplayName) = testEach<RenderingSpanScope.(Throwable) -> Unit>(
         { exception(it) },
     ) { op ->
         val (traceId, rendered) = withRenderingSpanScope(displayName) { op(RuntimeException("exception message")) }
 
-        expecting("should record") { TestTelemetry[traceId] } that {
-            all { isValid() }
-            hasElements({
-                spanName.contains("RenderingSpanScopeTest ➜ exception")
-                events.hasElements(
-                    { eventName.isEqualTo("exception") }
-                )
-            })
+        TestTelemetry[traceId] should {
+            it.forAll {
+                TraceId(it.traceId).valid shouldBe true
+                SpanId(it.spanId).valid shouldBe true
+                it.duration.isPositive() shouldBe true
+            }
+            it.forAny {
+                it.name shouldContain "RenderingSpanScopeTest ➜ exception"
+                it.events.forAny { it.name shouldBe "exception" }
+
+            }
         }
 
-        expecting("should render") { rendered } that {
-            containsExactly("EXCEPTION: exception message; 0")
-        }
+        rendered.shouldContainExactly("EXCEPTION: exception message; 0")
     }
 
     @TestFactory
-    fun end(displayName: DisplayName) = testEachOld<RenderingSpanScope.() -> Unit>(
+    fun end(displayName: DisplayName) = testEach<RenderingSpanScope.() -> Unit>(
         { end() },
         { end(Result.success(Unit)) },
     ) { op ->
         val (traceId, rendered) = withRenderingSpanScope(displayName, invokeEnd = false) { op() }
 
-        expecting("should record") { TestTelemetry[traceId] } that {
-            all { isValid() }
-            hasElements(
-                {
-                    spanName.contains("RenderingSpanScopeTest ➜ end")
-                    isOkay()
-                }
-            )
+        TestTelemetry[traceId] should {
+            it.forAll {
+                TraceId(it.traceId).valid shouldBe true
+                SpanId(it.spanId).valid shouldBe true
+                it.duration.isPositive() shouldBe true
+            }
+            it.forAny {
+                it.name shouldContain "RenderingSpanScopeTest ➜ end"
+                it.status.statusCode shouldBe OK
+
+            }
         }
 
-        expecting("should render") { rendered } that {
-            containsExactly("END: (kotlin.Unit, null)")
-        }
+        rendered.shouldContainExactly("END: (kotlin.Unit, null)")
     }
 
     @TestFactory
-    fun fail(displayName: DisplayName) = testEachOld<RenderingSpanScope.() -> Unit>(
+    fun fail(displayName: DisplayName) = testEach<RenderingSpanScope.() -> Unit>(
         { end(Result.failure<Unit>(RuntimeException("test"))) },
     ) { op ->
         val (traceId, rendered) = withRenderingSpanScope(displayName, invokeEnd = false) { op() }
 
-        expecting("should record") { TestTelemetry[traceId] } that {
-            all { isValid() }
-            hasElements(
-                {
-                    spanName.contains("RenderingSpanScopeTest ➜ fail")
-                    isError("test")
-                }
-            )
+        TestTelemetry[traceId] should {
+            it.forAll {
+                TraceId(it.traceId).valid shouldBe true
+                SpanId(it.spanId).valid shouldBe true
+                it.duration.isPositive() shouldBe true
+            }
+            it.forAny {
+                it.name shouldContain "RenderingSpanScopeTest ➜ fail"
+                it.status.statusCode shouldBe ERROR
+                it.status.description shouldBe "test"
+            }
         }
 
-        expecting("should render") { rendered } that {
-            containsExactly("END: (null, java.lang.RuntimeException: test)")
-        }
+        rendered.shouldContainExactly("END: (null, java.lang.RuntimeException: test)")
     }
 
     @Test
     fun `should override toString`() {
-        expectThat(RenderingSpanScope(Span.getInvalid(), NOOP)).toStringMatchesCurlyPattern("RenderingSpanScope(span={}, renderer={})")
+        RenderingSpanScope(Span.getInvalid(), NOOP).toString() shouldMatchGlob "RenderingSpanScope(span=*, renderer=*)"
     }
 
     private fun withRenderingSpanScope(displayName: DisplayName, invokeEnd: Boolean = true, block: RenderingSpanScope.() -> Unit): Pair<TraceId, List<String>> {
@@ -178,9 +181,6 @@ class RenderingSpanScopeTest {
     }
 }
 
-val Builder<out Iterable<SpanData>>.spanNames: Builder<List<String>>
-    get() = get("span names") { map { it.name } }
-
 val Builder<SpanData>.traceId: Builder<TraceId>
     get() = get("trace ID") { TraceId(traceId) }
 
@@ -224,8 +224,10 @@ fun <T> Builder<SpanData>.hasSpanAttribute(key: AttributeKey<T>, value: T?): Bui
         }
     }
 
+val SpanData.duration get() = (endEpochNanos - startEpochNanos).nanoseconds
+
 val Builder<SpanData>.duration: Builder<Duration>
-    get() = get("duration") { (endEpochNanos - startEpochNanos).nano.seconds }
+    get() = get("duration") { (endEpochNanos - startEpochNanos).nanoseconds }
 
 val Builder<SpanData>.events: Builder<List<EventData>>
     get() = get("events") { events }
@@ -256,17 +258,8 @@ val Builder<SpanData>.status: Builder<StatusData>
 val Builder<SpanData>.statusCode: Builder<StatusCode>
     get() = get("code") { status.statusCode }
 
-val Builder<SpanData>.statusDescription: Builder<String>
-    get() = get("description") { status.description }
-
 fun Builder<SpanData>.isOkay() =
     statusCode.isEqualTo(OK)
-
-fun Builder<SpanData>.isError(expectedDescription: String) =
-    with(this) {
-        statusCode.isEqualTo(ERROR)
-        statusDescription.isEqualTo(expectedDescription)
-    }
 
 operator fun Builder<Attributes>.get(key: String): Builder<String?> =
     get("key $key") { get(AttributeKey.stringKey(key)) }

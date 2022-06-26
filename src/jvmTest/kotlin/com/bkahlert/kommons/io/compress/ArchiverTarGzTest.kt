@@ -16,7 +16,7 @@ import com.bkahlert.kommons.io.path.touch
 import com.bkahlert.kommons.io.path.writeText
 import com.bkahlert.kommons.test.Fixtures.archiveWithTwoFiles
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.unit.bytes
@@ -43,34 +43,34 @@ class ArchiverTarGzTest {
     }
 
     @TestFactory
-    fun `should throw on non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should throw on non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         { directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().writeText("content") }.archive("tar.gz") },
         { archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive() },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThrows<FileAlreadyExistsException> { call() }
         }
     }
 
     @TestFactory
-    fun `should overwrite non-empty destination`(uniqueId: UniqueId) = testEachOld<Path.() -> Path>(
+    fun `should overwrite non-empty destination`(simpleId: SimpleId) = testEachOld<Path.() -> Path>(
         {
             createTempDirectory().directoryWithTwoFiles().apply { addExtensions("tar").addExtensions("gz").touch().writeText("content") }
                 .archive("tar.gz", overwrite = true)
         },
         { createTempDirectory().archiveWithTwoFiles("tar.gz").apply { copyTo(removeExtensions("gz").removeExtensions("tar")) }.unarchive(overwrite = true) },
     ) { call ->
-        withTempDir(uniqueId) {
+        withTempDir(simpleId) {
             expectThat(call()).exists()
         }
     }
 
     @Test
-    fun `should tar-gzip and untar-gunzip`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+    fun `should tar-gzip and untar-gunzip`(simpleId: SimpleId) = withTempDir(simpleId) {
         val dir = directoryWithTwoFiles()
 
         val archivedDir = dir.tarGzip()
-        expectThat(archivedDir.getSize()).isLessThan(dir.getSize().coerceAtLeast(500.bytes))
+        expectThat(archivedDir.getSize()).isLessThan(dir.getSize().coerceAtLeast(550.bytes))
 
         val renamedDir = dir.renameTo("${dir.fileName}-renamed")
 

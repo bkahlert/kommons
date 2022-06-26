@@ -2,13 +2,17 @@
 
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.CodePoint
+import com.bkahlert.kommons.Grapheme
+import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.Unicode
+import com.bkahlert.kommons.asCodePointSequence
 import com.bkahlert.kommons.test.expectThrows
 import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.too
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -83,7 +87,7 @@ class TextWidthKtTest {
         }
 
         @TestFactory
-        fun `should calc 0 columns for line separators`() = testEachOld(*LineSeparators.toTypedArray()) {
+        fun `should calc 0 columns for line separators`() = testEachOld(*LineSeparators.Unicode) {
             expecting { it.first().columns } that { isEqualTo(0) }
             expecting { it.columns } that { isEqualTo(0) }
             expecting { "XXX${it}XX".columns } that { isEqualTo(5) }
@@ -106,14 +110,14 @@ class TextWidthKtTest {
 
         @TestFactory
         fun `should provide columns for code points`() = testsOld {
-            expecting { "A".asCodePoint()!!.columns } that { isEqualTo(1) }
-            expecting { "😀".asCodePoint()!!.columns } that { isEqualTo(2) }
+            expecting { "A".asCodePointSequence().single().columns } that { isEqualTo(1) }
+            expecting { "😀".asCodePointSequence().single().columns } that { isEqualTo(2) }
         }
 
         @TextWidthRequiring @TestFactory
         fun `should provide columns for grapheme cluster`() = testsOld {
-            expecting { "A".asGraphemeCluster()!!.columns } that { isEqualTo(1) }
-            expecting { "👩‍👩‍👧‍👧".asGraphemeCluster()!!.columns } that { isEqualTo(2) }
+            expecting { Grapheme("A").columns } that { isEqualTo(1) }
+            expecting { Grapheme("👩‍👩‍👧‍👧").columns } that { isEqualTo(2) }
         }
     }
 
@@ -141,10 +145,10 @@ class TextWidthKtTest {
 
         @TestFactory
         fun `should return columns sub sequence ⧸ substring`() = testEachOld(
-            0 to 0 too "",
-            0 to 1 too "",
-            0 to 2 too "😀",
-            0 to 3 too "😀o",
+            Triple(0, 0, ""),
+            Triple(0, 1, ""),
+            Triple(0, 2, "😀"),
+            Triple(0, 3, "😀o"),
         ) { (startColumn: Int, endColumn: Int, expected) ->
             expecting { "😀o".subSequenceByColumns(startColumn, endColumn) } that { isEqualTo(expected) }
             expecting { "😀o".substringByColumns(startColumn, endColumn) } that { isEqualTo(expected) }
@@ -340,7 +344,7 @@ class TextWidthKtTest {
             { toString().padStartByColumns(10, it.toString()) },
         ) { fn ->
             (0 until 32).forEach {
-                expectThrows<IllegalArgumentException> { "😀o".fn(Unicode[it].char!!) }
+                expectThrows<IllegalArgumentException> { "😀o".fn(CodePoint(it).char!!) }
             }
         }
     }
@@ -409,7 +413,7 @@ class TextWidthKtTest {
             { toString().padEndByColumns(10, it.toString()) },
         ) { fn ->
             (0 until 32).forEach {
-                expectThrows<IllegalArgumentException> { "😀o".fn(Unicode[it].char!!) }
+                expectThrows<IllegalArgumentException> { "😀o".fn(CodePoint(it).char!!) }
             }
         }
     }

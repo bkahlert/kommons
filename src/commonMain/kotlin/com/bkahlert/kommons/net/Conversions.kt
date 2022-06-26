@@ -8,7 +8,6 @@ import com.bkahlert.kommons.math.minus
 import com.bkahlert.kommons.math.plus
 import com.bkahlert.kommons.math.shl
 import com.bkahlert.kommons.math.toUByteArray
-import com.bkahlert.kommons.ranges.map
 import com.bkahlert.kommons.trim
 
 /**
@@ -28,7 +27,7 @@ public interface IPv4toIPv6Mapping {
  */
 public open class OffsetIPv4toIPv6Mapping(public val offset: BigInteger) : IPv4toIPv6Mapping {
     public val range: IPv6Range = IPv4Address.RANGE
-        .map { value + offset }
+        .let { (it.start.value + offset)..(it.endInclusive.value + offset) }
         .let { IPv6Address(it.start.toUByteArray().trim())..IPv6Address(it.endInclusive.toUByteArray().trim()) }
 
     override fun IPv4Address.toIPv6Address(): IPv6Address =

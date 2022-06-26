@@ -1,13 +1,14 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators.isSingleLine
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.ExecAttributes
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.testEachOld
-import com.bkahlert.kommons.test.testsOld
+import com.bkahlert.kommons.test.junit.testEach
+import com.bkahlert.kommons.test.junit.testing
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.ansiRemoved
-import com.bkahlert.kommons.text.isSingleLine
-import com.bkahlert.kommons.text.matchesCurlyPattern
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout.Companion.columns
@@ -16,13 +17,15 @@ import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.log
 import com.bkahlert.kommons.tracing.rendering.Styles.Dotted
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEmpty
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldEndWith
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.endsWith
-import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
 
 class OneLineRendererTest {
 
@@ -34,15 +37,15 @@ class OneLineRendererTest {
     private val settings: Settings = Settings()
 
     @Smoke @TestFactory
-    fun TestSpanScope.`should render using styles`() = testEachOld(
+    fun TestSpanScope.`should render using styles`() = testEach(
         Solid to """
-            ╶──╴One Two Three╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
+            ╶──╴One Two Three╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ╶──╴child-span╶─╴123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:*) ϟ RuntimeException: message at.(OneLineRendererTest.kt:*) ✔︎
         """.trimIndent(),
         Dotted to """
-            ▶ One Two Three ▷ 123 ABC ▶ child-span ▷ 123 ABC ▶ child-span ▷ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
+            ▶ One Two Three ▷ 123 ABC ▶ child-span ▷ 123 ABC ▶ child-span ▷ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:*) ϟ RuntimeException: message at.(OneLineRendererTest.kt:*) ✔︎
         """.trimIndent(),
         None to """
-            One Two Three ❱ 123 ABC child-span ❱ 123 ABC child-span ❱ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:{}) ϟ RuntimeException: message at.(OneLineRendererTest.kt:{}) ✔︎
+            One Two Three ❱ 123 ABC child-span ❱ 123 ABC child-span ❱ 123 ABC ϟ RuntimeException: Now Panic! at.(OneLineRendererTest.kt:*) ϟ RuntimeException: message at.(OneLineRendererTest.kt:*) ✔︎
         """.trimIndent(),
     ) { (style, expected) ->
         val rendered = capturing { printer ->
@@ -73,14 +76,14 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expecting { rendered } that { matchesCurlyPattern(expected) }
+        rendered shouldMatchGlob expected
     }
 
     @TestFactory
-    fun TestSpanScope.`should only render on end`() = testsOld {
-        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).start("name") } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).log("event") } } that { isEmpty() }
-        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).exception(RuntimeException("exception"), EMPTY) } } that { isEmpty() }
+    fun TestSpanScope.`should only render on end`() = testing {
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).start("name") } } that { it.shouldBeEmpty() }
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).log("event") } } that { it.shouldBeEmpty() }
+        expecting { capturing { OneLineRenderer(settings.copy(printer = it)).exception(RuntimeException("exception"), EMPTY) } } that { it.shouldBeEmpty() }
         expecting {
             capturing {
                 OneLineRenderer(settings.copy(printer = it)).apply {
@@ -88,7 +91,7 @@ class OneLineRendererTest {
                     end(Result.success(true))
                 }
             }
-        } that { ansiRemoved.isEqualTo("╶──╴name ✔︎") }
+        } that { it.ansiRemoved shouldBe "╶──╴name ✔︎" }
     }
 
     @Test
@@ -128,7 +131,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╶──╴name╶─╴RuntimeException: exception at.(OneLineRendererTest.kt:{}) ✔︎")
+        rendered shouldMatchGlob "╶──╴name╶─╴RuntimeException: exception at.(OneLineRendererTest.kt:*) ✔︎"
     }
 
     @Test
@@ -139,7 +142,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.endsWith("╶──╴name ✔︎")
+        rendered.ansiRemoved shouldEndWith "╶──╴name ✔︎"
     }
 
     @Test
@@ -150,7 +153,7 @@ class OneLineRendererTest {
                 end(Result.failure<Unit>(RuntimeException("test")))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╶──╴name ϟ RuntimeException: test at.(OneLineRendererTest.kt:{})")
+        rendered shouldMatchGlob "╶──╴name ϟ RuntimeException: test at.(OneLineRendererTest.kt:*)"
     }
 
     @Test
@@ -162,7 +165,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╶──╴name ✔︎")
+        rendered shouldMatchGlob "╶──╴name ✔︎"
     }
 
     @Test
@@ -175,9 +178,9 @@ class OneLineRendererTest {
                 end(Result.success("success\n2nd line"))
             }
         }
-        expectThat(rendered) {
-            isSingleLine()
-            contains("event⏎2nd line")
+        rendered should {
+            it.isSingleLine() shouldBe true
+            it.shouldContain("event⏎2nd line")
         }
     }
 
@@ -195,7 +198,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).matchesCurlyPattern("╶──╴name╶─╴event ╶──╴child╶─╴child event ✔︎ ✔︎")
+        rendered shouldMatchGlob "╶──╴name╶─╴event ╶──╴child╶─╴child event ✔︎ ✔︎"
     }
 
     @Test
@@ -213,7 +216,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).contains("!bar!")
+        rendered shouldContain "!bar!"
     }
 
     @Test
@@ -231,10 +234,10 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered) {
-            contains("!foo!")
-            contains("!bar!")
-            contains("!baz!")
+        rendered should {
+            it shouldContain "!foo!"
+            it shouldContain "!bar!"
+            it shouldContain "!baz!"
         }
     }
 }

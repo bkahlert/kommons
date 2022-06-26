@@ -2,7 +2,6 @@ package com.bkahlert.kommons.net
 
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.too
 import com.bkahlert.kommons.ubyteArrayOfDecimalString
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -116,9 +115,9 @@ class IPv6AddressTest {
 
     @TestFactory
     fun `should contain range`() = listOf(
-        IPv6Address.RANGE to (0 to IPv6Address.MAX_VALUE.inc() too IPv6Address.RANGE.start),
-        DefaultIPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount too IPv6Address.parse("::ffff:0:0")),
-        Nat64IPv4toIPv6Mapping.range to (96 to IPv4Address.RANGE.smallestCommonSubnet.hostCount too IPv6Address.parse("64:ff9b::")),
+        IPv6Address.RANGE to Triple(0, IPv6Address.MAX_VALUE.inc(), IPv6Address.RANGE.start),
+        DefaultIPv4toIPv6Mapping.range to Triple(96, IPv4Address.RANGE.smallestCommonSubnet.hostCount, IPv6Address.parse("::ffff:0:0")),
+        Nat64IPv4toIPv6Mapping.range to Triple(96, IPv4Address.RANGE.smallestCommonSubnet.hostCount, IPv6Address.parse("64:ff9b::")),
     ).testEachOld { (range, expected) ->
         val (bitCount, hostCount, networkAddress) = expected
         with { range.toString() }.then {

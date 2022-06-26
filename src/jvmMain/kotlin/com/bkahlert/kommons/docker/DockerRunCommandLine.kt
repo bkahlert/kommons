@@ -7,16 +7,16 @@ import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Exec.Companion.fallbackExitStateHandler
 import com.bkahlert.kommons.exec.ExecTerminationCallback
 import com.bkahlert.kommons.exec.Executable
-import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.resolveBetweenFileSystems
+import com.bkahlert.kommons.resolveBetweenFileSystems
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.text.splitAndMap
+import com.bkahlert.kommons.splitMap
 import com.bkahlert.kommons.takeUnlessBlank
-import com.bkahlert.kommons.withRandomSuffix
 import com.bkahlert.kommons.toIdentifier
+import com.bkahlert.kommons.withRandomSuffix
 import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.pathString
 
 /**
  * Integration of [Docker] `run` that runs the specified [executable] using the specified [image] using the specified [options].
@@ -245,7 +245,7 @@ public class DockerRunCommandLine(
         name?.also { add("--name");add(name.name) }
         publish.forEach { p -> add("-p");add(p) }
         privileged.takeIf { it }?.also { add("--privileged") }
-        workingDirectory?.also { add("--workdir");add(it.asString()) }
+        workingDirectory?.also { add("--workdir");add(it.pathString) }
         autoCleanup.takeIf { it }?.also { add("--rm") }
         interactive.takeIf { it }?.also { add("--interactive") }
         pseudoTerminal.takeIf { it }?.also { add("--tty") }
@@ -272,21 +272,20 @@ public class DockerRunCommandLine(
          */
         public fun remapPathsInArguments(hostWorkingDirectory: Path, arg: String, fulltextStrategy: Boolean): String =
             if (arg.count { it == '=' } > 1) arg
-            else arg.splitAndMap("=") {
+            else arg.splitMap("=") { value ->
                 if (fulltextStrategy) {
                     val pathString = hostWorkingDirectory.pathString
                     val baseDirRegex = Regex.escape(pathString).toRegex()
-                    baseDirRegex.replace(this) {
-                        remapArgumentAsPath(hostWorkingDirectory, it.value.asPath()) ?: this
+                    baseDirRegex.replace(value) {
+                        remapArgumentAsPath(hostWorkingDirectory, Paths.get(it.value)) ?: value
                     }
                 } else {
-                    fun String.remap(): String {
-                        val argAsPath = asHostPath() // e.g. /a/b resp. b
-                        if (!argAsPath.isAbsolute) return this // skip -arg
-                        return remapArgumentAsPath(hostWorkingDirectory, argAsPath) ?: this
+                    value.splitMap(" ") { part ->
+                        val argAsPath = part.asHostPath() // e.g. /a/b resp. b
+                        if (argAsPath.isAbsolute) {
+                            remapArgumentAsPath(hostWorkingDirectory, argAsPath) ?: part
+                        } else part // skip -arg
                     }
-
-                    splitAndMap(" ") { remap() }
                 }
             }
 
@@ -296,7 +295,7 @@ public class DockerRunCommandLine(
                 workingDirectory
                     ?.takeIf { !argAsPath.isAbsolute }
                     ?.let { mappedPath.relativeTo(it) } // e.g. b (if container pwd=/c)
-                    ?: mappedPath.asString() // e.g. /c/d
+                    ?: mappedPath.pathString // e.g. /c/d
             }
             return mapped
         }

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.tail
-import com.bkahlert.kommons.text.LineSeparators.lines
 
 /**
  * If this character sequence is made up of multiple lines of text,

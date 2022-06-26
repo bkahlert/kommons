@@ -12,34 +12,38 @@ public enum class Generator(
         rightArm = listOf("ノ", "┌", "╭", "ᕗ", "_/¯"),
         leftEye = listOf("ー", " ´ ", "︶", "￣", "´", " ˘ ", "‘"),
         rightEye = listOf("ー", " ` ", "︶", "￣", "´", " ˘ ", "` "),
-        mouth = listOf("_", "ヘ", "～", "д", "▽", "ヮ", "ー", "︿", "､")),
+        mouth = listOf("_", "ヘ", "～", "д", "▽", "ヮ", "ー", "︿", "､")
+    ),
     JOY(
         leftArm = listOf("╰", "＼", "٩", "<"),
         rightArm = listOf("ﾉ", "ノ", "o", "／"),
         leftEye = listOf("▔", "^", "¯", "☆"),
         rightEye = listOf("▔", "^", "¯", "☆"),
-        mouth = listOf("▽", "ω", "ヮ", "∀")),
+        mouth = listOf("▽", "ω", "ヮ", "∀")
+    ),
     LOVE(
         leftArm = listOf("", "♡╰", "ヽ", "♡＼", "٩", "❤ "),
         rightArm = listOf("", "ノ", "♡", "╯♡", " ♡", " ❤", "/ ♡", "ノ～ ♡", "۶"),
         leftEye = listOf("─", "´ ", "• ", "*", "˘", "μ", "￣", " ◡", "°", "♡", "◕", "˙", "❤", "´• ", "≧"),
         rightEye = listOf("─", " `", "• ", "*", "˘", "μ", "￣", " ◡", "°", "♡", "◕", "˙", "❤", " •`", "≦"),
-        mouth = listOf("з", "_", "‿‿", "ω", "︶", "◡", "▽", "ε", "∀", "ᵕ", "‿", "³")),
+        mouth = listOf("з", "_", "‿‿", "ω", "︶", "◡", "▽", "ε", "∀", "ᵕ", "‿", "³")
+    ),
     SADNESS(
         leftArm = listOf("", "o", ".･ﾟﾟ･", "。゜゜", "｡･ﾟﾟ*", "｡･ﾟ", ".｡･ﾟﾟ･", "｡ﾟ", "･ﾟ･", "｡ﾟ･ "),
         rightArm = listOf("", "o", "･ﾟﾟ･.", " ゜゜。", "*ﾟﾟ･｡", "･｡", "･ﾟﾟ･｡.", "･ﾟ･", "･ﾟ｡"),
         leftEye = listOf("μ", "T", "╥", "〒", "-", " ; ", "个", "╯", "ಥ", ">", "｡•́", "╯"),
         rightEye = listOf("μ", "T", "╥", "〒", "-", " ; ", "个", "╯", "ಥ", "<。", "•̀｡", "<、"),
-        mouth = listOf("_", "ヘ", "ω", "﹏", "Д", "︿", "-ω-", "︵", "╭╮", "Ｏ", "><")),
+        mouth = listOf("_", "ヘ", "ω", "﹏", "Д", "︿", "-ω-", "︵", "╭╮", "Ｏ", "><")
+    ),
     ;
 
     public fun random(
-        leftArm: CharSequence? = null,
-        leftEye: CharSequence? = null,
-        mouth: CharSequence? = null,
-        rightEye: CharSequence? = null,
-        rightArm: CharSequence? = null,
-        accessory: CharSequence = "",
+        leftArm: String? = null,
+        leftEye: String? = null,
+        mouth: String? = null,
+        rightEye: String? = null,
+        rightArm: String? = null,
+        accessory: String = "",
     ): Kaomoji = Kaomoji(
         leftArm ?: this.leftArm.random(),
         leftEye ?: this.leftEye.random(),
@@ -62,12 +66,12 @@ public enum class Generator(
         }
 
         public fun random(
-            leftArm: CharSequence? = null,
-            leftEye: CharSequence? = null,
-            mouth: CharSequence? = null,
-            rightEye: CharSequence? = null,
-            rightArm: CharSequence? = null,
-            accessory: CharSequence = "",
+            leftArm: String? = null,
+            leftEye: String? = null,
+            mouth: String? = null,
+            rightEye: String? = null,
+            rightArm: String? = null,
+            accessory: String = "",
         ): Kaomoji = values().random().random(leftArm, leftEye, mouth, rightEye, rightArm, accessory)
     }
 }

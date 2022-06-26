@@ -1,9 +1,7 @@
 package com.bkahlert.kommons.runtime
 
 import com.bkahlert.kommons.test.Slow
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
-import com.bkahlert.kommons.unit.milli
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,6 +17,8 @@ import strikt.assertions.isLessThan
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 @Isolated // time critical
@@ -65,9 +65,9 @@ class ThreadsKtTest {
                 measureTime {
                     exec(finished)
                     while (!finished.get()) {
-                        1.milli.seconds.sleep()
+                        1.milliseconds.sleep()
                     }
-                }.let { expectThat(it).isLessThan(80.milli.seconds) }
+                }.let { expectThat(it).isLessThan(80.milliseconds) }
             }
         }
 
@@ -81,9 +81,9 @@ class ThreadsKtTest {
                 measureTime {
                     exec(finished)
                     while (!finished.get()) {
-                        1.milli.seconds.sleep()
+                        1.milliseconds.sleep()
                     }
-                }.let { expectThat(it).isGreaterThan(400.milli.seconds).isLessThan(600.milli.seconds) }
+                }.let { expectThat(it).isGreaterThan(400.milliseconds).isLessThan(600.milliseconds) }
             }
         }
 

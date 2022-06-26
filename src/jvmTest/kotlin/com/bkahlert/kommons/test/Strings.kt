@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.CodePoint
+import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.render
-import com.bkahlert.kommons.regex.countMatches
-import com.bkahlert.kommons.text.CodePoint
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.quoted
+import com.bkahlert.kommons.quoted
+import com.bkahlert.kommons.string
 import com.bkahlert.kommons.unit.BinaryPrefixes
 import com.bkahlert.kommons.unit.Size
 import strikt.api.Assertion.Builder
@@ -69,28 +69,28 @@ fun <T : CharSequence> Builder<T>.isEqualToByteWise(other: CharSequence) =
 @Suppress("unused")
 fun <T : CharSequence> Builder<T>.containsAtLeast(value: CharSequence, lowerLimit: Int = 1) =
     assert("contains ${value.quoted} at least ${lowerLimit}x") {
-        val actual = Regex.fromLiteral("$value").countMatches(it)
+        val actual = Regex.fromLiteral("$value").findAll(it).count()
         if (actual >= lowerLimit) pass()
         else fail("but actually contains it only ${actual}x")
     }
 
 fun <T : CharSequence> Builder<T>.containsAtMost(value: CharSequence, limit: Int = 1) =
     assert("contains ${value.quoted} at most ${limit}x") {
-        val actual = Regex.fromLiteral(value.toString()).countMatches(it)
+        val actual = Regex.fromLiteral(value.toString()).findAll(it).count()
         if (actual <= limit) pass()
         else fail("but actually contains it even ${actual}x")
     }
 
 fun <T : CharSequence> Builder<T>.containsExactly(value: CharSequence, expectedCount: Int) =
     assert("contains ${value.quoted} exactly ${expectedCount}x") {
-        val actual = Regex.fromLiteral(value.toString()).countMatches(it)
+        val actual = Regex.fromLiteral(value.toString()).findAll(it).count()
         if (actual == expectedCount) pass()
         else fail("but actually contains it ${actual}x")
     }
 
 fun <T : CharSequence> Builder<T>.notContainsLineSeparator() =
     assert("contains line separator") { value ->
-        val matchedSeparators = LineSeparators.filter { value.contains(it) }
+        val matchedSeparators = LineSeparators.Unicode.filter { value.contains(it) }
         if (matchedSeparators.isEmpty()) pass()
         else fail("but the following have been found: $matchedSeparators")
     }

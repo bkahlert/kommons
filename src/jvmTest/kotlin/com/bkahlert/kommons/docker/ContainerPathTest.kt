@@ -66,7 +66,7 @@ class ContainerPathTest {
     inner class AsString {
         @Test
         fun `should return path as string`() {
-            expectThat("/some/where".asContainerPath().asString()).isEqualTo("/some/where")
+            expectThat("/some/where".asContainerPath().pathString).isEqualTo("/some/where")
         }
     }
 }

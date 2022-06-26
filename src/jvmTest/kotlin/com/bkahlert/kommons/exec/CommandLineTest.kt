@@ -1,16 +1,14 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.SystemLocations
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.shell.ShellScript
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.string
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.quoted
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.time.sleep
-import com.bkahlert.kommons.unit.milli
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -19,6 +17,7 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import kotlin.time.Duration.Companion.milliseconds
 
 class CommandLineTest {
 
@@ -73,21 +72,21 @@ class CommandLineTest {
         fun `should ignore trailing new line`() = testEachOld(
             """
                 echo Hello
-                
+
             """.trimIndent(),
             """
                 'echo' 'Hello'
-                
+
             """.trimIndent(),
             """
                 echo \
                 Hello
-                
+
             """.trimIndent(),
             """
                 'echo' \
                 'Hello'
-                
+
             """.trimIndent(),
         )
         {
@@ -246,7 +245,7 @@ class CommandLineTest {
             """
                     echo "double quotes"
                     echo 'single quotes'
-        
+
                 """.trimIndent()
         }
 
@@ -258,7 +257,7 @@ class CommandLineTest {
                     #!/bin/bash
                     echo "double quotes"
                     echo 'single quotes'
-                    
+
                     """.trimIndent()
             )
         }
@@ -293,7 +292,7 @@ class CommandLineTest {
                 #!/bin/bash
                 echo "double quotes"
                 echo 'single quotes'
-                
+
             """.trimIndent()
             )
         }
@@ -313,12 +312,10 @@ class CommandLineTest {
 
         @Test
         fun `should provide content`() {
-            expectThat(
-                CommandLine(
-                    "!ls", "-lisa",
-                    "!mkdir", "-p", "/shared",
-                ).content
-            ).matchesCurlyPattern("!ls -lisa !mkdir -p /shared")
+            CommandLine(
+                "!ls", "-lisa",
+                "!mkdir", "-p", "/shared",
+            ).content shouldMatchGlob "!ls -lisa !mkdir -p /shared"
         }
     }
 }
@@ -341,6 +338,6 @@ val <P : Exec> Assertion.Builder<P>.exitCodeOrNull
 fun Assertion.Builder<CommandLine>.evaluatesTo(expectedOutput: String) {
     with(evaluated) {
         io.output.ansiRemoved.isEqualTo(expectedOutput)
-        50.milli.seconds.sleep()
+        50.milliseconds.sleep()
     }
 }

@@ -1,19 +1,20 @@
 package com.bkahlert.kommons.exec.mock
 
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.exec.mock.SlowInputStream.Companion.slowInputStream
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.io.TeeOutputStream
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.time.Now
+import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.time.busyWait
-import com.bkahlert.kommons.time.seconds
-import com.bkahlert.kommons.unit.milli
 import java.io.InputStream
 import java.io.InputStream.nullInputStream
 import java.io.OutputStream
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import java.lang.Process as JavaProcess
 
 /**
@@ -27,8 +28,8 @@ public open class JavaProcessMock(
     private val exitCode: JavaProcessMock.() -> Int = { 0 },
 ) : JavaProcess() {
 
-    private val startTimestamp: Long = System.currentTimeMillis()
-    private fun busyWait() = 10.milli.seconds.busyWait(11.milli.seconds)
+    private val startTimestamp: Instant = Now
+    private fun busyWait() = 10.milliseconds.busyWait(11.milliseconds)
 
     override fun toHandle(): ProcessHandle = ProcessHandleMock(this)
 
@@ -55,9 +56,9 @@ public open class JavaProcessMock(
     }
 
     override fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
-        val start = System.currentTimeMillis()
+        val start = Now
         val waitAtMost = unit.toMillis(timeout).milliseconds
-        while (isAlive && Now.passedSince(start) < waitAtMost) {
+        while (isAlive && Now.minus(start) < waitAtMost) {
             busyWait()
         }
         return !isAlive
@@ -70,7 +71,7 @@ public open class JavaProcessMock(
 
     override fun isAlive(): Boolean = when (inputStream) {
         is SlowInputStream -> inputStream.unreadCount != 0
-        else -> Now.passedSince(startTimestamp) < exitDelay
+        else -> Now.minus(startTimestamp) < exitDelay
     }
 
     public fun start(name: String? = null): ExecMock = ExecMock(this, name)

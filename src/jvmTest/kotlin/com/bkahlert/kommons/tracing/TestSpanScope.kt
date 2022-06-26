@@ -1,11 +1,13 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.Instant
 import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.math.floorDiv
-import com.bkahlert.kommons.runtime.currentThread
-import com.bkahlert.kommons.runtime.orNull
+import com.bkahlert.kommons.minus
+import com.bkahlert.kommons.orNull
 import com.bkahlert.kommons.test.isAnnotated
 import com.bkahlert.kommons.test.junit.Verbosity
 import com.bkahlert.kommons.test.junit.displayName
@@ -17,9 +19,6 @@ import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.padStartFixedLength
-import com.bkahlert.kommons.time.Now
-import com.bkahlert.kommons.time.minutes
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.TestPrinter.TestIO
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.CompactRenderer
@@ -33,7 +32,6 @@ import com.bkahlert.kommons.tracing.rendering.RenderingAttributes
 import com.bkahlert.kommons.tracing.rendering.Settings
 import com.bkahlert.kommons.tracing.rendering.TeePrinter
 import com.bkahlert.kommons.tracing.rendering.ThreadSafePrinter
-import com.bkahlert.kommons.unit.milli
 import io.opentelemetry.api.trace.Span
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -53,6 +51,9 @@ import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.concurrent.withLock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class TestSpanScope(
     span: SpanScope,
@@ -64,12 +65,14 @@ class TestSpanScope(
     /**
      * Returns a [Builder] to run assertions on what was rendered.
      */
+    @Deprecated("use rendered")
     fun expectThatRendered(ignoreAnsi: Boolean = true) =
         expectThat(rendered(ignoreAnsi))
 
     /**
      * Runs the specified [assertions] on what was rendered.
      */
+    @Deprecated("use rendered")
     fun expectThatRendered(ignoreAnsi: Boolean = true, assertions: Builder<String>.() -> Unit) =
         expectThat(rendered(ignoreAnsi), assertions)
 }
@@ -187,14 +190,14 @@ class TestRenderer(
  */
 class TestPrinter : Printer {
 
-    private val start: Long by lazy { Now.millis }
+    private val start: Instant by lazy { Now }
 
     private val breakPoints = mutableListOf(
-        100.milli.seconds,
-        120.milli.seconds,
-        130.milli.seconds,
-        200.milli.seconds,
-        500.milli.seconds,
+        100.milliseconds,
+        120.milliseconds,
+        130.milliseconds,
+        200.milliseconds,
+        500.milliseconds,
         1.seconds,
         5.seconds,
         10.seconds,
@@ -210,7 +213,7 @@ class TestPrinter : Printer {
     )
 
     override fun invoke(text: CharSequence) {
-        val timePassed = Now.passedSince(start)
+        val timePassed = Now.minus(start)
         when (text) {
             is TestIO.Start -> {
                 println()
@@ -228,7 +231,7 @@ class TestPrinter : Printer {
                 println(text)
             }
             else -> {
-                val thread = currentThread.name.padStartFixedLength(31)
+                val thread = Thread.currentThread().name.padStartFixedLength(31)
                 val time = timePassed.format()
                 val prefix = "$thread  $time │ ".meta
                 text.toAnsiString().lineSequence().forEach { println("$prefix$it") }

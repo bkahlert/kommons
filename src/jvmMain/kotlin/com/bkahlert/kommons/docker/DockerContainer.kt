@@ -1,7 +1,9 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.TextLength.Companion.chars
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.builder.StatelessBuilder
+import com.bkahlert.kommons.capitalize
 import com.bkahlert.kommons.docker.DockerContainer.Companion.ContainerContext
 import com.bkahlert.kommons.docker.DockerContainer.State.Error
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Created
@@ -16,29 +18,25 @@ import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.parse
-import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.leftOrElse
+import com.bkahlert.kommons.getLeftOrElse
+import com.bkahlert.kommons.groupValue
 import com.bkahlert.kommons.mapLeft
 import com.bkahlert.kommons.randomString
-import com.bkahlert.kommons.regex.get
-import com.bkahlert.kommons.requireSaneInput
 import com.bkahlert.kommons.simpleTitleCasedName
 import com.bkahlert.kommons.text.CharRanges.Alphanumeric
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.capitalize
-import com.bkahlert.kommons.text.truncate
-import com.bkahlert.kommons.text.wrap
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
+import com.bkahlert.kommons.truncate
 import com.bkahlert.kommons.withRandomSuffix
 import java.nio.file.Path
+import kotlin.io.path.pathString
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 public class DockerContainer(public val name: String) {
 
     init {
-        name.requireSaneInput()
         require(isValid(name)) { "${name.formattedAs.input} is invalid. It needs to match ${REGEX.formattedAs.input}." }
     }
 
@@ -79,7 +77,7 @@ public class DockerContainer(public val name: String) {
                 private companion object {
                     private val exitCodeRegex = Regex(".*\\((?<exitCode>\\d+)\\).*")
                     private fun parseExitCode(status: String): Int? =
-                        exitCodeRegex.matchEntire(status)?.get("exitCode")?.toInt()
+                        exitCodeRegex.matchEntire(status)?.groupValue("exitCode")?.toInt()
                 }
             }
 
@@ -178,7 +176,7 @@ public class DockerContainer(public val name: String) {
                         Dead::class.simpleName -> Dead(status)
                         else -> Error(-1, "Unknown status $state: $status")
                     }
-                }.mapLeft { it.singleOrNull() ?: NotExistent } leftOrElse { error(it) }
+                }.mapLeft { it.singleOrNull() ?: NotExistent } getLeftOrElse { error(it) }
 
         /**
          * Lists locally available instances this containers.
@@ -188,7 +186,7 @@ public class DockerContainer(public val name: String) {
                 .exec.logging(renderer = noDetails())
                 .parse.columns<DockerContainer, Failed>(3) { (name, _, _) ->
                     DockerContainer(name)
-                } leftOrElse { error(it) }
+                } getLeftOrElse { error(it) }
 
         /**
          * Starts the given [containers].
@@ -286,7 +284,7 @@ public class DockerContainer(public val name: String) {
         /**
          * Pattern that matches a valid Docker container (name).
          */
-        public val REGEX: Regex = Regex("[a-zA-Z0-9][a-zA-Z0-9._-]" + "${LENGTH_RANGE.first - 1},${LENGTH_RANGE.last}".wrap("{", "}"))
+        public val REGEX: Regex = Regex("[a-zA-Z\\d][\\w.-]" + "${"{"}${"${LENGTH_RANGE.first - 1},${LENGTH_RANGE.last}"}${"}"}")
 
         private fun isValid(name: String) = name.length in LENGTH_RANGE && name.matches(REGEX)
 
@@ -296,7 +294,7 @@ public class DockerContainer(public val name: String) {
          * name and if not transforms it to a valid one.
          */
         private fun sanitize(name: String, suffix: String = ""): String {
-            val nameWithSuffix = name.truncate((LENGTH_RANGE.last - suffix.length).coerceAtLeast(0), "...") + suffix
+            val nameWithSuffix = name.truncate((LENGTH_RANGE.last - suffix.length).coerceAtLeast(0).chars, "...") + suffix
             if (isValid(nameWithSuffix)) return nameWithSuffix
             var replaceWithXToGuaranteeAValidName = true
             return nameWithSuffix.map { c ->

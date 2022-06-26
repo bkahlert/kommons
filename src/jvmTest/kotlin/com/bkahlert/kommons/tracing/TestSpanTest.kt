@@ -2,7 +2,7 @@ package com.bkahlert.kommons.tracing
 
 import com.bkahlert.kommons.test.actual
 import com.bkahlert.kommons.test.hasElements
-import com.bkahlert.kommons.text.matchesCurlyPattern
+import com.bkahlert.kommons.test.shouldMatchGlob
 import org.junit.jupiter.api.Test
 import strikt.assertions.all
 import strikt.assertions.contains
@@ -54,16 +54,14 @@ class TestSpanTest {
         log("event -1")
         runSpanning("SPAN A") { log("event α") }
         log("event n+1")
-        expectThatRendered().matchesCurlyPattern(
-            """
+        rendered() shouldMatchGlob """
             event -1
             ╭──╴SPAN A
             │
-            │   event α                                                                 
+            │   event α
             │
             ╰──╴✔︎
             event n+1
         """.trimIndent()
-        )
     }
 }

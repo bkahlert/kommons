@@ -12,7 +12,6 @@ import com.bkahlert.kommons.net.Notation.Verbosity.Conventional
 import com.bkahlert.kommons.net.Notation.Verbosity.Full
 import com.bkahlert.kommons.padStart
 import com.bkahlert.kommons.ranges.size
-import com.bkahlert.kommons.regex.countMatches
 import com.bkahlert.kommons.trim
 import com.bkahlert.kommons.unit.bytes
 import kotlin.math.ceil
@@ -104,7 +103,7 @@ public interface Notation {
             }
             Compressed -> {
                 val string = conventional.joinToString(groupSeparator.toString())
-                Regex.fromLiteral("$groupSeparator$groupSeparator").countMatches(string).takeIf { it == 0 }?.let {
+                Regex.fromLiteral("$groupSeparator$groupSeparator").findAll(string).count().takeIf { it == 0 }?.let {
                     val pattern = Regex("(?:^|$groupSeparator)(0+(?:${groupSeparator}0+)+)")
                     pattern.findAll(string)
                         .maxByOrNull { it.value.length }?.run {

@@ -1,45 +1,44 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
+import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.LineSeparators.mapLines
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
-import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.io.path.textContent
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.OldDynamicTestsWithSubjectBuilder
 import com.bkahlert.kommons.test.Smoke
-import com.bkahlert.kommons.test.hasElements
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.test.testsOld
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.mapLines
-import com.bkahlert.kommons.text.lines
-import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.text.toStringMatchesCurlyPattern
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.TraceId
-import com.bkahlert.kommons.tracing.expectTraced
 import com.bkahlert.kommons.tracing.rendering.Styles.None
 import com.bkahlert.kommons.tracing.rendering.capturing
-import com.bkahlert.kommons.tracing.spanName
+import com.bkahlert.kommons.tracing.spans
+import io.kotest.inspectors.forAny
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
-import strikt.assertions.any
 import strikt.assertions.contains
-import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
+import java.net.URI
+import java.nio.file.Paths
+import kotlin.io.path.pathString
+import kotlin.io.path.readText
 
 class ExecutorTest {
 
@@ -53,45 +52,39 @@ class ExecutorTest {
         @Test
         fun `should exec command line`() {
             val exec = CommandLine("echo", "Hello, Command Line!").exec()
-            expectThat(exec.io.output.ansiRemoved)
-                .isEqualTo("Hello, Command Line!")
+            exec.io.output.ansiRemoved shouldBe "Hello, Command Line!"
         }
 
         @Test
         fun `should exec shell script`() {
             val exec = ShellScript { "echo 'Hello, Shell Script!' | cat" }.exec()
-            expectThat(exec.io.output.ansiRemoved)
-                .isEqualTo("Hello, Shell Script!")
+            exec.io.output.ansiRemoved shouldBe "Hello, Shell Script!"
         }
 
         @Test
         fun `should exec using specified environment`() {
             val random = randomString()
             val exec = CommandLine("printenv", "RANDOM_PROP").exec.env("RANDOM_PROP", random)(SystemLocations.Temp)
-            expectThat(exec.io.output.ansiRemoved).isEqualTo(random)
+            exec.io.output.ansiRemoved shouldBe random
         }
 
         @Test
         fun `should exec using specified working directory`() {
             val exec = CommandLine("pwd").exec(Kommons.ExecTemp)
             val tempPaths = setOf(Kommons.ExecTemp.pathString, Kommons.ExecTemp.toRealPath().pathString)
-            expectThat(tempPaths).contains(exec.io.output.ansiRemoved)
+            tempPaths.shouldContain(exec.io.output.ansiRemoved)
         }
 
         @Test
         fun `should use default span name`() {
             CommandLine("echo", "Hello World!").exec()
-            TraceId.current.expectTraced().hasElements(
-                { spanName.isEqualTo("kommons.exec") }
-            )
+            TraceId.current.spans.first().name shouldBe "kommons.exec"
         }
 
         @Test
         fun `should use executable name if specified`() {
             CommandLine("echo", "Hello World!", name = "hello-world").exec()
-            TraceId.current.expectTraced().hasElements(
-                { spanName.isEqualTo("hello-world") }
-            )
+            TraceId.current.spans.first().name shouldBe "hello-world"
         }
     }
 
@@ -177,40 +170,34 @@ class ExecutorTest {
                 @Test
                 fun TestSpanScope.`should print executable content by default`() {
                     CommandLine("echo", "short").exec.logging(style = None)
-                    expectThatRendered().matchesCurlyPattern(
-                        """
+                    rendered() shouldMatchGlob """
                         echo short
                         short
                         ✔︎
                     """.trimIndent()
-                    )
                 }
 
                 @Test
                 fun TestSpanScope.`should print name if specified`() {
                     CommandLine("echo", "short", name = "custom name").exec.logging(style = None)
-                    expectThatRendered().lines().any {
-                        isEqualTo("custom name: echo short")
+                    rendered().lines().forAny {
+                        it shouldBe "custom name: echo short"
                     }
                 }
 
                 @Test
                 fun TestSpanScope.`should print commandline containing URI if too long`() {
                     CommandLine("echo", "a very long argument that leads to a very long command line").exec.logging(style = None)
-                    expectThatRendered {
-                        matchesCurlyPattern(
-                            """
-                            file://{}
+                    rendered() shouldMatchGlob """
+                            file://*
                             a very long argument that leads to a very long command line
                             ✔︎
                         """.trimIndent()
-                        )
-                        lines().first().asPath().textContent.contains(
-                            """
+                    rendered().lines().first().let { Paths.get(URI(it)) }.readText().shouldContain(
+                        """
                             'echo' 'a very long argument that leads to a very long command line'
                         """.trimIndent()
-                        )
-                    }
+                    )
                 }
             }
         }
@@ -356,44 +343,36 @@ class ExecutorTest {
                 @Test
                 fun TestSpanScope.`should print executable content by default`() {
                     CommandLine("echo", "short").exec.async.logging(style = None).waitFor()
-                    expectThatRendered().matchesCurlyPattern(
-                        """
+                    rendered() shouldMatchGlob """
                         echo short
                         short
                         ✔︎
                     """.trimIndent()
-                    )
                 }
 
                 @Test
                 fun TestSpanScope.`should print name if specified`() {
                     CommandLine("echo", "short", name = "custom name").exec.async.logging(style = None).waitFor()
-                    expectThatRendered().matchesCurlyPattern(
-                        """
+                    rendered() shouldMatchGlob """
                         custom name: echo short
                         short
                         ✔︎
                     """.trimIndent()
-                    )
                 }
 
                 @Test
                 fun TestSpanScope.`should print commandline containing URI if too long`() {
                     CommandLine("echo", "a very long argument that leads to a very long command line").exec.async.logging(style = None).waitFor()
-                    expectThatRendered {
-                        matchesCurlyPattern(
-                            """
-                            file://{}
+                    rendered() shouldMatchGlob """
+                            file://*
                             a very long argument that leads to a very long command line
                             ✔︎
                         """.trimIndent()
-                        )
-                        lines().first().asPath().textContent.contains(
-                            """
+                    rendered().lines().first().let { Paths.get(URI(it)) }.readText().shouldContain(
+                        """
                             'echo' 'a very long argument that leads to a very long command line'
                         """.trimIndent()
-                        )
-                    }
+                    )
                 }
             }
         }
@@ -498,11 +477,11 @@ inline fun <reified T : Exec> Builder<T>.starts(): Builder<T> =
     }
 
 inline val <reified T : Exec> Builder<T>.exited: Builder<ExitState> get() = get("exited") { onExit.get() }.isA()
-inline fun <reified T : Exec> Builder<T>.logsIO(curlyPattern: String): Builder<String> = exited.io().toStringMatchesCurlyPattern(curlyPattern)
+inline fun <reified T : Exec> Builder<T>.logsIO(curlyPattern: String): Builder<String> = exited.io().get { this shouldMatchGlob curlyPattern }
 
 @JvmName("logsIOString")
 fun Builder<String>.logsIO(ignorePrefix: String, curlyPattern: String): Builder<String> =
-    get { mapLines { it.removePrefix(ignorePrefix) } }.toStringMatchesCurlyPattern(curlyPattern)
+    get { mapLines { it.removePrefix(ignorePrefix) } }.get { this shouldMatchGlob curlyPattern }
 
 
 inline fun <reified T : Exec> Builder<T>.succeeds(): Builder<Succeeded> = exited.isA()
@@ -510,7 +489,7 @@ inline fun <reified T : Exec> Builder<T>.logsSuccessfulIO(): Builder<String> = l
 
 @JvmName("logsSuccessfulIOString")
 private fun Builder<String>.logsSuccessfulIO(ignorePrefix: String = "· "): Builder<String> =
-    logsIO(ignorePrefix, "{{}}$LF$successfulIO$LF{{}}")
+    logsIO(ignorePrefix, "**$LF$successfulIO$LF**")
 
 val successfulIO = """
     TEST_VALUE

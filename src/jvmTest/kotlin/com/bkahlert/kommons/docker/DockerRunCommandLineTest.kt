@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.docker
 
+import com.bkahlert.kommons.Program
+import com.bkahlert.kommons.createParentDirectories
 import com.bkahlert.kommons.deleteRecursively
 import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.docker.MountOptionContext.Type.bind
@@ -18,26 +20,24 @@ import com.bkahlert.kommons.exec.hasState
 import com.bkahlert.kommons.exec.io
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.state
-import com.bkahlert.kommons.io.copyTo
-import com.bkahlert.kommons.io.copyToDirectory
-import com.bkahlert.kommons.io.path.asPath
-import com.bkahlert.kommons.io.path.pathString
-import com.bkahlert.kommons.runtime.onExit
 import com.bkahlert.kommons.shell.ShellScript
-import com.bkahlert.kommons.test.HtmlFixture
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
+import com.bkahlert.kommons.test.copyTo
+import com.bkahlert.kommons.test.copyToDirectory
 import com.bkahlert.kommons.test.expecting
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.test.junit.testEach
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringContains
 import com.bkahlert.kommons.test.toStringIsEqualTo
-import com.bkahlert.kommons.text.matchesCurlyPattern
-import com.bkahlert.kommons.time.seconds
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.TeePrinter
 import com.bkahlert.kommons.tracing.rendering.capturing
+import io.kotest.matchers.collections.shouldContain
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -52,7 +52,10 @@ import strikt.assertions.isNotSameInstanceAs
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isTrue
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.createTempDirectory
+import kotlin.io.path.pathString
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 @Slow
@@ -163,7 +166,7 @@ class DockerRunCommandLineTest {
 
         @Test
         fun `should provide content`() {
-            expectThat(commandLine.content).matchesCurlyPattern("docker run {} repo/name:tag printenv TEST_PROP")
+            commandLine.content shouldMatchGlob "docker run * repo/name:tag printenv TEST_PROP"
         }
     }
 
@@ -230,9 +233,9 @@ class DockerRunCommandLineTest {
         @Nested
         inner class WorkingDirectoryMapping {
 
-            private val tempDir = createTempDirectory().also { onExit { it.deleteRecursively() } }
+            private val tempDir = createTempDirectory().also { Program.onExit { it.deleteRecursively() } }
             private val workDir = tempDir.resolve("work")
-            private val htmlFile = workDir.resolve("files/sample.html").also { HtmlFixture.copyTo(it) }
+            private val htmlFile = HtmlDocumentFixture.copyTo(workDir.resolve("files/sample.html").createParentDirectories())
 
             private val commandLine = CommandLine("cat", htmlFile.pathString)
 
@@ -250,7 +253,7 @@ class DockerRunCommandLineTest {
                     })).exec.logging(workDir)
                 } that {
                     commandLine.toStringContains("'/host/work/files/sample.html'")
-                    io.output.ansiRemoved.isEqualTo(HtmlFixture.text)
+                    io.output.ansiRemoved.isEqualTo(HtmlDocumentFixture.contents)
                 }
             }
         }
@@ -315,7 +318,7 @@ class DockerRunCommandLineTest {
             )
 
         private fun DockerRunCommandLine.toCommandLine(hostWorkDir: String) =
-            toCommandLine(emptyMap(), hostWorkDir.asPath())
+            toCommandLine(emptyMap(), Paths.get(hostWorkDir))
     }
 
     @Nested
@@ -373,43 +376,33 @@ class DockerRunCommandLineTest {
     }
 
     @DockerRequiring @TestFactory
-    fun TestSpanScope.`should exec logging using specified image`() = testEachOld<Executable<Exec>.(RendererProvider) -> DockerExec>(
+    fun TestSpanScope.`should exec logging using specified image`() = testEach<Executable<Exec>.(RendererProvider) -> DockerExec>(
         { dockerized(Ubuntu).exec.logging(renderer = it) },
         { dockerized { "ubuntu" }.exec.logging(renderer = it) },
         { with(Ubuntu) { dockerized.exec.logging(renderer = it) } },
     ) { execVariant ->
-        expecting {
-            capturing { capturingPrinter ->
-                CommandLine("printenv", "HOME").execVariant {
-                    it.create(copy(printer = TeePrinter(printer, capturingPrinter)))
-                }
+        capturing { capturingPrinter ->
+            CommandLine("printenv", "HOME").execVariant {
+                it.create(copy(printer = TeePrinter(printer, capturingPrinter)))
             }
-        } that {
-            matchesCurlyPattern(
-                """
-                ╭──╴file://{}.sh
-                │
-                │   /root
-                │
-                ╰──╴✔︎
-            """.trimIndent()
-            )
-        }
+        } shouldMatchGlob """
+            ╭──╴file://*.sh
+            │
+            │   /root
+            │
+            ╰──╴✔︎
+        """.trimIndent()
     }
 
     @DockerRequiring @TestFactory
-    fun `should exec processing using specified image`() = testEachOld<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
+    fun `should exec processing using specified image`() = testEach<Executable<Exec>.(MutableList<IO>) -> DockerExec>(
         { dockerized(Ubuntu).exec.processing { _, process -> process { io -> it.add(io) } } },
         { dockerized { "ubuntu" }.exec.processing { _, process -> process { io -> it.add(io) } } },
         { with(Ubuntu) { dockerized.exec.processing { _, process -> process { io -> it.add(io) } } } },
     ) { execVariant ->
-        expecting {
-            mutableListOf<IO>().also {
-                CommandLine("printenv", "HOME").execVariant(it)
-            }
-        } that {
-            contains(Output typed "/root")
-        }
+        mutableListOf<IO>().also {
+            CommandLine("printenv", "HOME").execVariant(it)
+        }.shouldContain(Output typed "/root")
     }
 
     @DockerRequiring @TestFactory
@@ -423,7 +416,7 @@ class DockerRunCommandLineTest {
         { exec } asserting { get { invoke() }.isNotNull().hasState<Exited>() }
     }
 
-    @TestFactory
+    @DockerRequiring @TestFactory
     fun `should exec asynchronously`() = testEachOld<Executable<Exec>.() -> DockerExec>(
         { dockerized(Ubuntu).exec.async() },
         { dockerized { "ubuntu" }.exec.async() },
@@ -436,8 +429,8 @@ class DockerRunCommandLineTest {
     inner class WithOptions {
 
         private val tempDir = createTempDirectory()
-            .also { HtmlFixture.copyToDirectory(it) }
-            .also { onExit { it.deleteRecursively() } }
+            .also { HtmlDocumentFixture.copyToDirectory(it) }
+            .also { Program.onExit { it.deleteRecursively() } }
 
         private val options = Options(
             workingDirectory = "/tmp".asContainerPath(),
@@ -453,9 +446,9 @@ class DockerRunCommandLineTest {
             { with(Ubuntu) { dockerized(options).exec() } },
         ) { execVariant ->
             expecting {
-                CommandLine("cat", "host/${HtmlFixture.name}").execVariant()
+                CommandLine("cat", "host/${HtmlDocumentFixture.name}").execVariant()
             } that {
-                io.output.ansiRemoved.isEqualTo(HtmlFixture.text)
+                io.output.ansiRemoved.isEqualTo(HtmlDocumentFixture.contents)
             }
         }
     }

@@ -11,6 +11,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.notExists
+import kotlin.io.path.pathString
 
 /**
  * Requires this to be a directory and throws an [IllegalArgumentException] otherwise.

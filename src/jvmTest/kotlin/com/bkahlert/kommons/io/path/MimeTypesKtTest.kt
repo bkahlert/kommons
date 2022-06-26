@@ -1,15 +1,13 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.io.copyToDirectory
-import com.bkahlert.kommons.test.HtmlFixture
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.copyToDirectory
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.withTempDir
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
+import java.nio.file.Paths
 
 class MimeTypesKtTest {
 
@@ -18,12 +16,12 @@ class MimeTypesKtTest {
 
         @Test
         fun `should guess mime type`() {
-            expectThat("path/file.pdf".asPath().guessMimeType()).isNotNull().isEqualTo("application/pdf")
+            Paths.get("path/file.pdf").guessMimeType() shouldBe "application/pdf"
         }
 
         @Test
         fun `should return null on no match`() {
-            expectThat("path/file".asPath().guessMimeType()).isNull()
+            Paths.get("path/file").guessMimeType() shouldBe null
         }
     }
 
@@ -31,17 +29,16 @@ class MimeTypesKtTest {
     inner class ToBase64 {
 
         @Test
-        fun `should encode using Base64`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val htmlFile = HtmlFixture.copyToDirectory(this)
+        fun `should encode using Base64`(simpleId: SimpleId) = withTempDir(simpleId) {
+            val htmlFile = HtmlDocumentFixture.copyToDirectory(this)
 
             @Suppress("SpellCheckingInspection")
-            expectThat(htmlFile.toBase64())
-                .isEqualTo("PGh0bWw+CiAgPGhlYWQ+PHRpdGxlPkh" +
-                    "lbGxvIFRpdGxlITwvdGl0bGU+CjwvaGVhZD4KPGJvZHkgc3R5bGU9ImJhY2t" +
-                    "ncm91bmQ6IHVybCgnZGF0YTppbWFnZS9naWY7YmFzZTY0LFIwbEdPRGRoQVF" +
-                    "BREFQQUJBUC8vLy84QUFDd0FBQUFBQVFBREFBQUNBZ3hRQURzPScpIj4KICA" +
-                    "gIDxoMT5IZWxsbyBIZWFkbGluZSE8L2gxPgogICAgPHA+SGVsbG8gV29ybGQ" +
-                    "hPC9wPgo8L2JvZHk+CjwvaHRtbD4=")
+            htmlFile.toBase64() shouldBe "PGh0bWw+CiAgPGhlYWQ+PHRpdGxlPkh" +
+                "lbGxvIFRpdGxlITwvdGl0bGU+CjwvaGVhZD4KPGJvZHkgc3R5bGU9ImJhY2t" +
+                "ncm91bmQ6IHVybCgnZGF0YTppbWFnZS9naWY7YmFzZTY0LFIwbEdPRGRoQVF" +
+                "BREFQQUJBUC8vLy84QUFDd0FBQUFBQVFBREFBQUNBZ3hRQURzPScpIj4KICA" +
+                "gIDxoMT5IZWxsbyBIZWFkbGluZSE8L2gxPgogICAgPHA+SGVsbG8gV29ybGQ" +
+                "hPC9wPgo8L2JvZHk+CjwvaHRtbD4="
         }
     }
 
@@ -49,17 +46,16 @@ class MimeTypesKtTest {
     inner class ToDataUri {
 
         @Test
-        fun `should create data URI`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-            val htmlFile = HtmlFixture.copyToDirectory(this)
+        fun `should create data URI`(simpleId: SimpleId) = withTempDir(simpleId) {
+            val htmlFile = HtmlDocumentFixture.copyToDirectory(this)
 
             @Suppress("SpellCheckingInspection")
-            expectThat(htmlFile.toDataUri())
-                .isEqualTo("data:text/html;base64,PGh0bWw+CiAgPGhlYWQ+PHRpdGxlPkh" +
-                    "lbGxvIFRpdGxlITwvdGl0bGU+CjwvaGVhZD4KPGJvZHkgc3R5bGU9ImJhY2t" +
-                    "ncm91bmQ6IHVybCgnZGF0YTppbWFnZS9naWY7YmFzZTY0LFIwbEdPRGRoQVF" +
-                    "BREFQQUJBUC8vLy84QUFDd0FBQUFBQVFBREFBQUNBZ3hRQURzPScpIj4KICA" +
-                    "gIDxoMT5IZWxsbyBIZWFkbGluZSE8L2gxPgogICAgPHA+SGVsbG8gV29ybGQ" +
-                    "hPC9wPgo8L2JvZHk+CjwvaHRtbD4=")
+            htmlFile.toDataUri() shouldBe "data:text/html;base64,PGh0bWw+CiAgPGhlYWQ+PHRpdGxlPkh" +
+                "lbGxvIFRpdGxlITwvdGl0bGU+CjwvaGVhZD4KPGJvZHkgc3R5bGU9ImJhY2t" +
+                "ncm91bmQ6IHVybCgnZGF0YTppbWFnZS9naWY7YmFzZTY0LFIwbEdPRGRoQVF" +
+                "BREFQQUJBUC8vLy84QUFDd0FBQUFBQVFBREFBQUNBZ3hRQURzPScpIj4KICA" +
+                "gIDxoMT5IZWxsbyBIZWFkbGluZSE8L2gxPgogICAgPHA+SGVsbG8gV29ybGQ" +
+                "hPC9wPgo8L2JvZHk+CjwvaHRtbD4="
         }
     }
 }

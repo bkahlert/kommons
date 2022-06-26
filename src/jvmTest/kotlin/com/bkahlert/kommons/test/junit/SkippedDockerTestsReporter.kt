@@ -1,13 +1,11 @@
 package com.bkahlert.kommons.test.junit
 
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.docker.DockerRequiring
 import com.bkahlert.kommons.printTestExecutionStatus
 import com.bkahlert.kommons.test.allTestJavaMethods
 import com.bkahlert.kommons.test.withAnnotation
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.toSimpleString
 import org.junit.platform.launcher.TestExecutionListener
 import org.junit.platform.launcher.TestPlan
 import java.lang.reflect.Method
@@ -27,8 +25,8 @@ class SkippedDockerTestsReporter : TestExecutionListener {
         val skipped = testPlan.allTestJavaMethods.withAnnotation<DockerRequiring>(ancestorsIgnored = false)
         if (skipped.isNotEmpty()) {
             val groupBy = skipped.groupBy { testElement: Any ->
-                val container = (testElement as? Method)?.declaringClass ?: testElement
-                container.toSimpleString().ansiRemoved.split(".")[0]
+                val testContainer = (testElement as? Method)?.declaringClass ?: testElement
+                DynamicTestDisplayNameGenerator.displayNameFor(testContainer)
             }.map { (group, elements) -> "$group: ${elements.size}" }
 
             printTestExecutionStatus(

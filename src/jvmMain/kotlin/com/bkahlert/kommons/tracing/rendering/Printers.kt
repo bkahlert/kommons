@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.LineSeparators.mapLines
+import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.text.ANSI.Formatter
-import com.bkahlert.kommons.text.LineSeparators.mapLines
-import com.bkahlert.kommons.text.LineSeparators.trailingLineSeparatorRemoved
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.SpanScope
@@ -34,7 +34,7 @@ public class InMemoryPrinter(
         if (enabled) printed.appendLine(text.toString())
     }
 
-    override fun toString(): String = printed.toString().trailingLineSeparatorRemoved
+    override fun toString(): String = printed.toString().removeTrailingLineSeparator()
 }
 
 /**
@@ -72,16 +72,18 @@ public open class SharedPrinter(private val print: (CharSequence) -> Unit) : Pri
     private fun nestedExclusive() = Span.current().toString().contains(exclusive.toString())
 
     @TracingDsl
-    public fun <R> runExclusive(block: SpanScope.() -> R): R =
-        com.bkahlert.kommons.runWrapping({ exclusive = SpanId.current }, { exclusive = null }) {
-            val customize: Settings.() -> Settings = {
-                copy(
-                    decorationFormatter = Formatter.fromScratch { formattedAs.warning },
-                    style = Solid,
-                )
-            }
-            spanScope(renderer = { it.create(customize().copy(printer = { print(it) })) }, block = block)
+    public fun <R> runExclusive(block: SpanScope.() -> R): R = try {
+        exclusive = SpanId.current
+        val customize: Settings.() -> Settings = {
+            copy(
+                decorationFormatter = Formatter.fromScratch { formattedAs.warning },
+                style = Solid,
+            )
         }
+        spanScope(renderer = { it.create(customize().copy(printer = { print(it) })) }, block = block)
+    } finally {
+        exclusive = null
+    }
 
     override fun toString(): String = asString {
         put(::exclusive, exclusive)

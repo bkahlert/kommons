@@ -2,9 +2,9 @@ package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.createTempDirectory
 import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.io.copyToDirectory
-import com.bkahlert.kommons.test.HtmlFixture
-import com.bkahlert.kommons.test.junit.UniqueId
+import com.bkahlert.kommons.test.copyToDirectory
+import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.withTempDir
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -24,17 +24,17 @@ class RequireKtTest {
     inner class RequireDirectoryKtTest {
 
         @Test
-        fun `should throw on file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on file`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { createTempFile().requireDirectory() }.isFailure().isA<NotDirectoryException>()
         }
 
         @Test
-        fun `should not throw on directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should not throw on directory`(simpleId: SimpleId) = withTempDir(simpleId) {
             createTempDirectory().requireDirectory()
         }
 
         @Test
-        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on missing`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { resolve("path").requireDirectory() }.isFailure().isA<NotDirectoryException>()
         }
     }
@@ -45,13 +45,13 @@ class RequireKtTest {
         @Nested
         inner class WithFile {
             @Test
-            fun `should not throw on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should not throw on empty`(simpleId: SimpleId) = withTempDir(simpleId) {
                 createTempFile().requireEmpty()
             }
 
             @Test
-            fun `should throw on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectCatching { HtmlFixture.copyToDirectory(this).requireEmpty() }.isFailure()
+            fun `should throw on non-empty`(simpleId: SimpleId) = withTempDir(simpleId) {
+                expectCatching { HtmlDocumentFixture.copyToDirectory(this).requireEmpty() }.isFailure()
                     .isA<FileAlreadyExistsException>()
             }
         }
@@ -59,23 +59,23 @@ class RequireKtTest {
         @Nested
         inner class WithDirectory {
             @Test
-            fun `should not throw on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should not throw on empty`(simpleId: SimpleId) = withTempDir(simpleId) {
                 createTempDirectory().requireEmpty()
             }
 
             @Test
-            fun `should throw on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should throw on non-empty`(simpleId: SimpleId) = withTempDir(simpleId) {
                 expectCatching { createTempDirectory().parent.requireEmpty() }.isFailure().isA<DirectoryNotEmptyException>()
             }
         }
 
         @Test
-        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on missing`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { resolve("path").requireEmpty() }.isFailure().isA<NoSuchFileException>()
         }
 
         @Test
-        fun `should throw in different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw in different type`(simpleId: SimpleId) = withTempDir(simpleId) {
             @Suppress("BlockingMethodInNonBlockingContext")
             (expectCatching {
                 Files.createSymbolicLink(resolve("path"), createTempFile()).requireEmpty()
@@ -87,12 +87,12 @@ class RequireKtTest {
     inner class RequireExistsKtTest {
 
         @Test
-        fun `should not throw if exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should not throw if exists`(simpleId: SimpleId) = withTempDir(simpleId) {
             createTempDirectory().requireExists()
         }
 
         @Test
-        fun `should throw if not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw if not exists`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { resolve("path").requireExists() }
                 .isFailure().isA<NoSuchFileException>()
         }
@@ -102,12 +102,12 @@ class RequireKtTest {
     inner class RequireExistsNotKtTest {
 
         @Test
-        fun `should throw if exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw if exists`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { createTempDirectory().requireExistsNot() }.isFailure().isA<FileAlreadyExistsException>()
         }
 
         @Test
-        fun `should not throw if not exists`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should not throw if not exists`(simpleId: SimpleId) = withTempDir(simpleId) {
             resolve("path").requireExistsNot()
         }
     }
@@ -116,17 +116,17 @@ class RequireKtTest {
     inner class RequireFileKtTest {
 
         @Test
-        fun `should throw on directory`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on directory`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { createTempDirectory().requireFile() }.isFailure().isA<IllegalArgumentException>()
         }
 
         @Test
-        fun `should throw on file`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on file`(simpleId: SimpleId) = withTempDir(simpleId) {
             createTempFile().requireFile()
         }
 
         @Test
-        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on missing`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching { resolve("path").requireFile() }.isFailure().isA<IllegalArgumentException>()
         }
     }
@@ -137,13 +137,13 @@ class RequireKtTest {
         @Nested
         inner class WithFile {
             @Test
-            fun `should throw on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should throw on empty`(simpleId: SimpleId) = withTempDir(simpleId) {
                 expectCatching { createTempFile().requireNotEmpty() }.isFailure().isA<NoSuchFileException>()
             }
 
             @Test
-            fun `should not throw on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
-                expectCatching { HtmlFixture.copyToDirectory(createTempDirectory()).requireNotEmpty() }.isSuccess()
+            fun `should not throw on non-empty`(simpleId: SimpleId) = withTempDir(simpleId) {
+                expectCatching { HtmlDocumentFixture.copyToDirectory(createTempDirectory()).requireNotEmpty() }.isSuccess()
             }
         }
 
@@ -151,25 +151,25 @@ class RequireKtTest {
         inner class WithDirectory {
 
             @Test
-            fun `should throw on empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should throw on empty`(simpleId: SimpleId) = withTempDir(simpleId) {
                 expectCatching { createTempDirectory().requireNotEmpty() }.isFailure().isA<NoSuchFileException>()
             }
 
             @Test
-            fun `should not throw on non-empty`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+            fun `should not throw on non-empty`(simpleId: SimpleId) = withTempDir(simpleId) {
                 createTempDirectory().parent.requireNotEmpty()
             }
         }
 
         @Test
-        fun `should throw on missing`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw on missing`(simpleId: SimpleId) = withTempDir(simpleId) {
             expectCatching {
                 createTempDirectory().resolve("path").requireNotEmpty()
             }.isFailure().isA<NoSuchFileException>()
         }
 
         @Test
-        fun `should throw in different type`(uniqueId: UniqueId) = withTempDir(uniqueId) {
+        fun `should throw in different type`(simpleId: SimpleId) = withTempDir(simpleId) {
             @Suppress("BlockingMethodInNonBlockingContext")
             expectCatching { Files.createSymbolicLink(createTempDirectory().resolve("path"), createTempFile()).requireNotEmpty() }
                 .isFailure().isA<NoSuchFileException>()
