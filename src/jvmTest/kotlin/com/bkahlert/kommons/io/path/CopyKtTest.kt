@@ -5,8 +5,6 @@ import com.bkahlert.kommons.age
 import com.bkahlert.kommons.createTempDirectory
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.createTempTextFile
-import com.bkahlert.kommons.deleteOnExit
-import com.bkahlert.kommons.io.compress.TarArchiver.tar
 import com.bkahlert.kommons.lastModified
 import com.bkahlert.kommons.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.minus
@@ -32,7 +30,6 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
-import kotlin.io.path.createTempFile
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
@@ -422,17 +419,6 @@ class CopyKtTest {
     }
 }
 
-
-fun <T : Path> Assertion.Builder<T>.createsEqualTar(other: Path) =
-    assert("is copy of $other") { self ->
-        val selfTar = self.tar(createTempFile()).deleteOnExit(true)
-        val otherTar = other.tar(createTempFile()).deleteOnExit(true)
-
-        val selfBytes = selfTar.readBytes()
-        val otherBytes = otherTar.readBytes()
-        if (selfBytes.contentEquals(otherBytes)) pass()
-        else fail("The resulting tarballs do not match. Expected size ${selfBytes.size} but was ${otherBytes.size}")
-    }
 
 fun <T : Path> Assertion.Builder<T>.isCopyOf(other: Path) =
     assert("is copy of $other") { self ->

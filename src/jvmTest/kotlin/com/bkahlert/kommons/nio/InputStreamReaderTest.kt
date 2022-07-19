@@ -11,8 +11,6 @@ import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.notContainsLineSeparator
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.fuzzyLevenshteinDistance
-import com.bkahlert.kommons.unit.Mebi
-import com.bkahlert.kommons.unit.bytes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
@@ -92,10 +90,10 @@ class InputStreamReaderTest {
     @Isolated
     @Nested
     inner class Benchmark {
-        private val size = 1.Mebi.bytes
+        private val size = 1024 * 1024
         private val input = HtmlDocumentFixture.contents
         private val expected: String =
-            buildString { repeat((size / input.length).wholeBytes.toInt()) { appendLine(input) } }
+            buildString { repeat(size / input.length) { appendLine(input) } }
 
         @Test
         fun `should quickly read`(simpleId: SimpleId) = withTempDir(simpleId) {

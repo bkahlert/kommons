@@ -1,11 +1,13 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.orNull
 import com.bkahlert.kommons.runtime.ancestors
+import com.bkahlert.kommons.runtime.ancestorsx
+import com.bkahlert.kommons.test.junit.ancestors
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.platform.commons.support.AnnotationSupport
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Method
-import java.util.Optional
 import kotlin.reflect.KClass
 
 /**
@@ -19,7 +21,7 @@ inline fun <reified A : Annotation> Iterable<AnnotatedElement>.withAnnotationAnd
     crossinline annotationPredicate: (A) -> Boolean,
 ): Set<AnnotatedElement> = filter { element ->
     val elements = if (ancestorsIgnored) listOf(element) else when (element) {
-        is Method -> element.ancestors
+        is Method -> element.ancestorsx
         is Class<*> -> element.ancestors
         else -> throw IllegalStateException("Unexpected type $element")
     }
@@ -41,15 +43,6 @@ inline fun <reified A : Annotation> Iterable<AnnotatedElement>.withAnnotation(
 ): Set<AnnotatedElement> =
     withAnnotationAndDefault(notAnnotatedElementsPredicate = { false }, ancestorsIgnored = ancestorsIgnored, annotationPredicate = annotationPredicate)
 
-/**
- * Filters this list and leaves only elements not annotated with [A] or if annotated, a matching [annotationPredicate].
- */
-inline fun <reified A : Annotation> Iterable<AnnotatedElement>.withoutAnnotation(
-    ancestorsIgnored: Boolean = true,
-    crossinline annotationPredicate: (A) -> Boolean = { false },
-): Set<AnnotatedElement> =
-    withAnnotationAndDefault(notAnnotatedElementsPredicate = { true }, ancestorsIgnored = ancestorsIgnored, annotationPredicate = annotationPredicate)
-
 
 /**
  * Checks if at least one of [this] elements annotations or meta annotations is of the provided type.
@@ -67,21 +60,6 @@ inline fun <A : Annotation> AnnotatedElement?.isA(annotationClass: KClass<A>, an
     return annotation?.let { annotationPredicate(it) } ?: false
 }
 
-/**
- * Checks if at least one of [this] elements annotations or meta annotations is of the provided type.
- */
-inline fun <reified T : Annotation> Optional<AnnotatedElement>?.isA(): Boolean =
-    AnnotationSupport.isAnnotated(this, T::class.java)
-
-
-@JvmName("isAMethod")
-inline fun <reified T : Annotation> Optional<out Method>?.isA(): Boolean =
-    AnnotationSupport.isAnnotated(this!!, T::class.java)
-
-
-@JvmName("isAMethod")
-inline fun <reified T : Annotation> Method?.isA(): Boolean =
-    AnnotationSupport.isAnnotated(this!!, T::class.java)
 
 /**
  * Checks if current context is annotated with [A].
@@ -89,7 +67,7 @@ inline fun <reified T : Annotation> Method?.isA(): Boolean =
 @Suppress("unused")
 inline fun <reified A : Annotation> ExtensionContext.isAnnotated(
     crossinline annotationPredicate: (A) -> Boolean = { true },
-): Boolean = element { isA(annotationPredicate) } || ancestors.any { it.isA(annotationPredicate) }
+): Boolean = element.orNull().isA(annotationPredicate) || ancestors.any { it.element.orNull().isA(annotationPredicate) }
 
 /**
  * Checks if current context is annotated with [A].
@@ -98,7 +76,7 @@ inline fun <reified A : Annotation> ExtensionContext.isAnnotated(
 inline fun <A : Annotation> ExtensionContext.isAnnotated(
     annotationClass: KClass<A>,
     crossinline annotationPredicate: (A) -> Boolean = { true },
-): Boolean = element { isA(annotationClass, annotationPredicate) }
+): Boolean = element.orNull().isA(annotationClass, annotationPredicate)
 
 inline fun <reified A : Annotation, reified T> ExtensionContext.withAnnotation(crossinline annotationPredicate: A.() -> T): T? =
     AnnotationSupport.findAnnotation(element, A::class.java).orElseGet { null }?.run(annotationPredicate)

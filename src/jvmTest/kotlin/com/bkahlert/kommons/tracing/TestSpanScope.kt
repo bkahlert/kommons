@@ -5,7 +5,6 @@ import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IO
-import com.bkahlert.kommons.math.floorDiv
 import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.orNull
 import com.bkahlert.kommons.test.isAnnotated
@@ -271,12 +270,12 @@ class TestPrinter : Printer {
         private val formatter = Formatter<CharSequence> { it.ansi.color(Colors.gray(.45)) }
         val CharSequence.meta: CharSequence get() = formatter.invoke(this)
         val headerLine = buildString {
-            append("─".repeat((COLUMNS floorDiv 2) + 1))
+            append("─".repeat((COLUMNS / 2) + 1))
             append("┬".repeat(1))
             append("─".repeat(COLUMNS + 1))
         }.meta
         val footerLine = buildString {
-            append("─".repeat((COLUMNS floorDiv 2) + 1))
+            append("─".repeat((COLUMNS / 2) + 1))
             append("┴".repeat(1))
             append("─".repeat(COLUMNS + 1))
         }.meta

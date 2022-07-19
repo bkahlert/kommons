@@ -9,7 +9,6 @@ import com.bkahlert.kommons.tracing.SpanScope
 import com.bkahlert.kommons.tracing.rendering.runSpanningLine
 import com.bkahlert.kommons.tracing.runSpanning
 import com.bkahlert.kommons.tracing.spanId
-import com.bkahlert.kommons.unit.bytes
 import io.opentelemetry.api.trace.Span
 import java.io.IOException
 import java.io.InputStream
@@ -131,7 +130,7 @@ public class SlowInputStream(
             fiftyMillis.sleep()
         }
 
-        log("${unreadCount.bytes.formattedAs.debug} unread")
+        log("${unreadCount.formattedAs.debug} bytes unread")
 
         if (terminated) {
             log("Backing buffer is depleted ➜ EOF reached.")
@@ -211,7 +210,7 @@ public class SlowInputStream(
         closed = true
     }
 
-    override fun toString(): String = "${unreadCount.bytes} left"
+    override fun toString(): String = "$unreadCount bytes left"
 }
 
 private fun <R> Span?.spanningWithDisabledPrinterOnIllegalSpan(name: String, block: SpanScope.() -> R): R =

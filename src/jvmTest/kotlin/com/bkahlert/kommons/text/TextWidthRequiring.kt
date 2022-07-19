@@ -42,8 +42,8 @@ class WideUnicodeGlyphsCondition : ExecutionCondition {
             ).zipWithNext { left, right -> left < right }
                 .all { it }
                 .also {
-                    if (it) printTestExecutionStatus("Wide Unicode Glyphs: supported") { green }
-                    else printTestExecutionStatus("Wide Unicode Glyphs: not supported") { yellow }
+                    if (it) printTestExecutionStatus("Wide Unicode Glyphs: supported")
+                    else printTestExecutionStatus("Wide Unicode Glyphs: not supported")
                 }
         }
     }

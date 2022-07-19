@@ -29,7 +29,6 @@ import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.lines
-import com.bkahlert.kommons.text.styling.wrapWithBorder
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
@@ -217,7 +216,7 @@ class JavaExecTest {
                     """
                     Logged instead:
                     ${exec.io.toList()}
-                    """.trimIndent().wrapWithBorder()
+                    """.trimIndent()
                 )
             }.getOrThrow()
         }

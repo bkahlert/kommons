@@ -7,7 +7,6 @@ import com.bkahlert.kommons.docker.TestImages.BusyBox
 import com.bkahlert.kommons.docker.TestImages.Ubuntu
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.output
-import com.bkahlert.kommons.io.path.getSize
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.copyTo
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
@@ -16,7 +15,6 @@ import com.bkahlert.kommons.test.inputStream
 import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.junit.testEach
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.unit.bytes
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.paths.shouldExist
 import io.kotest.matchers.should
@@ -27,6 +25,7 @@ import org.junit.jupiter.api.TestFactory
 import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
+import kotlin.io.path.fileSize
 import kotlin.io.path.pathString
 
 class DockerKtTest {
@@ -103,7 +102,7 @@ class DockerKtTest {
             { download(it) },
             { download(URI.create(it)) },
         ) { download: Path.(String) -> Path ->
-            withTempDir(simpleId) { download(uri).getSize() shouldBe 40959.bytes }
+            withTempDir(simpleId) { download(uri).fileSize() shouldBe 40959L }
         }
 
         @DockerRequiring @TestFactory

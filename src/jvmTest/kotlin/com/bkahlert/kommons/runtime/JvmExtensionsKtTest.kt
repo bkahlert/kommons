@@ -34,7 +34,7 @@ class JvmExtensionsKtTest {
         @Test
         fun `should resolve method ancestor`() {
             val method = ::`should resolve method ancestor`.javaMethod ?: fail("Error getting Java method.")
-            expectThat(method.ancestor).isEqualTo(
+            expectThat(method.ancestorx).isEqualTo(
                 Ancestors::class.java,
             )
         }
@@ -42,7 +42,7 @@ class JvmExtensionsKtTest {
         @Test
         fun `should resolve method ancestors`() {
             val method = ::`should resolve method ancestors`.javaMethod ?: fail("Error getting Java method.")
-            expectThat(method.ancestors).containsExactly(
+            expectThat(method.ancestorsx).containsExactly(
                 method,
                 Ancestors::class.java,
                 JvmExtensionsKtTest::class.java,

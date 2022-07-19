@@ -6,8 +6,6 @@ import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.render
 import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.string
-import com.bkahlert.kommons.unit.BinaryPrefixes
-import com.bkahlert.kommons.unit.Size
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.assertions.hasSize
@@ -46,7 +44,6 @@ fun Builder<*>.asString(trim: Boolean = true): DescribeableBuilder<String> {
     return this.get("asString") {
         val string = when (this) {
             is CodePoint -> this.string
-            is Size -> this.toString(BinaryPrefixes)
             else -> this.toString()
         }
         string.takeUnless { trim } ?: string.trim()

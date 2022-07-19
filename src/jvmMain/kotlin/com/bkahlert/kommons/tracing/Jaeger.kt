@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.collections.matchKeysByIgnoringCase
 import com.bkahlert.kommons.docker.Docker
 import com.bkahlert.kommons.docker.DockerContainer
 import com.bkahlert.kommons.docker.DockerImage
@@ -7,8 +8,10 @@ import com.bkahlert.kommons.docker.DockerRunCommandLine
 import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.exec.Processors
 import com.bkahlert.kommons.exec.RendererProviders
-import com.bkahlert.kommons.net.headers
 import java.net.URI
+import java.net.URL
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * [Jaeger](https://www.jaegertracing.io/)
@@ -62,3 +65,17 @@ public class Jaeger(hostname: String) {
         return protobufEndpoint.toString()
     }
 }
+
+private fun URL.headers(connectTimeout: Duration = 5.seconds, readTimeout: Duration = 5.seconds): Map<String, List<String>> = openConnection().run {
+    this.connectTimeout = connectTimeout.inWholeMilliseconds.toInt()
+    this.readTimeout = readTimeout.inWholeMilliseconds.toInt()
+
+    val headers: MutableMap<String, MutableList<String>> = mutableMapOf()
+    headerFields.forEach { (key, values) ->
+        headers.getOrPut(key ?: "status") { mutableListOf() }.addAll(values)
+    }
+    headers.matchKeysByIgnoringCase()
+}
+
+private fun URI.headers(connectTimeout: Duration = 5.seconds, readTimeout: Duration = 5.seconds): Map<String, List<String>> =
+    toURL().headers(connectTimeout, readTimeout)

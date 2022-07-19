@@ -2,8 +2,6 @@ package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.isSubPathOf
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.styling.Borders.Rounded
-import com.bkahlert.kommons.text.styling.wrapWithBorder
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.pathString
@@ -40,10 +38,10 @@ public abstract class MountOptionContext<T>(
         public val source: HostPath,
         private val completeCallback: Mount<T>.(ContainerPath) -> T,
     ) {
-        private val buildError: String = listOf(
-            "Mount ${source.formattedAs.input} of type ${type.formattedAs.input} is missing its ${"target".formattedAs.input}.",
-            "Use the ${"at".formattedAs.warning} method to complete the configuration.",
-        ).wrapWithBorder(Rounded, formatter = { it.formattedAs.warning })
+        private val buildError: String = """
+            Mount ${source.formattedAs.input} of type ${type.formattedAs.input} is missing its ${"target".formattedAs.input}.
+            Use the ${"at".formattedAs.warning} method to complete the configuration.
+        """.trimIndent()
 
         init {
             buildErrors.add(buildError)

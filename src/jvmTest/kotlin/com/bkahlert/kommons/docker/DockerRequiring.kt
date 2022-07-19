@@ -134,8 +134,8 @@ class DockerRunningCondition : ExecutionCondition {
         private val dockerUpAndRunning: Boolean by lazy {
             Docker.engineRunning
                 .also { isRunning ->
-                    if (isRunning) printTestExecutionStatus("Docker is running.") { green }
-                    else printTestExecutionStatus("Docker is not running.".formattedAs.warning) { yellow }
+                    if (isRunning) printTestExecutionStatus("Docker is running.")
+                    else printTestExecutionStatus("Docker is not running.".formattedAs.warning)
                 }
         }
     }

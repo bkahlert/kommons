@@ -16,10 +16,10 @@ public val Class<*>.ancestors: List<Class<*>> get() = generateSequence(this) { i
 /**
  * Declaring class of this method.
  */
-public val Method.ancestor: Class<*> get() = declaringClass
+public val Method.ancestorx: Class<*> get() = declaringClass
 
 /**
  * All ancestors of this method, that is, this method itself (≙ ancestor of zeroth degree),
  * its declaring class and the declaring class's ancestors.
  */
-public val Method.ancestors: List<AnnotatedElement> get() = listOf(this, *ancestor.ancestors.toList().toTypedArray())
+public val Method.ancestorsx: List<AnnotatedElement> get() = listOf(this, *ancestorx.ancestors.toList().toTypedArray())

@@ -76,7 +76,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("com.bkahlert.kommons:kommons-debug:0.12.0-SNAPSHOT") { because("require, string, and time functions; trace") }
+                api("com.bkahlert.kommons:kommons-debug:0.13.0-SNAPSHOT") { because("require, string, and time functions; trace") }
             }
         }
         val commonTest by getting {

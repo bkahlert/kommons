@@ -67,11 +67,6 @@ class TextWidthKtTest {
             expecting { it.columns } that { isEqualTo(1) }
         }
 
-        @TestFactory
-        fun `should calc one column for small width code points`() = testEachOld(Whitespaces.HAIR_SPACE, Whitespaces.THIN_SPACE) {
-            expecting { it.columns } that { isEqualTo(1) }
-        }
-
         @TextWidthRequiring @TestFactory
         fun `should calc two columns for wide characters`() = testEachOld("⮕", "😀", "👨🏾", "👩‍👩‍👧‍👧") {
             expecting { it.columns } that { isEqualTo(2) }

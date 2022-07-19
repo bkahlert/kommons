@@ -10,8 +10,7 @@ class IndentKtTest {
 
     @Test
     fun `should return indent`() {
-        val whitespaces = UnicodeOld.whitespaces.filter { it.isWhitespace() }.joinToString("")
-        expectThat("${whitespaces}X".indent).isEqualTo(whitespaces)
+        expectThat("    X".indent).isEqualTo("    ")
     }
 
     @Test

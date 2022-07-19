@@ -38,7 +38,7 @@ class AnsiCondition : ExecutionCondition {
         private val ansiSupported: Boolean by lazy {
             val support = Platform.Current.ansiSupport
             (support != NONE).also {
-                printTestExecutionStatus("ANSI support: $support") { if (it) green else yellow }
+                printTestExecutionStatus("ANSI support: $support")
             }
         }
     }

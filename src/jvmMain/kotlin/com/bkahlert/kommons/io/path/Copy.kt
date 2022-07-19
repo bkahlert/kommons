@@ -22,6 +22,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
@@ -65,7 +66,7 @@ public fun Path.copyTo(
 
                     if (src.isRegularFile(*options) &&
                         dstFile.isRegularFile(*options) &&
-                        src.getSize() == dstFile.getSize() &&
+                        src.fileSize() == dstFile.fileSize() &&
                         src.inputStream(*options).contentEquals(dstFile.inputStream(*options))
                     ) continue
 
@@ -109,8 +110,8 @@ public fun Path.copyTo(
                             copyOptions = options,
                         )
                     )
-                    val copiedFileSize = copiedFile.getSize(*options)
-                    val srcFileSize = src.getSize(*options)
+                    val copiedFileSize = copiedFile.fileSize()
+                    val srcFileSize = src.fileSize()
                     if (copiedFileSize != srcFileSize &&
                         onError(src, fileSystemException(src, dstFile, "Only $copiedFileSize out of $srcFileSize were copied.")) == OnErrorAction.TERMINATE
                     ) {

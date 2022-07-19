@@ -8,6 +8,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.notExists
@@ -28,7 +29,7 @@ public fun Path.requireDirectory(vararg options: LinkOption) {
 public fun Path.requireEmpty(vararg options: LinkOption) {
     if (isNotEmpty()) {
         if (isDirectory(*options)) throw directoryNotEmpty()
-        throw fileAlreadyExists(this, "Must be empty but has ${getSize()}.")
+        throw fileAlreadyExists(this, "Must be empty but has ${fileSize()} bytes.")
     }
 }
 

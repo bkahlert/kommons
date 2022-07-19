@@ -3,9 +3,6 @@ package com.bkahlert.kommons
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode.OnStart
 import com.bkahlert.kommons.io.path.selfCleaning
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
-import com.bkahlert.kommons.text.ANSI.FilteringFormatter
-import com.bkahlert.kommons.text.ANSI.Text
-import com.bkahlert.kommons.text.styling.draw
 import io.ktor.application.call
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -29,10 +26,9 @@ object TestKommons {
 /**
  * Prints the given [lines] enclosed in a border that is formatted using [formatBorder].
  */
-fun printTestExecutionStatus(vararg lines: CharSequence, formatBorder: Text.() -> CharSequence?) {
+fun printTestExecutionStatus(vararg lines: CharSequence) {
     lines
         .joinToString(LineSeparators.Default)
-        .draw.border.rounded(padding = 2, margin = 0, formatter = FilteringFormatter.fromScratch(formatBorder))
         .also { println(it) }
 }
 

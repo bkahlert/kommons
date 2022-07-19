@@ -7,8 +7,6 @@ import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.asGraphemeSequence
 import com.bkahlert.kommons.codePoint
-import com.bkahlert.kommons.math.ceilDiv
-import com.bkahlert.kommons.math.floorDiv
 import com.bkahlert.kommons.spaced
 import com.bkahlert.kommons.string
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
@@ -326,8 +324,8 @@ public fun CharSequence.truncateByColumns(maxColumns: Int = 15, marker: String =
     requirePositiveColumns(maxColumns)
     if (length > 2 * maxColumns || columns > maxColumns) {
         val targetColumns = targetColumns(maxColumns, marker)
-        val left = truncateEndByColumns(targetColumns ceilDiv 2, "")
-        val right = truncateStartByColumns(targetColumns floorDiv 2, "")
+        val left = truncateEndByColumns(-(-targetColumns.floorDiv(2)), "")
+        val right = truncateStartByColumns(targetColumns.floorDiv(2), "")
         "$left$marker$right"
     } else {
         this

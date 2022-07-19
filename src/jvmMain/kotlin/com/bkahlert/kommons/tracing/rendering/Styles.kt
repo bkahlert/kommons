@@ -6,8 +6,6 @@ import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.prefixWith
-import com.bkahlert.kommons.text.repeat
 
 public object Styles {
 
@@ -148,7 +146,7 @@ public object Styles {
 
         override fun content(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? = element.takeUnlessBlank()
         override fun parent(element: CharSequence, decorationFormatter: Formatter<CharSequence>): CharSequence? =
-            content(element, decorationFormatter)?.prefixWith(PREFIX)
+            content(element, decorationFormatter)?.let { if (PREFIX.isNotEmpty()) PREFIX + it else it }
 
         override fun end(
             element: ReturnValue,

@@ -31,8 +31,7 @@ class SkippedDockerTestsReporter : TestExecutionListener {
 
             printTestExecutionStatus(
                 "Docker is not running: ${skipped.size} tests skipped!".formattedAs.warning,
-                *groupBy.toTypedArray(),
-            ) { yellow }
+            )
         }
     }
 }

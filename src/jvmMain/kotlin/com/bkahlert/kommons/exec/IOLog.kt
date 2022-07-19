@@ -11,8 +11,6 @@ import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.text.INTERMEDIARY_LINE_PATTERN
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.truncateOld
-import com.bkahlert.kommons.unit.Size
-import com.bkahlert.kommons.unit.bytes
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -123,7 +121,7 @@ public class IOAssembler(private val lineCompletedCallback: (List<String>) -> Un
      * Amount of [IO] bytes not yet fully assembled, that is, not yet terminated
      * by one of the [LineSeparators].
      */
-    public val incompleteBytes: Size get() = incomplete.size().bytes
+    public val incompleteBytes: Int get() = incomplete.size()
 
     /**
      * Takes the given [bytes] and attempts to re-construct complete text lines

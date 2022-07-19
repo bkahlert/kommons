@@ -5,7 +5,6 @@ import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testOld
-import com.bkahlert.kommons.unit.bytes
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
@@ -90,7 +89,7 @@ fun <T : CharSequence> Assertion.Builder<T>.levenshteinDistance(other: CharSeque
  * For strings of length 1000 or less the result is the same as of [levenshteinDistance].
  */
 fun <T : CharSequence> Assertion.Builder<T>.fuzzyLevenshteinDistance(other: CharSequence): Assertion.Builder<Double> =
-    get("fuzzy Levenshtein distance %s: ${other.length.bytes}") {
+    get("fuzzy Levenshtein distance %s: ${other.length} bytes") {
         val thisString = "$this"
         val otherString = "$other"
         when {

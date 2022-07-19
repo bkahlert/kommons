@@ -5,7 +5,6 @@ import com.bkahlert.kommons.asCodePointSequence
 import com.bkahlert.kommons.string
 import com.bkahlert.kommons.text.UnicodeOld
 import com.bkahlert.kommons.text.UnicodeOld.replacementSymbol
-import com.bkahlert.kommons.text.Whitespaces
 import com.bkahlert.kommons.toHexadecimalString
 
 /**
@@ -31,8 +30,6 @@ public fun String.replaceNonPrintableCharacters(): String =
             }
             codePointChar in Char.MIN_HIGH_SURROGATE..Char.MAX_HIGH_SURROGATE -> codePointIndex.toHexadecimalString() + "▌﹍"
             codePointChar in Char.MIN_LOW_SURROGATE..Char.MAX_LOW_SURROGATE -> "﹍▐" + codePointIndex.toHexadecimalString()
-            Whitespaces.ZeroWidthWhitespaces.keys.any { it == codePointString } -> "❲${Whitespaces.ZeroWidthWhitespaces[codePointString]}❳"
-            Whitespaces.contains(codePointString) -> "❲${Whitespaces.Dict[codePointString]}❳"
             else -> codePointString
         }
         prefix + infix + suffix

@@ -1,9 +1,8 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.math.BigDecimal
-import com.bkahlert.kommons.math.BigDecimalConstants
 import java.nio.file.LinkOption
 import java.nio.file.Path
+import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
@@ -18,7 +17,7 @@ import kotlin.io.path.listDirectoryEntries
 public fun Path.isEmpty(vararg options: LinkOption): Boolean {
     requireExists(*options)
     return when {
-        isRegularFile(*options) -> getSize().bytes == BigDecimal.ZERO
+        isRegularFile(*options) -> fileSize() == 0L
         isDirectory(*options) -> listDirectoryEntries().none()
         else -> throw IllegalArgumentException("$this must either be a file or a directory.")
     }
@@ -34,7 +33,7 @@ public fun Path.isEmpty(vararg options: LinkOption): Boolean {
 public fun Path.isNotEmpty(vararg options: LinkOption): Boolean {
     requireExists(*options)
     return when {
-        isRegularFile(*options) -> getSize().bytes > BigDecimalConstants.ZERO
+        isRegularFile(*options) -> fileSize() != 0L
         isDirectory(*options) -> listDirectoryEntries().any()
         else -> throw IllegalArgumentException("$this must either be a file or a directory.")
     }
