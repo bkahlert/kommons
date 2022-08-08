@@ -1,8 +1,9 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.RenderableAttributes.Companion.EMPTY
 import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.log
@@ -41,14 +42,14 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴One Two Three
             │
-            │   123 abc
+            │   123 abc*
             │   ╶──╴one-liner ϟ RuntimeException: message at.(CompactRendererTest.kt:*)
             │   ╭──╴block
             │   │
-            │   │   123 abc
+            │   │   123 abc*
             │   ϟ
             │   ╰──╴RuntimeException: message at.(CompactRendererTest.kt:*)
             │
@@ -64,7 +65,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╶──╴name ✔︎
         """.trimIndent()
     }
@@ -81,7 +82,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╶──╴parent ╶──╴child ✔︎ ✔︎
         """.trimIndent()
     }
@@ -98,7 +99,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
@@ -124,7 +125,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
@@ -152,7 +153,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
@@ -181,7 +182,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴parent
             │
             │   ╭──╴child
@@ -204,7 +205,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴name
             │
             │   event
@@ -222,7 +223,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴name
             │
             │   java.lang.RuntimeException: exception
@@ -243,7 +244,7 @@ class CompactRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob """
+        rendered.ansiRemoved shouldMatchGlob """
             ╭──╴parent
             │
             │   ╶──╴child ✔︎

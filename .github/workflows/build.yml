@@ -37,7 +37,8 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build -Pkotlin.tests.individualTaskReports=true
+          arguments: build -x :kommons-exec:check -Pkotlin.tests.individualTaskReports=true
+      # TODO re-enable          arguments: build -Pkotlin.tests.individualTaskReports=true
 
       - name: Upload test reports
         uses: actions/upload-artifact@v3
@@ -45,18 +46,18 @@ jobs:
         with:
           name: test-reports--os-${{ matrix.os }}--java-${{ matrix.java-version }}
           if-no-files-found: error
-          path: build/test-results/**/*.xml
+          path: ./*/build/test-results/**/*.xml
 
       - uses: actions/upload-artifact@v3
         with:
           name: kommons--os-${{ matrix.os }}--java-${{ matrix.java-version }}
           if-no-files-found: error
           path: |
-            build/dokka
-            build/libs
-            build/publications
-            build/reports
-            build/test-results
+            ./*/build/dokka
+            ./*/build/libs
+            ./*/build/publications
+            ./*/build/reports
+            ./*/build/test-results
 
   release-draft:
     needs: build

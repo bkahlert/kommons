@@ -24,6 +24,7 @@ import com.bkahlert.kommons.tracing.spans
 import io.kotest.inspectors.forAny
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEmpty
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -32,7 +33,6 @@ import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 import java.net.URI
@@ -155,13 +155,13 @@ class ExecutorTest {
             @Test
             fun TestSpanScope.`should log dump on failure`() {
                 executable.exec.logging()
-                expectThatRendered().containsDump()
+                expectThat(rendered()).containsDump()
             }
 
             @Test
             fun TestSpanScope.`should apply custom logging options`() {
                 executable.exec.testProp.logging { it.create(copy(contentFormatter = { "!$it!" })) }
-                expectThatRendered().contains("!TEST_VALUE!")
+                rendered() shouldContain "!TEST_VALUE!"
             }
 
             @Nested
@@ -238,7 +238,7 @@ class ExecutorTest {
             @Test
             fun TestSpanScope.`should not render`() {
                 executable.exec.testProp.processing { _, process -> process {} }
-                expectThatRendered().isEmpty()
+                rendered().shouldBeEmpty()
             }
 
             @Test
@@ -328,13 +328,13 @@ class ExecutorTest {
             @Test
             fun TestSpanScope.`should log dump on failure`() {
                 executable.exec.async.logging().apply { waitFor() }
-                expectThatRendered().containsDump()
+                expectThat(rendered()).containsDump()
             }
 
             @Test
             fun TestSpanScope.`should apply custom logging options`() {
                 executable.exec.async.testProp.logging { it.create(copy(contentFormatter = { "!$it!" })) }.apply { waitFor() }
-                expectThatRendered().contains("!TEST_VALUE!")
+                rendered() shouldContain "!TEST_VALUE!"
             }
 
             @Nested
@@ -409,21 +409,21 @@ class ExecutorTest {
             @Test
             fun TestSpanScope.`should not render`() {
                 executable.exec.async.testProp.processing { _, process -> process {} }.apply { waitFor() }
-                expectThatRendered().isEmpty()
+                rendered().shouldBeEmpty()
             }
 
             @Test
             fun `should process dump on failure`() {
                 var dumpProcessed = false
                 executable.exec.async.processing { _, process -> process { io -> if (io is IO.Meta.Dump) dumpProcessed = true } }.apply { waitFor() }
-                expectThat(dumpProcessed).isTrue()
+                dumpProcessed shouldBe true
             }
 
             @Test
             fun `should process IO`() {
                 val processed = mutableListOf<IO>()
                 executable.exec.async.testProp.processing { _, process -> process { io -> processed.add(io) } }.apply { waitFor() }
-                expectThat(processed).contains(IO.Output typed "TEST_VALUE")
+                processed shouldContain (IO.Output typed "TEST_VALUE")
             }
         }
 
@@ -435,7 +435,7 @@ class ExecutorTest {
                     processed.add(io)
                 }
             }.apply { waitFor() }
-            expectThat(processed).contains(IO.Output typed "Hello Cat!")
+            processed shouldContain (IO.Output typed "Hello Cat!")
         }
     }
 }

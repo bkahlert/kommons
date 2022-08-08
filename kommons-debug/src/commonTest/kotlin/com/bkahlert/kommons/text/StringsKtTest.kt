@@ -314,9 +314,9 @@ class StringsKtTest {
         randomString(7) shouldHaveLength 7
 
         val allowedByDefault = (('0'..'9') + ('a'..'z') + ('A'..'Z')).toList()
-        randomString(100).forAll { allowedByDefault shouldContain it }
+        randomString(10).forAll { allowedByDefault shouldContain it }
 
-        randomString(100, 'A', 'B').forAll { listOf('A', 'B') shouldContain it }
+        randomString(10, 'A', 'B').forAll { listOf('A', 'B') shouldContain it }
     }
 
     @Test fun repeat() = testAll {

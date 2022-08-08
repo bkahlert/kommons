@@ -47,7 +47,7 @@ class ReturnValueKtTest {
 
     @AnsiRequiring @TestFactory
     fun `should format as return value`() = testEach(
-        null to Symbols.Null,
+        null to Symbols.Null.ansiRemoved,
         Unit to "✔︎",
         "string" to "✔︎",
         succeededState to "✔︎",
@@ -56,7 +56,7 @@ class ReturnValueKtTest {
         kotlin.runCatching { failedReturnValue } to "ϟ return value",
         kotlin.runCatching { throw exception } to "ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:*)",
     ) { (subject, expected) ->
-        ReturnValue.format(subject) shouldMatchGlob expected
+        ReturnValue.format(subject).ansiRemoved shouldMatchGlob expected
     }
 
     @Nested
@@ -93,7 +93,7 @@ class ReturnValueKtTest {
 
         @Test
         fun TestSpanScope.`should format exception as failed`() {
-            format(RuntimeException("exception"))
+            format(RuntimeException("exception")).ansiRemoved
                 .shouldMatchGlob("* ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:*)")
         }
 
@@ -104,7 +104,7 @@ class ReturnValueKtTest {
 
         @Test
         fun TestSpanScope.`should format failed result as failed`() {
-            format(runCatching { throw exception })
+            format(runCatching { throw exception }).ansiRemoved
                 .shouldMatchGlob("* ϟ RuntimeException: exception at.(${ReturnValueKtTest::class.simpleName}.kt:*)")
         }
 
@@ -152,7 +152,7 @@ class ReturnValueKtTest {
             @Test
             fun `should render only unsuccessful`() {
                 val expected = failedExpectations.first().second
-                singleUnsuccessfulReturnValues.format() shouldMatchGlob expected
+                singleUnsuccessfulReturnValues.format().ansiRemoved shouldMatchGlob expected
             }
         }
 
@@ -167,7 +167,7 @@ class ReturnValueKtTest {
 
             @Test
             fun `should render only unsuccessful`() {
-                partlyUnsuccessfulReturnValues.format() shouldMatchGlob """
+                partlyUnsuccessfulReturnValues.format().ansiRemoved shouldMatchGlob """
                       ϟ Multiple problems encountered:
                           ϟ return value
                           ϟ RuntimeException: exception at.(*)

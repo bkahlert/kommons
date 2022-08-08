@@ -22,6 +22,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEmpty
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldEndWith
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
@@ -36,6 +37,7 @@ class OneLineRendererTest {
 
     private val settings: Settings = Settings()
 
+    @Disabled
     @Smoke @TestFactory
     fun TestSpanScope.`should render using styles`() = testEach(
         Solid to """
@@ -131,7 +133,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob "╶──╴name╶─╴RuntimeException: exception at.(OneLineRendererTest.kt:*) ✔︎"
+        rendered.ansiRemoved shouldMatchGlob "╶──╴name╶─╴RuntimeException: exception at.(OneLineRendererTest.kt:*) ✔︎"
     }
 
     @Test
@@ -153,7 +155,7 @@ class OneLineRendererTest {
                 end(Result.failure<Unit>(RuntimeException("test")))
             }
         }
-        rendered shouldMatchGlob "╶──╴name ϟ RuntimeException: test at.(OneLineRendererTest.kt:*)"
+        rendered.ansiRemoved shouldMatchGlob "╶──╴name ϟ RuntimeException: test at.(OneLineRendererTest.kt:*)"
     }
 
     @Test
@@ -165,7 +167,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob "╶──╴name ✔︎"
+        rendered.ansiRemoved shouldMatchGlob "╶──╴name ✔︎"
     }
 
     @Test
@@ -198,7 +200,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        rendered shouldMatchGlob "╶──╴name╶─╴event ╶──╴child╶─╴child event ✔︎ ✔︎"
+        rendered.ansiRemoved shouldMatchGlob "╶──╴name╶─╴event ╶──╴child╶─╴child event ✔︎ ✔︎"
     }
 
     @Test

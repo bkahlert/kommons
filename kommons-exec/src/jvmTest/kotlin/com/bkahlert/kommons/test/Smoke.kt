@@ -16,6 +16,6 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 @Tag(Smoke.NAME)
 annotation class Smoke {
     companion object {
-        const val NAME = "Smoke"
+        const val NAME = "smoke"
     }
 }

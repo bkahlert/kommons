@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.Program
-import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.ColoredText
@@ -17,7 +16,6 @@ import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.github.ajalt.mordant.rendering.AnsiLevel.TRUECOLOR
 import com.github.ajalt.mordant.table.row
 import com.github.ajalt.mordant.terminal.Terminal
-import kotlin.jvm.JvmInline
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
@@ -32,7 +30,7 @@ public val CharSequence.columns: Int get() = row { cell(this@columns.toString())
  */
 public object ANSI {
 
-    public val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.info.trace { it.updateTerminalSize() }.trace } }
+    public val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.info.updateTerminalSize() } }
 
     private val level by lazy { if (Program.isDebugging) AnsiSupport.NONE else AnsiSupport.ANSI24 }
 
@@ -1132,9 +1130,6 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
             }
         }
     }
-
-    public fun chunkedByColumnsSequence(columns: Int): Sequence<AnsiString> =
-        TODO()
 
     public operator fun plus(other: CharSequence): AnsiString {
         val otherTokens = if (other is AnsiString) other.tokens else other.toString().tokenize().tokens

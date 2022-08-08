@@ -12,42 +12,21 @@ kotlin {
     }
 
     jvm {
-        compilations.all {
-            // TODO check if still needed
-            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
-        }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
             // TODO check if still needed
-            minHeapSize = "128m"
-            maxHeapSize = "512m"
-            failFast = false
-            ignoreFailures = true
+//            minHeapSize = "128m"
+//            maxHeapSize = "512m"
+//            failFast = false
+//            ignoreFailures = true
         }
 
-        // TODO check if still needed
-        val testTask = tasks.withType<Test>().first()
+        // TODO centralize
         tasks.register<Test>("smokeTest") {
             group = JavaBasePlugin.VERIFICATION_GROUP
-            classpath = testTask.classpath
-            testClassesDirs = testTask.testClassesDirs
-            useJUnitPlatform { includeTags("Smoke") }
-        }
-
-        // TODO check if still needed
-        tasks.withType<Test>().configureEach {
-            testLogging {
-                events = setOf(
-                    org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED,
-                    org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-                    org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
-                    org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
-                )
-                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-                showExceptions = true
-                showCauses = true
-                showStackTraces = true
-            }
+            classpath = testRuns["test"].executionSource.classpath
+            testClassesDirs = testRuns["test"].executionSource.testClassesDirs
+            useJUnitPlatform { includeTags("smoke") }
         }
     }
 
@@ -123,3 +102,6 @@ kotlin {
         }
     }
 }
+
+// getting rid of missing dependency declarations; see https://youtrack.jetbrains.com/issue/KT-46466
+tasks.withType<Sign>().forEach { tasks.withType<AbstractPublishToMaven>().configureEach { dependsOn(it) } }

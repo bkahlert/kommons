@@ -10,26 +10,9 @@ allprojects {
     group = "com.bkahlert.kommons"
     version = "2.0-SNAPSHOT"
 
-    repositories {
-        mavenCentral()
-    }
-}
-
-subprojects {
-
-    apply(plugin = "org.jetbrains.dokka")
+    apply(plugin = "nebula.release")
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
-
-    val javadocJar by tasks.registering(Jar::class) {
-        description = "Generates a JavaDoc JAR using Dokka"
-        group = JavaBasePlugin.DOCUMENTATION_GROUP
-        archiveClassifier.set("javadoc")
-        tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml").also {
-            dependsOn(it)
-            from(it.get().outputDirectory)
-        }
-    }
 
     publishing {
         repositories {
@@ -52,14 +35,42 @@ subprojects {
                 }
             }
         }
+    }
+}
 
+subprojects {
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    apply(plugin = "org.jetbrains.kotlin.multiplatform")
+    apply(plugin = "org.jetbrains.dokka")
+
+    val dokkaPlugin by configurations
+    dependencies { dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.7.10") }
+
+    val javadocJar by tasks.registering(Jar::class) {
+        description = "Generates a JavaDoc JAR using Dokka"
+        group = JavaBasePlugin.DOCUMENTATION_GROUP
+        archiveClassifier.set("javadoc")
+        tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml").also { dokkaHtml ->
+            dependsOn(dokkaHtml)
+            from(dokkaHtml.get().outputDirectory)
+        }
+    }
+
+    publishing {
         publications {
             withType<MavenPublication>().configureEach {
                 artifact(javadocJar)
                 pom {
-                    name.set("Kommons")
-                    description.set(project.description)
-                    url.set("https://github.com/bkahlert/kommons")
+                    name.set(project.name.split("-").joinToString(" ") { it.capitalize() })
+                    // needed as subprojects aren't yet evaluated, see https://docs.gradle.org/current/userguide/publishing_maven.html
+                    // otherwise description of Kotlin Multiplatform publication stays empty, and repo gets refused by Maven Central
+                    afterEvaluate { pom.description.set(description) }
+                    url.set("https://github.com/bkahlert/kommons/${project.name}")
                     licenses {
                         license {
                             name.set("MIT")
@@ -98,10 +109,5 @@ subprojects {
         val signingPassword: String? by project
         useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications)
-    }
-
-    // getting rid of missing dependency declarations
-    tasks.filter { it.name.startsWith("sign") }.also { signingTasks ->
-        tasks.filter { it.name.startsWith("publish") && it.name.contains("Publication") }.forEach { it.dependsOn(signingTasks) }
     }
 }

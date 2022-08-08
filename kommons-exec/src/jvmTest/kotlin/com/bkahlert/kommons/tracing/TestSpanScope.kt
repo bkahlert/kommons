@@ -43,8 +43,6 @@ import org.opentest4j.IncompleteExecutionException
 import org.opentest4j.MultipleFailuresError
 import org.opentest4j.TestAbortedException
 import org.opentest4j.TestSkippedException
-import strikt.api.Assertion.Builder
-import strikt.api.expectThat
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
@@ -60,20 +58,6 @@ class TestSpanScope(
 ) : SpanScope by span, CharSequence by rendered(false) {
 
     fun rendered(ignoreAnsi: Boolean = true): String = rendered.invoke(ignoreAnsi)
-
-    /**
-     * Returns a [Builder] to run assertions on what was rendered.
-     */
-    @Deprecated("use rendered")
-    fun expectThatRendered(ignoreAnsi: Boolean = true) =
-        expectThat(rendered(ignoreAnsi))
-
-    /**
-     * Runs the specified [assertions] on what was rendered.
-     */
-    @Deprecated("use rendered")
-    fun expectThatRendered(ignoreAnsi: Boolean = true, assertions: Builder<String>.() -> Unit) =
-        expectThat(rendered(ignoreAnsi), assertions)
 }
 
 /**

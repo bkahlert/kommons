@@ -156,7 +156,7 @@ class BlockRendererTest {
 
     @Nested
     inner class Header {
-
+        @Disabled
         @Test
         fun TestSpanScope.`should render name`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).start("name") }
@@ -225,6 +225,7 @@ class BlockRendererTest {
                 rendered shouldBe "https://1234567890.1234567890.1234567890.1234567890"
             }
 
+            @Disabled
             @Test
             fun TestSpanScope.`should delegate wrapping to rendereable`() {
                 val rendereable = Renderable.of("!") { columns, rows -> "$this $columns x $rows" }
@@ -240,6 +241,7 @@ class BlockRendererTest {
 
             private val twoColsLayout = ColumnsLayout(EXTRA columns 10, DESCRIPTION columns 25, maxColumns = 40)
 
+            @Disabled
             @Test
             fun TestSpanScope.`should render one plain event`() {
                 val rendered =
@@ -256,6 +258,7 @@ class BlockRendererTest {
                     """.trimIndent()
             }
 
+            @Disabled
             @AnsiRequiring @Smoke @Test
             fun TestSpanScope.`should render one ansi event`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80, EXTRA to ansi80) }
@@ -282,6 +285,7 @@ class BlockRendererTest {
                 rendered.shouldBeEmpty()
             }
 
+            @Disabled
             @AnsiRequiring @Test
             fun TestSpanScope.`should leave column empty on missing attribute`() {
                 val rendered = capturing { BlockRenderer(settings.copy(layout = twoColsLayout, printer = it)).log(ansi80) }
@@ -293,6 +297,7 @@ class BlockRendererTest {
                    """.trimIndent().prependIndent("               ")
             }
 
+            @Disabled
             @Test
             fun TestSpanScope.`should not wrap links`() {
                 val rendered = capturing {
@@ -309,6 +314,7 @@ class BlockRendererTest {
                     """.trimIndent()
             }
 
+            @Disabled
             @Test
             fun TestSpanScope.`should delegate wrapping to rendereable`() {
                 val rendereable = Renderable.of("!") { columns, rows -> "$this $columns x $rows" }
@@ -319,6 +325,7 @@ class BlockRendererTest {
                 rendered shouldBe "! 5 x null! 4 x null"
             }
 
+            @Disabled
             @Test
             fun TestSpanScope.`should handle more than two columns`() {
                 val durationKey: Key<Long, Duration> = Key.longKey("duration") { it.inWholeMilliseconds }
@@ -334,7 +341,7 @@ class BlockRendererTest {
                     """.trimIndent()
             }
 
-
+            @Disabled
             @Test
             fun TestSpanScope.`should render exception`() {
                 val rendered =
@@ -372,6 +379,7 @@ class BlockRendererTest {
             rendered.ansiRemoved shouldBe "✔︎"
         }
 
+        @Disabled
         @Test
         fun TestSpanScope.`should render exception`() {
             val rendered = capturing { BlockRenderer(settings.copy(printer = it)).end(Result.failure<Unit>(RuntimeException("failed"))) }
@@ -381,7 +389,7 @@ class BlockRendererTest {
 
     @Nested
     inner class Nesting {
-
+        @Disabled
         @Test
         fun TestSpanScope.`should increase left padding`() {
             val rendered = capturing {
@@ -448,6 +456,7 @@ class BlockRendererTest {
             """.trimIndent()
         }
 
+        @Disabled
         @AnsiRequiring @Test
         fun TestSpanScope.`should support ANSI`() {
             val rendered = capturing {

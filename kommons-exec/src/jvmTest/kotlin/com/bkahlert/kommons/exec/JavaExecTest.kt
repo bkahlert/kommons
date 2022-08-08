@@ -26,8 +26,9 @@ import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.lines
-import com.bkahlert.kommons.text.matchesCurly
+import com.bkahlert.kommons.text.matchesGlob
 import com.bkahlert.kommons.text.removeAnsi
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.sleep
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.io.TempDir
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.api.expect
@@ -160,7 +162,7 @@ class JavaExecTest {
         @Test
         fun `should format running exec`(simpleId: SimpleId) = withTempDir(simpleId) {
             val exec: Exec = createCompletingExec()
-            "$exec" shouldMatchGlob "JavaExec(process=Process(pid=*, exitValue=*), successful=⏳️, $shared)"
+            "$exec".ansiRemoved shouldMatchGlob "JavaExec(process=Process(pid=*, exitValue=*), successful=⏳️, $shared)"
         }
 
         @Test
@@ -243,10 +245,10 @@ class JavaExecTest {
             val exec = createCompletingExec(0)
             expectThat(exec.waitFor()) {
                 isA<ExitState>() and {
-                    status.get { this shouldMatchGlob "Process ${exec.pid} terminated *" }
+                    status.get { this.ansiRemoved shouldMatchGlob "Process ${exec.pid} terminated *" }
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
-                    io.isEmpty() // because exec was not processed
+                    io.isEmpty() // because exec wasn't processed
                 }
             }
         }
@@ -328,8 +330,8 @@ class JavaExecTest {
         inner class OfSuccessfulExec {
 
             @Test
-            fun `should succeed on 0 exit code by default`(simpleId: SimpleId) = withTempDir(simpleId) {
-                val exec = createCompletingExec(0)
+            fun `should succeed on 0 exit code by default`(@TempDir tempDir: Path) {
+                val exec = tempDir.createCompletingExec(0)
                 expectThat(exec.waitFor()).isA<Succeeded>()
             }
 
@@ -358,17 +360,17 @@ class JavaExecTest {
             }
 
             @Smoke @Test
-            fun `should exit with Successful termination`(simpleId: SimpleId) = withTempDir(simpleId) {
-                val exec = createCompletingExec(0)
+            fun `should exit with Successful termination`(@TempDir tempDir: Path) {
+                val exec = tempDir.createCompletingExec(0)
                 expectThat(exec).succeeds() and {
                     start.timePassed.isLessThan(2.seconds)
                     end.timePassed.isLessThan(2.seconds)
                     runtime.isLessThan(2.seconds)
-                    toString().matchesCurly("Process ${exec.pid} terminated successfully at *")
-                    status.get { this shouldMatchGlob "Process ${exec.pid} terminated successfully at *" }
+                    toString().ansiRemoved.matchesGlob("Process ${exec.pid} terminated successfully at *")
+                    status.get { this.ansiRemoved shouldMatchGlob "Process ${exec.pid} terminated successfully at *" }
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(0)
-                    io.isEmpty() // because exec was not processed
+                    io.isEmpty() // because exec wasn't processed
                 }
             }
         }
@@ -429,14 +431,14 @@ class JavaExecTest {
             }
 
             @Smoke @Test
-            fun `should exit with failed exit state`(simpleId: SimpleId) = withTempDir(simpleId) {
-                val exec = createCompletingExec(42)
+            fun `should exit with failed exit state`(@TempDir tempDir: Path) {
+                val exec = tempDir.createCompletingExec(42)
                 expectThat(exec.onExit).wait().isSuccess()
                     .isA<Failed>() and {
                     start.timePassed.isLessThan(2.seconds)
                     end.timePassed.isLessThan(2.seconds)
                     runtime.isLessThan(2.seconds)
-                    status.lines().first().get { this shouldMatchGlob "Process ${exec.pid} terminated with exit code ${exec.exitCode}" }
+                    status.lines().first().get { this.ansiRemoved shouldMatchGlob "Process ${exec.pid} terminated with exit code ${exec.exitCode}" }
                     containsDump()
                     pid.isGreaterThan(0)
                     exitCode.isEqualTo(42)

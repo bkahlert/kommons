@@ -15,7 +15,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
-class JsInstantTest {
+class JsTimeTest {
 
     @Test fun local_date() = testAll {
         LocalDate(2007, 11, 3) should {
@@ -73,9 +73,10 @@ class JsInstantTest {
 
     @Test
     fun timestamp() = testAll {
+        val time = Date().getTime().toLong()
         Timestamp should {
-            it shouldBeLessThanOrEqualTo Date().getTime().toLong()
-            it shouldBeGreaterThanOrEqualTo Date().getTime().toLong() - 1
+            it shouldBeLessThanOrEqualTo time
+            it shouldBeGreaterThanOrEqualTo time - 100
         }
     }
 

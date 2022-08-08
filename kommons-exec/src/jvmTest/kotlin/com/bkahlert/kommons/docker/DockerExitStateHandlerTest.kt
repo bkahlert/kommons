@@ -59,7 +59,7 @@ class DockerExitStateHandlerTest {
         connectivityProblemState.status.ansiRemoved shouldBe "Is the docker daemon running?"
         connectivityProblemState.textRepresentation.ansiRemoved shouldBe "connectivity problem${delimiter}Is the docker daemon running?"
         connectivityProblemState.format().ansiRemoved shouldBe "connectivity problem${delimiter}Is the docker daemon running?"
-        connectivityProblemState.toString() shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?"
+        connectivityProblemState.toString().ansiRemoved shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?"
     }
 
     @Test
@@ -73,7 +73,7 @@ class DockerExitStateHandlerTest {
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
 
-        exitState.toString() shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?"
+        exitState.toString().ansiRemoved shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?"
     }
 
     @TestFactory
@@ -93,7 +93,7 @@ class DockerExitStateHandlerTest {
         expecting("matches ${clazz.simpleName}") { badRequestState::class } that { isEqualTo(clazz) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
         expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.ansiRemoved} $status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { get { toString() shouldMatchGlob "${Negative.ansiRemoved} ${status.formattedAs.error}" } }
+        expecting("toString() is ${toString()}") { badRequestState } that { get { toString().ansiRemoved shouldMatchGlob "${Negative.ansiRemoved} ${status.formattedAs.error.ansiRemoved}" } }
     }
 
     @TestFactory
@@ -108,7 +108,7 @@ class DockerExitStateHandlerTest {
         expecting("matches ${CannotRemoveRunningContainer::class.simpleName}") { badRequestState::class } that { isEqualTo(CannotRemoveRunningContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo(status) }
         expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.endSpaced.ansiRemoved}$status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { get { toString() shouldMatchGlob "${Negative.ansiRemoved} $status" } }
+        expecting("toString() is ${toString()}") { badRequestState } that { get { toString().ansiRemoved shouldMatchGlob "${Negative.ansiRemoved} $status" } }
     }
 
     @TestFactory
@@ -122,7 +122,7 @@ class DockerExitStateHandlerTest {
         expecting("matches ${CannotKillContainer::class.simpleName}") { CannotKillContainer::class } that { isEqualTo(CannotKillContainer::class) }
         expecting("status is AFFECTED") { badRequestState.status.ansiRemoved } that { isEqualTo("AFFECTED") }
         expecting("formatted state ${badRequestState.format()}") { badRequestState.format().ansiRemoved } that { isEqualTo("${Negative.ansiRemoved} $status") }
-        expecting("toString() is ${toString()}") { badRequestState } that { get { toString() shouldMatchGlob "${Negative.ansiRemoved} ${status.formattedAs.error}" } }
+        expecting("toString() is ${toString()}") { badRequestState } that { get { toString().ansiRemoved shouldMatchGlob "${Negative.ansiRemoved} ${status.formattedAs.error.ansiRemoved}" } }
     }
 
     @Test
@@ -131,7 +131,7 @@ class DockerExitStateHandlerTest {
         expectThat(unknownError).isA<UnknownError>().and {
             status.removeAnsi.isEqualTo("Unknown error from Docker daemon: Nothing I know of: status")
             get { format() }.removeAnsi.isEqualTo("ϟ Unknown error from Docker daemon: Nothing I know of: status")
-            get { toString() shouldMatchGlob "Unknown error from Docker daemon: Nothing I know of: status" }
+            get { toString().ansiRemoved shouldMatchGlob "Unknown error from Docker daemon: Nothing I know of: status" }
         }
     }
 

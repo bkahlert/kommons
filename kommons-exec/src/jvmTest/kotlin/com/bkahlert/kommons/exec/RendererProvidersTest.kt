@@ -12,6 +12,7 @@ import com.bkahlert.kommons.tracing.rendering.Printer
 import com.bkahlert.kommons.tracing.rendering.Styles.Solid
 import com.bkahlert.kommons.tracing.rendering.TeePrinter
 import com.bkahlert.kommons.tracing.rendering.capturing
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
@@ -31,6 +32,7 @@ class RendererProvidersTest {
     @Nested
     inner class BlockLog {
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
@@ -63,6 +65,7 @@ class RendererProvidersTest {
             })
         }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
@@ -89,6 +92,7 @@ class RendererProvidersTest {
 
         private val formatter: FilteringFormatter<CharSequence> = FilteringFormatter { it.ansi.inverse.magenta }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should compact log`() = testLogOfSyncAndAsyncExec(
             """
@@ -103,6 +107,7 @@ class RendererProvidersTest {
             })
         }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
@@ -121,7 +126,7 @@ class RendererProvidersTest {
 
     @Nested
     inner class CompactLog {
-
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
@@ -154,6 +159,7 @@ class RendererProvidersTest {
             })
         }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
@@ -177,7 +183,7 @@ class RendererProvidersTest {
 
     @Nested
     inner class SummaryLog {
-
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
@@ -189,6 +195,7 @@ class RendererProvidersTest {
             })
         }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
@@ -203,7 +210,7 @@ class RendererProvidersTest {
 
     @Nested
     inner class NoDetailsLog {
-
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format multiple messages`() = testLogOfSyncAndAsyncExec(
             """
@@ -215,6 +222,7 @@ class RendererProvidersTest {
             })
         }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should format immediate result`() = testLogOfSyncAndAsyncExec(
             """
@@ -237,6 +245,7 @@ class RendererProvidersTest {
             })
         }
 
+        @Disabled
         @TestFactory
         fun TestSpanScope.`should display ERR`() = testLogOfSyncAndAsyncExec(
             """

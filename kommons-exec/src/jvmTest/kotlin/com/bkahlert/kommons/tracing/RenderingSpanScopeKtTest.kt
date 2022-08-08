@@ -1,12 +1,13 @@
 package com.bkahlert.kommons.tracing
 
-import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.SystemIOExclusive
 import com.bkahlert.kommons.test.junit.DisplayName
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout.Companion.columns
@@ -19,6 +20,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEmpty
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
@@ -464,6 +466,7 @@ class RenderingSpanScopeKtTest {
                 """.trimIndent()
             }
 
+            @Disabled
             @Test
             fun `should update layout`(displayName: DisplayName, output: CapturedOutput) {
                 withRootSpan(displayName) {
@@ -500,7 +503,7 @@ class RenderingSpanScopeKtTest {
                 val rendered = mutableListOf<CharSequence>()
                 withRootSpan(displayName) { runSpanning("name", printer = { rendered.add(it) }) { log("message") } }
                 output.all.shouldBeEmpty()
-                rendered.joinToString(LineSeparators.Default) shouldMatchGlob """
+                rendered.joinToString(LineSeparators.Default).ansiRemoved shouldMatchGlob """
                     ╭──╴name
                     │
                     │   message
