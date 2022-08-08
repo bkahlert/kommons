@@ -83,7 +83,7 @@ kotlin {
                 // TODO delete
                 implementation("io.opentelemetry:opentelemetry-sdk:1.5.0")
                 // TODO delete
-                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.16.0")
                 // TODO delete
                 implementation("io.opentelemetry:opentelemetry-exporter-logging:1.5.0")
                 // TODO delete
