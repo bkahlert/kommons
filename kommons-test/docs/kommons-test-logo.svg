@@ -1,0 +1,63 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-label="Kommons Test" role="img" viewBox="0 0 128 60"
+     style="cursor: default;">
+    <style>
+        path { fill: #3E3409; }
+        @media (prefers-color-scheme: dark) { path { fill: #FFD726; } }
+    </style>
+    <defs>
+        <linearGradient id="upper-k" x1="-720" y1="780" x2="0" y2="60">
+            <stop offset="0" stop-color="#231F20"/>
+            <stop offset=".6" stop-color="#50430C"/>
+            <stop offset="1" stop-color="#3E3409"/>
+            <animate attributeName="x1" dur="5s" values="0; -720; 0" repeatCount="indefinite"/>
+            <animate attributeName="y1" dur="5s" values="60; 780; 60" repeatCount="indefinite"/>
+            <animate attributeName="x2" dur="5s" values="720; 0; 720" repeatCount="indefinite"/>
+            <animate attributeName="y2" dur="5s" values="-660; 60; -660" repeatCount="indefinite"/>
+        </linearGradient>
+        <linearGradient id="strip" x1="0" y1="60" x2="300" y2="-240">
+            <stop offset="0" stop-color="#FFD726"/>
+            <stop offset=".075" stop-color="#FFD726"/>
+            <stop offset=".5" stop-color="#F5E613"/>
+            <stop offset="1" stop-color="#FFD726"/>
+            <animate attributeName="x1" dur="20s" values="0; -300; 0" repeatCount="indefinite"/>
+            <animate attributeName="y1" dur="20s" values="60; 360; 60" repeatCount="indefinite"/>
+            <animate attributeName="x2" dur="20s" values="300; 0; 300" repeatCount="indefinite"/>
+            <animate attributeName="y2" dur="20s" values="-240; 60; -240" repeatCount="indefinite"/>
+        </linearGradient>
+        <linearGradient id="lower-k" x1="0" y1="60" x2="600" y2="-540">
+            <stop offset="0" stop-color="#231F20"/>
+            <stop offset=".6" stop-color="#3E3409"/>
+            <stop offset="1" stop-color="#50430C"/>
+            <animate attributeName="x1" dur="10s" values="0; -600; 0" repeatCount="indefinite"/>
+            <animate attributeName="y1" dur="10s" values="60; 660; 60" repeatCount="indefinite"/>
+            <animate attributeName="x2" dur="10s" values="600; 0; 600" repeatCount="indefinite"/>
+            <animate attributeName="y2" dur="10s" values="-540; 60; -540" repeatCount="indefinite"/>
+        </linearGradient>
+        <path id="o"
+              d="M73.9,60c-27.6,2.9-27.6-49.8,0-47C101.4,10.1,101.4,62.9,73.9,60z
+                 M65.7,47.7c3.1,4.8,13.2,4.8,16.3,0 c3.6-4.2,3.5-18.2,0.1-22.3c-3-4.8-13.3-4.8-16.3,0C62.5,29.6,62.1,43.5,65.7,47.7z"/>
+        <path id="m"
+              d="M104.4,58.9V14.1h7.6l0.7,5.3c6.1-7.9,19.8-9.2,24.4,0c5.9-7.1,17.7-9,23.6-2.3c6.2,6,2.6,33.6,3.5,41.7h-9.5V30.7
+                 c0.5-10.5-10.6-10.8-15.6-3.5c0.2,0.1,0.1,30.9,0.1,31.8h-9.5V30.8c0.4-11-10.8-10.9-15.6-2.8v30.9H104.4L104.4,58.9z"/>
+    </defs>
+    <polygon points="0,0 30.5,0 0,30.5" fill="url(#upper-k)"/>
+    <polygon points="30.5,0 0,30.5 0,60 60,0" fill="url(#strip)"/>
+    <polygon points="0,60 30,30 60,60" fill="url(#lower-k)"/>
+    <g transform="rotate(-45 50 100) translate(80.25 36.25) scale(0.13 0.13)">
+        <use xlink:href="#o"/>
+        <use xlink:href="#m"/>
+        <use xlink:href="#m" x="71.5"/>
+        <use xlink:href="#o" x="192.3"/>
+        <path d="M296.2,58.9V14.1h7.6l0.7,5.3c10.4-11,29.5-8.1,28.2,10.6c0,0,0,28.9,0,28.9h-9.5c-0.6-5.2,1.6-30.4-1.7-34.4
+                 c-4.2-4.6-12.1-1.9-15.8,3.4V59L296.2,58.9L296.2,58.9z"/>
+        <path d="M357.4,60c-6.7,0-12-1.2-15.9-3.7v-9.2c5.9,3.8,16.1,6.2,22.5,3.3c6.8-7.6-4.7-9.3-10.5-10.4c-7.8-1.8-11.2-4.9-11.4-12.7
+                 c-1.8-15,20.4-16.9,30.4-11.5V25c-17-9.7-30.3,2.9-14.7,6.4c4.5,1,12.3,2.9,14.4,5.8C379.3,47.6,372.7,61.2,357.4,60z"/>
+    </g>
+    <g style="mix-blend-mode: screen;" transform="translate(35)">
+        <path d="M30.9,57.8v-16h-5.7v-3.9H41v3.9h-5.7v16H30.9z"/>
+        <path d="M43.6,57.8V37.9h15v3.8H48.1v4h8.8v3.8h-8.8V54h10.6v3.8H43.6z"/>
+        <path d="M68.1,58.2c-2.9,0-5.2-0.5-6.9-1.5v-4.1c6.3,4.7,16.8-0.7,5.1-3.1c-11.3-3.7-2.7-16.3,8.5-10.7v4.1c-2.1-1.4-8.8-2.9-9,0.6
+                 c0.1,1.4,1.1,1.7,2.7,2.1C78.2,45.7,79,58.7,68.1,58.2z"/>
+        <path d="M82.6,57.8v-16h-5.7v-3.9h15.8v3.9H87v16H82.6z"/>
+    </g>
+</svg>

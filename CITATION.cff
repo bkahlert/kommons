@@ -1,11 +1,10 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-  - given-names: "Björn"
-    family-names: "Kahlert"
-    orcid: "https://orcid.org/0000-0003-1705-4067"
-title: "Kommons — A Kotlin Multiplatform Library, with a minimal set of dependencies, allowing you to run Command Lines and Shell Scripts, locally or in a Docker
-Container—and a dozen of other features like various builders, an improved Java NIO 2 integration, decimal and binary units, and Unicode-related features."
-version: 1.6.1
-date-released: 2021-12-19
+    -   given-names: "Björn"
+        family-names: "Kahlert"
+        orcid: "https://orcid.org/0000-0003-1705-4067"
+title: "Kommons — Features for Kotlin™ You Didn't Know You Were Missing"
+version: 2.0.0
+date-released: 2022-08-07
 url: "https://github.com/bkahlert/kommons"

@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: dorny/test-reporter@v1
         with:
-          artifact: test-reports
-          name: Kotlin tests
+          artifact: /^test-reports(?:--(.*$))?/
+          name: Test reports $1
           path: '**/*.xml'
           reporter: java-junit

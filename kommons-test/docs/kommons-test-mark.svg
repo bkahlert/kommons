@@ -1,0 +1,40 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="Kommons Test" role="img" viewBox="0 0 60 60"
+     style="cursor: default;">
+    <style>
+        path { fill: #3E3409; }
+        @media (prefers-color-scheme: dark) { path { fill: #FFD726; } }
+    </style>
+    <defs>
+        <linearGradient id="upper-k" x1="-720" y1="780" x2="0" y2="60">
+            <stop offset="0" stop-color="#231F20"/>
+            <stop offset=".6" stop-color="#50430C"/>
+            <stop offset="1" stop-color="#3E3409"/>
+            <animate attributeName="x1" dur="5s" values="0; -720; 0" repeatCount="indefinite"/>
+            <animate attributeName="y1" dur="5s" values="60; 780; 60" repeatCount="indefinite"/>
+            <animate attributeName="x2" dur="5s" values="720; 0; 720" repeatCount="indefinite"/>
+            <animate attributeName="y2" dur="5s" values="-660; 60; -660" repeatCount="indefinite"/>
+        </linearGradient>
+        <linearGradient id="strip" x1="0" y1="60" x2="300" y2="-240">
+            <stop offset="0" stop-color="#FFD726"/>
+            <stop offset=".075" stop-color="#FFD726"/>
+            <stop offset=".5" stop-color="#F5E613"/>
+            <stop offset="1" stop-color="#FFD726"/>
+            <animate attributeName="x1" dur="20s" values="0; -300; 0" repeatCount="indefinite"/>
+            <animate attributeName="y1" dur="20s" values="60; 360; 60" repeatCount="indefinite"/>
+            <animate attributeName="x2" dur="20s" values="300; 0; 300" repeatCount="indefinite"/>
+            <animate attributeName="y2" dur="20s" values="-240; 60; -240" repeatCount="indefinite"/>
+        </linearGradient>
+        <linearGradient id="lower-k" x1="0" y1="60" x2="600" y2="-540">
+            <stop offset="0" stop-color="#231F20"/>
+            <stop offset=".6" stop-color="#3E3409"/>
+            <stop offset="1" stop-color="#50430C"/>
+            <animate attributeName="x1" dur="10s" values="0; -600; 0" repeatCount="indefinite"/>
+            <animate attributeName="y1" dur="10s" values="60; 660; 60" repeatCount="indefinite"/>
+            <animate attributeName="x2" dur="10s" values="600; 0; 600" repeatCount="indefinite"/>
+            <animate attributeName="y2" dur="10s" values="-540; 60; -540" repeatCount="indefinite"/>
+        </linearGradient>
+    </defs>
+    <polygon points="0,0 30.5,0 0,30.5" fill="url(#upper-k)"/>
+    <polygon points="30.5,0 0,30.5 0,60 60,0" fill="url(#strip)"/>
+    <polygon points="0,60 30,30 60,60" fill="url(#lower-k)"/>
+</svg>

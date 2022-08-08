@@ -1,0 +1,3 @@
+61C285F09D95930D0AE298B00AF09F918B0A.txt    -text
+**/resources/fixtures/*                     -text
+**/resources/fixtures/**/*                  -text

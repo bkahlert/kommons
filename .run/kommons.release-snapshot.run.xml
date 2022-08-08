@@ -1,15 +1,18 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Release SNAPSHOT ➜ local" type="GradleRunConfiguration" factoryName="Gradle" folderName="kommons">
+  <configuration default="false" name="Release SNAPSHOT ➜ publish to local" type="GradleRunConfiguration" factoryName="Gradle" folderName="kommons">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="snapshot publishToMavenLocal -x :dokkaHtml" />
+      <option name="scriptParameters" value="-x signKotlinMultiplatformPublication -x signJsPublication -x signJvmPublication -x check" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
-        <list />
+        <list>
+          <option value="snapshot" />
+          <option value="publishToMavenLocal" />
+        </list>
       </option>
       <option name="vmOptions" />
     </ExternalSystemSettings>

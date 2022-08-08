@@ -1,15 +1,18 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Release MAJOR ➜ OSSRH, GitHubPackages" type="GradleRunConfiguration" factoryName="Gradle" folderName="kommons">
+  <configuration default="false" name="Release MAJOR ➜ publish to OSSRH, GitHubPackages" type="GradleRunConfiguration" factoryName="Gradle" folderName="kommons">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="final -Prelease.scope=major publish" />
+      <option name="scriptParameters" value="-Prelease.scope=major" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
-        <list />
+        <list>
+          <option value="final" />
+          <option value="publish" />
+        </list>
       </option>
       <option name="vmOptions" />
     </ExternalSystemSettings>
